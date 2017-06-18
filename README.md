@@ -2,6 +2,8 @@
 
 wolkenkit is a semantic JavaScript backend.
 
+For details see the [wolkenkit website](https://www.wolkenkit.io) and the [documentation](https://docs.wolkenkit.io).
+
 ## Getting help
 
 If you need any help with wolkenkit, consider the following options.
