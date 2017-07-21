@@ -1,0 +1,26 @@
+{
+  "name": "wolkenkit",
+  "version": "0.0.0",
+  "description": "wolkenkit is a semantic JavaScript backend.",
+  "contributors": [
+    {
+      "name": "Golo Roden",
+      "email": "golo.roden@thenativeweb.io"
+    },
+    {
+      "name": "Matthias Wagler",
+      "email": "matthias.wagler@thenativeweb.io"
+    }
+  ],
+  "devDependencies": {
+    "roboter": "0.15.2",
+    "roboter-server": "0.15.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/thenativeweb/wolkenkit.git"
+  },
+  "keywords": [
+    "wolkenkit"
+  ]
+}

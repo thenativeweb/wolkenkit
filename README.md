@@ -2,7 +2,28 @@
 
 wolkenkit is a semantic JavaScript backend.
 
+> wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js. wolkenkit uses an event-driven model based on DDD to setup an API for your business in no time. This way, wolkenkit bridges the language gap between your domain and technology.
+
 For details see the [wolkenkit website](https://www.wolkenkit.io) and the [documentation](https://docs.wolkenkit.io).
+
+## Table of contents
+
+<!-- toc -->
+
+## Finding the code
+
+Since wolkenkit is a distributed application, its code is spread across various repositories. To get started, have a look at these primary repositories:
+
+- [wolkenkit-broker](https://github.com/thenativeweb/wolkenkit-broker)
+- [wolkenkit-core](https://github.com/thenativeweb/wolkenkit-core)
+- [wolkenkit-flows](https://github.com/thenativeweb/wolkenkit-flows)
+- [wolkenkit-depot-file](https://github.com/thenativeweb/wolkenkit-depot-file)
+
+Additionally, you may want to have a look at these repositories that contain the most important supporting modules:
+
+- [tailwind](https://github.com/thenativeweb/tailwind)
+- [sparbuch](https://github.com/thenativeweb/sparbuch)
+- [commands-events](https://github.com/thenativeweb/commands-events)
 
 ## Getting help
 
