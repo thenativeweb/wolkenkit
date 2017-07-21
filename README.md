@@ -10,6 +10,14 @@ For details see the [wolkenkit website](https://www.wolkenkit.io) and the [docum
 
 <!-- toc -->
 
+- [Finding the code](#finding-the-code)
+- [Getting help](#getting-help)
+  * [Reporting an issue](#reporting-an-issue)
+  * [Asking a question](#asking-a-question)
+  * [Getting support](#getting-support)
+
+<!-- tocstop -->
+
 ## Finding the code
 
 Since wolkenkit is a distributed application, its code is spread across various repositories. To get started, have a look at these primary repositories:
