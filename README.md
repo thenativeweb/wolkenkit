@@ -2,6 +2,10 @@
 
 wolkenkit is a semantic JavaScript backend.
 
+<div style="display: flex; justify-content: center; margin-top: 3em;">
+  <img width="200" height="200" src="images/logo.svg" alt="wolkenkit">
+</div>
+
 > wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js. wolkenkit uses an event-driven model based on DDD to setup an API for your business in no time. This way, wolkenkit bridges the language gap between your domain and technology.
 
 For details see the [wolkenkit website](https://www.wolkenkit.io) and the [documentation](https://docs.wolkenkit.io). Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>, and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
