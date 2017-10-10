@@ -8,6 +8,8 @@ wolkenkit is a semantic JavaScript backend.
 
 For details see the [wolkenkit website](https://www.wolkenkit.io) and the [documentation](https://docs.wolkenkit.io). Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>, and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
 
+If you are curious on what's next, have a look at the [roadmap](roadmap.md).
+
 ## Table of contents
 
 <!-- toc -->
