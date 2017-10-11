@@ -1,0 +1,22 @@
+{
+  "commands": {
+    "init": {
+      "template": "https://github.com/thenativeweb/wolkenkit-template-chat.git#master"
+    },
+    "logs": {
+      "follow": false
+    },
+    "start": {
+      "dangerouslyDestroyData": false,
+      "debug": false
+    },
+    "restart": {
+      "dangerouslyDestroyData": false,
+      "debug": false
+    },
+    "stop": {
+      "dangerouslyDestroyData": false
+    }
+  },
+  "env": "default"
+}

@@ -1,0 +1,47 @@
+{
+  "name": "wolkenkit-template-chat",
+  "version": "0.0.0",
+  "description": "wolkenkit-template-chat is a sample application for wolkenkit.",
+  "private": true,
+  "wolkenkit": {
+    "application": "Chat",
+    "runtime": {
+      "version": "latest"
+    },
+    "environments": {
+      "default": {
+        "api": {
+          "address": {
+            "host": "local.wolkenkit.io",
+            "port": 3000
+          },
+          "allowAccessFrom": "*"
+        },
+        "docker": {
+          "machine": "wolkenkit-cli-test"
+        },
+        "node": {
+          "environment": "development"
+        }
+      },
+      "production": {
+        "api": {
+          "address": {
+            "host": "local.wolkenkit.io",
+            "port": 3001
+          },
+          "allowAccessFrom": "*"
+        },
+        "docker": {
+          "machine": "wolkenkit-cli-test-2"
+        },
+        "node": {
+          "environment": "production"
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "wolkenkit-command-tools": "git+ssh://git@github.com/thenativeweb/wolkenkit-command-tools.git#0.4.0"
+  }
+}
