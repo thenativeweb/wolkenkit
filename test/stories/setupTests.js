@@ -62,10 +62,10 @@ const isolatedAsync = promisify(isolated);
     });
 
     await test('[wolkenkit --version] shows its version number.', async ({ directory }) => {
-      const { code, stdout, stderr } = await wolkenkit('', { version: true }, { cwd: directory });
+      const { code, stdout, stderr } = await wolkenkit('--version', {}, { cwd: directory });
 
-      assert.that(code).is.not.equalTo(0);
-      assert.that(stdout).is.equalTo(`  ${packageJson.version}`);
+      assert.that(code).is.equalTo(0);
+      assert.that(stdout).is.equalTo(`  ${packageJson.version}\n`);
       assert.that(stderr).is.equalTo('');
     });
 
