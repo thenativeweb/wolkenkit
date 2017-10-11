@@ -38,21 +38,6 @@ If you are curious on what's next, have a look at the [roadmap](roadmap.md).
 
 If you need any help with wolkenkit, consider the following options. Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>.
 
-## Finding the code
-
-Since wolkenkit is a distributed application, its code is spread across various repositories. To get started, have a look at these primary repositories:
-
-- [wolkenkit-broker](https://github.com/thenativeweb/wolkenkit-broker)
-- [wolkenkit-core](https://github.com/thenativeweb/wolkenkit-core)
-- [wolkenkit-flows](https://github.com/thenativeweb/wolkenkit-flows)
-- [wolkenkit-depot-file](https://github.com/thenativeweb/wolkenkit-depot-file)
-
-Additionally, you may want to have a look at these repositories that contain the most important supporting modules:
-
-- [tailwind](https://github.com/thenativeweb/tailwind)
-- [sparbuch](https://github.com/thenativeweb/sparbuch)
-- [commands-events](https://github.com/thenativeweb/commands-events)
-
 ### Reporting an issue
 
 If you have found an issue please first have a look at the [previously reported issues](https://github.com/thenativeweb/wolkenkit/issues) to verify whether the issue has already been reported.
@@ -72,6 +57,21 @@ If not, [ask a new question](http://stackoverflow.com/questions/ask) and tag it 
 ### Getting support
 
 If you need help by the original authors of wolkenkit, e.g. to address issues specific to your environment or project, you may be interested in a paid support plan. For that, feel free to [contact the native web](mailto:hello@thenativeweb.io).
+
+## Finding the code
+
+Since wolkenkit is a distributed application, its code is spread across various repositories. To get started, have a look at these primary repositories:
+
+- [wolkenkit-broker](https://github.com/thenativeweb/wolkenkit-broker)
+- [wolkenkit-core](https://github.com/thenativeweb/wolkenkit-core)
+- [wolkenkit-flows](https://github.com/thenativeweb/wolkenkit-flows)
+- [wolkenkit-depot-file](https://github.com/thenativeweb/wolkenkit-depot-file)
+
+Additionally, you may want to have a look at these repositories that contain the most important supporting modules:
+
+- [tailwind](https://github.com/thenativeweb/tailwind)
+- [sparbuch](https://github.com/thenativeweb/sparbuch)
+- [commands-events](https://github.com/thenativeweb/commands-events)
 
 ## Running the build
 
