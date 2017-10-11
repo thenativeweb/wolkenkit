@@ -1,7 +1,7 @@
 {
   "name": "wolkenkit",
   "version": "0.0.0",
-  "description": "wolkenkit manages wolkenkit.",
+  "description": "wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js.",
   "contributors": [
     {
       "name": "Golo Roden",
@@ -59,7 +59,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/thenativeweb/wolkenkit-cli.git"
+    "url": "git://github.com/thenativeweb/wolkenkit.git"
   },
   "keywords": [
     "wolkenkit"

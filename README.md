@@ -1,14 +1,10 @@
 # wolkenkit
 
-wolkenkit is a semantic JavaScript backend.
+wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js.
 
 ![wolkenkit](images/logo.png "wolkenkit")
 
 > wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js. wolkenkit uses an event-driven model based on DDD to setup an API for your business in no time. This way, wolkenkit bridges the language gap between your domain and technology.
-
-For details see the [wolkenkit website](https://www.wolkenkit.io) and the [documentation](https://docs.wolkenkit.io). Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>, and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
-
-If you are curious on what's next, have a look at the [roadmap](roadmap.md).
 
 ## Table of contents
 
@@ -21,6 +17,22 @@ If you are curious on what's next, have a look at the [roadmap](roadmap.md).
   * [Getting support](#getting-support)
 
 <!-- tocstop -->
+
+## Installation
+
+```shell
+$ npm install wolkenkit
+```
+
+## Quick start
+
+For details see the [wolkenkit website](https://www.wolkenkit.io) and the [documentation](https://docs.wolkenkit.io). Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>, and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
+
+If you are curious on what's next, have a look at the [roadmap](roadmap.md).
+
+## Getting help
+
+If you need any help with wolkenkit, consider the following options. Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>.
 
 ## Finding the code
 
@@ -36,10 +48,6 @@ Additionally, you may want to have a look at these repositories that contain the
 - [tailwind](https://github.com/thenativeweb/tailwind)
 - [sparbuch](https://github.com/thenativeweb/sparbuch)
 - [commands-events](https://github.com/thenativeweb/commands-events)
-
-## Getting help
-
-If you need any help with wolkenkit, consider the following options. Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>.
 
 ### Reporting an issue
 
@@ -60,3 +68,21 @@ If not, [ask a new question](http://stackoverflow.com/questions/ask) and tag it 
 ### Getting support
 
 If you need help by the original authors of wolkenkit, e.g. to address issues specific to your environment or project, you may be interested in a paid support plan. For that, feel free to [contact the native web](mailto:hello@thenativeweb.io).
+
+## Running the build
+
+To build this module use [roboter](https://www.npmjs.com/package/roboter).
+
+```shell
+$ bot
+```
+
+## License
+
+Copyright (c) 2014-2017 the native web.
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along with this program. If not, see [GNU Licenses](http://www.gnu.org/licenses/).
