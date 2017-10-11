@@ -10,11 +10,15 @@ wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js.
 
 <!-- toc -->
 
-- [Finding the code](#finding-the-code)
+- [Installation](#installation)
+- [Quick start](#quick-start)
 - [Getting help](#getting-help)
+- [Finding the code](#finding-the-code)
   * [Reporting an issue](#reporting-an-issue)
   * [Asking a question](#asking-a-question)
   * [Getting support](#getting-support)
+- [Running the build](#running-the-build)
+- [License](#license)
 
 <!-- tocstop -->
 
