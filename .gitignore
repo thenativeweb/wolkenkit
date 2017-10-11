@@ -8,3 +8,10 @@
 # OS generated files and folders
 .DS_Store
 npm-debug.log
+
+# terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.tfstate.lock.info
+.docker/

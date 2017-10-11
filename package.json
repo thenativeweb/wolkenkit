@@ -1,7 +1,7 @@
 {
   "name": "wolkenkit",
-  "version": "0.0.1",
-  "description": "wolkenkit is a semantic JavaScript backend.",
+  "version": "0.0.0",
+  "description": "wolkenkit manages wolkenkit.",
   "contributors": [
     {
       "name": "Golo Roden",
@@ -10,17 +10,59 @@
     {
       "name": "Matthias Wagler",
       "email": "matthias.wagler@thenativeweb.io"
+    },
+    {
+      "name": "Jan-Hendrik Grundhöfer",
+      "email": "jan-hendrik.grundhoefer@thenativeweb.io"
+    },
+    {
+      "name": "Michael Scherer",
+      "email": "mail@michael-scherer.net"
     }
   ],
+  "bin": {
+    "wolkenkit": "dist/bin/wolkenkit.js"
+  },
+  "main": "dist/wolkenkit/index.js",
+  "dependencies": {
+    "ajv": "5.2.2",
+    "array-to-sentence": "1.1.0",
+    "babel-polyfill": "6.26.0",
+    "buntstift": "0.5.0",
+    "certificate-details": "0.3.0",
+    "command-line-args": "4.0.7",
+    "command-line-commands": "2.0.1",
+    "command-line-usage": "4.0.1",
+    "common-tags": "1.4.0",
+    "defekt": "0.2.0",
+    "docker-compare": "0.2.0",
+    "eslint": "4.6.1",
+    "findsuggestions": "0.2.1",
+    "is-ip": "2.0.0",
+    "lodash": "4.17.4",
+    "nodeenv": "0.3.0",
+    "processenv": "0.1.1",
+    "requestretry": "1.12.2",
+    "require-dir": "0.3.2",
+    "semver": "5.4.1",
+    "sha1": "1.1.1",
+    "shelljs": "0.7.8",
+    "util.promisify": "1.0.0"
+  },
   "devDependencies": {
-    "roboter": "0.15.2",
-    "roboter-server": "0.15.2"
+    "assertthat": "0.11.0",
+    "isolated": "0.3.0",
+    "measure-time": "3.1.0",
+    "proxyquire": "1.8.0",
+    "roboter": "0.15.4",
+    "roboter-server": "0.15.4"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/thenativeweb/wolkenkit.git"
+    "url": "git://github.com/thenativeweb/wolkenkit-cli.git"
   },
   "keywords": [
     "wolkenkit"
-  ]
+  ],
+  "license": "AGPL-3.0"
 }
