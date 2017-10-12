@@ -4,14 +4,17 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-var processenv = require('processenv');
+var hash = require('object-hash'),
+    processenv = require('processenv');
 
 var errors = require('../errors'),
     shell = require('../shell');
 
+var cache = {};
+
 var getEnvironmentVariables = function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(options) {
-    var configuration, env, environment, environmentVariables, _ref2, stdout, matches;
+    var configuration, env, cacheKey, environment, environmentVariables, _ref2, stdout, matches;
 
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
@@ -42,42 +45,54 @@ var getEnvironmentVariables = function () {
 
           case 6:
             configuration = options.configuration, env = options.env;
+            cacheKey = hash(configuration) + '-' + env;
+
+            if (!cache[cacheKey]) {
+              _context.next = 10;
+              break;
+            }
+
+            return _context.abrupt('return', cache[cacheKey]);
+
+          case 10:
             environment = configuration.environments[env];
 
             if (environment) {
-              _context.next = 10;
+              _context.next = 13;
               break;
             }
 
             throw new errors.EnvironmentNotFound();
 
-          case 10:
+          case 13:
             environmentVariables = processenv();
 
             if (!(!environment.docker || !environment.docker.machine)) {
-              _context.next = 13;
+              _context.next = 17;
               break;
             }
 
+            cache[cacheKey] = environmentVariables;
+
             return _context.abrupt('return', environmentVariables);
 
-          case 13:
-            _context.next = 15;
+          case 17:
+            _context.next = 19;
             return shell.exec('docker-machine env --shell bash ' + environment.docker.machine);
 
-          case 15:
+          case 19:
             _ref2 = _context.sent;
             stdout = _ref2.stdout;
             matches = stdout.match(/^export .*$/gm);
 
             if (matches) {
-              _context.next = 20;
+              _context.next = 24;
               break;
             }
 
             throw new errors.OutputMalformed();
 
-          case 20:
+          case 24:
 
             matches.map(function (match) {
               return match.replace(/^export /, '');
@@ -92,9 +107,11 @@ var getEnvironmentVariables = function () {
               environmentVariables[key] = value;
             });
 
+            cache[cacheKey] = environmentVariables;
+
             return _context.abrupt('return', environmentVariables);
 
-          case 22:
+          case 27:
           case 'end':
             return _context.stop();
         }
