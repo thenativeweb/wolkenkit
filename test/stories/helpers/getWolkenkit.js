@@ -19,7 +19,7 @@ const getWolkenkit = async function (options) {
   const { ipAddress } = options;
 
   return async function (name, parameters = {}, opts = {}) {
-    if (!name) {
+    if (name === undefined) {
       throw new Error('Name is missing.');
     }
 

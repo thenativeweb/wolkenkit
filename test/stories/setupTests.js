@@ -9,18 +9,25 @@ const assert = require('assertthat'),
 const getDirectoryList = require('./helpers/getDirectoryList'),
       suite = require('./helpers/suite');
 
-const defaults = require('../../lib/cli/defaults');
+const defaults = require('../../lib/cli/defaults'),
+      packageJson = require('../../package.json');
 
 const isolatedAsync = promisify(isolated);
 
 (async () => {
   await suite('setup', async ({ test, wolkenkit }) => {
-    await test('[wolkenkit] suggests a command when an unknown command is given.', async ({ directory }) => {
-      const { code, stdout, stderr } = await wolkenkit('hel', {}, { cwd: directory });
+    await test('[wolkenkit] shows the usage.', async ({ directory }) => {
+      const { code, stderr, stdout } = await wolkenkit('', {}, { cwd: directory });
 
-      assert.that(code).is.not.equalTo(0);
-      assert.that(stdout).is.equalTo('');
-      assert.that(stderr).is.equalTo('✗ Unknown command \'hel\', did you mean \'help\'?\n');
+      assert.that(code).is.equalTo(0);
+      assert.that(stdout).is.matching(/Verify whether wolkenkit is setup correctly/);
+      assert.that(stdout).is.matching(/Show the help/);
+      assert.that(stdout).is.matching(/Initialize a new application/);
+      assert.that(stdout).is.matching(/List installed wolkenkit versions/);
+      assert.that(stdout).is.matching(/List available wolkenkit versions/);
+      assert.that(stdout).is.matching(/Start an application/);
+      assert.that(stdout).is.matching(/Update the wolkenkit CLI/);
+      assert.that(stderr).is.equalTo('');
     });
 
     await test('[wolkenkit help] shows the usage.', async ({ directory }) => {
@@ -28,11 +35,11 @@ const isolatedAsync = promisify(isolated);
 
       assert.that(code).is.equalTo(0);
       assert.that(stdout).is.matching(/Verify whether wolkenkit is setup correctly/);
-      assert.that(stdout).is.matching(/Shows the help/);
-      assert.that(stdout).is.matching(/Initializes a new application/);
-      assert.that(stdout).is.matching(/Show installed wolkenkit versions/);
-      assert.that(stdout).is.matching(/Show available wolkenkit versions/);
-      assert.that(stdout).is.matching(/Starts an application/);
+      assert.that(stdout).is.matching(/Show the help/);
+      assert.that(stdout).is.matching(/Initialize a new application/);
+      assert.that(stdout).is.matching(/List installed wolkenkit versions/);
+      assert.that(stdout).is.matching(/List available wolkenkit versions/);
+      assert.that(stdout).is.matching(/Start an application/);
       assert.that(stdout).is.matching(/Update the wolkenkit CLI/);
       assert.that(stderr).is.equalTo('');
     });
@@ -41,8 +48,24 @@ const isolatedAsync = promisify(isolated);
       const { code, stderr, stdout } = await wolkenkit('init', { help: true }, { cwd: directory });
 
       assert.that(code).is.equalTo(0);
-      assert.that(stdout).is.matching(/Initializes a new application/);
+      assert.that(stdout).is.matching(/Initialize a new application/);
       assert.that(stdout).is.matching(/wolkenkit init \[--template <url>\]/);
+      assert.that(stderr).is.equalTo('');
+    });
+
+    await test('[wolkenkit] suggests a command when an unknown command is given.', async ({ directory }) => {
+      const { code, stdout, stderr } = await wolkenkit('hel', {}, { cwd: directory });
+
+      assert.that(code).is.not.equalTo(0);
+      assert.that(stdout).is.equalTo('');
+      assert.that(stderr).is.equalTo('✗ Unknown command \'hel\', did you mean \'help\'?\n');
+    });
+
+    await test('[wolkenkit --version] shows its version number.', async ({ directory }) => {
+      const { code, stdout, stderr } = await wolkenkit('--version', {}, { cwd: directory });
+
+      assert.that(code).is.equalTo(0);
+      assert.that(stdout).is.equalTo(`  ${packageJson.version}\n`);
       assert.that(stderr).is.equalTo('');
     });
 
