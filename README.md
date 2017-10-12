@@ -25,7 +25,7 @@ wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js.
 ## Installation
 
 ```shell
-$ npm install wolkenkit
+$ npm install -g wolkenkit
 ```
 
 ## Quick start
