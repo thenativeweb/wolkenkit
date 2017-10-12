@@ -15,7 +15,8 @@ var buntstift = require('buntstift'),
     findSuggestions = require('findsuggestions');
 
 var commands = require('../cli/commands'),
-    globalOptionDefinitions = require('../cli/globalOptionDefinitions');
+    globalOptionDefinitions = require('../cli/globalOptionDefinitions'),
+    packageJson = require('../../package.json');
 
 _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
   var validCommands, parsed, suggestions, command, validOptionDefinitions, args;
@@ -38,6 +39,11 @@ _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
           }
 
           if (!parsed.command) {
+            if (parsed.argv.length > 0 && parsed.argv.includes('--version')) {
+              buntstift.info(packageJson.version);
+              buntstift.exit(0);
+            }
+
             parsed.command = 'help';
           }
 
