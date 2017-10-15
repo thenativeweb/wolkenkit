@@ -61,7 +61,7 @@ const container = function (options) {
         '/keys/wildcard.wolkenkit.io',
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
       LISTSTORE_URL: `mongodb://wolkenkit:${sharedKey}@liststore:27017/wolkenkit`,
-      NODE_ENV: (selectedEnvironment.node && selectedEnvironment.node.environment) || 'development',
+      NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       PROFILING_HOST: selectedEnvironment.api.address.host,
       PROFILING_PORT: 8125
     },

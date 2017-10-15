@@ -45,7 +45,7 @@ const container = function (options) {
       EVENTSTORE_TYPE: 'postgres',
       EVENTSTORE_URL: `pg://wolkenkit:${sharedKey}@eventstore:5432/wolkenkit`,
       FLOWBUS_URL: `amqp://wolkenkit:${sharedKey}@messagebus:5672`,
-      NODE_ENV: (selectedEnvironment.node && selectedEnvironment.node.environment) || 'development',
+      NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       PROFILING_HOST: selectedEnvironment.api.address.host,
       PROFILING_PORT: 8125
     },
