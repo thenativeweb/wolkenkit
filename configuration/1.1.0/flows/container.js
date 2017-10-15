@@ -1,5 +1,7 @@
 'use strict';
 
+const get = require('lodash/get');
+
 const image = require('./image');
 
 const container = function (options) {
