@@ -68,7 +68,7 @@ const schema = function () {
                 additionalProperties: false
               }
             },
-            required: [ 'api', 'node' ],
+            required: [ 'api' ],
             additionalProperties: false
           }
         },

@@ -37,7 +37,7 @@ const container = function (options) {
       IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate', '/keys/wildcard.wolkenkit.io'),
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
       KEYS: get(selectedEnvironment, 'api.certificate', '/keys/local.wolkenkit.io'),
-      NODE_ENV: selectedEnvironment.node.environment
+      NODE_ENV: selectedEnvironment.node.environment || 'development'
     },
     labels: {
       'wolkenkit-api-host': selectedEnvironment.api.address.host,

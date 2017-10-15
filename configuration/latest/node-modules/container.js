@@ -32,7 +32,7 @@ const container = function (options) {
     image: `${configuration.application}-node-modules`,
     name: `${configuration.application}-node-modules`,
     env: {
-      NODE_ENV: selectedEnvironment.node.environment
+      NODE_ENV: selectedEnvironment.node.environment || 'development'
     },
     labels: {
       'wolkenkit-api-host': selectedEnvironment.api.address.host,
