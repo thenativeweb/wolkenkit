@@ -25,7 +25,9 @@ suite('network/getIpAddresses', () => {
   test('returns addresses if host is given.', async () => {
     const addresses = await getIpAddresses('localhost');
 
-    assert.that(addresses).is.equalTo([
+    assert.that(
+      addresses.filter(item => item.address === '127.0.0.1' || item.address === '::1')
+    ).is.equalTo([
       { address: '127.0.0.1', family: 4 },
       { address: '::1', family: 6 }
     ]);
