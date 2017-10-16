@@ -39,6 +39,7 @@
     "eslint": "4.6.1",
     "findsuggestions": "0.2.1",
     "is-ip": "2.0.0",
+    "isolated": "0.3.0",
     "lodash": "4.17.4",
     "nodeenv": "0.3.0",
     "object-hash": "1.2.0",
@@ -48,11 +49,12 @@
     "semver": "5.4.1",
     "sha1": "1.1.1",
     "shelljs": "0.7.8",
+    "superagent": "3.6.3",
+    "tar": "4.0.1",
     "util.promisify": "1.0.0"
   },
   "devDependencies": {
     "assertthat": "0.11.0",
-    "isolated": "0.3.0",
     "measure-time": "3.1.0",
     "proxyquire": "1.8.0",
     "roboter": "0.15.4",
