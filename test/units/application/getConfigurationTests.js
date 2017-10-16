@@ -71,10 +71,10 @@ suite('application/getConfiguration', () => {
     }).is.throwingAsync(ex => ex.code === 'EVERSIONNOTFOUND');
   });
 
-  test('throws an error if package.json does not contain node environment.', async () => {
+  test('does not throw an error if package.json does not contain node environment.', async () => {
     await assert.that(async () => {
       await getConfiguration({ directory: directory.doesNotContainNodeEnvironment });
-    }).is.throwingAsync(ex => ex.code === 'ECONFIGURATIONMALFORMED');
+    }).is.not.throwingAsync();
   });
 
   test('throws an error if package.json does not contain an port.', async () => {
