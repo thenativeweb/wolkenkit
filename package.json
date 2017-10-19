@@ -1,6 +1,6 @@
 {
   "name": "wolkenkit",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js.",
   "contributors": [
     {
