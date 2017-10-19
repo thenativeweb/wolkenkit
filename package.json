@@ -42,6 +42,7 @@
     "lodash": "4.17.4",
     "nodeenv": "0.3.0",
     "object-hash": "1.2.0",
+    "portscanner": "2.1.1",
     "processenv": "0.1.1",
     "requestretry": "1.12.2",
     "require-dir": "0.3.2",
