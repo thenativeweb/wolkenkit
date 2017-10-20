@@ -12,7 +12,8 @@ var docker = require('../../../docker'),
     noop = require('../../../noop'),
     runtimes = require('../../runtimes'),
     shared = require('../shared'),
-    startContainers = require('./startContainers');
+    startContainers = require('./startContainers'),
+    verifyThatPortsAreAvailable = require('./verifyThatPortsAreAvailable');
 
 var start = function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(options) {
@@ -139,67 +140,73 @@ var start = function () {
             throw new errors.ApplicationPartiallyRunning();
 
           case 41:
-            _context.next = 43;
+
+            progress({ message: 'Verifying that ports are available...', type: 'info' });
+            _context.next = 44;
+            return verifyThatPortsAreAvailable({ forVersion: runtimeVersion, configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
+
+          case 44:
+            _context.next = 46;
             return runtimes.getInstallationStatus({ configuration: configuration, env: env, forVersion: runtimeVersion });
 
-          case 43:
+          case 46:
             _context.t1 = _context.sent;
 
             if (!(_context.t1 !== 'installed')) {
-              _context.next = 48;
+              _context.next = 51;
               break;
             }
 
             progress({ message: 'Installing wolkenkit ' + runtimeVersion + ' on environment ' + env + '...', type: 'info' });
-            _context.next = 48;
+            _context.next = 51;
             return install({ directory: directory, env: env, version: runtimeVersion }, progress);
 
-          case 48:
+          case 51:
             if (!dangerouslyDestroyData) {
-              _context.next = 52;
+              _context.next = 55;
               break;
             }
 
             progress({ message: 'Destroying previous data...', type: 'info' });
-            _context.next = 52;
-            return shared.destroyData({ configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
-
-          case 52:
-
-            progress({ message: 'Setting up network...', type: 'info' });
             _context.next = 55;
-            return docker.ensureNetworkExists({ configuration: configuration, env: env });
+            return shared.destroyData({ configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
 
           case 55:
 
-            progress({ message: 'Building Docker images...', type: 'info' });
+            progress({ message: 'Setting up network...', type: 'info' });
             _context.next = 58;
-            return shared.buildImages({ directory: directory, configuration: configuration, env: env }, progress);
+            return docker.ensureNetworkExists({ configuration: configuration, env: env });
 
           case 58:
 
-            progress({ message: 'Starting Docker containers...', type: 'info' });
+            progress({ message: 'Building Docker images...', type: 'info' });
             _context.next = 61;
-            return startContainers({ configuration: configuration, env: env, port: port, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
+            return shared.buildImages({ directory: directory, configuration: configuration, env: env }, progress);
 
           case 61:
+
+            progress({ message: 'Starting Docker containers...', type: 'info' });
+            _context.next = 64;
+            return startContainers({ configuration: configuration, env: env, port: port, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
+
+          case 64:
 
             progress({ message: 'Using ' + sharedKey + ' as shared key.', type: 'info' });
             progress({ message: 'Waiting for https://' + host + ':' + port + '/v1/ping to reply...', type: 'info' });
 
-            _context.next = 65;
+            _context.next = 68;
             return shared.waitForApplication({ configuration: configuration, env: env }, progress);
 
-          case 65:
+          case 68:
             if (!debug) {
-              _context.next = 68;
+              _context.next = 71;
               break;
             }
 
-            _context.next = 68;
+            _context.next = 71;
             return shared.attachDebugger({ configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
 
-          case 68:
+          case 71:
           case 'end':
             return _context.stop();
         }
