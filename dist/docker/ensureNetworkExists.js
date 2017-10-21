@@ -45,7 +45,7 @@ var ensureNetworkExists = function () {
           case 10:
             environmentVariables = _context.sent;
             _context.next = 13;
-            return shell.exec('docker network ls --format \'{{json .}}\'', {
+            return shell.exec('docker network ls --format "{{json .}}"', {
               env: environmentVariables
             });
 

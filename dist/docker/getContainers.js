@@ -61,11 +61,11 @@ var getContainers = function () {
             environmentVariables = _context.sent;
             filter = flatten(map(where, function (keyValuePair, criterion) {
               return map(keyValuePair, function (value, key) {
-                return '--filter \'' + criterion + '=' + key + '=' + value + '\'';
+                return '--filter "' + criterion + '=' + key + '=' + value + '"';
               });
             }));
             _context.next = 15;
-            return shell.exec('docker ps --all ' + filter.join(' ') + ' --format \'{{json .}}\'', {
+            return shell.exec('docker ps --all ' + filter.join(' ') + ' --format "{{json .}}"', {
               env: environmentVariables
             });
 
