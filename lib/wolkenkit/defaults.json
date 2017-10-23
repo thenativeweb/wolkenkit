@@ -1,0 +1,10 @@
+{
+  "commands": {
+    "deploy": {
+      "aufwind": {
+        "host": "localhost",
+        "port": 5000
+      }
+    }
+  }
+}

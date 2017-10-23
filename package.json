@@ -38,6 +38,7 @@
     "docker-compare": "0.2.0",
     "eslint": "4.6.1",
     "findsuggestions": "0.2.1",
+    "freeport": "1.0.5",
     "is-ip": "2.0.0",
     "isolated": "0.3.0",
     "lodash": "4.17.4",
