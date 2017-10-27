@@ -85,7 +85,7 @@ var ping = function () {
             output = void 0;
             _context.prev = 31;
             _context.next = 34;
-            return shell.exec('docker version --format \'{{json .}}\'', {
+            return shell.exec('docker version --format "{{json .}}"', {
               env: environmentVariables
             });
 

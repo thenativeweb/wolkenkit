@@ -14,15 +14,15 @@ const runtimes = require('../../lib/wolkenkit/runtimes'),
       const { code, stderr, stdout } = await wolkenkit('ls-remote', {}, { cwd: directory });
 
       assert.that(code).is.equalTo(0);
-      assert.that(stdout).is.equalTo(`  Available wolkenkit versions:\n${allVersions.map(version => `∙ ${version}\n`).join('')}`);
-      assert.that(stderr).is.equalTo('');
+      assert.that(stdout).is.equalTo(`  package.json is missing, using fallback configuration.\n${allVersions.map(version => `∙ ${version}\n`).join('')}✓ There are 0 of 4 supported wolkenkit versions installed on environment default.\n`);
+      assert.that(stderr).is.equalTo('▻ The command ls-remote is deprecated and will be removed in a future version, use ls instead.\n');
     });
 
     await test('[wolkenkit ls] reports that no versions are installed.', async ({ directory }) => {
       const { code, stderr, stdout } = await wolkenkit('ls', {}, { cwd: directory });
 
       assert.that(code).is.equalTo(0);
-      assert.that(stdout).is.equalTo('  package.json is missing, using fallback configuration.\n  No wolkenkit versions installed on environment default.\n');
+      assert.that(stdout).is.equalTo(`  package.json is missing, using fallback configuration.\n${allVersions.map(version => `∙ ${version}\n`).join('')}✓ There are 0 of 4 supported wolkenkit versions installed on environment default.\n`);
       assert.that(stderr).is.equalTo('');
     });
 
@@ -38,7 +38,7 @@ const runtimes = require('../../lib/wolkenkit/runtimes'),
       const { code, stderr, stdout } = await wolkenkit('ls', {}, { cwd: directory });
 
       assert.that(code).is.equalTo(0);
-      assert.that(stdout).is.equalTo(`  package.json is missing, using fallback configuration.\n  Installed wolkenkit versions on environment default:\n∙ ${latestStableVersion}\n`);
+      assert.that(stdout).is.matching(/There are 1 of 4 supported wolkenkit versions installed on environment default/);
       assert.that(stderr).is.equalTo('');
     });
 
@@ -70,7 +70,7 @@ const runtimes = require('../../lib/wolkenkit/runtimes'),
       const { code, stderr, stdout } = await wolkenkit('ls', {}, { cwd: directory });
 
       assert.that(code).is.equalTo(0);
-      assert.that(stdout).is.equalTo('  package.json is missing, using fallback configuration.\n  Installed wolkenkit versions on environment default:\n∙ latest\n');
+      assert.that(stdout).is.matching(/There are 1 of 4 supported wolkenkit versions installed on environment default/);
       assert.that(stderr).is.equalTo('');
     });
 
