@@ -3,7 +3,10 @@
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 var application = require('../../../application'),
-    errors = require('../../../errors');
+    errors = require('../../../errors'),
+    _require = require('../../../certificate'),
+    isNameMatching = _require.isNameMatching;
+
 
 var checkCertificate = function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(options, progress) {
@@ -91,13 +94,12 @@ var checkCertificate = function () {
               progress({ message: 'Application certificate is self-signed.', type: 'warn' });
             }
 
-            if (!(certificate.subject.commonName !== host && certificate.subject.alternativeNames && !certificate.subject.alternativeNames.includes(host))) {
+            if (isNameMatching({ certificate: certificate, name: host })) {
               _context.next = 34;
               break;
             }
 
             progress({ message: 'Application certificate does not match application host ' + host + '.', type: 'info' });
-
             throw new errors.CertificateMismatch();
 
           case 34:
@@ -109,7 +111,6 @@ var checkCertificate = function () {
             }
 
             progress({ message: 'Application certificate has expired.', type: 'info' });
-
             throw new errors.CertificateExpired();
 
           case 38:
@@ -119,7 +120,6 @@ var checkCertificate = function () {
             }
 
             progress({ message: 'Application certificate is not yet valid.', type: 'info' });
-
             throw new errors.CertificateNotYetValid();
 
           case 41:
