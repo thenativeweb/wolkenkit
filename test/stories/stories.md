@@ -2,14 +2,6 @@
 
 The following list is a foundation for the stories we should test. Generally speaking, we should always test for the *output* and the *exit code*.
 
-## updateTests.js
-
-- update
-  - updates the CLI to the latest version.
-  - does not update the CLI if the latest version is already installed.
-
-*Note: We need to figure out how to make this test reproducable.*
-
 ## applicationLifecycleTests.js
 
 - application lifecycle
