@@ -13,8 +13,8 @@ var defaults = require('../defaults.json'),
     showProgress = require('../showProgress'),
     wolkenkit = require('../../wolkenkit');
 
-var install = {
-  description: 'List installed wolkenkit versions.',
+var ls = {
+  description: 'List supported and installed wolkenkit versions.',
 
   getOptionDefinitions: function getOptionDefinitions() {
     var _this = this;
@@ -45,7 +45,7 @@ var install = {
     var _this2 = this;
 
     return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-      var directory, env, help, verbose, stopWaiting;
+      var directory, env, help, verbose, stopWaiting, versions;
       return regeneratorRuntime.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
@@ -100,35 +100,38 @@ var install = {
 
             case 23:
               stopWaiting = buntstift.wait();
-              _context2.prev = 24;
-              _context2.next = 27;
+              versions = void 0;
+              _context2.prev = 25;
+              _context2.next = 28;
               return wolkenkit.ls({ directory: directory, env: env }, showProgress(verbose, stopWaiting));
 
-            case 27:
-              _context2.next = 34;
+            case 28:
+              versions = _context2.sent;
+              _context2.next = 36;
               break;
 
-            case 29:
-              _context2.prev = 29;
-              _context2.t14 = _context2['catch'](24);
+            case 31:
+              _context2.prev = 31;
+              _context2.t14 = _context2['catch'](25);
 
               stopWaiting();
-              buntstift.error('Failed to list installed wolkenkit versions.');
+              buntstift.error('Failed to list supported and installed wolkenkit versions.');
 
               throw _context2.t14;
 
-            case 34:
+            case 36:
 
               stopWaiting();
+              buntstift.success('There are ' + versions.installed.length + ' of ' + versions.supported.length + ' supported wolkenkit versions installed on environment ' + env + '.');
 
-            case 35:
+            case 38:
             case 'end':
               return _context2.stop();
           }
         }
-      }, _callee2, _this2, [[24, 29]]);
+      }, _callee2, _this2, [[25, 31]]);
     }))();
   }
 };
 
-module.exports = install;
+module.exports = ls;

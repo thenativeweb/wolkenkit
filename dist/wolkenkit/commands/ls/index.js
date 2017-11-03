@@ -11,7 +11,7 @@ var ls = function () {
     var _this = this;
 
     var progress = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
-    var directory, env, configuration, versions, installedVersions;
+    var directory, env, configuration, supportedVersions, installedVersions;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -58,10 +58,10 @@ var ls = function () {
             return runtimes.getAllVersions();
 
           case 14:
-            versions = _context2.sent;
+            supportedVersions = _context2.sent;
             installedVersions = [];
             _context2.next = 18;
-            return Promise.all(versions.map(function () {
+            return Promise.all(supportedVersions.map(function () {
               var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(version) {
                 var isInstalled;
                 return regeneratorRuntime.wrap(function _callee$(_context) {
@@ -94,23 +94,17 @@ var ls = function () {
 
           case 18:
 
-            if (installedVersions.length === 0) {
-              progress({ message: 'No wolkenkit versions installed on environment ' + env + '.', type: 'info' });
-            } else {
-              progress({ message: 'Installed wolkenkit versions on environment ' + env + ':', type: 'info' });
+            supportedVersions.forEach(function (version) {
+              if (installedVersions.includes(version)) {
+                return progress({ message: version + ' (installed)', type: 'list' });
+              }
 
-              // Iterate over the original array, as this is sorted, and it's easier to
-              // do it this way than to sort installedVersions again (which would need to
-              // be done using semver).
-              versions.forEach(function (version) {
-                if (!installedVersions.includes(version)) {
-                  return;
-                }
-                progress({ message: version, type: 'list' });
-              });
-            }
+              progress({ message: version, type: 'list' });
+            });
 
-          case 19:
+            return _context2.abrupt('return', { supported: supportedVersions, installed: installedVersions });
+
+          case 20:
           case 'end':
             return _context2.stop();
         }
