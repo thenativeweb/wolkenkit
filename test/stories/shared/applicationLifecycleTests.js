@@ -20,9 +20,9 @@ const applicationLifecycleTests = async function (runtime) {
 
       const { code, stderr, stdout } = await wolkenkit('init', { template }, { cwd: applicationDirectory });
 
-      assert.that(code).is.equalTo(0);
-      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n✓ Initialized a new application.\n`);
       assert.that(stderr).is.equalTo('');
+      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n✓ Initialized a new application.\n`);
+      assert.that(code).is.equalTo(0);
 
       const directoryList = await getDirectoryList(applicationDirectory);
 
