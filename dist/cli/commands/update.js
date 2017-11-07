@@ -13,7 +13,7 @@ var errors = require('../../errors'),
     wolkenkit = require('../../wolkenkit');
 
 var update = {
-  description: 'Update the wolkenkit CLI.',
+  description: 'Update the wolkenkit CLI (deprecated, use npm instead).',
 
   getOptionDefinitions: function getOptionDefinitions() {
     var _this = this;
@@ -89,7 +89,7 @@ var update = {
               return wolkenkit.update(showProgress(verbose, stopWaiting));
 
             case 25:
-              _context2.next = 32;
+              _context2.next = 33;
               break;
 
             case 27:
@@ -104,14 +104,17 @@ var update = {
                 buntstift.error('Failed to update the wolkenkit CLI.');
               }
 
+              buntstift.warn('The command update is deprecated and will be removed in a future version, use npm instead.');
+
               throw _context2.t13;
 
-            case 32:
+            case 33:
 
               stopWaiting();
               buntstift.success('Updated the wolkenkit CLI.');
+              buntstift.warn('The command update is deprecated and will be removed in a future version, use npm instead.');
 
-            case 34:
+            case 36:
             case 'end':
               return _context2.stop();
           }
