@@ -12,11 +12,14 @@ require('babel-polyfill');
 var buntstift = require('buntstift'),
     commandLineArgs = require('command-line-args'),
     commandLineCommands = require('command-line-commands'),
-    findSuggestions = require('findsuggestions');
+    findSuggestions = require('findsuggestions'),
+    updateNotifier = require('update-notifier');
 
 var commands = require('../cli/commands'),
     globalOptionDefinitions = require('../cli/globalOptionDefinitions'),
     packageJson = require('../../package.json');
+
+updateNotifier({ pkg: packageJson }).notify();
 
 _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
   var validCommands, parsed, suggestions, command, validOptionDefinitions, args;
