@@ -49,6 +49,7 @@
     "semver": "5.4.1",
     "sha1": "1.1.1",
     "shelljs": "0.7.8",
+    "update-notifier": "2.3.0",
     "util.promisify": "1.0.0"
   },
   "devDependencies": {
