@@ -1,9 +1,15 @@
 {
   "commands": {
-    "deploy": {
+    "shared": {
       "aufwind": {
-        "host": "localhost",
-        "port": 5000
+        "ssh": {
+          "host": "aufwind.wolkenkit.io",
+          "port": 22
+        },
+        "http": {
+          "host": "localhost",
+          "port": 5000
+        }
       }
     }
   }
