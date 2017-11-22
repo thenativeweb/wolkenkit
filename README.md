@@ -81,6 +81,33 @@ To build this module use [roboter](https://www.npmjs.com/package/roboter).
 $ bot
 ```
 
+## Running the tests
+
+To run the unit test we use [roboter](https://www.npmjs.com/package/roboter).
+
+```shell
+$ bot test
+```
+
+To run the story tests we use [terraform](https://www.terraform.io/) with AWS EC2 provider.
+
+```shell
+$ node test/stories/index.js
+```
+
+## FAQ
+
+- Running the story tests getting an error called *Error loading extension section V3_ca*
+
+If you get the error *Error loading extension section V3_ca* by running the story tests,
+you have to edit your local openssl configuration.
+You can find the configuration here `/private/etc/ssl/openssl.cnf`. In this file you have to add the following lines:
+
+```
+[ v3_ca ]
+basicConstraints = critical,CA:TRUE
+```
+
 ## License
 
 Copyright (c) 2014-2017 the native web.

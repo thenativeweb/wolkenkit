@@ -13,14 +13,28 @@ const suite = async function (description, fn) {
   let mustRunTeardown = false;
 
   if (!ipAddress) {
-    const ipAddresses = await setupAws({ instanceCount: 1 });
+    let ipAddresses;
+
+    try {
+      ipAddresses = await setupAws({ instanceCount: 1 });
+    } catch (ex) {
+      buntstift.info('Failed to set up AWS instance(s).');
+      buntstift.error(ex.message);
+
+      return;
+    }
 
     ipAddress = ipAddresses[0];
     mustRunTeardown = true;
   }
 
   const teardown = async function () {
-    await teardownAws({ instanceCount: 1 });
+    try {
+      await teardownAws({ instanceCount: 1 });
+    } catch (ex) {
+      buntstift.info('Failed to torn down AWS instance(s).');
+      buntstift.error(ex.message);
+    }
   };
 
   const test = await getTest({ description });
