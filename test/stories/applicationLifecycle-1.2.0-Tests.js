@@ -3,5 +3,5 @@
 const applicationLifecycleTests = require('./shared/applicationLifecycleTests');
 
 (async () => {
-  await applicationLifecycleTests('1.1.0');
+  await applicationLifecycleTests('1.2.0');
 })();

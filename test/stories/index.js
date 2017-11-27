@@ -3,7 +3,8 @@
 const childProcess = require('child_process'),
       fs = require('fs');
 
-const promisify = require('util.promisify');
+const buntstift = require('buntstift'),
+      promisify = require('util.promisify');
 
 const setupAws = require('./helpers/setupAws'),
       teardownAws = require('./helpers/teardownAws');
@@ -16,7 +17,16 @@ const readdir = promisify(fs.readdir);
 
   const instanceCount = tests.length;
 
-  const ipAddresses = await setupAws({ instanceCount });
+  let ipAddresses;
+
+  try {
+    ipAddresses = await setupAws({ instanceCount });
+  } catch (ex) {
+    buntstift.info('Failed to set up AWS instance(s).');
+    buntstift.error(ex.message);
+
+    return;
+  }
 
   const childProcesses = [];
 
@@ -38,5 +48,10 @@ const readdir = promisify(fs.readdir);
     childProcesses.push(child);
   })));
 
-  await teardownAws({ instanceCount });
+  try {
+    await teardownAws({ instanceCount });
+  } catch (ex) {
+    buntstift.info('Failed to tear down AWS instance(s).');
+    buntstift.error(ex.message);
+  }
 })();
