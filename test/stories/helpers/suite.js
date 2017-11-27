@@ -32,7 +32,7 @@ const suite = async function (description, fn) {
     try {
       await teardownAws({ instanceCount: 1 });
     } catch (ex) {
-      buntstift.info('Failed to torn down AWS instance(s).');
+      buntstift.info('Failed to tear down AWS instance(s).');
       buntstift.error(ex.message);
     }
   };

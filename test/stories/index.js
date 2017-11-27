@@ -51,7 +51,7 @@ const readdir = promisify(fs.readdir);
   try {
     await teardownAws({ instanceCount });
   } catch (ex) {
-    buntstift.info('Failed to torn down AWS instance(s).');
+    buntstift.info('Failed to tear down AWS instance(s).');
     buntstift.error(ex.message);
   }
 })();
