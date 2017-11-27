@@ -185,7 +185,7 @@ const schema = function () {
                       readModel: {
                         type: 'object',
                         properties: {
-                          lists: {
+                          listStore: {
                             type: 'object',
                             properties: {
                               type: {
@@ -202,7 +202,7 @@ const schema = function () {
                           }
                         },
                         additionalProperties: false,
-                        required: [ 'lists' ]
+                        required: [ 'listStore' ]
                       },
                       messaging: {
                         type: 'object',
