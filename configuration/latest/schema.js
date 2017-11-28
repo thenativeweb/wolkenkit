@@ -141,21 +141,10 @@ const schema = function () {
                         },
                         additionalProperties: false,
                         required: [ 'host', 'port' ]
-                      },
-                      instance: {
-                        type: 'object',
-                        properties: {
-                          name: {
-                            type: 'string',
-                            minLength: 1
-                          }
-                        },
-                        additionalProperties: false,
-                        required: [ 'name' ]
                       }
                     },
                     additionalProperties: false,
-                    required: [ 'instance' ]
+                    required: []
                   },
                   infrastructure: {
                     type: 'object',
