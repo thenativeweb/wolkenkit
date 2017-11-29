@@ -21,7 +21,7 @@ var validateCode = function validateCode(options, progress) {
 
 
   var cliEngine = new eslint.CLIEngine({
-    envs: ['node'],
+    envs: ['node', 'es6'],
     parserOptions: {
       ecmaVersion: 2017,
       ecmaFeatures: {}
