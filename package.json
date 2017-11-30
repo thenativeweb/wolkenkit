@@ -42,6 +42,7 @@
     "is-ip": "2.0.0",
     "isolated": "0.3.0",
     "lodash": "4.17.4",
+    "newline-json": "0.1.1",
     "nodeenv": "0.3.0",
     "object-hash": "1.2.0",
     "open": "0.0.5",
