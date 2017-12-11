@@ -12,6 +12,7 @@ wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js.
 
 - [Installation](#installation)
 - [Quick start](#quick-start)
+- [Sample applications](#sample-applications)
 - [Getting help](#getting-help)
   * [Reporting an issue](#reporting-an-issue)
   * [Asking a question](#asking-a-question)
@@ -33,6 +34,16 @@ $ npm install -g wolkenkit
 For details see the [wolkenkit website](https://www.wolkenkit.io) and the [documentation](https://docs.wolkenkit.io). Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>, and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
 
 If you are curious on what's next, have a look at the [roadmap](roadmap.md).
+
+## Sample applications
+
+There are a number of sample applications available:
+
+- [wolkenkit-boards](https://github.com/thenativeweb/wolkenkit-boards) is a team collaboration application.
+- [wolkenkit-geocaching](https://github.com/revrng/wolkenkit-geocaching) is a geocaching application.
+- [wolkenkit-nevercompletedgame](https://github.com/thenativeweb/wolkenkit-nevercompletedgame) is a mystery game.
+- [wolkenkit-template-chat](https://github.com/thenativeweb/wolkenkit-template-chat) is a simple messaging application.
+- [wolkenkit-todomvc](https://github.com/thenativeweb/wolkenkit-todomvc) is a todo list application.
 
 ## Getting help
 
