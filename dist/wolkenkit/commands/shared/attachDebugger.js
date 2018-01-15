@@ -8,8 +8,7 @@ var runtimes = require('../../runtimes');
 
 var attachDebugger = function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(options, progress) {
-    var configuration, env, sharedKey, persistData, debug, host, runtime, containers, i, container, debugPort, debugConfiguration, _debugConfiguration$, devtoolsFrontendUrl, id, hash, debugUrl;
-
+    var configuration, env, sharedKey, persistData, debug, host, runtime, containers, i, container, debugPort, debugConfiguration, id, debugUrl;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -88,7 +87,7 @@ var attachDebugger = function () {
 
           case 20:
             if (!(i < containers.length)) {
-              _context.next = 37;
+              _context.next = 36;
               break;
             }
 
@@ -99,7 +98,7 @@ var attachDebugger = function () {
               break;
             }
 
-            return _context.abrupt('continue', 34);
+            return _context.abrupt('continue', 33);
 
           case 24:
             debugPort = container.ports[9229];
@@ -109,7 +108,7 @@ var attachDebugger = function () {
               break;
             }
 
-            return _context.abrupt('continue', 34);
+            return _context.abrupt('continue', 33);
 
           case 27:
             _context.next = 29;
@@ -122,19 +121,18 @@ var attachDebugger = function () {
 
           case 29:
             debugConfiguration = _context.sent;
-            _debugConfiguration$ = debugConfiguration[0], devtoolsFrontendUrl = _debugConfiguration$.devtoolsFrontendUrl, id = _debugConfiguration$.id;
-            hash = devtoolsFrontendUrl.match(/@\w+/)[0];
-            debugUrl = 'chrome-devtools://devtools/remote/serve_file/' + hash + '/inspector.html?experiments=true&v8only=true&ws=' + host + ':' + debugPort + '/' + id;
+            id = debugConfiguration[0].id;
+            debugUrl = 'chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=' + host + ':' + debugPort + '/' + id;
 
 
             progress({ message: 'Started debugger for ' + container.name + ' on ' + debugUrl + '.', type: 'info' });
 
-          case 34:
+          case 33:
             i++;
             _context.next = 20;
             break;
 
-          case 37:
+          case 36:
           case 'end':
             return _context.stop();
         }
