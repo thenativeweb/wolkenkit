@@ -42,7 +42,7 @@ const container = function (options) {
     ],
     image: `${configuration.application}-broker`,
     name: `${configuration.application}-broker`,
-    cmd: `dumb-init node ${debug ? '--inspect' : ''} /wolkenkit/app.js`,
+    cmd: `dumb-init node ${debug ? '--inspect=0.0.0.0:9229' : ''} /wolkenkit/app.js`,
     env: {
       API_CORS_ORIGIN: selectedEnvironment.api.allowAccessFrom,
       API_HOST: selectedEnvironment.api.address.host,
