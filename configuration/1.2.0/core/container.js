@@ -39,7 +39,7 @@ const container = function (options) {
     ],
     image: `${configuration.application}-core`,
     name: `${configuration.application}-core`,
-    cmd: `dumb-init node ${debug ? '--inspect' : ''} /wolkenkit/app.js`,
+    cmd: `dumb-init node ${debug ? '--inspect=0.0.0.0:9229' : ''} /wolkenkit/app.js`,
     env: {
       APPLICATION: configuration.application,
       COMMANDBUS_URL: `amqp://wolkenkit:${sharedKey}@messagebus:5672`,
