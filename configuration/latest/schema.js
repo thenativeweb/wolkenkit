@@ -73,7 +73,8 @@ const schema = function () {
                   '.*': {
                     type: [ 'integer', 'number', 'string' ]
                   }
-                }
+                },
+                additionalProperties: false
               }
             },
             required: [ 'api' ],

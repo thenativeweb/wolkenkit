@@ -2,7 +2,8 @@
 
 const path = require('path');
 
-const get = require('lodash/get');
+const get = require('lodash/get'),
+      merge = require('lodash/merge');
 
 const image = require('./image');
 
@@ -85,6 +86,10 @@ const container = function (options) {
       `${configuration.application}-node-modules`
     ]
   };
+
+  if (selectedEnvironment.environmentVariables) {
+    result.env = merge({}, result.env, selectedEnvironment.environmentVariables);
+  }
 
   if (debug) {
     result.ports[9229] = selectedEnvironment.api.address.port + 6;
