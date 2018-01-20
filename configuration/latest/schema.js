@@ -66,6 +66,15 @@ const schema = function () {
                 },
                 required: [ 'machine' ],
                 additionalProperties: false
+              },
+              environmentVariables: {
+                type: 'object',
+                patternProperties: {
+                  '.*': {
+                    type: [ 'integer', 'number', 'string' ]
+                  }
+                },
+                additionalProperties: false
               }
             },
             required: [ 'api' ],
