@@ -252,10 +252,6 @@ const schema = function () {
                   api: {
                     type: 'object',
                     properties: {
-                      cname: {
-                        type: 'string',
-                        minLength: 1
-                      },
                       certificate: {
                         type: 'string',
                         minLength: 1
