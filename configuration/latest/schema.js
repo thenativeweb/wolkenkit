@@ -141,6 +141,17 @@ const schema = function () {
                         },
                         additionalProperties: false,
                         required: [ 'host', 'port' ]
+                      },
+                      provider: {
+                        type: 'object',
+                        properties: {
+                          name: {
+                            type: 'string',
+                            minLength: 1
+                          }
+                        },
+                        additionalProperties: false,
+                        required: [ 'name' ]
                       }
                     },
                     additionalProperties: false,
