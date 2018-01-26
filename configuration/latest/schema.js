@@ -320,6 +320,15 @@ const schema = function () {
                   'type', 'deployment', 'api'
                 ],
                 additionalProperties: false
+              },
+              environmentVariables: {
+                type: 'object',
+                patternProperties: {
+                  '.*': {
+                    type: [ 'integer', 'number', 'string' ]
+                  }
+                },
+                additionalProperties: false
               }
             ]
           }

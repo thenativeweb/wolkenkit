@@ -2,7 +2,8 @@
 
 const path = require('path');
 
-const get = require('lodash/get');
+const get = require('lodash/get'),
+      merge = require('lodash/merge');
 
 const image = require('./image');
 
@@ -42,7 +43,7 @@ const container = function (options) {
     ],
     image: `${configuration.application}-broker`,
     name: `${configuration.application}-broker`,
-    cmd: `dumb-init node ${debug ? '--inspect' : ''} /wolkenkit/app.js`,
+    cmd: `dumb-init node ${debug ? '--inspect=0.0.0.0:9229' : ''} /wolkenkit/app.js`,
     env: {
       API_CORS_ORIGIN: selectedEnvironment.api.allowAccessFrom,
       API_HOST: selectedEnvironment.api.address.host,
@@ -85,6 +86,10 @@ const container = function (options) {
       `${configuration.application}-node-modules`
     ]
   };
+
+  if (selectedEnvironment.environmentVariables) {
+    result.env = merge({}, result.env, selectedEnvironment.environmentVariables);
+  }
 
   if (debug) {
     result.ports[9229] = selectedEnvironment.api.address.port + 6;
