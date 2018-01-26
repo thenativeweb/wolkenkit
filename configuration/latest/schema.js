@@ -111,6 +111,15 @@ const schema = function () {
                     },
                     required: [ 'machine' ],
                     additionalProperties: false
+                  },
+                  environmentVariables: {
+                    type: 'object',
+                    patternProperties: {
+                      '.*': {
+                        type: [ 'integer', 'number', 'string' ]
+                      }
+                    },
+                    additionalProperties: false
                   }
                 },
                 required: [ 'api' ],
@@ -314,20 +323,20 @@ const schema = function () {
                     },
                     additionalProperties: false,
                     required: [ 'environment' ]
+                  },
+                  environmentVariables: {
+                    type: 'object',
+                    patternProperties: {
+                      '.*': {
+                        type: [ 'integer', 'number', 'string' ]
+                      }
+                    },
+                    additionalProperties: false
                   }
                 },
                 required: [
                   'type', 'deployment', 'api'
                 ],
-                additionalProperties: false
-              },
-              environmentVariables: {
-                type: 'object',
-                patternProperties: {
-                  '.*': {
-                    type: [ 'integer', 'number', 'string' ]
-                  }
-                },
                 additionalProperties: false
               }
             ]
