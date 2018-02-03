@@ -31,7 +31,9 @@ $ npm install -g wolkenkit
 
 ## Quick start
 
-First, have a look at the [documentation](https://docs.wolkenkit.io), and its getting started guides. Additionally, there is a variety of [blog posts](https://docs.wolkenkit.io/latest/media/online-resources/blog-posts/) and [articles](https://docs.wolkenkit.io/latest/media/online-resources/articles/) that can help to get started. Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>, and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
+First, have a look at the [documentation](https://docs.wolkenkit.io), and its getting started [guides](https://docs.wolkenkit.io/latest/guides/creating-your-first-application/setting-the-objective/). You should also learn about [why to use wolkenkit](https://docs.wolkenkit.io/latest/getting-started/understanding-wolkenkit/why-wolkenkit/).
+
+There is a variety of [blog posts](https://docs.wolkenkit.io/latest/media/online-resources/blog-posts/) and [articles](https://docs.wolkenkit.io/latest/media/online-resources/articles/) that help you get started. Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>, and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
 
 If you are curious on what's next, have a look at the [roadmap](roadmap.md).
 
