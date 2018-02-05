@@ -7,6 +7,7 @@ const assert = require('assertthat'),
       promisify = require('util.promisify');
 
 const getDirectoryList = require('./helpers/getDirectoryList'),
+      shell = require('../../lib/shell'),
       suite = require('./helpers/suite');
 
 const defaults = require('../../lib/cli/defaults'),
@@ -111,6 +112,40 @@ const isolatedAsync = promisify(isolated);
 
       assert.that(directoryList).is.containingAllOf([ 'client', 'server', 'package.json' ]);
       assert.that(directoryList).is.not.containingAllOf([ '.git' ]);
+    });
+
+    await test('[wolkenkit init --force] overwrites existing files.', async () => {
+      const directory = await isolatedAsync({
+        files: [ path.join(__dirname, '..', 'configuration', 'validJson', 'package.json') ]
+      });
+      const template = defaults.commands.init.template;
+
+      const { code, stderr, stdout } = await wolkenkit('init', { force: true }, { cwd: directory });
+
+      assert.that(code).is.equalTo(0);
+      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n  Creating backup file for package.json...\n✓ Initialized a new application.\n`);
+      assert.that(stderr).is.equalTo('');
+
+      const directoryList = await getDirectoryList(directory);
+
+      assert.that(directoryList).is.containingAllOf([ 'client', 'server', 'package.json', 'package.json.bak' ]);
+      assert.that(directoryList).is.not.containingAllOf([ '.git' ]);
+    });
+
+    await test('[wolkenkit init --force] ignores the .git directory.', async ({ directory }) => {
+      const template = defaults.commands.init.template;
+
+      await shell.mkdir('-p', path.join(directory, '.git'));
+
+      const { code, stderr, stdout } = await wolkenkit('init', { force: true }, { cwd: directory });
+
+      assert.that(code).is.equalTo(0);
+      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n✓ Initialized a new application.\n`);
+      assert.that(stderr).is.equalTo('');
+
+      const directoryList = await getDirectoryList(directory);
+
+      assert.that(directoryList).is.containingAllOf([ 'client', 'server', 'package.json', '.git' ]);
     });
   });
 })();
