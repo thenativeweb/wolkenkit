@@ -135,7 +135,7 @@ const isolatedAsync = promisify(isolated);
     await test('[wolkenkit init --force] ignores the .git directory.', async ({ directory }) => {
       const template = defaults.commands.init.template;
 
-      await shell.mkdir('-p', path.join(directory, '.git'));
+      await shell.cp('-R', path.join(__dirname, '..', '..', '.git'), directory);
 
       const { code, stderr, stdout } = await wolkenkit('init', { force: true }, { cwd: directory });
 
@@ -146,6 +146,10 @@ const isolatedAsync = promisify(isolated);
       const directoryList = await getDirectoryList(directory);
 
       assert.that(directoryList).is.containingAllOf([ 'client', 'server', 'package.json', '.git' ]);
+
+      const gitDirectoryList = await getDirectoryList(path.join(directory, '.git'));
+
+      assert.that(gitDirectoryList).is.containingAllOf([ 'index', 'HEAD', 'objects', 'refs' ]);
     });
   });
 })();
