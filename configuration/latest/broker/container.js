@@ -80,7 +80,7 @@ const container = function (options) {
     ],
     networkAlias: 'broker',
     ports: {
-      3000: selectedEnvironment.api.address.port
+      443: selectedEnvironment.api.address.port
     },
     restart: 'always',
     volumesFrom: [

@@ -53,7 +53,7 @@ const container = function (options) {
     ],
     networkAlias: 'depot-file',
     ports: {
-      3000: selectedEnvironment.api.address.port + 1
+      443: selectedEnvironment.api.address.port + 1
     },
     restart: 'always',
     volumes: [
