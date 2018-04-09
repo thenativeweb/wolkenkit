@@ -78,6 +78,7 @@ const container = function (options) {
     networks: [
       `${configuration.application}-network`
     ],
+    networkAlias: 'broker',
     ports: {
       3000: selectedEnvironment.api.address.port
     },

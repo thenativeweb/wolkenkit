@@ -51,6 +51,7 @@ const container = function (options) {
     networks: [
       `${configuration.application}-network`
     ],
+    networkAlias: 'depot-file',
     ports: {
       3000: selectedEnvironment.api.address.port + 1
     },

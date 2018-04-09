@@ -64,6 +64,7 @@ const container = function (options) {
     networks: [
       `${configuration.application}-network`
     ],
+    networkAlias: 'core',
     restart: 'always',
     volumesFrom: [
       `${configuration.application}-node-modules`
