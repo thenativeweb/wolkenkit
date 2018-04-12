@@ -1,6 +1,6 @@
 # wolkenkit
 
-wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js.
+wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and Node.js that perfectly matches DDD.
 
 ![wolkenkit](images/logo.png "wolkenkit")
 
