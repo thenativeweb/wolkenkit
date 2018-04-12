@@ -1,7 +1,7 @@
 {
   "name": "wolkenkit",
   "version": "1.2.2",
-  "description": "wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js.",
+  "description": "wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and Node.js that perfectly matches DDD.",
   "contributors": [
     {
       "name": "Golo Roden",
