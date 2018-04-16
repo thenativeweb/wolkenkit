@@ -11,6 +11,9 @@ sudo apt-get install -y docker-ce
 
 sudo usermod -aG docker $USER
 
-sudo sed -i -e 's/-H fd:\/\//-H=tcp:\/\/0\.0\.0\.0:2376 -H=unix:\/\/\/var\/run\/docker.sock --tlsverify --tlscacert=\/tmp\/\.docker\/ca\.pem --tlscert=\/tmp\/\.docker\/cert\.pem --tlskey=\/tmp\/\.docker\/key\.pem/g' /lib/systemd/system/docker.service
+sudo echo '{"hosts":["tcp://0.0.0.0:2376","unix:///var/run/docker.sock"],"tls":true,"tlscacert":"/tmp/.docker/ca.pem","tlscert":"/tmp/.docker/cert.pem","tlskey":"/tmp/.docker/key.pem"}' | sudo tee /etc/docker/daemon.json > /dev/null
+sudo mkdir -p /etc/systemd/system/docker.service.d
+sudo echo -e "[Service]\nExecStart=\nExecStart=/usr/bin/dockerd" | sudo tee /etc/systemd/system/docker.service.d/override.conf > /dev/null
+
 sudo systemctl daemon-reload
-sudo service docker restart
+sudo systemctl restart docker.service

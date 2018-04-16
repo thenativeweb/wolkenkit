@@ -51,7 +51,8 @@ const uninstall = {
         { header: 'wolkenkit uninstall', content: this.description },
         { header: 'Synopsis', content: 'wolkenkit uninstall [--version <version>] [--env <env>]' },
         { header: 'Options', optionList: [ ...await this.getOptionDefinitions(), ...globalOptionDefinitions ]},
-        { header: 'Remarks',
+        {
+          header: 'Remarks',
           content: [
             `If you don't specify a version, '${await runtimes.getLatestStableVersion()}' will be used as default.`,
             `If you don't specify an environment, '${processenv('WOLKENKIT_ENV') || defaults.env}' will be used as default.`

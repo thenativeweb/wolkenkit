@@ -40,8 +40,7 @@ const destroyData = async function (options, progress) {
   });
 
   await Promise.all(containers.map(async container =>
-    docker.removeVolume({ configuration, env, name: `${container.name}-volume` })
-  ));
+    docker.removeVolume({ configuration, env, name: `${container.name}-volume` })));
 };
 
 module.exports = destroyData;

@@ -27,7 +27,8 @@ const getContainers = async function (options) {
 
   const filter = flatten(
     map(where, (keyValuePair, criterion) =>
-      map(keyValuePair, (value, key) => `--filter "${criterion}=${key}=${value}"`)));
+      map(keyValuePair, (value, key) => `--filter "${criterion}=${key}=${value}"`))
+  );
 
   const { stdout } = await shell.exec(`docker ps --all ${filter.join(' ')} --format "{{json .}}"`, {
     env: environmentVariables

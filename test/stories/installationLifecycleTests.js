@@ -2,7 +2,7 @@
 
 const assert = require('assertthat');
 
-const runtimes = require('../../lib/wolkenkit/runtimes'),
+const runtimes = require('../../src/wolkenkit/runtimes'),
       suite = require('./helpers/suite');
 
 (async () => {

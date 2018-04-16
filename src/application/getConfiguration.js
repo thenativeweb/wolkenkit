@@ -39,7 +39,7 @@ const getConfiguration = async function (options) {
 
   try {
     /* eslint-disable global-require */
-    schema = require(`../../configuration/${runtimeVersion}/schema`)();
+    schema = require(`../configuration/${runtimeVersion}/schema`)();
     /* eslint-enable global-require */
   } catch (ex) {
     switch (ex.code) {

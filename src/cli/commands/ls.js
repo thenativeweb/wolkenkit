@@ -6,21 +6,14 @@ const buntstift = require('buntstift'),
 
 const defaults = require('../defaults.json'),
       globalOptionDefinitions = require('../globalOptionDefinitions'),
-      runtimes = require('../../wolkenkit/runtimes'),
       showProgress = require('../showProgress'),
       wolkenkit = require('../../wolkenkit');
 
-const install = {
+const ls = {
+  description: 'List supported and installed wolkenkit versions.',
+
   async getOptionDefinitions () {
     return [
-      {
-        name: 'version',
-        alias: 'v',
-        type: String,
-        defaultValue: await runtimes.getLatestStableVersion(),
-        description: 'version to install',
-        typeLabel: '<version>'
-      },
       {
         name: 'env',
         alias: 'e',
@@ -36,46 +29,43 @@ const install = {
     if (!options) {
       throw new Error('Options are missing.');
     }
-    if (!options.version) {
-      throw new Error('Version is missing.');
-    }
     if (!options.env) {
       throw new Error('Environment is missing.');
     }
 
     const directory = process.cwd(),
-          { env, help, verbose, version } = options;
+          { env, help, verbose } = options;
 
     if (help) {
       return buntstift.info(getUsage([
-        { header: 'wolkenkit install', content: this.description },
-        { header: 'Synopsis', content: 'wolkenkit install [--version <version>] [--env <env>]' },
+        { header: 'wolkenkit ls', content: this.description },
+        { header: 'Synopsis', content: 'wolkenkit ls [--env <env>]' },
         { header: 'Options', optionList: [ ...await this.getOptionDefinitions(), ...globalOptionDefinitions ]},
-        { header: 'Remarks',
+        {
+          header: 'Remarks',
           content: [
-            `If you don't specify a version, '${await runtimes.getLatestStableVersion()}' will be used as default.`,
             `If you don't specify an environment, '${processenv('WOLKENKIT_ENV') || defaults.env}' will be used as default.`
           ]
         }
       ]));
     }
 
-    buntstift.info(`Installing wolkenkit ${version} on environment ${env}...`);
-
     const stopWaiting = buntstift.wait();
 
+    let versions;
+
     try {
-      await wolkenkit.install({ directory, env, version }, showProgress(verbose, stopWaiting));
+      versions = await wolkenkit.ls({ directory, env }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
-      buntstift.error(`Failed to install wolkenkit ${version} on environment ${env}.`);
+      buntstift.error('Failed to list supported and installed wolkenkit versions.');
 
       throw ex;
     }
 
     stopWaiting();
-    buntstift.success(`Installed wolkenkit ${version} on environment ${env}.`);
+    buntstift.success(`There are ${versions.installed.length} of ${versions.supported.length} supported wolkenkit versions installed on environment ${env}.`);
   }
 };
 
-module.exports = install;
+module.exports = ls;

@@ -31,7 +31,7 @@ const ping = async function (options) {
 
   try {
     /* eslint-disable global-require */
-    docker = require(`../../configuration/${runtimeVersion}/docker`)();
+    docker = require(`../configuration/${runtimeVersion}/docker`)();
     /* eslint-enable global-require */
   } catch (ex) {
     switch (ex.code) {

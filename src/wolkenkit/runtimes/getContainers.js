@@ -35,7 +35,7 @@ const getContainers = async function (options) {
 
   const { forVersion, configuration, env, sharedKey, persistData, debug } = options;
 
-  const pathRuntime = path.join(__dirname, '..', '..', '..', 'configuration', forVersion);
+  const pathRuntime = path.join(__dirname, '..', '..', 'configuration', forVersion);
 
   let entries;
 

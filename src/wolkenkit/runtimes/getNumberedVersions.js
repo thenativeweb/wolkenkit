@@ -9,7 +9,7 @@ const promisify = require('util.promisify'),
 const readdir = promisify(fs.readdir);
 
 const getNumberedVersions = async function () {
-  const entries = await readdir(path.join(__dirname, '..', '..', '..', 'configuration'));
+  const entries = await readdir(path.join(__dirname, '..', '..', 'configuration'));
 
   const versions = entries.
     filter(version => semver.valid(version)).

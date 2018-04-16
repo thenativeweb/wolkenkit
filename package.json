@@ -36,7 +36,7 @@
     "common-tags": "1.4.0",
     "defekt": "0.2.0",
     "docker-compare": "0.2.0",
-    "eslint": "4.6.1",
+    "eslint": "4.19.1",
     "findsuggestions": "0.2.1",
     "is-ip": "2.0.0",
     "isolated": "0.3.0",
@@ -57,9 +57,10 @@
   "devDependencies": {
     "assertthat": "0.11.0",
     "measure-time": "3.1.0",
-    "proxyquire": "1.8.0",
-    "roboter": "0.15.4",
-    "roboter-server": "0.15.4"
+    "roboter": "thenativeweb/roboter#vnext"
+  },
+  "scripts": {
+    "test-stories": "node test/stories/index.js"
   },
   "repository": {
     "type": "git",

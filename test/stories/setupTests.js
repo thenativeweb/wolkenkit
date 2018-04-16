@@ -7,10 +7,10 @@ const assert = require('assertthat'),
       promisify = require('util.promisify');
 
 const getDirectoryList = require('./helpers/getDirectoryList'),
-      shell = require('../../lib/shell'),
+      shell = require('../../src/shell'),
       suite = require('./helpers/suite');
 
-const defaults = require('../../lib/cli/defaults'),
+const defaults = require('../../src/cli/defaults'),
       packageJson = require('../../package.json');
 
 const isolatedAsync = promisify(isolated);
@@ -70,7 +70,7 @@ const isolatedAsync = promisify(isolated);
 
     await test('[wolkenkit init] reports an error if the target directory is not empty.', async () => {
       const directory = await isolatedAsync({
-        files: [ path.join(__dirname, '..', 'configuration', 'validJson', 'package.json') ]
+        files: [ path.join(__dirname, '..', 'shared', 'configuration', 'validJson', 'package.json') ]
       });
 
       const { code, stdout, stderr } = await wolkenkit('init', {}, { cwd: directory });
@@ -116,7 +116,7 @@ const isolatedAsync = promisify(isolated);
 
     await test('[wolkenkit init --force] overwrites existing files.', async () => {
       const directory = await isolatedAsync({
-        files: [ path.join(__dirname, '..', 'configuration', 'validJson', 'package.json') ]
+        files: [ path.join(__dirname, '..', 'shared', 'configuration', 'validJson', 'package.json') ]
       });
       const template = defaults.commands.init.template;
 

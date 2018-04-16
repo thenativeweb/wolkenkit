@@ -20,7 +20,7 @@ const getImages = async function (options) {
 
   const { forVersion } = options;
 
-  const pathRuntime = path.join(__dirname, '..', '..', '..', 'configuration', forVersion);
+  const pathRuntime = path.join(__dirname, '..', '..', 'configuration', forVersion);
 
   let entries;
 

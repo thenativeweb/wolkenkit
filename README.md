@@ -91,7 +91,7 @@ Additionally, you may want to have a look at these repositories that contain the
 To build this module use [roboter](https://www.npmjs.com/package/roboter).
 
 ```shell
-$ bot
+$ npx roboter
 ```
 
 ## License
