@@ -1,16 +1,26 @@
 'use strict';
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+var _regenerator = require('babel-runtime/regenerator');
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+var _regenerator2 = _interopRequireDefault(_regenerator);
+
+var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+
+var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+
+var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var getLatestVersion = require('./getLatestVersion'),
     getNumberedVersions = require('./getNumberedVersions');
 
 var getAllVersions = function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+      var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
             var latestVersion, numberedVersions, versions;
-            return regeneratorRuntime.wrap(function _callee$(_context) {
+            return _regenerator2.default.wrap(function _callee$(_context) {
                   while (1) {
                         switch (_context.prev = _context.next) {
                               case 0:
@@ -24,7 +34,7 @@ var getAllVersions = function () {
 
                               case 5:
                                     numberedVersions = _context.sent;
-                                    versions = [latestVersion].concat(_toConsumableArray(numberedVersions));
+                                    versions = [latestVersion].concat((0, _toConsumableArray3.default)(numberedVersions));
                                     return _context.abrupt('return', versions);
 
                               case 8:

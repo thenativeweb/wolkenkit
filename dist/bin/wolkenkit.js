@@ -3,9 +3,23 @@
 
 'use strict';
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+var _regenerator = require('babel-runtime/regenerator');
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+var _regenerator2 = _interopRequireDefault(_regenerator);
+
+var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+
+var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+
+var _keys = require('babel-runtime/core-js/object/keys');
+
+var _keys2 = _interopRequireDefault(_keys);
+
+var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 require('babel-polyfill');
 
@@ -21,18 +35,18 @@ var commands = require('../cli/commands'),
 
 updateNotifier({ pkg: packageJson }).notify();
 
-_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+(0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
   var validCommands, parsed, suggestions, command, validOptionDefinitions, args;
-  return regeneratorRuntime.wrap(function _callee$(_context) {
+  return _regenerator2.default.wrap(function _callee$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
-          validCommands = Object.keys(commands);
+          validCommands = (0, _keys2.default)(commands);
           parsed = void 0;
 
 
           try {
-            parsed = commandLineCommands([null].concat(_toConsumableArray(validCommands)));
+            parsed = commandLineCommands([null].concat((0, _toConsumableArray3.default)(validCommands)));
           } catch (ex) {
             suggestions = findSuggestions({ for: ex.command, in: validCommands });
 
@@ -52,8 +66,8 @@ _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
 
           command = commands[parsed.command];
           _context.t0 = [];
-          _context.t1 = _toConsumableArray(globalOptionDefinitions);
-          _context.t2 = _toConsumableArray;
+          _context.t1 = (0, _toConsumableArray3.default)(globalOptionDefinitions);
+          _context.t2 = _toConsumableArray3.default;
           _context.next = 10;
           return command.getOptionDefinitions();
 
