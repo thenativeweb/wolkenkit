@@ -6,8 +6,8 @@ const assert = require('assertthat'),
       isolated = require('isolated'),
       promisify = require('util.promisify');
 
-const readJson = require('../../../lib/file/readJson'),
-      shell = require('../../../lib/shell');
+const readJson = require('../../../src/file/readJson'),
+      shell = require('../../../src/shell');
 
 const isolatedAsync = promisify(isolated);
 
@@ -30,7 +30,7 @@ suite('file/readJson', () => {
   });
 
   test('throws an error if file is not accessible.', async () => {
-    const source = path.join(__dirname, '..', '..', 'configuration', 'validJson', 'package.json');
+    const source = path.join(__dirname, '..', '..', 'shared', 'configuration', 'validJson', 'package.json');
     const directory = await isolatedAsync({ files: [ source ]});
     const target = path.join(directory, 'package.json');
 
@@ -42,7 +42,7 @@ suite('file/readJson', () => {
   });
 
   test('throws an error if file does not contain json format.', async () => {
-    const file = path.join(__dirname, '..', '..', 'configuration', 'invalidJson', 'package.json');
+    const file = path.join(__dirname, '..', '..', 'shared', 'configuration', 'invalidJson', 'package.json');
 
     await assert.that(async () => {
       await readJson(file);
@@ -50,7 +50,7 @@ suite('file/readJson', () => {
   });
 
   test('returns json.', async () => {
-    const file = path.join(__dirname, '..', '..', 'configuration', 'validJson', 'package.json');
+    const file = path.join(__dirname, '..', '..', 'shared', 'configuration', 'validJson', 'package.json');
 
     const json = await readJson(file);
 

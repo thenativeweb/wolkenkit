@@ -1,8 +1,18 @@
 'use strict';
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+
+var _regenerator = require('babel-runtime/regenerator');
+
+var _regenerator2 = _interopRequireDefault(_regenerator);
+
+var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var buntstift = require('buntstift'),
     getUsage = require('command-line-usage'),
@@ -16,11 +26,9 @@ var defaults = require('../defaults.json'),
 var stop = {
   description: 'Stop an application.',
 
-  getOptionDefinitions: function getOptionDefinitions() {
-    var _this = this;
-
-    return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-      return regeneratorRuntime.wrap(function _callee$(_context) {
+  getOptionDefinitions: function () {
+    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
+      return _regenerator2.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
@@ -43,15 +51,19 @@ var stop = {
               return _context.stop();
           }
         }
-      }, _callee, _this);
-    }))();
-  },
-  run: function run(options) {
-    var _this2 = this;
+      }, _callee, this);
+    }));
 
-    return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+    function getOptionDefinitions() {
+      return _ref.apply(this, arguments);
+    }
+
+    return getOptionDefinitions;
+  }(),
+  run: function () {
+    var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
       var directory, env, help, verbose, dangerouslyDestroyData, stopWaiting;
-      return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      return _regenerator2.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
@@ -89,17 +101,17 @@ var stop = {
 
               _context2.t0 = buntstift;
               _context2.t1 = getUsage;
-              _context2.t2 = { header: 'wolkenkit stop', content: _this2.description };
+              _context2.t2 = { header: 'wolkenkit stop', content: this.description };
               _context2.t3 = { header: 'Synopsis', content: 'wolkenkit stop [--env <env>] [--dangerously-destroy-data]' };
               _context2.t4 = [];
-              _context2.t5 = _toConsumableArray;
+              _context2.t5 = _toConsumableArray3.default;
               _context2.next = 17;
-              return _this2.getOptionDefinitions();
+              return this.getOptionDefinitions();
 
             case 17:
               _context2.t6 = _context2.sent;
               _context2.t7 = (0, _context2.t5)(_context2.t6);
-              _context2.t8 = _toConsumableArray(globalOptionDefinitions);
+              _context2.t8 = (0, _toConsumableArray3.default)(globalOptionDefinitions);
               _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
               _context2.t10 = {
                 header: 'Options',
@@ -141,9 +153,15 @@ var stop = {
               return _context2.stop();
           }
         }
-      }, _callee2, _this2, [[27, 32]]);
-    }))();
-  }
+      }, _callee2, this, [[27, 32]]);
+    }));
+
+    function run(_x) {
+      return _ref2.apply(this, arguments);
+    }
+
+    return run;
+  }()
 };
 
 module.exports = stop;

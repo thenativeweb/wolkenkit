@@ -1,10 +1,20 @@
 'use strict';
 
-var _templateObject = _taggedTemplateLiteral(['\n    docker run\n      --detach\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      --name "', '"\n      ', '\n      ', '\n  '], ['\n    docker run\n      --detach\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      --name "', '"\n      ', '\n      ', '\n  ']);
+var _regenerator = require('babel-runtime/regenerator');
 
-function _taggedTemplateLiteral(strings, raw) { return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+var _regenerator2 = _interopRequireDefault(_regenerator);
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+var _taggedTemplateLiteral2 = require('babel-runtime/helpers/taggedTemplateLiteral');
+
+var _taggedTemplateLiteral3 = _interopRequireDefault(_taggedTemplateLiteral2);
+
+var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+
+var _templateObject = (0, _taggedTemplateLiteral3.default)(['\n    docker run\n      --detach\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      --name "', '"\n      ', '\n      ', '\n  '], ['\n    docker run\n      --detach\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      ', '\n      --name "', '"\n      ', '\n      ', '\n  ']);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var map = require('lodash/map'),
     _require = require('common-tags'),
@@ -15,9 +25,9 @@ var getEnvironmentVariables = require('./getEnvironmentVariables'),
     shell = require('../shell');
 
 var startContainer = function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(options) {
+  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
     var configuration, env, container, environmentVariables;
-    return regeneratorRuntime.wrap(function _callee$(_context) {
+    return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:

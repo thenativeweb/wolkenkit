@@ -6,7 +6,7 @@ const buntstift = require('buntstift'),
       measureTime = require('measure-time'),
       processenv = require('processenv');
 
-const shell = require('../../../lib/shell');
+const shell = require('../../../src/shell');
 
 const teardownAws = async function (options) {
   if (!options) {

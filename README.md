@@ -1,6 +1,6 @@
 # wolkenkit
 
-wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js.
+wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and Node.js that perfectly matches DDD.
 
 ![wolkenkit](images/logo.png "wolkenkit")
 
@@ -31,7 +31,9 @@ $ npm install -g wolkenkit
 
 ## Quick start
 
-For details see the [wolkenkit website](https://www.wolkenkit.io) and the [documentation](https://docs.wolkenkit.io). Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>, and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
+First, have a look at the [documentation](https://docs.wolkenkit.io), and its getting started [guides](https://docs.wolkenkit.io/latest/guides/creating-your-first-application/setting-the-objective/). You should also learn about [why to use wolkenkit](https://docs.wolkenkit.io/latest/getting-started/understanding-wolkenkit/why-wolkenkit/).
+
+There is a variety of [blog posts](https://docs.wolkenkit.io/latest/media/online-resources/blog-posts/) and [articles](https://docs.wolkenkit.io/latest/media/online-resources/articles/) that help you get started. Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>, and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
 
 If you are curious on what's next, have a look at the [roadmap](roadmap.md).
 
@@ -89,7 +91,7 @@ Additionally, you may want to have a look at these repositories that contain the
 To build this module use [roboter](https://www.npmjs.com/package/roboter).
 
 ```shell
-$ bot
+$ npx roboter
 ```
 
 ## Running the tests
@@ -121,7 +123,7 @@ basicConstraints = critical,CA:TRUE
 
 ## License
 
-Copyright (c) 2014-2017 the native web.
+Copyright (c) 2014-2018 the native web.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

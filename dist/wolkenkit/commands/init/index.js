@@ -1,27 +1,33 @@
 'use strict';
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+var _regenerator = require('babel-runtime/regenerator');
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+var _regenerator2 = _interopRequireDefault(_regenerator);
 
-var fs = require('fs'),
-    path = require('path');
+var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
-var promisify = require('util.promisify');
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
-var errors = require('../../../errors'),
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var path = require('path');
+
+var promisify = require('util.promisify'),
+    recursiveReaddirCallback = require('recursive-readdir');
+
+var cloneRepository = require('./cloneRepository'),
+    errors = require('../../../errors'),
+    forceInit = require('./forceInit'),
     noop = require('../../../noop'),
     shell = require('../../../shell');
 
-var readdir = promisify(fs.readdir);
+var recursiveReaddir = promisify(recursiveReaddirCallback);
 
 var init = function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(options) {
+  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
     var progress = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
-
-    var directory, template, matches, _matches, url, branch, entries, branchOption;
-
-    return regeneratorRuntime.wrap(function _callee$(_context) {
+    var directory, template, force, files;
+    return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -49,28 +55,36 @@ var init = function () {
             throw new Error('Template is missing.');
 
           case 6:
-            directory = options.directory, template = options.template;
-            matches = template.match(/^((?:git:|ssh:|https:\/\/|git@[\w.]+)[\w.@:/~_-]+(?:\.git)?\/?)(?:#([a-zA-Z0-9/.\-_]+))?$/);
-
-            if (matches) {
-              _context.next = 11;
+            if (!(options.force === undefined)) {
+              _context.next = 8;
               break;
             }
 
-            progress({ message: 'Malformed url.', type: 'info' });
+            throw new Error('Force is missing.');
 
-            throw new errors.UrlMalformed();
+          case 8:
+            directory = options.directory, template = options.template, force = options.force;
 
-          case 11:
-            _matches = _slicedToArray(matches, 3), url = _matches[1], branch = _matches[2];
-            _context.next = 14;
-            return readdir(directory);
+            if (!force) {
+              _context.next = 13;
+              break;
+            }
 
-          case 14:
-            entries = _context.sent;
+            _context.next = 12;
+            return forceInit({ directory: directory, template: template }, progress);
 
-            if (!(entries.length > 0)) {
-              _context.next = 18;
+          case 12:
+            return _context.abrupt('return', _context.sent);
+
+          case 13:
+            _context.next = 15;
+            return recursiveReaddir(directory);
+
+          case 15:
+            files = _context.sent;
+
+            if (!(files.length > 0)) {
+              _context.next = 19;
               break;
             }
 
@@ -78,55 +92,23 @@ var init = function () {
 
             throw new errors.DirectoryNotEmpty();
 
-          case 18:
-            _context.next = 20;
-            return shell.which('git');
+          case 19:
+            _context.next = 21;
+            return cloneRepository({ directory: directory, template: template }, progress);
 
-          case 20:
-            if (_context.sent) {
-              _context.next = 23;
-              break;
-            }
-
-            progress({ message: 'git is not installed.', type: 'info' });
-
-            throw new errors.ExecutableNotFound();
-
-          case 23:
-
-            progress({ message: 'Cloning ' + template + '...' });
-
-            branchOption = branch ? '--branch ' + branch : '';
-            _context.prev = 25;
-            _context.next = 28;
-            return shell.exec('git clone ' + branchOption + ' ' + url + ' .', { silent: true, cwd: directory });
-
-          case 28:
-            _context.next = 35;
-            break;
-
-          case 30:
-            _context.prev = 30;
-            _context.t0 = _context['catch'](25);
-
-            progress({ message: '' + _context.t0.stderr });
-            progress({ message: 'git failed to clone the template.', type: 'info' });
-
-            throw _context.t0;
-
-          case 35:
-            _context.next = 37;
+          case 21:
+            _context.next = 23;
             return shell.rm('-rf', path.join(directory, '.git'));
 
-          case 37:
+          case 23:
           case 'end':
             return _context.stop();
         }
       }
-    }, _callee, this, [[25, 30]]);
+    }, _callee, this);
   }));
 
-  return function init(_x) {
+  return function init(_x2) {
     return _ref.apply(this, arguments);
   };
 }();

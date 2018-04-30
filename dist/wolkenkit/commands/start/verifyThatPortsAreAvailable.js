@@ -1,8 +1,22 @@
 'use strict';
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+var _regenerator = require('babel-runtime/regenerator');
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+var _regenerator2 = _interopRequireDefault(_regenerator);
+
+var _values = require('babel-runtime/core-js/object/values');
+
+var _values2 = _interopRequireDefault(_values);
+
+var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+
+var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+
+var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var map = require('lodash/map'),
     portscanner = require('portscanner'),
@@ -14,9 +28,9 @@ var errors = require('../../../errors'),
 var findAPortInUse = promisify(portscanner.findAPortInUse);
 
 var verifyThatPortsAreAvailable = function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(options, progress) {
+  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options, progress) {
     var forVersion, configuration, env, sharedKey, persistData, debug, containers, requestedPorts, host, portInUse, arePortsAvailable;
-    return regeneratorRuntime.wrap(function _callee$(_context) {
+    return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -102,7 +116,7 @@ var verifyThatPortsAreAvailable = function () {
             }).filter(function (ports) {
               return ports;
             }).reduce(function (list, ports) {
-              return [].concat(_toConsumableArray(list), _toConsumableArray(Object.values(ports)));
+              return [].concat((0, _toConsumableArray3.default)(list), (0, _toConsumableArray3.default)((0, _values2.default)(ports)));
             }, []);
             host = configuration.environments[env].api.address.host;
             _context.next = 24;

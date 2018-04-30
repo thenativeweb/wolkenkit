@@ -6,8 +6,8 @@ const assert = require('assertthat'),
       isolated = require('isolated'),
       promisify = require('util.promisify');
 
-const read = require('../../../lib/file/read'),
-      shell = require('../../../lib/shell');
+const read = require('../../../src/file/read'),
+      shell = require('../../../src/shell');
 
 const isolatedAsync = promisify(isolated);
 
@@ -30,7 +30,7 @@ suite('file/read', () => {
   });
 
   test('throws an error if file is not accessible.', async () => {
-    const source = path.join(__dirname, '..', '..', 'configuration', 'validJson', 'package.json');
+    const source = path.join(__dirname, '..', '..', 'shared', 'configuration', 'validJson', 'package.json');
     const directory = await isolatedAsync({ files: [ source ]});
     const target = path.join(directory, 'package.json');
 
@@ -42,7 +42,7 @@ suite('file/read', () => {
   });
 
   test('returns string.', async () => {
-    const file = path.join(__dirname, '..', '..', 'configuration', 'validJson', 'package.json');
+    const file = path.join(__dirname, '..', '..', 'shared', 'configuration', 'validJson', 'package.json');
 
     const json = await read(file);
 

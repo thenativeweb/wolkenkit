@@ -7,9 +7,10 @@ const assert = require('assertthat'),
       promisify = require('util.promisify');
 
 const getDirectoryList = require('./helpers/getDirectoryList'),
+      shell = require('../../src/shell'),
       suite = require('./helpers/suite');
 
-const defaults = require('../../lib/cli/defaults'),
+const defaults = require('../../src/cli/defaults'),
       packageJson = require('../../package.json');
 
 const isolatedAsync = promisify(isolated);
@@ -69,7 +70,7 @@ const isolatedAsync = promisify(isolated);
 
     await test('[wolkenkit init] reports an error if the target directory is not empty.', async () => {
       const directory = await isolatedAsync({
-        files: [ path.join(__dirname, '..', 'configuration', 'validJson', 'package.json') ]
+        files: [ path.join(__dirname, '..', 'shared', 'configuration', 'validJson', 'package.json') ]
       });
 
       const { code, stdout, stderr } = await wolkenkit('init', {}, { cwd: directory });
@@ -111,6 +112,44 @@ const isolatedAsync = promisify(isolated);
 
       assert.that(directoryList).is.containingAllOf([ 'client', 'server', 'package.json' ]);
       assert.that(directoryList).is.not.containingAllOf([ '.git' ]);
+    });
+
+    await test('[wolkenkit init --force] overwrites existing files.', async () => {
+      const directory = await isolatedAsync({
+        files: [ path.join(__dirname, '..', 'shared', 'configuration', 'validJson', 'package.json') ]
+      });
+      const template = defaults.commands.init.template;
+
+      const { code, stderr, stdout } = await wolkenkit('init', { force: true }, { cwd: directory });
+
+      assert.that(code).is.equalTo(0);
+      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n  Creating backup file for package.json...\n✓ Initialized a new application.\n`);
+      assert.that(stderr).is.equalTo('');
+
+      const directoryList = await getDirectoryList(directory);
+
+      assert.that(directoryList).is.containingAllOf([ 'client', 'server', 'package.json', 'package.json.bak' ]);
+      assert.that(directoryList).is.not.containingAllOf([ '.git' ]);
+    });
+
+    await test('[wolkenkit init --force] ignores the .git directory.', async ({ directory }) => {
+      const template = defaults.commands.init.template;
+
+      await shell.cp('-R', path.join(__dirname, '..', '..', '.git'), directory);
+
+      const { code, stderr, stdout } = await wolkenkit('init', { force: true }, { cwd: directory });
+
+      assert.that(code).is.equalTo(0);
+      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n✓ Initialized a new application.\n`);
+      assert.that(stderr).is.equalTo('');
+
+      const directoryList = await getDirectoryList(directory);
+
+      assert.that(directoryList).is.containingAllOf([ 'client', 'server', 'package.json', '.git' ]);
+
+      const gitDirectoryList = await getDirectoryList(path.join(directory, '.git'));
+
+      assert.that(gitDirectoryList).is.containingAllOf([ 'index', 'HEAD', 'objects', 'refs' ]);
     });
   });
 })();

@@ -6,7 +6,7 @@ const map = require('lodash/map'),
       merge = require('lodash/merge'),
       processenv = require('processenv');
 
-const shell = require('../../../lib/shell');
+const shell = require('../../../src/shell');
 
 const getWolkenkit = async function (options) {
   if (!options) {
@@ -23,7 +23,7 @@ const getWolkenkit = async function (options) {
       throw new Error('Name is missing.');
     }
 
-    const executablePath = path.join(__dirname, '..', '..', '..', 'lib', 'bin', 'wolkenkit.js');
+    const executablePath = path.join(__dirname, '..', '..', '..', 'src', 'bin', 'wolkenkit.js');
     const command = `${executablePath} ${name} --verbose ${map(parameters, (value, key) => `--${key}=${value}`)}`;
 
     opts.env = merge({}, processenv(), opts.env || {}, {
