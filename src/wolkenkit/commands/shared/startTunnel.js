@@ -6,7 +6,7 @@ const os = require('os'),
 
 const freeport = require('freeport');
 
-const defaults = require('../../defaults.json'),
+const defaults = require('../defaults.json'),
       errors = require('../../../errors'),
       file = require('../../../file'),
       startOpensshTunnel = require('./startOpensshTunnel'),
