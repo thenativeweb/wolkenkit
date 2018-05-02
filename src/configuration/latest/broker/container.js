@@ -64,7 +64,9 @@ const container = function (options) {
       LISTSTORE_URL: `mongodb://wolkenkit:${sharedKey}@liststore:27017/wolkenkit`,
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       PROFILING_HOST: selectedEnvironment.api.address.host,
-      PROFILING_PORT: 8125
+      PROFILING_PORT: 8125,
+      STATUS_PORT: 3333,
+      STATUS_CORS_ORIGIN: '*'
     },
     labels: {
       'wolkenkit-api-host': selectedEnvironment.api.address.host,
@@ -79,7 +81,8 @@ const container = function (options) {
       `${configuration.application}-network`
     ],
     ports: {
-      3000: selectedEnvironment.api.address.port
+      3000: selectedEnvironment.api.address.port,
+      3333: selectedEnvironment.api.address.port + 9
     },
     restart: 'always',
     volumesFrom: [

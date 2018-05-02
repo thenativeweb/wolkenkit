@@ -37,7 +37,9 @@ const container = function (options) {
       IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate', '/keys/wildcard.wolkenkit.io'),
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
       KEYS: get(selectedEnvironment, 'api.certificate', '/keys/local.wolkenkit.io'),
-      NODE_ENV: get(selectedEnvironment, 'node.environment', 'development')
+      NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
+      STATUS_PORT: 3333,
+      STATUS_CORS_ORIGIN: '*'
     },
     labels: {
       'wolkenkit-api-host': selectedEnvironment.api.address.host,
@@ -52,7 +54,8 @@ const container = function (options) {
       `${configuration.application}-network`
     ],
     ports: {
-      3000: selectedEnvironment.api.address.port + 1
+      3000: selectedEnvironment.api.address.port + 1,
+      3333: selectedEnvironment.api.address.port + 12
     },
     restart: 'always',
     volumes: [

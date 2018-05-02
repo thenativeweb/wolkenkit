@@ -50,7 +50,9 @@ const container = function (options) {
       FLOWBUS_URL: `amqp://wolkenkit:${sharedKey}@messagebus:5672`,
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       PROFILING_HOST: selectedEnvironment.api.address.host,
-      PROFILING_PORT: 8125
+      PROFILING_PORT: 8125,
+      STATUS_PORT: 3333,
+      STATUS_CORS_ORIGIN: '*'
     },
     labels: {
       'wolkenkit-api-host': selectedEnvironment.api.address.host,
@@ -64,6 +66,9 @@ const container = function (options) {
     networks: [
       `${configuration.application}-network`
     ],
+    ports: {
+      3333: selectedEnvironment.api.address.port + 10
+    },
     restart: 'always',
     volumesFrom: [
       `${configuration.application}-node-modules`
@@ -75,9 +80,7 @@ const container = function (options) {
   }
 
   if (debug) {
-    result.ports = {
-      9229: selectedEnvironment.api.address.port + 7
-    };
+    result.ports[9229] = selectedEnvironment.api.address.port + 7;
   }
 
   return result;
