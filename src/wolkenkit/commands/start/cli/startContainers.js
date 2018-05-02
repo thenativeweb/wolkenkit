@@ -59,10 +59,14 @@ const startContainers = async function (options, progress) {
 
       /* eslint-disable no-loop-func */
       (async () => {
-        await docker.startContainer({ configuration, env, container: nextContainerToStart });
+        try {
+          await docker.startContainer({ configuration, env, container: nextContainerToStart });
 
-        started.push(nextContainerToStart);
-        progress({ message: `Started ${nextContainerToStart.name} (${started.length}/${numberOfContainers}).`, type: 'info' });
+          started.push(nextContainerToStart);
+          progress({ message: `Started ${nextContainerToStart.name} (${started.length}/${numberOfContainers}).`, type: 'info' });
+        } catch (ex) {
+          progress({ message: ex.message, type: 'error' });
+        }
       })();
       /* eslint-enable no-loop-func */
     }
