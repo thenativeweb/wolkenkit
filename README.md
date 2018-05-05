@@ -82,9 +82,9 @@ Since wolkenkit is a distributed application, its code is spread across various 
 
 Additionally, you may want to have a look at these repositories that contain the most important supporting modules:
 
-- [tailwind](https://github.com/thenativeweb/tailwind)
-- [sparbuch](https://github.com/thenativeweb/sparbuch)
+- [wolkenkit-eventstore](https://github.com/thenativeweb/wolkenkit-eventstore)
 - [commands-events](https://github.com/thenativeweb/commands-events)
+- [tailwind](https://github.com/thenativeweb/tailwind)
 
 ## Running the build
 
