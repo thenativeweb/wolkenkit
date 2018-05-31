@@ -33,7 +33,7 @@ $ npm install -g wolkenkit
 
 First, have a look at the [documentation](https://docs.wolkenkit.io), and its getting started [guides](https://docs.wolkenkit.io/latest/guides/creating-your-first-application/setting-the-objective/). You should also learn about [why to use wolkenkit](https://docs.wolkenkit.io/latest/getting-started/understanding-wolkenkit/why-wolkenkit/).
 
-There is a variety of [blog posts](https://docs.wolkenkit.io/latest/media/online-resources/blog-posts/) and [articles](https://docs.wolkenkit.io/latest/media/online-resources/articles/) that help you get started. Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>, and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
+There is a variety of [blog posts](https://docs.wolkenkit.io/latest/media/online-resources/blog-posts/) and [articles](https://docs.wolkenkit.io/latest/media/online-resources/articles/) that help you get started. Also, you are welcome to [join us on Slack](http://slackin.wolkenkit.io), and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
 
 If you are curious on what's next, have a look at the [roadmap](roadmap.md).
 
@@ -49,7 +49,7 @@ There are a number of sample applications available:
 
 ## Getting help
 
-If you need any help with wolkenkit, consider the following options. Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>.
+If you need any help with wolkenkit, consider the following options. Also, you are welcome to [join us on Slack](http://slackin.wolkenkit.io).
 
 ### Reporting an issue
 
@@ -94,15 +94,7 @@ To build this module use [roboter](https://www.npmjs.com/package/roboter).
 $ npx roboter
 ```
 
-## Running the tests
-
-To run the unit test we use [roboter](https://www.npmjs.com/package/roboter).
-
-```shell
-$ bot test
-```
-
-To run the story tests we use [terraform](https://www.terraform.io/) with AWS EC2 provider.
+Additionally to the unit tests, there are so-called *story tests*. To run them, use the following command:
 
 ```shell
 $ node test/stories/index.js
