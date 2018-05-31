@@ -46,7 +46,9 @@ const startContainers = async function (options, progress) {
   const numberOfContainers = containers.length;
   const started = [];
 
-  while (started.length < numberOfContainers) {
+  let err;
+
+  while (started.length < numberOfContainers && !err) {
     const nextContainerToStart = containers.find(container => {
       const dependsOn = container.dependsOn || [];
       const startedContainerNames = started.map(startedContainer => startedContainer.name);
@@ -65,13 +67,17 @@ const startContainers = async function (options, progress) {
           started.push(nextContainerToStart);
           progress({ message: `Started ${nextContainerToStart.name} (${started.length}/${numberOfContainers}).`, type: 'info' });
         } catch (ex) {
-          progress({ message: ex.message, type: 'error' });
+          err = ex;
         }
       })();
       /* eslint-enable no-loop-func */
     }
 
     await sleep(50);
+  }
+
+  if (err) {
+    throw err;
   }
 };
 

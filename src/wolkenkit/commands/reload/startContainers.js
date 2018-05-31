@@ -51,7 +51,9 @@ const startContainers = async function (options, progress) {
 
   const numberOfContainers = applicationContainers.length;
 
-  while (startedApplicationContainers.length < numberOfContainers) {
+  let err;
+
+  while (startedApplicationContainers.length < numberOfContainers && !err) {
     const nextContainerToStart = applicationContainers.find(container => {
       const dependsOn = container.dependsOn || [];
       const startedContainerNames = started.map(startedContainer => startedContainer.name);
@@ -64,16 +66,24 @@ const startContainers = async function (options, progress) {
 
       /* eslint-disable no-loop-func */
       (async () => {
-        await docker.startContainer({ configuration, env, container: nextContainerToStart });
+        try {
+          await docker.startContainer({ configuration, env, container: nextContainerToStart });
 
-        started.push(nextContainerToStart);
-        startedApplicationContainers.push(nextContainerToStart);
-        progress({ message: `Started ${nextContainerToStart.name} (${startedApplicationContainers.length}/${numberOfContainers}).`, type: 'info' });
+          started.push(nextContainerToStart);
+          startedApplicationContainers.push(nextContainerToStart);
+          progress({ message: `Started ${nextContainerToStart.name} (${startedApplicationContainers.length}/${numberOfContainers}).`, type: 'info' });
+        } catch (ex) {
+          err = ex;
+        }
       })();
       /* eslint-enable no-loop-func */
     }
 
     await sleep(50);
+  }
+
+  if (err) {
+    throw err;
   }
 };
 
