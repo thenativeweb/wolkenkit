@@ -41,6 +41,12 @@ const setupAws = async function (options) {
 
   const getElapsed = measureTime();
 
+  await shell.exec('terraform init', {
+    cwd: path.join(__dirname, '..', 'terraform'),
+    env,
+    maxBuffer: 1024 * 1000
+  });
+
   await shell.exec('terraform apply', {
     cwd: path.join(__dirname, '..', 'terraform'),
     env,
