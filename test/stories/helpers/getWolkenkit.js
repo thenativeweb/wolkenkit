@@ -2,8 +2,7 @@
 
 const path = require('path');
 
-const buntstift = require('buntstift'),
-      map = require('lodash/map'),
+const map = require('lodash/map'),
       merge = require('lodash/merge'),
       processenv = require('processenv');
 
@@ -44,10 +43,6 @@ const getWolkenkit = async function (options) {
       output.code = ex.code;
       output.stdout = ex.stdout;
       output.stderr = ex.stderr;
-
-      buntstift.warn(`Command: ${command}`);
-      buntstift.warn(`stdout: ${output.stdout}`);
-      buntstift.warn(`stderr: ${output.stderr}`);
     }
 
     // Remove spinner output.
