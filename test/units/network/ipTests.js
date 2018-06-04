@@ -2,7 +2,7 @@
 
 const assert = require('assertthat');
 
-const ip = require('../../../lib/network/ip');
+const ip = require('../../../src/network/ip');
 
 suite('network/ip', () => {
   test('is an object.', done => {

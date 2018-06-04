@@ -8,7 +8,7 @@ const buntstift = require('buntstift'),
       processenv = require('processenv'),
       promisify = require('util.promisify');
 
-const shell = require('../../../lib/shell');
+const shell = require('../../../src/shell');
 
 const readFile = promisify(fs.readFile);
 
@@ -40,6 +40,12 @@ const setupAws = async function (options) {
   const stopWaiting = buntstift.wait();
 
   const getElapsed = measureTime();
+
+  await shell.exec('terraform init', {
+    cwd: path.join(__dirname, '..', 'terraform'),
+    env,
+    maxBuffer: 1024 * 1000
+  });
 
   await shell.exec('terraform apply', {
     cwd: path.join(__dirname, '..', 'terraform'),

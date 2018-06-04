@@ -7,10 +7,10 @@ const assert = require('assertthat'),
       promisify = require('util.promisify');
 
 const getDirectoryList = require('./helpers/getDirectoryList'),
-      shell = require('../../lib/shell'),
+      shell = require('../../src/shell'),
       suite = require('./helpers/suite');
 
-const defaults = require('../../lib/cli/defaults'),
+const defaults = require('../../src/cli/defaults'),
       packageJson = require('../../package.json');
 
 const isolatedAsync = promisify(isolated);
@@ -20,64 +20,64 @@ const isolatedAsync = promisify(isolated);
     await test('[wolkenkit] shows the usage.', async ({ directory }) => {
       const { code, stderr, stdout } = await wolkenkit('', {}, { cwd: directory });
 
-      assert.that(code).is.equalTo(0);
+      assert.that(stderr).is.equalTo('');
       assert.that(stdout).is.matching(/Verify whether wolkenkit is setup correctly/);
       assert.that(stdout).is.matching(/Show the help/);
       assert.that(stdout).is.matching(/Initialize a new application/);
       assert.that(stdout).is.matching(/List supported and installed wolkenkit versions/);
       assert.that(stdout).is.matching(/Start an application/);
       assert.that(stdout).is.matching(/Update the wolkenkit CLI/);
-      assert.that(stderr).is.equalTo('');
+      assert.that(code).is.equalTo(0);
     });
 
     await test('[wolkenkit help] shows the usage.', async ({ directory }) => {
       const { code, stderr, stdout } = await wolkenkit('help', {}, { cwd: directory });
 
-      assert.that(code).is.equalTo(0);
+      assert.that(stderr).is.equalTo('');
       assert.that(stdout).is.matching(/Verify whether wolkenkit is setup correctly/);
       assert.that(stdout).is.matching(/Show the help/);
       assert.that(stdout).is.matching(/Initialize a new application/);
       assert.that(stdout).is.matching(/List supported and installed wolkenkit versions/);
       assert.that(stdout).is.matching(/Start an application/);
       assert.that(stdout).is.matching(/Update the wolkenkit CLI/);
-      assert.that(stderr).is.equalTo('');
+      assert.that(code).is.equalTo(0);
     });
 
     await test('[wolkenkit init --help] shows the usage for the specified command.', async ({ directory }) => {
       const { code, stderr, stdout } = await wolkenkit('init', { help: true }, { cwd: directory });
 
-      assert.that(code).is.equalTo(0);
+      assert.that(stderr).is.equalTo('');
       assert.that(stdout).is.matching(/Initialize a new application/);
       assert.that(stdout).is.matching(/wolkenkit init \[--template <url>\]/);
-      assert.that(stderr).is.equalTo('');
+      assert.that(code).is.equalTo(0);
     });
 
     await test('[wolkenkit] suggests a command when an unknown command is given.', async ({ directory }) => {
       const { code, stdout, stderr } = await wolkenkit('hel', {}, { cwd: directory });
 
-      assert.that(code).is.not.equalTo(0);
-      assert.that(stdout).is.equalTo('');
       assert.that(stderr).is.equalTo('✗ Unknown command \'hel\', did you mean \'help\'?\n');
+      assert.that(stdout).is.equalTo('');
+      assert.that(code).is.not.equalTo(0);
     });
 
     await test('[wolkenkit --version] shows its version number.', async ({ directory }) => {
       const { code, stdout, stderr } = await wolkenkit('--version', {}, { cwd: directory });
 
-      assert.that(code).is.equalTo(0);
-      assert.that(stdout).is.equalTo(`  ${packageJson.version}\n`);
       assert.that(stderr).is.equalTo('');
+      assert.that(stdout).is.equalTo(`  ${packageJson.version}\n`);
+      assert.that(code).is.equalTo(0);
     });
 
     await test('[wolkenkit init] reports an error if the target directory is not empty.', async () => {
       const directory = await isolatedAsync({
-        files: [ path.join(__dirname, '..', 'configuration', 'validJson', 'package.json') ]
+        files: [ path.join(__dirname, '..', 'shared', 'configuration', 'validJson', 'package.json') ]
       });
 
       const { code, stdout, stderr } = await wolkenkit('init', {}, { cwd: directory });
 
-      assert.that(code).is.not.equalTo(0);
-      assert.that(stdout).is.equalTo('  Initializing a new application...\n  The current working directory is not empty.\n');
       assert.that(stderr).is.equalTo('✗ Failed to initialize a new application.\n');
+      assert.that(stdout).is.equalTo('  Initializing a new application...\n  The current working directory is not empty.\n');
+      assert.that(code).is.not.equalTo(0);
 
       const directoryList = await getDirectoryList(directory);
 
@@ -89,9 +89,9 @@ const isolatedAsync = promisify(isolated);
 
       const { code, stderr, stdout } = await wolkenkit('init', {}, { cwd: directory });
 
-      assert.that(code).is.equalTo(0);
-      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n✓ Initialized a new application.\n`);
       assert.that(stderr).is.equalTo('');
+      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n✓ Initialized a new application.\n`);
+      assert.that(code).is.equalTo(0);
 
       const directoryList = await getDirectoryList(directory);
 
@@ -104,9 +104,9 @@ const isolatedAsync = promisify(isolated);
 
       const { code, stderr, stdout } = await wolkenkit('init', { template }, { cwd: directory });
 
-      assert.that(code).is.equalTo(0);
-      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n✓ Initialized a new application.\n`);
       assert.that(stderr).is.equalTo('');
+      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n✓ Initialized a new application.\n`);
+      assert.that(code).is.equalTo(0);
 
       const directoryList = await getDirectoryList(directory);
 
@@ -116,15 +116,15 @@ const isolatedAsync = promisify(isolated);
 
     await test('[wolkenkit init --force] overwrites existing files.', async () => {
       const directory = await isolatedAsync({
-        files: [ path.join(__dirname, '..', 'configuration', 'validJson', 'package.json') ]
+        files: [ path.join(__dirname, '..', 'shared', 'configuration', 'validJson', 'package.json') ]
       });
       const template = defaults.commands.init.template;
 
       const { code, stderr, stdout } = await wolkenkit('init', { force: true }, { cwd: directory });
 
-      assert.that(code).is.equalTo(0);
-      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n  Creating backup file for package.json...\n✓ Initialized a new application.\n`);
       assert.that(stderr).is.equalTo('');
+      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n  Creating backup file for package.json...\n✓ Initialized a new application.\n`);
+      assert.that(code).is.equalTo(0);
 
       const directoryList = await getDirectoryList(directory);
 
@@ -139,9 +139,9 @@ const isolatedAsync = promisify(isolated);
 
       const { code, stderr, stdout } = await wolkenkit('init', { force: true }, { cwd: directory });
 
-      assert.that(code).is.equalTo(0);
-      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n✓ Initialized a new application.\n`);
       assert.that(stderr).is.equalTo('');
+      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n✓ Initialized a new application.\n`);
+      assert.that(code).is.equalTo(0);
 
       const directoryList = await getDirectoryList(directory);
 

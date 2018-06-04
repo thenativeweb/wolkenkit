@@ -45,6 +45,9 @@ const suite = async function (description, fn) {
   try {
     await fn({ test, wolkenkit, ipAddress });
   } catch (ex) {
+    buntstift.info(`${description} - failed.`);
+    buntstift.error(ex.message);
+
     if (mustRunTeardown) {
       await teardown();
     }

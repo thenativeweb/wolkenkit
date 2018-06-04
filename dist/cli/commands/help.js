@@ -1,6 +1,18 @@
 'use strict';
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+var _keys = require('babel-runtime/core-js/object/keys');
+
+var _keys2 = _interopRequireDefault(_keys);
+
+var _regenerator = require('babel-runtime/regenerator');
+
+var _regenerator2 = _interopRequireDefault(_regenerator);
+
+var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var buntstift = require('buntstift'),
     getUsage = require('command-line-usage');
@@ -8,11 +20,9 @@ var buntstift = require('buntstift'),
 var help = {
   description: 'Show the help.',
 
-  getOptionDefinitions: function getOptionDefinitions() {
-    var _this = this;
-
-    return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-      return regeneratorRuntime.wrap(function _callee$(_context) {
+  getOptionDefinitions: function () {
+    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
+      return _regenerator2.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
@@ -23,15 +33,19 @@ var help = {
               return _context.stop();
           }
         }
-      }, _callee, _this);
-    }))();
-  },
-  run: function run() {
-    var _this2 = this;
+      }, _callee, this);
+    }));
 
-    return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+    function getOptionDefinitions() {
+      return _ref.apply(this, arguments);
+    }
+
+    return getOptionDefinitions;
+  }(),
+  run: function () {
+    var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2() {
       var commands;
-      return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      return _regenerator2.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
@@ -42,9 +56,9 @@ var help = {
               commands = require('./index');
               /* eslint-enable global-require */
 
-              buntstift.info(getUsage([{ header: 'wolkenkit', content: 'Manages wolkenkit.' }, { header: 'Synposis', content: 'wolkenkit <command> [options]' }, {
+              buntstift.info(getUsage([{ header: 'wolkenkit', content: 'Manages wolkenkit.' }, { header: 'Synopsis', content: 'wolkenkit <command> [options]' }, {
                 header: 'Commands',
-                content: Object.keys(commands).map(function (command) {
+                content: (0, _keys2.default)(commands).map(function (command) {
                   return {
                     name: command,
                     description: commands[command].description
@@ -59,9 +73,15 @@ var help = {
               return _context2.stop();
           }
         }
-      }, _callee2, _this2);
-    }))();
-  }
+      }, _callee2, this);
+    }));
+
+    function run() {
+      return _ref2.apply(this, arguments);
+    }
+
+    return run;
+  }()
 };
 
 module.exports = help;

@@ -4,24 +4,24 @@ const path = require('path');
 
 const assert = require('assertthat');
 
-const getConfiguration = require('../../../lib/application/getConfiguration');
+const getConfiguration = require('../../../src/application/getConfiguration');
 
 suite('application/getConfiguration', () => {
   const directory = {
-    missing: path.join(__dirname, '..', '..', 'configuration', 'missing'),
-    invalidJson: path.join(__dirname, '..', '..', 'configuration', 'invalidJson'),
-    validJson: path.join(__dirname, '..', '..', 'configuration', 'validJson'),
-    missingRuntimeVersion: path.join(__dirname, '..', '..', 'configuration', 'templates', 'missingRuntimeVersion'),
-    unknownRuntimeVersion: path.join(__dirname, '..', '..', 'configuration', 'templates', 'unknownRuntimeVersion'),
-    certificate: path.join(__dirname, '..', '..', 'configuration', 'templates', 'certificate'),
-    doesNotContainNodeEnvironment: path.join(__dirname, '..', '..', 'configuration', 'templates', 'doesNotContainNodeEnvironment'),
-    doesNotContainPort: path.join(__dirname, '..', '..', 'configuration', 'templates', 'doesNotContainPort'),
-    doesNotContainAllowAccessFrom: path.join(__dirname, '..', '..', 'configuration', 'templates', 'doesNotContainAllowAccessFrom'),
-    multipleEnvironments: path.join(__dirname, '..', '..', 'configuration', 'templates', 'multipleEnvironments'),
-    multipleEnvironmentsWithDockerMachine: path.join(__dirname, '..', '..', 'configuration', 'templates', 'multipleEnvironmentsWithDockerMachine'),
-    multipleAllowAccessFrom: path.join(__dirname, '..', '..', 'configuration', 'templates', 'multipleAllowAccessFrom'),
-    allowAccessFrom: path.join(__dirname, '..', '..', 'configuration', 'templates', 'allowAccessFrom'),
-    identityProvider: path.join(__dirname, '..', '..', 'configuration', 'templates', 'identityProvider')
+    missing: path.join(__dirname, '..', '..', 'shared', 'configuration', 'missing'),
+    invalidJson: path.join(__dirname, '..', '..', 'shared', 'configuration', 'invalidJson'),
+    validJson: path.join(__dirname, '..', '..', 'shared', 'configuration', 'validJson'),
+    missingRuntimeVersion: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'missingRuntimeVersion'),
+    unknownRuntimeVersion: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'unknownRuntimeVersion'),
+    certificate: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'certificate'),
+    doesNotContainNodeEnvironment: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'doesNotContainNodeEnvironment'),
+    doesNotContainPort: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'doesNotContainPort'),
+    doesNotContainAllowAccessFrom: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'doesNotContainAllowAccessFrom'),
+    multipleEnvironments: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'multipleEnvironments'),
+    multipleEnvironmentsWithDockerMachine: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'multipleEnvironmentsWithDockerMachine'),
+    multipleAllowAccessFrom: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'multipleAllowAccessFrom'),
+    allowAccessFrom: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'allowAccessFrom'),
+    identityProvider: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'identityProvider')
   };
 
   test('is a function.', done => {

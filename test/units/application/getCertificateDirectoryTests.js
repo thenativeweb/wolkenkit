@@ -4,8 +4,8 @@ const path = require('path');
 
 const assert = require('assertthat');
 
-const getCertificateDirectory = require('../../../lib/application/getCertificateDirectory'),
-      shell = require('../../../lib/shell');
+const getCertificateDirectory = require('../../../src/application/getCertificateDirectory'),
+      shell = require('../../../src/shell');
 
 suite('application/getCertificateDirectory', () => {
   test('is a function.', done => {
@@ -63,7 +63,7 @@ suite('application/getCertificateDirectory', () => {
   });
 
   test('returns the certificate directory if an absolute path is configured.', async () => {
-    const directoryBase = path.join(__dirname, '..', '..');
+    const directoryBase = path.join(__dirname, '..', '..', 'shared');
     const directoryCertificate = '/keys/local.wolkenkit.io';
     const directory = path.join(directoryBase, directoryCertificate);
 
@@ -79,7 +79,7 @@ suite('application/getCertificateDirectory', () => {
   });
 
   test('returns the certificate directory if a relative path is configured.', async () => {
-    const directoryBase = path.join(__dirname, '..', '..');
+    const directoryBase = path.join(__dirname, '..', '..', 'shared');
     const directoryCertificate = 'keys/local.wolkenkit.io';
     const directory = path.join(directoryBase, directoryCertificate);
 
