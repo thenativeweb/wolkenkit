@@ -1,7 +1,7 @@
 'use strict';
 
-const docker = require('../../../docker'),
-      noop = require('../../../noop');
+const docker = require('../../../../docker'),
+      noop = require('../../../../noop');
 
 const removeContainers = async function (options, progress = noop) {
   if (!options) {

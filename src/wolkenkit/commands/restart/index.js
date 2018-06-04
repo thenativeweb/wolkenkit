@@ -1,12 +1,14 @@
 'use strict';
 
-const docker = require('../../../docker'),
-      errors = require('../../../errors'),
-      health = require('../health'),
+const aufwind = require('./aufwind'),
+      cli = require('./cli'),
       noop = require('../../../noop'),
-      shared = require('../shared'),
-      start = require('../start'),
-      stop = require('../stop');
+      shared = require('../shared');
+
+const restartVia = {
+  aufwind,
+  cli
+};
 
 const restart = async function (options, progress = noop) {
   if (!options) {
@@ -19,7 +21,7 @@ const restart = async function (options, progress = noop) {
     throw new Error('Environment is missing.');
   }
 
-  const { directory, env } = options;
+  const { directory, env, privateKey } = options;
 
   const configuration = await shared.getConfiguration({
     env,
@@ -27,39 +29,11 @@ const restart = async function (options, progress = noop) {
     isPackageJsonRequired: true
   }, progress);
 
-  await shared.checkDocker({ configuration, env }, progress);
+  const environment = configuration.environments[env];
 
-  progress({ message: `Verifying health on environment ${env}...`, type: 'info' });
-  await health({ directory, env }, progress);
+  const type = environment.type === 'aufwind' ? environment.type : 'cli';
 
-  progress({ message: 'Verifying application status...', type: 'info' });
-  const existingContainers = await docker.getContainers({
-    configuration,
-    env,
-    where: { label: { 'wolkenkit-application': configuration.application }}
-  });
-
-  if (existingContainers.length === 0) {
-    progress({ message: `The application is not running.`, type: 'info' });
-    throw new errors.ApplicationNotRunning();
-  }
-
-  const debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
-        persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
-        port = Number(existingContainers[0].labels['wolkenkit-api-port']),
-        sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
-
-  progress({ message: `Stopping the application on environment ${env}...`, type: 'info' });
-  await stop({ directory, env, dangerouslyDestroyData: false }, progress);
-
-  const startOptions = { directory, env, dangerouslyDestroyData: false, debug, port };
-
-  if (persistData) {
-    startOptions.sharedKey = sharedKey;
-  }
-
-  progress({ message: `Starting the application on environment ${env}...`, type: 'info' });
-  await start(startOptions, progress);
+  await restartVia[type]({ directory, env, privateKey, configuration }, progress);
 };
 
 module.exports = restart;

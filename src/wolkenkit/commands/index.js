@@ -1,12 +1,14 @@
 'use strict';
 
-const health = require('./health'),
+const encrypt = require('./encrypt'),
+      health = require('./health'),
       init = require('./init'),
       install = require('./install'),
       logs = require('./logs'),
       ls = require('./ls'),
       reload = require('./reload'),
       restart = require('./restart'),
+      shared = require('./shared'),
       start = require('./start'),
       status = require('./status'),
       stop = require('./stop'),
@@ -14,6 +16,7 @@ const health = require('./health'),
       update = require('./update');
 
 module.exports = {
+  encrypt,
   health,
   init,
   install,
@@ -21,6 +24,7 @@ module.exports = {
   ls,
   reload,
   restart,
+  shared,
   start,
   status,
   stop,

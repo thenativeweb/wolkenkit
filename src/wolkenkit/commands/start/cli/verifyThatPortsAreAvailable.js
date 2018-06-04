@@ -4,8 +4,8 @@ const map = require('lodash/map'),
       portscanner = require('portscanner'),
       promisify = require('util.promisify');
 
-const errors = require('../../../errors'),
-      runtimes = require('../../runtimes');
+const errors = require('../../../../errors'),
+      runtimes = require('../../../runtimes');
 
 const findAPortInUse = promisify(portscanner.findAPortInUse);
 

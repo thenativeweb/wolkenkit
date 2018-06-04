@@ -50,7 +50,7 @@ const reload = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.reload({ directory, env }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.reload({ directory, env }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
 

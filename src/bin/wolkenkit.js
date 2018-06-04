@@ -51,9 +51,7 @@ updateNotifier({ pkg: packageJson }).notify();
   }
   /* eslint-enable no-underscore-dangle */
 
-  try {
-    await command.run(args);
-  } catch (ex) {
+  const handleException = function (ex) {
     if (ex.message) {
       buntstift.verbose(ex.message);
     }
@@ -61,6 +59,15 @@ updateNotifier({ pkg: packageJson }).notify();
       buntstift.verbose(ex.stack);
     }
     buntstift.exit(1);
+  };
+
+  process.on('uncaughtException', handleException);
+  process.on('unhandledRejection', handleException);
+
+  try {
+    await command.run(args);
+  } catch (ex) {
+    handleException(ex);
   }
 
   buntstift.exit(0);

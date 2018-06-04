@@ -2,17 +2,15 @@
 
 const buntstift = require('buntstift'),
       getUsage = require('command-line-usage'),
-      processenv = require('processenv'),
-      stripIndent = require('common-tags/lib/stripIndent');
+      processenv = require('processenv');
 
-const defaults = require('../defaults.json'),
-      errors = require('../../errors'),
+const defaults = require('../defaults'),
       globalOptionDefinitions = require('../globalOptionDefinitions'),
       showProgress = require('../showProgress'),
       wolkenkit = require('../../wolkenkit');
 
-const status = {
-  description: 'Fetch an application status.',
+const encrypt = {
+  description: 'Encrypt the given value.',
 
   async getOptionDefinitions () {
     return [
@@ -30,6 +28,13 @@ const status = {
         type: String,
         description: 'select private key',
         typeLabel: '<file>'
+      },
+      {
+        name: 'value',
+        alias: 'v',
+        type: String,
+        description: 'select value',
+        typeLabel: '<value>'
       }
     ];
   },
@@ -43,42 +48,41 @@ const status = {
     }
 
     const directory = process.cwd(),
-          { env, help, privateKey, verbose } = options;
+          { env, help, value, verbose } = options,
+          privateKey = options['private-key'];
 
     if (help) {
       return buntstift.info(getUsage([
-        { header: 'wolkenkit status', content: this.description },
-        { header: 'Synopsis', content: stripIndent`
-          wolkenkit status [--env <env>]
-          wolkenkit status [--env <env>] [--private-key <file>]` },
+        { header: 'wolkenkit encrypt', content: this.description },
+        { header: 'Synopsis', content: 'wolkenkit encrypt [--value <value>] [--env <env>] [--private-key <file>]' },
         { header: 'Options', optionList: [ ...await this.getOptionDefinitions(), ...globalOptionDefinitions ]}
       ]));
     }
 
-    buntstift.info('Fetching application status...');
+    buntstift.info('Encrypting...');
+
+    if (!options.value) {
+      buntstift.error('Value is missing.');
+
+      throw new Error('Value is missing.');
+    }
 
     const stopWaiting = buntstift.wait();
 
+    let encrypted;
+
     try {
-      await wolkenkit.commands.status({ directory, env, privateKey }, showProgress(verbose, stopWaiting));
+      encrypted = await wolkenkit.commands.encrypt({ env, directory, privateKey, value }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
+      buntstift.error('Failed to encrypt.');
 
-      if (ex instanceof errors.ApplicationNotRunning) {
-        return buntstift.success('The application is stopped.');
-      }
-      if (ex instanceof errors.ApplicationPartiallyRunning) {
-        buntstift.error('The application is partially running.');
-        throw ex;
-      }
-
-      buntstift.error('Failed to fetch application status .');
       throw ex;
     }
 
     stopWaiting();
-    buntstift.success('The application is running.');
+    buntstift.success(`Value: ${encrypted}`);
   }
 };
 
-module.exports = status;
+module.exports = encrypt;

@@ -20,11 +20,21 @@ const waitForApplication = async function (options, progress) {
   }
 
   const { configuration, env } = options;
+  let { host, port } = options;
 
   const restoreEnvironment = nodeenv('NODE_TLS_REJECT_UNAUTHORIZED', '0');
 
+  const selectedEnvironment = configuration.environments[env];
+
+  if (!host || !port) {
+    host = selectedEnvironment.api.address.host;
+    port = selectedEnvironment.api.address.port;
+  }
+
+  progress({ message: `Waiting for https://${host}:${port}/v1/ping to reply...`, type: 'info' });
+
   const result = await request({
-    url: `https://${configuration.environments[env].api.address.host}:${configuration.environments[env].api.address.port}/v1/ping`,
+    url: `https://${host}:${port}/v1/ping`,
     json: true,
     fullResponse: false,
     maxAttempts: 60,

@@ -55,7 +55,7 @@ const ls = {
     let versions;
 
     try {
-      versions = await wolkenkit.ls({ directory, env }, showProgress(verbose, stopWaiting));
+      versions = await wolkenkit.commands.ls({ directory, env }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
       buntstift.error('Failed to list supported and installed wolkenkit versions.');

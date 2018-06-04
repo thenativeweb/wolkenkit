@@ -1,11 +1,14 @@
 'use strict';
 
-const docker = require('../../../docker'),
-      errors = require('../../../errors'),
-      getApplicationStatus = require('../shared/getApplicationStatus'),
-      health = require('../health'),
+const aufwind = require('./aufwind'),
+      cli = require('./cli'),
       noop = require('../../../noop'),
       shared = require('../shared');
+
+const statusVia = {
+  aufwind,
+  cli
+};
 
 const status = async function (options, progress = noop) {
   if (!options) {
@@ -18,7 +21,7 @@ const status = async function (options, progress = noop) {
     throw new Error('Environment is missing.');
   }
 
-  const { directory, env } = options;
+  const { directory, env, privateKey } = options;
 
   const configuration = await shared.getConfiguration({
     env,
@@ -26,35 +29,11 @@ const status = async function (options, progress = noop) {
     isPackageJsonRequired: true
   }, progress);
 
-  await shared.checkDocker({ configuration, env }, progress);
+  const environment = configuration.environments[env];
 
-  progress({ message: `Verifying health on environment ${env}...`, type: 'info' });
-  await health({ directory, env }, progress);
+  const type = environment.type === 'aufwind' ? environment.type : 'cli';
 
-  const existingContainers = await docker.getContainers({
-    configuration,
-    env,
-    where: { label: { 'wolkenkit-application': configuration.application }}
-  });
-
-  progress({ message: 'Verifying application status...', type: 'info' });
-
-  // We can not use the application status here, because for that we need to
-  // fetch the labels of the containers. So this would be a chicken-and-egg
-  // problem, hence this workaround.
-  if (existingContainers.length === 0) {
-    throw new errors.ApplicationNotRunning();
-  }
-
-  const debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
-        persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
-        sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
-
-  const applicationStatus = await getApplicationStatus({ configuration, env, sharedKey, persistData, debug }, progress);
-
-  if (applicationStatus === 'partially-running') {
-    throw new errors.ApplicationPartiallyRunning();
-  }
+  await statusVia[type]({ directory, env, privateKey, configuration }, progress);
 };
 
 module.exports = status;

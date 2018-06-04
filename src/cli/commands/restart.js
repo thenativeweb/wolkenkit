@@ -3,7 +3,8 @@
 const buntstift = require('buntstift'),
       eslint = require('eslint'),
       getUsage = require('command-line-usage'),
-      processenv = require('processenv');
+      processenv = require('processenv'),
+      stripIndent = require('common-tags/lib/stripIndent');
 
 const defaults = require('../defaults.json'),
       globalOptionDefinitions = require('../globalOptionDefinitions'),
@@ -22,6 +23,13 @@ const restart = {
         defaultValue: processenv('WOLKENKIT_ENV') || defaults.env,
         description: 'select environment',
         typeLabel: '<env>'
+      },
+      {
+        name: 'private-key',
+        alias: 'k',
+        type: String,
+        description: 'select private key',
+        typeLabel: '<file>'
       }
     ];
   },
@@ -35,12 +43,14 @@ const restart = {
     }
 
     const directory = process.cwd(),
-          { env, help, verbose } = options;
+          { env, help, privateKey, verbose } = options;
 
     if (help) {
       return buntstift.info(getUsage([
         { header: 'wolkenkit restart', content: this.description },
-        { header: 'Synopsis', content: 'wolkenkit restart [--env <env>]' },
+        { header: 'Synopsis', content: stripIndent`
+          wolkenkit restart [--env <env>]
+          wolkenkit restart [--env <env>] [--private-key <file>]` },
         { header: 'Options', optionList: [ ...await this.getOptionDefinitions(), ...globalOptionDefinitions ]}
       ]));
     }
@@ -50,7 +60,7 @@ const restart = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.restart({ directory, env }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.restart({ directory, env, privateKey }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
 

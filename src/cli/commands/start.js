@@ -3,7 +3,8 @@
 const buntstift = require('buntstift'),
       eslint = require('eslint'),
       getUsage = require('command-line-usage'),
-      processenv = require('processenv');
+      processenv = require('processenv'),
+      stripIndent = require('common-tags/lib/stripIndent');
 
 const defaults = require('../defaults.json'),
       globalOptionDefinitions = require('../globalOptionDefinitions'),
@@ -46,6 +47,13 @@ const init = {
         typeLabel: '<port>'
       },
       {
+        name: 'private-key',
+        alias: 'k',
+        type: String,
+        description: 'select private key',
+        typeLabel: '<file>'
+      },
+      {
         // The shared key has no default value set, as this varies from call to
         // call, and it makes a difference whether it has been set or not.
         name: 'shared-key',
@@ -72,7 +80,7 @@ const init = {
     }
 
     const directory = process.cwd(),
-          { debug, env, help, port, verbose } = options;
+          { debug, env, help, port, privateKey, verbose } = options;
 
     const dangerouslyDestroyData = options['dangerously-destroy-data'],
           sharedKey = options['shared-key'];
@@ -80,7 +88,9 @@ const init = {
     if (help) {
       return buntstift.info(getUsage([
         { header: 'wolkenkit start', content: this.description },
-        { header: 'Synopsis', content: 'wolkenkit start [--port <port>] [--env <env>] [--dangerously-destroy-data] [--shared-key <key>] [--debug]' },
+        { header: 'Synopsis', content: stripIndent`
+          wolkenkit start [--port <port>] [--env <env>] [--dangerously-destroy-data] [--shared-key <key>] [--debug]
+          wolkenkit start [--env <env>] [--private-key <file>]` },
         { header: 'Options', optionList: [ ...await this.getOptionDefinitions(), ...globalOptionDefinitions ]}
       ]));
     }
@@ -90,7 +100,7 @@ const init = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.start({ directory, dangerouslyDestroyData, debug, env, port, sharedKey }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.start({ directory, dangerouslyDestroyData, debug, env, port, privateKey, sharedKey }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
 

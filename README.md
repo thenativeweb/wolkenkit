@@ -33,7 +33,7 @@ $ npm install -g wolkenkit
 
 First, have a look at the [documentation](https://docs.wolkenkit.io), and its getting started [guides](https://docs.wolkenkit.io/latest/guides/creating-your-first-application/setting-the-objective/). You should also learn about [why to use wolkenkit](https://docs.wolkenkit.io/latest/getting-started/understanding-wolkenkit/why-wolkenkit/).
 
-There is a variety of [blog posts](https://docs.wolkenkit.io/latest/media/online-resources/blog-posts/) and [articles](https://docs.wolkenkit.io/latest/media/online-resources/articles/) that help you get started. Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>, and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
+There is a variety of [blog posts](https://docs.wolkenkit.io/latest/media/online-resources/blog-posts/) and [articles](https://docs.wolkenkit.io/latest/media/online-resources/articles/) that help you get started. Also, you are welcome to [join us on Slack](http://slackin.wolkenkit.io), and have a look at the [previously asked questions at Stack Overflow](http://stackoverflow.com/questions/tagged/wolkenkit).
 
 If you are curious on what's next, have a look at the [roadmap](roadmap.md).
 
@@ -49,7 +49,7 @@ There are a number of sample applications available:
 
 ## Getting help
 
-If you need any help with wolkenkit, consider the following options. Also, you are welcome to <a href="http://slackin.wolkenkit.io" target="_blank" rel="noopener noreferrer">join us on Slack</a>.
+If you need any help with wolkenkit, consider the following options. Also, you are welcome to [join us on Slack](http://slackin.wolkenkit.io).
 
 ### Reporting an issue
 
@@ -92,6 +92,25 @@ To build this module use [roboter](https://www.npmjs.com/package/roboter).
 
 ```shell
 $ npx roboter
+```
+
+Additionally to the unit tests, there are so-called *story tests*. To run them, use the following command:
+
+```shell
+$ node test/stories/index.js
+```
+
+## FAQ
+
+- Running the story tests getting an error called *Error loading extension section V3_ca*
+
+If you get the error *Error loading extension section V3_ca* by running the story tests,
+you have to edit your local openssl configuration.
+You can find the configuration here `/private/etc/ssl/openssl.cnf`. In this file you have to add the following lines:
+
+```
+[ v3_ca ]
+basicConstraints = critical,CA:TRUE
 ```
 
 ## License
