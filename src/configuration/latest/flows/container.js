@@ -64,6 +64,7 @@ const container = function (options) {
     networks: [
       `${configuration.application}-network`
     ],
+    networkAlias: 'flows',
     ports: {
       3333: selectedEnvironment.api.address.port + 11
     },

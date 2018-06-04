@@ -66,6 +66,7 @@ const container = function (options) {
     networks: [
       `${configuration.application}-network`
     ],
+    networkAlias: 'core',
     ports: {
       3333: selectedEnvironment.api.address.port + 10
     },
