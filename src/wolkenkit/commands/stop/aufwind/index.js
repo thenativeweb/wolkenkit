@@ -6,6 +6,9 @@ const aufwind = async function (options, progress) {
   if (!options) {
     throw new Error('Options are missing.');
   }
+  if (!options.directory) {
+    throw new Error('Directory is missing.');
+  }
   if (!options.env) {
     throw new Error('Environment is missing.');
   }
@@ -16,7 +19,7 @@ const aufwind = async function (options, progress) {
     throw new Error('Progress is missing.');
   }
 
-  const { env, privateKey, configuration } = options;
+  const { directory, env, privateKey, configuration } = options;
 
   const tunnel = await shared.startTunnel({ configuration, env, privateKey }, progress);
 
@@ -29,7 +32,7 @@ const aufwind = async function (options, progress) {
     pathname: `/v1/applications/${application}/stop/${env}`
   };
 
-  await shared.makeAufwindRequest({ endpoint, tunnel }, progress);
+  await shared.streamApplication({ directory, endpoint, tunnel }, progress);
 };
 
 module.exports = aufwind;

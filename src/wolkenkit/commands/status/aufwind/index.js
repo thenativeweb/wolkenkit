@@ -1,15 +1,14 @@
 'use strict';
 
-const url = require('url');
-
-const request = require('superagent');
-
 const errors = require('../../../../errors'),
       shared = require('../../shared');
 
 const aufwind = async function (options, progress) {
   if (!options) {
     throw new Error('Options are missing.');
+  }
+  if (!options.directory) {
+    throw new Error('Directory is missing.');
   }
   if (!options.env) {
     throw new Error('Environment is missing.');
@@ -21,26 +20,22 @@ const aufwind = async function (options, progress) {
     throw new Error('Progress is missing.');
   }
 
-  const { env, privateKey, configuration } = options;
+  const { directory, env, privateKey, configuration } = options;
 
   const tunnel = await shared.startTunnel({ configuration, env, privateKey }, progress);
 
-  const endpoint = url.format({
+  const application = configuration.application;
+  const endpoint = {
     protocol: 'http:',
+    method: 'POST',
     hostname: tunnel.host,
     port: tunnel.port,
-    pathname: `/v1/applications/${configuration.application}/status/${env}`
-  });
+    pathname: `/v1/applications/${application}/status/${env}`
+  };
 
-  progress({ message: `Using ${endpoint} as route.` });
+  const response = await shared.streamApplication({ directory, endpoint, tunnel }, progress);
 
-  const response = await request.get(endpoint).send({});
-
-  tunnel.close();
-
-  const applicationStatus = response.body.status;
-
-  if (applicationStatus === 'not-running') {
+  if (response.status === 'not-running') {
     throw new errors.ApplicationNotRunning();
   }
 };
