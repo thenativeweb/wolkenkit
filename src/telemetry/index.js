@@ -11,7 +11,8 @@ const buntstift = require('buntstift'),
       request = require('superagent'),
       uuid = require('uuidv4');
 
-const getConfiguration = require('../application/getConfiguration');
+const getConfiguration = require('../application/getConfiguration'),
+      packageJson = require('../../package.json');
 
 const stat = promisify(fs.stat);
 
@@ -25,15 +26,8 @@ const telemetry = {
     'stop'
   ],
 
-  async init (options) {
-    if (!options) {
-      throw new Error('Options are missing.');
-    }
-    if (!options.version) {
-      throw new Error('Version is missing.');
-    }
-
-    const { version } = options;
+  async init () {
+    const { version } = packageJson;
 
     const homeDirectory = os.homedir();
 
@@ -74,6 +68,31 @@ const telemetry = {
     await dotFile.write(this.fileName, data);
   },
 
+  async isEnabled () {
+    const { version } = packageJson;
+    const data = await dotFile.read(this.fileName);
+
+    return Boolean(data.versions[version].sendTelemetry);
+  },
+
+  async enable () {
+    const { version } = packageJson;
+    const data = await dotFile.read(this.fileName);
+
+    data.versions[version].sendTelemetry = true;
+
+    await dotFile.write(this.fileName, data);
+  },
+
+  async disable () {
+    const { version } = packageJson;
+    const data = await dotFile.read(this.fileName);
+
+    data.versions[version].sendTelemetry = false;
+
+    await dotFile.write(this.fileName, data);
+  },
+
   async send (options) {
     if (!options) {
       throw new Error('Options are missing.');
@@ -81,14 +100,19 @@ const telemetry = {
     if (!options.command) {
       throw new Error('Command name is missing.');
     }
-    if (!options.version) {
-      throw new Error('Version is missing.');
-    }
     if (!options.args) {
       throw new Error('Arguments are missing.');
     }
 
-    const { command, version, args } = options;
+    const { command, args } = options;
+    const { version } = packageJson;
+    const { help, env } = args;
+
+    // Since we don't want to collect command-calls with "--help" paramter,
+    // we should stop here.
+    if (help) {
+      return;
+    }
 
     const data = await dotFile.read(this.fileName);
 
@@ -110,7 +134,6 @@ const telemetry = {
       const configuration = await getConfiguration({ directory: process.cwd() });
 
       const { application, runtime } = configuration;
-      const { env } = args;
       const { installationId } = data;
       const dateTime = Date.now();
 

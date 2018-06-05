@@ -65,12 +65,12 @@ updateNotifier({ pkg: packageJson }).notify();
   process.on('uncaughtException', handleException);
   process.on('unhandledRejection', handleException);
 
-  await telemetry.init({ version: packageJson.version });
+  await telemetry.init();
 
   try {
     await command.run(args);
 
-    await telemetry.send({ command: parsed.command, version: packageJson.version, args });
+    await telemetry.send({ command: parsed.command, args });
   } catch (ex) {
     handleException(ex);
   }
