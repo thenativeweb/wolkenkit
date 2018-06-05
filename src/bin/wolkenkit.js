@@ -12,7 +12,8 @@ const buntstift = require('buntstift'),
 
 const commands = require('../cli/commands'),
       globalOptionDefinitions = require('../cli/globalOptionDefinitions'),
-      packageJson = require('../../package.json');
+      packageJson = require('../../package.json'),
+      telemetry = require('../telemetry');
 
 updateNotifier({ pkg: packageJson }).notify();
 
@@ -64,8 +65,12 @@ updateNotifier({ pkg: packageJson }).notify();
   process.on('uncaughtException', handleException);
   process.on('unhandledRejection', handleException);
 
+  await telemetry.init({ version: packageJson.version });
+
   try {
     await command.run(args);
+
+    await telemetry.send({ command: parsed.command, version: packageJson.version, args });
   } catch (ex) {
     handleException(ex);
   }
