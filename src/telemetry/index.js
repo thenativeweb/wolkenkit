@@ -9,6 +9,7 @@ const buntstift = require('buntstift'),
       dotFile = require('dotfile-json'),
       promisify = require('util.promisify'),
       request = require('superagent'),
+      semver = require('semver'),
       uuid = require('uuidv4');
 
 const getConfiguration = require('../application/getConfiguration'),
@@ -63,9 +64,9 @@ const telemetry = {
     }
 
     if (!data.versions[version]) {
-      const agreements = Object.keys(data.versions).filter(key => data.versions[key].sendTelemetry).length;
+      const latestVersion = Object.keys(data.versions).sort((version1, version2) => !semver.gt(version1, version2))[0];
 
-      if (agreements === 0) {
+      if (!latestVersion || (latestVersion && !data.versions[latestVersion].sendTelemetry)) {
         buntstift.info('We want to collect telemetry data...');
         buntstift.info('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam.');
         buntstift.info('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut.');
@@ -79,7 +80,7 @@ const telemetry = {
         hasChanges = true;
       }
 
-      if (agreements > 0) {
+      if (latestVersion && data.versions[latestVersion].sendTelemetry) {
         data.versions[version] = { sendTelemetry: true };
 
         hasChanges = true;
