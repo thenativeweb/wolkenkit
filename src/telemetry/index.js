@@ -63,17 +63,27 @@ const telemetry = {
     }
 
     if (!data.versions[version]) {
-      buntstift.info('We want to collect telemetry data...');
-      buntstift.info('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam.');
-      buntstift.info('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut.');
+      const agreements = Object.keys(data.versions).filter(key => data.versions[key].sendTelemetry).length;
 
-      const confirmed = await buntstift.confirm('Do you agree with collecting telemetry data?');
+      if (agreements === 0) {
+        buntstift.info('We want to collect telemetry data...');
+        buntstift.info('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam.');
+        buntstift.info('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut.');
 
-      buntstift.newLine();
+        const confirmed = await buntstift.confirm('Do you agree with collecting telemetry data?');
 
-      data.versions[version] = { sendTelemetry: confirmed };
+        buntstift.newLine();
 
-      hasChanges = true;
+        data.versions[version] = { sendTelemetry: confirmed };
+
+        hasChanges = true;
+      }
+
+      if (agreements > 0) {
+        data.versions[version] = { sendTelemetry: true };
+
+        hasChanges = true;
+      }
     }
 
     if (hasChanges) {
