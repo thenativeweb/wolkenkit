@@ -69,7 +69,6 @@ updateNotifier({ pkg: packageJson }).notify();
 
   try {
     await command.run(args);
-
     await telemetry.send({ command: parsed.command, args });
   } catch (ex) {
     handleException(ex);

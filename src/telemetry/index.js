@@ -32,11 +32,10 @@ const telemetry = {
     const homeDirectory = os.homedir();
 
     try {
-      const stats = await stat(path.join(homeDirectory, '.wolkenkit'));
+      const stats = await stat(path.join(homeDirectory, this.fileName));
 
       if (stats.isDirectory()) {
-        // It is a leftover from beta phase.
-        buntstift.error('Please delete the .wolkenkit directory in your home directory.');
+        buntstift.error('Please delete the .wolkenkit directory in your home directory, as this is a relic of the wolkenkit beta.');
 
         return buntstift.exit(1);
       }
@@ -44,15 +43,23 @@ const telemetry = {
       if (ex.code !== 'ENOENT') {
         throw ex;
       }
+
+      // Ignore file not found error, because there is no relic of the wolkenkit beta.
     }
+
+    let hasChanges = false;
 
     const data = await dotFile.read(this.fileName);
 
     if (!data.installationId) {
       data.installationId = uuid();
+
+      hasChanges = true;
     }
     if (!data.versions) {
       data.versions = {};
+
+      hasChanges = true;
     }
 
     if (!data.versions[version]) {
@@ -62,10 +69,16 @@ const telemetry = {
 
       const confirmed = await buntstift.confirm('Do you agree with collecting telemetry data?');
 
+      buntstift.newLine();
+
       data.versions[version] = { sendTelemetry: confirmed };
+
+      hasChanges = true;
     }
 
-    await dotFile.write(this.fileName, data);
+    if (hasChanges) {
+      await dotFile.write(this.fileName, data);
+    }
   },
 
   async isEnabled () {
@@ -108,8 +121,7 @@ const telemetry = {
     const { version } = packageJson;
     const { help, env } = args;
 
-    // Since we don't want to collect command-calls with "--help" paramter,
-    // we should stop here.
+    // If a command was called with the --help flag, abort.
     if (help) {
       return;
     }
@@ -117,14 +129,10 @@ const telemetry = {
     const data = await dotFile.read(this.fileName);
 
     if (!data.versions[version].sendTelemetry) {
-      buntstift.verbose(`Skip telemetry for version ${version}.`);
-
       return;
     }
 
     if (!this.allowForCommands.includes(command)) {
-      buntstift.verbose(`Skip telemetry for command '${command}'.`);
-
       return;
     }
 
@@ -135,7 +143,7 @@ const telemetry = {
 
       const { application, runtime } = configuration;
       const { installationId } = data;
-      const dateTime = Date.now();
+      const timestamp = Date.now();
 
       const telemetryData = deepHash({
         installationId,
@@ -143,7 +151,7 @@ const telemetry = {
         env
       }, installationId);
 
-      telemetryData.dateTime = dateTime;
+      telemetryData.timestamp = timestamp;
       telemetryData.cli = { version, command };
       telemetryData.runtime = runtime;
 

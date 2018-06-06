@@ -8,29 +8,19 @@ const globalOptionDefinitions = require('../globalOptionDefinitions'),
       telemetry = require('../../telemetry');
 
 const command = {
-  description: 'Enable and disable telemetry data collecting.',
+  description: 'Enable or disable collecting telemetry data.',
 
   async getOptionDefinitions () {
     return [
       {
         name: 'enable',
         type: Boolean,
-        description: 'enable collecting data'
+        description: 'enable collecting telemetry data'
       },
       {
         name: 'disable',
         type: Boolean,
-        description: 'disable collecting data'
-      },
-      {
-        name: 'enabled',
-        type: Boolean,
-        description: 'show if collecting data is enabled'
-      },
-      {
-        name: 'disabled',
-        type: Boolean,
-        description: 'show if collecting data is disabled'
+        description: 'disable collecting telemetry data'
       }
     ];
   },
@@ -40,67 +30,47 @@ const command = {
       throw new Error('Options are missing.');
     }
 
-    const { help, enable, disable, enabled, disabled } = options;
-    const optionList = { enable, disable, enabled, disabled };
+    const { help, enable, disable } = options;
 
-    let count = 0;
-
-    Object.keys(options).forEach(key => {
-      const option = optionList[key];
-
-      if (option !== undefined) {
-        count += 1;
-      }
-    });
-
-    if (help || count === 0) {
+    if (help) {
       return buntstift.info(getUsage([
         { header: 'wolkenkit telemetry', content: this.description },
         { header: 'Synopsis', content: stripIndent`
           wolkenkit telemetry --enable
-          wolkenkit telemetry --disable
-          wolkenkit telemetry --enabled
-          wolkenkit telemetry --disabled` },
+          wolkenkit telemetry --disable` },
         { header: 'Options', optionList: [ ...await this.getOptionDefinitions(), ...globalOptionDefinitions ]}
       ]));
     }
 
-    if (count > 1) {
-      buntstift.error('Please enter only one option at a time.');
+    const optionList = { enable, disable };
+    const count = Object.keys(optionList).filter(key => optionList[key] !== undefined).length;
 
-      throw new Error('Multiple options given.');
+    if (count === 0) {
+      const isEnabled = await telemetry.isEnabled();
+
+      if (isEnabled) {
+        return buntstift.success('Collecting telemetry data is enabled.');
+      }
+
+      return buntstift.error('Collecting telemetry data is disabled.');
+    }
+
+    if (count > 1) {
+      buntstift.error('Either provide --enable or --disable.');
+
+      throw new Error('Mutually exclusive parameters given');
     }
 
     if (enable) {
       await telemetry.enable();
 
-      return buntstift.success('Enabled telemetry data collecting.');
+      return buntstift.success('Enabled collecting telemetry data.');
     }
 
     if (disable) {
       await telemetry.disable();
 
-      return buntstift.success('Disabled telemetry data collecting.');
-    }
-
-    if (enabled) {
-      const isEnabled = await telemetry.isEnabled();
-
-      if (isEnabled) {
-        return buntstift.success('Telemetry data collecting is enabled.');
-      }
-
-      return buntstift.error('Telemetry data collecting is disabled.');
-    }
-
-    if (disabled) {
-      const isEnabled = await telemetry.isEnabled();
-
-      if (!isEnabled) {
-        return buntstift.success('Telemetry data collecting is disabled.');
-      }
-
-      return buntstift.error('Telemetry data collecting is enabled.');
+      return buntstift.success('Disabled collecting telemetry data.');
     }
   }
 };
