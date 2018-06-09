@@ -67,11 +67,37 @@ const telemetry = {
       const latestVersion = Object.keys(data.versions).sort((version1, version2) => !semver.gt(version1, version2))[0];
 
       if (!latestVersion || (latestVersion && !data.versions[latestVersion].sendTelemetry)) {
-        buntstift.info('We want to collect telemetry data...');
-        buntstift.info('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam.');
-        buntstift.info('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut.');
+        buntstift.newLine();
+        buntstift.success('Welcome to wolkenkit!');
+        buntstift.newLine();
+        buntstift.info('As you know, wolkenkit is open source. This means that you can use it for');
+        buntstift.info('free according to the license terms. We, the native web, are continuously');
+        buntstift.info('improving wolkenkit.');
+        buntstift.newLine();
+        buntstift.info('If you want to help us to improve wolkenkit, we would be very thankful if');
+        buntstift.info('you could share a few data about your use of wolkenkit with us.');
+        buntstift.newLine();
+        buntstift.info('Since we respect your privacy, we collect the data in a strictly anonymous');
+        buntstift.info('form, which makes it completely impossible for us to identify you, your');
+        buntstift.info('computer or your application.');
+        buntstift.newLine();
+        buntstift.info('If you agree, we will collect the following data when you run a CLI command:');
+        buntstift.newLine();
+        buntstift.list('A random ID to distinguish your installation from others');
+        buntstift.list('The version of wolkenkit you are using');
+        buntstift.list('The version of the wolkenkit CLI you are using');
+        buntstift.list('The name of the CLI command you are running');
+        buntstift.list('The anonymized name of your wolkenkit application');
+        buntstift.list('The anonymized environment of your wolkenkit application');
+        buntstift.list('The current date and time in UTC');
+        buntstift.newLine();
+        buntstift.info('You can view and revise your decision at any time using the CLI\'s telemetry');
+        buntstift.info('command. Not sharing your data will not result in any disadvantages for you.');
+        buntstift.info('We have also made sure that you do not accidentally agree and have selected');
+        buntstift.info('\'no\' as the default setting.');
+        buntstift.newLine();
 
-        const confirmed = await buntstift.confirm('Do you agree with collecting telemetry data?');
+        const confirmed = await buntstift.confirm('Do you agree to share data about your use of wolkenkit with us?', false);
 
         buntstift.newLine();
 
