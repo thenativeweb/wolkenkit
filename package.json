@@ -28,14 +28,16 @@
     "ajv": "5.2.2",
     "array-to-sentence": "1.1.0",
     "babel-polyfill": "6.26.0",
-    "buntstift": "0.5.0",
+    "buntstift": "1.5.1",
     "certificate-details": "0.3.1",
     "command-line-args": "4.0.7",
     "command-line-commands": "2.0.1",
     "command-line-usage": "4.0.1",
     "common-tags": "1.4.0",
+    "deep-hash": "1.0.1",
     "defekt": "0.2.0",
     "docker-compare": "0.2.0",
+    "dotfile-json": "1.0.2",
     "eslint": "4.19.1",
     "findsuggestions": "0.2.1",
     "freeport": "1.0.5",
@@ -57,7 +59,8 @@
     "superagent": "3.6.3",
     "tar": "4.0.1",
     "update-notifier": "2.3.0",
-    "util.promisify": "1.0.0"
+    "util.promisify": "1.0.0",
+    "uuidv4": "1.0.0"
   },
   "devDependencies": {
     "assertthat": "0.11.0",
