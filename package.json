@@ -33,6 +33,7 @@
     "command-line-args": "4.0.7",
     "command-line-commands": "2.0.1",
     "command-line-usage": "4.0.1",
+    "commands-events": "1.0.2",
     "common-tags": "1.4.0",
     "deep-hash": "1.0.1",
     "defekt": "0.2.0",

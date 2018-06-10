@@ -5,6 +5,7 @@ const fs = require('fs'),
       path = require('path');
 
 const buntstift = require('buntstift'),
+      { Command } = require('commands-events'),
       deepHash = require('deep-hash'),
       dotFile = require('dotfile-json'),
       promisify = require('util.promisify'),
@@ -21,12 +22,12 @@ const stat = promisify(fs.stat);
 const telemetry = {
   fileName: '.wolkenkit',
 
-  allowForCommands: [
-    'reload',
-    'restart',
-    'start',
-    'stop'
-  ],
+  allowedCommands: {
+    reload: { event: 'reloaded' },
+    restart: { event: 'restarted' },
+    start: { event: 'started' },
+    stop: { event: 'stopped' }
+  },
 
   async init () {
     const { version } = packageJson;
@@ -170,7 +171,7 @@ const telemetry = {
       return;
     }
 
-    if (!this.allowForCommands.includes(command)) {
+    if (!this.allowedCommands[command]) {
       return;
     }
 
@@ -210,9 +211,17 @@ const telemetry = {
 
       await request({
         method: 'POST',
-        url: `https://telemetry.wolkenkit.io/v1/commands`,
+        url: `https://telemetry.wolkenkit.io/v1/command`,
         json: true,
-        body: telemetryData,
+        body: new Command({
+          context: { name: 'collecting' },
+          aggregate: { name: 'application', id: uuid.fromString(installationId) },
+          name: 'recordEvent',
+          data: {
+            name: this.allowedCommands[command].event,
+            data: telemetryData
+          }
+        }),
         fullResponse: false,
         maxAttempts: 3,
         retryDelay: 2 * 1000,
