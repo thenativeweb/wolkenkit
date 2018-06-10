@@ -2,7 +2,7 @@
 
 const url = require('url');
 
-const request = require('superagent');
+const request = require('requestretry');
 
 const noop = require('../../../noop'),
       shared = require('../shared');
@@ -40,9 +40,18 @@ const encrypt = async function (options, progress = noop) {
 
   progress({ message: `Using ${endpoint} as route.` });
 
-  const response = await request.post(endpoint).send({ value });
+  const response = await request({
+    method: 'POST',
+    url: endpoint,
+    json: true,
+    body: { value },
+    fullResponse: false,
+    maxAttempts: 3,
+    retryDelay: 2 * 1000,
+    retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+  });
 
-  const encrypted = response.body.value;
+  const encrypted = response.value;
 
   tunnel.close();
 

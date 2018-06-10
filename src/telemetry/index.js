@@ -8,8 +8,9 @@ const buntstift = require('buntstift'),
       deepHash = require('deep-hash'),
       dotFile = require('dotfile-json'),
       promisify = require('util.promisify'),
-      request = require('superagent'),
+      request = require('requestretry'),
       semver = require('semver'),
+      stringifyObject = require('stringify-object'),
       uuid = require('uuidv4');
 
 const getConfiguration = require('../application/getConfiguration'),
@@ -21,9 +22,9 @@ const telemetry = {
   fileName: '.wolkenkit',
 
   allowForCommands: [
-    'start',
-    'restart',
     'reload',
+    'restart',
+    'start',
     'stop'
   ],
 
@@ -182,17 +183,41 @@ const telemetry = {
       const { installationId } = data;
       const timestamp = Date.now();
 
+      // Anonymize any data that are related to the user, the machine or the
+      // application.
       const telemetryData = deepHash({
         installationId,
-        application,
-        env
+        application: {
+          name: application,
+          env
+        }
       }, installationId);
 
+      // Add some non-anonymized data that do not refer to the user, the machine
+      // or the application.
       telemetryData.timestamp = timestamp;
       telemetryData.cli = { version, command };
       telemetryData.runtime = runtime;
 
-      await request.post('https://telemetry.wolkenkit.io/cli').send(telemetryData);
+      const stringifiedTelemetryData = stringifyObject(telemetryData, {
+        indent: '  ',
+        singleQuotes: true
+      }).split('\n');
+
+      stringifiedTelemetryData.forEach(line => {
+        buntstift.verbose(line);
+      });
+
+      await request({
+        method: 'POST',
+        url: `https://telemetry.wolkenkit.io/v1/commands`,
+        json: true,
+        body: telemetryData,
+        fullResponse: false,
+        maxAttempts: 3,
+        retryDelay: 2 * 1000,
+        retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+      });
     } catch (ex) {
       buntstift.warn('Failed to send telemetry data.');
       buntstift.verbose(ex.message);

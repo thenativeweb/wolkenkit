@@ -56,7 +56,7 @@
     "semver": "5.4.1",
     "sha1": "1.1.1",
     "shelljs": "0.7.8",
-    "superagent": "3.6.3",
+    "stringify-object": "3.2.2",
     "tar": "4.0.1",
     "update-notifier": "2.3.0",
     "util.promisify": "1.0.0",
