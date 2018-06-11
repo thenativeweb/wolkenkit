@@ -77,11 +77,13 @@ const telemetry = {
         buntstift.info('improving wolkenkit.');
         buntstift.newLine();
         buntstift.info('If you want to help us to improve wolkenkit, we would be very thankful if');
-        buntstift.info('you could share a few data about your use of wolkenkit with us.');
+        buntstift.info('you could share a few data about your use of the wolkenkit CLI with us. We');
+        buntstift.info('don\'t collect any data on your running application or on the users of your');
+        buntstift.info('application.');
         buntstift.newLine();
         buntstift.info('Since we respect your privacy, we collect the data in a strictly anonymous');
         buntstift.info('form, which makes it completely impossible for us to identify you, your');
-        buntstift.info('computer or your application.');
+        buntstift.info('computer, your application, or your users.');
         buntstift.newLine();
         buntstift.info('If you agree, we will collect the following data when you run a CLI command:');
         buntstift.newLine();
