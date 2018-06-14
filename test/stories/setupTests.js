@@ -76,7 +76,7 @@ const isolatedAsync = promisify(isolated);
       const { code, stdout, stderr } = await wolkenkit('init', {}, { cwd: directory });
 
       assert.that(stderr).is.equalTo('✗ Failed to initialize a new application.\n');
-      assert.that(stdout).is.equalTo('  Initializing a new application...\n  The current working directory is not empty.\n');
+      assert.that(stdout).is.startingWith('  Initializing a new application...\n  The current working directory is not empty.\n');
       assert.that(code).is.not.equalTo(0);
 
       const directoryList = await getDirectoryList(directory);

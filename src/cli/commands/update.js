@@ -3,8 +3,7 @@
 const buntstift = require('buntstift'),
       getUsage = require('command-line-usage');
 
-const errors = require('../../errors'),
-      globalOptionDefinitions = require('../globalOptionDefinitions'),
+const globalOptionDefinitions = require('../globalOptionDefinitions'),
       showProgress = require('../showProgress'),
       wolkenkit = require('../../wolkenkit');
 
@@ -39,7 +38,7 @@ const update = {
     } catch (ex) {
       stopWaiting();
 
-      if (ex instanceof errors.VersionAlreadyInstalled) {
+      if (ex.code === 'EVERSIONALREADYINSTALLED') {
         buntstift.success('The latest wolkenkit CLI is already installed.');
       } else {
         buntstift.error('Failed to update the wolkenkit CLI.');

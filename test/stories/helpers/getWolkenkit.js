@@ -24,7 +24,13 @@ const getWolkenkit = async function (options) {
     }
 
     const executablePath = path.join(__dirname, '..', '..', '..', 'src', 'bin', 'wolkenkit.js');
-    const command = `${executablePath} ${name} --verbose ${map(parameters, (value, key) => `--${key}=${value}`)}`;
+    const command = `${executablePath} ${name} --verbose ${map(parameters, (value, key) => {
+      if (typeof value === 'boolean') {
+        return value ? `--${key}` : '';
+      }
+
+      return `--${key}=${value}`;
+    })}`;
 
     opts.env = merge({}, processenv(), opts.env || {}, {
       DOCKER_HOST: `tcp://${ipAddress}:2376`,

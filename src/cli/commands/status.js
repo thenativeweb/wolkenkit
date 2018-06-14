@@ -6,7 +6,6 @@ const buntstift = require('buntstift'),
       stripIndent = require('common-tags/lib/stripIndent');
 
 const defaults = require('../defaults.json'),
-      errors = require('../../errors'),
       globalOptionDefinitions = require('../globalOptionDefinitions'),
       showProgress = require('../showProgress'),
       wolkenkit = require('../../wolkenkit');
@@ -64,15 +63,15 @@ const status = {
     } catch (ex) {
       stopWaiting();
 
-      if (ex instanceof errors.ApplicationNotRunning) {
+      if (ex.code === 'EAPPLICATIONNOTRUNNING') {
         return buntstift.success('The application is stopped.');
       }
-      if (ex instanceof errors.ApplicationPartiallyRunning) {
+      if (ex.code === 'EAPPLICATIONPARTIALLYRUNNING') {
         buntstift.error('The application is partially running.');
         throw ex;
       }
 
-      buntstift.error('Failed to fetch application status .');
+      buntstift.error('Failed to fetch application status.');
       throw ex;
     }
 

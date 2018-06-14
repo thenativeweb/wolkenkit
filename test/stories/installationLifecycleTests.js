@@ -62,7 +62,7 @@ const runtimes = require('../../src/wolkenkit/runtimes'),
       const { code, stderr, stdout } = await wolkenkit('install', { version: 'latest' }, { cwd: directory });
 
       assert.that(stderr).is.equalTo('✗ Failed to install wolkenkit latest on environment default.\n');
-      assert.that(stdout).is.equalTo('  Installing wolkenkit latest on environment default...\n  package.json is missing, using fallback configuration.\n  wolkenkit latest is already installed.\n');
+      assert.that(stdout).is.startingWith('  Installing wolkenkit latest on environment default...\n  package.json is missing, using fallback configuration.\n  wolkenkit latest is already installed.\n');
       assert.that(code).is.not.equalTo(0);
     });
 
@@ -86,7 +86,7 @@ const runtimes = require('../../src/wolkenkit/runtimes'),
       const { code, stderr, stdout } = await wolkenkit('uninstall', { version: 'latest' }, { cwd: directory });
 
       assert.that(stderr).is.equalTo('✗ Failed to uninstall wolkenkit latest on environment default.\n');
-      assert.that(stdout).is.equalTo('  Uninstalling wolkenkit latest on environment default...\n  package.json is missing, using fallback configuration.\n  wolkenkit latest is not installed.\n');
+      assert.that(stdout).is.startingWith('  Uninstalling wolkenkit latest on environment default...\n  package.json is missing, using fallback configuration.\n  wolkenkit latest is not installed.\n');
       assert.that(code).is.not.equalTo(0);
     });
   });

@@ -97,7 +97,7 @@ $ npx roboter
 Additionally to the unit tests, there are so-called *story tests*. To run them, use the following command:
 
 ```shell
-$ node test/stories/index.js
+$ npx roboter test-stories
 ```
 
 ## FAQ
