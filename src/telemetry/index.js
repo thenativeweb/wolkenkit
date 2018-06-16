@@ -230,7 +230,7 @@ const telemetry = {
         retryStrategy: request.RetryStrategies.HTTPOrNetworkError
       });
     } catch (ex) {
-      buntstift.warn('Failed to send telemetry data.');
+      buntstift.verbose('Failed to send telemetry data.');
       buntstift.verbose(ex.message);
 
       return;
