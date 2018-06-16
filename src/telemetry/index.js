@@ -72,36 +72,26 @@ const telemetry = {
         buntstift.newLine();
         buntstift.success('Welcome to wolkenkit!');
         buntstift.newLine();
-        buntstift.info('As you know, wolkenkit is open source. This means that you can use it for');
-        buntstift.info('free according to the license terms. We, the native web, are continuously');
-        buntstift.info('improving wolkenkit.');
+        buntstift.info('As you know, wolkenkit is a free open source project that is continuously');
+        buntstift.info('being developed by the native web.');
         buntstift.newLine();
-        buntstift.info('If you want to help us to improve wolkenkit, we would be very thankful if');
-        buntstift.info('you could share a few data about your use of the wolkenkit CLI with us. We');
-        buntstift.info('don\'t collect any data on your running application or on the users of your');
-        buntstift.info('application.');
-        buntstift.newLine();
-        buntstift.info('Since we respect your privacy, we collect the data in a strictly anonymous');
-        buntstift.info('form, which makes it completely impossible for us to identify you, your');
-        buntstift.info('computer, your application, or your users.');
-        buntstift.newLine();
-        buntstift.info('If you agree, we will collect the following data when you run a CLI command:');
-        buntstift.newLine();
-        buntstift.list('A random ID to distinguish your installation from others');
-        buntstift.list('The version of wolkenkit you are using');
-        buntstift.list('The version of the wolkenkit CLI you are using');
-        buntstift.list('The name of the CLI command you are running');
-        buntstift.list('The anonymized name of your wolkenkit application');
-        buntstift.list('The anonymized environment of your wolkenkit application');
-        buntstift.list('The current date and time in UTC');
+        buntstift.info('We would be very thankful if you could share a few data about your use of');
+        buntstift.info('the wolkenkit CLI with us, as it helps us to improve wolkenkit. Since we');
+        buntstift.info('respect your privacy, this data is strictly anonymous and does not contain');
+        buntstift.info('any information on your application or your users.');
         buntstift.newLine();
         buntstift.info('You can view and revise your decision at any time using the CLI\'s telemetry');
         buntstift.info('command. Not sharing your data will not result in any disadvantages for you.');
-        buntstift.info('We have also made sure that you do not accidentally agree and have selected');
-        buntstift.info('\'no\' as the default setting.');
+        buntstift.info('For details, see https://www.thenativeweb.io/telemetry');
         buntstift.newLine();
 
-        const confirmed = await buntstift.confirm('Do you agree to share data about your use of wolkenkit with us?', false);
+        const no = 'No, thanks.';
+        const yes = 'Yes, I agree to share anonymous usage data with the native web.';
+
+        const answer = await buntstift.select('Do you agree to share anonymous usage data with the native web?', [
+          no, yes
+        ]);
+        const confirmed = answer === yes;
 
         buntstift.newLine();
 
