@@ -47,7 +47,8 @@ const telemetry = {
         throw ex;
       }
 
-      // Ignore file not found error, because there is no relic of the wolkenkit beta.
+      // Ignore that no .wolkenkit file was found. This means that no dotfile has been written
+      // so far, and that there is also no relic of the beta. Hence, everything is fine.
     }
 
     let hasChanges = false;
