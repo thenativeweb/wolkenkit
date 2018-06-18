@@ -208,7 +208,7 @@ const telemetry = {
         json: true,
         body: new Command({
           context: { name: 'collecting' },
-          aggregate: { name: 'application', id: uuid.fromString(installationId) },
+          aggregate: { name: 'application', id: uuid.fromString(telemetryData.installationId) },
           name: 'recordEvent',
           data: {
             name: this.allowedCommands[command].event,
