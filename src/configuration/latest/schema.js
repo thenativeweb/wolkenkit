@@ -291,6 +291,11 @@ const schema = function () {
                             uniqueItems: true
                           }
                         ]
+                      },
+                      customDomain: {
+                        type: 'string',
+                        format: 'hostname',
+                        minLength: 1
                       }
                     },
                     additionalProperties: false,
