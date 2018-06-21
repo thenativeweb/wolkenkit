@@ -10,13 +10,8 @@ var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var fs = require('fs');
-
-var promisify = require('util.promisify');
-
-var errors = require('../errors');
-
-var readFile = promisify(fs.readFile);
+var errors = require('../errors'),
+    read = require('./read');
 
 var readJson = function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(path) {
@@ -33,54 +28,32 @@ var readJson = function () {
             throw new Error('Path is missing.');
 
           case 2:
-            data = void 0;
-            _context.prev = 3;
-            _context.next = 6;
-            return readFile(path, { encoding: 'utf8' });
+            _context.next = 4;
+            return read(path);
 
-          case 6:
+          case 4:
             data = _context.sent;
-            _context.next = 17;
-            break;
-
-          case 9:
-            _context.prev = 9;
-            _context.t0 = _context['catch'](3);
-            _context.t1 = _context.t0.code;
-            _context.next = _context.t1 === 'ENOENT' ? 14 : _context.t1 === 'EACCES' ? 15 : 16;
-            break;
-
-          case 14:
-            throw new errors.FileNotFound();
-
-          case 15:
-            throw new errors.FileNotAccessible();
-
-          case 16:
-            throw _context.t0;
-
-          case 17:
             json = void 0;
-            _context.prev = 18;
+            _context.prev = 6;
 
             json = JSON.parse(data);
-            _context.next = 25;
+            _context.next = 13;
             break;
 
-          case 22:
-            _context.prev = 22;
-            _context.t2 = _context['catch'](18);
+          case 10:
+            _context.prev = 10;
+            _context.t0 = _context['catch'](6);
             throw new errors.JsonMalformed();
 
-          case 25:
+          case 13:
             return _context.abrupt('return', json);
 
-          case 26:
+          case 14:
           case 'end':
             return _context.stop();
         }
       }
-    }, _callee, this, [[3, 9], [18, 22]]);
+    }, _callee, this, [[6, 10]]);
   }));
 
   return function readJson(_x) {

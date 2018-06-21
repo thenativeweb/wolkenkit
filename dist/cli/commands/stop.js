@@ -4,6 +4,10 @@ var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
 
 var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
 
+var _taggedTemplateLiteral2 = require('babel-runtime/helpers/taggedTemplateLiteral');
+
+var _taggedTemplateLiteral3 = _interopRequireDefault(_taggedTemplateLiteral2);
+
 var _regenerator = require('babel-runtime/regenerator');
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
@@ -12,11 +16,14 @@ var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
+var _templateObject = (0, _taggedTemplateLiteral3.default)(['\n          wolkenkit stop [--env <env>] [--dangerously-destroy-data]\n          wolkenkit stop [--env <env>] [--private-key <file>]'], ['\n          wolkenkit stop [--env <env>] [--dangerously-destroy-data]\n          wolkenkit stop [--env <env>] [--private-key <file>]']);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var buntstift = require('buntstift'),
     getUsage = require('command-line-usage'),
-    processenv = require('processenv');
+    processenv = require('processenv'),
+    stripIndent = require('common-tags/lib/stripIndent');
 
 var defaults = require('../defaults.json'),
     globalOptionDefinitions = require('../globalOptionDefinitions'),
@@ -44,6 +51,12 @@ var stop = {
                 defaultValue: processenv('WOLKENKIT_ENV') || defaults.env,
                 description: 'select environment',
                 typeLabel: '<env>'
+              }, {
+                name: 'private-key',
+                alias: 'k',
+                type: String,
+                description: 'select private key',
+                typeLabel: '<file>'
               }]);
 
             case 1:
@@ -62,7 +75,7 @@ var stop = {
   }(),
   run: function () {
     var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
-      var directory, env, help, verbose, dangerouslyDestroyData, stopWaiting;
+      var directory, env, help, privateKey, verbose, dangerouslyDestroyData, stopWaiting;
       return _regenerator2.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
@@ -91,7 +104,7 @@ var stop = {
               throw new Error('Environment is missing.');
 
             case 6:
-              directory = process.cwd(), env = options.env, help = options.help, verbose = options.verbose;
+              directory = process.cwd(), env = options.env, help = options.help, privateKey = options.privateKey, verbose = options.verbose;
               dangerouslyDestroyData = options['dangerously-destroy-data'];
 
               if (!help) {
@@ -102,7 +115,7 @@ var stop = {
               _context2.t0 = buntstift;
               _context2.t1 = getUsage;
               _context2.t2 = { header: 'wolkenkit stop', content: this.description };
-              _context2.t3 = { header: 'Synopsis', content: 'wolkenkit stop [--env <env>] [--dangerously-destroy-data]' };
+              _context2.t3 = { header: 'Synopsis', content: stripIndent(_templateObject) };
               _context2.t4 = [];
               _context2.t5 = _toConsumableArray3.default;
               _context2.next = 17;
@@ -128,7 +141,7 @@ var stop = {
               stopWaiting = buntstift.wait();
               _context2.prev = 27;
               _context2.next = 30;
-              return wolkenkit.stop({ directory: directory, dangerouslyDestroyData: dangerouslyDestroyData, env: env }, showProgress(verbose, stopWaiting));
+              return wolkenkit.commands.stop({ directory: directory, dangerouslyDestroyData: dangerouslyDestroyData, env: env, privateKey: privateKey }, showProgress(verbose, stopWaiting));
 
             case 30:
               _context2.next = 37;

@@ -128,7 +128,7 @@ var init = {
               stopWaiting = buntstift.wait();
               _context2.prev = 27;
               _context2.next = 30;
-              return wolkenkit.init({ directory: directory, template: template, force: force }, showProgress(verbose, stopWaiting));
+              return wolkenkit.commands.init({ directory: directory, template: template, force: force }, showProgress(verbose, stopWaiting));
 
             case 30:
               _context2.next = 37;

@@ -4,6 +4,10 @@ var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
 
 var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
 
+var _taggedTemplateLiteral2 = require('babel-runtime/helpers/taggedTemplateLiteral');
+
+var _taggedTemplateLiteral3 = _interopRequireDefault(_taggedTemplateLiteral2);
+
 var _regenerator = require('babel-runtime/regenerator');
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
@@ -12,12 +16,15 @@ var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
+var _templateObject = (0, _taggedTemplateLiteral3.default)(['\n          wolkenkit restart [--env <env>]\n          wolkenkit restart [--env <env>] [--private-key <file>]'], ['\n          wolkenkit restart [--env <env>]\n          wolkenkit restart [--env <env>] [--private-key <file>]']);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var buntstift = require('buntstift'),
     eslint = require('eslint'),
     getUsage = require('command-line-usage'),
-    processenv = require('processenv');
+    processenv = require('processenv'),
+    stripIndent = require('common-tags/lib/stripIndent');
 
 var defaults = require('../defaults.json'),
     globalOptionDefinitions = require('../globalOptionDefinitions'),
@@ -40,6 +47,12 @@ var restart = {
                 defaultValue: processenv('WOLKENKIT_ENV') || defaults.env,
                 description: 'select environment',
                 typeLabel: '<env>'
+              }, {
+                name: 'private-key',
+                alias: 'k',
+                type: String,
+                description: 'select private key',
+                typeLabel: '<file>'
               }]);
 
             case 1:
@@ -58,7 +71,7 @@ var restart = {
   }(),
   run: function () {
     var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
-      var directory, env, help, verbose, stopWaiting, formatter, formattedResult, output;
+      var directory, env, help, privateKey, verbose, stopWaiting, formatter, formattedResult, output;
       return _regenerator2.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
@@ -79,7 +92,7 @@ var restart = {
               throw new Error('Environment is missing.');
 
             case 4:
-              directory = process.cwd(), env = options.env, help = options.help, verbose = options.verbose;
+              directory = process.cwd(), env = options.env, help = options.help, privateKey = options.privateKey, verbose = options.verbose;
 
               if (!help) {
                 _context2.next = 22;
@@ -89,7 +102,7 @@ var restart = {
               _context2.t0 = buntstift;
               _context2.t1 = getUsage;
               _context2.t2 = { header: 'wolkenkit restart', content: this.description };
-              _context2.t3 = { header: 'Synopsis', content: 'wolkenkit restart [--env <env>]' };
+              _context2.t3 = { header: 'Synopsis', content: stripIndent(_templateObject) };
               _context2.t4 = [];
               _context2.t5 = _toConsumableArray3.default;
               _context2.next = 14;
@@ -115,7 +128,7 @@ var restart = {
               stopWaiting = buntstift.wait();
               _context2.prev = 24;
               _context2.next = 27;
-              return wolkenkit.restart({ directory: directory, env: env }, showProgress(verbose, stopWaiting));
+              return wolkenkit.commands.restart({ directory: directory, env: env, privateKey: privateKey }, showProgress(verbose, stopWaiting));
 
             case 27:
               _context2.next = 35;

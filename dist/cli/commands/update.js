@@ -17,8 +17,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var buntstift = require('buntstift'),
     getUsage = require('command-line-usage');
 
-var errors = require('../../errors'),
-    globalOptionDefinitions = require('../globalOptionDefinitions'),
+var globalOptionDefinitions = require('../globalOptionDefinitions'),
     showProgress = require('../showProgress'),
     wolkenkit = require('../../wolkenkit');
 
@@ -98,7 +97,7 @@ var update = {
               stopWaiting = buntstift.wait();
               _context2.prev = 22;
               _context2.next = 25;
-              return wolkenkit.update(showProgress(verbose, stopWaiting));
+              return wolkenkit.commands.update(showProgress(verbose, stopWaiting));
 
             case 25:
               _context2.next = 33;
@@ -110,7 +109,7 @@ var update = {
 
               stopWaiting();
 
-              if (_context2.t13 instanceof errors.VersionAlreadyInstalled) {
+              if (_context2.t13.code === 'EVERSIONALREADYINSTALLED') {
                 buntstift.success('The latest wolkenkit CLI is already installed.');
               } else {
                 buntstift.error('Failed to update the wolkenkit CLI.');

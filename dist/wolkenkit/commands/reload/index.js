@@ -21,7 +21,7 @@ var docker = require('../../../docker'),
 var reload = function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
     var progress = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
-    var directory, env, configuration, existingContainers, debug, host, persistData, port, sharedKey, applicationStatus;
+    var directory, env, configuration, environment, existingContainers, debug, host, persistData, port, sharedKey, applicationStatus;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -64,88 +64,98 @@ var reload = function () {
 
             shared.validateCode({ directory: directory }, progress);
 
-            _context.next = 13;
-            return shared.checkDocker({ configuration: configuration, env: env }, progress);
+            environment = configuration.environments[env];
 
-          case 13:
+            if (!(environment.type === 'aufwind')) {
+              _context.next = 14;
+              break;
+            }
 
-            progress({ message: 'Verifying health on environment ' + env + '...', type: 'info' });
+            throw new Error('Reload on environment type aufwind is not possible.');
+
+          case 14:
             _context.next = 16;
-            return health({ directory: directory, env: env }, progress);
+            return shared.checkDocker({ configuration: configuration, env: env }, progress);
 
           case 16:
 
-            progress({ message: 'Verifying application status...', type: 'info' });
+            progress({ message: 'Verifying health on environment ' + env + '...', type: 'info' });
             _context.next = 19;
+            return health({ directory: directory, env: env }, progress);
+
+          case 19:
+
+            progress({ message: 'Verifying application status...', type: 'info' });
+            _context.next = 22;
             return docker.getContainers({
               configuration: configuration,
               env: env,
               where: { label: { 'wolkenkit-application': configuration.application } }
             });
 
-          case 19:
+          case 22:
             existingContainers = _context.sent;
 
             if (!(existingContainers.length === 0)) {
-              _context.next = 23;
+              _context.next = 26;
               break;
             }
 
             progress({ message: 'The application is not running.', type: 'info' });
             throw new errors.ApplicationNotRunning();
 
-          case 23:
+          case 26:
             debug = existingContainers[0].labels['wolkenkit-debug'] === 'true', host = existingContainers[0].labels['wolkenkit-api-host'], persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true', port = Number(existingContainers[0].labels['wolkenkit-api-port']), sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
-            _context.next = 26;
+            _context.next = 29;
             return shared.getApplicationStatus({ configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
 
-          case 26:
+          case 29:
             applicationStatus = _context.sent;
 
             if (!(applicationStatus === 'partially-running')) {
-              _context.next = 30;
+              _context.next = 33;
               break;
             }
 
             progress({ message: 'The application is partially running.', type: 'info' });
             throw new errors.ApplicationPartiallyRunning();
 
-          case 30:
-
-            progress({ message: 'Removing Docker containers...', type: 'info' });
-            _context.next = 33;
-            return removeContainers({ configuration: configuration, env: env }, progress);
-
           case 33:
 
-            progress({ message: 'Building Docker images...', type: 'info' });
+            progress({ message: 'Removing Docker containers...', type: 'info' });
             _context.next = 36;
-            return shared.buildImages({ directory: directory, configuration: configuration, env: env }, progress);
+            return removeContainers({ configuration: configuration, env: env }, progress);
 
           case 36:
 
-            progress({ message: 'Starting Docker containers...', type: 'info' });
+            progress({ message: 'Building Docker images...', type: 'info' });
             _context.next = 39;
-            return startContainers({ configuration: configuration, env: env, port: port, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
+            return shared.buildImages({ directory: directory, configuration: configuration, env: env }, progress);
 
           case 39:
+
+            progress({ message: 'Starting Docker containers...', type: 'info' });
+            _context.next = 42;
+            return startContainers({ configuration: configuration, env: env, port: port, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
+
+          case 42:
 
             progress({ message: 'Using ' + sharedKey + ' as shared key.', type: 'info' });
             progress({ message: 'Waiting for https://' + host + ':' + port + '/v1/ping to reply...', type: 'info' });
 
-            _context.next = 43;
+            _context.next = 46;
             return shared.waitForApplication({ configuration: configuration, env: env }, progress);
 
-          case 43:
+          case 46:
             if (!debug) {
-              _context.next = 46;
+              _context.next = 49;
               break;
             }
 
-            _context.next = 46;
+            _context.next = 49;
             return shared.attachDebugger({ configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
 
-          case 46:
+          case 49:
           case 'end':
             return _context.stop();
         }

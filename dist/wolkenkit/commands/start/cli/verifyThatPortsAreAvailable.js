@@ -22,8 +22,8 @@ var map = require('lodash/map'),
     portscanner = require('portscanner'),
     promisify = require('util.promisify');
 
-var errors = require('../../../errors'),
-    runtimes = require('../../runtimes');
+var errors = require('../../../../errors'),
+    runtimes = require('../../../runtimes');
 
 var findAPortInUse = promisify(portscanner.findAPortInUse);
 

@@ -14,8 +14,8 @@ var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var docker = require('../../../docker'),
-    noop = require('../../../noop');
+var docker = require('../../../../docker'),
+    noop = require('../../../../noop');
 
 var removeContainers = function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {

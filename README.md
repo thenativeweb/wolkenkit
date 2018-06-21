@@ -19,6 +19,7 @@ wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and
   * [Getting support](#getting-support)
 - [Finding the code](#finding-the-code)
 - [Running the build](#running-the-build)
+- [FAQ](#faq)
 - [License](#license)
 
 <!-- tocstop -->

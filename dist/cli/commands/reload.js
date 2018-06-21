@@ -115,7 +115,7 @@ var reload = {
               stopWaiting = buntstift.wait();
               _context2.prev = 24;
               _context2.next = 27;
-              return wolkenkit.reload({ directory: directory, env: env }, showProgress(verbose, stopWaiting));
+              return wolkenkit.commands.reload({ directory: directory, env: env }, showProgress(verbose, stopWaiting));
 
             case 27:
               _context2.next = 35;

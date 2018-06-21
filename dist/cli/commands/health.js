@@ -115,7 +115,7 @@ var health = {
               stopWaiting = buntstift.wait();
               _context2.prev = 25;
               _context2.next = 28;
-              return wolkenkit.health({ directory: directory, env: env }, showProgress(verbose, stopWaiting));
+              return wolkenkit.commands.health({ directory: directory, env: env }, showProgress(verbose, stopWaiting));
 
             case 28:
               _context2.next = 35;

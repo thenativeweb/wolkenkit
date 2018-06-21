@@ -149,7 +149,7 @@ var uninstall = {
               stopWaiting = buntstift.wait();
               _context2.prev = 34;
               _context2.next = 37;
-              return wolkenkit.uninstall({ directory: directory, env: env, version: version }, showProgress(verbose, stopWaiting));
+              return wolkenkit.commands.uninstall({ directory: directory, env: env, version: version }, showProgress(verbose, stopWaiting));
 
             case 37:
               _context2.next = 44;

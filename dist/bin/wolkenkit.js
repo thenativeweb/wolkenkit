@@ -31,12 +31,13 @@ var buntstift = require('buntstift'),
 
 var commands = require('../cli/commands'),
     globalOptionDefinitions = require('../cli/globalOptionDefinitions'),
-    packageJson = require('../../package.json');
+    packageJson = require('../../package.json'),
+    telemetry = require('../telemetry');
 
 updateNotifier({ pkg: packageJson }).notify();
 
 (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
-  var validCommands, parsed, suggestions, command, validOptionDefinitions, args;
+  var validCommands, parsed, suggestions, command, validOptionDefinitions, args, handleException;
   return _regenerator2.default.wrap(function _callee$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
@@ -85,34 +86,49 @@ updateNotifier({ pkg: packageJson }).notify();
           }
           /* eslint-enable no-underscore-dangle */
 
-          _context.prev = 15;
-          _context.next = 18;
-          return command.run(args);
+          handleException = function handleException(ex) {
+            if (ex.message) {
+              buntstift.verbose(ex.message);
+            }
+            if (ex.stack) {
+              buntstift.verbose(ex.stack);
+            }
+            buntstift.exit(1);
+          };
 
-        case 18:
-          _context.next = 25;
-          break;
+          process.on('uncaughtException', handleException);
+          process.on('unhandledRejection', handleException);
+
+          _context.next = 20;
+          return telemetry.init();
 
         case 20:
           _context.prev = 20;
-          _context.t5 = _context['catch'](15);
+          _context.next = 23;
+          return command.run(args);
 
-          if (_context.t5.message) {
-            buntstift.verbose(_context.t5.message);
-          }
-          if (_context.t5.stack) {
-            buntstift.verbose(_context.t5.stack);
-          }
-          buntstift.exit(1);
+        case 23:
+          _context.next = 25;
+          return telemetry.send({ command: parsed.command, args: args });
 
         case 25:
+          _context.next = 30;
+          break;
+
+        case 27:
+          _context.prev = 27;
+          _context.t5 = _context['catch'](20);
+
+          handleException(_context.t5);
+
+        case 30:
 
           buntstift.exit(0);
 
-        case 26:
+        case 31:
         case 'end':
           return _context.stop();
       }
     }
-  }, _callee, this, [[15, 20]]);
+  }, _callee, this, [[20, 27]]);
 }))();

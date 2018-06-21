@@ -4,6 +4,10 @@ var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
 
 var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
 
+var _taggedTemplateLiteral2 = require('babel-runtime/helpers/taggedTemplateLiteral');
+
+var _taggedTemplateLiteral3 = _interopRequireDefault(_taggedTemplateLiteral2);
+
 var _regenerator = require('babel-runtime/regenerator');
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
@@ -12,14 +16,16 @@ var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
+var _templateObject = (0, _taggedTemplateLiteral3.default)(['\n          wolkenkit status [--env <env>]\n          wolkenkit status [--env <env>] [--private-key <file>]'], ['\n          wolkenkit status [--env <env>]\n          wolkenkit status [--env <env>] [--private-key <file>]']);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var buntstift = require('buntstift'),
     getUsage = require('command-line-usage'),
-    processenv = require('processenv');
+    processenv = require('processenv'),
+    stripIndent = require('common-tags/lib/stripIndent');
 
 var defaults = require('../defaults.json'),
-    errors = require('../../errors'),
     globalOptionDefinitions = require('../globalOptionDefinitions'),
     showProgress = require('../showProgress'),
     wolkenkit = require('../../wolkenkit');
@@ -40,6 +46,12 @@ var status = {
                 defaultValue: processenv('WOLKENKIT_ENV') || defaults.env,
                 description: 'select environment',
                 typeLabel: '<env>'
+              }, {
+                name: 'private-key',
+                alias: 'k',
+                type: String,
+                description: 'select private key',
+                typeLabel: '<file>'
               }]);
 
             case 1:
@@ -58,7 +70,7 @@ var status = {
   }(),
   run: function () {
     var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
-      var directory, env, help, verbose, stopWaiting;
+      var directory, env, help, privateKey, verbose, stopWaiting;
       return _regenerator2.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
@@ -79,7 +91,7 @@ var status = {
               throw new Error('Environment is missing.');
 
             case 4:
-              directory = process.cwd(), env = options.env, help = options.help, verbose = options.verbose;
+              directory = process.cwd(), env = options.env, help = options.help, privateKey = options.privateKey, verbose = options.verbose;
 
               if (!help) {
                 _context2.next = 22;
@@ -89,7 +101,7 @@ var status = {
               _context2.t0 = buntstift;
               _context2.t1 = getUsage;
               _context2.t2 = { header: 'wolkenkit status', content: this.description };
-              _context2.t3 = { header: 'Synopsis', content: 'wolkenkit status [--env <env>]' };
+              _context2.t3 = { header: 'Synopsis', content: stripIndent(_templateObject) };
               _context2.t4 = [];
               _context2.t5 = _toConsumableArray3.default;
               _context2.next = 14;
@@ -115,7 +127,7 @@ var status = {
               stopWaiting = buntstift.wait();
               _context2.prev = 24;
               _context2.next = 27;
-              return wolkenkit.status({ directory: directory, env: env }, showProgress(verbose, stopWaiting));
+              return wolkenkit.commands.status({ directory: directory, env: env, privateKey: privateKey }, showProgress(verbose, stopWaiting));
 
             case 27:
               _context2.next = 39;
@@ -127,7 +139,7 @@ var status = {
 
               stopWaiting();
 
-              if (!(_context2.t13 instanceof errors.ApplicationNotRunning)) {
+              if (!(_context2.t13.code === 'EAPPLICATIONNOTRUNNING')) {
                 _context2.next = 34;
                 break;
               }
@@ -135,7 +147,7 @@ var status = {
               return _context2.abrupt('return', buntstift.success('The application is stopped.'));
 
             case 34:
-              if (!(_context2.t13 instanceof errors.ApplicationPartiallyRunning)) {
+              if (!(_context2.t13.code === 'EAPPLICATIONPARTIALLYRUNNING')) {
                 _context2.next = 37;
                 break;
               }
@@ -145,7 +157,7 @@ var status = {
 
             case 37:
 
-              buntstift.error('Failed to fetch application status .');
+              buntstift.error('Failed to fetch application status.');
               throw _context2.t13;
 
             case 39:

@@ -124,7 +124,7 @@ var logs = {
               stopWaiting = buntstift.wait();
               _context2.prev = 25;
               _context2.next = 28;
-              return wolkenkit.logs({ directory: directory, env: env, follow: follow }, showProgress(verbose, stopWaiting));
+              return wolkenkit.commands.logs({ directory: directory, env: env, follow: follow }, showProgress(verbose, stopWaiting));
 
             case 28:
               _context2.next = 35;

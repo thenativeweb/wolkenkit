@@ -10,19 +10,20 @@ var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var destroyData = require('../shared/destroyData'),
-    docker = require('../../../docker'),
-    errors = require('../../../errors'),
-    getApplicationStatus = require('../shared/getApplicationStatus'),
-    health = require('../health'),
+var aufwind = require('./aufwind'),
+    cli = require('./cli'),
     noop = require('../../../noop'),
-    removeContainers = require('./removeContainers'),
     shared = require('../shared');
+
+var stopVia = {
+  aufwind: aufwind,
+  cli: cli
+};
 
 var stop = function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
     var progress = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
-    var directory, dangerouslyDestroyData, env, configuration, existingContainers, debug, persistData, sharedKey, applicationStatus;
+    var directory, dangerouslyDestroyData, env, privateKey, configuration, environment, type;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -59,7 +60,7 @@ var stop = function () {
             throw new Error('Environment is missing.');
 
           case 8:
-            directory = options.directory, dangerouslyDestroyData = options.dangerouslyDestroyData, env = options.env;
+            directory = options.directory, dangerouslyDestroyData = options.dangerouslyDestroyData, env = options.env, privateKey = options.privateKey;
             _context.next = 11;
             return shared.getConfiguration({
               env: env,
@@ -69,75 +70,12 @@ var stop = function () {
 
           case 11:
             configuration = _context.sent;
-            _context.next = 14;
-            return shared.checkDocker({ configuration: configuration, env: env }, progress);
+            environment = configuration.environments[env];
+            type = environment.type === 'aufwind' ? environment.type : 'cli';
+            _context.next = 16;
+            return stopVia[type]({ directory: directory, dangerouslyDestroyData: dangerouslyDestroyData, env: env, privateKey: privateKey, configuration: configuration }, progress);
 
-          case 14:
-
-            progress({ message: 'Verifying health on environment ' + env + '...', type: 'info' });
-            _context.next = 17;
-            return health({ directory: directory, env: env }, progress);
-
-          case 17:
-            _context.next = 19;
-            return docker.getContainers({
-              configuration: configuration,
-              env: env,
-              where: { label: { 'wolkenkit-application': configuration.application } }
-            });
-
-          case 19:
-            existingContainers = _context.sent;
-
-
-            progress({ message: 'Verifying application status...', type: 'info' });
-
-            // We can not use the application status here, because for that we need to
-            // fetch the labels of the containers. So this would be a chicken-and-egg
-            // problem, hence this workaround.
-
-            if (!(existingContainers.length === 0)) {
-              _context.next = 24;
-              break;
-            }
-
-            progress({ message: 'The application is not running.', type: 'info' });
-            throw new errors.ApplicationNotRunning();
-
-          case 24:
-            debug = existingContainers[0].labels['wolkenkit-debug'] === 'true', persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true', sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
-            _context.next = 27;
-            return getApplicationStatus({ configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
-
-          case 27:
-            applicationStatus = _context.sent;
-
-
-            if (applicationStatus === 'partially-running') {
-              progress({ message: 'The application is partially running.', type: 'info' });
-            }
-
-            progress({ message: 'Removing Docker containers...', type: 'info' });
-            _context.next = 32;
-            return removeContainers({ configuration: configuration, env: env }, progress);
-
-          case 32:
-
-            progress({ message: 'Removing network...', type: 'info' });
-            _context.next = 35;
-            return docker.removeNetwork({ configuration: configuration, env: env });
-
-          case 35:
-            if (!dangerouslyDestroyData) {
-              _context.next = 39;
-              break;
-            }
-
-            progress({ message: 'Destroying previous data...', type: 'info' });
-            _context.next = 39;
-            return destroyData({ configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
-
-          case 39:
+          case 16:
           case 'end':
             return _context.stop();
         }

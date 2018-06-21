@@ -17,7 +17,7 @@ var errors = require('../../../errors');
 
 var waitForApplication = function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options, progress) {
-    var configuration, env, restoreEnvironment, result;
+    var configuration, env, host, port, restoreEnvironment, selectedEnvironment, result;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -55,10 +55,21 @@ var waitForApplication = function () {
 
           case 8:
             configuration = options.configuration, env = options.env;
+            host = options.host, port = options.port;
             restoreEnvironment = nodeenv('NODE_TLS_REJECT_UNAUTHORIZED', '0');
-            _context.next = 12;
+            selectedEnvironment = configuration.environments[env];
+
+
+            if (!host || !port) {
+              host = selectedEnvironment.api.address.host;
+              port = selectedEnvironment.api.address.port;
+            }
+
+            progress({ message: 'Waiting for https://' + host + ':' + port + '/v1/ping to reply...', type: 'info' });
+
+            _context.next = 16;
             return request({
-              url: 'https://' + configuration.environments[env].api.address.host + ':' + configuration.environments[env].api.address.port + '/v1/ping',
+              url: 'https://' + host + ':' + port + '/v1/ping',
               json: true,
               fullResponse: false,
               maxAttempts: 60,
@@ -66,20 +77,20 @@ var waitForApplication = function () {
               retryStrategy: request.RetryStrategies.HTTPOrNetworkError
             });
 
-          case 12:
+          case 16:
             result = _context.sent;
 
 
             restoreEnvironment();
 
             if (!(result.api !== 'v1')) {
-              _context.next = 16;
+              _context.next = 20;
               break;
             }
 
             throw new errors.JsonMalformed();
 
-          case 16:
+          case 20:
           case 'end':
             return _context.stop();
         }

@@ -149,7 +149,7 @@ var install = {
               stopWaiting = buntstift.wait();
               _context2.prev = 34;
               _context2.next = 37;
-              return wolkenkit.install({ directory: directory, env: env, version: version }, showProgress(verbose, stopWaiting));
+              return wolkenkit.commands.install({ directory: directory, env: env, version: version }, showProgress(verbose, stopWaiting));
 
             case 37:
               _context2.next = 44;

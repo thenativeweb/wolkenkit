@@ -4,6 +4,10 @@ var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
 
 var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
 
+var _taggedTemplateLiteral2 = require('babel-runtime/helpers/taggedTemplateLiteral');
+
+var _taggedTemplateLiteral3 = _interopRequireDefault(_taggedTemplateLiteral2);
+
 var _regenerator = require('babel-runtime/regenerator');
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
@@ -12,12 +16,15 @@ var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
+var _templateObject = (0, _taggedTemplateLiteral3.default)(['\n          wolkenkit start [--port <port>] [--env <env>] [--dangerously-destroy-data] [--shared-key <key>] [--debug]\n          wolkenkit start [--env <env>] [--private-key <file>]'], ['\n          wolkenkit start [--port <port>] [--env <env>] [--dangerously-destroy-data] [--shared-key <key>] [--debug]\n          wolkenkit start [--env <env>] [--private-key <file>]']);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var buntstift = require('buntstift'),
     eslint = require('eslint'),
     getUsage = require('command-line-usage'),
-    processenv = require('processenv');
+    processenv = require('processenv'),
+    stripIndent = require('common-tags/lib/stripIndent');
 
 var defaults = require('../defaults.json'),
     globalOptionDefinitions = require('../globalOptionDefinitions'),
@@ -60,6 +67,12 @@ var init = {
                 description: 'set port',
                 typeLabel: '<port>'
               }, {
+                name: 'private-key',
+                alias: 'k',
+                type: String,
+                description: 'select private key',
+                typeLabel: '<file>'
+              }, {
                 // The shared key has no default value set, as this varies from call to
                 // call, and it makes a difference whether it has been set or not.
                 name: 'shared-key',
@@ -85,7 +98,7 @@ var init = {
   }(),
   run: function () {
     var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
-      var directory, debug, env, help, port, verbose, dangerouslyDestroyData, sharedKey, stopWaiting, formatter, formattedResult, output;
+      var directory, debug, env, help, port, privateKey, verbose, dangerouslyDestroyData, sharedKey, stopWaiting, formatter, formattedResult, output;
       return _regenerator2.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
@@ -122,7 +135,7 @@ var init = {
               throw new Error('Environment is missing.');
 
             case 8:
-              directory = process.cwd(), debug = options.debug, env = options.env, help = options.help, port = options.port, verbose = options.verbose;
+              directory = process.cwd(), debug = options.debug, env = options.env, help = options.help, port = options.port, privateKey = options.privateKey, verbose = options.verbose;
               dangerouslyDestroyData = options['dangerously-destroy-data'], sharedKey = options['shared-key'];
 
               if (!help) {
@@ -133,7 +146,7 @@ var init = {
               _context2.t0 = buntstift;
               _context2.t1 = getUsage;
               _context2.t2 = { header: 'wolkenkit start', content: this.description };
-              _context2.t3 = { header: 'Synopsis', content: 'wolkenkit start [--port <port>] [--env <env>] [--dangerously-destroy-data] [--shared-key <key>] [--debug]' };
+              _context2.t3 = { header: 'Synopsis', content: stripIndent(_templateObject) };
               _context2.t4 = [];
               _context2.t5 = _toConsumableArray3.default;
               _context2.next = 19;
@@ -159,7 +172,7 @@ var init = {
               stopWaiting = buntstift.wait();
               _context2.prev = 29;
               _context2.next = 32;
-              return wolkenkit.start({ directory: directory, dangerouslyDestroyData: dangerouslyDestroyData, debug: debug, env: env, port: port, sharedKey: sharedKey }, showProgress(verbose, stopWaiting));
+              return wolkenkit.commands.start({ directory: directory, dangerouslyDestroyData: dangerouslyDestroyData, debug: debug, env: env, port: port, privateKey: privateKey, sharedKey: sharedKey }, showProgress(verbose, stopWaiting));
 
             case 32:
               _context2.next = 40;

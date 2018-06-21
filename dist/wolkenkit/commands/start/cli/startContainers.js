@@ -13,15 +13,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var difference = require('lodash/difference'),
     remove = require('lodash/remove');
 
-var docker = require('../../../docker'),
-    runtimes = require('../../runtimes'),
-    sleep = require('../../../sleep');
+var docker = require('../../../../docker'),
+    runtimes = require('../../../runtimes'),
+    sleep = require('../../../../sleep');
 
 var startContainers = function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options, progress) {
     var _this = this;
 
-    var configuration, env, sharedKey, persistData, debug, runtime, containers, numberOfContainers, started, _loop;
+    var configuration, env, sharedKey, persistData, debug, runtime, containers, numberOfContainers, started, err, _loop;
 
     return _regenerator2.default.wrap(function _callee2$(_context3) {
       while (1) {
@@ -99,6 +99,7 @@ var startContainers = function () {
             containers = _context3.sent;
             numberOfContainers = containers.length;
             started = [];
+            err = void 0;
             _loop = /*#__PURE__*/_regenerator2.default.mark(function _loop() {
               var nextContainerToStart;
               return _regenerator2.default.wrap(function _loop$(_context2) {
@@ -126,20 +127,29 @@ var startContainers = function () {
                             while (1) {
                               switch (_context.prev = _context.next) {
                                 case 0:
-                                  _context.next = 2;
+                                  _context.prev = 0;
+                                  _context.next = 3;
                                   return docker.startContainer({ configuration: configuration, env: env, container: nextContainerToStart });
 
-                                case 2:
+                                case 3:
 
                                   started.push(nextContainerToStart);
                                   progress({ message: 'Started ' + nextContainerToStart.name + ' (' + started.length + '/' + numberOfContainers + ').', type: 'info' });
+                                  _context.next = 10;
+                                  break;
 
-                                case 4:
+                                case 7:
+                                  _context.prev = 7;
+                                  _context.t0 = _context['catch'](0);
+
+                                  err = _context.t0;
+
+                                case 10:
                                 case 'end':
                                   return _context.stop();
                               }
                             }
-                          }, _callee, _this);
+                          }, _callee, _this, [[0, 7]]);
                         }))();
                         /* eslint-enable no-loop-func */
                       }
@@ -155,19 +165,27 @@ var startContainers = function () {
               }, _loop, _this);
             });
 
-          case 22:
-            if (!(started.length < numberOfContainers)) {
-              _context3.next = 26;
+          case 23:
+            if (!(started.length < numberOfContainers && !err)) {
+              _context3.next = 27;
               break;
             }
 
-            return _context3.delegateYield(_loop(), 't0', 24);
+            return _context3.delegateYield(_loop(), 't0', 25);
 
-          case 24:
-            _context3.next = 22;
+          case 25:
+            _context3.next = 23;
             break;
 
-          case 26:
+          case 27:
+            if (!err) {
+              _context3.next = 29;
+              break;
+            }
+
+            throw err;
+
+          case 29:
           case 'end':
             return _context3.stop();
         }
