@@ -62,6 +62,15 @@ const startTunnel = async function (options, progress) {
 
       throw ex;
     }
+
+    const stats = await file.stat(privateKey);
+    const mode = stats.mode.toString(8);
+
+    if (/^\d\d\d(4|6)00$/g.test(mode) === false) {
+      progress({ message: 'Private key permissions are too open.', type: 'info' });
+
+      throw new errors.FileAccessModeTooOpen();
+    }
   }
 
   const serverUrl = url.parse(server);

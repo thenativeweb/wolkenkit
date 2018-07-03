@@ -22,6 +22,7 @@ const errors = defekt([
   'EnvironmentVariableMissing',
   'ExecutableFailed',
   'ExecutableNotFound',
+  'FileAccessModeTooOpen',
   'FileNotAccessible',
   'FileNotFound',
   'JsonMalformed',

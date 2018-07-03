@@ -51,9 +51,10 @@ const stop = {
     }
 
     const directory = process.cwd(),
-          { env, help, privateKey, verbose } = options;
+          { env, help, verbose } = options;
 
-    const dangerouslyDestroyData = options['dangerously-destroy-data'];
+    const dangerouslyDestroyData = options['dangerously-destroy-data'],
+          privateKey = options['private-key'];
 
     if (help) {
       return buntstift.info(getUsage([

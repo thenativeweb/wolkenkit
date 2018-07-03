@@ -43,7 +43,9 @@ const restart = {
     }
 
     const directory = process.cwd(),
-          { env, help, privateKey, verbose } = options;
+          { env, help, verbose } = options;
+
+    const privateKey = options['private-key'];
 
     if (help) {
       return buntstift.info(getUsage([
