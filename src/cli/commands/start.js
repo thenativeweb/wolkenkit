@@ -80,9 +80,10 @@ const init = {
     }
 
     const directory = process.cwd(),
-          { debug, env, help, port, privateKey, verbose } = options;
+          { debug, env, help, port, verbose } = options;
 
     const dangerouslyDestroyData = options['dangerously-destroy-data'],
+          privateKey = options['private-key'],
           sharedKey = options['shared-key'];
 
     if (help) {
