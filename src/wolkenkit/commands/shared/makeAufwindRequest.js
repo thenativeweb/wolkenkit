@@ -40,6 +40,10 @@ const makeAufwindRequest = async function (options, progress) {
           unsubscribe;
 
       const onData = function (data) {
+        if (data.type === 'heartbeat') {
+          return;
+        }
+
         if (!data.message || !data.type) {
           receivedData = data;
 
