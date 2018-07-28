@@ -58,7 +58,7 @@ const container = function (options) {
       443: selectedEnvironment.api.address.port + 1,
       3333: selectedEnvironment.api.address.port + 12
     },
-    restart: 'always',
+    restart: 'on-failure:3',
     volumes: [
       '/blobs'
     ]
