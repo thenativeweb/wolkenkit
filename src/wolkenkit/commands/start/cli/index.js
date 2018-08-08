@@ -94,7 +94,7 @@ const cli = async function (options, progress) {
 
   progress({ message: `Using ${sharedKey} as shared key.`, type: 'info' });
 
-  await shared.waitForApplication({ configuration, env }, progress);
+  await shared.waitForApplicationAndValidateLogs({ configuration, env }, progress);
 
   if (debug) {
     await shared.attachDebugger({ configuration, env, sharedKey, persistData, debug }, progress);

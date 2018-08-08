@@ -30,6 +30,7 @@
     "babel-polyfill": "6.26.0",
     "buntstift": "1.5.1",
     "certificate-details": "0.3.1",
+    "combined-stream": "1.0.6",
     "command-line-args": "5.0.2",
     "command-line-commands": "2.0.1",
     "command-line-usage": "5.0.5",
