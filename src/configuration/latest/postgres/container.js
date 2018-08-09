@@ -52,7 +52,7 @@ const container = function (options) {
     ports: {
       5432: selectedEnvironment.api.address.port + 3
     },
-    restart: 'always'
+    restart: 'on-failure:3'
   };
 
   if (persistData) {
