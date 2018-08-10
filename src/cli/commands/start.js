@@ -105,17 +105,32 @@ const init = {
     } catch (ex) {
       stopWaiting();
 
-      if (ex.code === 'ECODEMALFORMED') {
-        const formatter = eslint.CLIEngine.getFormatter();
+      switch (ex.code) {
+        case 'ECODEMALFORMED': {
+          const formatter = eslint.CLIEngine.getFormatter();
 
-        const formattedResult = formatter(ex.cause.results);
-        const output = formattedResult.
-          split('\n').
-          slice(0, -2).
-          join('\n');
+          const formattedResult = formatter(ex.cause.results);
+          const output = formattedResult.
+            split('\n').
+            slice(0, -2).
+            join('\n');
 
-        buntstift.info(output);
-        buntstift.info(ex.message);
+          buntstift.info(output);
+          buntstift.info(ex.message);
+          break;
+        }
+        case 'ERUNTIMEERROR': {
+          if (ex.orginalError) {
+            buntstift.newLine();
+            buntstift.info(ex.orginalError.stack);
+            buntstift.newLine();
+          }
+
+          buntstift.info('Application code caused runtime error.');
+          break;
+        }
+        default:
+          break;
       }
 
       buntstift.error('Failed to start the application.');

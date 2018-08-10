@@ -67,7 +67,7 @@
   "devDependencies": {
     "assertthat": "1.0.0",
     "measure-time": "3.1.1",
-    "roboter": "1.0.5"
+    "roboter": "1.0.6"
   },
   "scripts": {
     "test-stories": "node test/stories/index.js"

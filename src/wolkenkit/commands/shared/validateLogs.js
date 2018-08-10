@@ -48,25 +48,43 @@ const validateLogs = async function (options, progress) {
         await new Promise(async (resolve, reject) => {
           const passThrough = new Parser();
 
-          passThrough.on('data', logMessage => {
-            if (logMessage.level === 'fatal') {
-              let message = 'Fatal runtime error happened.';
+          let unsubscribe;
 
-              if (logMessage.metadata && logMessage.metadata.err) {
-                message = logMessage.metadata.err.message;
+          const onData = logMessage => {
+            if (logMessage.level === 'fatal') {
+              let orginalError = null;
+
+              if (logMessage.metadata) {
+                orginalError = logMessage.metadata.err || logMessage.metadata.ex;
               }
 
-              const err = new errors.RuntimeError(message);
+              const runtimeError = new errors.RuntimeError('Fatal runtime error happened.');
 
-              err.logMessage = logMessage;
+              runtimeError.orginalError = orginalError;
+              runtimeError.logMessage = logMessage;
 
-              return reject(err);
+              unsubscribe();
+
+              return reject(runtimeError);
             }
+          };
+
+          unsubscribe = () => {
+            passThrough.removeListener('data', onData);
+          };
+
+          passThrough.on('data', onData);
+
+          passThrough.once('end', () => {
+            unsubscribe();
+            resolve();
           });
 
-          passThrough.on('end', resolve);
-
-          await docker.logs({ configuration, containers, env, follow: false, passThrough });
+          try {
+            await docker.logs({ configuration, containers, env, follow: false, passThrough });
+          } catch (ex) {
+            reject(ex);
+          }
         });
       } catch (ex) {
         isStopped = true;
