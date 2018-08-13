@@ -92,6 +92,8 @@ const validateLogs = async function (options, progress) {
         validate.emit('error', ex);
       }
 
+      // We don't want to collect the logs as often as possible.
+      // Because this can cause to performance issues, hence the sleep timeout.
       await sleep(250);
     }
   })();
