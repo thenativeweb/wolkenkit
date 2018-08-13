@@ -7,9 +7,11 @@ const docker = require('../../../../docker'),
       generateSharedKey = require('./generateSharedKey'),
       health = require('../../health'),
       install = require('../../install'),
+      noop = require('../../../../noop'),
       runtimes = require('../../../runtimes'),
       shared = require('../../shared'),
       startContainers = require('./startContainers'),
+      stop = require('../../stop'),
       verifyThatPortsAreAvailable = require('./verifyThatPortsAreAvailable');
 
 const cli = async function (options, progress) {
@@ -94,7 +96,19 @@ const cli = async function (options, progress) {
 
   progress({ message: `Using ${sharedKey} as shared key.`, type: 'info' });
 
-  await shared.waitForApplication({ configuration, env }, progress);
+  try {
+    await shared.waitForApplicationAndValidateLogs({ configuration, env }, progress);
+  } catch (ex) {
+    switch (ex.code) {
+      case 'ERUNTIMEERROR':
+        await stop({ directory, dangerouslyDestroyData: false, env, configuration }, noop);
+        break;
+      default:
+        break;
+    }
+
+    throw ex;
+  }
 
   if (debug) {
     await shared.attachDebugger({ configuration, env, sharedKey, persistData, debug }, progress);

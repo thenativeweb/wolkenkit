@@ -1,5 +1,7 @@
 'use strict';
 
+const combinedStream = require('combined-stream');
+
 const getEnvironmentVariables = require('./getEnvironmentVariables'),
       shell = require('../shell');
 
@@ -20,7 +22,7 @@ const logs = async function (options) {
     throw new Error('Follow is missing.');
   }
 
-  const { configuration, containers, env, follow } = options;
+  const { configuration, containers, env, follow, passThrough } = options;
 
   const environmentVariables = await getEnvironmentVariables({ configuration, env });
 
@@ -35,9 +37,9 @@ const logs = async function (options) {
       args.push('--follow');
     }
 
-    const child = shell.spawn('docker', args, { env: environmentVariables, stdio: 'inherit' });
+    const child = shell.spawn('docker', args, { env: environmentVariables, stdio: 'pipe' });
 
-    child.on('close', code => {
+    child.once('close', code => {
       if (code !== 0) {
         childProcesses.forEach(process => {
           process.kill();
@@ -47,12 +49,27 @@ const logs = async function (options) {
         process.exit(1);
         /* eslint-enable no-process-exit */
       }
-
-      resolve();
     });
 
     childProcesses.push(child);
+
+    resolve();
   })));
+
+  const multiStream = combinedStream.create();
+
+  childProcesses.
+    map(child => child.stdout).
+    forEach(stream => multiStream.append(stream));
+
+  const outputStream = passThrough || process.stdout;
+
+  await new Promise((resolve, reject) => {
+    multiStream.once('error', reject);
+    multiStream.once('end', resolve);
+
+    multiStream.pipe(outputStream);
+  });
 };
 
 module.exports = logs;

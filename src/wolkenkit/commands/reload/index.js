@@ -56,7 +56,6 @@ const reload = async function (options, progress = noop) {
   }
 
   const debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
-        host = existingContainers[0].labels['wolkenkit-api-host'],
         persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
         port = Number(existingContainers[0].labels['wolkenkit-api-port']),
         sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
@@ -78,9 +77,8 @@ const reload = async function (options, progress = noop) {
   await startContainers({ configuration, env, port, sharedKey, persistData, debug }, progress);
 
   progress({ message: `Using ${sharedKey} as shared key.`, type: 'info' });
-  progress({ message: `Waiting for https://${host}:${port}/v1/ping to reply...`, type: 'info' });
 
-  await shared.waitForApplication({ configuration, env }, progress);
+  await shared.waitForApplicationAndValidateLogs({ configuration, env }, progress);
 
   if (debug) {
     await shared.attachDebugger({ configuration, env, sharedKey, persistData, debug }, progress);

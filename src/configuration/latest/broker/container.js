@@ -85,7 +85,7 @@ const container = function (options) {
       443: selectedEnvironment.api.address.port,
       3333: selectedEnvironment.api.address.port + 9
     },
-    restart: 'always',
+    restart: 'on-failure:3',
     volumesFrom: [
       `${configuration.application}-node-modules`
     ]
