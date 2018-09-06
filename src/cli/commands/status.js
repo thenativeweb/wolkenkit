@@ -74,9 +74,6 @@ const status = {
       if (ex.code === 'EAPPLICATIONBUILDING') {
         return buntstift.success('The application is building.');
       }
-      if (ex.code === 'EAPPLICATIONBUILDING') {
-        return buntstift.success('The application is building.');
-      }
       if (ex.code === 'EAPPLICATIONTERMINATING') {
         return buntstift.success('The application is terminating.');
       }
