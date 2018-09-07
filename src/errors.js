@@ -5,8 +5,11 @@ const defekt = require('defekt');
 const errors = defekt([
   'AddressMismatch',
   'ApplicationAlreadyRunning',
+  'ApplicationBuilding',
   'ApplicationNotRunning',
   'ApplicationPartiallyRunning',
+  'ApplicationTerminating',
+  'ApplicationVerifyingConnections',
   'CertificateExpired',
   'CertificateMismatch',
   'CertificateNotYetValid',

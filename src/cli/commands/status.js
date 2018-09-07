@@ -68,6 +68,15 @@ const status = {
       if (ex.code === 'EAPPLICATIONNOTRUNNING') {
         return buntstift.success('The application is stopped.');
       }
+      if (ex.code === 'EAPPLICATIONVERIFYINGCONNECTIONS') {
+        return buntstift.success('The application is trying to connect to infrastructure services.');
+      }
+      if (ex.code === 'EAPPLICATIONBUILDING') {
+        return buntstift.success('The application is building.');
+      }
+      if (ex.code === 'EAPPLICATIONTERMINATING') {
+        return buntstift.success('The application is terminating.');
+      }
       if (ex.code === 'EAPPLICATIONPARTIALLYRUNNING') {
         buntstift.error('The application is partially running.');
         throw ex;
