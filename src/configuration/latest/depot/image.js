@@ -2,7 +2,7 @@
 
 const image = function () {
   return {
-    name: 'thenativeweb/wolkenkit-depot-file',
+    name: 'thenativeweb/wolkenkit-depot',
     type: 'infrastructure',
     version: 'latest'
   };

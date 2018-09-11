@@ -31,15 +31,17 @@ const container = function (options) {
   const selectedEnvironment = configuration.environments[env];
 
   const result = {
-    image: `thenativeweb/wolkenkit-depot-file`,
-    name: `${configuration.application}-depot-file`,
+    image: `thenativeweb/wolkenkit-depot`,
+    name: `${configuration.application}-depot`,
     env: {
       IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate', '/keys/wildcard.wolkenkit.io'),
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
       KEYS: get(selectedEnvironment, 'api.certificate', '/keys/local.wolkenkit.io'),
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       STATUS_PORT: 3333,
-      STATUS_CORS_ORIGIN: '*'
+      STATUS_CORS_ORIGIN: '*',
+      PROVIDER_TYPE: 'fileSystem',
+      PROVIDER_DIRECTORY: '/blobs'
     },
     labels: {
       'wolkenkit-api-host': selectedEnvironment.api.address.host,
@@ -53,7 +55,7 @@ const container = function (options) {
     networks: [
       `${configuration.application}-network`
     ],
-    networkAlias: 'depot-file',
+    networkAlias: 'depot',
     ports: {
       443: selectedEnvironment.api.address.port + 1,
       3333: selectedEnvironment.api.address.port + 12
@@ -66,7 +68,7 @@ const container = function (options) {
 
   if (persistData) {
     result.volumes = [
-      `${configuration.application}-depot-file-volume:/blobs`
+      `${configuration.application}-depot-volume:/blobs`
     ];
   }
 
