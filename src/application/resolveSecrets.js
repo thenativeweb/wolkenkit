@@ -28,17 +28,15 @@ const resolveSecrets = async function ({ configuration, directory }) {
 
   const identifier = 'secret://';
 
-  const flattenConfiguration = flatten(configuration);
+  const flattenedConfiguration = flatten(configuration);
 
-  Object.keys(flattenConfiguration).forEach(key => {
-    const value = flattenConfiguration[key];
-
+  for (const [ key, value ] of Object.entries(flattenedConfiguration)) {
     if (typeof value !== 'string') {
-      return;
+      continue;
     }
 
     if (!value.startsWith(identifier)) {
-      return;
+      continue;
     }
 
     if (!secrets) {
@@ -49,15 +47,15 @@ const resolveSecrets = async function ({ configuration, directory }) {
     const secret = get(secrets, secretSelector);
 
     if (secret === undefined) {
-      throw new errors.SecretNotSpecified(`Could not find a secret named '${secretSelector}'.`);
+      throw new errors.SecretNotFound(`Could not find a secret named '${secretSelector}'.`);
     }
 
-    flattenConfiguration[key] = secret;
-  });
+    flattenedConfiguration[key] = secret;
+  }
 
-  const unflattenConfiguration = unflatten(flattenConfiguration);
+  const unflattenedConfiguration = unflatten(flattenedConfiguration);
 
-  return unflattenConfiguration;
+  return unflattenedConfiguration;
 };
 
 module.exports = resolveSecrets;

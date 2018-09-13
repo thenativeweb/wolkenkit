@@ -24,7 +24,7 @@ suite('application/getConfiguration', () => {
     identityProvider: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'identityProvider'),
     transformEnvironmentVariables: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'transformEnvironmentVariables'),
     secretFileNotFound: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'secretFileNotFound'),
-    secretNotSpecified: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'secretNotSpecified'),
+    secretNotFound: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'secretNotFound'),
     resolveSecrets: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'resolveSecrets')
   };
 
@@ -101,8 +101,8 @@ suite('application/getConfiguration', () => {
 
   test('throws an error if package.json reference to a secret which is not specified.', async () => {
     await assert.that(async () => {
-      await getConfiguration({ directory: directory.secretNotSpecified });
-    }).is.throwingAsync(ex => ex.code === 'ESECRETNOTSPECIFIED');
+      await getConfiguration({ directory: directory.secretNotFound });
+    }).is.throwingAsync(ex => ex.code === 'ESECRETNOTFOUND');
   });
 
   test('returns a configuration if an valid certificate template is given.', async () => {
