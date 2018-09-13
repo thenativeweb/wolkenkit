@@ -6,6 +6,7 @@ const ajv = require('ajv');
 
 const errors = require('../errors'),
       file = require('../file'),
+      resolveSecrets = require('./resolveSecrets'),
       transformEnvironmentVariables = require('./transformEnvironmentVariables');
 
 const getConfiguration = async function (options) {
@@ -21,11 +22,13 @@ const getConfiguration = async function (options) {
   const configurationFile = path.join(directory, 'package.json');
   const packageJson = await file.readJson(configurationFile);
 
-  const configuration = packageJson.wolkenkit;
+  let configuration = packageJson.wolkenkit;
 
   if (!configuration) {
     throw new errors.ConfigurationNotFound();
   }
+
+  configuration = await resolveSecrets({ configuration, directory });
 
   let runtimeVersion;
 
@@ -53,7 +56,9 @@ const getConfiguration = async function (options) {
   const isValid = ajv().compile(schema);
 
   if (!isValid(configuration)) {
-    throw new errors.ConfigurationMalformed();
+    const err = isValid.errors[0];
+
+    throw new errors.ConfigurationMalformed(`Path ${err.dataPath} ${err.message}.`);
   }
 
   Object.keys(configuration.environments).forEach(name => {

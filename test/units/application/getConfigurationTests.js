@@ -21,7 +21,11 @@ suite('application/getConfiguration', () => {
     multipleEnvironmentsWithDockerMachine: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'multipleEnvironmentsWithDockerMachine'),
     multipleAllowAccessFrom: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'multipleAllowAccessFrom'),
     allowAccessFrom: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'allowAccessFrom'),
-    identityProvider: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'identityProvider')
+    identityProvider: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'identityProvider'),
+    transformEnvironmentVariables: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'transformEnvironmentVariables'),
+    secretFileNotFound: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'secretFileNotFound'),
+    secretNotSpecified: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'secretNotSpecified'),
+    resolveSecrets: path.join(__dirname, '..', '..', 'shared', 'configuration', 'templates', 'resolveSecrets')
   };
 
   test('is a function.', done => {
@@ -87,6 +91,18 @@ suite('application/getConfiguration', () => {
     await assert.that(async () => {
       await getConfiguration({ directory: directory.doesNotContainAllowAccessFrom });
     }).is.throwingAsync(ex => ex.code === 'ECONFIGURATIONMALFORMED');
+  });
+
+  test('throws an error if package.json reference to a secret but the secret file does not exists.', async () => {
+    await assert.that(async () => {
+      await getConfiguration({ directory: directory.secretFileNotFound });
+    }).is.throwingAsync(ex => ex.code === 'ESECRETFILENOTFOUND');
+  });
+
+  test('throws an error if package.json reference to a secret which is not specified.', async () => {
+    await assert.that(async () => {
+      await getConfiguration({ directory: directory.secretNotSpecified });
+    }).is.throwingAsync(ex => ex.code === 'ESECRETNOTSPECIFIED');
   });
 
   test('returns a configuration if an valid certificate template is given.', async () => {
@@ -272,6 +288,64 @@ suite('application/getConfiguration', () => {
           },
           node: {
             environment: 'development'
+          }
+        }
+      }
+    });
+  });
+
+  test('returns a configuration with transformed environment variables.', async () => {
+    const configuration = await getConfiguration({ directory: directory.transformEnvironmentVariables });
+
+    assert.that(configuration).is.equalTo({
+      application: 'Chat',
+      runtime: {
+        version: 'latest'
+      },
+      environments: {
+        default: {
+          api: {
+            address: {
+              host: 'local.wolkenkit.io',
+              port: 3000
+            },
+            allowAccessFrom: '*'
+          },
+          node: {
+            environment: 'development'
+          },
+          environmentVariables: {
+            WOLKENKIT_FOO: 'bar',
+            WOLKENKIT_FOO_EXTENDED: 'barExtended'
+          }
+        }
+      }
+    });
+  });
+
+  test('returns a configuration with resolved secrets.', async () => {
+    const configuration = await getConfiguration({ directory: directory.resolveSecrets });
+
+    assert.that(configuration).is.equalTo({
+      application: 'Chat',
+      runtime: {
+        version: 'latest'
+      },
+      environments: {
+        default: {
+          api: {
+            address: {
+              host: 'local.wolkenkit.io',
+              port: 3000
+            },
+            allowAccessFrom: '*'
+          },
+          node: {
+            environment: 'development'
+          },
+          environmentVariables: {
+            WOLKENKIT_FOO: 'bar',
+            WOLKENKIT_MAINTENANCE: false
           }
         }
       }
