@@ -116,7 +116,7 @@ const schema = function () {
                     type: 'object',
                     patternProperties: {
                       '.*': {
-                        type: [ 'integer', 'number', 'string' ]
+                        type: [ 'integer', 'number', 'string', 'boolean' ]
                       }
                     },
                     additionalProperties: false
@@ -333,7 +333,7 @@ const schema = function () {
                     type: 'object',
                     patternProperties: {
                       '.*': {
-                        type: [ 'integer', 'number', 'string' ]
+                        type: [ 'integer', 'number', 'string', 'boolean' ]
                       }
                     },
                     additionalProperties: false

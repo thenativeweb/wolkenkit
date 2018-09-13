@@ -42,6 +42,7 @@
     "dotfile-json": "1.0.3",
     "eslint": "4.19.1",
     "findsuggestions": "0.2.1",
+    "flat": "4.1.0",
     "freeport": "1.0.5",
     "is-ip": "2.0.0",
     "isolated": "0.3.0",

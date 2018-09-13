@@ -1,8 +1,11 @@
 'use strict';
 
+const path = require('path');
+
 const tar = require('tar');
 
-const makeAufwindRequest = require('./makeAufwindRequest');
+const file = require('../../../file'),
+      makeAufwindRequest = require('./makeAufwindRequest');
 
 const streamApplication = async function (options, progress) {
   if (!options) {
@@ -30,11 +33,19 @@ const streamApplication = async function (options, progress) {
       'content-type': 'application/gzip'
     };
 
+    const files = [ 'package.json', 'server' ];
+
+    const secretFileName = 'wolkenkit-secrets.json';
+
+    if (await file.exists(path.join(directory, secretFileName))) {
+      files.push(secretFileName);
+    }
+
     const tarStream = tar.create({
       gzip: true,
       cwd: directory,
       strict: true
-    }, [ 'package.json', 'server' ]);
+    }, files);
 
     tarStream.
       on('end', () => {
