@@ -1,9 +1,9 @@
 'use strict';
 
-const path = require('path');
+const fs = require('fs'),
+      path = require('path');
 
-const promisify = require('util.promisify'),
-      recursiveReaddirCallback = require('recursive-readdir');
+const promisify = require('util.promisify');
 
 const cloneRepository = require('./cloneRepository'),
       errors = require('../../../errors'),
@@ -11,7 +11,7 @@ const cloneRepository = require('./cloneRepository'),
       noop = require('../../../noop'),
       shell = require('../../../shell');
 
-const recursiveReaddir = promisify(recursiveReaddirCallback);
+const readdir = promisify(fs.readdir);
 
 const init = async function (options, progress = noop) {
   if (!options) {
@@ -33,9 +33,9 @@ const init = async function (options, progress = noop) {
     return await forceInit({ directory, template }, progress);
   }
 
-  const files = await recursiveReaddir(directory);
+  const entries = await readdir(directory);
 
-  if (files.length > 0) {
+  if (entries.length > 0) {
     progress({ message: 'The current working directory is not empty.', type: 'info' });
 
     throw new errors.DirectoryNotEmpty();
