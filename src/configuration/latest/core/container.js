@@ -43,6 +43,7 @@ const container = function (options) {
     cmd: `dumb-init node ${debug ? '--inspect=0.0.0.0:9229' : ''} /wolkenkit/app.js`,
     env: {
       APPLICATION: configuration.application,
+      COMMANDBUS_CONCURRENCY: 256,
       COMMANDBUS_URL: `amqp://wolkenkit:${sharedKey}@messagebus:5672`,
       EVENTBUS_URL: `amqp://wolkenkit:${sharedKey}@messagebus:5672`,
       EVENTSTORE_TYPE: 'postgres',
