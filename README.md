@@ -56,7 +56,7 @@ If you need any help with wolkenkit, consider the following options. Also, you a
 
 If you have found an issue please first have a look at the [previously reported issues](https://github.com/thenativeweb/wolkenkit/issues) to verify whether the issue has already been reported.
 
-If not, [report a new issue](https://github.com/thenativeweb/wolkenkit/issues/new) and provide any steps required to reproduce the issue, as well as the expected and the actual result. Additionally provide the versions of wolkenkit and Docker, and the type and architecture of the operating system you are using.
+If not, [report a new issue](https://github.com/thenativeweb/wolkenkit/issues/new/choose) and provide any steps required to reproduce the issue, as well as the expected and the actual result. Additionally provide the versions of wolkenkit and Docker, and the type and architecture of the operating system you are using.
 
 Ideally you can also include a [short but complete code sample](http://www.yoda.arachsys.com/csharp/complete.html) to reproduce the issue. Anyway, depending on the issue, we know that this is not always possible.
 
