@@ -79,7 +79,7 @@ Since wolkenkit is a distributed application, its code is spread across various 
 - [wolkenkit-broker](https://github.com/thenativeweb/wolkenkit-broker)
 - [wolkenkit-core](https://github.com/thenativeweb/wolkenkit-core)
 - [wolkenkit-flows](https://github.com/thenativeweb/wolkenkit-flows)
-- [wolkenkit-depot-file](https://github.com/thenativeweb/wolkenkit-depot-file)
+- [wolkenkit-depot](https://github.com/thenativeweb/wolkenkit-depot)
 
 Additionally, you may want to have a look at these repositories that contain the most important supporting modules:
 
