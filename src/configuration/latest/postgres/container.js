@@ -29,7 +29,7 @@ const container = function (options) {
   const selectedEnvironment = configuration.environments[env];
 
   const result = {
-    image: `thenativeweb/wolkenkit-postgres`,
+    image: `${configuration.application}-postgres`,
     name: `${configuration.application}-postgres`,
     env: {
       POSTGRES_DB: 'wolkenkit',

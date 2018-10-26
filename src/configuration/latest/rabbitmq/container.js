@@ -29,7 +29,7 @@ const container = function (options) {
   const selectedEnvironment = configuration.environments[env];
 
   const result = {
-    image: `thenativeweb/wolkenkit-rabbitmq`,
+    image: `${configuration.application}-rabbitmq`,
     name: `${configuration.application}-rabbitmq`,
     env: {
       RABBITMQ_DEFAULT_USER: 'wolkenkit',
