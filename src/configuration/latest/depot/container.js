@@ -1,5 +1,7 @@
 'use strict';
 
+const path = require('path');
+
 const get = require('lodash/get');
 
 const image = require('./image');
@@ -31,12 +33,16 @@ const container = function (options) {
   const selectedEnvironment = configuration.environments[env];
 
   const result = {
-    image: `thenativeweb/wolkenkit-depot`,
+    image: `${configuration.application}-depot`,
     name: `${configuration.application}-depot`,
     env: {
-      IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate', '/keys/wildcard.wolkenkit.io'),
+      IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ?
+        path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) :
+        '/keys/wildcard.wolkenkit.io',
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
-      KEYS: get(selectedEnvironment, 'api.certificate', '/keys/local.wolkenkit.io'),
+      KEYS: get(selectedEnvironment, 'api.certificate') ?
+        path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'api.certificate')) :
+        '/keys/local.wolkenkit.io',
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       STATUS_PORT: 3333,
       STATUS_CORS_ORIGIN: '*',

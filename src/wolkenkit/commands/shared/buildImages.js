@@ -35,8 +35,7 @@ const buildImages = async function (options, progress) {
   const name = configuration.application,
         runtime = configuration.runtime.version;
 
-  const images = (await runtimes.getImages({ forVersion: runtime })).
-    filter(image => image.type === 'application');
+  const images = await runtimes.getImages({ forVersion: runtime });
 
   await Promise.all(images.map(async image => {
     const imageSuffix = image.name.replace(/^thenativeweb\/wolkenkit-/, '');

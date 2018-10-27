@@ -29,7 +29,7 @@ const container = function (options) {
   const selectedEnvironment = configuration.environments[env];
 
   const result = {
-    image: `thenativeweb/wolkenkit-mongodb`,
+    image: `${configuration.application}-mongodb`,
     name: `${configuration.application}-mongodb`,
     env: {
       MONGODB_DATABASE: 'wolkenkit',
