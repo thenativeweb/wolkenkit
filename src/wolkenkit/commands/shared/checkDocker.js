@@ -23,11 +23,10 @@ const checkDocker = async function (options, progress) {
   const isInstalled = await docker.isInstalled();
 
   const latestStableVersion = await runtimes.getLatestStableVersion();
-
-  const wolkenkitUrl = `https://docs.wolkenkit.io/${latestStableVersion}/getting-started/installing-wolkenkit/verifying-system-requirements/`
+  const wolkenkitUrl = `https://docs.wolkenkit.io/${latestStableVersion}/getting-started/installing-wolkenkit/verifying-system-requirements/`;
 
   if (!isInstalled) {
-    progress({ message: `Docker client is not installed. (see ${wolkenkitUrl} for how to install wolkenkit.)`, type: 'info' });
+    progress({ message: `Docker client is not installed (see ${wolkenkitUrl} for how to install wolkenkit).`, type: 'info' });
     throw new errors.ExecutableNotFound();
   }
 

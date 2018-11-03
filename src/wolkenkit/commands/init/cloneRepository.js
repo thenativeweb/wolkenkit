@@ -1,11 +1,10 @@
 'use strict';
 
 const errors = require('../../../errors'),
-      shell = require('../../../shell'),
-      runtimes = require('../../runtimes');
+      runtimes = require('../../runtimes'),
+      shell = require('../../../shell');
 
 const cloneRepository = async function (options, progress) {
-  console.log(runtimes);
   if (!options) {
     throw new Error('Options are missing.');
   }
@@ -22,8 +21,7 @@ const cloneRepository = async function (options, progress) {
   const { directory, template } = options;
 
   const latestStableVersion = await runtimes.getLatestStableVersion();
-
-  const wolkenkitUrl = `https://docs.wolkenkit.io/${latestStableVersion}/getting-started/installing-wolkenkit/verifying-system-requirements/`
+  const wolkenkitUrl = `https://docs.wolkenkit.io/${latestStableVersion}/getting-started/installing-wolkenkit/verifying-system-requirements/`;
 
   const matches = template.match(/^((?:git:|ssh:|https:\/\/|git@[\w.]+)[\w.@:/~_-]+(?:\.git)?\/?)(?:#([a-zA-Z0-9/.\-_]+))?$/);
 
@@ -34,7 +32,7 @@ const cloneRepository = async function (options, progress) {
   }
 
   if (!await shell.which('git')) {
-    progress({ message: `Git is not installed. (see ${wolkenkitUrl} for how to install wolkenkit.)`, type: 'info' });
+    progress({ message: `git is not installed (see ${wolkenkitUrl} for how to install wolkenkit).`, type: 'info' });
 
     throw new errors.ExecutableNotFound();
   }
