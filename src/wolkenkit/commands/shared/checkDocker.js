@@ -1,7 +1,8 @@
 'use strict';
 
 const docker = require('../../../docker'),
-      errors = require('../../../errors');
+      errors = require('../../../errors'),
+      runtimes = require('../../runtimes');
 
 const checkDocker = async function (options, progress) {
   if (!options) {
@@ -21,8 +22,11 @@ const checkDocker = async function (options, progress) {
 
   const isInstalled = await docker.isInstalled();
 
+  const latestStableVersion = await runtimes.getLatestStableVersion();
+  const wolkenkitUrl = `https://docs.wolkenkit.io/${latestStableVersion}/getting-started/installing-wolkenkit/verifying-system-requirements/`;
+
   if (!isInstalled) {
-    progress({ message: 'Docker client is not installed.', type: 'info' });
+    progress({ message: `Docker client is not installed (see ${wolkenkitUrl} for how to install wolkenkit).`, type: 'info' });
     throw new errors.ExecutableNotFound();
   }
 
