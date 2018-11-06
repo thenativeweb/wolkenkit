@@ -36,6 +36,8 @@ const container = function (options) {
     image: `${configuration.application}-depot`,
     name: `${configuration.application}-depot`,
     env: {
+      HTTP_PORT: 80,
+      HTTPS_PORT: 443,
       IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ?
         path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) :
         '/keys/wildcard.wolkenkit.io',
