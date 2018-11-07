@@ -6,6 +6,20 @@ const map = require('lodash/map'),
 const getEnvironmentVariables = require('./getEnvironmentVariables'),
       shell = require('../shell');
 
+const escape = function (value) {
+  if (value === undefined) {
+    throw new Error('Value is missing.');
+  }
+
+  if (typeof value !== 'object') {
+    return value;
+  }
+
+  const escapedValue = JSON.stringify(JSON.stringify(value)).slice(1, -1);
+
+  return escapedValue;
+};
+
 const startContainer = async function (options) {
   if (!options) {
     throw new Error('Options are missing.');
@@ -27,7 +41,7 @@ const startContainer = async function (options) {
   await shell.exec(oneLine`
     docker run
       --detach
-      ${container.env ? map(container.env, (value, key) => `--env ${key}="${value}"`).join(' ') : ''}
+      ${container.env ? map(container.env, (value, key) => `--env ${key}="${escape(value)}"`).join(' ') : ''}
       ${container.labels ? map(container.labels, (value, key) => `--label ${key}="${value}"`).join(' ') : ''}
       ${container.networks ? map(container.networks, network => `--network "${network}"`).join(' ') : ''}
       ${container.networkAlias ? `--network-alias "${container.networkAlias}"` : ''}

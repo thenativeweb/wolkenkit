@@ -73,6 +73,51 @@ const schema = function () {
                     additionalProperties: false,
                     required: [ 'address', 'allowAccessFrom' ]
                   },
+                  fileStorage: {
+                    type: 'object',
+                    properties: {
+                      allowAccessFrom: {
+                        oneOf: [
+                          {
+                            type: 'string',
+                            minLength: 1
+                          }, {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                              type: 'string',
+                              minLength: 1
+                            },
+                            uniqueItems: true
+                          }
+                        ]
+                      },
+                      isAuthorized: {
+                        properties: {
+                          commands: {
+                            type: 'object',
+                            properties: {
+                              addFile: {
+                                type: 'object',
+                                properties: {
+                                  forAuthenticated: { type: 'boolean' },
+                                  forPublic: { type: 'boolean' }
+                                },
+                                additionalProperties: false,
+                                required: [ 'forAuthenticated', 'forPublic' ]
+                              }
+                            },
+                            additionalProperties: false,
+                            required: [ 'addFile' ]
+                          }
+                        },
+                        additionalProperties: false,
+                        required: [ 'commands' ]
+                      }
+                    },
+                    additionalProperties: false,
+                    required: [ 'allowAccessFrom' ]
+                  },
                   node: {
                     type: 'object',
                     properties: {
@@ -122,7 +167,7 @@ const schema = function () {
                     additionalProperties: false
                   }
                 },
-                required: [ 'api' ],
+                required: [ 'api', 'fileStorage' ],
                 additionalProperties: false
               },
 
