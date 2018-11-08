@@ -24,7 +24,7 @@ const stop = async function (options, progress = noop) {
     throw new Error('Environment is missing.');
   }
 
-  const { directory, dangerouslyDestroyData, env, privateKey } = options;
+  const { directory, env } = options;
 
   const configuration = await shared.getConfiguration({
     env,
@@ -36,7 +36,7 @@ const stop = async function (options, progress = noop) {
 
   const type = environment.type === 'aufwind' ? environment.type : 'cli';
 
-  await stopVia[type]({ directory, dangerouslyDestroyData, env, privateKey, configuration }, progress);
+  await stopVia[type]({ ...options, configuration }, progress);
 };
 
 module.exports = stop;

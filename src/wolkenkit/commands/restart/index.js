@@ -21,7 +21,7 @@ const restart = async function (options, progress = noop) {
     throw new Error('Environment is missing.');
   }
 
-  const { directory, env, privateKey } = options;
+  const { directory, env } = options;
 
   const configuration = await shared.getConfiguration({
     env,
@@ -33,7 +33,7 @@ const restart = async function (options, progress = noop) {
 
   const type = environment.type === 'aufwind' ? environment.type : 'cli';
 
-  await restartVia[type]({ directory, env, privateKey, configuration }, progress);
+  await restartVia[type]({ ...options, configuration }, progress);
 };
 
 module.exports = restart;
