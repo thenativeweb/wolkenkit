@@ -3,8 +3,7 @@
 const path = require('path');
 
 const assert = require('assertthat'),
-      isolated = require('isolated'),
-      promisify = require('util.promisify');
+      isolated = require('isolated');
 
 const getDirectoryList = require('./helpers/getDirectoryList'),
       shell = require('../../src/shell'),
@@ -12,8 +11,6 @@ const getDirectoryList = require('./helpers/getDirectoryList'),
 
 const defaults = require('../../src/cli/defaults'),
       packageJson = require('../../package.json');
-
-const isolatedAsync = promisify(isolated);
 
 (async () => {
   await suite('setup', async ({ test, wolkenkit }) => {
@@ -69,7 +66,7 @@ const isolatedAsync = promisify(isolated);
     });
 
     await test('[wolkenkit init] reports an error if the target directory is not empty.', async () => {
-      const directory = await isolatedAsync({
+      const directory = await isolated({
         files: [ path.join(__dirname, '..', 'shared', 'configuration', 'validJson', 'package.json') ]
       });
 
@@ -115,7 +112,7 @@ const isolatedAsync = promisify(isolated);
     });
 
     await test('[wolkenkit init --force] overwrites existing files.', async () => {
-      const directory = await isolatedAsync({
+      const directory = await isolated({
         files: [ path.join(__dirname, '..', 'shared', 'configuration', 'validJson', 'package.json') ]
       });
       const template = defaults.commands.init.template;

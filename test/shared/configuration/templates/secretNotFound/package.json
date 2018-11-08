@@ -17,6 +17,9 @@
           },
           "allowAccessFrom": "secret://not-exists"
         },
+        "fileStorage": {
+          "allowAccessFrom": "*"
+        },
         "node": {
           "environment": "development"
         },

@@ -17,6 +17,9 @@
           },
           "allowAccessFrom": "*"
         },
+        "fileStorage": {
+          "allowAccessFrom": "*"
+        },
         "docker": {
           "machine": "wolkenkit-cli-test"
         },
@@ -30,6 +33,9 @@
             "host": "local.wolkenkit.io",
             "port": 3001
           },
+          "allowAccessFrom": "*"
+        },
+        "fileStorage": {
           "allowAccessFrom": "*"
         },
         "docker": {

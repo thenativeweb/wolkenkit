@@ -3,13 +3,10 @@
 const path = require('path');
 
 const assert = require('assertthat'),
-      isolated = require('isolated'),
-      promisify = require('util.promisify');
+      isolated = require('isolated');
 
 const readJson = require('../../../src/file/readJson'),
       shell = require('../../../src/shell');
-
-const isolatedAsync = promisify(isolated);
 
 suite('file/readJson', () => {
   test('is a function.', done => {
@@ -31,7 +28,7 @@ suite('file/readJson', () => {
 
   test('throws an error if file is not accessible.', async () => {
     const source = path.join(__dirname, '..', '..', 'shared', 'configuration', 'validJson', 'package.json');
-    const directory = await isolatedAsync({ files: [ source ]});
+    const directory = await isolated({ files: [ source ]});
     const target = path.join(directory, 'package.json');
 
     await shell.chmod('a-r', target);

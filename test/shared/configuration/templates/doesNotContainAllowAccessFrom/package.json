@@ -16,6 +16,9 @@
             "port": 3000
           }
         },
+        "fileStorage": {
+          "allowAccessFrom": "*"
+        },
         "node": {
           "environment": "development"
         }

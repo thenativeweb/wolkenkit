@@ -16,7 +16,8 @@ const applicationLifecycleTests = async function (runtime) {
     await test('[wolkenkit init --template] initializes a new application using the specified template.', async ({ directory }) => {
       applicationDirectory = directory;
 
-      const template = `https://github.com/thenativeweb/wolkenkit-template-chat.git#wolkenkit-${runtime}`;
+      const tagOrBranch = runtime === 'latest' ? 'latest' : `wolkenkit-${runtime}`;
+      const template = `https://github.com/thenativeweb/wolkenkit-template-chat.git#${tagOrBranch}`;
 
       const { code, stderr, stdout } = await wolkenkit('init', { template }, { cwd: applicationDirectory });
 
@@ -60,6 +61,8 @@ const applicationLifecycleTests = async function (runtime) {
 
       assert.that(stderr).is.matching(/Application certificate is self-signed/);
       assert.that(stdout).is.matching(new RegExp(`Installing wolkenkit ${runtime} on environment default...`));
+      assert.that(stdout).is.matching(/Using [0-9a-f]{40} as shared key/);
+      assert.that(stdout).is.matching(/Waiting for https:\/\/\d+\.\d+\.\d+\.\d+:3000/);
       assert.that(stdout).is.matching(/Started the application/);
       assert.that(code).is.equalTo(0);
     });
@@ -139,6 +142,27 @@ const applicationLifecycleTests = async function (runtime) {
       assert.that(stderr).is.matching(/Failed to fetch application logs./);
       assert.that(stdout).is.matching(/The application is not running/);
       assert.that(code).is.not.equalTo(0);
+    });
+
+    await test('[wolkenkit start --port --shared-key] starts the application with a custom port and shared key.', async () => {
+      const { code, stderr, stdout } = await wolkenkit('start', {
+        port: 4000,
+        'shared-key': 'wolkenkit'
+      }, { cwd: applicationDirectory });
+
+      assert.that(stderr).is.matching(/Application certificate is self-signed/);
+      assert.that(stdout).is.matching(/Using wolkenkit as shared key/);
+      assert.that(stdout).is.matching(/Waiting for https:\/\/\d+\.\d+\.\d+\.\d+:4000/);
+      assert.that(stdout).is.matching(/Started the application/);
+      assert.that(code).is.equalTo(0);
+    });
+
+    await test('[wolkenkit stop] stops the application with a custom port.', async () => {
+      const { code, stderr, stdout } = await wolkenkit('stop', {}, { cwd: applicationDirectory });
+
+      assert.that(stderr).is.matching(/Application certificate is self-signed/);
+      assert.that(stdout).is.matching(/Stopped the application/);
+      assert.that(code).is.equalTo(0);
     });
   });
 };

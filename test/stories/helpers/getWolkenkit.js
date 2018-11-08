@@ -30,7 +30,7 @@ const getWolkenkit = async function (options) {
       }
 
       return `--${key}=${value}`;
-    })}`;
+    }).join(' ')}`;
 
     opts.env = merge({}, processenv(), opts.env || {}, {
       DOCKER_HOST: `tcp://${ipAddress}:2376`,

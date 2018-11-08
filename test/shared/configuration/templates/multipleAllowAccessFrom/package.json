@@ -21,6 +21,9 @@
             "http://slayer.net"
           ]
         },
+        "fileStorage": {
+          "allowAccessFrom": "*"
+        },
         "node": {
           "environment": "development"
         }

@@ -17,6 +17,9 @@
           },
           "allowAccessFrom": "*"
         },
+        "fileStorage": {
+          "allowAccessFrom": "*"
+        },
         "identityProvider": {
           "name": "identityprovider.example.com",
           "certificate": "/server/keys/identityprovider.example.com"

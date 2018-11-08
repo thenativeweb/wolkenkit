@@ -17,6 +17,9 @@
           },
           "allowAccessFrom": "*"
         },
+        "fileStorage": {
+          "allowAccessFrom": "*"
+        },
         "node": {
           "environment": "development"
         }
@@ -27,6 +30,9 @@
             "host": "local.wolkenkit.io",
             "port": 3001
           },
+          "allowAccessFrom": "*"
+        },
+        "fileStorage": {
           "allowAccessFrom": "*"
         },
         "node": {

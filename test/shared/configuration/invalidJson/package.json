@@ -18,6 +18,9 @@
           },
           "allowAccessFrom": "*"
         },
+        "fileStorage": {
+          "allowAccessFrom": "*"
+        },
         "node": {
           "environment": "development"
         }

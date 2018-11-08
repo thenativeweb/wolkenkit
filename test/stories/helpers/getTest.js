@@ -2,10 +2,7 @@
 
 const buntstift = require('buntstift'),
       isolated = require('isolated'),
-      measureTime = require('measure-time'),
-      promisify = require('util.promisify');
-
-const isolatedAsync = promisify(isolated);
+      measureTime = require('measure-time');
 
 const getTest = async function (options) {
   if (!options) {
@@ -22,7 +19,7 @@ const getTest = async function (options) {
       process.argv.push('--verbose');
     }
 
-    const directory = await isolatedAsync(),
+    const directory = await isolated(),
           message = `${descriptionSuite} - ${descriptionTest}`;
 
     const getElapsed = measureTime();

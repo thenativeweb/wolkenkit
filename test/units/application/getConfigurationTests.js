@@ -105,7 +105,7 @@ suite('application/getConfiguration', () => {
     }).is.throwingAsync(ex => ex.code === 'ESECRETNOTFOUND');
   });
 
-  test('returns a configuration if an valid certificate template is given.', async () => {
+  test('returns a configuration if a valid certificate template is given.', async () => {
     const configuration = await getConfiguration({ directory: directory.certificate });
 
     assert.that(configuration).is.equalTo({
@@ -123,6 +123,9 @@ suite('application/getConfiguration', () => {
             allowAccessFrom: '*',
             certificate: '/server/keys'
           },
+          fileStorage: {
+            allowAccessFrom: '*'
+          },
           node: {
             environment: 'development'
           }
@@ -131,7 +134,7 @@ suite('application/getConfiguration', () => {
     });
   });
 
-  test('returns a configuration if an valid multiple environment template is given.', async () => {
+  test('returns a configuration if a valid multiple environment template is given.', async () => {
     const configuration = await getConfiguration({ directory: directory.multipleEnvironments });
 
     assert.that(configuration).is.equalTo({
@@ -148,6 +151,9 @@ suite('application/getConfiguration', () => {
             },
             allowAccessFrom: '*'
           },
+          fileStorage: {
+            allowAccessFrom: '*'
+          },
           node: {
             environment: 'development'
           }
@@ -160,6 +166,9 @@ suite('application/getConfiguration', () => {
             },
             allowAccessFrom: '*'
           },
+          fileStorage: {
+            allowAccessFrom: '*'
+          },
           node: {
             environment: 'production'
           }
@@ -168,7 +177,7 @@ suite('application/getConfiguration', () => {
     });
   });
 
-  test('returns a configuration if an valid multiple environment with docker machine template is given.', async () => {
+  test('returns a configuration if a valid multiple environment with docker machine template is given.', async () => {
     const configuration = await getConfiguration({ directory: directory.multipleEnvironmentsWithDockerMachine });
 
     assert.that(configuration).is.equalTo({
@@ -183,6 +192,9 @@ suite('application/getConfiguration', () => {
               host: 'local.wolkenkit.io',
               port: 3000
             },
+            allowAccessFrom: '*'
+          },
+          fileStorage: {
             allowAccessFrom: '*'
           },
           docker: {
@@ -200,6 +212,9 @@ suite('application/getConfiguration', () => {
             },
             allowAccessFrom: '*'
           },
+          fileStorage: {
+            allowAccessFrom: '*'
+          },
           docker: {
             machine: 'wolkenkit-cli-test-2'
           },
@@ -211,7 +226,7 @@ suite('application/getConfiguration', () => {
     });
   });
 
-  test('returns a configuration if an valid single allowAccessFrom template is given.', async () => {
+  test('returns a configuration if a valid single allowAccessFrom template is given.', async () => {
     const configuration = await getConfiguration({ directory: directory.allowAccessFrom });
 
     assert.that(configuration).is.equalTo({
@@ -228,6 +243,9 @@ suite('application/getConfiguration', () => {
             },
             allowAccessFrom: '*'
           },
+          fileStorage: {
+            allowAccessFrom: '*'
+          },
           node: {
             environment: 'development'
           }
@@ -236,7 +254,7 @@ suite('application/getConfiguration', () => {
     });
   });
 
-  test('returns a configuration if an valid multiple allowAccessFrom template is given.', async () => {
+  test('returns a configuration if a valid multiple allowAccessFrom template is given.', async () => {
     const configuration = await getConfiguration({ directory: directory.multipleAllowAccessFrom });
 
     assert.that(configuration).is.equalTo({
@@ -257,6 +275,9 @@ suite('application/getConfiguration', () => {
               'http://slayer.net'
             ]
           },
+          fileStorage: {
+            allowAccessFrom: '*'
+          },
           node: {
             environment: 'development'
           }
@@ -265,7 +286,7 @@ suite('application/getConfiguration', () => {
     });
   });
 
-  test('returns a configuration if an valid identityProvider template is given.', async () => {
+  test('returns a configuration if a valid identityProvider template is given.', async () => {
     const configuration = await getConfiguration({ directory: directory.identityProvider });
 
     assert.that(configuration).is.equalTo({
@@ -280,6 +301,9 @@ suite('application/getConfiguration', () => {
               host: 'local.wolkenkit.io',
               port: 3000
             },
+            allowAccessFrom: '*'
+          },
+          fileStorage: {
             allowAccessFrom: '*'
           },
           identityProvider: {
@@ -311,6 +335,9 @@ suite('application/getConfiguration', () => {
             },
             allowAccessFrom: '*'
           },
+          fileStorage: {
+            allowAccessFrom: '*'
+          },
           node: {
             environment: 'development'
           },
@@ -338,6 +365,9 @@ suite('application/getConfiguration', () => {
               host: 'local.wolkenkit.io',
               port: 3000
             },
+            allowAccessFrom: '*'
+          },
+          fileStorage: {
             allowAccessFrom: '*'
           },
           node: {

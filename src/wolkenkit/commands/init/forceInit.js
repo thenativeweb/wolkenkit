@@ -9,8 +9,7 @@ const isolated = require('isolated'),
 const cloneRepository = require('./cloneRepository'),
       shell = require('../../../shell');
 
-const isolatedAsync = promisify(isolated),
-      recursiveReaddir = promisify(recursiveReaddirCallback);
+const recursiveReaddir = promisify(recursiveReaddirCallback);
 
 const forceInit = async function (options, progress) {
   if (!options) {
@@ -28,7 +27,7 @@ const forceInit = async function (options, progress) {
 
   const { directory, template } = options;
 
-  const tempDirectory = await isolatedAsync();
+  const tempDirectory = await isolated();
 
   await cloneRepository({ directory: tempDirectory, template }, progress);
 
