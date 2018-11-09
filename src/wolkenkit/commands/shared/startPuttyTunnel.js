@@ -8,6 +8,9 @@ const startPuttyTunnel = async function (options) {
   if (!options) {
     throw new Error('Options are missing.');
   }
+  if (!options.configuration) {
+    throw new Error('Configuration is missing.');
+  }
   if (!options.addresses) {
     throw new Error('Addresses are missing.');
   }
@@ -15,7 +18,7 @@ const startPuttyTunnel = async function (options) {
     throw new Error('Username is missing.');
   }
 
-  const { addresses, username, privateKey } = options;
+  const { configuration, addresses, username, privateKey } = options;
 
   if (!await shell.which('plink')) {
     throw new errors.ExecutableNotFound();
@@ -41,7 +44,7 @@ const startPuttyTunnel = async function (options) {
     child.on('error', reject);
 
     try {
-      await waitForSshTunnel({ host: addresses.from.host, port: addresses.from.port });
+      await waitForSshTunnel({ configuration, host: addresses.from.host, port: addresses.from.port });
     } catch (ex) {
       return reject(ex);
     }

@@ -102,7 +102,7 @@ const startTunnel = async function (options, progress) {
     progress({ message: 'Trying to use plink...' });
 
     try {
-      tunnelServer = await startPuttyTunnel({ addresses, username, privateKey });
+      tunnelServer = await startPuttyTunnel({ configuration, addresses, username, privateKey });
     } catch (ex) {
       if (ex.code !== 'EEXECUTABLENOTFOUND') {
         switch (ex.code) {
@@ -124,7 +124,7 @@ const startTunnel = async function (options, progress) {
     progress({ message: 'Trying to use ssh...' });
 
     try {
-      tunnelServer = await startOpensshTunnel({ addresses, username, privateKey });
+      tunnelServer = await startOpensshTunnel({ configuration, addresses, username, privateKey });
     } catch (ex) {
       switch (ex.code) {
         case 'EEXECUTABLENOTFOUND':

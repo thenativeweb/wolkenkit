@@ -31,6 +31,8 @@
   "dependencies": {
     "ajv": "6.5.5",
     "array-to-sentence": "2.0.0",
+    "async-retry": "1.2.3",
+    "axios": "0.18.0",
     "babel-polyfill": "6.26.0",
     "buntstift": "1.5.1",
     "certificate-details": "0.3.1",
@@ -58,14 +60,12 @@
     "portscanner": "2.2.0",
     "processenv": "1.1.0",
     "recursive-readdir": "2.2.2",
-    "request": "2.88.0",
-    "requestretry": "3.0.2",
     "require-dir": "1.1.0",
     "semver": "5.6.0",
     "sha1": "1.1.1",
     "shelljs": "0.8.2",
     "stringify-object": "3.3.0",
-    "tar": "4.4.7",
+    "tar": "4.4.8",
     "update-notifier": "2.5.0",
     "util.promisify": "1.0.0",
     "uuidv4": "2.0.0"
@@ -73,7 +73,7 @@
   "devDependencies": {
     "assertthat": "2.0.0",
     "measure-time": "3.1.1",
-    "roboter": "2.1.0"
+    "roboter": "2.2.0"
   },
   "scripts": {
     "test-stories": "node test/stories/index.js"

@@ -1,6 +1,6 @@
 'use strict';
 
-const request = require('requestretry');
+const axios = require('axios');
 
 const runtimes = require('../../runtimes');
 
@@ -54,14 +54,12 @@ const attachDebugger = async function (options, progress) {
       continue;
     }
 
-    const debugConfiguration = await request({
-      url: `http://${host}:${debugPort}/json`,
-      json: true,
-      fullResponse: false,
-      maxAttempts: 1
+    const response = await axios({
+      method: 'get',
+      url: `http://${host}:${debugPort}/json`
     });
 
-    const { id } = debugConfiguration[0];
+    const { id } = response.data[0];
 
     const debugUrl = `chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=${host}:${debugPort}/${id}`;
 
