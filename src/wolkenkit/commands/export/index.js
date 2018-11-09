@@ -114,47 +114,74 @@ const exportCommand = async function (options, progress = noop) {
     const replayStream = await eventStore.getReplay();
 
     const eventsPerFile = 2 ** 16;
-    let counter = 0;
-    let fileNumber = 1;
 
-    let writeStream;
+    let currentFileStream,
+        numberOfProcessedEvents = 0,
+        numberOfWrittenFiles = 0;
 
-    for await (const event of replayStream) {
-      let eventsInFile = counter % eventsPerFile;
+    let unsubscribe;
 
-      if (eventsInFile === 0) {
-        const fileName = `events-${String(fileNumber).padStart(16, '0')}.json`;
+    await new Promise((resolve, reject) => {
+      try {
+        const onData = function (event) {
+          const eventsInCurrentFile = numberOfProcessedEvents % eventsPerFile;
 
-        writeStream = fs.createWriteStream(
-          path.join(eventStoreDirectory, fileName),
-          { encoding: 'utf8' }
-        );
+          if (eventsInCurrentFile === 0) {
+            const fileNumber = numberOfWrittenFiles + 1;
+            const fileName = `events-${String(fileNumber).padStart(16, '0')}.json`;
+            const fileNameAbsolute = path.join(eventStoreDirectory, fileName);
 
-        writeStream.write('[\n');
-      } else {
-        writeStream.write(',\n');
+            currentFileStream = fs.createWriteStream(fileNameAbsolute, { encoding: 'utf8' });
+            currentFileStream.write('[\n');
+          } else {
+            currentFileStream.write(',\n');
+          }
+
+          currentFileStream.write(`  ${JSON.stringify(event)}`);
+          numberOfProcessedEvents += 1;
+
+          const eventsInNextFile = numberOfProcessedEvents % eventsPerFile;
+
+          if (eventsInNextFile === 0) {
+            currentFileStream.write('\n]\n');
+            currentFileStream.end();
+
+            currentFileStream = undefined;
+            numberOfWrittenFiles += 1;
+
+            progress({ message: `Processed ${numberOfProcessedEvents} events.`, type: 'info' });
+          }
+        };
+
+        const onEnd = function () {
+          unsubscribe();
+
+          if (currentFileStream) {
+            currentFileStream.write('\n]\n');
+            currentFileStream.end();
+          }
+
+          resolve();
+        };
+
+        const onError = function (err) {
+          unsubscribe();
+          reject(err);
+        };
+
+        replayStream.on('data', onData);
+        replayStream.on('end', onEnd);
+        replayStream.on('error', onError);
+
+        unsubscribe = function () {
+          replayStream.removeListener('data', onData);
+          replayStream.removeListener('end', onEnd);
+          replayStream.removeListener('error', onError);
+        };
+      } catch (ex) {
+        reject(ex);
       }
-
-      const json = JSON.stringify(event);
-
-      writeStream.write(`  ${json}`);
-
-      counter += 1;
-      eventsInFile = counter % eventsPerFile;
-
-      if (eventsInFile === 0) {
-        writeStream.write('\n]\n');
-        writeStream.end();
-
-        writeStream = undefined;
-        fileNumber += 1;
-      }
-    }
-
-    if (writeStream) {
-      writeStream.write('\n]\n');
-      writeStream.end();
-    }
+    });
   }
 };
 

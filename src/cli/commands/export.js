@@ -11,7 +11,7 @@ const defaults = require('../defaults.json'),
       wolkenkit = require('../../wolkenkit');
 
 const exportCommand = {
-  description: 'Export an application state.',
+  description: 'Export application data.',
 
   async getOptionDefinitions () {
     return [
@@ -70,7 +70,7 @@ const exportCommand = {
       throw new Error('To is missing.');
     }
 
-    buntstift.info('Exporting application state...');
+    buntstift.info('Exporting application data...');
 
     const stopWaiting = buntstift.wait();
 
@@ -87,7 +87,7 @@ const exportCommand = {
           buntstift.error('The application is partially running.');
           break;
         default:
-          buntstift.error('Failed to export application state.');
+          buntstift.error('Failed to export application data.');
           break;
       }
 
@@ -95,7 +95,7 @@ const exportCommand = {
     }
 
     stopWaiting();
-    buntstift.success('The application state has been exported.');
+    buntstift.success('Exported application data.');
   }
 };
 
