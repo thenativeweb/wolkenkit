@@ -2,10 +2,10 @@
 
 const axios = require('axios'),
       nodeenv = require('nodeenv'),
-      retry = require('async-retry'),
-      semver = require('semver');
+      retry = require('async-retry');
 
-const errors = require('../../../errors');
+const errors = require('../../../errors'),
+      switchSemver = require('../../../switchSemver');
 
 const waitForApplication = async function (options, progress) {
   if (!options) {
@@ -34,41 +34,43 @@ const waitForApplication = async function (options, progress) {
     port = selectedEnvironment.api.address.port;
   }
 
-  if (version !== 'latest' && semver.lte(version, '2.0.0')) {
-    progress({ message: `Waiting for https://${host}:${port}/v1/ping to reply...`, type: 'info' });
+  await switchSemver(version, {
+    async '<= 2.0.0' () {
+      progress({ message: `Waiting for https://${host}:${port}/v1/ping to reply...`, type: 'info' });
 
-    const response = await retry(async () => await axios({
-      method: 'get',
-      url: `https://${host}:${port}/v1/ping`
-    }), {
-      retries: 60,
-      maxTimeout: 2 * 1000
-    });
+      const response = await retry(async () => await axios({
+        method: 'get',
+        url: `https://${host}:${port}/v1/ping`
+      }), {
+        retries: 60,
+        maxTimeout: 2 * 1000
+      });
 
-    if (response.data.api !== 'v1') {
-      throw new errors.JsonMalformed();
+      if (response.data.api !== 'v1') {
+        throw new errors.JsonMalformed();
+      }
+
+      restoreEnvironment();
+    },
+
+    async default () {
+      progress({ message: `Waiting for https://${host}:${port}/ to reply...`, type: 'info' });
+
+      await retry(async () => {
+        await axios({
+          method: 'get',
+          url: `https://${host}:${port}/`
+        });
+      }, {
+        retries: 60,
+        maxTimeout: 2 * 1000
+      });
+
+      progress({ message: `Running at https://${host}:${port}/`, type: 'info' });
+
+      restoreEnvironment();
     }
-
-    restoreEnvironment();
-
-    return;
-  }
-
-  progress({ message: `Waiting for https://${host}:${port}/ to reply...`, type: 'info' });
-
-  await retry(async () => {
-    await axios({
-      method: 'get',
-      url: `https://${host}:${port}/`
-    });
-  }, {
-    retries: 60,
-    maxTimeout: 2 * 1000
   });
-
-  progress({ message: `Running at https://${host}:${port}/`, type: 'info' });
-
-  restoreEnvironment();
 };
 
 module.exports = waitForApplication;

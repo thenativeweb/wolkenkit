@@ -1,10 +1,10 @@
 'use strict';
 
 const axios = require('axios'),
-      retry = require('async-retry'),
-      semver = require('semver');
+      retry = require('async-retry');
 
-const errors = require('../../../errors');
+const errors = require('../../../errors'),
+      switchSemver = require('../../../switchSemver');
 
 const waitForSshTunnel = async function (options) {
   if (!options) {
@@ -23,30 +23,32 @@ const waitForSshTunnel = async function (options) {
   const { host, port } = options;
   const { version } = options.configuration.runtime;
 
-  if (version !== 'latest' && semver.lte(version, '2.0.0')) {
-    const response = await retry(async () => await axios({
-      method: 'get',
-      url: `http://${host}:${port}/v1/ping`
-    }), {
-      retries: 5,
-      maxTimeout: 2 * 1000
-    });
+  await switchSemver(version, {
+    async '<= 2.0.0' () {
+      const response = await retry(async () => await axios({
+        method: 'get',
+        url: `http://${host}:${port}/v1/ping`
+      }), {
+        retries: 5,
+        maxTimeout: 2 * 1000
+      });
 
-    if (response.data.api !== 'v1') {
-      throw new errors.JsonMalformed();
+      if (response.data.api !== 'v1') {
+        throw new errors.JsonMalformed();
+      }
+    },
+
+    async default () {
+      await retry(async () => {
+        await axios({
+          method: 'get',
+          url: `http://${host}:${port}/`
+        });
+      }, {
+        retries: 5,
+        maxTimeout: 2 * 1000
+      });
     }
-
-    return;
-  }
-
-  await retry(async () => {
-    await axios({
-      method: 'get',
-      url: `http://${host}:${port}/`
-    });
-  }, {
-    retries: 5,
-    maxTimeout: 2 * 1000
   });
 };
 
