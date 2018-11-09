@@ -2,7 +2,10 @@
 
 const axios = require('axios'),
       nodeenv = require('nodeenv'),
-      retry = require('async-retry');
+      retry = require('async-retry'),
+      semver = require('semver');
+
+const errors = require('../../../errors');
 
 const waitForApplication = async function (options, progress) {
   if (!options) {
@@ -19,6 +22,7 @@ const waitForApplication = async function (options, progress) {
   }
 
   const { configuration, env } = options;
+  const { version } = configuration.runtime;
   let { host, port } = options;
 
   const restoreEnvironment = nodeenv('NODE_TLS_REJECT_UNAUTHORIZED', '0');
@@ -28,6 +32,26 @@ const waitForApplication = async function (options, progress) {
   if (!host || !port) {
     host = selectedEnvironment.api.address.host;
     port = selectedEnvironment.api.address.port;
+  }
+
+  if (version !== 'latest' && semver.lte(version, '2.0.0')) {
+    progress({ message: `Waiting for https://${host}:${port}/v1/ping to reply...`, type: 'info' });
+
+    const response = await retry(async () => await axios({
+      method: 'get',
+      url: `https://${host}:${port}/v1/ping`
+    }), {
+      retries: 60,
+      maxTimeout: 2 * 1000
+    });
+
+    if (response.data.api !== 'v1') {
+      throw new errors.JsonMalformed();
+    }
+
+    restoreEnvironment();
+
+    return;
   }
 
   progress({ message: `Waiting for https://${host}:${port}/ to reply...`, type: 'info' });
