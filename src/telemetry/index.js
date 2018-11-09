@@ -204,7 +204,7 @@ const telemetry = {
       });
 
       await retry(async () => {
-        axios({
+        await axios({
           method: 'post',
           url: `https://telemetry.wolkenkit.io/v1/command`,
           data: new Command({

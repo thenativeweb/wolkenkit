@@ -41,7 +41,7 @@ const encrypt = async function (options, progress = noop) {
 
   progress({ message: `Using ${endpoint} as route.` });
 
-  const response = await retry(async () => axios({
+  const response = await retry(async () => await axios({
     method: 'post',
     url: endpoint,
     data: { value }
@@ -50,7 +50,7 @@ const encrypt = async function (options, progress = noop) {
     maxTimeout: 2 * 1000
   });
 
-  const encrypted = response.data;
+  const encrypted = response.data.value;
 
   tunnel.close();
 
