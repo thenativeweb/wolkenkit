@@ -2,7 +2,8 @@
 
 const url = require('url');
 
-const request = require('requestretry');
+const axios = require('axios'),
+      retry = require('async-retry');
 
 const noop = require('../../../noop'),
       shared = require('../shared');
@@ -40,18 +41,16 @@ const encrypt = async function (options, progress = noop) {
 
   progress({ message: `Using ${endpoint} as route.` });
 
-  const response = await request({
-    method: 'POST',
+  const response = await retry(async () => axios({
+    method: 'post',
     url: endpoint,
-    json: true,
-    body: { value },
-    fullResponse: false,
-    maxAttempts: 3,
-    retryDelay: 2 * 1000,
-    retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+    data: { value }
+  }), {
+    retries: 3,
+    maxTimeout: 2 * 1000
   });
 
-  const encrypted = response.value;
+  const encrypted = response.data;
 
   tunnel.close();
 

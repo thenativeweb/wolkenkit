@@ -31,6 +31,8 @@
   "dependencies": {
     "ajv": "6.5.5",
     "array-to-sentence": "2.0.0",
+    "async-retry": "1.2.3",
+    "axios": "0.18.0",
     "babel-polyfill": "6.26.0",
     "buntstift": "1.5.1",
     "certificate-details": "0.3.1",
@@ -58,8 +60,6 @@
     "portscanner": "2.2.0",
     "processenv": "1.1.0",
     "recursive-readdir": "2.2.2",
-    "request": "2.88.0",
-    "requestretry": "3.0.2",
     "require-dir": "1.1.0",
     "semver": "5.6.0",
     "sha1": "1.1.1",

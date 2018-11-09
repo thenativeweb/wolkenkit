@@ -1,9 +1,8 @@
 'use strict';
 
-const nodeenv = require('nodeenv'),
-      request = require('requestretry');
-
-const errors = require('../../../errors');
+const axios = require('axios'),
+      nodeenv = require('nodeenv'),
+      retry = require('async-retry');
 
 const waitForApplication = async function (options, progress) {
   if (!options) {
@@ -31,22 +30,19 @@ const waitForApplication = async function (options, progress) {
     port = selectedEnvironment.api.address.port;
   }
 
-  progress({ message: `Waiting for https://${host}:${port}/v1/ping to reply...`, type: 'info' });
+  progress({ message: `Waiting for https://${host}:${port}/ to reply...`, type: 'info' });
 
-  const result = await request({
-    url: `https://${host}:${port}/v1/ping`,
-    json: true,
-    fullResponse: false,
-    maxAttempts: 60,
-    retryDelay: 2 * 1000,
-    retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+  await retry(async () => {
+    await axios({
+      method: 'get',
+      url: `https://${host}:${port}/`
+    });
+  }, {
+    retries: 60,
+    maxTimeout: 2 * 1000
   });
 
   restoreEnvironment();
-
-  if (result.api !== 'v1') {
-    throw new errors.JsonMalformed();
-  }
 };
 
 module.exports = waitForApplication;

@@ -4,12 +4,13 @@ const fs = require('fs'),
       os = require('os'),
       path = require('path');
 
-const buntstift = require('buntstift'),
+const axios = require('axios'),
+      buntstift = require('buntstift'),
       { Command } = require('commands-events'),
       deepHash = require('deep-hash'),
       dotFile = require('dotfile-json'),
       promisify = require('util.promisify'),
-      request = require('requestretry'),
+      retry = require('async-retry'),
       semver = require('semver'),
       stringifyObject = require('stringify-object'),
       uuid = require('uuidv4');
@@ -202,23 +203,23 @@ const telemetry = {
         buntstift.verbose(line);
       });
 
-      await request({
-        method: 'POST',
-        url: `https://telemetry.wolkenkit.io/v1/command`,
-        json: true,
-        body: new Command({
-          context: { name: 'collecting' },
-          aggregate: { name: 'application', id: uuid.fromString(telemetryData.installationId) },
-          name: 'recordEvent',
-          data: {
-            name: this.allowedCommands[command].event,
-            data: telemetryData
-          }
-        }),
-        fullResponse: false,
-        maxAttempts: 3,
-        retryDelay: 2 * 1000,
-        retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+      await retry(async () => {
+        axios({
+          method: 'post',
+          url: `https://telemetry.wolkenkit.io/v1/command`,
+          data: new Command({
+            context: { name: 'collecting' },
+            aggregate: { name: 'application', id: uuid.fromString(telemetryData.installationId) },
+            name: 'recordEvent',
+            data: {
+              name: this.allowedCommands[command].event,
+              data: telemetryData
+            }
+          })
+        });
+      }, {
+        retries: 3,
+        maxTimeout: 2 * 1000
       });
     } catch (ex) {
       buntstift.verbose('Failed to send telemetry data.');

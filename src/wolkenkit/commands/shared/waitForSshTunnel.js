@@ -1,6 +1,7 @@
 'use strict';
 
-const request = require('requestretry');
+const axios = require('axios'),
+      retry = require('async-retry');
 
 const errors = require('../../../errors');
 
@@ -17,16 +18,15 @@ const waitForSshTunnel = async function (options) {
 
   const { host, port } = options;
 
-  const result = await request({
-    url: `http://${host}:${port}/v1/ping`,
-    json: true,
-    fullResponse: false,
-    maxAttempts: 5,
-    retryDelay: 2 * 1000,
-    retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+  const response = await retry(async () => await axios({
+    method: 'get',
+    url: `http://${host}:${port}/`
+  }), {
+    retries: 5,
+    maxTimeout: 2 * 1000
   });
 
-  if (result.api !== 'v1') {
+  if (response.data.api !== 'v1') {
     throw new errors.JsonMalformed();
   }
 };
