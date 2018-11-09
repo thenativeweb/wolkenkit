@@ -23,7 +23,6 @@ const defaults = require('../../src/cli/defaults'),
       assert.that(stdout).is.matching(/Initialize a new application/);
       assert.that(stdout).is.matching(/List supported and installed wolkenkit versions/);
       assert.that(stdout).is.matching(/Start an application/);
-      assert.that(stdout).is.matching(/Update the wolkenkit CLI/);
       assert.that(code).is.equalTo(0);
     });
 
@@ -36,7 +35,6 @@ const defaults = require('../../src/cli/defaults'),
       assert.that(stdout).is.matching(/Initialize a new application/);
       assert.that(stdout).is.matching(/List supported and installed wolkenkit versions/);
       assert.that(stdout).is.matching(/Start an application/);
-      assert.that(stdout).is.matching(/Update the wolkenkit CLI/);
       assert.that(code).is.equalTo(0);
     });
 

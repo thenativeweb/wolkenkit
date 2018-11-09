@@ -10,14 +10,6 @@ const runtimes = require('../../src/wolkenkit/runtimes'),
     const allVersions = await runtimes.getAllVersions(),
           latestStableVersion = await runtimes.getLatestStableVersion();
 
-    await test('[wolkenkit ls-remote] lists all available runtimes.', async ({ directory }) => {
-      const { code, stderr, stdout } = await wolkenkit('ls-remote', {}, { cwd: directory });
-
-      assert.that(stderr).is.equalTo('▻ The command ls-remote is deprecated and will be removed in a future version, use ls instead.\n');
-      assert.that(stdout).is.equalTo(`  package.json is missing, using fallback configuration.\n${allVersions.map(version => `∙ ${version}\n`).join('')}✓ There are 0 of ${allVersions.length} supported wolkenkit versions installed on environment default.\n`);
-      assert.that(code).is.equalTo(0);
-    });
-
     await test('[wolkenkit ls] reports that no versions are installed.', async ({ directory }) => {
       const { code, stderr, stdout } = await wolkenkit('ls', {}, { cwd: directory });
 
