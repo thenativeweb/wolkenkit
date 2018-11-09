@@ -65,7 +65,7 @@
     "sha1": "1.1.1",
     "shelljs": "0.8.2",
     "stringify-object": "3.3.0",
-    "tar": "4.4.7",
+    "tar": "4.4.8",
     "update-notifier": "2.5.0",
     "util.promisify": "1.0.0",
     "uuidv4": "2.0.0"
@@ -73,7 +73,7 @@
   "devDependencies": {
     "assertthat": "2.0.0",
     "measure-time": "3.1.1",
-    "roboter": "2.1.0"
+    "roboter": "2.2.0"
   },
   "scripts": {
     "test-stories": "node test/stories/index.js"

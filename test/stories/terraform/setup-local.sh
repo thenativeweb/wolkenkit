@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 PUBLIC_IP=$1
 
 mkdir -p ./.docker/$PUBLIC_IP

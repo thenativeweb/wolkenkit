@@ -66,6 +66,8 @@ const waitForApplication = async function (options, progress) {
     maxTimeout: 2 * 1000
   });
 
+  progress({ message: `Running at https://${host}:${port}/`, type: 'info' });
+
   restoreEnvironment();
 };
 

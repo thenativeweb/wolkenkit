@@ -47,7 +47,7 @@ const setupAws = async function (options) {
     maxBuffer: 1024 * 1000
   });
 
-  await shell.exec('terraform apply', {
+  await shell.exec('terraform apply -auto-approve -input=false', {
     cwd: path.join(__dirname, '..', 'terraform'),
     env,
     maxBuffer: 1024 * 1000
