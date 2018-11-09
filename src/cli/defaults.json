@@ -17,6 +17,9 @@
     },
     "stop": {
       "dangerouslyDestroyData": false
+    },
+    "export": {
+      "fromEventStore": true
     }
   },
   "env": "default"

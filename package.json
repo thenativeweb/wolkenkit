@@ -68,7 +68,8 @@
     "tar": "4.4.8",
     "update-notifier": "2.5.0",
     "util.promisify": "1.0.0",
-    "uuidv4": "2.0.0"
+    "uuidv4": "2.0.0",
+    "wolkenkit-eventstore": "2.5.0"
   },
   "devDependencies": {
     "assertthat": "2.0.0",
