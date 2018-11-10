@@ -1,6 +1,6 @@
 ---
 name: Concept
-about: Submit a concept to discuss ideas and find out how things should work.
+about: Submit a concept to discuss ideas and to define how things should be designed.
 ---
 
 ### What is this concept about?
