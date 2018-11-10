@@ -1,6 +1,6 @@
 ---
 name: Bug
-about: Create a bug to fix erroneous behavior.
+about: Submit a bug to report erroneous behavior that needs to be fixed.
 ---
 
 ### What is this bug about?

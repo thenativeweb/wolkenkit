@@ -1,6 +1,6 @@
 ---
 name: Epic
-about: Create an epic to describe feature sets.
+about: Submit an epic to describe large feature sets that span multiple features and tasks.
 ---
 
 ### What is this epic about?

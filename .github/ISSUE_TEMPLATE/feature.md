@@ -1,6 +1,6 @@
 ---
 name: Feature
-about: Create a feature to add new functionality.
+about: Submit a feature to request or describe new functionality to be added.
 ---
 
 ### What is this feature about?
