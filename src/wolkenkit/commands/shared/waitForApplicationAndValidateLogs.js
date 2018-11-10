@@ -1,8 +1,7 @@
 'use strict';
 
-const semver = require('semver');
-
-const validateLogs = require('./validateLogs'),
+const switchSemver = require('../../../switchSemver'),
+      validateLogs = require('./validateLogs'),
       waitForApplication = require('./waitForApplication');
 
 const waitForApplicationAndValidateLogs = async function (options, progress) {
@@ -20,31 +19,32 @@ const waitForApplicationAndValidateLogs = async function (options, progress) {
   }
 
   const { configuration, env } = options;
-
   const { version } = configuration.runtime;
 
-  if (version !== 'latest' && semver.lte(version, '2.0.0')) {
-    await waitForApplication({ configuration, env }, progress);
-
-    return;
-  }
-
-  await new Promise(async (resolve, reject) => {
-    let validate;
-
-    try {
-      validate = await validateLogs({ configuration, env }, progress);
-
-      validate.once('error', reject);
-
+  await switchSemver(version, {
+    async '<= 2.0.0' () {
       await waitForApplication({ configuration, env }, progress);
-    } catch (ex) {
-      return reject(ex);
-    } finally {
-      validate.emit('stop');
-    }
+    },
 
-    resolve();
+    async default () {
+      await new Promise(async (resolve, reject) => {
+        let validate;
+
+        try {
+          validate = await validateLogs({ configuration, env }, progress);
+
+          validate.once('error', reject);
+
+          await waitForApplication({ configuration, env }, progress);
+        } catch (ex) {
+          return reject(ex);
+        } finally {
+          validate.emit('stop');
+        }
+
+        resolve();
+      });
+    }
   });
 };
 

@@ -13,8 +13,7 @@ const encrypt = require('./encrypt'),
       start = require('./start'),
       status = require('./status'),
       stop = require('./stop'),
-      uninstall = require('./uninstall'),
-      update = require('./update');
+      uninstall = require('./uninstall');
 
 module.exports = {
   encrypt,
@@ -30,6 +29,5 @@ module.exports = {
   start,
   status,
   stop,
-  uninstall,
-  update
+  uninstall
 };
