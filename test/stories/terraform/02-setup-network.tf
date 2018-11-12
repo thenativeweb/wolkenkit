@@ -32,24 +32,39 @@ resource "aws_route_table_association" "public_subnet" {
 resource "aws_security_group" "navigation" {
   vpc_id = "${aws_vpc.wolkenkit_cli_test.id}"
 
+  # SSH
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
     cidr_blocks = [ "0.0.0.0/0" ]
   }
+
+  # Docker
   ingress {
     from_port   = 2376
     to_port     = 2376
     protocol    = "TCP"
     cidr_blocks = [ "0.0.0.0/0" ]
   }
+
+  # wolkenkit application
   ingress {
     from_port   = 3000
     to_port     = 3000
     protocol    = "TCP"
     cidr_blocks = [ "0.0.0.0/0" ]
   }
+
+  # PostgreSQL
+  ingress {
+    from_port   = 3003
+    to_port     = 3003
+    protocol    = "TCP"
+    cidr_blocks = [ "0.0.0.0/0" ]
+  }
+
+  # wolkenkit application (custom port)
   ingress {
     from_port   = 4000
     to_port     = 4000

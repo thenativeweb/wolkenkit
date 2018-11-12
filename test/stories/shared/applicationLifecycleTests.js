@@ -171,7 +171,11 @@ const applicationLifecycleTests = async function (runtime) {
     });
 
     await test('[wolkenkit import --from] imports application data.', async () => {
-      await wolkenkit('start', {}, { cwd: applicationDirectory });
+      const startCommand = await wolkenkit('start', {}, { cwd: applicationDirectory });
+
+      assert.that(startCommand.stderr).is.matching(/Application certificate is self-signed/);
+      assert.that(startCommand.stdout).is.matching(/Started the application/);
+      assert.that(startCommand.code).is.equalTo(0);
 
       const { code, stderr, stdout } = await wolkenkit('import', {
         from: importDirectory
@@ -193,10 +197,10 @@ const applicationLifecycleTests = async function (runtime) {
       assert.that(stdout).is.matching(/Exported application data/);
       assert.that(code).is.equalTo(0);
 
-      const { same } = await directoryCompare(exportDirectory, importDirectory, {
+      const { same } = await directoryCompare.compare(exportDirectory, importDirectory, {
         compareSize: true,
         compareDate: false,
-        compareContent: true,
+        compareContent: false,
         skipSubdirs: false,
         skipSymlinks: true,
         ignoreCase: false,
@@ -205,7 +209,11 @@ const applicationLifecycleTests = async function (runtime) {
 
       assert.that(same).is.true();
 
-      await wolkenkit('stop', {}, { cwd: applicationDirectory });
+      const stopCommand = await wolkenkit('stop', {}, { cwd: applicationDirectory });
+
+      assert.that(stopCommand.stderr).is.matching(/Application certificate is self-signed/);
+      assert.that(stopCommand.stdout).is.matching(/Stopped the application/);
+      assert.that(stopCommand.code).is.equalTo(0);
     });
   });
 };
