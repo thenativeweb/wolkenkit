@@ -1,5 +1,11 @@
 {
   "commands": {
+    "export": {
+      "fromEventStore": true
+    },
+    "import": {
+      "toEventStore": true
+    },
     "init": {
       "template": "https://github.com/thenativeweb/wolkenkit-template-chat.git#master",
       "force": false
@@ -17,9 +23,6 @@
     },
     "stop": {
       "dangerouslyDestroyData": false
-    },
-    "export": {
-      "fromEventStore": true
     }
   },
   "env": "default"

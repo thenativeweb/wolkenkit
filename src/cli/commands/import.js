@@ -10,8 +10,8 @@ const defaults = require('../defaults.json'),
       showProgress = require('../showProgress'),
       wolkenkit = require('../../wolkenkit');
 
-const exportCommand = {
-  description: 'Export application data.',
+const importCommand = {
+  description: 'Import application data.',
 
   async getOptionDefinitions () {
     return [
@@ -24,17 +24,17 @@ const exportCommand = {
         typeLabel: '<env>'
       },
       {
-        name: 'to',
-        alias: 't',
+        name: 'from',
+        alias: 'f',
         type: String,
         description: 'set the directory to export to',
         typeLabel: '<directory>'
       },
       {
-        name: 'from-event-store',
+        name: 'to-event-store',
         type: Boolean,
-        defaultValue: defaults.commands.export.fromEventStore,
-        description: 'export the event store'
+        defaultValue: defaults.commands.import.toEventStore,
+        description: 'import the event store'
       }
     ];
   },
@@ -46,36 +46,36 @@ const exportCommand = {
     if (!options.env) {
       throw new Error('Environment is missing.');
     }
-    if (options['from-event-store'] === undefined) {
-      throw new Error('From event store is missing.');
+    if (options['to-event-store'] === undefined) {
+      throw new Error('To event store is missing.');
     }
 
     const directory = process.cwd(),
-          { env, to, help, verbose } = options;
+          { env, from, help, verbose } = options;
 
-    const fromEventStore = options['from-event-store'];
+    const toEventStore = options['to-event-store'];
 
     if (help) {
       return buntstift.info(getUsage([
-        { header: 'wolkenkit export', content: this.description },
+        { header: 'wolkenkit import', content: this.description },
         { header: 'Synopsis', content: stripIndent`
-          wolkenkit export [--env <env>] --to=<directory> [--from-event-store]` },
+          wolkenkit import [--env <env>] --from=<directory> [--to-event-store]` },
         { header: 'Options', optionList: [ ...await this.getOptionDefinitions(), ...globalOptionDefinitions ]}
       ]));
     }
 
-    if (!to) {
-      buntstift.error('The --to option is missing.');
+    if (!from) {
+      buntstift.error('The --from option is missing.');
 
-      throw new Error('To is missing.');
+      throw new Error('The --from option is missing.');
     }
 
-    buntstift.info('Exporting application data...');
+    buntstift.info('Importing application data...');
 
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.export({ directory, env, to, fromEventStore }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.import({ directory, env, from, toEventStore }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
 
@@ -87,7 +87,7 @@ const exportCommand = {
           buntstift.error('The application is partially running.');
           break;
         default:
-          buntstift.error('Failed to export application data.');
+          buntstift.error('Failed to import application data.');
           break;
       }
 
@@ -95,8 +95,8 @@ const exportCommand = {
     }
 
     stopWaiting();
-    buntstift.success('Exported application data.');
+    buntstift.success('Imported application data.');
   }
 };
 
-module.exports = exportCommand;
+module.exports = importCommand;

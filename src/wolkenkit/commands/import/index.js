@@ -1,26 +1,21 @@
 'use strict';
 
-const fs = require('fs'),
-      path = require('path');
+const path = require('path');
 
-const promisify = require('util.promisify');
-
-const docker = require('../../../docker'),
+const checkImportDirectory = require('./checkImportDirectory'),
+      docker = require('../../../docker'),
       errors = require('../../../errors'),
-      exportEventStore = require('./exportEventStore'),
       health = require('../health'),
+      importEventStore = require('./importEventStore'),
       noop = require('../../../noop'),
       runtimes = require('../../runtimes'),
-      shared = require('../shared'),
-      shell = require('../../../shell');
+      shared = require('../shared');
 
-const readdir = promisify(fs.readdir);
-
-const exportCommand = async function ({
+const importCommand = async function ({
   directory,
   env,
-  to,
-  fromEventStore
+  from,
+  toEventStore
 }, progress = noop) {
   if (!directory) {
     throw new Error('Directory is missing.');
@@ -28,11 +23,11 @@ const exportCommand = async function ({
   if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (!to) {
-    throw new Error('To is missing.');
+  if (!from) {
+    throw new Error('From is missing.');
   }
-  if (fromEventStore === undefined) {
-    throw new Error('From event store is missing.');
+  if (toEventStore === undefined) {
+    throw new Error('To event store is missing.');
   }
 
   const configuration = await shared.getConfiguration({
@@ -78,27 +73,19 @@ const exportCommand = async function ({
     throw new errors.ApplicationPartiallyRunning();
   }
 
-  const exportDirectory = path.isAbsolute(to) ? to : path.join(directory, to);
+  const importDirectory = path.isAbsolute(from) ? from : path.join(directory, from);
 
-  await shell.mkdir('-p', exportDirectory);
+  await checkImportDirectory({ importDirectory, toEventStore }, progress);
 
-  const entries = await readdir(exportDirectory);
-
-  if (entries.length > 0) {
-    progress({ message: 'The export directory is not empty.', type: 'info' });
-
-    throw new errors.DirectoryNotEmpty();
-  }
-
-  if (fromEventStore) {
-    await exportEventStore({
+  if (toEventStore) {
+    await importEventStore({
       configuration,
       env,
-      containers,
       sharedKey,
-      exportDirectory
+      containers,
+      importDirectory
     }, progress);
   }
 };
 
-module.exports = exportCommand;
+module.exports = importCommand;
