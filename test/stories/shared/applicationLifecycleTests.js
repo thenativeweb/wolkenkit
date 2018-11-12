@@ -2,7 +2,9 @@
 
 const path = require('path');
 
-const assert = require('assertthat');
+const assert = require('assertthat'),
+      directoryCompare = require('dir-compare'),
+      isolated = require('isolated');
 
 const changePackageJson = require('../helpers/changePackageJson'),
       copyCertificate = require('../helpers/copyCertificate'),
@@ -11,6 +13,9 @@ const changePackageJson = require('../helpers/changePackageJson'),
 
 const applicationLifecycleTests = async function (runtime) {
   await suite(`application lifecycle on ${runtime}`, async ({ test, wolkenkit, ipAddress }) => {
+    const exportDirectory = await isolated(),
+          importDirectory = path.join(__dirname, '..', '..', 'shared', 'exports', 'chat-with-200000-events');
+
     let applicationDirectory;
 
     await test('[wolkenkit init --template] initializes a new application using the specified template.', async ({ directory }) => {
@@ -163,6 +168,44 @@ const applicationLifecycleTests = async function (runtime) {
       assert.that(stderr).is.matching(/Application certificate is self-signed/);
       assert.that(stdout).is.matching(/Stopped the application/);
       assert.that(code).is.equalTo(0);
+    });
+
+    await test('[wolkenkit import --from] imports application data.', async () => {
+      await wolkenkit('start', {}, { cwd: applicationDirectory });
+
+      const { code, stderr, stdout } = await wolkenkit('import', {
+        from: importDirectory
+      }, { cwd: applicationDirectory });
+
+      assert.that(stderr).is.matching(/Application certificate is self-signed/);
+      assert.that(stdout).is.matching(/Processed 200000 events/);
+      assert.that(stdout).is.matching(/Imported application data/);
+      assert.that(code).is.equalTo(0);
+    });
+
+    await test('[wolkenkit export --to] exports application data.', async () => {
+      const { code, stderr, stdout } = await wolkenkit('export', {
+        to: exportDirectory
+      }, { cwd: applicationDirectory });
+
+      assert.that(stderr).is.matching(/Application certificate is self-signed/);
+      assert.that(stdout).is.matching(/Processed 200000 events/);
+      assert.that(stdout).is.matching(/Exported application data/);
+      assert.that(code).is.equalTo(0);
+
+      const { same } = await directoryCompare(exportDirectory, importDirectory, {
+        compareSize: true,
+        compareDate: false,
+        compareContent: true,
+        skipSubdirs: false,
+        skipSymlinks: true,
+        ignoreCase: false,
+        noDiffSet: true
+      });
+
+      assert.that(same).is.true();
+
+      await wolkenkit('stop', {}, { cwd: applicationDirectory });
     });
   });
 };
