@@ -74,12 +74,7 @@ If you need help by the original authors of wolkenkit, e.g. to address issues sp
 
 ## Finding the code
 
-Since wolkenkit is a distributed application, its code is spread across various repositories. To get started, have a look at these primary repositories:
-
-- [wolkenkit-broker](https://github.com/thenativeweb/wolkenkit-broker)
-- [wolkenkit-core](https://github.com/thenativeweb/wolkenkit-core)
-- [wolkenkit-flows](https://github.com/thenativeweb/wolkenkit-flows)
-- [wolkenkit-depot](https://github.com/thenativeweb/wolkenkit-depot)
+Since wolkenkit is a distributed application, its code is spread across various repositories. For an overview of the architecture and a list of the repositories, see the [wolkenkit documentation](https://docs.wolkenkit.io/latest/getting-started/understanding-wolkenkit/architecture/).
 
 Additionally, you may want to have a look at these repositories that contain the most important supporting modules:
 
@@ -103,9 +98,9 @@ $ npx roboter test-stories
 
 ## FAQ
 
-- Running the story tests getting an error called *Error loading extension section V3_ca*
+### Why do I get an *Error loading extension section V3_ca* message when running the story tests?
 
-If you get the error *Error loading extension section V3_ca* by running the story tests, you have to edit your local openssl configuration. You can find the configuration here `/private/etc/ssl/openssl.cnf`. In this file you have to add the following lines:
+If you get the error *Error loading extension section V3_ca* when running the story tests, you have to edit your local OpenSSL configuration. You can find the configuration at `/private/etc/ssl/openssl.cnf`. In this file you have to add the following lines:
 
 ```
 [ v3_ca ]
