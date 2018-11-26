@@ -2,39 +2,35 @@
 
 The items on this list are what we have in mind for the next versions of wolkenkit. If you are interested in working on one of these items, or if you want to sponsor development to speed things up, feel free to [contact the native web](mailto:hello@thenativeweb.io).
 
-## Core
+## Client
 
-- Scalability
+- `async` / `await`
 - Offline mode
+
+## Backend
+
+- Unique aggregates
+- Event store as a service
+- Multi-database support
+- Scalability
 - Group-based authorization
 - Domain testing
 - Merge-conflicts
-- Unique aggregates
 - Versioning
-
-## Flows
-
+- GDPR
+- Self-describing APIs
 - Time-triggered flows
 
 ## Hosting
 
 - Deployment server
 - Monitoring and logging
-
-## Blob storage
-
-- Authentication
-- Authorization
-
-## API
-
-- Payment
-- Self-describing APIs
+- Pay as you go
 
 ## Tooling
 
-- Designer
 - ESLint rules
+- Designer
 
 ## Reports
 
