@@ -1,7 +1,6 @@
 'use strict';
 
-const encrypt = require('./encrypt'),
-      exportCommand = require('./export'),
+const exportCommand = require('./export'),
       health = require('./health'),
       importCommand = require('./import'),
       init = require('./init'),
@@ -17,7 +16,6 @@ const encrypt = require('./encrypt'),
       uninstall = require('./uninstall');
 
 module.exports = {
-  encrypt,
   export: exportCommand,
   health,
   import: importCommand,

@@ -33,6 +33,12 @@ const makeAufwindRequest = async function (options, progress) {
 
   const responseData = await new Promise((resolve, reject) => {
     const request = http.request(requestOptions, response => {
+      if (response.statusCode !== 200) {
+        tunnel.close();
+
+        return reject(new Error('Unexpected status code.'));
+      }
+
       const newlineJsonparser = new NewlineJsonParser();
 
       let hasError = false,
