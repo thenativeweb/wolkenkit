@@ -1,8 +1,10 @@
 'use strict';
 
-const path = require('path');
+const path = require('path'),
+      { PassThrough } = require('stream');
 
-const tar = require('tar');
+const pump = require('pump'),
+      tar = require('tar');
 
 const file = require('../../../file'),
       makeAufwindRequest = require('./makeAufwindRequest');
@@ -47,15 +49,18 @@ const streamApplication = async function (options, progress) {
       strict: true
     }, files);
 
-    tarStream.
-      on('end', () => {
-        progress({ message: `Uploaded .tar.gz file.` });
-      });
+    const uploadStream = new PassThrough();
+
+    // Pump tar stream into a pass through stream, since tar stream is not a
+    // real stream and the upload doesn't work otherwise.
+    pump(tarStream, uploadStream, () => {
+      progress({ message: `Uploaded .tar.gz file.` });
+    });
 
     let receivedData;
 
     try {
-      receivedData = await makeAufwindRequest({ endpoint, tunnel, uploadStream: tarStream }, progress);
+      receivedData = await makeAufwindRequest({ endpoint, tunnel, uploadStream }, progress);
     } catch (ex) {
       return reject(ex);
     }
