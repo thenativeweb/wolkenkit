@@ -1,9 +1,11 @@
 'use strict';
 
-const http = require('http'),
+const { PassThrough } = require('stream'),
       url = require('url');
 
-const NewlineJsonParser = require('newline-json').Parser;
+const axios = require('axios'),
+      NewlineJsonParser = require('newline-json').Parser,
+      pump = require('pump');
 
 const errors = require('../../../errors');
 
@@ -24,87 +26,53 @@ const makeAufwindRequest = async function (options, progress) {
   const { endpoint, tunnel, uploadStream } = options;
 
   const formattedUrl = url.format(endpoint);
+  let receivedData;
 
   progress({ message: `Using ${endpoint.method} ${formattedUrl} as route.` });
 
-  const requestOptions = url.parse(formattedUrl);
-
-  requestOptions.method = endpoint.method;
-
-  const responseData = await new Promise((resolve, reject) => {
-    const request = http.request(requestOptions, response => {
-      const newlineJsonparser = new NewlineJsonParser();
-
-      let hasError = false,
-          receivedData,
-          unsubscribe;
-
-      const onData = function (data) {
-        if (data.type === 'heartbeat') {
-          return;
-        }
-
-        if (!data.message || !data.type) {
-          receivedData = data;
-
-          return;
-        }
-
-        if (data.type === 'error') {
-          hasError = true;
-          data.type = 'info';
-        }
-
-        progress(data);
-      };
-
-      const onEnd = function () {
-        unsubscribe();
-        tunnel.close();
-
-        if (hasError) {
-          return reject(new errors.RequestFailed());
-        }
-
-        resolve(receivedData);
-      };
-
-      const onError = function (err) {
-        unsubscribe();
-        tunnel.close();
-        reject(err);
-      };
-
-      unsubscribe = function () {
-        newlineJsonparser.
-          removeListener('data', onData).
-          removeListener('end', onEnd).
-          removeListener('error', onError);
-      };
-
-      newlineJsonparser.
-        on('data', onData).
-        on('end', onEnd).
-        on('error', onError);
-
-      response.
-        pipe(newlineJsonparser);
+  try {
+    const response = await axios({
+      method: endpoint.method.toLowerCase(),
+      url: formattedUrl,
+      headers: endpoint.headers,
+      data: uploadStream || '',
+      responseType: 'stream'
     });
 
-    if (!uploadStream) {
-      return request.end();
+    const newlineJsonParser = new NewlineJsonParser();
+    const passThrough = new PassThrough({ objectMode: true });
+
+    pump(response.data, newlineJsonParser, passThrough);
+
+    let hasError = false;
+
+    for await (const data of passThrough) {
+      if (data.type === 'heartbeat') {
+        continue;
+      }
+
+      if (!data.message || !data.type) {
+        receivedData = data;
+
+        continue;
+      }
+
+      if (data.type === 'error') {
+        hasError = true;
+        data.type = 'info';
+      }
+
+      progress(data);
     }
 
-    uploadStream.
-      on('error', err => {
-        tunnel.close();
+    if (hasError) {
+      throw new errors.RequestFailed();
+    }
+  } finally {
+    tunnel.close();
+  }
 
-        reject(err);
-      }).
-      pipe(request);
-  });
-
-  return responseData;
+  return receivedData;
 };
 
 module.exports = makeAufwindRequest;

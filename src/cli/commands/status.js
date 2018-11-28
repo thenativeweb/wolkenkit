@@ -75,7 +75,7 @@ const status = {
         return buntstift.success('The application is building.');
       }
       if (ex.code === 'EAPPLICATIONTERMINATING') {
-        return buntstift.success('The application is terminating.');
+        return buntstift.success('The application is stopping.');
       }
       if (ex.code === 'EAPPLICATIONPARTIALLYRUNNING') {
         buntstift.error('The application is partially running.');
