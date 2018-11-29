@@ -26,6 +26,9 @@ const start = async function (options, progress = noop) {
   if (!options.env) {
     throw new Error('Environment is missing.');
   }
+  if (options.persist === undefined) {
+    throw new Error('Persist is missing.');
+  }
 
   const { directory, env } = options;
 
@@ -38,8 +41,7 @@ const start = async function (options, progress = noop) {
   shared.validateCode({ directory }, progress);
 
   const environment = configuration.environments[env];
-
-  const type = environment.type === 'aufwind' ? environment.type : 'cli';
+  const type = environment.type || 'cli';
 
   await startVia[type]({ ...options, configuration }, progress);
 };

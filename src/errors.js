@@ -43,6 +43,7 @@ const errors = defekt([
   'RuntimeNotInstalled',
   'SecretFileNotFound',
   'SecretNotFound',
+  'SharedKeyMissing',
   'UnknownError',
   'UrlMalformed',
   'VersionMismatch',
