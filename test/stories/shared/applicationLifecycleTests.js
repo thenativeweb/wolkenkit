@@ -261,6 +261,21 @@ const applicationLifecycleTests = async function (runtime) {
       assert.that(restartCommand.stdout).is.matching(/Restarted the application/);
       assert.that(restartCommand.code).is.equalTo(0);
 
+      const stopCommand = await wolkenkit('stop', {}, { cwd: applicationDirectory });
+
+      assert.that(stopCommand.stderr).is.matching(/Application certificate is self-signed/);
+      assert.that(stopCommand.stdout).is.matching(/Stopped the application/);
+      assert.that(stopCommand.code).is.equalTo(0);
+
+      const startWithPreviousDataCommand = await wolkenkit('start', {
+        persist: true,
+        'shared-key': 'wolkenkit'
+      }, { cwd: applicationDirectory });
+
+      assert.that(startWithPreviousDataCommand.stderr).is.matching(/Application certificate is self-signed/);
+      assert.that(startWithPreviousDataCommand.stdout).is.matching(/Started the application/);
+      assert.that(startWithPreviousDataCommand.code).is.equalTo(0);
+
       const exportCommand = await wolkenkit('export', {
         to: exportDirectory
       }, { cwd: applicationDirectory });
@@ -286,14 +301,14 @@ const applicationLifecycleTests = async function (runtime) {
 
       assert.that(same).is.true();
 
-      const stopCommand = await wolkenkit('stop', {
+      const stopAndDestroyDataCommand = await wolkenkit('stop', {
         'dangerously-destroy-data': true
       }, { cwd: applicationDirectory });
 
-      assert.that(stopCommand.stderr).is.matching(/Application certificate is self-signed/);
-      assert.that(stopCommand.stdout).is.matching(/Destroying previous data/);
-      assert.that(stopCommand.stdout).is.matching(/Stopped the application/);
-      assert.that(stopCommand.code).is.equalTo(0);
+      assert.that(stopAndDestroyDataCommand.stderr).is.matching(/Application certificate is self-signed/);
+      assert.that(stopAndDestroyDataCommand.stdout).is.matching(/Destroying previous data/);
+      assert.that(stopAndDestroyDataCommand.stdout).is.matching(/Stopped the application/);
+      assert.that(stopAndDestroyDataCommand.code).is.equalTo(0);
     });
   });
 };
