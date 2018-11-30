@@ -19,6 +19,7 @@ const showProgress = function (verbose, stopWaiting) {
     }
 
     progress.type = progress.type || 'verbose';
+    progress.indent = progress.indent || 0;
 
     const spinnerRequiresPause = stopWaiting && (progress.type !== 'verbose' || verbose);
 
@@ -26,7 +27,7 @@ const showProgress = function (verbose, stopWaiting) {
       stopWaiting();
     }
 
-    buntstift[progress.type](progress.message.trim());
+    buntstift[progress.type](progress.message.trim(), { indent: progress.indent });
 
     if (spinnerRequiresPause) {
       stopWaiting = buntstift.wait();

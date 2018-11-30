@@ -59,7 +59,7 @@ const getConfiguration = async function (options, progress) {
         progress({ message: 'package.json does not contain wolkenkit configuration.', type: 'info' });
         break;
       case 'ECONFIGURATIONMALFORMED':
-        progress({ message: 'package.json contains malformed wolkenkit configuration.', type: 'info' });
+        progress({ message: `package.json contains malformed configuration (${ex.message.slice(0, -1)}).`, type: 'info' });
         break;
       case 'EVERSIONNOTFOUND':
         progress({ message: 'package.json contains an unknown runtime version.', type: 'info' });
