@@ -1,14 +1,10 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var difference = require('lodash/difference'),
     remove = require('lodash/remove');
@@ -17,13 +13,15 @@ var docker = require('../../../docker'),
     runtimes = require('../../runtimes'),
     sleep = require('../../../sleep');
 
-var startContainers = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options, progress) {
-    var _this = this;
-
+var startContainers =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee2(options, progress) {
     var configuration, env, sharedKey, persistData, debug, runtime, containers, started, applicationContainers, startedApplicationContainers, numberOfContainers, err, _loop;
 
-    return _regenerator2.default.wrap(function _callee2$(_context3) {
+    return _regenerator.default.wrap(function _callee2$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
@@ -105,10 +103,11 @@ var startContainers = function () {
             });
             startedApplicationContainers = [];
             numberOfContainers = applicationContainers.length;
-            err = void 0;
-            _loop = /*#__PURE__*/_regenerator2.default.mark(function _loop() {
+            _loop =
+            /*#__PURE__*/
+            _regenerator.default.mark(function _loop() {
               var nextContainerToStart;
-              return _regenerator2.default.wrap(function _loop$(_context2) {
+              return _regenerator.default.wrap(function _loop$(_context2) {
                 while (1) {
                   switch (_context2.prev = _context2.next) {
                     case 0:
@@ -117,46 +116,51 @@ var startContainers = function () {
                         var startedContainerNames = started.map(function (startedContainer) {
                           return startedContainer.name;
                         });
-
                         return difference(dependsOn, startedContainerNames).length === 0;
                       });
-
 
                       if (nextContainerToStart) {
                         remove(applicationContainers, function (container) {
                           return container.name === nextContainerToStart.name;
                         });
-
                         /* eslint-disable no-loop-func */
-                        (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
-                          return _regenerator2.default.wrap(function _callee$(_context) {
+
+                        (0, _asyncToGenerator2.default)(
+                        /*#__PURE__*/
+                        _regenerator.default.mark(function _callee() {
+                          return _regenerator.default.wrap(function _callee$(_context) {
                             while (1) {
                               switch (_context.prev = _context.next) {
                                 case 0:
                                   _context.prev = 0;
                                   _context.next = 3;
-                                  return docker.startContainer({ configuration: configuration, env: env, container: nextContainerToStart });
+                                  return docker.startContainer({
+                                    configuration: configuration,
+                                    env: env,
+                                    container: nextContainerToStart
+                                  });
 
                                 case 3:
-
                                   started.push(nextContainerToStart);
                                   startedApplicationContainers.push(nextContainerToStart);
-                                  progress({ message: 'Started ' + nextContainerToStart.name + ' (' + startedApplicationContainers.length + '/' + numberOfContainers + ').', type: 'info' });
+                                  progress({
+                                    message: "Started ".concat(nextContainerToStart.name, " (").concat(startedApplicationContainers.length, "/").concat(numberOfContainers, ")."),
+                                    type: 'info'
+                                  });
                                   _context.next = 11;
                                   break;
 
                                 case 8:
                                   _context.prev = 8;
-                                  _context.t0 = _context['catch'](0);
-
+                                  _context.t0 = _context["catch"](0);
                                   err = _context.t0;
 
                                 case 11:
-                                case 'end':
+                                case "end":
                                   return _context.stop();
                               }
                             }
-                          }, _callee, _this, [[0, 8]]);
+                          }, _callee, this, [[0, 8]]);
                         }))();
                         /* eslint-enable no-loop-func */
                       }
@@ -165,35 +169,35 @@ var startContainers = function () {
                       return sleep(50);
 
                     case 4:
-                    case 'end':
+                    case "end":
                       return _context2.stop();
                   }
                 }
-              }, _loop, _this);
+              }, _loop, this);
             });
 
-          case 25:
+          case 24:
             if (!(startedApplicationContainers.length < numberOfContainers && !err)) {
-              _context3.next = 29;
+              _context3.next = 28;
               break;
             }
 
-            return _context3.delegateYield(_loop(), 't0', 27);
+            return _context3.delegateYield(_loop(), "t0", 26);
 
-          case 27:
-            _context3.next = 25;
+          case 26:
+            _context3.next = 24;
             break;
 
-          case 29:
+          case 28:
             if (!err) {
-              _context3.next = 31;
+              _context3.next = 30;
               break;
             }
 
             throw err;
 
-          case 31:
-          case 'end':
+          case 30:
+          case "end":
             return _context3.stop();
         }
       }

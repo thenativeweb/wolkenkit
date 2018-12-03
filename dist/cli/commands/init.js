@@ -1,18 +1,12 @@
 'use strict';
 
-var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
-var _regenerator = require('babel-runtime/regenerator');
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var buntstift = require('buntstift'),
     getUsage = require('command-line-usage');
@@ -24,14 +18,15 @@ var defaults = require('../defaults.json'),
 
 var init = {
   description: 'Initialize a new application.',
-
   getOptionDefinitions: function () {
-    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
-      return _regenerator2.default.wrap(function _callee$(_context) {
+    var _getOptionDefinitions = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee() {
+      return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              return _context.abrupt('return', [{
+              return _context.abrupt("return", [{
                 name: 'template',
                 alias: 't',
                 type: String,
@@ -47,23 +42,23 @@ var init = {
               }]);
 
             case 1:
-            case 'end':
+            case "end":
               return _context.stop();
           }
         }
       }, _callee, this);
     }));
 
-    function getOptionDefinitions() {
-      return _ref.apply(this, arguments);
-    }
-
-    return getOptionDefinitions;
+    return function getOptionDefinitions() {
+      return _getOptionDefinitions.apply(this, arguments);
+    };
   }(),
   run: function () {
-    var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
+    var _run = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee2(options) {
       var directory, help, verbose, template, force, stopWaiting;
-      return _regenerator2.default.wrap(function _callee2$(_context2) {
+      return _regenerator.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
@@ -94,74 +89,77 @@ var init = {
               directory = process.cwd(), help = options.help, verbose = options.verbose, template = options.template, force = options.force;
 
               if (!help) {
-                _context2.next = 25;
+                _context2.next = 23;
                 break;
               }
 
               _context2.t0 = buntstift;
               _context2.t1 = getUsage;
-              _context2.t2 = { header: 'wolkenkit init', content: this.description };
-              _context2.t3 = { header: 'Synopsis', content: 'wolkenkit init [--template <url>] [--force]' };
-              _context2.t4 = [];
-              _context2.t5 = _toConsumableArray3.default;
-              _context2.next = 16;
+              _context2.t2 = {
+                header: 'wolkenkit init',
+                content: this.description
+              };
+              _context2.t3 = {
+                header: 'Synopsis',
+                content: 'wolkenkit init [--template <url>] [--force]'
+              };
+              _context2.t4 = _toConsumableArray2.default;
+              _context2.next = 15;
               return this.getOptionDefinitions();
 
-            case 16:
-              _context2.t6 = _context2.sent;
-              _context2.t7 = (0, _context2.t5)(_context2.t6);
-              _context2.t8 = (0, _toConsumableArray3.default)(globalOptionDefinitions);
-              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
-              _context2.t10 = {
+            case 15:
+              _context2.t5 = _context2.sent;
+              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
+              _context2.t8 = {
                 header: 'Options',
-                optionList: _context2.t9
+                optionList: _context2.t7
               };
-              _context2.t11 = { header: 'Remarks', content: 'If you don\'t specify a template, ' + defaults.commands.init.template + ' will be used as default.' };
-              _context2.t12 = [_context2.t2, _context2.t3, _context2.t10, _context2.t11];
-              _context2.t13 = (0, _context2.t1)(_context2.t12);
-              return _context2.abrupt('return', _context2.t0.info.call(_context2.t0, _context2.t13));
+              _context2.t9 = {
+                header: 'Remarks',
+                content: "If you don't specify a template, ".concat(defaults.commands.init.template, " will be used as default.")
+              };
+              _context2.t10 = [_context2.t2, _context2.t3, _context2.t8, _context2.t9];
+              _context2.t11 = (0, _context2.t1)(_context2.t10);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t11));
 
-            case 25:
-
+            case 23:
               buntstift.info('Initializing a new application...');
-
               stopWaiting = buntstift.wait();
-              _context2.prev = 27;
-              _context2.next = 30;
-              return wolkenkit.commands.init({ directory: directory, template: template, force: force }, showProgress(verbose, stopWaiting));
+              _context2.prev = 25;
+              _context2.next = 28;
+              return wolkenkit.commands.init({
+                directory: directory,
+                template: template,
+                force: force
+              }, showProgress(verbose, stopWaiting));
 
-            case 30:
-              _context2.next = 37;
+            case 28:
+              _context2.next = 35;
               break;
 
-            case 32:
-              _context2.prev = 32;
-              _context2.t14 = _context2['catch'](27);
-
+            case 30:
+              _context2.prev = 30;
+              _context2.t12 = _context2["catch"](25);
               stopWaiting();
               buntstift.error('Failed to initialize a new application.');
+              throw _context2.t12;
 
-              throw _context2.t14;
-
-            case 37:
-
+            case 35:
               stopWaiting();
               buntstift.success('Initialized a new application.');
 
-            case 39:
-            case 'end':
+            case 37:
+            case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[27, 32]]);
+      }, _callee2, this, [[25, 30]]);
     }));
 
-    function run(_x) {
-      return _ref2.apply(this, arguments);
-    }
-
-    return run;
+    return function run(_x) {
+      return _run.apply(this, arguments);
+    };
   }()
 };
-
 module.exports = init;

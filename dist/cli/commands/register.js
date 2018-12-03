@@ -1,18 +1,12 @@
 'use strict';
 
-var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
-var _regenerator = require('babel-runtime/regenerator');
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var buntstift = require('buntstift'),
     getUsage = require('command-line-usage'),
@@ -22,31 +16,33 @@ var globalOptionDefinitions = require('../globalOptionDefinitions');
 
 var register = {
   getOptionDefinitions: function () {
-    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
-      return _regenerator2.default.wrap(function _callee$(_context) {
+    var _getOptionDefinitions = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee() {
+      return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              return _context.abrupt('return', []);
+              return _context.abrupt("return", []);
 
             case 1:
-            case 'end':
+            case "end":
               return _context.stop();
           }
         }
       }, _callee, this);
     }));
 
-    function getOptionDefinitions() {
-      return _ref.apply(this, arguments);
-    }
-
-    return getOptionDefinitions;
+    return function getOptionDefinitions() {
+      return _getOptionDefinitions.apply(this, arguments);
+    };
   }(),
   run: function () {
-    var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
+    var _run = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee2(options) {
       var help, url;
-      return _regenerator2.default.wrap(function _callee2$(_context2) {
+      return _regenerator.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
@@ -61,54 +57,52 @@ var register = {
               help = options.help;
 
               if (!help) {
-                _context2.next = 20;
+                _context2.next = 18;
                 break;
               }
 
               _context2.t0 = buntstift;
               _context2.t1 = getUsage;
-              _context2.t2 = { header: 'wolkenkit register', content: this.description };
-              _context2.t3 = { header: 'Synopsis', content: 'wolkenkit register' };
-              _context2.t4 = [];
-              _context2.t5 = _toConsumableArray3.default;
-              _context2.next = 12;
+              _context2.t2 = {
+                header: 'wolkenkit register',
+                content: this.description
+              };
+              _context2.t3 = {
+                header: 'Synopsis',
+                content: 'wolkenkit register'
+              };
+              _context2.t4 = _toConsumableArray2.default;
+              _context2.next = 11;
               return this.getOptionDefinitions();
 
-            case 12:
-              _context2.t6 = _context2.sent;
-              _context2.t7 = (0, _context2.t5)(_context2.t6);
-              _context2.t8 = (0, _toConsumableArray3.default)(globalOptionDefinitions);
-              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
-              _context2.t10 = {
+            case 11:
+              _context2.t5 = _context2.sent;
+              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
+              _context2.t8 = {
                 header: 'Options',
-                optionList: _context2.t9
+                optionList: _context2.t7
               };
-              _context2.t11 = [_context2.t2, _context2.t3, _context2.t10];
-              _context2.t12 = (0, _context2.t1)(_context2.t11);
-              return _context2.abrupt('return', _context2.t0.info.call(_context2.t0, _context2.t12));
+              _context2.t9 = [_context2.t2, _context2.t3, _context2.t8];
+              _context2.t10 = (0, _context2.t1)(_context2.t9);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t10));
 
-            case 20:
+            case 18:
               url = 'https://profile.thenativeweb.io';
-
-
-              buntstift.info('Pointing web browser to ' + url + '...');
-
+              buntstift.info("Pointing web browser to ".concat(url, "..."));
               open(url);
 
-            case 23:
-            case 'end':
+            case 21:
+            case "end":
               return _context2.stop();
           }
         }
       }, _callee2, this);
     }));
 
-    function run(_x) {
-      return _ref2.apply(this, arguments);
-    }
-
-    return run;
+    return function run(_x) {
+      return _run.apply(this, arguments);
+    };
   }()
 };
-
 module.exports = register;

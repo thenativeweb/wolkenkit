@@ -1,18 +1,12 @@
 'use strict';
 
-var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
-var _regenerator = require('babel-runtime/regenerator');
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var buntstift = require('buntstift'),
     eslint = require('eslint'),
@@ -26,14 +20,15 @@ var defaults = require('../defaults.json'),
 
 var reload = {
   description: 'Reload an application.',
-
   getOptionDefinitions: function () {
-    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
-      return _regenerator2.default.wrap(function _callee$(_context) {
+    var _getOptionDefinitions = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee() {
+      return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              return _context.abrupt('return', [{
+              return _context.abrupt("return", [{
                 name: 'env',
                 alias: 'e',
                 type: String,
@@ -43,23 +38,23 @@ var reload = {
               }]);
 
             case 1:
-            case 'end':
+            case "end":
               return _context.stop();
           }
         }
       }, _callee, this);
     }));
 
-    function getOptionDefinitions() {
-      return _ref.apply(this, arguments);
-    }
-
-    return getOptionDefinitions;
+    return function getOptionDefinitions() {
+      return _getOptionDefinitions.apply(this, arguments);
+    };
   }(),
   run: function () {
-    var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
+    var _run = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee2(options) {
       var directory, env, help, verbose, stopWaiting, formatter, formattedResult, output;
-      return _regenerator2.default.wrap(function _callee2$(_context2) {
+      return _regenerator.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
@@ -82,84 +77,81 @@ var reload = {
               directory = process.cwd(), env = options.env, help = options.help, verbose = options.verbose;
 
               if (!help) {
-                _context2.next = 22;
+                _context2.next = 20;
                 break;
               }
 
               _context2.t0 = buntstift;
               _context2.t1 = getUsage;
-              _context2.t2 = { header: 'wolkenkit reload', content: this.description };
-              _context2.t3 = { header: 'Synopsis', content: 'wolkenkit reload [--env <env>]' };
-              _context2.t4 = [];
-              _context2.t5 = _toConsumableArray3.default;
-              _context2.next = 14;
+              _context2.t2 = {
+                header: 'wolkenkit reload',
+                content: this.description
+              };
+              _context2.t3 = {
+                header: 'Synopsis',
+                content: 'wolkenkit reload [--env <env>]'
+              };
+              _context2.t4 = _toConsumableArray2.default;
+              _context2.next = 13;
               return this.getOptionDefinitions();
 
-            case 14:
-              _context2.t6 = _context2.sent;
-              _context2.t7 = (0, _context2.t5)(_context2.t6);
-              _context2.t8 = (0, _toConsumableArray3.default)(globalOptionDefinitions);
-              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
-              _context2.t10 = {
+            case 13:
+              _context2.t5 = _context2.sent;
+              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
+              _context2.t8 = {
                 header: 'Options',
-                optionList: _context2.t9
+                optionList: _context2.t7
               };
-              _context2.t11 = [_context2.t2, _context2.t3, _context2.t10];
-              _context2.t12 = (0, _context2.t1)(_context2.t11);
-              return _context2.abrupt('return', _context2.t0.info.call(_context2.t0, _context2.t12));
+              _context2.t9 = [_context2.t2, _context2.t3, _context2.t8];
+              _context2.t10 = (0, _context2.t1)(_context2.t9);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t10));
 
-            case 22:
-
+            case 20:
               buntstift.info('Reloading the application...');
-
               stopWaiting = buntstift.wait();
-              _context2.prev = 24;
-              _context2.next = 27;
-              return wolkenkit.commands.reload({ directory: directory, env: env }, showProgress(verbose, stopWaiting));
+              _context2.prev = 22;
+              _context2.next = 25;
+              return wolkenkit.commands.reload({
+                directory: directory,
+                env: env
+              }, showProgress(verbose, stopWaiting));
 
-            case 27:
-              _context2.next = 35;
+            case 25:
+              _context2.next = 33;
               break;
 
-            case 29:
-              _context2.prev = 29;
-              _context2.t13 = _context2['catch'](24);
-
+            case 27:
+              _context2.prev = 27;
+              _context2.t11 = _context2["catch"](22);
               stopWaiting();
 
-              if (_context2.t13.code === 'ECODEMALFORMED') {
+              if (_context2.t11.code === 'ECODEMALFORMED') {
                 formatter = eslint.CLIEngine.getFormatter();
-                formattedResult = formatter(_context2.t13.cause.results);
+                formattedResult = formatter(_context2.t11.cause.results);
                 output = formattedResult.split('\n').slice(0, -2).join('\n');
-
-
                 buntstift.info(output);
-                buntstift.info(_context2.t13.message);
+                buntstift.info(_context2.t11.message);
               }
 
               buntstift.error('Failed to reload the application.');
+              throw _context2.t11;
 
-              throw _context2.t13;
-
-            case 35:
-
+            case 33:
               stopWaiting();
               buntstift.success('Reloaded the application.');
 
-            case 37:
-            case 'end':
+            case 35:
+            case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[24, 29]]);
+      }, _callee2, this, [[22, 27]]);
     }));
 
-    function run(_x) {
-      return _ref2.apply(this, arguments);
-    }
-
-    return run;
+    return function run(_x) {
+      return _run.apply(this, arguments);
+    };
   }()
 };
-
 module.exports = reload;

@@ -2,9 +2,9 @@
 
 var image = function image() {
   return {
-    name: 'thenativeweb/wolkenkit-depot-file',
+    name: 'thenativeweb/wolkenkit-postgres',
     type: 'infrastructure',
-    version: 'latest'
+    version: '3.0.0'
   };
 };
 

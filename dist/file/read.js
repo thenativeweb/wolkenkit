@@ -1,14 +1,10 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var fs = require('fs');
 
@@ -18,10 +14,14 @@ var errors = require('../errors');
 
 var readFile = promisify(fs.readFile);
 
-var read = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(path) {
+var read =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(path) {
     var data;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -33,41 +33,42 @@ var read = function () {
             throw new Error('Path is missing.');
 
           case 2:
-            data = void 0;
-            _context.prev = 3;
-            _context.next = 6;
-            return readFile(path, { encoding: 'utf8' });
+            _context.prev = 2;
+            _context.next = 5;
+            return readFile(path, {
+              encoding: 'utf8'
+            });
 
-          case 6:
+          case 5:
             data = _context.sent;
-            _context.next = 17;
+            _context.next = 16;
             break;
 
-          case 9:
-            _context.prev = 9;
-            _context.t0 = _context['catch'](3);
+          case 8:
+            _context.prev = 8;
+            _context.t0 = _context["catch"](2);
             _context.t1 = _context.t0.code;
-            _context.next = _context.t1 === 'ENOENT' ? 14 : _context.t1 === 'EACCES' ? 15 : 16;
+            _context.next = _context.t1 === 'ENOENT' ? 13 : _context.t1 === 'EACCES' ? 14 : 15;
             break;
 
-          case 14:
+          case 13:
             throw new errors.FileNotFound();
 
-          case 15:
+          case 14:
             throw new errors.FileNotAccessible();
 
-          case 16:
+          case 15:
             throw _context.t0;
 
-          case 17:
-            return _context.abrupt('return', data);
+          case 16:
+            return _context.abrupt("return", data);
 
-          case 18:
-          case 'end':
+          case 17:
+          case "end":
             return _context.stop();
         }
       }
-    }, _callee, this, [[3, 9]]);
+    }, _callee, this, [[2, 8]]);
   }));
 
   return function read(_x) {

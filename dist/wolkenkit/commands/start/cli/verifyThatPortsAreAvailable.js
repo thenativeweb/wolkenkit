@@ -1,22 +1,12 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _values = require('babel-runtime/core-js/object/values');
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
-var _values2 = _interopRequireDefault(_values);
-
-var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
-
-var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var map = require('lodash/map'),
     portscanner = require('portscanner'),
@@ -27,10 +17,14 @@ var errors = require('../../../../errors'),
 
 var findAPortInUse = promisify(portscanner.findAPortInUse);
 
-var verifyThatPortsAreAvailable = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options, progress) {
+var verifyThatPortsAreAvailable =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options, progress) {
     var forVersion, configuration, env, sharedKey, persistData, debug, containers, requestedPorts, host, portInUse, arePortsAvailable;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -116,7 +110,7 @@ var verifyThatPortsAreAvailable = function () {
             }).filter(function (ports) {
               return ports;
             }).reduce(function (list, ports) {
-              return [].concat((0, _toConsumableArray3.default)(list), (0, _toConsumableArray3.default)((0, _values2.default)(ports)));
+              return (0, _toConsumableArray2.default)(list).concat((0, _toConsumableArray2.default)(Object.values(ports)));
             }, []);
             host = configuration.environments[env].api.address.host;
             _context.next = 24;
@@ -131,15 +125,17 @@ var verifyThatPortsAreAvailable = function () {
               break;
             }
 
-            return _context.abrupt('return');
+            return _context.abrupt("return");
 
           case 28:
-
-            progress({ message: 'The requested ports are not available.', type: 'info' });
+            progress({
+              message: 'The requested ports are not available.',
+              type: 'info'
+            });
             throw new errors.PortsNotAvailable();
 
           case 30:
-          case 'end':
+          case "end":
             return _context.stop();
         }
       }

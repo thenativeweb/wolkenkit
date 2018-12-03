@@ -1,29 +1,29 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _promise = require('babel-runtime/core-js/promise');
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var _promise2 = _interopRequireDefault(_promise);
+var path = require('path'),
+    _require = require('stream'),
+    PassThrough = _require.PassThrough;
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+var pump = require('pump'),
+    tar = require('tar');
 
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+var file = require('../../../file'),
+    makeAufwindRequest = require('./makeAufwindRequest');
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var tar = require('tar');
-
-var makeAufwindRequest = require('./makeAufwindRequest');
-
-var streamApplication = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options, progress) {
-    var _this = this;
-
+var streamApplication =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee2(options, progress) {
     var directory, endpoint, tunnel, response;
-    return _regenerator2.default.wrap(function _callee2$(_context2) {
+    return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
@@ -68,58 +68,78 @@ var streamApplication = function () {
 
           case 10:
             directory = options.directory, endpoint = options.endpoint, tunnel = options.tunnel;
-
-
-            progress({ message: 'Uploading .tar.gz file...' });
-
+            progress({
+              message: "Uploading .tar.gz file..."
+            });
             _context2.next = 14;
-            return new _promise2.default(function () {
-              var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(resolve, reject) {
-                var tarStream, receivedData;
-                return _regenerator2.default.wrap(function _callee$(_context) {
+            return new Promise(
+            /*#__PURE__*/
+            function () {
+              var _ref2 = (0, _asyncToGenerator2.default)(
+              /*#__PURE__*/
+              _regenerator.default.mark(function _callee(resolve, reject) {
+                var files, secretFileName, tarStream, uploadStream, receivedData;
+                return _regenerator.default.wrap(function _callee$(_context) {
                   while (1) {
                     switch (_context.prev = _context.next) {
                       case 0:
                         endpoint.headers = {
                           'content-type': 'application/gzip'
                         };
+                        files = ['package.json', 'server'];
+                        secretFileName = 'wolkenkit-secrets.json';
+                        _context.next = 5;
+                        return file.exists(path.join(directory, secretFileName));
 
+                      case 5:
+                        if (!_context.sent) {
+                          _context.next = 7;
+                          break;
+                        }
+
+                        files.push(secretFileName);
+
+                      case 7:
                         tarStream = tar.create({
                           gzip: true,
                           cwd: directory,
                           strict: true
-                        }, ['package.json', 'server']);
+                        }, files);
+                        uploadStream = new PassThrough(); // Pump tar stream into a pass through stream, since tar stream is not a
+                        // real stream and the upload doesn't work otherwise.
 
-
-                        tarStream.on('end', function () {
-                          progress({ message: 'Uploaded .tar.gz file.' });
+                        pump(tarStream, uploadStream, function () {
+                          progress({
+                            message: "Uploaded .tar.gz file."
+                          });
                         });
-
-                        receivedData = void 0;
-                        _context.prev = 4;
-                        _context.next = 7;
-                        return makeAufwindRequest({ endpoint: endpoint, tunnel: tunnel, uploadStream: tarStream }, progress);
-
-                      case 7:
-                        receivedData = _context.sent;
-                        _context.next = 13;
-                        break;
-
-                      case 10:
                         _context.prev = 10;
-                        _context.t0 = _context['catch'](4);
-                        return _context.abrupt('return', reject(_context.t0));
+                        _context.next = 13;
+                        return makeAufwindRequest({
+                          endpoint: endpoint,
+                          tunnel: tunnel,
+                          uploadStream: uploadStream
+                        }, progress);
 
                       case 13:
+                        receivedData = _context.sent;
+                        _context.next = 19;
+                        break;
 
+                      case 16:
+                        _context.prev = 16;
+                        _context.t0 = _context["catch"](10);
+                        return _context.abrupt("return", reject(_context.t0));
+
+                      case 19:
                         resolve(receivedData);
 
-                      case 14:
-                      case 'end':
+                      case 20:
+                      case "end":
                         return _context.stop();
                     }
                   }
-                }, _callee, _this, [[4, 10]]);
+                }, _callee, this, [[10, 16]]);
               }));
 
               return function (_x3, _x4) {
@@ -129,10 +149,10 @@ var streamApplication = function () {
 
           case 14:
             response = _context2.sent;
-            return _context2.abrupt('return', response);
+            return _context2.abrupt("return", response);
 
           case 16:
-          case 'end':
+          case "end":
             return _context2.stop();
         }
       }

@@ -1,22 +1,22 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var application = require('../../../application'),
     errors = require('../../../errors'),
     runtimes = require('../../runtimes');
 
-var getFallbackConfiguration = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
-    return _regenerator2.default.wrap(function _callee$(_context) {
+var getFallbackConfiguration =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee() {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -31,13 +31,13 @@ var getFallbackConfiguration = function () {
             _context.t2 = {
               default: {}
             };
-            return _context.abrupt('return', {
+            return _context.abrupt("return", {
               runtime: _context.t1,
               environments: _context.t2
             });
 
           case 6:
-          case 'end':
+          case "end":
             return _context.stop();
         }
       }
@@ -49,10 +49,14 @@ var getFallbackConfiguration = function () {
   };
 }();
 
-var getConfiguration = function () {
-  var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options, progress) {
+var getConfiguration =
+/*#__PURE__*/
+function () {
+  var _ref2 = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee2(options, progress) {
     var env, directory, isPackageJsonRequired, configuration;
-    return _regenerator2.default.wrap(function _callee2$(_context2) {
+    return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
@@ -97,86 +101,111 @@ var getConfiguration = function () {
 
           case 10:
             env = options.env, directory = options.directory, isPackageJsonRequired = options.isPackageJsonRequired;
-            configuration = void 0;
-            _context2.prev = 12;
-            _context2.next = 15;
-            return application.getConfiguration({ directory: directory });
+            _context2.prev = 11;
+            _context2.next = 14;
+            return application.getConfiguration({
+              directory: directory
+            });
 
-          case 15:
+          case 14:
             configuration = _context2.sent;
-            _context2.next = 42;
+            _context2.next = 41;
             break;
 
-          case 18:
-            _context2.prev = 18;
-            _context2.t0 = _context2['catch'](12);
+          case 17:
+            _context2.prev = 17;
+            _context2.t0 = _context2["catch"](11);
             _context2.t1 = _context2.t0.code;
-            _context2.next = _context2.t1 === 'EFILENOTFOUND' ? 23 : _context2.t1 === 'EFILENOTACCESSIBLE' ? 30 : _context2.t1 === 'EJSONMALFORMED' ? 32 : _context2.t1 === 'ECONFIGURATIONNOTFOUND' ? 34 : _context2.t1 === 'ECONFIGURATIONMALFORMED' ? 36 : _context2.t1 === 'EVERSIONNOTFOUND' ? 38 : 40;
+            _context2.next = _context2.t1 === 'EFILENOTFOUND' ? 22 : _context2.t1 === 'EFILENOTACCESSIBLE' ? 29 : _context2.t1 === 'EJSONMALFORMED' ? 31 : _context2.t1 === 'ECONFIGURATIONNOTFOUND' ? 33 : _context2.t1 === 'ECONFIGURATIONMALFORMED' ? 35 : _context2.t1 === 'EVERSIONNOTFOUND' ? 37 : 39;
             break;
 
-          case 23:
+          case 22:
             if (isPackageJsonRequired) {
-              _context2.next = 28;
+              _context2.next = 27;
               break;
             }
 
-            progress({ message: 'package.json is missing, using fallback configuration.' });
-
-            _context2.next = 27;
+            progress({
+              message: 'package.json is missing, using fallback configuration.'
+            });
+            _context2.next = 26;
             return getFallbackConfiguration();
 
+          case 26:
+            return _context2.abrupt("return", _context2.sent);
+
           case 27:
-            return _context2.abrupt('return', _context2.sent);
+            progress({
+              message: 'package.json is missing.',
+              type: 'info'
+            });
+            return _context2.abrupt("break", 40);
 
-          case 28:
+          case 29:
+            progress({
+              message: 'package.json is not accessible.',
+              type: 'info'
+            });
+            return _context2.abrupt("break", 40);
 
-            progress({ message: 'package.json is missing.', type: 'info' });
-            return _context2.abrupt('break', 41);
+          case 31:
+            progress({
+              message: 'package.json contains malformed JSON.',
+              type: 'info'
+            });
+            return _context2.abrupt("break", 40);
 
-          case 30:
-            progress({ message: 'package.json is not accessible.', type: 'info' });
-            return _context2.abrupt('break', 41);
+          case 33:
+            progress({
+              message: 'package.json does not contain wolkenkit configuration.',
+              type: 'info'
+            });
+            return _context2.abrupt("break", 40);
 
-          case 32:
-            progress({ message: 'package.json contains malformed JSON.', type: 'info' });
-            return _context2.abrupt('break', 41);
+          case 35:
+            progress({
+              message: "package.json contains malformed configuration (".concat(_context2.t0.message.slice(0, -1), ")."),
+              type: 'info'
+            });
+            return _context2.abrupt("break", 40);
 
-          case 34:
-            progress({ message: 'package.json does not contain wolkenkit configuration.', type: 'info' });
-            return _context2.abrupt('break', 41);
+          case 37:
+            progress({
+              message: 'package.json contains an unknown runtime version.',
+              type: 'info'
+            });
+            return _context2.abrupt("break", 40);
 
-          case 36:
-            progress({ message: 'package.json contains malformed wolkenkit configuration.', type: 'info' });
-            return _context2.abrupt('break', 41);
-
-          case 38:
-            progress({ message: 'package.json contains an unknown runtime version.', type: 'info' });
-            return _context2.abrupt('break', 41);
+          case 39:
+            progress({
+              message: _context2.t0.message,
+              type: 'info'
+            });
 
           case 40:
-            progress({ message: _context2.t0.message, type: 'info' });
-
-          case 41:
             throw _context2.t0;
 
-          case 42:
+          case 41:
             if (configuration.environments[env]) {
-              _context2.next = 45;
+              _context2.next = 44;
               break;
             }
 
-            progress({ message: 'package.json does not contain environment ' + env + '.', type: 'info' });
+            progress({
+              message: "package.json does not contain environment ".concat(env, "."),
+              type: 'info'
+            });
             throw new errors.EnvironmentNotFound();
 
-          case 45:
-            return _context2.abrupt('return', configuration);
+          case 44:
+            return _context2.abrupt("return", configuration);
 
-          case 46:
-          case 'end':
+          case 45:
+          case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, this, [[12, 18]]);
+    }, _callee2, this, [[11, 17]]);
   }));
 
   return function getConfiguration(_x, _x2) {

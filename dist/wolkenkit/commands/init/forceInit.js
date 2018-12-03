@@ -1,14 +1,10 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var path = require('path');
 
@@ -19,16 +15,17 @@ var isolated = require('isolated'),
 var cloneRepository = require('./cloneRepository'),
     shell = require('../../../shell');
 
-var isolatedAsync = promisify(isolated),
-    recursiveReaddir = promisify(recursiveReaddirCallback);
+var recursiveReaddir = promisify(recursiveReaddirCallback);
 
-var forceInit = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options, progress) {
-    var _this = this;
-
+var forceInit =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options, progress) {
     var directory, template, tempDirectory, clonedFiles, files, _loop, i;
 
-    return _regenerator2.default.wrap(function _callee$(_context2) {
+    return _regenerator.default.wrap(function _callee$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
@@ -66,12 +63,15 @@ var forceInit = function () {
           case 8:
             directory = options.directory, template = options.template;
             _context2.next = 11;
-            return isolatedAsync();
+            return isolated();
 
           case 11:
             tempDirectory = _context2.sent;
             _context2.next = 14;
-            return cloneRepository({ directory: tempDirectory, template: template }, progress);
+            return cloneRepository({
+              directory: tempDirectory,
+              template: template
+            }, progress);
 
           case 14:
             _context2.next = 16;
@@ -84,16 +84,17 @@ var forceInit = function () {
 
           case 19:
             files = _context2.sent;
-            _loop = /*#__PURE__*/_regenerator2.default.mark(function _loop(i) {
+            _loop =
+            /*#__PURE__*/
+            _regenerator.default.mark(function _loop(i) {
               var clonedFile, clonedFileName, file, targetFile;
-              return _regenerator2.default.wrap(function _loop$(_context) {
+              return _regenerator.default.wrap(function _loop$(_context) {
                 while (1) {
                   switch (_context.prev = _context.next) {
                     case 0:
-                      clonedFile = clonedFiles[i], clonedFileName = clonedFile.replace('' + tempDirectory + path.sep, '');
+                      clonedFile = clonedFiles[i], clonedFileName = clonedFile.replace("".concat(tempDirectory).concat(path.sep), '');
                       file = files.find(function (filePath) {
-                        var fileName = filePath.replace('' + directory + path.sep, '');
-
+                        var fileName = filePath.replace("".concat(directory).concat(path.sep), '');
                         return clonedFileName === fileName;
                       });
 
@@ -102,9 +103,11 @@ var forceInit = function () {
                         break;
                       }
 
-                      progress({ message: 'Creating backup file for ' + clonedFileName + '...' });
+                      progress({
+                        message: "Creating backup file for ".concat(clonedFileName, "...")
+                      });
                       _context.next = 6;
-                      return shell.mv('-f', file, file + '.bak');
+                      return shell.mv('-f', file, "".concat(file, ".bak"));
 
                     case 6:
                       targetFile = path.join(directory, clonedFileName);
@@ -116,11 +119,11 @@ var forceInit = function () {
                       return shell.mv('-f', clonedFile, targetFile);
 
                     case 11:
-                    case 'end':
+                    case "end":
                       return _context.stop();
                   }
                 }
-              }, _loop, _this);
+              }, _loop, this);
             });
             i = 0;
 
@@ -130,7 +133,7 @@ var forceInit = function () {
               break;
             }
 
-            return _context2.delegateYield(_loop(i), 't0', 24);
+            return _context2.delegateYield(_loop(i), "t0", 24);
 
           case 24:
             i++;
@@ -142,7 +145,7 @@ var forceInit = function () {
             return shell.rm('-rf', tempDirectory);
 
           case 29:
-          case 'end':
+          case "end":
             return _context2.stop();
         }
       }

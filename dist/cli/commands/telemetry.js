@@ -1,28 +1,24 @@
 'use strict';
 
-var _keys = require('babel-runtime/core-js/object/keys');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _keys2 = _interopRequireDefault(_keys);
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
-var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+var _taggedTemplateLiteral2 = _interopRequireDefault(require("@babel/runtime/helpers/taggedTemplateLiteral"));
 
-var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _taggedTemplateLiteral2 = require('babel-runtime/helpers/taggedTemplateLiteral');
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var _taggedTemplateLiteral3 = _interopRequireDefault(_taggedTemplateLiteral2);
+function _templateObject() {
+  var data = (0, _taggedTemplateLiteral2.default)(["\n          wolkenkit telemetry --enable\n          wolkenkit telemetry --disable"]);
 
-var _regenerator = require('babel-runtime/regenerator');
+  _templateObject = function _templateObject() {
+    return data;
+  };
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-var _templateObject = (0, _taggedTemplateLiteral3.default)(['\n          wolkenkit telemetry --enable\n          wolkenkit telemetry --disable'], ['\n          wolkenkit telemetry --enable\n          wolkenkit telemetry --disable']);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+  return data;
+}
 
 var buntstift = require('buntstift'),
     getUsage = require('command-line-usage'),
@@ -33,14 +29,15 @@ var globalOptionDefinitions = require('../globalOptionDefinitions'),
 
 var command = {
   description: 'Enable or disable collecting telemetry data.',
-
   getOptionDefinitions: function () {
-    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
-      return _regenerator2.default.wrap(function _callee$(_context) {
+    var _getOptionDefinitions = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee() {
+      return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              return _context.abrupt('return', [{
+              return _context.abrupt("return", [{
                 name: 'enable',
                 type: Boolean,
                 description: 'enable collecting telemetry data'
@@ -51,23 +48,23 @@ var command = {
               }]);
 
             case 1:
-            case 'end':
+            case "end":
               return _context.stop();
           }
         }
       }, _callee, this);
     }));
 
-    function getOptionDefinitions() {
-      return _ref.apply(this, arguments);
-    }
-
-    return getOptionDefinitions;
+    return function getOptionDefinitions() {
+      return _getOptionDefinitions.apply(this, arguments);
+    };
   }(),
   run: function () {
-    var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
+    var _run = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee2(options) {
       var help, enable, disable, optionList, count, isEnabled;
-      return _regenerator2.default.wrap(function _callee2$(_context2) {
+      return _regenerator.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
@@ -82,107 +79,110 @@ var command = {
               help = options.help, enable = options.enable, disable = options.disable;
 
               if (!help) {
-                _context2.next = 20;
+                _context2.next = 18;
                 break;
               }
 
               _context2.t0 = buntstift;
               _context2.t1 = getUsage;
-              _context2.t2 = { header: 'wolkenkit telemetry', content: this.description };
-              _context2.t3 = { header: 'Synopsis', content: stripIndent(_templateObject) };
-              _context2.t4 = [];
-              _context2.t5 = _toConsumableArray3.default;
-              _context2.next = 12;
+              _context2.t2 = {
+                header: 'wolkenkit telemetry',
+                content: this.description
+              };
+              _context2.t3 = {
+                header: 'Synopsis',
+                content: stripIndent(_templateObject())
+              };
+              _context2.t4 = _toConsumableArray2.default;
+              _context2.next = 11;
               return this.getOptionDefinitions();
 
-            case 12:
-              _context2.t6 = _context2.sent;
-              _context2.t7 = (0, _context2.t5)(_context2.t6);
-              _context2.t8 = (0, _toConsumableArray3.default)(globalOptionDefinitions);
-              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
-              _context2.t10 = {
+            case 11:
+              _context2.t5 = _context2.sent;
+              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
+              _context2.t8 = {
                 header: 'Options',
-                optionList: _context2.t9
+                optionList: _context2.t7
               };
-              _context2.t11 = [_context2.t2, _context2.t3, _context2.t10];
-              _context2.t12 = (0, _context2.t1)(_context2.t11);
-              return _context2.abrupt('return', _context2.t0.info.call(_context2.t0, _context2.t12));
+              _context2.t9 = [_context2.t2, _context2.t3, _context2.t8];
+              _context2.t10 = (0, _context2.t1)(_context2.t9);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t10));
 
-            case 20:
-              optionList = { enable: enable, disable: disable };
-              count = (0, _keys2.default)(optionList).filter(function (key) {
+            case 18:
+              optionList = {
+                enable: enable,
+                disable: disable
+              };
+              count = Object.keys(optionList).filter(function (key) {
                 return optionList[key] !== undefined;
               }).length;
 
               if (!(count === 0)) {
-                _context2.next = 29;
+                _context2.next = 27;
                 break;
               }
 
-              _context2.next = 25;
+              _context2.next = 23;
               return telemetry.isEnabled();
 
-            case 25:
+            case 23:
               isEnabled = _context2.sent;
 
               if (!isEnabled) {
-                _context2.next = 28;
+                _context2.next = 26;
                 break;
               }
 
-              return _context2.abrupt('return', buntstift.success('Collecting telemetry data is enabled.'));
+              return _context2.abrupt("return", buntstift.success('Collecting telemetry data is enabled.'));
 
-            case 28:
-              return _context2.abrupt('return', buntstift.error('Collecting telemetry data is disabled.'));
+            case 26:
+              return _context2.abrupt("return", buntstift.error('Collecting telemetry data is disabled.'));
 
-            case 29:
+            case 27:
               if (!(count > 1)) {
-                _context2.next = 32;
+                _context2.next = 30;
                 break;
               }
 
               buntstift.error('Either provide --enable or --disable.');
-
               throw new Error('Mutually exclusive parameters given');
 
-            case 32:
+            case 30:
               if (!enable) {
-                _context2.next = 36;
+                _context2.next = 34;
                 break;
               }
 
-              _context2.next = 35;
+              _context2.next = 33;
               return telemetry.enable();
 
-            case 35:
-              return _context2.abrupt('return', buntstift.success('Enabled collecting telemetry data.'));
+            case 33:
+              return _context2.abrupt("return", buntstift.success('Enabled collecting telemetry data.'));
 
-            case 36:
+            case 34:
               if (!disable) {
-                _context2.next = 40;
+                _context2.next = 38;
                 break;
               }
 
-              _context2.next = 39;
+              _context2.next = 37;
               return telemetry.disable();
 
-            case 39:
-              return _context2.abrupt('return', buntstift.success('Disabled collecting telemetry data.'));
+            case 37:
+              return _context2.abrupt("return", buntstift.success('Disabled collecting telemetry data.'));
 
-            case 40:
-            case 'end':
+            case 38:
+            case "end":
               return _context2.stop();
           }
         }
       }, _callee2, this);
     }));
 
-    function run(_x) {
-      return _ref2.apply(this, arguments);
-    }
-
-    return run;
+    return function run(_x) {
+      return _run.apply(this, arguments);
+    };
   }()
 };
-
 module.exports = command;

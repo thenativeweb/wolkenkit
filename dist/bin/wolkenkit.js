@@ -1,25 +1,13 @@
 #!/usr/bin/env node
-
-
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
-var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
-
-var _keys = require('babel-runtime/core-js/object/keys');
-
-var _keys2 = _interopRequireDefault(_keys);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 require('babel-polyfill');
 
@@ -34,25 +22,27 @@ var commands = require('../cli/commands'),
     packageJson = require('../../package.json'),
     telemetry = require('../telemetry');
 
-updateNotifier({ pkg: packageJson }).notify();
-
-(0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
+updateNotifier({
+  pkg: packageJson
+}).notify();
+(0, _asyncToGenerator2.default)(
+/*#__PURE__*/
+_regenerator.default.mark(function _callee() {
   var validCommands, parsed, suggestions, command, validOptionDefinitions, args, handleException;
-  return _regenerator2.default.wrap(function _callee$(_context) {
+  return _regenerator.default.wrap(function _callee$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
-          validCommands = (0, _keys2.default)(commands);
-          parsed = void 0;
-
+          validCommands = Object.keys(commands);
 
           try {
-            parsed = commandLineCommands([null].concat((0, _toConsumableArray3.default)(validCommands)));
+            parsed = commandLineCommands([null].concat((0, _toConsumableArray2.default)(validCommands)));
           } catch (ex) {
-            suggestions = findSuggestions({ for: ex.command, in: validCommands });
-
-
-            buntstift.error('Unknown command \'' + ex.command + '\', did you mean \'' + suggestions[0].suggestion + '\'?');
+            suggestions = findSuggestions({
+              for: ex.command,
+              in: validCommands
+            });
+            buntstift.error("Unknown command '".concat(ex.command, "', did you mean '").concat(suggestions[0].suggestion, "'?"));
             buntstift.exit(1);
           }
 
@@ -66,69 +56,73 @@ updateNotifier({ pkg: packageJson }).notify();
           }
 
           command = commands[parsed.command];
-          _context.t0 = [];
-          _context.t1 = (0, _toConsumableArray3.default)(globalOptionDefinitions);
-          _context.t2 = _toConsumableArray3.default;
-          _context.next = 10;
+          _context.t0 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+          _context.t1 = _toConsumableArray2.default;
+          _context.next = 8;
           return command.getOptionDefinitions();
 
-        case 10:
-          _context.t3 = _context.sent;
-          _context.t4 = (0, _context.t2)(_context.t3);
-          validOptionDefinitions = _context.t0.concat.call(_context.t0, _context.t1, _context.t4);
-          args = commandLineArgs(validOptionDefinitions, { argv: parsed.argv, partial: true });
-
+        case 8:
+          _context.t2 = _context.sent;
+          _context.t3 = (0, _context.t1)(_context.t2);
+          validOptionDefinitions = _context.t0.concat.call(_context.t0, _context.t3);
+          args = commandLineArgs(validOptionDefinitions, {
+            argv: parsed.argv,
+            partial: true
+          });
           /* eslint-disable no-underscore-dangle */
 
           if (args._unknown && args._unknown.length > 0) {
-            buntstift.error('Unknown argument \'' + args._unknown[0] + '\'.');
+            buntstift.error("Unknown argument '".concat(args._unknown[0], "'."));
             buntstift.exit(1);
           }
           /* eslint-enable no-underscore-dangle */
+
 
           handleException = function handleException(ex) {
             if (ex.message) {
               buntstift.verbose(ex.message);
             }
+
             if (ex.stack) {
               buntstift.verbose(ex.stack);
             }
+
             buntstift.exit(1);
           };
 
           process.on('uncaughtException', handleException);
           process.on('unhandledRejection', handleException);
-
-          _context.next = 20;
+          _context.next = 18;
           return telemetry.init();
 
-        case 20:
-          _context.prev = 20;
-          _context.next = 23;
+        case 18:
+          _context.prev = 18;
+          _context.next = 21;
           return command.run(args);
 
-        case 23:
-          _context.next = 25;
-          return telemetry.send({ command: parsed.command, args: args });
+        case 21:
+          _context.next = 23;
+          return telemetry.send({
+            command: parsed.command,
+            args: args
+          });
 
-        case 25:
-          _context.next = 30;
+        case 23:
+          _context.next = 28;
           break;
 
-        case 27:
-          _context.prev = 27;
-          _context.t5 = _context['catch'](20);
+        case 25:
+          _context.prev = 25;
+          _context.t4 = _context["catch"](18);
+          handleException(_context.t4);
 
-          handleException(_context.t5);
-
-        case 30:
-
+        case 28:
           buntstift.exit(0);
 
-        case 31:
-        case 'end':
+        case 29:
+        case "end":
           return _context.stop();
       }
     }
-  }, _callee, this, [[20, 27]]);
+  }, _callee, this, [[18, 25]]);
 }))();

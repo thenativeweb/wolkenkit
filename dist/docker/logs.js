@@ -1,26 +1,24 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _promise = require('babel-runtime/core-js/promise');
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var _promise2 = _interopRequireDefault(_promise);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var combinedStream = require('combined-stream');
 
 var getEnvironmentVariables = require('./getEnvironmentVariables'),
     shell = require('../shell');
 
-var logs = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
-    var configuration, containers, env, follow, environmentVariables, containerNames, childProcesses;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+var logs =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options) {
+    var configuration, containers, env, follow, passThrough, environmentVariables, containerNames, childProcesses, multiStream, outputStream;
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -64,9 +62,12 @@ var logs = function () {
             throw new Error('Follow is missing.');
 
           case 10:
-            configuration = options.configuration, containers = options.containers, env = options.env, follow = options.follow;
+            configuration = options.configuration, containers = options.containers, env = options.env, follow = options.follow, passThrough = options.passThrough;
             _context.next = 13;
-            return getEnvironmentVariables({ configuration: configuration, env: env });
+            return getEnvironmentVariables({
+              configuration: configuration,
+              env: env
+            });
 
           case 13:
             environmentVariables = _context.sent;
@@ -75,36 +76,51 @@ var logs = function () {
             });
             childProcesses = [];
             _context.next = 18;
-            return _promise2.default.all(containerNames.map(function (containerName) {
-              return new _promise2.default(function (resolve) {
+            return Promise.all(containerNames.map(function (containerName) {
+              return new Promise(function (resolve) {
                 var args = ['logs', containerName];
 
                 if (follow) {
                   args.push('--follow');
                 }
 
-                var child = shell.spawn('docker', args, { env: environmentVariables, stdio: 'inherit' });
-
-                child.on('close', function (code) {
+                var child = shell.spawn('docker', args, {
+                  env: environmentVariables,
+                  stdio: 'pipe'
+                });
+                child.once('close', function (code) {
                   if (code !== 0) {
                     childProcesses.forEach(function (process) {
                       process.kill();
                     });
-
                     /* eslint-disable no-process-exit */
+
                     process.exit(1);
                     /* eslint-enable no-process-exit */
                   }
-
-                  resolve();
                 });
-
                 childProcesses.push(child);
+                resolve();
               });
             }));
 
           case 18:
-          case 'end':
+            multiStream = combinedStream.create();
+            childProcesses.map(function (child) {
+              return child.stdout;
+            }).forEach(function (stream) {
+              return multiStream.append(stream);
+            });
+            outputStream = passThrough || process.stdout;
+            _context.next = 23;
+            return new Promise(function (resolve, reject) {
+              multiStream.once('error', reject);
+              multiStream.once('end', resolve);
+              multiStream.pipe(outputStream);
+            });
+
+          case 23:
+          case "end":
             return _context.stop();
         }
       }

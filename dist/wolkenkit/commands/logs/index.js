@@ -1,14 +1,10 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var docker = require('../../../docker'),
     errors = require('../../../errors'),
@@ -16,97 +12,128 @@ var docker = require('../../../docker'),
     noop = require('../../../noop'),
     shared = require('../shared');
 
-var logs = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
-    var progress = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
-    var directory, env, follow, configuration, containers;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+var logs =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options) {
+    var progress,
+        directory,
+        env,
+        follow,
+        configuration,
+        containers,
+        _args = arguments;
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
+            progress = _args.length > 1 && _args[1] !== undefined ? _args[1] : noop;
+
             if (options) {
-              _context.next = 2;
+              _context.next = 3;
               break;
             }
 
             throw new Error('Options are missing.');
 
-          case 2:
+          case 3:
             if (options.directory) {
-              _context.next = 4;
+              _context.next = 5;
               break;
             }
 
             throw new Error('Directory is missing.');
 
-          case 4:
+          case 5:
             if (options.env) {
-              _context.next = 6;
+              _context.next = 7;
               break;
             }
 
             throw new Error('Environment is missing.');
 
-          case 6:
+          case 7:
             if (!(options.follow === undefined)) {
-              _context.next = 8;
+              _context.next = 9;
               break;
             }
 
             throw new Error('Follow is missing.');
 
-          case 8:
+          case 9:
             directory = options.directory, env = options.env, follow = options.follow;
-            _context.next = 11;
+            _context.next = 12;
             return shared.getConfiguration({
               env: env,
               directory: directory,
               isPackageJsonRequired: true
             }, progress);
 
-          case 11:
+          case 12:
             configuration = _context.sent;
-            _context.next = 14;
-            return shared.checkDocker({ configuration: configuration, env: env }, progress);
+            _context.next = 15;
+            return shared.checkDocker({
+              configuration: configuration,
+              env: env
+            }, progress);
 
-          case 14:
+          case 15:
+            progress({
+              message: "Verifying health on environment ".concat(env, "...")
+            });
+            _context.next = 18;
+            return health({
+              directory: directory,
+              env: env
+            }, progress);
 
-            progress({ message: 'Verifying health on environment ' + env + '...' });
-            _context.next = 17;
-            return health({ directory: directory, env: env }, progress);
-
-          case 17:
-            _context.next = 19;
+          case 18:
+            _context.next = 20;
             return docker.getContainers({
               configuration: configuration,
               env: env,
-              where: { label: { 'wolkenkit-application': configuration.application, 'wolkenkit-type': 'application' } }
+              where: {
+                label: {
+                  'wolkenkit-application': configuration.application,
+                  'wolkenkit-type': 'application'
+                }
+              }
             });
 
-          case 19:
+          case 20:
             containers = _context.sent;
 
             if (!(containers.length === 0)) {
-              _context.next = 23;
+              _context.next = 24;
               break;
             }
 
-            progress({ message: 'The application is not running.', type: 'info' });
+            progress({
+              message: "The application is not running.",
+              type: 'info'
+            });
             throw new errors.ApplicationNotRunning();
 
-          case 23:
-            _context.next = 25;
-            return docker.logs({ configuration: configuration, containers: containers, env: env, follow: follow });
+          case 24:
+            _context.next = 26;
+            return docker.logs({
+              configuration: configuration,
+              containers: containers,
+              env: env,
+              follow: follow
+            });
 
-          case 25:
-          case 'end':
+          case 26:
+          case "end":
             return _context.stop();
         }
       }
     }, _callee, this);
   }));
 
-  return function logs(_x2) {
+  return function logs(_x) {
     return _ref.apply(this, arguments);
   };
 }();

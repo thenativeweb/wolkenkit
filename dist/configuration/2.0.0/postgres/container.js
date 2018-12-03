@@ -6,23 +6,29 @@ var container = function container(options) {
   if (!options) {
     throw new Error('Options are missing.');
   }
+
   if (!options.configuration) {
     throw new Error('Configuration is missing.');
   }
+
   if (!options.env) {
     throw new Error('Environment is missing.');
   }
+
   if (!options.sharedKey) {
     throw new Error('Shared key is missing.');
   }
+
   if (options.persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
+
   if (options.debug === undefined) {
     throw new Error('Debug is missing.');
   }
-
   /* eslint-disable no-unused-vars */
+
+
   var configuration = options.configuration,
       env = options.env,
       sharedKey = options.sharedKey,
@@ -31,10 +37,9 @@ var container = function container(options) {
   /* eslint-enable no-unused-vars */
 
   var selectedEnvironment = configuration.environments[env];
-
   var result = {
-    image: 'thenativeweb/wolkenkit-postgres',
-    name: configuration.application + '-postgres',
+    image: "thenativeweb/wolkenkit-postgres",
+    name: "".concat(configuration.application, "-postgres"),
     env: {
       POSTGRES_DB: 'wolkenkit',
       POSTGRES_USER: 'wolkenkit',
@@ -49,7 +54,7 @@ var container = function container(options) {
       'wolkenkit-shared-key': sharedKey,
       'wolkenkit-type': image().type
     },
-    networks: [configuration.application + '-network'],
+    networks: ["".concat(configuration.application, "-network")],
     networkAlias: 'eventstore',
     ports: {
       5432: selectedEnvironment.api.address.port + 3
@@ -58,7 +63,7 @@ var container = function container(options) {
   };
 
   if (persistData) {
-    result.volumes = [configuration.application + '-postgres-volume:/var/lib/postgresql/data'];
+    result.volumes = ["".concat(configuration.application, "-postgres-volume:/var/lib/postgresql/data")];
   }
 
   return result;

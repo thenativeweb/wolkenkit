@@ -4,11 +4,17 @@ var schema = function schema() {
   var result = {
     type: 'object',
     properties: {
-      application: { type: 'string', minLength: 1 },
+      application: {
+        type: 'string',
+        minLength: 1
+      },
       runtime: {
         type: 'object',
         properties: {
-          version: { type: 'string', minLength: 1 }
+          version: {
+            type: 'string',
+            minLength: 1
+          }
         },
         additionalProperties: false,
         required: ['version']
@@ -25,16 +31,35 @@ var schema = function schema() {
                   address: {
                     type: 'object',
                     properties: {
-                      host: { type: 'string', minLength: 1 },
-                      port: { type: 'integer' }
+                      host: {
+                        type: 'string',
+                        minLength: 1
+                      },
+                      port: {
+                        type: 'integer'
+                      }
                     },
                     additionalProperties: false,
                     required: ['host', 'port']
                   },
                   allowAccessFrom: {
-                    oneOf: [{ type: 'string', minLength: 1 }, { type: 'array', minItems: 1, items: { type: 'string', minLength: 1 }, uniqueItems: true }]
+                    oneOf: [{
+                      type: 'string',
+                      minLength: 1
+                    }, {
+                      type: 'array',
+                      minItems: 1,
+                      items: {
+                        type: 'string',
+                        minLength: 1
+                      },
+                      uniqueItems: true
+                    }]
                   },
-                  certificate: { type: 'string', minLength: 1 }
+                  certificate: {
+                    type: 'string',
+                    minLength: 1
+                  }
                 },
                 additionalProperties: false,
                 required: ['address', 'allowAccessFrom']
@@ -42,7 +67,10 @@ var schema = function schema() {
               node: {
                 type: 'object',
                 properties: {
-                  environment: { type: 'string', minLength: 1 }
+                  environment: {
+                    type: 'string',
+                    minLength: 1
+                  }
                 },
                 additionalProperties: false,
                 required: ['environment']
@@ -50,8 +78,14 @@ var schema = function schema() {
               identityProvider: {
                 type: 'object',
                 properties: {
-                  name: { type: 'string', minLength: 1 },
-                  certificate: { type: 'string', minLength: 1 }
+                  name: {
+                    type: 'string',
+                    minLength: 1
+                  },
+                  certificate: {
+                    type: 'string',
+                    minLength: 1
+                  }
                 },
                 required: ['name', 'certificate'],
                 additionalProperties: false
@@ -59,7 +93,10 @@ var schema = function schema() {
               docker: {
                 type: 'object',
                 properties: {
-                  machine: { type: 'string', minLength: 1 }
+                  machine: {
+                    type: 'string',
+                    minLength: 1
+                  }
                 },
                 required: ['machine'],
                 additionalProperties: false
@@ -76,7 +113,6 @@ var schema = function schema() {
     required: ['application', 'runtime', 'environments'],
     additionalProperties: false
   };
-
   return result;
 };
 

@@ -20,6 +20,7 @@ var ip = {
     if (isIp.v4(text)) {
       return 4;
     }
+
     if (isIp.v6(text)) {
       return 6;
     }
@@ -27,5 +28,4 @@ var ip = {
     throw new Error('Unknown family.');
   }
 };
-
 module.exports = ip;

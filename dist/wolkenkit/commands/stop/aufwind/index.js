@@ -1,21 +1,21 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var shared = require('../../shared');
 
-var aufwind = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options, progress) {
+var aufwind =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options, progress) {
     var directory, env, privateKey, configuration, tunnel, application, endpoint;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -61,7 +61,11 @@ var aufwind = function () {
           case 10:
             directory = options.directory, env = options.env, privateKey = options.privateKey, configuration = options.configuration;
             _context.next = 13;
-            return shared.startTunnel({ configuration: configuration, env: env, privateKey: privateKey }, progress);
+            return shared.startTunnel({
+              configuration: configuration,
+              env: env,
+              privateKey: privateKey
+            }, progress);
 
           case 13:
             tunnel = _context.sent;
@@ -71,13 +75,17 @@ var aufwind = function () {
               method: 'POST',
               hostname: tunnel.host,
               port: tunnel.port,
-              pathname: '/v1/applications/' + application + '/stop/' + env
+              pathname: "/v1/applications/".concat(application, "/stop/").concat(env)
             };
             _context.next = 18;
-            return shared.streamApplication({ directory: directory, endpoint: endpoint, tunnel: tunnel }, progress);
+            return shared.streamApplication({
+              directory: directory,
+              endpoint: endpoint,
+              tunnel: tunnel
+            }, progress);
 
           case 18:
-          case 'end':
+          case "end":
             return _context.stop();
         }
       }

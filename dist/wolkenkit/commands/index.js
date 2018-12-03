@@ -1,7 +1,8 @@
 'use strict';
 
-var encrypt = require('./encrypt'),
+var exportCommand = require('./export'),
     health = require('./health'),
+    importCommand = require('./import'),
     init = require('./init'),
     install = require('./install'),
     logs = require('./logs'),
@@ -12,12 +13,12 @@ var encrypt = require('./encrypt'),
     start = require('./start'),
     status = require('./status'),
     stop = require('./stop'),
-    uninstall = require('./uninstall'),
-    update = require('./update');
+    uninstall = require('./uninstall');
 
 module.exports = {
-  encrypt: encrypt,
+  export: exportCommand,
   health: health,
+  import: importCommand,
   init: init,
   install: install,
   logs: logs,
@@ -28,6 +29,5 @@ module.exports = {
   start: start,
   status: status,
   stop: stop,
-  uninstall: uninstall,
-  update: update
+  uninstall: uninstall
 };

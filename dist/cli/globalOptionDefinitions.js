@@ -12,5 +12,4 @@ var globalOptionDefinitions = [{
   defaultValue: false,
   description: 'show help'
 }];
-
 module.exports = globalOptionDefinitions;

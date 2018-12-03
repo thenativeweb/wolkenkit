@@ -8,23 +8,29 @@ var container = function container(options) {
   if (!options) {
     throw new Error('Options are missing.');
   }
+
   if (!options.configuration) {
     throw new Error('Configuration is missing.');
   }
+
   if (!options.env) {
     throw new Error('Environment is missing.');
   }
+
   if (!options.sharedKey) {
     throw new Error('Shared key is missing.');
   }
+
   if (options.persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
+
   if (options.debug === undefined) {
     throw new Error('Debug is missing.');
   }
-
   /* eslint-disable no-unused-vars */
+
+
   var configuration = options.configuration,
       env = options.env,
       sharedKey = options.sharedKey,
@@ -33,10 +39,9 @@ var container = function container(options) {
   /* eslint-enable no-unused-vars */
 
   var selectedEnvironment = configuration.environments[env];
-
   var result = {
-    image: 'thenativeweb/wolkenkit-depot-file',
-    name: configuration.application + '-depot-file',
+    image: "thenativeweb/wolkenkit-depot-file",
+    name: "".concat(configuration.application, "-depot-file"),
     env: {
       IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate', '/keys/wildcard.wolkenkit.io'),
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
@@ -54,7 +59,7 @@ var container = function container(options) {
       'wolkenkit-shared-key': sharedKey,
       'wolkenkit-type': image().type
     },
-    networks: [configuration.application + '-network'],
+    networks: ["".concat(configuration.application, "-network")],
     networkAlias: 'depot-file',
     ports: {
       443: selectedEnvironment.api.address.port + 1,
@@ -65,7 +70,7 @@ var container = function container(options) {
   };
 
   if (persistData) {
-    result.volumes = [configuration.application + '-depot-file-volume:/blobs'];
+    result.volumes = ["".concat(configuration.application, "-depot-file-volume:/blobs")];
   }
 
   return result;

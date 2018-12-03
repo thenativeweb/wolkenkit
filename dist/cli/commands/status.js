@@ -1,24 +1,24 @@
 'use strict';
 
-var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
-var _taggedTemplateLiteral2 = require('babel-runtime/helpers/taggedTemplateLiteral');
+var _taggedTemplateLiteral2 = _interopRequireDefault(require("@babel/runtime/helpers/taggedTemplateLiteral"));
 
-var _taggedTemplateLiteral3 = _interopRequireDefault(_taggedTemplateLiteral2);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _regenerator = require('babel-runtime/regenerator');
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+function _templateObject() {
+  var data = (0, _taggedTemplateLiteral2.default)(["\n          wolkenkit status [--env <env>]\n          wolkenkit status [--env <env>] [--private-key <file>]"]);
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+  _templateObject = function _templateObject() {
+    return data;
+  };
 
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-var _templateObject = (0, _taggedTemplateLiteral3.default)(['\n          wolkenkit status [--env <env>]\n          wolkenkit status [--env <env>] [--private-key <file>]'], ['\n          wolkenkit status [--env <env>]\n          wolkenkit status [--env <env>] [--private-key <file>]']);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+  return data;
+}
 
 var buntstift = require('buntstift'),
     getUsage = require('command-line-usage'),
@@ -32,14 +32,15 @@ var defaults = require('../defaults.json'),
 
 var status = {
   description: 'Fetch an application status.',
-
   getOptionDefinitions: function () {
-    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
-      return _regenerator2.default.wrap(function _callee$(_context) {
+    var _getOptionDefinitions = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee() {
+      return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              return _context.abrupt('return', [{
+              return _context.abrupt("return", [{
                 name: 'env',
                 alias: 'e',
                 type: String,
@@ -55,23 +56,23 @@ var status = {
               }]);
 
             case 1:
-            case 'end':
+            case "end":
               return _context.stop();
           }
         }
       }, _callee, this);
     }));
 
-    function getOptionDefinitions() {
-      return _ref.apply(this, arguments);
-    }
-
-    return getOptionDefinitions;
+    return function getOptionDefinitions() {
+      return _getOptionDefinitions.apply(this, arguments);
+    };
   }(),
   run: function () {
-    var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
-      var directory, env, help, privateKey, verbose, stopWaiting;
-      return _regenerator2.default.wrap(function _callee2$(_context2) {
+    var _run = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee2(options) {
+      var directory, env, help, verbose, privateKey, stopWaiting;
+      return _regenerator.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
@@ -91,94 +92,119 @@ var status = {
               throw new Error('Environment is missing.');
 
             case 4:
-              directory = process.cwd(), env = options.env, help = options.help, privateKey = options.privateKey, verbose = options.verbose;
+              directory = process.cwd(), env = options.env, help = options.help, verbose = options.verbose;
+              privateKey = options['private-key'];
 
               if (!help) {
-                _context2.next = 22;
+                _context2.next = 21;
                 break;
               }
 
               _context2.t0 = buntstift;
               _context2.t1 = getUsage;
-              _context2.t2 = { header: 'wolkenkit status', content: this.description };
-              _context2.t3 = { header: 'Synopsis', content: stripIndent(_templateObject) };
-              _context2.t4 = [];
-              _context2.t5 = _toConsumableArray3.default;
+              _context2.t2 = {
+                header: 'wolkenkit status',
+                content: this.description
+              };
+              _context2.t3 = {
+                header: 'Synopsis',
+                content: stripIndent(_templateObject())
+              };
+              _context2.t4 = _toConsumableArray2.default;
               _context2.next = 14;
               return this.getOptionDefinitions();
 
             case 14:
-              _context2.t6 = _context2.sent;
-              _context2.t7 = (0, _context2.t5)(_context2.t6);
-              _context2.t8 = (0, _toConsumableArray3.default)(globalOptionDefinitions);
-              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
-              _context2.t10 = {
+              _context2.t5 = _context2.sent;
+              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
+              _context2.t8 = {
                 header: 'Options',
-                optionList: _context2.t9
+                optionList: _context2.t7
               };
-              _context2.t11 = [_context2.t2, _context2.t3, _context2.t10];
-              _context2.t12 = (0, _context2.t1)(_context2.t11);
-              return _context2.abrupt('return', _context2.t0.info.call(_context2.t0, _context2.t12));
+              _context2.t9 = [_context2.t2, _context2.t3, _context2.t8];
+              _context2.t10 = (0, _context2.t1)(_context2.t9);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t10));
 
-            case 22:
-
+            case 21:
               buntstift.info('Fetching application status...');
-
               stopWaiting = buntstift.wait();
-              _context2.prev = 24;
-              _context2.next = 27;
-              return wolkenkit.commands.status({ directory: directory, env: env, privateKey: privateKey }, showProgress(verbose, stopWaiting));
+              _context2.prev = 23;
+              _context2.next = 26;
+              return wolkenkit.commands.status({
+                directory: directory,
+                env: env,
+                privateKey: privateKey
+              }, showProgress(verbose, stopWaiting));
 
-            case 27:
-              _context2.next = 39;
+            case 26:
+              _context2.next = 44;
               break;
 
-            case 29:
-              _context2.prev = 29;
-              _context2.t13 = _context2['catch'](24);
-
+            case 28:
+              _context2.prev = 28;
+              _context2.t11 = _context2["catch"](23);
               stopWaiting();
 
-              if (!(_context2.t13.code === 'EAPPLICATIONNOTRUNNING')) {
-                _context2.next = 34;
+              if (!(_context2.t11.code === 'EAPPLICATIONNOTRUNNING')) {
+                _context2.next = 33;
                 break;
               }
 
-              return _context2.abrupt('return', buntstift.success('The application is stopped.'));
+              return _context2.abrupt("return", buntstift.success('The application is stopped.'));
 
-            case 34:
-              if (!(_context2.t13.code === 'EAPPLICATIONPARTIALLYRUNNING')) {
+            case 33:
+              if (!(_context2.t11.code === 'EAPPLICATIONVERIFYINGCONNECTIONS')) {
+                _context2.next = 35;
+                break;
+              }
+
+              return _context2.abrupt("return", buntstift.success('The application is trying to connect to infrastructure services.'));
+
+            case 35:
+              if (!(_context2.t11.code === 'EAPPLICATIONBUILDING')) {
                 _context2.next = 37;
                 break;
               }
 
-              buntstift.error('The application is partially running.');
-              throw _context2.t13;
+              return _context2.abrupt("return", buntstift.success('The application is building.'));
 
             case 37:
+              if (!(_context2.t11.code === 'EAPPLICATIONTERMINATING')) {
+                _context2.next = 39;
+                break;
+              }
 
-              buntstift.error('Failed to fetch application status.');
-              throw _context2.t13;
+              return _context2.abrupt("return", buntstift.success('The application is stopping.'));
 
             case 39:
+              if (!(_context2.t11.code === 'EAPPLICATIONPARTIALLYRUNNING')) {
+                _context2.next = 42;
+                break;
+              }
 
+              buntstift.error('The application is partially running.');
+              throw _context2.t11;
+
+            case 42:
+              buntstift.error('Failed to fetch application status.');
+              throw _context2.t11;
+
+            case 44:
               stopWaiting();
               buntstift.success('The application is running.');
 
-            case 41:
-            case 'end':
+            case 46:
+            case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[24, 29]]);
+      }, _callee2, this, [[23, 28]]);
     }));
 
-    function run(_x) {
-      return _ref2.apply(this, arguments);
-    }
-
-    return run;
+    return function run(_x) {
+      return _run.apply(this, arguments);
+    };
   }()
 };
-
 module.exports = status;

@@ -1,22 +1,22 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var getEnvironmentVariables = require('./getEnvironmentVariables'),
     shell = require('../shell');
 
-var buildImage = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
+var buildImage =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options) {
     var configuration, env, tag, directory, environmentVariables;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -62,17 +62,20 @@ var buildImage = function () {
           case 10:
             configuration = options.configuration, env = options.env, tag = options.tag, directory = options.directory;
             _context.next = 13;
-            return getEnvironmentVariables({ configuration: configuration, env: env });
+            return getEnvironmentVariables({
+              configuration: configuration,
+              env: env
+            });
 
           case 13:
             environmentVariables = _context.sent;
             _context.next = 16;
-            return shell.exec('docker build -t ' + tag + ' ' + directory, {
+            return shell.exec("docker build -t ".concat(tag, " ").concat(directory), {
               env: environmentVariables
             });
 
           case 16:
-          case 'end':
+          case "end":
             return _context.stop();
         }
       }

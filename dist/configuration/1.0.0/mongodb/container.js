@@ -6,23 +6,29 @@ var container = function container(options) {
   if (!options) {
     throw new Error('Options are missing.');
   }
+
   if (!options.configuration) {
     throw new Error('Configuration is missing.');
   }
+
   if (!options.env) {
     throw new Error('Environment is missing.');
   }
+
   if (!options.sharedKey) {
     throw new Error('Shared key is missing.');
   }
+
   if (options.persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
+
   if (options.debug === undefined) {
     throw new Error('Debug is missing.');
   }
-
   /* eslint-disable no-unused-vars */
+
+
   var configuration = options.configuration,
       env = options.env,
       sharedKey = options.sharedKey,
@@ -31,10 +37,9 @@ var container = function container(options) {
   /* eslint-enable no-unused-vars */
 
   var selectedEnvironment = configuration.environments[env];
-
   var result = {
-    image: 'thenativeweb/wolkenkit-mongodb',
-    name: configuration.application + '-mongodb',
+    image: "thenativeweb/wolkenkit-mongodb",
+    name: "".concat(configuration.application, "-mongodb"),
     env: {
       MONGODB_DATABASE: 'wolkenkit',
       MONGODB_USER: 'wolkenkit',
@@ -49,7 +54,7 @@ var container = function container(options) {
       'wolkenkit-shared-key': sharedKey,
       'wolkenkit-type': image().type
     },
-    networks: [configuration.application + '-network'],
+    networks: ["".concat(configuration.application, "-network")],
     networkAlias: 'liststore',
     ports: {
       27017: selectedEnvironment.api.address.port + 2
@@ -58,7 +63,7 @@ var container = function container(options) {
   };
 
   if (persistData) {
-    result.volumes = [configuration.application + '-mongodb-volume:/data/db'];
+    result.volumes = ["".concat(configuration.application, "-mongodb-volume:/data/db")];
   }
 
   return result;

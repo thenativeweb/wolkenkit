@@ -1,22 +1,22 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var errors = require('../errors'),
     shell = require('../shell');
 
-var getInstalledPackageVersion = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(name) {
+var getInstalledPackageVersion =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(name) {
     var installedVersion, output, regExp, matches;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -28,10 +28,12 @@ var getInstalledPackageVersion = function () {
             throw new Error('Name is missing.');
 
           case 2:
-            installedVersion = '0.0.0', output = void 0;
+            installedVersion = '0.0.0';
             _context.prev = 3;
             _context.next = 6;
-            return shell.exec('npm list -g ' + name, { silent: true });
+            return shell.exec("npm list -g ".concat(name), {
+              silent: true
+            });
 
           case 6:
             output = _context.sent;
@@ -40,11 +42,11 @@ var getInstalledPackageVersion = function () {
 
           case 9:
             _context.prev = 9;
-            _context.t0 = _context['catch'](3);
-            return _context.abrupt('return', installedVersion);
+            _context.t0 = _context["catch"](3);
+            return _context.abrupt("return", installedVersion);
 
           case 12:
-            regExp = new RegExp(name + '@(.*?)\\s', 'gm');
+            regExp = new RegExp("".concat(name, "@(.*?)\\s"), 'gm');
             matches = regExp.exec(output.stdout);
 
             if (matches) {
@@ -55,13 +57,11 @@ var getInstalledPackageVersion = function () {
             throw new errors.OutputMalformed();
 
           case 16:
-
             installedVersion = matches[1];
-
-            return _context.abrupt('return', installedVersion);
+            return _context.abrupt("return", installedVersion);
 
           case 18:
-          case 'end':
+          case "end":
             return _context.stop();
         }
       }

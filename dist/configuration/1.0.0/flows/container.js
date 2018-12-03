@@ -8,23 +8,29 @@ var container = function container(options) {
   if (!options) {
     throw new Error('Options are missing.');
   }
+
   if (!options.configuration) {
     throw new Error('Configuration is missing.');
   }
+
   if (!options.env) {
     throw new Error('Environment is missing.');
   }
+
   if (!options.sharedKey) {
     throw new Error('Shared key is missing.');
   }
+
   if (options.persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
+
   if (options.debug === undefined) {
     throw new Error('Debug is missing.');
   }
-
   /* eslint-disable no-unused-vars */
+
+
   var configuration = options.configuration,
       env = options.env,
       sharedKey = options.sharedKey,
@@ -33,18 +39,17 @@ var container = function container(options) {
   /* eslint-enable no-unused-vars */
 
   var selectedEnvironment = configuration.environments[env];
-
   var result = {
-    dependsOn: [configuration.application + '-node-modules', configuration.application + '-postgres', configuration.application + '-rabbitmq'],
-    image: configuration.application + '-flows',
-    name: configuration.application + '-flows',
-    cmd: 'dumb-init node ' + (debug ? '--inspect' : '') + ' /wolkenkit/app.js',
+    dependsOn: ["".concat(configuration.application, "-node-modules"), "".concat(configuration.application, "-postgres"), "".concat(configuration.application, "-rabbitmq")],
+    image: "".concat(configuration.application, "-flows"),
+    name: "".concat(configuration.application, "-flows"),
+    cmd: "dumb-init node ".concat(debug ? '--inspect' : '', " /wolkenkit/app.js"),
     env: {
       APPLICATION: configuration.application,
-      COMMANDBUS_URL: 'amqp://wolkenkit:' + sharedKey + '@messagebus:5672',
+      COMMANDBUS_URL: "amqp://wolkenkit:".concat(sharedKey, "@messagebus:5672"),
       EVENTSTORE_TYPE: 'postgres',
-      EVENTSTORE_URL: 'pg://wolkenkit:' + sharedKey + '@eventstore:5432/wolkenkit',
-      FLOWBUS_URL: 'amqp://wolkenkit:' + sharedKey + '@messagebus:5672',
+      EVENTSTORE_URL: "pg://wolkenkit:".concat(sharedKey, "@eventstore:5432/wolkenkit"),
+      FLOWBUS_URL: "amqp://wolkenkit:".concat(sharedKey, "@messagebus:5672"),
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       PROFILING_HOST: selectedEnvironment.api.address.host,
       PROFILING_PORT: 8125
@@ -58,9 +63,9 @@ var container = function container(options) {
       'wolkenkit-shared-key': sharedKey,
       'wolkenkit-type': image().type
     },
-    networks: [configuration.application + '-network'],
+    networks: ["".concat(configuration.application, "-network")],
     restart: 'always',
-    volumesFrom: [configuration.application + '-node-modules']
+    volumesFrom: ["".concat(configuration.application, "-node-modules")]
   };
 
   if (debug) {
