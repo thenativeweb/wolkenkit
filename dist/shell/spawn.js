@@ -15,8 +15,11 @@ var spawn = function spawn(command) {
   var cwd = options.cwd || process.cwd(),
       env = options.env || processenv(),
       stdio = options.stdio || 'inherit';
-
-  return childProcess.spawn(command, args, { cwd: cwd, env: env, stdio: stdio });
+  return childProcess.spawn(command, args, {
+    cwd: cwd,
+    env: env,
+    stdio: stdio
+  });
 };
 
 module.exports = spawn;

@@ -1,23 +1,23 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var getEnvironmentVariables = require('./getEnvironmentVariables'),
     shell = require('../shell');
 
-var ensureNetworkExists = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
+var ensureNetworkExists =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options) {
     var configuration, env, name, environmentVariables, _ref2, stdout, networks, doesNetworkExist;
 
-    return _regenerator2.default.wrap(function _callee$(_context) {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -46,14 +46,17 @@ var ensureNetworkExists = function () {
 
           case 6:
             configuration = options.configuration, env = options.env;
-            name = configuration.application + '-network';
+            name = "".concat(configuration.application, "-network");
             _context.next = 10;
-            return getEnvironmentVariables({ configuration: configuration, env: env });
+            return getEnvironmentVariables({
+              configuration: configuration,
+              env: env
+            });
 
           case 10:
             environmentVariables = _context.sent;
             _context.next = 13;
-            return shell.exec('docker network ls --format "{{json .}}"', {
+            return shell.exec("docker network ls --format \"{{json .}}\"", {
               env: environmentVariables
             });
 
@@ -74,16 +77,16 @@ var ensureNetworkExists = function () {
               break;
             }
 
-            return _context.abrupt('return');
+            return _context.abrupt("return");
 
           case 19:
             _context.next = 21;
-            return shell.exec('docker network create ' + name, {
+            return shell.exec("docker network create ".concat(name), {
               env: environmentVariables
             });
 
           case 21:
-          case 'end':
+          case "end":
             return _context.stop();
         }
       }

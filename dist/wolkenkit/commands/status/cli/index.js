@@ -1,24 +1,24 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var docker = require('../../../../docker'),
     errors = require('../../../../errors'),
     health = require('../../health'),
     shared = require('../../shared');
 
-var cli = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options, progress) {
+var cli =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options, progress) {
     var directory, env, configuration, existingContainers, debug, persistData, sharedKey, applicationStatus;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -64,29 +64,40 @@ var cli = function () {
           case 10:
             directory = options.directory, env = options.env, configuration = options.configuration;
             _context.next = 13;
-            return shared.checkDocker({ configuration: configuration, env: env }, progress);
+            return shared.checkDocker({
+              configuration: configuration,
+              env: env
+            }, progress);
 
           case 13:
-
-            progress({ message: 'Verifying health on environment ' + env + '...', type: 'info' });
+            progress({
+              message: "Verifying health on environment ".concat(env, "..."),
+              type: 'info'
+            });
             _context.next = 16;
-            return health({ directory: directory, env: env }, progress);
+            return health({
+              directory: directory,
+              env: env
+            }, progress);
 
           case 16:
             _context.next = 18;
             return docker.getContainers({
               configuration: configuration,
               env: env,
-              where: { label: { 'wolkenkit-application': configuration.application } }
+              where: {
+                label: {
+                  'wolkenkit-application': configuration.application
+                }
+              }
             });
 
           case 18:
             existingContainers = _context.sent;
-
-
-            progress({ message: 'Verifying application status...', type: 'info' });
-
-            // We can not use the application status here, because for that we need to
+            progress({
+              message: 'Verifying application status...',
+              type: 'info'
+            }); // We can not use the application status here, because for that we need to
             // fetch the labels of the containers. So this would be a chicken-and-egg
             // problem, hence this workaround.
 
@@ -100,7 +111,13 @@ var cli = function () {
           case 22:
             debug = existingContainers[0].labels['wolkenkit-debug'] === 'true', persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true', sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
             _context.next = 25;
-            return shared.getApplicationStatus({ configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
+            return shared.getApplicationStatus({
+              configuration: configuration,
+              env: env,
+              sharedKey: sharedKey,
+              persistData: persistData,
+              debug: debug
+            }, progress);
 
           case 25:
             applicationStatus = _context.sent;
@@ -113,7 +130,7 @@ var cli = function () {
             throw new errors.ApplicationPartiallyRunning();
 
           case 28:
-          case 'end':
+          case "end":
             return _context.stop();
         }
       }

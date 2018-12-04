@@ -1,14 +1,12 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+var _objectSpread2 = _interopRequireDefault(require("@babel/runtime/helpers/objectSpread"));
 
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var aufwind = require('./aufwind'),
     cli = require('./cli'),
@@ -20,62 +18,75 @@ var restartVia = {
   cli: cli
 };
 
-var restart = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
-    var progress = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : noop;
-    var directory, env, privateKey, configuration, environment, type;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+var restart =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options) {
+    var progress,
+        directory,
+        env,
+        configuration,
+        environment,
+        type,
+        _args = arguments;
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
+            progress = _args.length > 1 && _args[1] !== undefined ? _args[1] : noop;
+
             if (options) {
-              _context.next = 2;
+              _context.next = 3;
               break;
             }
 
             throw new Error('Options are missing.');
 
-          case 2:
+          case 3:
             if (options.directory) {
-              _context.next = 4;
+              _context.next = 5;
               break;
             }
 
             throw new Error('Directory is missing.');
 
-          case 4:
+          case 5:
             if (options.env) {
-              _context.next = 6;
+              _context.next = 7;
               break;
             }
 
             throw new Error('Environment is missing.');
 
-          case 6:
-            directory = options.directory, env = options.env, privateKey = options.privateKey;
-            _context.next = 9;
+          case 7:
+            directory = options.directory, env = options.env;
+            _context.next = 10;
             return shared.getConfiguration({
               env: env,
               directory: directory,
               isPackageJsonRequired: true
             }, progress);
 
-          case 9:
+          case 10:
             configuration = _context.sent;
             environment = configuration.environments[env];
             type = environment.type === 'aufwind' ? environment.type : 'cli';
-            _context.next = 14;
-            return restartVia[type]({ directory: directory, env: env, privateKey: privateKey, configuration: configuration }, progress);
+            _context.next = 15;
+            return restartVia[type]((0, _objectSpread2.default)({}, options, {
+              configuration: configuration
+            }), progress);
 
-          case 14:
-          case 'end':
+          case 15:
+          case "end":
             return _context.stop();
         }
       }
     }, _callee, this);
   }));
 
-  return function restart(_x2) {
+  return function restart(_x) {
     return _ref.apply(this, arguments);
   };
 }();

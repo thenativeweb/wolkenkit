@@ -1,29 +1,23 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _promise = require('babel-runtime/core-js/promise');
-
-var _promise2 = _interopRequireDefault(_promise);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var errors = require('../../../errors'),
     shell = require('../../../shell'),
     waitForSshTunnel = require('./waitForSshTunnel');
 
-var startPuttyTunnel = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
-    var _this = this;
-
-    var addresses, username, privateKey, childProcess;
-    return _regenerator2.default.wrap(function _callee2$(_context2) {
+var startPuttyTunnel =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee2(options) {
+    var configuration, addresses, username, privateKey, childProcess;
+    return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
@@ -35,59 +29,73 @@ var startPuttyTunnel = function () {
             throw new Error('Options are missing.');
 
           case 2:
-            if (options.addresses) {
+            if (options.configuration) {
               _context2.next = 4;
+              break;
+            }
+
+            throw new Error('Configuration is missing.');
+
+          case 4:
+            if (options.addresses) {
+              _context2.next = 6;
               break;
             }
 
             throw new Error('Addresses are missing.');
 
-          case 4:
+          case 6:
             if (options.username) {
-              _context2.next = 6;
+              _context2.next = 8;
               break;
             }
 
             throw new Error('Username is missing.');
 
-          case 6:
-            addresses = options.addresses, username = options.username, privateKey = options.privateKey;
-            _context2.next = 9;
+          case 8:
+            configuration = options.configuration, addresses = options.addresses, username = options.username, privateKey = options.privateKey;
+            _context2.next = 11;
             return shell.which('plink');
 
-          case 9:
+          case 11:
             if (_context2.sent) {
-              _context2.next = 11;
+              _context2.next = 13;
               break;
             }
 
             throw new errors.ExecutableNotFound();
 
-          case 11:
-            _context2.next = 13;
-            return new _promise2.default(function () {
-              var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(resolve, reject) {
+          case 13:
+            _context2.next = 15;
+            return new Promise(
+            /*#__PURE__*/
+            function () {
+              var _ref2 = (0, _asyncToGenerator2.default)(
+              /*#__PURE__*/
+              _regenerator.default.mark(function _callee(resolve, reject) {
                 var args, child;
-                return _regenerator2.default.wrap(function _callee$(_context) {
+                return _regenerator.default.wrap(function _callee$(_context) {
                   while (1) {
                     switch (_context.prev = _context.next) {
                       case 0:
-                        args = ['-N', '-L', addresses.from.port + ':' + addresses.from.host + ':' + addresses.to.port, username + '@' + addresses.server.host, '-P', '' + addresses.server.port];
-
+                        args = ['-N', '-L', "".concat(addresses.from.port, ":").concat(addresses.from.host, ":").concat(addresses.to.port), "".concat(username, "@").concat(addresses.server.host), '-P', "".concat(addresses.server.port)];
 
                         if (privateKey) {
                           args.push('-i');
                           args.push(privateKey);
                         }
 
-                        child = shell.spawn('plink', args, { stdio: 'pipe' });
-
-
+                        child = shell.spawn('plink', args, {
+                          stdio: 'pipe'
+                        });
                         child.on('error', reject);
-
                         _context.prev = 4;
                         _context.next = 7;
-                        return waitForSshTunnel({ host: addresses.from.host, port: addresses.from.port });
+                        return waitForSshTunnel({
+                          configuration: configuration,
+                          host: addresses.from.host,
+                          port: addresses.from.port
+                        });
 
                       case 7:
                         _context.next = 12;
@@ -95,19 +103,18 @@ var startPuttyTunnel = function () {
 
                       case 9:
                         _context.prev = 9;
-                        _context.t0 = _context['catch'](4);
-                        return _context.abrupt('return', reject(_context.t0));
+                        _context.t0 = _context["catch"](4);
+                        return _context.abrupt("return", reject(_context.t0));
 
                       case 12:
-
                         resolve(child);
 
                       case 13:
-                      case 'end':
+                      case "end":
                         return _context.stop();
                     }
                   }
-                }, _callee, _this, [[4, 9]]);
+                }, _callee, this, [[4, 9]]);
               }));
 
               return function (_x2, _x3) {
@@ -115,14 +122,16 @@ var startPuttyTunnel = function () {
               };
             }());
 
-          case 13:
-            childProcess = _context2.sent;
-            return _context2.abrupt('return', { close: function close() {
-                return childProcess.kill();
-              } });
-
           case 15:
-          case 'end':
+            childProcess = _context2.sent;
+            return _context2.abrupt("return", {
+              close: function close() {
+                return childProcess.kill();
+              }
+            });
+
+          case 17:
+          case "end":
             return _context2.stop();
         }
       }

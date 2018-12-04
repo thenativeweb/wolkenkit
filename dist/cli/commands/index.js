@@ -5,5 +5,5 @@ var kebabCase = require('lodash/kebabCase'),
     requireDir = require('require-dir');
 
 module.exports = mapKeys(requireDir(__dirname), function (value, key) {
-      return kebabCase(key);
+  return kebabCase(key);
 });

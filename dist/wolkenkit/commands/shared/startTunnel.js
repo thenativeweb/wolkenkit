@@ -1,14 +1,10 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var os = require('os'),
     url = require('url'),
@@ -24,11 +20,15 @@ var defaults = require('../defaults.json'),
 
 var freeportAsync = util.promisify(freeport);
 
-var startTunnel = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options, progress) {
-    var configuration, env, privateKey, environment, server, _environment$deployme, host, port, serverUrl, username, addresses, tunnelServer;
+var startTunnel =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options, progress) {
+    var configuration, env, privateKey, environment, server, _environment$deployme, host, port, stats, mode, serverUrl, username, addresses, tunnelServer;
 
-    return _regenerator2.default.wrap(function _callee$(_context) {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -72,22 +72,22 @@ var startTunnel = function () {
               break;
             }
 
-            progress({ message: 'Environment is not of type aufwind.', type: 'info' });
+            progress({
+              message: 'Environment is not of type aufwind.',
+              type: 'info'
+            });
             throw new errors.EnvironmentNotAufwind();
 
           case 13:
-            server = 'ssh://' + defaults.commands.shared.aufwind.ssh.host + ':' + defaults.commands.shared.aufwind.ssh.port + ' ';
-
+            server = "ssh://".concat(defaults.commands.shared.aufwind.ssh.host, ":").concat(defaults.commands.shared.aufwind.ssh.port, " ");
 
             if (environment.deployment.server) {
               _environment$deployme = environment.deployment.server, host = _environment$deployme.host, port = _environment$deployme.port;
-
-
-              server = 'ssh://' + host + ':' + port;
+              server = "ssh://".concat(host, ":").concat(port);
             }
 
             if (!privateKey) {
-              _context.next = 32;
+              _context.next = 39;
               break;
             }
 
@@ -101,46 +101,73 @@ var startTunnel = function () {
 
           case 21:
             _context.prev = 21;
-            _context.t0 = _context['catch'](16);
+            _context.t0 = _context["catch"](16);
             _context.t1 = _context.t0.code;
             _context.next = _context.t1 === 'EFILENOTFOUND' ? 26 : _context.t1 === 'EFILENOTACCESSIBLE' ? 28 : 30;
             break;
 
           case 26:
-            progress({ message: 'Private key not found.', type: 'info' });
-            return _context.abrupt('break', 31);
+            progress({
+              message: 'Private key not found.',
+              type: 'info'
+            });
+            return _context.abrupt("break", 31);
 
           case 28:
-            progress({ message: 'Private key is not accessible.', type: 'info' });
-            return _context.abrupt('break', 31);
+            progress({
+              message: 'Private key is not accessible.',
+              type: 'info'
+            });
+            return _context.abrupt("break", 31);
 
           case 30:
-            return _context.abrupt('break', 31);
+            return _context.abrupt("break", 31);
 
           case 31:
             throw _context.t0;
 
           case 32:
-            serverUrl = url.parse(server);
+            _context.next = 34;
+            return file.stat(privateKey);
 
-            if (!(serverUrl.protocol !== 'ssh:')) {
-              _context.next = 36;
+          case 34:
+            stats = _context.sent;
+            mode = stats.mode.toString(8);
+
+            if (!(/^\d\d\d(4|6)00$/g.test(mode) === false)) {
+              _context.next = 39;
               break;
             }
 
-            progress({ message: 'Protocol is invalid.' });
+            progress({
+              message: 'Private key permissions are too open.',
+              type: 'info'
+            });
+            throw new errors.FileAccessModeTooOpen();
+
+          case 39:
+            serverUrl = url.parse(server);
+
+            if (!(serverUrl.protocol !== 'ssh:')) {
+              _context.next = 43;
+              break;
+            }
+
+            progress({
+              message: 'Protocol is invalid.'
+            });
             throw new errors.ProtocolInvalid();
 
-          case 36:
+          case 43:
             username = 'wolkenkit';
             _context.t2 = {
               host: serverUrl.hostname,
               port: serverUrl.port
             };
-            _context.next = 40;
+            _context.next = 47;
             return freeportAsync();
 
-          case 40:
+          case 47:
             _context.t3 = _context.sent;
             _context.t4 = {
               host: 'localhost',
@@ -155,110 +182,135 @@ var startTunnel = function () {
               from: _context.t4,
               to: _context.t5
             };
-            tunnelServer = void 0;
 
             if (!(os.platform() === 'win32')) {
-              _context.next = 64;
+              _context.next = 70;
               break;
             }
 
-            progress({ message: 'Trying to use plink...' });
+            progress({
+              message: 'Trying to use plink...'
+            });
+            _context.prev = 53;
+            _context.next = 56;
+            return startPuttyTunnel({
+              configuration: configuration,
+              addresses: addresses,
+              username: username,
+              privateKey: privateKey
+            });
 
-            _context.prev = 47;
-            _context.next = 50;
-            return startPuttyTunnel({ addresses: addresses, username: username, privateKey: privateKey });
-
-          case 50:
+          case 56:
             tunnelServer = _context.sent;
-            _context.next = 64;
+            _context.next = 70;
             break;
 
-          case 53:
-            _context.prev = 53;
-            _context.t6 = _context['catch'](47);
+          case 59:
+            _context.prev = 59;
+            _context.t6 = _context["catch"](53);
 
             if (!(_context.t6.code !== 'EEXECUTABLENOTFOUND')) {
-              _context.next = 63;
+              _context.next = 69;
               break;
             }
 
             _context.t7 = _context.t6.code;
-            _context.next = _context.t7 === 'ECONNREFUSED' ? 59 : 61;
+            _context.next = _context.t7 === 'ECONNREFUSED' ? 65 : 67;
             break;
 
-          case 59:
-            progress({ message: 'Failed to reach aufwind server.', type: 'info' });
-            return _context.abrupt('break', 62);
+          case 65:
+            progress({
+              message: 'Failed to reach aufwind server.',
+              type: 'info'
+            });
+            return _context.abrupt("break", 68);
 
-          case 61:
-            return _context.abrupt('break', 62);
+          case 67:
+            return _context.abrupt("break", 68);
 
-          case 62:
+          case 68:
             throw _context.t6;
 
-          case 63:
+          case 69:
+            progress({
+              message: 'plink not found.'
+            });
 
-            progress({ message: 'plink not found.' });
-
-          case 64:
+          case 70:
             if (tunnelServer) {
-              _context.next = 84;
+              _context.next = 90;
               break;
             }
 
-            progress({ message: 'Trying to use ssh...' });
-
-            _context.prev = 66;
-            _context.next = 69;
-            return startOpensshTunnel({ addresses: addresses, username: username, privateKey: privateKey });
-
-          case 69:
-            tunnelServer = _context.sent;
-            _context.next = 84;
-            break;
-
-          case 72:
+            progress({
+              message: 'Trying to use ssh...'
+            });
             _context.prev = 72;
-            _context.t8 = _context['catch'](66);
-            _context.t9 = _context.t8.code;
-            _context.next = _context.t9 === 'EEXECUTABLENOTFOUND' ? 77 : _context.t9 === 'ECONNREFUSED' ? 80 : 82;
+            _context.next = 75;
+            return startOpensshTunnel({
+              configuration: configuration,
+              addresses: addresses,
+              username: username,
+              privateKey: privateKey
+            });
+
+          case 75:
+            tunnelServer = _context.sent;
+            _context.next = 90;
             break;
 
-          case 77:
-            progress({ message: 'ssh not found.' });
-            progress({ message: 'SSH client not found.', type: 'info' });
-            return _context.abrupt('break', 83);
-
-          case 80:
-            progress({ message: 'Failed to reach aufwind server.', type: 'info' });
-            return _context.abrupt('break', 83);
-
-          case 82:
-            return _context.abrupt('break', 83);
+          case 78:
+            _context.prev = 78;
+            _context.t8 = _context["catch"](72);
+            _context.t9 = _context.t8.code;
+            _context.next = _context.t9 === 'EEXECUTABLENOTFOUND' ? 83 : _context.t9 === 'ECONNREFUSED' ? 86 : 88;
+            break;
 
           case 83:
+            progress({
+              message: 'ssh not found.'
+            });
+            progress({
+              message: 'SSH client not found.',
+              type: 'info'
+            });
+            return _context.abrupt("break", 89);
+
+          case 86:
+            progress({
+              message: 'Failed to reach aufwind server.',
+              type: 'info'
+            });
+            return _context.abrupt("break", 89);
+
+          case 88:
+            return _context.abrupt("break", 89);
+
+          case 89:
             throw _context.t8;
 
-          case 84:
-
-            progress({ message: 'Opened SSH tunnel from ' + addresses.from.host + ':' + addresses.from.port + ' to ' + addresses.server.host + ':' + addresses.server.port + '.' });
-
-            return _context.abrupt('return', {
+          case 90:
+            progress({
+              message: "Opened SSH tunnel from ".concat(addresses.from.host, ":").concat(addresses.from.port, " to ").concat(addresses.server.host, ":").concat(addresses.server.port, ".")
+            });
+            return _context.abrupt("return", {
               close: function close() {
                 tunnelServer.close();
-                progress({ message: 'Closed SSH tunnel.' });
+                progress({
+                  message: 'Closed SSH tunnel.'
+                });
               },
               host: addresses.from.host,
               port: addresses.from.port,
               server: addresses.server
             });
 
-          case 86:
-          case 'end':
+          case 92:
+          case "end":
             return _context.stop();
         }
       }
-    }, _callee, this, [[16, 21], [47, 53], [66, 72]]);
+    }, _callee, this, [[16, 21], [53, 59], [72, 78]]);
   }));
 
   return function startTunnel(_x, _x2) {

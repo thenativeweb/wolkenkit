@@ -1,31 +1,28 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _keys = require('babel-runtime/core-js/object/keys');
-
-var _keys2 = _interopRequireDefault(_keys);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var path = require('path');
 
-var ajv = require('ajv');
+var Value = require('validate-value');
 
 var errors = require('../errors'),
     file = require('../file'),
+    resolveSecrets = require('./resolveSecrets'),
     transformEnvironmentVariables = require('./transformEnvironmentVariables');
 
-var getConfiguration = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
-    var directory, configurationFile, packageJson, configuration, runtimeVersion, schema, isValid;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+var getConfiguration =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options) {
+    var directory, configurationFile, packageJson, configuration, runtimeVersion, schema, value;
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -62,74 +59,80 @@ var getConfiguration = function () {
             throw new errors.ConfigurationNotFound();
 
           case 12:
-            runtimeVersion = void 0;
-            _context.prev = 13;
+            _context.next = 14;
+            return resolveSecrets({
+              configuration: configuration,
+              directory: directory
+            });
 
+          case 14:
+            configuration = _context.sent;
+            _context.prev = 15;
             runtimeVersion = configuration.runtime.version;
-            _context.next = 20;
+            _context.next = 22;
             break;
 
-          case 17:
-            _context.prev = 17;
-            _context.t0 = _context['catch'](13);
+          case 19:
+            _context.prev = 19;
+            _context.t0 = _context["catch"](15);
             throw new errors.ConfigurationMalformed();
 
-          case 20:
-            schema = void 0;
-            _context.prev = 21;
+          case 22:
+            _context.prev = 22;
 
             /* eslint-disable global-require */
-            schema = require('../configuration/' + runtimeVersion + '/schema')();
+            schema = require("../configuration/".concat(runtimeVersion, "/schema"))();
             /* eslint-enable global-require */
-            _context.next = 32;
+
+            _context.next = 33;
             break;
 
-          case 25:
-            _context.prev = 25;
-            _context.t1 = _context['catch'](21);
+          case 26:
+            _context.prev = 26;
+            _context.t1 = _context["catch"](22);
             _context.t2 = _context.t1.code;
-            _context.next = _context.t2 === 'MODULE_NOT_FOUND' ? 30 : 31;
+            _context.next = _context.t2 === 'MODULE_NOT_FOUND' ? 31 : 32;
             break;
-
-          case 30:
-            throw new errors.VersionNotFound();
 
           case 31:
-            throw _context.t1;
+            throw new errors.VersionNotFound();
 
           case 32:
-            isValid = ajv().compile(schema);
+            throw _context.t1;
 
-            if (isValid(configuration)) {
-              _context.next = 35;
-              break;
-            }
+          case 33:
+            value = new Value(schema);
+            _context.prev = 34;
+            value.validate(configuration, 'wolkenkit');
+            _context.next = 41;
+            break;
 
-            throw new errors.ConfigurationMalformed();
+          case 38:
+            _context.prev = 38;
+            _context.t3 = _context["catch"](34);
+            throw new errors.ConfigurationMalformed(_context.t3.message);
 
-          case 35:
-
-            (0, _keys2.default)(configuration.environments).forEach(function (name) {
+          case 41:
+            Object.keys(configuration.environments).forEach(function (name) {
               var currentEnvironment = configuration.environments[name];
-
               var environmentVariables = currentEnvironment.environmentVariables;
-
 
               if (!environmentVariables) {
                 return;
               }
 
-              configuration.environments[name].environmentVariables = transformEnvironmentVariables({ environmentVariables: environmentVariables });
+              configuration.environments[name].environmentVariables = transformEnvironmentVariables({
+                environmentVariables: environmentVariables
+              });
             });
+            return _context.abrupt("return", configuration);
 
-            return _context.abrupt('return', configuration);
-
-          case 37:
-          case 'end':
+          case 43:
+          case "end":
             return _context.stop();
         }
       }
-    }, _callee, this, [[13, 17], [21, 25]]);
+    }, _callee, this, [[15, 19], [22, 26], [34, 38]]);
   }));
 
   return function getConfiguration(_x) {

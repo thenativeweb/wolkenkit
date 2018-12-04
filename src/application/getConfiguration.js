@@ -2,7 +2,7 @@
 
 const path = require('path');
 
-const ajv = require('ajv');
+const Value = require('validate-value');
 
 const errors = require('../errors'),
       file = require('../file'),
@@ -53,12 +53,12 @@ const getConfiguration = async function (options) {
     }
   }
 
-  const isValid = ajv().compile(schema);
+  const value = new Value(schema);
 
-  if (!isValid(configuration)) {
-    const err = isValid.errors[0];
-
-    throw new errors.ConfigurationMalformed(`Path ${err.dataPath} ${err.message}.`);
+  try {
+    value.validate(configuration, 'wolkenkit');
+  } catch (ex) {
+    throw new errors.ConfigurationMalformed(ex.message);
   }
 
   Object.keys(configuration.environments).forEach(name => {

@@ -1,18 +1,12 @@
 'use strict';
 
-var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
-var _regenerator = require('babel-runtime/regenerator');
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var buntstift = require('buntstift'),
     getUsage = require('command-line-usage'),
@@ -25,14 +19,15 @@ var defaults = require('../defaults.json'),
 
 var logs = {
   description: 'Fetch an application log.',
-
   getOptionDefinitions: function () {
-    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
-      return _regenerator2.default.wrap(function _callee$(_context) {
+    var _getOptionDefinitions = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee() {
+      return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              return _context.abrupt('return', [{
+              return _context.abrupt("return", [{
                 name: 'env',
                 alias: 'e',
                 type: String,
@@ -47,23 +42,23 @@ var logs = {
               }]);
 
             case 1:
-            case 'end':
+            case "end":
               return _context.stop();
           }
         }
       }, _callee, this);
     }));
 
-    function getOptionDefinitions() {
-      return _ref.apply(this, arguments);
-    }
-
-    return getOptionDefinitions;
+    return function getOptionDefinitions() {
+      return _getOptionDefinitions.apply(this, arguments);
+    };
   }(),
   run: function () {
-    var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
+    var _run = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee2(options) {
       var directory, env, follow, help, verbose, stopWaiting;
-      return _regenerator2.default.wrap(function _callee2$(_context2) {
+      return _regenerator.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
@@ -94,69 +89,71 @@ var logs = {
               directory = process.cwd(), env = options.env, follow = options.follow, help = options.help, verbose = options.verbose;
 
               if (!help) {
-                _context2.next = 24;
+                _context2.next = 22;
                 break;
               }
 
               _context2.t0 = buntstift;
               _context2.t1 = getUsage;
-              _context2.t2 = { header: 'wolkenkit logs', content: this.description };
-              _context2.t3 = { header: 'Synopsis', content: 'wolkenkit logs [--env <env>] [--follow]' };
-              _context2.t4 = [];
-              _context2.t5 = _toConsumableArray3.default;
-              _context2.next = 16;
+              _context2.t2 = {
+                header: 'wolkenkit logs',
+                content: this.description
+              };
+              _context2.t3 = {
+                header: 'Synopsis',
+                content: 'wolkenkit logs [--env <env>] [--follow]'
+              };
+              _context2.t4 = _toConsumableArray2.default;
+              _context2.next = 15;
               return this.getOptionDefinitions();
 
-            case 16:
-              _context2.t6 = _context2.sent;
-              _context2.t7 = (0, _context2.t5)(_context2.t6);
-              _context2.t8 = (0, _toConsumableArray3.default)(globalOptionDefinitions);
-              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
-              _context2.t10 = {
+            case 15:
+              _context2.t5 = _context2.sent;
+              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
+              _context2.t8 = {
                 header: 'Options',
-                optionList: _context2.t9
+                optionList: _context2.t7
               };
-              _context2.t11 = [_context2.t2, _context2.t3, _context2.t10];
-              _context2.t12 = (0, _context2.t1)(_context2.t11);
-              return _context2.abrupt('return', _context2.t0.info.call(_context2.t0, _context2.t12));
+              _context2.t9 = [_context2.t2, _context2.t3, _context2.t8];
+              _context2.t10 = (0, _context2.t1)(_context2.t9);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t10));
 
-            case 24:
+            case 22:
               stopWaiting = buntstift.wait();
-              _context2.prev = 25;
-              _context2.next = 28;
-              return wolkenkit.commands.logs({ directory: directory, env: env, follow: follow }, showProgress(verbose, stopWaiting));
+              _context2.prev = 23;
+              _context2.next = 26;
+              return wolkenkit.commands.logs({
+                directory: directory,
+                env: env,
+                follow: follow
+              }, showProgress(verbose, stopWaiting));
 
-            case 28:
-              _context2.next = 35;
+            case 26:
+              _context2.next = 33;
               break;
 
-            case 30:
-              _context2.prev = 30;
-              _context2.t13 = _context2['catch'](25);
-
+            case 28:
+              _context2.prev = 28;
+              _context2.t11 = _context2["catch"](23);
               stopWaiting();
               buntstift.error('Failed to fetch application logs.');
+              throw _context2.t11;
 
-              throw _context2.t13;
-
-            case 35:
-
+            case 33:
               stopWaiting();
 
-            case 36:
-            case 'end':
+            case 34:
+            case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[25, 30]]);
+      }, _callee2, this, [[23, 28]]);
     }));
 
-    function run(_x) {
-      return _ref2.apply(this, arguments);
-    }
-
-    return run;
+    return function run(_x) {
+      return _run.apply(this, arguments);
+    };
   }()
 };
-
 module.exports = logs;

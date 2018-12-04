@@ -1,22 +1,22 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var docker = require('../../docker'),
     getImages = require('./getImages');
 
-var getMissingImages = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
+var getMissingImages =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options) {
     var configuration, env, forVersion, missingImages, images, i, image, name, version, isInstalled;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -55,7 +55,9 @@ var getMissingImages = function () {
             configuration = options.configuration, env = options.env, forVersion = options.forVersion;
             missingImages = [];
             _context.next = 12;
-            return getImages({ forVersion: forVersion });
+            return getImages({
+              forVersion: forVersion
+            });
 
           case 12:
             images = _context.sent;
@@ -70,7 +72,12 @@ var getMissingImages = function () {
             image = images[i];
             name = image.name, version = image.version;
             _context.next = 19;
-            return docker.isImageInstalled({ configuration: configuration, env: env, name: name, version: version });
+            return docker.isImageInstalled({
+              configuration: configuration,
+              env: env,
+              name: name,
+              version: version
+            });
 
           case 19:
             isInstalled = _context.sent;
@@ -80,10 +87,9 @@ var getMissingImages = function () {
               break;
             }
 
-            return _context.abrupt('continue', 23);
+            return _context.abrupt("continue", 23);
 
           case 22:
-
             missingImages.push(image);
 
           case 23:
@@ -92,10 +98,10 @@ var getMissingImages = function () {
             break;
 
           case 26:
-            return _context.abrupt('return', missingImages);
+            return _context.abrupt("return", missingImages);
 
           case 27:
-          case 'end':
+          case "end":
             return _context.stop();
         }
       }

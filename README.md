@@ -20,6 +20,7 @@ wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and
 - [Finding the code](#finding-the-code)
 - [Running the build](#running-the-build)
 - [FAQ](#faq)
+  * [Why do I get an *Error loading extension section V3_ca* message when running the story tests?](#why-do-i-get-an-error-loading-extension-section-v3_ca-message-when-running-the-story-tests)
 - [License](#license)
 
 <!-- tocstop -->

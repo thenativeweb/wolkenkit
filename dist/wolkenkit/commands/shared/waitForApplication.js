@@ -1,29 +1,31 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+var axios = require('axios'),
+    nodeenv = require('nodeenv'),
+    retry = require('async-retry');
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var errors = require('../../../errors'),
+    switchSemver = require('../../../switchSemver');
 
-var nodeenv = require('nodeenv'),
-    request = require('requestretry');
-
-var errors = require('../../../errors');
-
-var waitForApplication = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options, progress) {
-    var configuration, env, host, port, restoreEnvironment, selectedEnvironment, result;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+var waitForApplication =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee5(options, progress) {
+    var configuration, env, version, host, port, restoreEnvironment, selectedEnvironment;
+    return _regenerator.default.wrap(function _callee5$(_context5) {
       while (1) {
-        switch (_context.prev = _context.next) {
+        switch (_context5.prev = _context5.next) {
           case 0:
             if (options) {
-              _context.next = 2;
+              _context5.next = 2;
               break;
             }
 
@@ -31,7 +33,7 @@ var waitForApplication = function () {
 
           case 2:
             if (options.configuration) {
-              _context.next = 4;
+              _context5.next = 4;
               break;
             }
 
@@ -39,7 +41,7 @@ var waitForApplication = function () {
 
           case 4:
             if (options.env) {
-              _context.next = 6;
+              _context5.next = 6;
               break;
             }
 
@@ -47,7 +49,7 @@ var waitForApplication = function () {
 
           case 6:
             if (progress) {
-              _context.next = 8;
+              _context5.next = 8;
               break;
             }
 
@@ -55,47 +57,152 @@ var waitForApplication = function () {
 
           case 8:
             configuration = options.configuration, env = options.env;
+            version = configuration.runtime.version;
             host = options.host, port = options.port;
             restoreEnvironment = nodeenv('NODE_TLS_REJECT_UNAUTHORIZED', '0');
             selectedEnvironment = configuration.environments[env];
-
 
             if (!host || !port) {
               host = selectedEnvironment.api.address.host;
               port = selectedEnvironment.api.address.port;
             }
 
-            progress({ message: 'Waiting for https://' + host + ':' + port + '/v1/ping to reply...', type: 'info' });
+            _context5.next = 16;
+            return switchSemver(version, {
+              '<= 2.0.0': function () {
+                var _2 = (0, _asyncToGenerator2.default)(
+                /*#__PURE__*/
+                _regenerator.default.mark(function _callee2() {
+                  var response;
+                  return _regenerator.default.wrap(function _callee2$(_context2) {
+                    while (1) {
+                      switch (_context2.prev = _context2.next) {
+                        case 0:
+                          progress({
+                            message: "Waiting for https://".concat(host, ":").concat(port, "/v1/ping to reply..."),
+                            type: 'info'
+                          });
+                          _context2.next = 3;
+                          return retry(
+                          /*#__PURE__*/
+                          (0, _asyncToGenerator2.default)(
+                          /*#__PURE__*/
+                          _regenerator.default.mark(function _callee() {
+                            return _regenerator.default.wrap(function _callee$(_context) {
+                              while (1) {
+                                switch (_context.prev = _context.next) {
+                                  case 0:
+                                    _context.next = 2;
+                                    return axios({
+                                      method: 'get',
+                                      url: "https://".concat(host, ":").concat(port, "/v1/ping")
+                                    });
 
-            _context.next = 16;
-            return request({
-              url: 'https://' + host + ':' + port + '/v1/ping',
-              json: true,
-              fullResponse: false,
-              maxAttempts: 60,
-              retryDelay: 2 * 1000,
-              retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+                                  case 2:
+                                    return _context.abrupt("return", _context.sent);
+
+                                  case 3:
+                                  case "end":
+                                    return _context.stop();
+                                }
+                              }
+                            }, _callee, this);
+                          })), {
+                            retries: 60,
+                            maxTimeout: 2 * 1000
+                          });
+
+                        case 3:
+                          response = _context2.sent;
+
+                          if (!(response.data.api !== 'v1')) {
+                            _context2.next = 6;
+                            break;
+                          }
+
+                          throw new errors.JsonMalformed();
+
+                        case 6:
+                          restoreEnvironment();
+
+                        case 7:
+                        case "end":
+                          return _context2.stop();
+                      }
+                    }
+                  }, _callee2, this);
+                }));
+
+                return function _() {
+                  return _2.apply(this, arguments);
+                };
+              }(),
+              default: function () {
+                var _default2 = (0, _asyncToGenerator2.default)(
+                /*#__PURE__*/
+                _regenerator.default.mark(function _callee4() {
+                  return _regenerator.default.wrap(function _callee4$(_context4) {
+                    while (1) {
+                      switch (_context4.prev = _context4.next) {
+                        case 0:
+                          progress({
+                            message: "Waiting for https://".concat(host, ":").concat(port, "/ to reply..."),
+                            type: 'info'
+                          });
+                          _context4.next = 3;
+                          return retry(
+                          /*#__PURE__*/
+                          (0, _asyncToGenerator2.default)(
+                          /*#__PURE__*/
+                          _regenerator.default.mark(function _callee3() {
+                            return _regenerator.default.wrap(function _callee3$(_context3) {
+                              while (1) {
+                                switch (_context3.prev = _context3.next) {
+                                  case 0:
+                                    _context3.next = 2;
+                                    return axios({
+                                      method: 'get',
+                                      url: "https://".concat(host, ":").concat(port, "/")
+                                    });
+
+                                  case 2:
+                                  case "end":
+                                    return _context3.stop();
+                                }
+                              }
+                            }, _callee3, this);
+                          })), {
+                            retries: 60,
+                            maxTimeout: 2 * 1000
+                          });
+
+                        case 3:
+                          progress({
+                            message: "Running at https://".concat(host, ":").concat(port, "/"),
+                            type: 'info'
+                          });
+                          restoreEnvironment();
+
+                        case 5:
+                        case "end":
+                          return _context4.stop();
+                      }
+                    }
+                  }, _callee4, this);
+                }));
+
+                return function _default() {
+                  return _default2.apply(this, arguments);
+                };
+              }()
             });
 
           case 16:
-            result = _context.sent;
-
-
-            restoreEnvironment();
-
-            if (!(result.api !== 'v1')) {
-              _context.next = 20;
-              break;
-            }
-
-            throw new errors.JsonMalformed();
-
-          case 20:
-          case 'end':
-            return _context.stop();
+          case "end":
+            return _context5.stop();
         }
       }
-    }, _callee, this);
+    }, _callee5, this);
   }));
 
   return function waitForApplication(_x, _x2) {

@@ -8,23 +8,29 @@ var container = function container(options) {
   if (!options) {
     throw new Error('Options are missing.');
   }
+
   if (!options.configuration) {
     throw new Error('Configuration is missing.');
   }
+
   if (!options.env) {
     throw new Error('Environment is missing.');
   }
+
   if (!options.sharedKey) {
     throw new Error('Shared key is missing.');
   }
+
   if (options.persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
+
   if (options.debug === undefined) {
     throw new Error('Debug is missing.');
   }
-
   /* eslint-disable no-unused-vars */
+
+
   var configuration = options.configuration,
       env = options.env,
       sharedKey = options.sharedKey,
@@ -33,10 +39,9 @@ var container = function container(options) {
   /* eslint-enable no-unused-vars */
 
   var selectedEnvironment = configuration.environments[env];
-
   return {
-    image: configuration.application + '-node-modules',
-    name: configuration.application + '-node-modules',
+    image: "".concat(configuration.application, "-node-modules"),
+    name: "".concat(configuration.application, "-node-modules"),
     env: {
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development')
     },

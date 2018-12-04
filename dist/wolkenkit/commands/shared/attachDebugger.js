@@ -1,23 +1,23 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var request = require('requestretry');
+var axios = require('axios');
 
 var runtimes = require('../../runtimes');
 
-var attachDebugger = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options, progress) {
-    var configuration, env, sharedKey, persistData, debug, host, runtime, containers, i, container, debugPort, debugConfiguration, id, debugUrl;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+var attachDebugger =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options, progress) {
+    var configuration, env, sharedKey, persistData, debug, host, runtime, containers, i, container, debugPort, response, id, debugUrl;
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -106,7 +106,7 @@ var attachDebugger = function () {
               break;
             }
 
-            return _context.abrupt('continue', 33);
+            return _context.abrupt("continue", 33);
 
           case 24:
             debugPort = container.ports[9229];
@@ -116,24 +116,23 @@ var attachDebugger = function () {
               break;
             }
 
-            return _context.abrupt('continue', 33);
+            return _context.abrupt("continue", 33);
 
           case 27:
             _context.next = 29;
-            return request({
-              url: 'http://' + host + ':' + debugPort + '/json',
-              json: true,
-              fullResponse: false,
-              maxAttempts: 1
+            return axios({
+              method: 'get',
+              url: "http://".concat(host, ":").concat(debugPort, "/json")
             });
 
           case 29:
-            debugConfiguration = _context.sent;
-            id = debugConfiguration[0].id;
-            debugUrl = 'chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=' + host + ':' + debugPort + '/' + id;
-
-
-            progress({ message: 'Started debugger for ' + container.name + ' on ' + debugUrl + '.', type: 'info' });
+            response = _context.sent;
+            id = response.data[0].id;
+            debugUrl = "chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=".concat(host, ":").concat(debugPort, "/").concat(id);
+            progress({
+              message: "Started debugger for ".concat(container.name, " on ").concat(debugUrl, "."),
+              type: 'info'
+            });
 
           case 33:
             i++;
@@ -141,7 +140,7 @@ var attachDebugger = function () {
             break;
 
           case 36:
-          case 'end':
+          case "end":
             return _context.stop();
         }
       }

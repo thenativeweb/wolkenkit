@@ -1,18 +1,10 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _promise = require('babel-runtime/core-js/promise');
-
-var _promise2 = _interopRequireDefault(_promise);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var fs = require('fs'),
     path = require('path');
@@ -24,12 +16,14 @@ var errors = require('../../errors');
 var readdir = promisify(fs.readdir),
     stat = promisify(fs.stat);
 
-var getContainers = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(options) {
-    var _this = this;
-
+var getContainers =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee2(options) {
     var forVersion, configuration, env, sharedKey, persistData, debug, pathRuntime, entries, containers;
-    return _regenerator2.default.wrap(function _callee2$(_context2) {
+    return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
@@ -91,35 +85,38 @@ var getContainers = function () {
           case 14:
             forVersion = options.forVersion, configuration = options.configuration, env = options.env, sharedKey = options.sharedKey, persistData = options.persistData, debug = options.debug;
             pathRuntime = path.join(__dirname, '..', '..', 'configuration', forVersion);
-            entries = void 0;
-            _context2.prev = 17;
-            _context2.next = 20;
+            _context2.prev = 16;
+            _context2.next = 19;
             return readdir(pathRuntime);
 
-          case 20:
+          case 19:
             entries = _context2.sent;
-            _context2.next = 30;
+            _context2.next = 29;
             break;
 
-          case 23:
-            _context2.prev = 23;
-            _context2.t0 = _context2['catch'](17);
+          case 22:
+            _context2.prev = 22;
+            _context2.t0 = _context2["catch"](16);
             _context2.t1 = _context2.t0.code;
-            _context2.next = _context2.t1 === 'ENOENT' ? 28 : 29;
+            _context2.next = _context2.t1 === 'ENOENT' ? 27 : 28;
             break;
 
-          case 28:
+          case 27:
             throw new errors.VersionNotFound();
 
-          case 29:
+          case 28:
             throw _context2.t0;
 
-          case 30:
-            _context2.next = 32;
-            return _promise2.default.all(entries.map(function () {
-              var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(entry) {
+          case 29:
+            _context2.next = 31;
+            return Promise.all(entries.map(
+            /*#__PURE__*/
+            function () {
+              var _ref2 = (0, _asyncToGenerator2.default)(
+              /*#__PURE__*/
+              _regenerator.default.mark(function _callee(entry) {
                 var pathContainer, isDirectory, container;
-                return _regenerator2.default.wrap(function _callee$(_context) {
+                return _regenerator.default.wrap(function _callee$(_context) {
                   while (1) {
                     switch (_context.prev = _context.next) {
                       case 0:
@@ -135,22 +132,27 @@ var getContainers = function () {
                           break;
                         }
 
-                        return _context.abrupt('return');
+                        return _context.abrupt("return");
 
                       case 6:
-
                         /* eslint-disable global-require */
                         container = require(path.join(pathContainer, 'container'));
                         /* eslint-enable global-require */
 
-                        return _context.abrupt('return', container({ configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }));
+                        return _context.abrupt("return", container({
+                          configuration: configuration,
+                          env: env,
+                          sharedKey: sharedKey,
+                          persistData: persistData,
+                          debug: debug
+                        }));
 
                       case 8:
-                      case 'end':
+                      case "end":
                         return _context.stop();
                     }
                   }
-                }, _callee, _this);
+                }, _callee, this);
               }));
 
               return function (_x2) {
@@ -158,20 +160,20 @@ var getContainers = function () {
               };
             }()));
 
-          case 32:
+          case 31:
             _context2.t2 = function (container) {
               return container;
             };
 
             containers = _context2.sent.filter(_context2.t2);
-            return _context2.abrupt('return', containers);
+            return _context2.abrupt("return", containers);
 
-          case 35:
-          case 'end':
+          case 34:
+          case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, this, [[17, 23]]);
+    }, _callee2, this, [[16, 22]]);
   }));
 
   return function getContainers(_x) {

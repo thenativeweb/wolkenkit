@@ -7,5 +7,4 @@ var wolkenkit = {
   commands: commands,
   runtimes: runtimes
 };
-
 module.exports = wolkenkit;

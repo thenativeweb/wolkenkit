@@ -10,16 +10,16 @@ var validateCode = function validateCode(options, progress) {
   if (!options) {
     throw new Error('Options are missing.');
   }
+
   if (!options.directory) {
     throw new Error('Directory is missing.');
   }
+
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
   var directory = options.directory;
-
-
   var cliEngine = new eslint.CLIEngine({
     envs: ['node', 'es6'],
     parserOptions: {
@@ -31,7 +31,6 @@ var validateCode = function validateCode(options, progress) {
     },
     useEslintrc: false
   });
-
   var report = cliEngine.executeOnFiles([path.join(directory, 'server', '**', '*.js')]);
 
   if (report.errorCount === 0) {
@@ -40,15 +39,11 @@ var validateCode = function validateCode(options, progress) {
 
   var errorCount = report.errorCount,
       warningCount = report.warningCount;
-
   var problemCount = errorCount + warningCount;
-
   var message = '';
-
-  message += problemCount + ' problem' + (problemCount !== 1 ? 's' : '') + ' ';
-  message += '(' + errorCount + ' error' + (errorCount !== 1 ? 's' : '') + ', ';
-  message += warningCount + ' warning' + (warningCount !== 1 ? 's' : '') + ')';
-
+  message += "".concat(problemCount, " problem").concat(problemCount !== 1 ? 's' : '', " ");
+  message += "(".concat(errorCount, " error").concat(errorCount !== 1 ? 's' : '', ", ");
+  message += "".concat(warningCount, " warning").concat(warningCount !== 1 ? 's' : '', ")");
   throw new errors.CodeMalformed(message, report);
 };
 

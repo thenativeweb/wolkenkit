@@ -1,54 +1,53 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _keys = require('babel-runtime/core-js/object/keys');
-
-var _keys2 = _interopRequireDefault(_keys);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var fs = require('fs'),
     os = require('os'),
     path = require('path');
 
-var buntstift = require('buntstift'),
+var axios = require('axios'),
+    buntstift = require('buntstift'),
     _require = require('commands-events'),
     Command = _require.Command,
     deepHash = require('deep-hash'),
     dotFile = require('dotfile-json'),
     promisify = require('util.promisify'),
-    request = require('requestretry'),
+    retry = require('async-retry'),
     semver = require('semver'),
     stringifyObject = require('stringify-object'),
     uuid = require('uuidv4');
-
 
 var getConfiguration = require('../application/getConfiguration'),
     packageJson = require('../../package.json');
 
 var stat = promisify(fs.stat);
-
 var telemetry = {
   fileName: '.wolkenkit',
-
   allowedCommands: {
-    reload: { event: 'reloaded' },
-    restart: { event: 'restarted' },
-    start: { event: 'started' },
-    stop: { event: 'stopped' }
+    reload: {
+      event: 'reloaded'
+    },
+    restart: {
+      event: 'restarted'
+    },
+    start: {
+      event: 'started'
+    },
+    stop: {
+      event: 'stopped'
+    }
   },
-
   init: function () {
-    var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
+    var _init = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee() {
       var version, homeDirectory, stats, hasChanges, data, latestVersion, no, yes, answer, confirmed;
-      return _regenerator2.default.wrap(function _callee$(_context) {
+      return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
@@ -67,8 +66,7 @@ var telemetry = {
               }
 
               buntstift.error('Please delete the .wolkenkit directory in your home directory, as this is a relic of the wolkenkit beta.');
-
-              return _context.abrupt('return', buntstift.exit(1));
+              return _context.abrupt("return", buntstift.exit(1));
 
             case 9:
               _context.next = 15;
@@ -76,7 +74,7 @@ var telemetry = {
 
             case 11:
               _context.prev = 11;
-              _context.t0 = _context['catch'](2);
+              _context.t0 = _context["catch"](2);
 
               if (!(_context.t0.code !== 'ENOENT')) {
                 _context.next = 15;
@@ -93,15 +91,13 @@ var telemetry = {
             case 18:
               data = _context.sent;
 
-
               if (!data.installationId) {
                 data.installationId = uuid();
-
                 hasChanges = true;
               }
+
               if (!data.versions) {
                 data.versions = {};
-
                 hasChanges = true;
               }
 
@@ -110,7 +106,7 @@ var telemetry = {
                 break;
               }
 
-              latestVersion = (0, _keys2.default)(data.versions).sort(function (version1, version2) {
+              latestVersion = Object.keys(data.versions).sort(function (version1, version2) {
                 return !semver.gt(version1, version2);
               })[0];
 
@@ -134,7 +130,6 @@ var telemetry = {
               buntstift.info('command. Not sharing your data will not result in any disadvantages for you.');
               buntstift.info('For details, see https://www.thenativeweb.io/telemetry');
               buntstift.newLine();
-
               no = 'No, thanks.';
               yes = 'Yes, I agree to share anonymous usage data with the native web.';
               _context.next = 43;
@@ -143,19 +138,17 @@ var telemetry = {
             case 43:
               answer = _context.sent;
               confirmed = answer === yes;
-
-
               buntstift.newLine();
-
-              data.versions[version] = { sendTelemetry: confirmed };
-
+              data.versions[version] = {
+                sendTelemetry: confirmed
+              };
               hasChanges = true;
 
             case 48:
-
               if (latestVersion && data.versions[latestVersion].sendTelemetry) {
-                data.versions[version] = { sendTelemetry: true };
-
+                data.versions[version] = {
+                  sendTelemetry: true
+                };
                 hasChanges = true;
               }
 
@@ -169,23 +162,23 @@ var telemetry = {
               return dotFile.write(this.fileName, data);
 
             case 52:
-            case 'end':
+            case "end":
               return _context.stop();
           }
         }
       }, _callee, this, [[2, 11]]);
     }));
 
-    function init() {
-      return _ref.apply(this, arguments);
-    }
-
-    return init;
+    return function init() {
+      return _init.apply(this, arguments);
+    };
   }(),
   isEnabled: function () {
-    var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2() {
+    var _isEnabled = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee2() {
       var version, data;
-      return _regenerator2.default.wrap(function _callee2$(_context2) {
+      return _regenerator.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
@@ -195,26 +188,26 @@ var telemetry = {
 
             case 3:
               data = _context2.sent;
-              return _context2.abrupt('return', Boolean(data.versions[version].sendTelemetry));
+              return _context2.abrupt("return", Boolean(data.versions[version].sendTelemetry));
 
             case 5:
-            case 'end':
+            case "end":
               return _context2.stop();
           }
         }
       }, _callee2, this);
     }));
 
-    function isEnabled() {
-      return _ref2.apply(this, arguments);
-    }
-
-    return isEnabled;
+    return function isEnabled() {
+      return _isEnabled.apply(this, arguments);
+    };
   }(),
   enable: function () {
-    var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3() {
+    var _enable = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee3() {
       var version, data;
-      return _regenerator2.default.wrap(function _callee3$(_context3) {
+      return _regenerator.default.wrap(function _callee3$(_context3) {
         while (1) {
           switch (_context3.prev = _context3.next) {
             case 0:
@@ -224,31 +217,28 @@ var telemetry = {
 
             case 3:
               data = _context3.sent;
-
-
               data.versions[version].sendTelemetry = true;
-
               _context3.next = 7;
               return dotFile.write(this.fileName, data);
 
             case 7:
-            case 'end':
+            case "end":
               return _context3.stop();
           }
         }
       }, _callee3, this);
     }));
 
-    function enable() {
-      return _ref3.apply(this, arguments);
-    }
-
-    return enable;
+    return function enable() {
+      return _enable.apply(this, arguments);
+    };
   }(),
   disable: function () {
-    var _ref4 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4() {
+    var _disable = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee4() {
       var version, data;
-      return _regenerator2.default.wrap(function _callee4$(_context4) {
+      return _regenerator.default.wrap(function _callee4$(_context4) {
         while (1) {
           switch (_context4.prev = _context4.next) {
             case 0:
@@ -258,36 +248,35 @@ var telemetry = {
 
             case 3:
               data = _context4.sent;
-
-
               data.versions[version].sendTelemetry = false;
-
               _context4.next = 7;
               return dotFile.write(this.fileName, data);
 
             case 7:
-            case 'end':
+            case "end":
               return _context4.stop();
           }
         }
       }, _callee4, this);
     }));
 
-    function disable() {
-      return _ref4.apply(this, arguments);
-    }
-
-    return disable;
+    return function disable() {
+      return _disable.apply(this, arguments);
+    };
   }(),
   send: function () {
-    var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5(options) {
+    var _send = (0, _asyncToGenerator2.default)(
+    /*#__PURE__*/
+    _regenerator.default.mark(function _callee6(options) {
+      var _this = this;
+
       var command, args, version, help, env, data, configuration, application, runtime, installationId, timestamp, telemetryData, stringifiedTelemetryData;
-      return _regenerator2.default.wrap(function _callee5$(_context5) {
+      return _regenerator.default.wrap(function _callee6$(_context6) {
         while (1) {
-          switch (_context5.prev = _context5.next) {
+          switch (_context6.prev = _context6.next) {
             case 0:
               if (options) {
-                _context5.next = 2;
+                _context6.next = 2;
                 break;
               }
 
@@ -295,7 +284,7 @@ var telemetry = {
 
             case 2:
               if (options.command) {
-                _context5.next = 4;
+                _context6.next = 4;
                 break;
               }
 
@@ -303,7 +292,7 @@ var telemetry = {
 
             case 4:
               if (options.args) {
-                _context5.next = 6;
+                _context6.next = 6;
                 break;
               }
 
@@ -312,54 +301,50 @@ var telemetry = {
             case 6:
               command = options.command, args = options.args;
               version = packageJson.version;
-              help = args.help, env = args.env;
-
-              // If a command was called with the --help flag, abort.
+              help = args.help, env = args.env; // If a command was called with the --help flag, abort.
 
               if (!help) {
-                _context5.next = 11;
+                _context6.next = 11;
                 break;
               }
 
-              return _context5.abrupt('return');
+              return _context6.abrupt("return");
 
             case 11:
-              _context5.next = 13;
+              _context6.next = 13;
               return dotFile.read(this.fileName);
 
             case 13:
-              data = _context5.sent;
+              data = _context6.sent;
 
               if (data.versions[version].sendTelemetry) {
-                _context5.next = 16;
+                _context6.next = 16;
                 break;
               }
 
-              return _context5.abrupt('return');
+              return _context6.abrupt("return");
 
             case 16:
               if (this.allowedCommands[command]) {
-                _context5.next = 18;
+                _context6.next = 18;
                 break;
               }
 
-              return _context5.abrupt('return');
+              return _context6.abrupt("return");
 
             case 18:
-
               buntstift.verbose('Sending telemetry data...');
-
-              _context5.prev = 19;
-              _context5.next = 22;
-              return getConfiguration({ directory: process.cwd() });
+              _context6.prev = 19;
+              _context6.next = 22;
+              return getConfiguration({
+                directory: process.cwd()
+              });
 
             case 22:
-              configuration = _context5.sent;
+              configuration = _context6.sent;
               application = configuration.application, runtime = configuration.runtime;
               installationId = data.installationId;
-              timestamp = Date.now();
-
-              // Anonymize any data that are related to the user, the machine or the
+              timestamp = Date.now(); // Anonymize any data that are related to the user, the machine or the
               // application.
 
               telemetryData = deepHash({
@@ -368,76 +353,88 @@ var telemetry = {
                   name: application,
                   env: env
                 }
-              }, installationId);
-
-              // Add some non-anonymized data that do not refer to the user, the machine
+              }, installationId); // Add some non-anonymized data that do not refer to the user, the machine
               // or the application.
 
               telemetryData.timestamp = timestamp;
-              telemetryData.cli = { version: version, command: command };
+              telemetryData.cli = {
+                version: version,
+                command: command
+              };
               telemetryData.runtime = runtime;
-
               stringifiedTelemetryData = stringifyObject(telemetryData, {
                 indent: '  ',
                 singleQuotes: true
               }).split('\n');
-
-
               stringifiedTelemetryData.forEach(function (line) {
                 buntstift.verbose(line);
               });
+              _context6.next = 34;
+              return retry(
+              /*#__PURE__*/
+              (0, _asyncToGenerator2.default)(
+              /*#__PURE__*/
+              _regenerator.default.mark(function _callee5() {
+                return _regenerator.default.wrap(function _callee5$(_context5) {
+                  while (1) {
+                    switch (_context5.prev = _context5.next) {
+                      case 0:
+                        _context5.next = 2;
+                        return axios({
+                          method: 'post',
+                          url: "https://telemetry.wolkenkit.io/v1/command",
+                          data: new Command({
+                            context: {
+                              name: 'collecting'
+                            },
+                            aggregate: {
+                              name: 'application',
+                              id: uuid.fromString(telemetryData.installationId)
+                            },
+                            name: 'recordEvent',
+                            data: {
+                              name: _this.allowedCommands[command].event,
+                              data: telemetryData
+                            }
+                          })
+                        });
 
-              _context5.next = 34;
-              return request({
-                method: 'POST',
-                url: 'https://telemetry.wolkenkit.io/v1/command',
-                json: true,
-                body: new Command({
-                  context: { name: 'collecting' },
-                  aggregate: { name: 'application', id: uuid.fromString(telemetryData.installationId) },
-                  name: 'recordEvent',
-                  data: {
-                    name: this.allowedCommands[command].event,
-                    data: telemetryData
+                      case 2:
+                      case "end":
+                        return _context5.stop();
+                    }
                   }
-                }),
-                fullResponse: false,
-                maxAttempts: 3,
-                retryDelay: 2 * 1000,
-                retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+                }, _callee5, this);
+              })), {
+                retries: 3,
+                maxTimeout: 2 * 1000
               });
 
             case 34:
-              _context5.next = 41;
+              _context6.next = 41;
               break;
 
             case 36:
-              _context5.prev = 36;
-              _context5.t0 = _context5['catch'](19);
-
+              _context6.prev = 36;
+              _context6.t0 = _context6["catch"](19);
               buntstift.verbose('Failed to send telemetry data.');
-              buntstift.verbose(_context5.t0.message);
-
-              return _context5.abrupt('return');
+              buntstift.verbose(_context6.t0.message);
+              return _context6.abrupt("return");
 
             case 41:
-
               buntstift.verbose('Telemetry data sent.');
 
             case 42:
-            case 'end':
-              return _context5.stop();
+            case "end":
+              return _context6.stop();
           }
         }
-      }, _callee5, this, [[19, 36]]);
+      }, _callee6, this, [[19, 36]]);
     }));
 
-    function send(_x) {
-      return _ref5.apply(this, arguments);
-    }
-
-    return send;
+    return function send(_x) {
+      return _send.apply(this, arguments);
+    };
   }()
 };
-
 module.exports = telemetry;

@@ -1,14 +1,10 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var processenv = require('processenv');
 
@@ -17,15 +13,21 @@ var docker = require('../../../../docker'),
     generateSharedKey = require('./generateSharedKey'),
     health = require('../../health'),
     install = require('../../install'),
+    noop = require('../../../../noop'),
     runtimes = require('../../../runtimes'),
     shared = require('../../shared'),
     startContainers = require('./startContainers'),
+    stop = require('../../stop'),
     verifyThatPortsAreAvailable = require('./verifyThatPortsAreAvailable');
 
-var cli = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options, progress) {
+var cli =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options, progress) {
     var directory, dangerouslyDestroyData, debug, env, configuration, environment, port, runtimeVersion, sharedKeyByUser, sharedKey, persistData, applicationStatus;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -86,13 +88,10 @@ var cli = function () {
 
           case 14:
             directory = options.directory, dangerouslyDestroyData = options.dangerouslyDestroyData, debug = options.debug, env = options.env, configuration = options.configuration;
-            environment = configuration.environments[env];
-
-            // Set the port within the configuration to the correct value (flag over
+            environment = configuration.environments[env]; // Set the port within the configuration to the correct value (flag over
             // environment variable over default value from the package.json file).
 
             environment.api.address.port = options.port || processenv('WOLKENKIT_PORT') || environment.api.address.port;
-
             port = environment.api.address.port;
             runtimeVersion = configuration.runtime.version;
             sharedKeyByUser = options.sharedKey || processenv('WOLKENKIT_SHARED_KEY');
@@ -113,19 +112,35 @@ var cli = function () {
             sharedKey = _context.t0;
             persistData = Boolean(sharedKeyByUser);
             _context.next = 29;
-            return shared.checkDocker({ configuration: configuration, env: env }, progress);
+            return shared.checkDocker({
+              configuration: configuration,
+              env: env
+            }, progress);
 
           case 29:
-
-            progress({ message: 'Verifying health on environment ' + env + '...', type: 'info' });
+            progress({
+              message: "Verifying health on environment ".concat(env, "..."),
+              type: 'info'
+            });
             _context.next = 32;
-            return health({ directory: directory, env: env }, progress);
+            return health({
+              directory: directory,
+              env: env
+            }, progress);
 
           case 32:
-
-            progress({ message: 'Verifying application status...', type: 'info' });
+            progress({
+              message: 'Verifying application status...',
+              type: 'info'
+            });
             _context.next = 35;
-            return shared.getApplicationStatus({ configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
+            return shared.getApplicationStatus({
+              configuration: configuration,
+              env: env,
+              sharedKey: sharedKey,
+              persistData: persistData,
+              debug: debug
+            }, progress);
 
           case 35:
             applicationStatus = _context.sent;
@@ -135,7 +150,10 @@ var cli = function () {
               break;
             }
 
-            progress({ message: 'The application is already running.', type: 'info' });
+            progress({
+              message: "The application is already running.",
+              type: 'info'
+            });
             throw new errors.ApplicationAlreadyRunning();
 
           case 39:
@@ -144,18 +162,34 @@ var cli = function () {
               break;
             }
 
-            progress({ message: 'The application is partially running.', type: 'info' });
+            progress({
+              message: "The application is partially running.",
+              type: 'info'
+            });
             throw new errors.ApplicationPartiallyRunning();
 
           case 42:
-
-            progress({ message: 'Verifying that ports are available...', type: 'info' });
+            progress({
+              message: 'Verifying that ports are available...',
+              type: 'info'
+            });
             _context.next = 45;
-            return verifyThatPortsAreAvailable({ forVersion: runtimeVersion, configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
+            return verifyThatPortsAreAvailable({
+              forVersion: runtimeVersion,
+              configuration: configuration,
+              env: env,
+              sharedKey: sharedKey,
+              persistData: persistData,
+              debug: debug
+            }, progress);
 
           case 45:
             _context.next = 47;
-            return runtimes.getInstallationStatus({ configuration: configuration, env: env, forVersion: runtimeVersion });
+            return runtimes.getInstallationStatus({
+              configuration: configuration,
+              env: env,
+              forVersion: runtimeVersion
+            });
 
           case 47:
             _context.t1 = _context.sent;
@@ -165,9 +199,16 @@ var cli = function () {
               break;
             }
 
-            progress({ message: 'Installing wolkenkit ' + runtimeVersion + ' on environment ' + env + '...', type: 'info' });
+            progress({
+              message: "Installing wolkenkit ".concat(runtimeVersion, " on environment ").concat(env, "..."),
+              type: 'info'
+            });
             _context.next = 52;
-            return install({ directory: directory, env: env, version: runtimeVersion }, progress);
+            return install({
+              directory: directory,
+              env: env,
+              version: runtimeVersion
+            }, progress);
 
           case 52:
             if (!dangerouslyDestroyData) {
@@ -175,50 +216,119 @@ var cli = function () {
               break;
             }
 
-            progress({ message: 'Destroying previous data...', type: 'info' });
+            progress({
+              message: 'Destroying previous data...',
+              type: 'info'
+            });
             _context.next = 56;
-            return shared.destroyData({ configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
+            return shared.destroyData({
+              configuration: configuration,
+              env: env,
+              sharedKey: sharedKey,
+              persistData: persistData,
+              debug: debug
+            }, progress);
 
           case 56:
-
-            progress({ message: 'Setting up network...', type: 'info' });
+            progress({
+              message: 'Setting up network...',
+              type: 'info'
+            });
             _context.next = 59;
-            return docker.ensureNetworkExists({ configuration: configuration, env: env });
+            return docker.ensureNetworkExists({
+              configuration: configuration,
+              env: env
+            });
 
           case 59:
-
-            progress({ message: 'Building Docker images...', type: 'info' });
+            progress({
+              message: 'Building Docker images...',
+              type: 'info'
+            });
             _context.next = 62;
-            return shared.buildImages({ directory: directory, configuration: configuration, env: env }, progress);
+            return shared.buildImages({
+              directory: directory,
+              configuration: configuration,
+              env: env
+            }, progress);
 
           case 62:
-
-            progress({ message: 'Starting Docker containers...', type: 'info' });
+            progress({
+              message: 'Starting Docker containers...',
+              type: 'info'
+            });
             _context.next = 65;
-            return startContainers({ configuration: configuration, env: env, port: port, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
+            return startContainers({
+              configuration: configuration,
+              env: env,
+              port: port,
+              sharedKey: sharedKey,
+              persistData: persistData,
+              debug: debug
+            }, progress);
 
           case 65:
+            progress({
+              message: "Using ".concat(sharedKey, " as shared key."),
+              type: 'info'
+            });
+            _context.prev = 66;
+            _context.next = 69;
+            return shared.waitForApplicationAndValidateLogs({
+              configuration: configuration,
+              env: env
+            }, progress);
 
-            progress({ message: 'Using ' + sharedKey + ' as shared key.', type: 'info' });
+          case 69:
+            _context.next = 81;
+            break;
 
-            _context.next = 68;
-            return shared.waitForApplication({ configuration: configuration, env: env }, progress);
+          case 71:
+            _context.prev = 71;
+            _context.t2 = _context["catch"](66);
+            _context.t3 = _context.t2.code;
+            _context.next = _context.t3 === 'ERUNTIMEERROR' ? 76 : 79;
+            break;
 
-          case 68:
+          case 76:
+            _context.next = 78;
+            return stop({
+              directory: directory,
+              dangerouslyDestroyData: false,
+              env: env,
+              configuration: configuration
+            }, noop);
+
+          case 78:
+            return _context.abrupt("break", 80);
+
+          case 79:
+            return _context.abrupt("break", 80);
+
+          case 80:
+            throw _context.t2;
+
+          case 81:
             if (!debug) {
-              _context.next = 71;
+              _context.next = 84;
               break;
             }
 
-            _context.next = 71;
-            return shared.attachDebugger({ configuration: configuration, env: env, sharedKey: sharedKey, persistData: persistData, debug: debug }, progress);
+            _context.next = 84;
+            return shared.attachDebugger({
+              configuration: configuration,
+              env: env,
+              sharedKey: sharedKey,
+              persistData: persistData,
+              debug: debug
+            }, progress);
 
-          case 71:
-          case 'end':
+          case 84:
+          case "end":
             return _context.stop();
         }
       }
-    }, _callee, this);
+    }, _callee, this, [[66, 71]]);
   }));
 
   return function cli(_x, _x2) {

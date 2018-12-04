@@ -1,22 +1,22 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var getImages = require('./getImages'),
     getImagesInUse = require('./getImagesInUse');
 
-var isInUse = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
+var isInUse =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options) {
     var configuration, env, forVersion, images, imagesInUse, isRuntimeInUse;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -54,20 +54,26 @@ var isInUse = function () {
           case 8:
             configuration = options.configuration, env = options.env, forVersion = options.forVersion;
             _context.next = 11;
-            return getImages({ forVersion: forVersion });
+            return getImages({
+              forVersion: forVersion
+            });
 
           case 11:
             images = _context.sent;
             _context.next = 14;
-            return getImagesInUse({ configuration: configuration, env: env, forVersion: forVersion });
+            return getImagesInUse({
+              configuration: configuration,
+              env: env,
+              forVersion: forVersion
+            });
 
           case 14:
             imagesInUse = _context.sent;
             isRuntimeInUse = imagesInUse.length === images.length;
-            return _context.abrupt('return', isRuntimeInUse);
+            return _context.abrupt("return", isRuntimeInUse);
 
           case 17:
-          case 'end':
+          case "end":
             return _context.stop();
         }
       }

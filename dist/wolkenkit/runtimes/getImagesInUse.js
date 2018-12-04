@@ -1,22 +1,22 @@
 'use strict';
 
-var _regenerator = require('babel-runtime/regenerator');
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 
-var _regenerator2 = _interopRequireDefault(_regenerator);
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var docker = require('../../docker'),
     getImages = require('./getImages');
 
-var getImagesInUse = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(options) {
+var getImagesInUse =
+/*#__PURE__*/
+function () {
+  var _ref = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(options) {
     var configuration, env, forVersion, imagesInUse, images, i, image, name, version, isInstalled, isInUse;
-    return _regenerator2.default.wrap(function _callee$(_context) {
+    return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
@@ -55,7 +55,9 @@ var getImagesInUse = function () {
             configuration = options.configuration, env = options.env, forVersion = options.forVersion;
             imagesInUse = [];
             _context.next = 12;
-            return getImages({ forVersion: forVersion });
+            return getImages({
+              forVersion: forVersion
+            });
 
           case 12:
             images = _context.sent;
@@ -70,7 +72,12 @@ var getImagesInUse = function () {
             image = images[i];
             name = image.name, version = image.version;
             _context.next = 19;
-            return docker.isImageInstalled({ configuration: configuration, env: env, name: name, version: version });
+            return docker.isImageInstalled({
+              configuration: configuration,
+              env: env,
+              name: name,
+              version: version
+            });
 
           case 19:
             isInstalled = _context.sent;
@@ -80,15 +87,19 @@ var getImagesInUse = function () {
               break;
             }
 
-            return _context.abrupt('continue', 26);
+            return _context.abrupt("continue", 26);
 
           case 22:
             _context.next = 24;
-            return docker.isImageInUse({ configuration: configuration, env: env, name: name, version: version });
+            return docker.isImageInUse({
+              configuration: configuration,
+              env: env,
+              name: name,
+              version: version
+            });
 
           case 24:
             isInUse = _context.sent;
-
 
             if (isInUse) {
               imagesInUse.push(image);
@@ -100,10 +111,10 @@ var getImagesInUse = function () {
             break;
 
           case 29:
-            return _context.abrupt('return', imagesInUse);
+            return _context.abrupt("return", imagesInUse);
 
           case 30:
-          case 'end':
+          case "end":
             return _context.stop();
         }
       }

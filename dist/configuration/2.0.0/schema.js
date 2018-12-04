@@ -23,8 +23,7 @@ var schema = function schema() {
         type: 'object',
         patternProperties: {
           '.*': {
-            oneOf: [
-            // cli environment
+            oneOf: [// cli environment
             {
               type: 'object',
               properties: {
@@ -120,9 +119,7 @@ var schema = function schema() {
               },
               required: ['api'],
               additionalProperties: false
-            },
-
-            // aufwind environment
+            }, // aufwind environment
             {
               type: 'object',
               properties: {
@@ -343,7 +340,6 @@ var schema = function schema() {
     required: ['application', 'runtime', 'environments'],
     additionalProperties: false
   };
-
   return result;
 };
 
