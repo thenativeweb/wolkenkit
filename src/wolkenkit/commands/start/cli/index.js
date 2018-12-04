@@ -33,11 +33,21 @@ const cli = async function (options, progress) {
   if (!options.configuration) {
     throw new Error('Configuration is missing.');
   }
+  if (options.persist === undefined) {
+    throw new Error('Persist is missing.');
+  }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  const { directory, dangerouslyDestroyData, debug, env, configuration } = options;
+  const {
+    directory,
+    dangerouslyDestroyData,
+    debug,
+    env,
+    configuration,
+    persist
+  } = options;
 
   const environment = configuration.environments[env];
 
@@ -52,8 +62,15 @@ const cli = async function (options, progress) {
   const runtimeVersion = configuration.runtime.version;
 
   const sharedKeyByUser = options.sharedKey || processenv('WOLKENKIT_SHARED_KEY');
+  const isSharedKeyGivenByUser = Boolean(sharedKeyByUser);
+
+  if (persist && !isSharedKeyGivenByUser) {
+    progress({ message: 'Shared key must be set when enabling persistence.', type: 'info' });
+    throw new errors.SharedKeyMissing();
+  }
+
   const sharedKey = sharedKeyByUser || await generateSharedKey();
-  const persistData = Boolean(sharedKeyByUser);
+  const persistData = persist;
 
   await shared.checkDocker({ configuration, env }, progress);
 

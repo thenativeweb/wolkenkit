@@ -15,7 +15,8 @@
     },
     "start": {
       "dangerouslyDestroyData": false,
-      "debug": false
+      "debug": false,
+      "persist": false
     },
     "restart": {
       "dangerouslyDestroyData": false,

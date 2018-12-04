@@ -38,6 +38,12 @@ const init = {
         typeLabel: '<env>'
       },
       {
+        name: 'persist',
+        type: Boolean,
+        defaultValue: defaults.commands.start.persist,
+        description: 'enable persistence'
+      },
+      {
         // The port has no default value set, as this depends on the
         // application's package.json file, which is not available here.
         name: 'port',
@@ -78,9 +84,12 @@ const init = {
     if (!options.env) {
       throw new Error('Environment is missing.');
     }
+    if (options.persist === undefined) {
+      throw new Error('Persist is missing.');
+    }
 
     const directory = process.cwd(),
-          { debug, env, help, port, verbose } = options;
+          { debug, env, help, persist, port, verbose } = options;
 
     const dangerouslyDestroyData = options['dangerously-destroy-data'],
           privateKey = options['private-key'],
@@ -90,7 +99,7 @@ const init = {
       return buntstift.info(getUsage([
         { header: 'wolkenkit start', content: this.description },
         { header: 'Synopsis', content: stripIndent`
-          wolkenkit start [--port <port>] [--env <env>] [--dangerously-destroy-data] [--shared-key <key>] [--debug]
+          wolkenkit start [--port <port>] [--env <env>] [--dangerously-destroy-data] [--shared-key <key>] [--persist] [--debug]
           wolkenkit start [--env <env>] [--private-key <file>]` },
         { header: 'Options', optionList: [ ...await this.getOptionDefinitions(), ...globalOptionDefinitions ]}
       ]));
@@ -101,7 +110,7 @@ const init = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.start({ directory, dangerouslyDestroyData, debug, env, port, privateKey, sharedKey }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.start({ directory, dangerouslyDestroyData, debug, env, persist, port, privateKey, sharedKey }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
 

@@ -51,14 +51,16 @@ const cli = async function (options, progress) {
   progress({ message: `Stopping the application on environment ${env}...`, type: 'info' });
   await stop({ directory, env, dangerouslyDestroyData: false }, progress);
 
-  const startOptions = { directory, env, dangerouslyDestroyData: false, debug, port };
-
-  if (persistData) {
-    startOptions.sharedKey = sharedKey;
-  }
-
   progress({ message: `Starting the application on environment ${env}...`, type: 'info' });
-  await start(startOptions, progress);
+  await start({
+    directory,
+    env,
+    dangerouslyDestroyData: false,
+    debug,
+    port,
+    sharedKey,
+    persist: persistData
+  }, progress);
 };
 
 module.exports = cli;

@@ -4,6 +4,7 @@ const childProcess = require('child_process'),
       fs = require('fs');
 
 const buntstift = require('buntstift'),
+      PQueue = require('p-queue'),
       promisify = require('util.promisify');
 
 const setupAws = require('./helpers/setupAws'),
@@ -32,26 +33,30 @@ const readdir = promisify(fs.readdir);
   const childProcesses = [];
   let hasExitedWithError = false;
 
+  const queue = new PQueue({ concurrency: 2 });
+
   try {
-    await Promise.all(tests.map((test, index) => new Promise((resolve, reject) => {
+    await queue.addAll(tests.map((test, index) => async () => {
       const ipAddress = ipAddresses[index];
 
       const child = childProcess.spawn('node', [ test, ipAddress ], { cwd: __dirname, stdio: 'inherit' });
 
-      child.on('close', code => {
-        if (code !== 0) {
-          childProcesses.forEach(process => {
-            process.kill();
-          });
-
-          return reject(new Error(test));
-        }
-
-        resolve();
-      });
-
       childProcesses.push(child);
-    })));
+
+      await new Promise((resolve, reject) => {
+        child.on('close', code => {
+          if (code !== 0) {
+            childProcesses.forEach(process => {
+              process.kill();
+            });
+
+            return reject(new Error(test));
+          }
+
+          resolve();
+        });
+      });
+    }));
   } catch (ex) {
     hasExitedWithError = true;
 

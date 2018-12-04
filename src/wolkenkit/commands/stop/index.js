@@ -33,8 +33,7 @@ const stop = async function (options, progress = noop) {
   }, progress);
 
   const environment = configuration.environments[env];
-
-  const type = environment.type === 'aufwind' ? environment.type : 'cli';
+  const type = environment.type || 'cli';
 
   await stopVia[type]({ ...options, configuration }, progress);
 };
