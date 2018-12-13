@@ -47,10 +47,7 @@ const container = function (options) {
     env: {
       API_CORS_ORIGIN: selectedEnvironment.api.allowAccessFrom,
       API_HOST: selectedEnvironment.api.address.host,
-      API_KEYS: get(selectedEnvironment, 'api.certificate') ?
-        path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'api.certificate')) :
-        '/keys/local.wolkenkit.io',
-      API_PORT: 443,
+      API_PORT: 80,
       API_PORT_PUBLIC: selectedEnvironment.api.address.port,
       APPLICATION: configuration.application,
       COMMANDBUS_URL: `amqp://wolkenkit:${sharedKey}@messagebus:5672`,
@@ -82,7 +79,6 @@ const container = function (options) {
     ],
     networkAlias: 'broker',
     ports: {
-      443: selectedEnvironment.api.address.port,
       3333: selectedEnvironment.api.address.port + 9
     },
     restart: 'on-failure:3',
