@@ -38,7 +38,6 @@ const container = function (options) {
     env: {
       API_CORS_ORIGIN: get(selectedEnvironment, 'fileStorage.allowAccessFrom'),
       HTTP_PORT: 80,
-      HTTPS_PORT: 443,
       IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ?
         path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) :
         '/keys/wildcard.wolkenkit.io',
@@ -69,7 +68,6 @@ const container = function (options) {
     ],
     networkAlias: 'depot',
     ports: {
-      443: selectedEnvironment.api.address.port + 1,
       3333: selectedEnvironment.api.address.port + 12
     },
     restart: 'on-failure:3',
