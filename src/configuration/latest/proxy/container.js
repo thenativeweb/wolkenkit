@@ -61,7 +61,6 @@ const container = function (options) {
       DEPOT_CONTAINER_PORT: 80
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
       'wolkenkit-api-port': selectedEnvironment.api.address.port,
       'wolkenkit-application': configuration.application,
       'wolkenkit-debug': debug,

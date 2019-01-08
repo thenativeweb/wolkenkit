@@ -53,7 +53,6 @@ const container = function (options) {
       STATUS_CORS_ORIGIN: '*'
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
       'wolkenkit-api-port': selectedEnvironment.api.address.port,
       'wolkenkit-application': configuration.application,
       'wolkenkit-debug': debug,

@@ -46,9 +46,7 @@ const container = function (options) {
     cmd: `dumb-init node ${debug ? '--inspect=0.0.0.0:9229' : ''} /wolkenkit/app.js`,
     env: {
       API_CORS_ORIGIN: selectedEnvironment.api.allowAccessFrom,
-      API_HOST: selectedEnvironment.api.address.host,
       API_PORT: 80,
-      API_PORT_PUBLIC: selectedEnvironment.api.address.port,
       APPLICATION: configuration.application,
       COMMANDBUS_URL: `amqp://wolkenkit:${sharedKey}@messagebus:5672`,
       EVENTBUS_URL: `amqp://wolkenkit:${sharedKey}@messagebus:5672`,
@@ -66,7 +64,6 @@ const container = function (options) {
       STATUS_CORS_ORIGIN: '*'
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
       'wolkenkit-api-port': selectedEnvironment.api.address.port,
       'wolkenkit-application': configuration.application,
       'wolkenkit-debug': debug,

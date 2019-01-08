@@ -55,7 +55,6 @@ const container = function (options) {
       PROVIDER_DIRECTORY: '/blobs'
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
       'wolkenkit-api-port': selectedEnvironment.api.address.port,
       'wolkenkit-application': configuration.application,
       'wolkenkit-debug': debug,

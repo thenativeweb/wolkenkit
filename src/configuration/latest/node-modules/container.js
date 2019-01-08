@@ -37,7 +37,6 @@ const container = function (options) {
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development')
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
       'wolkenkit-api-port': selectedEnvironment.api.address.port,
       'wolkenkit-application': configuration.application,
       'wolkenkit-debug': debug,
