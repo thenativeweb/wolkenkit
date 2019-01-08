@@ -44,7 +44,7 @@ const startPuttyTunnel = async function (options) {
     child.on('error', reject);
 
     try {
-      await waitForSshTunnel({ configuration, host: addresses.from.host, port: addresses.from.port });
+      await waitForSshTunnel({ host: addresses.from.host, port: addresses.from.port });
     } catch (ex) {
       return reject(ex);
     }

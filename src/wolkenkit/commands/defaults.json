@@ -3,7 +3,7 @@
     "shared": {
       "aufwind": {
         "ssh": {
-          "host": "aufwind.wolkenkit.io",
+          "host": "aufwind.wolkenkit.app",
           "port": 22
         },
         "http": {
