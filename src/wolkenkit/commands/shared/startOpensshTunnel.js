@@ -18,7 +18,7 @@ const startOpensshTunnel = async function (options) {
     throw new Error('Username is missing.');
   }
 
-  const { configuration, addresses, username, privateKey } = options;
+  const { addresses, username, privateKey } = options;
 
   if (!await shell.which('ssh')) {
     throw new errors.ExecutableNotFound();
