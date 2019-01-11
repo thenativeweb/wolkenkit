@@ -1,13 +1,12 @@
 'use strict';
 
-const map = require('lodash/map'),
+const arrayToSentence = require('array-to-sentence'),
+      map = require('lodash/map'),
       portscanner = require('portscanner'),
-      promisify = require('util.promisify');
+      sortBy = require('lodash/sortBy');
 
 const errors = require('../../../../errors'),
       runtimes = require('../../../runtimes');
-
-const findAPortInUse = promisify(portscanner.findAPortInUse);
 
 const verifyThatPortsAreAvailable = async function (options, progress) {
   if (!options) {
@@ -46,21 +45,36 @@ const verifyThatPortsAreAvailable = async function (options, progress) {
     debug
   });
 
-  const requestedPorts = map(containers, container => container.ports).
-    filter(ports => ports).
-    reduce((list, ports) => [ ...list, ...Object.values(ports) ], []);
+  const requestedPorts = sortBy(
+    map(containers, container => container.ports).
+      filter(ports => ports).
+      reduce((list, ports) => [ ...list, ...Object.values(ports) ], [])
+  );
 
   const host = configuration.environments[env].api.address.host;
-  const portInUse = await findAPortInUse(requestedPorts, host);
 
-  const arePortsAvailable = portInUse === false;
+  const notAvailablePorts = [];
 
-  if (arePortsAvailable) {
-    return;
+  for (const port of requestedPorts) {
+    const portStatus = await portscanner.checkPortStatus(port, host);
+
+    if (portStatus === 'closed') {
+      progress({ message: `Verified that port ${port} is available.`, type: 'verbose' });
+      continue;
+    }
+
+    notAvailablePorts.push(port);
   }
 
-  progress({ message: 'The requested ports are not available.', type: 'info' });
-  throw new errors.PortsNotAvailable();
+  if (notAvailablePorts.length === 1) {
+    progress({ message: `Port ${notAvailablePorts[0]} is not available.`, type: 'info' });
+    throw new errors.PortsNotAvailable();
+  }
+
+  if (notAvailablePorts.length > 1) {
+    progress({ message: `Ports ${arrayToSentence(notAvailablePorts)} are not available.`, type: 'info' });
+    throw new errors.PortsNotAvailable();
+  }
 };
 
 module.exports = verifyThatPortsAreAvailable;

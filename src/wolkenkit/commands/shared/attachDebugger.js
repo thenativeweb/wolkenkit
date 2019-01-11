@@ -2,7 +2,8 @@
 
 const axios = require('axios');
 
-const runtimes = require('../../runtimes');
+const network = require('../../../network'),
+      runtimes = require('../../runtimes');
 
 const attachDebugger = async function (options, progress) {
   if (!options) {
@@ -41,6 +42,17 @@ const attachDebugger = async function (options, progress) {
     debug
   });
 
+  let addresses;
+
+  try {
+    addresses = await network.getIpAddresses(host);
+  } catch (ex) {
+    progress({ message: ex.message });
+    progress({ message: `Failed to resolve ${host}.`, type: 'info' });
+
+    throw ex;
+  }
+
   for (let i = 0; i < containers.length; i++) {
     const container = containers[i];
 
@@ -56,7 +68,7 @@ const attachDebugger = async function (options, progress) {
 
     const response = await axios({
       method: 'get',
-      url: `http://${host}:${debugPort}/json`
+      url: `http://${addresses[0].address}:${debugPort}/json`
     });
 
     const { id } = response.data[0];
