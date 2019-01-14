@@ -310,6 +310,25 @@ const applicationLifecycleTests = async function (runtime) {
       assert.that(stopAndDestroyDataCommand.stdout).is.matching(/Stopped the application/);
       assert.that(stopAndDestroyDataCommand.code).is.equalTo(0);
     });
+
+    await test('[wolkenkit start --dangerously-expose-http-port] starts the application with an exposed http port.', async () => {
+      const { code, stderr, stdout } = await wolkenkit('start', {
+        'dangerously-expose-http-port': true
+      }, { cwd: applicationDirectory });
+
+      assert.that(stderr).is.matching(/Application certificate is self-signed/);
+      assert.that(stderr).is.matching(/Dangerously exposed HTTP ports on 3010 and 3011/);
+      assert.that(stdout).is.matching(/Started the application/);
+      assert.that(code).is.equalTo(0);
+    });
+
+    await test('[wolkenkit stop] stops the application with an exposed http port.', async () => {
+      const { code, stderr, stdout } = await wolkenkit('stop', {}, { cwd: applicationDirectory });
+
+      assert.that(stderr).is.matching(/Application certificate is self-signed/);
+      assert.that(stdout).is.matching(/Stopped the application/);
+      assert.that(code).is.equalTo(0);
+    });
   });
 };
 

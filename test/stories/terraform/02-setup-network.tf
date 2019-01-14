@@ -63,6 +63,12 @@ resource "aws_security_group" "navigation" {
     protocol    = "TCP"
     cidr_blocks = [ "0.0.0.0/0" ]
   }
+  ingress {
+    from_port   = 3030
+    to_port     = 3030
+    protocol    = "TCP"
+    cidr_blocks = [ "0.0.0.0/0" ]
+  }
 
   # wolkenkit application (custom port)
   ingress {

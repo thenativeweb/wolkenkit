@@ -23,6 +23,12 @@ const init = {
         description: 'destroy persistent data'
       },
       {
+        name: 'dangerously-expose-http-port',
+        type: Boolean,
+        defaultValue: defaults.commands.start.dangerouslyExposeHttpPort,
+        description: 'expose http port'
+      },
+      {
         name: 'debug',
         alias: 'd',
         type: Boolean,
@@ -78,6 +84,9 @@ const init = {
     if (options['dangerously-destroy-data'] === undefined) {
       throw new Error('Dangerously destroy data is missing.');
     }
+    if (options['dangerously-expose-http-port'] === undefined) {
+      throw new Error('Dangerously expose http port is missing.');
+    }
     if (options.debug === undefined) {
       throw new Error('Debug is missing.');
     }
@@ -92,6 +101,7 @@ const init = {
           { debug, env, help, persist, port, verbose } = options;
 
     const dangerouslyDestroyData = options['dangerously-destroy-data'],
+          dangerouslyExposeHttpPort = options['dangerously-expose-http-port'],
           privateKey = options['private-key'],
           sharedKey = options['shared-key'];
 
@@ -99,7 +109,7 @@ const init = {
       return buntstift.info(getUsage([
         { header: 'wolkenkit start', content: this.description },
         { header: 'Synopsis', content: stripIndent`
-          wolkenkit start [--port <port>] [--env <env>] [--dangerously-destroy-data] [--shared-key <key>] [--persist] [--debug]
+          wolkenkit start [--port <port>] [--env <env>] [--dangerously-expose-http-port] [--dangerously-destroy-data] [--shared-key <key>] [--persist] [--debug]
           wolkenkit start [--env <env>] [--private-key <file>]` },
         { header: 'Options', optionList: [ ...await this.getOptionDefinitions(), ...globalOptionDefinitions ]}
       ]));
@@ -110,7 +120,7 @@ const init = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.start({ directory, dangerouslyDestroyData, debug, env, persist, port, privateKey, sharedKey }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.start({ directory, dangerouslyDestroyData, dangerouslyExposeHttpPort, debug, env, persist, port, privateKey, sharedKey }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
 

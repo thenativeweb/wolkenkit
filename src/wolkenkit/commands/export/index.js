@@ -60,7 +60,8 @@ const exportCommand = async function ({
 
   const { version } = configuration.runtime;
 
-  const debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
+  const dangerouslyExposeHttpPort = existingContainers[0].labels['wolkenkit-dangerously-expose-http-port'] === 'true',
+        debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
         persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
         sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
 
@@ -70,6 +71,7 @@ const exportCommand = async function ({
     env,
     sharedKey,
     persistData,
+    dangerouslyExposeHttpPort,
     debug
   });
 

@@ -3,30 +3,35 @@
 const docker = require('../../../docker'),
       runtimes = require('../../runtimes');
 
-const getApplicationStatus = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const getApplicationStatus = async function ({
+  configuration,
+  env,
+  sharedKey,
+  persistData,
+  dangerouslyExposeHttpPort,
+  debug
+}, progress) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (!options.sharedKey) {
+  if (!sharedKey) {
     throw new Error('Shared key is missing.');
   }
-  if (options.persistData === undefined) {
+  if (persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
-  if (options.debug === undefined) {
+  if (dangerouslyExposeHttpPort === undefined) {
+    throw new Error('Dangerously expose http port is missing.');
+  }
+  if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
-
-  const { configuration, env, sharedKey, persistData, debug } = options;
 
   const existingContainers = await docker.getContainers({
     configuration,
@@ -46,6 +51,7 @@ const getApplicationStatus = async function (options, progress) {
     env,
     sharedKey,
     persistData,
+    dangerouslyExposeHttpPort,
     debug
   });
 

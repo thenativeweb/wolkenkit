@@ -8,18 +8,13 @@ const docker = require('../../../docker'),
       shared = require('../shared'),
       startContainers = require('./startContainers');
 
-const reload = async function (options, progress = noop) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const reload = async function ({ directory, env }, progress = noop) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-
-  const { directory, env } = options;
 
   const configuration = await shared.getConfiguration({
     env,
@@ -55,12 +50,20 @@ const reload = async function (options, progress = noop) {
     throw new errors.ApplicationNotRunning();
   }
 
-  const debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
+  const dangerouslyExposeHttpPort = existingContainers[0].labels['wolkenkit-dangerously-expose-http-port'] === 'true',
+        debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
         persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
         port = Number(existingContainers[0].labels['wolkenkit-api-port']),
         sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
 
-  const applicationStatus = await shared.getApplicationStatus({ configuration, env, sharedKey, persistData, debug }, progress);
+  const applicationStatus = await shared.getApplicationStatus({
+    configuration,
+    env,
+    sharedKey,
+    persistData,
+    dangerouslyExposeHttpPort,
+    debug
+  }, progress);
 
   if (applicationStatus === 'partially-running') {
     progress({ message: `The application is partially running.`, type: 'info' });
@@ -74,14 +77,29 @@ const reload = async function (options, progress = noop) {
   await shared.buildImages({ directory, configuration, env }, progress);
 
   progress({ message: 'Starting Docker containers...', type: 'info' });
-  await startContainers({ configuration, env, port, sharedKey, persistData, debug }, progress);
+  await startContainers({
+    configuration,
+    env,
+    port,
+    sharedKey,
+    persistData,
+    dangerouslyExposeHttpPort,
+    debug
+  }, progress);
 
   progress({ message: `Using ${sharedKey} as shared key.`, type: 'info' });
 
   await shared.waitForApplicationAndValidateLogs({ configuration, env }, progress);
 
   if (debug) {
-    await shared.attachDebugger({ configuration, env, sharedKey, persistData, debug }, progress);
+    await shared.attachDebugger({
+      configuration,
+      env,
+      sharedKey,
+      persistData,
+      dangerouslyExposeHttpPort,
+      debug
+    }, progress);
   }
 };
 

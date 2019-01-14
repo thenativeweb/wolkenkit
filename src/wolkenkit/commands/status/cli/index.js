@@ -44,11 +44,19 @@ const cli = async function (options, progress) {
     throw new errors.ApplicationNotRunning();
   }
 
-  const debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
+  const dangerouslyExposeHttpPort = existingContainers[0].labels['wolkenkit-dangerously-expose-http-port'] === 'true',
+        debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
         persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
         sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
 
-  const applicationStatus = await shared.getApplicationStatus({ configuration, env, sharedKey, persistData, debug }, progress);
+  const applicationStatus = await shared.getApplicationStatus({
+    configuration,
+    env,
+    sharedKey,
+    persistData,
+    dangerouslyExposeHttpPort,
+    debug
+  }, progress);
 
   if (applicationStatus === 'partially-running') {
     throw new errors.ApplicationPartiallyRunning();

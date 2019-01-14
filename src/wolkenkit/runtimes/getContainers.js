@@ -10,30 +10,36 @@ const errors = require('../../errors');
 const readdir = promisify(fs.readdir),
       stat = promisify(fs.stat);
 
-const getContainers = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.forVersion) {
+const getContainers = async function ({
+  forVersion,
+  configuration,
+  env,
+  sharedKey,
+  persistData,
+  dangerouslyExposeHttpPort,
+  debug
+}) {
+  if (!forVersion) {
     throw new Error('Version is missing.');
   }
-  if (!options.configuration) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (!options.sharedKey) {
+  if (!sharedKey) {
     throw new Error('Shared key is missing.');
   }
-  if (options.persistData === undefined) {
+  if (persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
-  if (options.debug === undefined) {
+  if (dangerouslyExposeHttpPort === undefined) {
+    throw new Error('Dangerously expose http port is missing.');
+  }
+  if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
-
-  const { forVersion, configuration, env, sharedKey, persistData, debug } = options;
 
   const pathRuntime = path.join(__dirname, '..', '..', 'configuration', forVersion);
 
@@ -62,7 +68,14 @@ const getContainers = async function (options) {
     const container = require(path.join(pathContainer, 'container'));
     /* eslint-enable global-require */
 
-    return container({ configuration, env, sharedKey, persistData, debug });
+    return container({
+      configuration,
+      env,
+      sharedKey,
+      persistData,
+      dangerouslyExposeHttpPort,
+      debug
+    });
   }))).filter(container => container);
 
   return containers;

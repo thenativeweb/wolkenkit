@@ -6,27 +6,27 @@ const docker = require('../../../../docker'),
       removeContainers = require('./removeContainers'),
       shared = require('../../shared');
 
-const cli = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const cli = async function ({
+  directory,
+  dangerouslyDestroyData,
+  env,
+  configuration
+}, progress) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (options.dangerouslyDestroyData === undefined) {
+  if (dangerouslyDestroyData === undefined) {
     throw new Error('Dangerously destroy data is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (!options.configuration) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
-
-  const { directory, dangerouslyDestroyData, env, configuration } = options;
 
   await shared.checkDocker({ configuration, env }, progress);
 
@@ -49,11 +49,19 @@ const cli = async function (options, progress) {
     throw new errors.ApplicationNotRunning();
   }
 
-  const debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
+  const dangerouslyExposeHttpPort = existingContainers[0].labels['wolkenkit-dangerously-expose-http-port'] === 'true',
+        debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
         persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
         sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
 
-  const applicationStatus = await shared.getApplicationStatus({ configuration, env, sharedKey, persistData, debug }, progress);
+  const applicationStatus = await shared.getApplicationStatus({
+    configuration,
+    env,
+    sharedKey,
+    persistData,
+    dangerouslyExposeHttpPort,
+    debug
+  }, progress);
 
   if (applicationStatus === 'partially-running') {
     progress({ message: `The application is partially running.`, type: 'info' });
@@ -67,7 +75,14 @@ const cli = async function (options, progress) {
 
   if (dangerouslyDestroyData) {
     progress({ message: 'Destroying previous data...', type: 'info' });
-    await shared.destroyData({ configuration, env, sharedKey, persistData, debug }, progress);
+    await shared.destroyData({
+      configuration,
+      env,
+      sharedKey,
+      persistData,
+      dangerouslyExposeHttpPort,
+      debug
+    }, progress);
   }
 };
 

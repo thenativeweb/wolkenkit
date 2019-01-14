@@ -1,6 +1,7 @@
 'use strict';
 
-const processenv = require('processenv');
+const arrayToSentence = require('array-to-sentence'),
+      processenv = require('processenv');
 
 const docker = require('../../../../docker'),
       errors = require('../../../../errors'),
@@ -14,54 +15,54 @@ const docker = require('../../../../docker'),
       stop = require('../../stop'),
       verifyThatPortsAreAvailable = require('./verifyThatPortsAreAvailable');
 
-const cli = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const cli = async function ({
+  directory,
+  dangerouslyDestroyData,
+  dangerouslyExposeHttpPort,
+  debug,
+  env,
+  configuration,
+  persist,
+  port,
+  sharedKey
+}, progress) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (options.dangerouslyDestroyData === undefined) {
+  if (dangerouslyDestroyData === undefined) {
     throw new Error('Dangerously destroy data is missing.');
   }
-  if (options.debug === undefined) {
+  if (dangerouslyExposeHttpPort === undefined) {
+    throw new Error('Dangerously expose http port is missing.');
+  }
+  if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (!options.configuration) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (options.persist === undefined) {
+  if (persist === undefined) {
     throw new Error('Persist is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  const {
-    directory,
-    dangerouslyDestroyData,
-    debug,
-    env,
-    configuration,
-    persist
-  } = options;
-
   const environment = configuration.environments[env];
 
   // Set the port within the configuration to the correct value (flag over
   // environment variable over default value from the package.json file).
   environment.api.address.port =
-    options.port ||
+    port ||
     processenv('WOLKENKIT_PORT') ||
     environment.api.address.port;
 
-  const { port } = environment.api.address;
   const runtimeVersion = configuration.runtime.version;
 
-  const sharedKeyByUser = options.sharedKey || processenv('WOLKENKIT_SHARED_KEY');
+  const sharedKeyByUser = sharedKey || processenv('WOLKENKIT_SHARED_KEY');
   const isSharedKeyGivenByUser = Boolean(sharedKeyByUser);
 
   if (persist && !isSharedKeyGivenByUser) {
@@ -69,7 +70,7 @@ const cli = async function (options, progress) {
     throw new errors.SharedKeyMissing();
   }
 
-  const sharedKey = sharedKeyByUser || await generateSharedKey();
+  const actualSharedKey = sharedKeyByUser || await generateSharedKey();
   const persistData = persist;
 
   await shared.checkDocker({ configuration, env }, progress);
@@ -78,7 +79,14 @@ const cli = async function (options, progress) {
   await health({ directory, env }, progress);
 
   progress({ message: 'Verifying application status...', type: 'info' });
-  const applicationStatus = await shared.getApplicationStatus({ configuration, env, sharedKey, persistData, debug }, progress);
+  const applicationStatus = await shared.getApplicationStatus({
+    configuration,
+    env,
+    sharedKey: actualSharedKey,
+    persistData,
+    dangerouslyExposeHttpPort,
+    debug
+  }, progress);
 
   if (applicationStatus === 'running') {
     progress({ message: `The application is already running.`, type: 'info' });
@@ -90,7 +98,15 @@ const cli = async function (options, progress) {
   }
 
   progress({ message: 'Verifying that ports are available...', type: 'info' });
-  await verifyThatPortsAreAvailable({ forVersion: runtimeVersion, configuration, env, sharedKey, persistData, debug }, progress);
+  await verifyThatPortsAreAvailable({
+    forVersion: runtimeVersion,
+    configuration,
+    env,
+    sharedKey: actualSharedKey,
+    persistData,
+    dangerouslyExposeHttpPort,
+    debug
+  }, progress);
 
   if (await runtimes.getInstallationStatus({ configuration, env, forVersion: runtimeVersion }) !== 'installed') {
     progress({ message: `Installing wolkenkit ${runtimeVersion} on environment ${env}...`, type: 'info' });
@@ -99,7 +115,14 @@ const cli = async function (options, progress) {
 
   if (dangerouslyDestroyData) {
     progress({ message: 'Destroying previous data...', type: 'info' });
-    await shared.destroyData({ configuration, env, sharedKey, persistData, debug }, progress);
+    await shared.destroyData({
+      configuration,
+      env,
+      sharedKey: actualSharedKey,
+      persistData,
+      dangerouslyExposeHttpPort,
+      debug
+    }, progress);
   }
 
   progress({ message: 'Setting up network...', type: 'info' });
@@ -109,9 +132,17 @@ const cli = async function (options, progress) {
   await shared.buildImages({ directory, configuration, env }, progress);
 
   progress({ message: 'Starting Docker containers...', type: 'info' });
-  await startContainers({ configuration, env, port, sharedKey, persistData, debug }, progress);
+  await startContainers({
+    configuration,
+    env,
+    port: environment.api.address.port,
+    sharedKey: actualSharedKey,
+    persistData,
+    dangerouslyExposeHttpPort,
+    debug
+  }, progress);
 
-  progress({ message: `Using ${sharedKey} as shared key.`, type: 'info' });
+  progress({ message: `Using ${actualSharedKey} as shared key.`, type: 'info' });
 
   try {
     await shared.waitForApplicationAndValidateLogs({ configuration, env }, progress);
@@ -128,7 +159,23 @@ const cli = async function (options, progress) {
   }
 
   if (debug) {
-    await shared.attachDebugger({ configuration, env, sharedKey, persistData, debug }, progress);
+    await shared.attachDebugger({
+      configuration,
+      env,
+      sharedKey: actualSharedKey,
+      persistData,
+      dangerouslyExposeHttpPort,
+      debug
+    }, progress);
+  }
+
+  if (dangerouslyExposeHttpPort) {
+    const httpPorts = [
+      environment.api.address.port + 10,
+      environment.api.address.port + 11
+    ];
+
+    progress({ message: `Dangerously exposed HTTP ports on ${arrayToSentence(httpPorts)}.`, type: 'warn' });
   }
 };
 

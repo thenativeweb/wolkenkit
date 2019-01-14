@@ -15,12 +15,9 @@
     },
     "start": {
       "dangerouslyDestroyData": false,
+      "dangerouslyExposeHttpPort": false,
       "debug": false,
       "persist": false
-    },
-    "restart": {
-      "dangerouslyDestroyData": false,
-      "debug": false
     },
     "stop": {
       "dangerouslyDestroyData": false

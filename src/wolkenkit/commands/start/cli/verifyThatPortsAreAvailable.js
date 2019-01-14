@@ -8,33 +8,39 @@ const arrayToSentence = require('array-to-sentence'),
 const errors = require('../../../../errors'),
       runtimes = require('../../../runtimes');
 
-const verifyThatPortsAreAvailable = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.forVersion) {
+const verifyThatPortsAreAvailable = async function ({
+  forVersion,
+  configuration,
+  env,
+  sharedKey,
+  persistData,
+  dangerouslyExposeHttpPort,
+  debug
+}, progress) {
+  if (!forVersion) {
     throw new Error('For version is missing.');
   }
-  if (!options.configuration) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (!options.sharedKey) {
+  if (!sharedKey) {
     throw new Error('Shared key is missing.');
   }
-  if (options.persistData === undefined) {
+  if (persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
-  if (options.debug === undefined) {
+  if (dangerouslyExposeHttpPort === undefined) {
+    throw new Error('Dangerously expose http port is missing.');
+  }
+  if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
-
-  const { forVersion, configuration, env, sharedKey, persistData, debug } = options;
 
   const containers = await runtimes.getContainers({
     forVersion,
@@ -42,6 +48,7 @@ const verifyThatPortsAreAvailable = async function (options, progress) {
     env,
     sharedKey,
     persistData,
+    dangerouslyExposeHttpPort,
     debug
   });
 

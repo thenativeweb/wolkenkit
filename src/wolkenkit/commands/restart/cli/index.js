@@ -7,24 +7,19 @@ const docker = require('../../../../docker'),
       start = require('../../start'),
       stop = require('../../stop');
 
-const cli = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const cli = async function ({ directory, env, configuration }, progress) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (!options.configuration) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
-
-  const { directory, env, configuration } = options;
 
   await shared.checkDocker({ configuration, env }, progress);
 
@@ -43,7 +38,8 @@ const cli = async function (options, progress) {
     throw new errors.ApplicationNotRunning();
   }
 
-  const debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
+  const dangerouslyExposeHttpPort = existingContainers[0].labels['wolkenkit-dangerously-expose-http-port'] === 'true',
+        debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
         persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
         port = Number(existingContainers[0].labels['wolkenkit-api-port']),
         sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
@@ -56,6 +52,7 @@ const cli = async function (options, progress) {
     directory,
     env,
     dangerouslyDestroyData: false,
+    dangerouslyExposeHttpPort,
     debug,
     port,
     sharedKey,

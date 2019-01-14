@@ -12,7 +12,8 @@ const { Event } = require('commands-events'),
 const errors = require('../../../errors'),
       isEventStoreEmpty = require('./isEventStoreEmpty'),
       noop = require('../../../noop'),
-      shared = require('../shared');
+      shared = require('../shared'),
+      switchSemver = require('../../../switchSemver');
 
 const readdir = promisify(fs.readdir);
 
@@ -49,11 +50,23 @@ const importEventStore = async function ({
   const eventStore = require(`wolkenkit-eventstore/${coreContainer.env.EVENTSTORE_TYPE}`);
   /* eslint-enable global-require */
 
+  const runtimeVersion = configuration.runtime.version;
   const currentEnvironment = configuration.environments[env];
 
-  await eventStore.initialize({
-    url: `pg://wolkenkit:${sharedKey}@${currentEnvironment.api.address.host}:${currentEnvironment.api.address.port + 3}/wolkenkit`,
-    namespace: `${configuration.application}domain`
+  await switchSemver(runtimeVersion, {
+    async '<= 3.0.0' () {
+      await eventStore.initialize({
+        url: `pg://wolkenkit:${sharedKey}@${currentEnvironment.api.address.host}:${currentEnvironment.api.address.port + 3}/wolkenkit`,
+        namespace: `${configuration.application}domain`
+      });
+    },
+
+    async default () {
+      await eventStore.initialize({
+        url: `pg://wolkenkit:${sharedKey}@${currentEnvironment.api.address.host}:${currentEnvironment.api.address.port + 30}/wolkenkit`,
+        namespace: `${configuration.application}domain`
+      });
+    }
   });
 
   if (!await isEventStoreEmpty({ eventStore })) {

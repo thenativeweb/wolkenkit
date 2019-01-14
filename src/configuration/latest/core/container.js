@@ -5,29 +5,32 @@ const get = require('lodash/get'),
 
 const image = require('./image');
 
-const container = function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const container = function ({
+  configuration,
+  env,
+  sharedKey,
+  persistData,
+  dangerouslyExposeHttpPort,
+  debug
+}) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (!options.sharedKey) {
+  if (!sharedKey) {
     throw new Error('Shared key is missing.');
   }
-  if (options.persistData === undefined) {
+  if (persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
-  if (options.debug === undefined) {
+  if (dangerouslyExposeHttpPort === undefined) {
+    throw new Error('Dangerously expose http port is missing.');
+  }
+  if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
-
-  /* eslint-disable no-unused-vars */
-  const { configuration, env, sharedKey, persistData, debug } = options;
-  /* eslint-enable no-unused-vars */
 
   const selectedEnvironment = configuration.environments[env];
 
@@ -58,6 +61,7 @@ const container = function (options) {
     labels: {
       'wolkenkit-api-port': selectedEnvironment.api.address.port,
       'wolkenkit-application': configuration.application,
+      'wolkenkit-dangerously-expose-http-port': dangerouslyExposeHttpPort,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
       'wolkenkit-shared-key': sharedKey,
@@ -67,9 +71,7 @@ const container = function (options) {
       `${configuration.application}-network`
     ],
     networkAlias: 'core',
-    ports: {
-      3333: selectedEnvironment.api.address.port + 10
-    },
+    ports: {},
     restart: 'on-failure:3',
     volumesFrom: [
       `${configuration.application}-node-modules`
@@ -81,7 +83,7 @@ const container = function (options) {
   }
 
   if (debug) {
-    result.ports[9229] = selectedEnvironment.api.address.port + 7;
+    result.ports[9229] = selectedEnvironment.api.address.port + 21;
   }
 
   return result;

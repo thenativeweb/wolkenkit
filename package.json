@@ -40,13 +40,13 @@
     "command-line-args": "5.0.2",
     "command-line-commands": "2.0.1",
     "command-line-usage": "5.0.5",
-    "commands-events": "1.0.3",
+    "commands-events": "1.0.4",
     "common-tags": "1.8.0",
     "deep-hash": "1.0.1",
     "defekt": "2.0.1",
     "docker-compare": "0.2.0",
     "dotfile-json": "1.0.3",
-    "eslint": "5.9.0",
+    "eslint": "5.12.0",
     "findsuggestions": "1.0.0",
     "flat": "4.1.0",
     "freeport": "1.0.5",
@@ -74,12 +74,12 @@
     "wolkenkit-eventstore": "2.5.0"
   },
   "devDependencies": {
-    "assertthat": "2.0.0",
-    "dir-compare": "1.4.0",
+    "assertthat": "2.0.1",
+    "dir-compare": "1.6.0",
     "measure-time": "3.1.1",
     "p-queue": "3.0.0",
     "roboter": "3.0.3",
-    "wolkenkit-client": "2.0.0"
+    "wolkenkit-client": "3.0.1"
   },
   "scripts": {
     "test-stories": "node test/stories/index.js"
