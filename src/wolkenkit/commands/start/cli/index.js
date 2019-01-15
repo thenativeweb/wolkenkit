@@ -18,7 +18,7 @@ const docker = require('../../../../docker'),
 const cli = async function ({
   directory,
   dangerouslyDestroyData,
-  dangerouslyExposeHttpPort,
+  dangerouslyExposeHttpPorts,
   debug,
   env,
   configuration,
@@ -32,8 +32,8 @@ const cli = async function ({
   if (dangerouslyDestroyData === undefined) {
     throw new Error('Dangerously destroy data is missing.');
   }
-  if (dangerouslyExposeHttpPort === undefined) {
-    throw new Error('Dangerously expose http port is missing.');
+  if (dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
   if (debug === undefined) {
     throw new Error('Debug is missing.');
@@ -84,7 +84,7 @@ const cli = async function ({
     env,
     sharedKey: actualSharedKey,
     persistData,
-    dangerouslyExposeHttpPort,
+    dangerouslyExposeHttpPorts,
     debug
   }, progress);
 
@@ -104,7 +104,7 @@ const cli = async function ({
     env,
     sharedKey: actualSharedKey,
     persistData,
-    dangerouslyExposeHttpPort,
+    dangerouslyExposeHttpPorts,
     debug
   }, progress);
 
@@ -120,7 +120,7 @@ const cli = async function ({
       env,
       sharedKey: actualSharedKey,
       persistData,
-      dangerouslyExposeHttpPort,
+      dangerouslyExposeHttpPorts,
       debug
     }, progress);
   }
@@ -138,7 +138,7 @@ const cli = async function ({
     port: environment.api.address.port,
     sharedKey: actualSharedKey,
     persistData,
-    dangerouslyExposeHttpPort,
+    dangerouslyExposeHttpPorts,
     debug
   }, progress);
 
@@ -164,18 +164,18 @@ const cli = async function ({
       env,
       sharedKey: actualSharedKey,
       persistData,
-      dangerouslyExposeHttpPort,
+      dangerouslyExposeHttpPorts,
       debug
     }, progress);
   }
 
-  if (dangerouslyExposeHttpPort) {
+  if (dangerouslyExposeHttpPorts) {
     const httpPorts = [
       environment.api.address.port + 10,
       environment.api.address.port + 11
     ];
 
-    progress({ message: `Dangerously exposed HTTP ports on ${arrayToSentence(httpPorts)}.`, type: 'warn' });
+    progress({ message: `Dangerously exposed HTTP ports ${arrayToSentence(httpPorts)}.`, type: 'warn' });
   }
 };
 

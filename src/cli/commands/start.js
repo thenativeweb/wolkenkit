@@ -23,10 +23,10 @@ const init = {
         description: 'destroy persistent data'
       },
       {
-        name: 'dangerously-expose-http-port',
+        name: 'dangerously-expose-http-ports',
         type: Boolean,
-        defaultValue: defaults.commands.start.dangerouslyExposeHttpPort,
-        description: 'expose http port'
+        defaultValue: defaults.commands.start.dangerouslyExposeHttpPorts,
+        description: 'expose http ports'
       },
       {
         name: 'debug',
@@ -84,8 +84,8 @@ const init = {
     if (options['dangerously-destroy-data'] === undefined) {
       throw new Error('Dangerously destroy data is missing.');
     }
-    if (options['dangerously-expose-http-port'] === undefined) {
-      throw new Error('Dangerously expose http port is missing.');
+    if (options['dangerously-expose-http-ports'] === undefined) {
+      throw new Error('Dangerously expose http ports is missing.');
     }
     if (options.debug === undefined) {
       throw new Error('Debug is missing.');
@@ -101,7 +101,7 @@ const init = {
           { debug, env, help, persist, port, verbose } = options;
 
     const dangerouslyDestroyData = options['dangerously-destroy-data'],
-          dangerouslyExposeHttpPort = options['dangerously-expose-http-port'],
+          dangerouslyExposeHttpPorts = options['dangerously-expose-http-ports'],
           privateKey = options['private-key'],
           sharedKey = options['shared-key'];
 
@@ -120,7 +120,7 @@ const init = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.start({ directory, dangerouslyDestroyData, dangerouslyExposeHttpPort, debug, env, persist, port, privateKey, sharedKey }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.start({ directory, dangerouslyDestroyData, dangerouslyExposeHttpPorts, debug, env, persist, port, privateKey, sharedKey }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
 

@@ -50,7 +50,7 @@ const reload = async function ({ directory, env }, progress = noop) {
     throw new errors.ApplicationNotRunning();
   }
 
-  const dangerouslyExposeHttpPort = existingContainers[0].labels['wolkenkit-dangerously-expose-http-port'] === 'true',
+  const dangerouslyExposeHttpPorts = existingContainers[0].labels['wolkenkit-dangerously-expose-http-ports'] === 'true',
         debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
         persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
         port = Number(existingContainers[0].labels['wolkenkit-api-port']),
@@ -61,7 +61,7 @@ const reload = async function ({ directory, env }, progress = noop) {
     env,
     sharedKey,
     persistData,
-    dangerouslyExposeHttpPort,
+    dangerouslyExposeHttpPorts,
     debug
   }, progress);
 
@@ -83,7 +83,7 @@ const reload = async function ({ directory, env }, progress = noop) {
     port,
     sharedKey,
     persistData,
-    dangerouslyExposeHttpPort,
+    dangerouslyExposeHttpPorts,
     debug
   }, progress);
 
@@ -97,7 +97,7 @@ const reload = async function ({ directory, env }, progress = noop) {
       env,
       sharedKey,
       persistData,
-      dangerouslyExposeHttpPort,
+      dangerouslyExposeHttpPorts,
       debug
     }, progress);
   }

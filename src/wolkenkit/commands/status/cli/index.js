@@ -44,7 +44,7 @@ const cli = async function (options, progress) {
     throw new errors.ApplicationNotRunning();
   }
 
-  const dangerouslyExposeHttpPort = existingContainers[0].labels['wolkenkit-dangerously-expose-http-port'] === 'true',
+  const dangerouslyExposeHttpPorts = existingContainers[0].labels['wolkenkit-dangerously-expose-http-ports'] === 'true',
         debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
         persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
         sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
@@ -54,7 +54,7 @@ const cli = async function (options, progress) {
     env,
     sharedKey,
     persistData,
-    dangerouslyExposeHttpPort,
+    dangerouslyExposeHttpPorts,
     debug
   }, progress);
 

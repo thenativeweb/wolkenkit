@@ -15,7 +15,7 @@
     },
     "start": {
       "dangerouslyDestroyData": false,
-      "dangerouslyExposeHttpPort": false,
+      "dangerouslyExposeHttpPorts": false,
       "debug": false,
       "persist": false
     },

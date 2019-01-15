@@ -38,7 +38,7 @@ const cli = async function ({ directory, env, configuration }, progress) {
     throw new errors.ApplicationNotRunning();
   }
 
-  const dangerouslyExposeHttpPort = existingContainers[0].labels['wolkenkit-dangerously-expose-http-port'] === 'true',
+  const dangerouslyExposeHttpPorts = existingContainers[0].labels['wolkenkit-dangerously-expose-http-ports'] === 'true',
         debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
         persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
         port = Number(existingContainers[0].labels['wolkenkit-api-port']),
@@ -52,7 +52,7 @@ const cli = async function ({ directory, env, configuration }, progress) {
     directory,
     env,
     dangerouslyDestroyData: false,
-    dangerouslyExposeHttpPort,
+    dangerouslyExposeHttpPorts,
     debug,
     port,
     sharedKey,

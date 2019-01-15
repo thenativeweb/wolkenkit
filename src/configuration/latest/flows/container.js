@@ -10,7 +10,7 @@ const container = function ({
   env,
   sharedKey,
   persistData,
-  dangerouslyExposeHttpPort,
+  dangerouslyExposeHttpPorts,
   debug
 }) {
   if (!configuration) {
@@ -25,8 +25,8 @@ const container = function ({
   if (persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
-  if (dangerouslyExposeHttpPort === undefined) {
-    throw new Error('Dangerously expose http port is missing.');
+  if (dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
   if (debug === undefined) {
     throw new Error('Debug is missing.');
@@ -58,7 +58,7 @@ const container = function ({
     labels: {
       'wolkenkit-api-port': selectedEnvironment.api.address.port,
       'wolkenkit-application': configuration.application,
-      'wolkenkit-dangerously-expose-http-port': dangerouslyExposeHttpPort,
+      'wolkenkit-dangerously-expose-http-ports': dangerouslyExposeHttpPorts,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
       'wolkenkit-shared-key': sharedKey,

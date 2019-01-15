@@ -55,7 +55,7 @@ const importCommand = async function ({
 
   const { version } = configuration.runtime;
 
-  const dangerouslyExposeHttpPort = existingContainers[0].labels['wolkenkit-dangerously-expose-http-port'] === 'true',
+  const dangerouslyExposeHttpPorts = existingContainers[0].labels['wolkenkit-dangerously-expose-http-ports'] === 'true',
         debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
         persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
         sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
@@ -66,7 +66,7 @@ const importCommand = async function ({
     env,
     sharedKey,
     persistData,
-    dangerouslyExposeHttpPort,
+    dangerouslyExposeHttpPorts,
     debug
   });
 

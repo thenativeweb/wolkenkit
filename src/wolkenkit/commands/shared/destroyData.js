@@ -19,8 +19,8 @@ const destroyData = async function (options, progress) {
   if (options.persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
-  if (options.dangerouslyExposeHttpPort === undefined) {
-    throw new Error('Dangerously expose http port is missing.');
+  if (options.dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
   if (options.debug === undefined) {
     throw new Error('Debug is missing.');
@@ -34,7 +34,7 @@ const destroyData = async function (options, progress) {
     env,
     sharedKey,
     persistData,
-    dangerouslyExposeHttpPort,
+    dangerouslyExposeHttpPorts,
     debug
   } = options;
 
@@ -46,7 +46,7 @@ const destroyData = async function (options, progress) {
     env,
     sharedKey,
     persistData,
-    dangerouslyExposeHttpPort,
+    dangerouslyExposeHttpPorts,
     debug
   });
 

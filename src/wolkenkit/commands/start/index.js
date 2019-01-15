@@ -20,8 +20,8 @@ const start = async function (options, progress = noop) {
   if (options.dangerouslyDestroyData === undefined) {
     throw new Error('Dangerously destroy data is missing.');
   }
-  if (options.dangerouslyExposeHttpPort === undefined) {
-    throw new Error('Dangerously expose http port is missing.');
+  if (options.dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
   if (options.debug === undefined) {
     throw new Error('Debug is missing.');

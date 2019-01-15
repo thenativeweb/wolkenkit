@@ -8,7 +8,7 @@ const getApplicationStatus = async function ({
   env,
   sharedKey,
   persistData,
-  dangerouslyExposeHttpPort,
+  dangerouslyExposeHttpPorts,
   debug
 }, progress) {
   if (!configuration) {
@@ -23,8 +23,8 @@ const getApplicationStatus = async function ({
   if (persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
-  if (dangerouslyExposeHttpPort === undefined) {
-    throw new Error('Dangerously expose http port is missing.');
+  if (dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
   if (debug === undefined) {
     throw new Error('Debug is missing.');
@@ -51,7 +51,7 @@ const getApplicationStatus = async function ({
     env,
     sharedKey,
     persistData,
-    dangerouslyExposeHttpPort,
+    dangerouslyExposeHttpPorts,
     debug
   });
 
