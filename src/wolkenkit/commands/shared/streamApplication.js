@@ -9,24 +9,23 @@ const pump = require('pump'),
 const file = require('../../../file'),
       makeAufwindRequest = require('./makeAufwindRequest');
 
-const streamApplication = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const streamApplication = async function ({
+  directory,
+  endpoint,
+  tunnel
+}, progress) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.endpoint) {
+  if (!endpoint) {
     throw new Error('Endpoint is missing.');
   }
-  if (!options.tunnel) {
+  if (!tunnel) {
     throw new Error('Tunnel is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
-
-  const { directory, endpoint, tunnel } = options;
 
   progress({ message: `Uploading .tar.gz file...` });
 
@@ -60,7 +59,11 @@ const streamApplication = async function (options, progress) {
     let receivedData;
 
     try {
-      receivedData = await makeAufwindRequest({ endpoint, tunnel, uploadStream }, progress);
+      receivedData = await makeAufwindRequest({
+        endpoint,
+        tunnel,
+        uploadStream
+      }, progress);
     } catch (ex) {
       return reject(ex);
     }

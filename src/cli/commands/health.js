@@ -50,7 +50,10 @@ const health = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.health({ directory, env }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.health({
+        directory,
+        env
+      }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
       buntstift.error(`Failed to verify health on environment ${env}.`);

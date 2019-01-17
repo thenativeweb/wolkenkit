@@ -5,18 +5,18 @@ const fs = require('fs');
 const noop = require('../../../noop');
 
 const splitStreamToFiles = async function ({
-  stream,
+  eventsPerFile,
   getFileName,
-  eventsPerFile
+  stream
 }, progress = noop) {
-  if (!stream) {
-    throw new Error('Stream is missing.');
+  if (!eventsPerFile) {
+    throw new Error('Events per file is missing.');
   }
   if (!getFileName) {
     throw new Error('Get file name is missing.');
   }
-  if (!eventsPerFile) {
-    throw new Error('Events per file is missing.');
+  if (!stream) {
+    throw new Error('Stream is missing.');
   }
 
   let currentFileStream,

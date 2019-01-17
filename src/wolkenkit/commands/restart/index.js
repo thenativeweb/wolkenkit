@@ -10,29 +10,32 @@ const restartVia = {
   cli
 };
 
-const restart = async function (options, progress = noop) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const restart = async function ({
+  directory,
+  env,
+  privateKey = undefined
+}, progress = noop) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
 
-  const { directory, env } = options;
-
   const configuration = await shared.getConfiguration({
-    env,
     directory,
+    env,
     isPackageJsonRequired: true
   }, progress);
 
-  const environment = configuration.environments[env];
-  const type = environment.type || 'cli';
+  const { type } = configuration;
 
-  await restartVia[type]({ ...options, configuration }, progress);
+  await restartVia[type]({
+    configuration,
+    directory,
+    env,
+    privateKey
+  }, progress);
 };
 
 module.exports = restart;

@@ -10,13 +10,6 @@ suite('certificate/isNameMatching', () => {
     done();
   });
 
-  test('throws an error when options are missing.', done => {
-    assert.that(() => {
-      isNameMatching();
-    }).is.throwing('Options are missing.');
-    done();
-  });
-
   test('throws an error when certificate is missing.', done => {
     assert.that(() => {
       isNameMatching({});

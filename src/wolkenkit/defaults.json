@@ -1,0 +1,17 @@
+{
+  "commands": {
+    "shared": {
+      "certificate": "/keys/local.wolkenkit.io",
+      "aufwind": {
+        "ssh": {
+          "host": "aufwind.wolkenkit.app",
+          "port": 22
+        },
+        "http": {
+          "host": "localhost",
+          "port": 5000
+        }
+      }
+    }
+  }
+}

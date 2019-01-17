@@ -7,31 +7,25 @@ const axios = require('axios'),
 const errors = require('../../../errors'),
       switchSemver = require('../../../switchSemver');
 
-const waitForApplication = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const waitForApplication = async function ({
+  configuration,
+  host = undefined,
+  port = undefined
+}, progress) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
-  }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  const { configuration, env } = options;
-  const { version } = configuration.runtime;
-  let { host, port } = options;
+  const { version } = configuration.application.runtime;
 
   const restoreEnvironment = nodeenv('NODE_TLS_REJECT_UNAUTHORIZED', '0');
 
-  const selectedEnvironment = configuration.environments[env];
-
   if (!host || !port) {
-    host = selectedEnvironment.api.address.host;
-    port = selectedEnvironment.api.address.port;
+    host = configuration.api.host.name;
+    port = configuration.api.port;
   }
 
   await switchSemver(version, {

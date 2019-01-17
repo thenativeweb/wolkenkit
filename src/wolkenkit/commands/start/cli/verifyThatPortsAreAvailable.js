@@ -5,32 +5,17 @@ const arrayToSentence = require('array-to-sentence'),
       portscanner = require('portscanner'),
       sortBy = require('lodash/sortBy');
 
-const errors = require('../../../../errors'),
-      runtimes = require('../../../runtimes');
+const errors = require('../../../../errors');
 
 const verifyThatPortsAreAvailable = async function ({
-  forVersion,
   configuration,
-  env,
-  sharedKey,
-  persistData,
   dangerouslyExposeHttpPorts,
-  debug
+  debug,
+  persistData,
+  sharedKey
 }, progress) {
-  if (!forVersion) {
-    throw new Error('For version is missing.');
-  }
   if (!configuration) {
     throw new Error('Configuration is missing.');
-  }
-  if (!env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!sharedKey) {
-    throw new Error('Shared key is missing.');
-  }
-  if (persistData === undefined) {
-    throw new Error('Persist data is missing.');
   }
   if (dangerouslyExposeHttpPorts === undefined) {
     throw new Error('Dangerously expose http ports is missing.');
@@ -38,18 +23,21 @@ const verifyThatPortsAreAvailable = async function ({
   if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
+  }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  const containers = await runtimes.getContainers({
-    forVersion,
-    configuration,
-    env,
-    sharedKey,
-    persistData,
+  const containers = await configuration.containers({
     dangerouslyExposeHttpPorts,
-    debug
+    debug,
+    persistData,
+    sharedKey
   });
 
   const requestedPorts = sortBy(
@@ -58,7 +46,7 @@ const verifyThatPortsAreAvailable = async function ({
       reduce((list, ports) => [ ...list, ...Object.values(ports) ], [])
   );
 
-  const host = configuration.environments[env].api.address.host;
+  const host = configuration.api.host.name;
 
   const notAvailablePorts = [];
 

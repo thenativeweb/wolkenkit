@@ -1,23 +1,29 @@
 'use strict';
 
-const processenv = require('processenv');
+const get = require('lodash/get'),
+      processenv = require('processenv');
 
-const application = require('../../../application'),
+const application = require('../../application'),
+      Configuration = require('../../Configuration'),
       errors = require('../../../errors'),
+      noop = require('../../../noop'),
       runtimes = require('../../runtimes'),
       switchSemver = require('../../../switchSemver');
 
-const getFallbackPackgeJson = async function () {
-  const fallbackPackageJson = {
-    runtime: {
-      version: await runtimes.getLatestStableVersion()
-    },
-    environments: {
-      default: {}
-    }
-  };
+const getFallbackConfiguration = async function () {
+  const latestStableVersion = await runtimes.getLatestStableVersion();
 
-  return fallbackPackageJson;
+  const configuration = new Configuration({
+    type: 'cli',
+    environment: 'default',
+    applicationName: 'fallback',
+    runtimeVersion: latestStableVersion,
+    apiHostname: 'local.wolkenkit.io',
+    apiPort: 3000,
+    packageJson: {}
+  });
+
+  return configuration;
 };
 
 const getConfiguration = async function ({
@@ -25,7 +31,7 @@ const getConfiguration = async function ({
   env,
   isPackageJsonRequired,
   port = undefined
-}, progress) {
+}, progress = noop) {
   if (!directory) {
     throw new Error('Directory is missing.');
   }
@@ -34,9 +40,6 @@ const getConfiguration = async function ({
   }
   if (isPackageJsonRequired === undefined) {
     throw new Error('Is package.json required is missing.');
-  }
-  if (!progress) {
-    throw new Error('Progress is missing.');
   }
 
   let packageJson;
@@ -48,9 +51,8 @@ const getConfiguration = async function ({
       case 'EFILENOTFOUND':
         if (!isPackageJsonRequired) {
           progress({ message: 'package.json is missing, using fallback configuration.' });
-          packageJson = await getFallbackPackgeJson();
 
-          return { packageJson };
+          return await getFallbackConfiguration();
         }
 
         progress({ message: 'package.json is missing.', type: 'info' });
@@ -77,108 +79,38 @@ const getConfiguration = async function ({
     throw ex;
   }
 
-  const selectedEnvironment = packageJson.environments[env];
-
-  if (!selectedEnvironment) {
-    progress({ message: `package.json does not contain environment ${env}.`, type: 'info' });
-    throw new errors.EnvironmentNotFound();
-  }
-
-  const selectedEnvironmentType = selectedEnvironment.type || 'cli';
   const runtimeVersion = packageJson.runtime.version;
-  const configuration = { packageJson };
 
-  configuration.getContainers = async ({
-    sharedKey,
-    persistData,
-    dangerouslyExposeHttpPorts,
-    debug
-  }) => {
-    if (!sharedKey) {
-      throw new Error('Shared key is missing.');
-    }
-    if (persistData === undefined) {
-      throw new Error('Persist data is missing.');
-    }
-    if (dangerouslyExposeHttpPorts === undefined) {
-      throw new Error('Dangerously expose http ports is missing.');
-    }
-    if (debug === undefined) {
-      throw new Error('Debug is missing.');
-    }
-
-    const containers = await runtimes.getContainers({
-      forVersion: runtimeVersion,
-      configuration,
-      env,
-      persistData,
-      dangerouslyExposeHttpPorts,
-      debug
-    });
-
-    return containers;
-  };
+  let configuration;
 
   await switchSemver(runtimeVersion, {
     async default () {
-      configuration.application = {
-        name: packageJson.application,
-        runtime: { version: runtimeVersion }
-      };
-      configuration.api = {
-        host: {
-          name: selectedEnvironment.api.address.host,
-          certificate: selectedEnvironment.api.certificate
-        },
-        port: port || processenv('WOLKENKIT_PORT') || selectedEnvironment.api.address.port,
-        allowAccessFrom: selectedEnvironment.api.allowAccessFrom
-      };
+      const selectedEnvironment = packageJson.environments[env];
 
-      if (selectedEnvironment.node) {
-        configuration.node = {
-          environment: selectedEnvironment.node.environment
-        };
+      if (!selectedEnvironment) {
+        progress({ message: `package.json does not contain environment ${env}.`, type: 'info' });
+        throw new errors.EnvironmentNotFound();
       }
 
-      if (selectedEnvironment.identityProvider) {
-        configuration.identityProvider = {
-          issuer: selectedEnvironment.identityProvider.name,
-          certificate: selectedEnvironment.identityProvider.certificate
-        };
-      }
+      const type = selectedEnvironment.type || 'cli';
 
-      if (selectedEnvironment.environmentVariables) {
-        configuration.environmentVariables = selectedEnvironment.environmentVariables;
-      }
-
-      switch (selectedEnvironmentType) {
-        case 'cli':
-          // TODO: it is only available since 3.0.0
-          configuration.fileStorage = {
-            allowAccessFrom: selectedEnvironment.fileStorage.allowAccessFrom,
-            isAuthorized: selectedEnvironment.fileStorage.isAuthorized
-          };
-
-          if (selectedEnvironment.docker) {
-            configuration.docker = {
-              machine: selectedEnvironment.docker.machine
-            };
-          }
-          break;
-
-        case 'aufwind':
-          configuration.deployment = selectedEnvironment.deployment;
-
-          if (selectedEnvironment.infrastructure) {
-            configuration.infrastructure = selectedEnvironment.infrastructure;
-          }
-          break;
-
-        default:
-          throw new Error(`Unknown environment type '${selectedEnvironmentType}'.`);
-      }
+      configuration = new Configuration({
+        type,
+        environment: env,
+        applicationName: packageJson.application,
+        runtimeVersion,
+        apiHostname: selectedEnvironment.api.address.host,
+        apiPort: port || processenv('WOLKENKIT_PORT') || selectedEnvironment.api.address.port,
+        apiCertificate: selectedEnvironment.api.certificate,
+        dockerMachine: get(selectedEnvironment, 'docker.machine'),
+        packageJson
+      });
     }
   });
+
+  if (!configuration) {
+    throw new Error('Configuration is missing.');
+  }
 
   return configuration;
 };

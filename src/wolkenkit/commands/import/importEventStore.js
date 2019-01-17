@@ -12,61 +12,39 @@ const { Event } = require('commands-events'),
 const errors = require('../../../errors'),
       isEventStoreEmpty = require('./isEventStoreEmpty'),
       noop = require('../../../noop'),
-      shared = require('../shared'),
-      switchSemver = require('../../../switchSemver');
+      shared = require('../shared');
 
 const readdir = promisify(fs.readdir);
 
 const importEventStore = async function ({
   configuration,
-  env,
-  sharedKey,
-  containers,
-  importDirectory
+  connections,
+  importDirectory,
+  sharedKey
 }, progress = noop) {
   if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!sharedKey) {
-    throw new Error('Shared key is missing.');
-  }
-  if (!containers) {
-    throw new Error('Containers are missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
   if (!importDirectory) {
     throw new Error('Import directory is missing.');
   }
-
-  const coreContainer = containers.find(container => container.name.endsWith('core'));
-
-  if (!coreContainer) {
-    throw new Error('Invalid operation.');
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
   }
 
+  const { type, external } = connections.eventStore;
+  const { protocol, user, password, hostname, port, database } = external.pg;
+
   /* eslint-disable global-require */
-  const eventStore = require(`wolkenkit-eventstore/${coreContainer.env.EVENTSTORE_TYPE}`);
+  const eventStore = require(`wolkenkit-eventstore/${type}`);
   /* eslint-enable global-require */
 
-  const runtimeVersion = configuration.runtime.version;
-  const currentEnvironment = configuration.environments[env];
-
-  await switchSemver(runtimeVersion, {
-    async '<= 3.0.0' () {
-      await eventStore.initialize({
-        url: `pg://wolkenkit:${sharedKey}@${currentEnvironment.api.address.host}:${currentEnvironment.api.address.port + 3}/wolkenkit`,
-        namespace: `${configuration.application}domain`
-      });
-    },
-
-    async default () {
-      await eventStore.initialize({
-        url: `pg://wolkenkit:${sharedKey}@${currentEnvironment.api.address.host}:${currentEnvironment.api.address.port + 30}/wolkenkit`,
-        namespace: `${configuration.application}domain`
-      });
-    }
+  await eventStore.initialize({
+    url: `${protocol}://${user}:${password}@${hostname}:${port}/${database}`,
+    namespace: `${configuration.application.name}domain`
   });
 
   if (!await isEventStoreEmpty({ eventStore })) {

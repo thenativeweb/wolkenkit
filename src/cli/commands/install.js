@@ -66,7 +66,11 @@ const install = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.install({ directory, env, version }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.install({
+        directory,
+        env,
+        version
+      }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
       buntstift.error(`Failed to install wolkenkit ${version} on environment ${env}.`);

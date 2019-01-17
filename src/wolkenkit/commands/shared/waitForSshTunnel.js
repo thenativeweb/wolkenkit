@@ -5,18 +5,13 @@ const axios = require('axios'),
 
 const errors = require('../../../errors');
 
-const waitForSshTunnel = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.host) {
+const waitForSshTunnel = async function ({ host, port }) {
+  if (!host) {
     throw new Error('Host is missing.');
   }
-  if (!options.port) {
+  if (!port) {
     throw new Error('Port is missing.');
   }
-
-  const { host, port } = options;
 
   const response = await retry(async () => await axios({
     method: 'get',

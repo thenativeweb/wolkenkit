@@ -56,7 +56,11 @@ const logs = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.logs({ directory, env, follow }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.logs({
+        directory,
+        env,
+        follow
+      }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
       buntstift.error('Failed to fetch application logs.');

@@ -2,62 +2,65 @@
 
 const image = require('./image');
 
-const container = function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const container = function ({
+  configuration,
+  connections,
+  dangerouslyExposeHttpPorts,
+  debug,
+  persistData,
+  sharedKey
+}) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
-  if (!options.sharedKey) {
-    throw new Error('Shared key is missing.');
+  if (dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
-  if (options.persistData === undefined) {
-    throw new Error('Persist data is missing.');
-  }
-  if (options.debug === undefined) {
+  if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
+  }
 
-  /* eslint-disable no-unused-vars */
-  const { configuration, env, sharedKey, persistData, debug } = options;
-  /* eslint-enable no-unused-vars */
-
-  const selectedEnvironment = configuration.environments[env];
+  const { listStore } = connections;
 
   const result = {
-    image: `${configuration.application}-mongodb`,
-    name: `${configuration.application}-mongodb`,
+    image: `${configuration.application.name}-mongodb`,
+    name: `${configuration.application.name}-mongodb`,
     env: {
-      MONGODB_DATABASE: 'wolkenkit',
-      MONGODB_USER: 'wolkenkit',
-      MONGODB_PASS: sharedKey
+      MONGODB_DATABASE: listStore.container.mongodb.database,
+      MONGODB_USER: listStore.container.mongodb.user,
+      MONGODB_PASS: listStore.container.mongodb.password
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-host': configuration.api.host.name,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
       'wolkenkit-shared-key': sharedKey,
       'wolkenkit-type': image().type
     },
     networks: [
-      `${configuration.application}-network`
+      `${configuration.application.name}-network`
     ],
     networkAlias: 'liststore',
     ports: {
-      27017: selectedEnvironment.api.address.port + 2
+      [listStore.container.mongodb.port]: listStore.external.mongodb.port
     },
     restart: 'on-failure:3'
   };
 
   if (persistData) {
     result.volumes = [
-      `${configuration.application}-mongodb-volume:/data/db`
+      `${configuration.application.name}-mongodb-volume:/data/db`
     ];
   }
 

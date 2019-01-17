@@ -7,23 +7,15 @@ const flatten = require('lodash/flatten'),
 const getEnvironmentVariables = require('./getEnvironmentVariables'),
       shell = require('../shell');
 
-const getContainers = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const getContainers = async function ({ configuration, where }) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!options.where) {
+  if (!where) {
     throw new Error('Where is missing.');
   }
 
-  const { configuration, env, where } = options;
-
-  const environmentVariables = await getEnvironmentVariables({ configuration, env });
+  const environmentVariables = await getEnvironmentVariables({ configuration });
 
   const filter = flatten(
     map(where, (keyValuePair, criterion) =>

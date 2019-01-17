@@ -21,13 +21,17 @@ const showProgress = function (verbose, stopWaiting) {
     progress.type = progress.type || 'verbose';
     progress.indent = progress.indent || 0;
 
-    const spinnerRequiresPause = stopWaiting && (progress.type !== 'verbose' || verbose);
+    const spinnerRequiresPause =
+      stopWaiting &&
+      (progress.type !== 'verbose' || verbose);
 
     if (spinnerRequiresPause) {
       stopWaiting();
     }
 
-    buntstift[progress.type](progress.message.trim(), { indent: progress.indent });
+    buntstift[progress.type](progress.message.trim(), {
+      indent: progress.indent
+    });
 
     if (spinnerRequiresPause) {
       stopWaiting = buntstift.wait();

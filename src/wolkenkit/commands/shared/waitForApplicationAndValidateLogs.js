@@ -4,26 +4,20 @@ const switchSemver = require('../../../switchSemver'),
       validateLogs = require('./validateLogs'),
       waitForApplication = require('./waitForApplication');
 
-const waitForApplicationAndValidateLogs = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const waitForApplicationAndValidateLogs = async function ({
+  configuration
+}, progress) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
-  }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
-
-  const { configuration, env } = options;
-  const { version } = configuration.runtime;
+  const { version } = configuration.application.runtime;
 
   await switchSemver(version, {
     async '<= 2.0.0' () {
-      await waitForApplication({ configuration, env }, progress);
+      await waitForApplication({ configuration }, progress);
     },
 
     async default () {
@@ -31,11 +25,11 @@ const waitForApplicationAndValidateLogs = async function (options, progress) {
         let validate;
 
         try {
-          validate = await validateLogs({ configuration, env }, progress);
+          validate = await validateLogs({ configuration }, progress);
 
           validate.once('error', reject);
 
-          await waitForApplication({ configuration, env }, progress);
+          await waitForApplication({ configuration }, progress);
         } catch (ex) {
           return reject(ex);
         } finally {

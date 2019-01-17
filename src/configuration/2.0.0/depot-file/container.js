@@ -1,62 +1,72 @@
 'use strict';
 
+const path = require('path');
+
 const get = require('lodash/get');
 
-const image = require('./image');
+const defaults = require('../../../wolkenkit/defaults.json'),
+      image = require('./image');
 
-const container = function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const container = function ({
+  configuration,
+  connections,
+  dangerouslyExposeHttpPorts,
+  debug,
+  persistData,
+  sharedKey
+}) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
-  if (!options.sharedKey) {
-    throw new Error('Shared key is missing.');
+  if (dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
-  if (options.persistData === undefined) {
-    throw new Error('Persist data is missing.');
-  }
-  if (options.debug === undefined) {
+  if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
+  }
 
-  /* eslint-disable no-unused-vars */
-  const { configuration, env, sharedKey, persistData, debug } = options;
-  /* eslint-enable no-unused-vars */
+  const { environment, packageJson } = configuration;
+  const { fileStorage } = connections;
 
-  const selectedEnvironment = configuration.environments[env];
+  const selectedEnvironment = packageJson.environments[environment];
 
   const result = {
-    image: `thenativeweb/wolkenkit-depot-file`,
-    name: `${configuration.application}-depot-file`,
+    image: 'thenativeweb/wolkenkit-depot-file',
+    name: `${configuration.application.name}-depot-file`,
     env: {
       IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate', '/keys/wildcard.wolkenkit.io'),
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
-      KEYS: get(selectedEnvironment, 'api.certificate', '/keys/local.wolkenkit.io'),
+      KEYS: configuration.api.host.certificate === defaults.commands.shared.certificate ?
+        configuration.api.host.certificate :
+        path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate),
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       STATUS_PORT: 3333,
       STATUS_CORS_ORIGIN: '*'
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-host': configuration.api.host.name,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
       'wolkenkit-shared-key': sharedKey,
       'wolkenkit-type': image().type
     },
     networks: [
-      `${configuration.application}-network`
+      `${configuration.application.name}-network`
     ],
     networkAlias: 'depot-file',
     ports: {
-      443: selectedEnvironment.api.address.port + 1,
-      3333: selectedEnvironment.api.address.port + 12
+      [fileStorage.container.https.port]: fileStorage.external.https.port
     },
     restart: 'always',
     volumes: [
@@ -66,7 +76,7 @@ const container = function (options) {
 
   if (persistData) {
     result.volumes = [
-      `${configuration.application}-depot-file-volume:/blobs`
+      `${configuration.application.name}-depot-file-volume:/blobs`
     ];
   }
 

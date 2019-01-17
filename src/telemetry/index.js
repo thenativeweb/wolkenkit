@@ -15,7 +15,7 @@ const axios = require('axios'),
       stringifyObject = require('stringify-object'),
       uuid = require('uuidv4');
 
-const getConfiguration = require('../application/getConfiguration'),
+const getConfiguration = require('../wolkenkit/commands/shared/getConfiguration'),
       packageJson = require('../../package.json');
 
 const stat = promisify(fs.stat);
@@ -172,9 +172,14 @@ const telemetry = {
     buntstift.verbose('Sending telemetry data...');
 
     try {
-      const configuration = await getConfiguration({ directory: process.cwd() });
+      const configuration = await getConfiguration({
+        directory: process.cwd(),
+        env,
+        isPackageJsonRequired: true
+      });
 
-      const { application, runtime } = configuration;
+      const applicationName = configuration.application.name;
+      const runtimeVersion = configuration.application.runtime.version;
       const { installationId } = data;
       const timestamp = Date.now();
 
@@ -183,7 +188,7 @@ const telemetry = {
       const telemetryData = deepHash({
         installationId,
         application: {
-          name: application,
+          name: applicationName,
           env
         }
       }, installationId);
@@ -192,7 +197,7 @@ const telemetry = {
       // or the application.
       telemetryData.timestamp = timestamp;
       telemetryData.cli = { version, command };
-      telemetryData.runtime = runtime;
+      telemetryData.runtime = runtimeVersion;
 
       const stringifiedTelemetryData = stringifyObject(telemetryData, {
         indent: '  ',

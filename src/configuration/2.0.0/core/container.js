@@ -5,74 +5,78 @@ const get = require('lodash/get'),
 
 const image = require('./image');
 
-const container = function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const container = function ({
+  configuration,
+  connections,
+  dangerouslyExposeHttpPorts,
+  debug,
+  persistData,
+  sharedKey
+}) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
+  if (dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
-  if (!options.sharedKey) {
-    throw new Error('Shared key is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
-  if (options.persistData === undefined) {
-    throw new Error('Persist data is missing.');
-  }
-  if (options.debug === undefined) {
+  if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
+  }
 
-  /* eslint-disable no-unused-vars */
-  const { configuration, env, sharedKey, persistData, debug } = options;
-  /* eslint-enable no-unused-vars */
+  const { environment, packageJson } = configuration;
+  const { commandBus, eventBus, eventStore, flowBus, debugging } = connections;
 
-  const selectedEnvironment = configuration.environments[env];
+  const selectedEnvironment = packageJson.environments[environment];
 
   const result = {
     dependsOn: [
-      `${configuration.application}-mongodb`,
-      `${configuration.application}-node-modules`,
-      `${configuration.application}-postgres`,
-      `${configuration.application}-rabbitmq`
+      `${configuration.application.name}-mongodb`,
+      `${configuration.application.name}-node-modules`,
+      `${configuration.application.name}-postgres`,
+      `${configuration.application.name}-rabbitmq`
     ],
-    image: `${configuration.application}-core`,
-    name: `${configuration.application}-core`,
+    image: `${configuration.application.name}-core`,
+    name: `${configuration.application.name}-core`,
     cmd: `dumb-init node ${debug ? '--inspect=0.0.0.0:9229' : ''} /wolkenkit/app.js`,
     env: {
-      APPLICATION: configuration.application,
-      COMMANDBUS_URL: `amqp://wolkenkit:${sharedKey}@messagebus:5672`,
-      EVENTBUS_URL: `amqp://wolkenkit:${sharedKey}@messagebus:5672`,
-      EVENTSTORE_TYPE: 'postgres',
-      EVENTSTORE_URL: `pg://wolkenkit:${sharedKey}@eventstore:5432/wolkenkit`,
-      FLOWBUS_URL: `amqp://wolkenkit:${sharedKey}@messagebus:5672`,
+      APPLICATION: configuration.application.name,
+      COMMANDBUS_URL: `${commandBus.container.amqp.protocol}://${commandBus.container.amqp.user}:${commandBus.container.amqp.password}@${commandBus.container.amqp.hostname}:${commandBus.container.amqp.port}`,
+      EVENTBUS_URL: `${eventBus.container.amqp.protocol}://${eventBus.container.amqp.user}:${eventBus.container.amqp.password}@${eventBus.container.amqp.hostname}:${eventBus.container.amqp.port}`,
+      EVENTSTORE_TYPE: eventStore.type,
+      EVENTSTORE_URL: `${eventStore.container.pg.protocol}://${eventStore.container.pg.user}:${eventStore.container.pg.password}@${eventStore.container.pg.hostname}:${eventStore.container.pg.port}/${eventStore.container.pg.database}`,
+      FLOWBUS_URL: `${flowBus.container.amqp.protocol}://${flowBus.container.amqp.user}:${flowBus.container.amqp.password}@${flowBus.container.amqp.hostname}:${flowBus.container.amqp.port}`,
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
-      PROFILING_HOST: selectedEnvironment.api.address.host,
+      PROFILING_HOST: configuration.api.host.name,
       PROFILING_PORT: 8125,
       STATUS_PORT: 3333,
       STATUS_CORS_ORIGIN: '*'
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-host': configuration.api.host.name,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
       'wolkenkit-shared-key': sharedKey,
       'wolkenkit-type': image().type
     },
     networks: [
-      `${configuration.application}-network`
+      `${configuration.application.name}-network`
     ],
     networkAlias: 'core',
-    ports: {
-      3333: selectedEnvironment.api.address.port + 10
-    },
+    ports: {},
     restart: 'always',
     volumesFrom: [
-      `${configuration.application}-node-modules`
+      `${configuration.application.name}-node-modules`
     ]
   };
 
@@ -81,7 +85,7 @@ const container = function (options) {
   }
 
   if (debug) {
-    result.ports[9229] = selectedEnvironment.api.address.port + 7;
+    result.ports[9229] = debugging.core.port;
   }
 
   return result;

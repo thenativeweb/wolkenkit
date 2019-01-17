@@ -10,30 +10,35 @@ const startVia = {
   cli
 };
 
-const start = async function (options, progress = noop) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const start = async function ({
+  directory,
+  dangerouslyDestroyData,
+  dangerouslyExposeHttpPorts,
+  debug,
+  env,
+  persist,
+  port,
+  privateKey,
+  sharedKey
+}, progress = noop) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (options.dangerouslyDestroyData === undefined) {
+  if (dangerouslyDestroyData === undefined) {
     throw new Error('Dangerously destroy data is missing.');
   }
-  if (options.dangerouslyExposeHttpPorts === undefined) {
+  if (dangerouslyExposeHttpPorts === undefined) {
     throw new Error('Dangerously expose http ports is missing.');
   }
-  if (options.debug === undefined) {
+  if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (options.persist === undefined) {
+  if (persist === undefined) {
     throw new Error('Persist is missing.');
   }
-
-  const { directory, env } = options;
 
   const configuration = await shared.getConfiguration({
     env,
@@ -43,10 +48,20 @@ const start = async function (options, progress = noop) {
 
   shared.validateCode({ directory }, progress);
 
-  const environment = configuration.environments[env];
-  const type = environment.type || 'cli';
+  const { type } = configuration;
 
-  await startVia[type]({ ...options, configuration }, progress);
+  await startVia[type]({
+    configuration,
+    dangerouslyDestroyData,
+    dangerouslyExposeHttpPorts,
+    debug,
+    directory,
+    env,
+    persist,
+    port,
+    privateKey,
+    sharedKey
+  }, progress);
 };
 
 module.exports = start;

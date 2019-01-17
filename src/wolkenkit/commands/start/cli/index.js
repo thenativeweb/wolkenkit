@@ -16,18 +16,19 @@ const docker = require('../../../../docker'),
       verifyThatPortsAreAvailable = require('./verifyThatPortsAreAvailable');
 
 const cli = async function ({
-  directory,
+  configuration,
   dangerouslyDestroyData,
   dangerouslyExposeHttpPorts,
   debug,
+  directory,
   env,
-  configuration,
   persist,
   port,
+  privateKey,
   sharedKey
 }, progress) {
-  if (!directory) {
-    throw new Error('Directory is missing.');
+  if (!configuration) {
+    throw new Error('Configuration is missing.');
   }
   if (dangerouslyDestroyData === undefined) {
     throw new Error('Dangerously destroy data is missing.');
@@ -38,11 +39,11 @@ const cli = async function ({
   if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (!directory) {
+    throw new Error('Directory is missing.');
+  }
   if (!env) {
     throw new Error('Environment is missing.');
-  }
-  if (!configuration) {
-    throw new Error('Configuration is missing.');
   }
   if (persist === undefined) {
     throw new Error('Persist is missing.');
@@ -50,17 +51,6 @@ const cli = async function ({
   if (!progress) {
     throw new Error('Progress is missing.');
   }
-
-  const environment = configuration.environments[env];
-
-  // Set the port within the configuration to the correct value (flag over
-  // environment variable over default value from the package.json file).
-  environment.api.address.port =
-    port ||
-    processenv('WOLKENKIT_PORT') ||
-    environment.api.address.port;
-
-  const runtimeVersion = configuration.runtime.version;
 
   const sharedKeyByUser = sharedKey || processenv('WOLKENKIT_SHARED_KEY');
   const isSharedKeyGivenByUser = Boolean(sharedKeyByUser);
@@ -73,7 +63,7 @@ const cli = async function ({
   const actualSharedKey = sharedKeyByUser || await generateSharedKey();
   const persistData = persist;
 
-  await shared.checkDocker({ configuration, env }, progress);
+  await shared.checkDocker({ configuration }, progress);
 
   progress({ message: `Verifying health on environment ${env}...`, type: 'info' });
   await health({ directory, env }, progress);
@@ -81,11 +71,10 @@ const cli = async function ({
   progress({ message: 'Verifying application status...', type: 'info' });
   const applicationStatus = await shared.getApplicationStatus({
     configuration,
-    env,
-    sharedKey: actualSharedKey,
-    persistData,
     dangerouslyExposeHttpPorts,
-    debug
+    debug,
+    persistData,
+    sharedKey: actualSharedKey
   }, progress);
 
   if (applicationStatus === 'running') {
@@ -99,57 +88,61 @@ const cli = async function ({
 
   progress({ message: 'Verifying that ports are available...', type: 'info' });
   await verifyThatPortsAreAvailable({
-    forVersion: runtimeVersion,
     configuration,
-    env,
-    sharedKey: actualSharedKey,
-    persistData,
     dangerouslyExposeHttpPorts,
-    debug
+    debug,
+    persistData,
+    sharedKey: actualSharedKey
   }, progress);
 
-  if (await runtimes.getInstallationStatus({ configuration, env, forVersion: runtimeVersion }) !== 'installed') {
+  const runtimeVersion = configuration.application.runtime.version;
+
+  if (await runtimes.getInstallationStatus({ configuration, forVersion: runtimeVersion }) !== 'installed') {
     progress({ message: `Installing wolkenkit ${runtimeVersion} on environment ${env}...`, type: 'info' });
     await install({ directory, env, version: runtimeVersion }, progress);
   }
 
   if (dangerouslyDestroyData) {
-    progress({ message: 'Destroying previous data...', type: 'info' });
+    progress({ message: 'Destroying previous data...', type: 'verbose' });
     await shared.destroyData({
       configuration,
-      env,
-      sharedKey: actualSharedKey,
-      persistData,
       dangerouslyExposeHttpPorts,
-      debug
+      debug,
+      persistData,
+      sharedKey: actualSharedKey
     }, progress);
+    progress({ message: 'Destroyed previous data.', type: 'warn' });
   }
 
   progress({ message: 'Setting up network...', type: 'info' });
-  await docker.ensureNetworkExists({ configuration, env });
+  await docker.ensureNetworkExists({ configuration });
 
   progress({ message: 'Building Docker images...', type: 'info' });
-  await shared.buildImages({ directory, configuration, env }, progress);
+  await shared.buildImages({ configuration, directory }, progress);
 
   progress({ message: 'Starting Docker containers...', type: 'info' });
   await startContainers({
     configuration,
-    env,
-    port: environment.api.address.port,
-    sharedKey: actualSharedKey,
-    persistData,
     dangerouslyExposeHttpPorts,
-    debug
+    debug,
+    persistData,
+    sharedKey: actualSharedKey
   }, progress);
 
   progress({ message: `Using ${actualSharedKey} as shared key.`, type: 'info' });
 
   try {
-    await shared.waitForApplicationAndValidateLogs({ configuration, env }, progress);
+    await shared.waitForApplicationAndValidateLogs({ configuration }, progress);
   } catch (ex) {
     switch (ex.code) {
       case 'ERUNTIMEERROR':
-        await stop({ directory, dangerouslyDestroyData: false, env, configuration }, noop);
+        await stop({
+          dangerouslyDestroyData: false,
+          directory,
+          env,
+          privateKey,
+          port
+        }, noop);
         break;
       default:
         break;
@@ -161,21 +154,33 @@ const cli = async function ({
   if (debug) {
     await shared.attachDebugger({
       configuration,
-      env,
-      sharedKey: actualSharedKey,
-      persistData,
       dangerouslyExposeHttpPorts,
-      debug
+      debug,
+      persistData,
+      sharedKey: actualSharedKey
     }, progress);
   }
 
-  if (dangerouslyExposeHttpPorts) {
+  const connections = await runtimes.getConnections({
+    configuration,
+    dangerouslyExposeHttpPorts,
+    debug,
+    forVersion: configuration.application.runtime.version,
+    persistData,
+    sharedKey: actualSharedKey
+  });
+
+  if (
+    dangerouslyExposeHttpPorts &&
+    connections.api.external.http &&
+    connections.fileStorage.external.http
+  ) {
     const httpPorts = [
-      environment.api.address.port + 10,
-      environment.api.address.port + 11
+      connections.api.external.http.port,
+      connections.fileStorage.external.http.port
     ];
 
-    progress({ message: `Dangerously exposed HTTP ports ${arrayToSentence(httpPorts)}.`, type: 'warn' });
+    progress({ message: `Exposed HTTP ports ${arrayToSentence(httpPorts)}.`, type: 'warn' });
   }
 };
 

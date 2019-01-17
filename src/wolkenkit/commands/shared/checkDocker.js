@@ -4,34 +4,26 @@ const docker = require('../../../docker'),
       errors = require('../../../errors'),
       runtimes = require('../../runtimes');
 
-const checkDocker = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const checkDocker = async function ({ configuration }, progress) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
-  }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  const { configuration, env } = options;
-
   const isInstalled = await docker.isInstalled();
 
-  const latestStableVersion = await runtimes.getLatestStableVersion();
-  const wolkenkitUrl = `https://docs.wolkenkit.io/${latestStableVersion}/getting-started/installing-wolkenkit/verifying-system-requirements/`;
-
   if (!isInstalled) {
+    const latestStableVersion = await runtimes.getLatestStableVersion();
+    const wolkenkitUrl = `https://docs.wolkenkit.io/${latestStableVersion}/getting-started/installing-wolkenkit/verifying-system-requirements/`;
+
     progress({ message: `Docker client is not installed (see ${wolkenkitUrl} for how to install wolkenkit).`, type: 'info' });
     throw new errors.ExecutableNotFound();
   }
 
   try {
-    await docker.ping({ configuration, env });
+    await docker.ping({ configuration });
   } catch (ex) {
     switch (ex.code) {
       case 'EEXECUTABLEFAILED':

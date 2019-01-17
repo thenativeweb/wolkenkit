@@ -6,29 +6,28 @@ const docker = require('../../../docker'),
       runtimes = require('../../runtimes'),
       shared = require('../shared');
 
-const uninstall = async function (options, progress = noop) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const uninstall = async function ({
+  directory,
+  env,
+  version
+}, progress = noop) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (!options.version) {
+  if (!version) {
     throw new Error('Version is missing.');
   }
 
-  const { directory, env, version } = options;
-
   const configuration = await shared.getConfiguration({
-    env,
     directory,
+    env,
     isPackageJsonRequired: false
   }, progress);
 
-  await shared.checkDocker({ configuration, env }, progress);
+  await shared.checkDocker({ configuration }, progress);
 
   let images;
 
@@ -46,7 +45,10 @@ const uninstall = async function (options, progress = noop) {
     throw ex;
   }
 
-  const installationStatus = await runtimes.getInstallationStatus({ configuration, env, forVersion: version });
+  const installationStatus = await runtimes.getInstallationStatus({
+    configuration,
+    forVersion: version
+  });
 
   if (installationStatus === 'not-installed') {
     progress({ message: `wolkenkit ${version} is not installed.`, type: 'info' });
@@ -54,7 +56,10 @@ const uninstall = async function (options, progress = noop) {
     throw new errors.RuntimeNotInstalled();
   }
 
-  const usageStatus = await runtimes.getUsageStatus({ configuration, env, forVersion: version });
+  const usageStatus = await runtimes.getUsageStatus({
+    configuration,
+    forVersion: version
+  });
 
   if (usageStatus === 'used' || usageStatus === 'partially-used') {
     progress({ message: `wolkenkit ${version} is being used.`, type: 'info' });
@@ -62,7 +67,10 @@ const uninstall = async function (options, progress = noop) {
     throw new errors.RuntimeInUse();
   }
 
-  const missingImages = await runtimes.getMissingImages({ configuration, env, forVersion: version });
+  const missingImages = await runtimes.getMissingImages({
+    configuration,
+    forVersion: version
+  });
 
   await Promise.all(images.map(async image => {
     progress({ message: `Deleting ${image.name}:${image.version}...` });
@@ -74,7 +82,11 @@ const uninstall = async function (options, progress = noop) {
     }
 
     try {
-      await docker.removeImage({ configuration, env, name: image.name, version: image.version });
+      await docker.removeImage({
+        configuration,
+        name: image.name,
+        version: image.version
+      });
     } catch (ex) {
       progress({ message: `Failed to delete ${image.name}:${image.version}.`, type: 'info' });
 

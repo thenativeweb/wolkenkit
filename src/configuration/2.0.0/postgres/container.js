@@ -2,62 +2,65 @@
 
 const image = require('./image');
 
-const container = function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const container = function ({
+  configuration,
+  connections,
+  dangerouslyExposeHttpPorts,
+  debug,
+  persistData,
+  sharedKey
+}) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
-  if (!options.sharedKey) {
-    throw new Error('Shared key is missing.');
+  if (dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
-  if (options.persistData === undefined) {
-    throw new Error('Persist data is missing.');
-  }
-  if (options.debug === undefined) {
+  if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
+  }
 
-  /* eslint-disable no-unused-vars */
-  const { configuration, env, sharedKey, persistData, debug } = options;
-  /* eslint-enable no-unused-vars */
-
-  const selectedEnvironment = configuration.environments[env];
+  const { eventStore } = connections;
 
   const result = {
-    image: `thenativeweb/wolkenkit-postgres`,
-    name: `${configuration.application}-postgres`,
+    image: 'thenativeweb/wolkenkit-postgres',
+    name: `${configuration.application.name}-postgres`,
     env: {
-      POSTGRES_DB: 'wolkenkit',
-      POSTGRES_USER: 'wolkenkit',
-      POSTGRES_PASSWORD: sharedKey
+      POSTGRES_DB: eventStore.container.pg.database,
+      POSTGRES_USER: eventStore.container.pg.user,
+      POSTGRES_PASSWORD: eventStore.container.pg.password
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-host': configuration.api.host.name,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
       'wolkenkit-shared-key': sharedKey,
       'wolkenkit-type': image().type
     },
     networks: [
-      `${configuration.application}-network`
+      `${configuration.application.name}-network`
     ],
     networkAlias: 'eventstore',
     ports: {
-      5432: selectedEnvironment.api.address.port + 3
+      [eventStore.container.pg.port]: eventStore.external.pg.port
     },
     restart: 'always'
   };
 
   if (persistData) {
     result.volumes = [
-      `${configuration.application}-postgres-volume:/var/lib/postgresql/data`
+      `${configuration.application.name}-postgres-volume:/var/lib/postgresql/data`
     ];
   }
 

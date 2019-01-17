@@ -59,7 +59,11 @@ const init = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.init({ directory, template, force }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.init({
+        directory,
+        force,
+        template
+      }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
       buntstift.error('Failed to initialize a new application.');

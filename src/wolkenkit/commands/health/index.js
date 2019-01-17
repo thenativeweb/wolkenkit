@@ -6,18 +6,13 @@ const checkCertificate = require('./checkCertificate'),
       resolveHost = require('./resolveHost'),
       shared = require('../shared');
 
-const health = async function (options, progress = noop) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const health = async function ({ directory, env }, progress = noop) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-
-  const { directory, env } = options;
 
   const configuration = await shared.getConfiguration({
     env,
@@ -25,12 +20,16 @@ const health = async function (options, progress = noop) {
     isPackageJsonRequired: true
   }, progress);
 
-  await shared.checkDocker({ configuration, env }, progress);
+  await shared.checkDocker({ configuration }, progress);
 
-  const applicationAddresses = await resolveHost({ configuration, env }, progress);
+  const applicationAddresses = await resolveHost({ configuration }, progress);
 
-  await checkDockerServerResolvesToApplicationAddresses({ configuration, env, applicationAddresses }, progress);
-  await checkCertificate({ configuration, env, directory }, progress);
+  await checkDockerServerResolvesToApplicationAddresses({
+    configuration,
+    applicationAddresses
+  }, progress);
+
+  await checkCertificate({ configuration, directory }, progress);
 };
 
 module.exports = health;

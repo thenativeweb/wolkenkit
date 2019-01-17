@@ -4,23 +4,17 @@ const image = require('./image');
 
 const container = function ({
   configuration,
-  env,
-  sharedKey,
-  persistData,
+  connections,
   dangerouslyExposeHttpPorts,
-  debug
+  debug,
+  persistData,
+  sharedKey
 }) {
   if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!sharedKey) {
-    throw new Error('Shared key is missing.');
-  }
-  if (persistData === undefined) {
-    throw new Error('Persist data is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
   if (dangerouslyExposeHttpPorts === undefined) {
     throw new Error('Dangerously expose http ports is missing.');
@@ -28,19 +22,25 @@ const container = function ({
   if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
+  }
 
-  const selectedEnvironment = configuration.environments[env];
+  const { eventBus } = connections;
 
   const result = {
-    image: `${configuration.application}-rabbitmq`,
-    name: `${configuration.application}-rabbitmq`,
+    image: `${configuration.application.name}-rabbitmq`,
+    name: `${configuration.application.name}-rabbitmq`,
     env: {
-      RABBITMQ_DEFAULT_USER: 'wolkenkit',
-      RABBITMQ_DEFAULT_PASS: sharedKey
+      RABBITMQ_DEFAULT_USER: eventBus.container.amqp.user,
+      RABBITMQ_DEFAULT_PASS: eventBus.container.amqp.password
     },
     labels: {
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-dangerously-expose-http-ports': dangerouslyExposeHttpPorts,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
@@ -48,7 +48,7 @@ const container = function ({
       'wolkenkit-type': image().type
     },
     networks: [
-      `${configuration.application}-network`
+      `${configuration.application.name}-network`
     ],
     networkAlias: 'messagebus',
     ports: {},
@@ -56,13 +56,13 @@ const container = function ({
   };
 
   if (debug) {
-    result.ports[5672] = selectedEnvironment.api.address.port + 32;
-    result.ports[15672] = selectedEnvironment.api.address.port + 33;
+    result.ports[eventBus.container.amqp.port] = eventBus.external.amqp.port;
+    result.ports[eventBus.container.http.port] = eventBus.external.http.port;
   }
 
   if (persistData) {
     result.volumes = [
-      `${configuration.application}-rabbitmq-volume:/var/lib/rabbitmq`
+      `${configuration.application.name}-rabbitmq-volume:/var/lib/rabbitmq`
     ];
   }
 

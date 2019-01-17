@@ -7,36 +7,35 @@ const docker = require('../../../../docker'),
       shared = require('../../shared');
 
 const cli = async function ({
-  directory,
+  configuration,
   dangerouslyDestroyData,
-  env,
-  configuration
+  directory,
+  env
 }, progress) {
-  if (!directory) {
-    throw new Error('Directory is missing.');
+  if (!configuration) {
+    throw new Error('Configuration is missing.');
   }
   if (dangerouslyDestroyData === undefined) {
     throw new Error('Dangerously destroy data is missing.');
   }
+  if (!directory) {
+    throw new Error('Directory is missing.');
+  }
   if (!env) {
     throw new Error('Environment is missing.');
-  }
-  if (!configuration) {
-    throw new Error('Configuration is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  await shared.checkDocker({ configuration, env }, progress);
+  await shared.checkDocker({ configuration }, progress);
 
   progress({ message: `Verifying health on environment ${env}...`, type: 'info' });
   await health({ directory, env }, progress);
 
   const existingContainers = await docker.getContainers({
     configuration,
-    env,
-    where: { label: { 'wolkenkit-application': configuration.application }}
+    where: { label: { 'wolkenkit-application': configuration.application.name }}
   });
 
   progress({ message: 'Verifying application status...', type: 'info' });
@@ -56,11 +55,10 @@ const cli = async function ({
 
   const applicationStatus = await shared.getApplicationStatus({
     configuration,
-    env,
-    sharedKey,
-    persistData,
     dangerouslyExposeHttpPorts,
-    debug
+    debug,
+    persistData,
+    sharedKey
   }, progress);
 
   if (applicationStatus === 'partially-running') {
@@ -68,21 +66,21 @@ const cli = async function ({
   }
 
   progress({ message: `Removing Docker containers...`, type: 'info' });
-  await removeContainers({ configuration, env }, progress);
+  await removeContainers({ configuration }, progress);
 
   progress({ message: `Removing network...`, type: 'info' });
-  await docker.removeNetwork({ configuration, env });
+  await docker.removeNetwork({ configuration });
 
   if (dangerouslyDestroyData) {
-    progress({ message: 'Destroying previous data...', type: 'info' });
+    progress({ message: 'Destroying previous data...', type: 'verbose' });
     await shared.destroyData({
       configuration,
-      env,
-      sharedKey,
-      persistData,
       dangerouslyExposeHttpPorts,
-      debug
+      debug,
+      persistData,
+      sharedKey
     }, progress);
+    progress({ message: 'Destroyed previous data.', type: 'warn' });
   }
 };
 

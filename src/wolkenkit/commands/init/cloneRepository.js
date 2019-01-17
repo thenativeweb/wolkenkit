@@ -4,21 +4,16 @@ const errors = require('../../../errors'),
       runtimes = require('../../runtimes'),
       shell = require('../../../shell');
 
-const cloneRepository = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const cloneRepository = async function ({ directory, template }, progress) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.template) {
+  if (!template) {
     throw new Error('Template is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
-
-  const { directory, template } = options;
 
   const latestStableVersion = await runtimes.getLatestStableVersion();
   const wolkenkitUrl = `https://docs.wolkenkit.io/${latestStableVersion}/getting-started/installing-wolkenkit/verifying-system-requirements/`;
@@ -43,7 +38,10 @@ const cloneRepository = async function (options, progress) {
   progress({ message: `Cloning ${template}...` });
 
   try {
-    await shell.exec(`git clone ${branchOption} ${url} .`, { silent: true, cwd: directory });
+    await shell.exec(`git clone ${branchOption} ${url} .`, {
+      silent: true,
+      cwd: directory
+    });
   } catch (ex) {
     progress({ message: `${ex.stderr}` });
     progress({ message: 'git failed to clone the template.', type: 'info' });

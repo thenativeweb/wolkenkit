@@ -6,18 +6,13 @@ const eslint = require('eslint');
 
 const errors = require('../../../errors');
 
-const validateCode = function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const validateCode = function ({ directory }, progress) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
-
-  const { directory } = options;
 
   const cliEngine = new eslint.CLIEngine({
     envs: [ 'node', 'es6' ],

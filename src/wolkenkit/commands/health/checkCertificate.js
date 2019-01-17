@@ -1,34 +1,29 @@
 'use strict';
 
-const application = require('../../../application'),
+const application = require('../../application'),
       errors = require('../../../errors'),
       { isNameMatching } = require('../../../certificate');
 
-const checkCertificate = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const checkCertificate = async function ({
+  configuration,
+  directory
+}, progress) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!options.directory) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  const { configuration, env, directory } = options;
-
-  const host = configuration.environments[env].api.address.host;
+  const host = configuration.api.host.name;
 
   let certificate;
 
   try {
-    certificate = await application.getCertificate({ directory, configuration, env });
+    certificate = await application.getCertificate({ configuration, directory });
   } catch (ex) {
     switch (ex.code) {
       case 'EDIRECTORYNOTFOUND':

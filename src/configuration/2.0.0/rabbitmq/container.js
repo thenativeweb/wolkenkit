@@ -2,62 +2,65 @@
 
 const image = require('./image');
 
-const container = function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const container = function ({
+  configuration,
+  connections,
+  dangerouslyExposeHttpPorts,
+  debug,
+  persistData,
+  sharedKey
+}) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
-  if (!options.sharedKey) {
-    throw new Error('Shared key is missing.');
+  if (dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
-  if (options.persistData === undefined) {
-    throw new Error('Persist data is missing.');
-  }
-  if (options.debug === undefined) {
+  if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
+  }
 
-  /* eslint-disable no-unused-vars */
-  const { configuration, env, sharedKey, persistData, debug } = options;
-  /* eslint-enable no-unused-vars */
-
-  const selectedEnvironment = configuration.environments[env];
+  const { eventBus } = connections;
 
   const result = {
-    image: `thenativeweb/wolkenkit-rabbitmq`,
-    name: `${configuration.application}-rabbitmq`,
+    image: 'thenativeweb/wolkenkit-rabbitmq',
+    name: `${configuration.application.name}-rabbitmq`,
     env: {
-      RABBITMQ_DEFAULT_USER: 'wolkenkit',
-      RABBITMQ_DEFAULT_PASS: sharedKey
+      RABBITMQ_DEFAULT_USER: eventBus.container.amqp.user,
+      RABBITMQ_DEFAULT_PASS: eventBus.container.amqp.password
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-host': configuration.api.host.name,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
       'wolkenkit-shared-key': sharedKey,
       'wolkenkit-type': image().type
     },
     networks: [
-      `${configuration.application}-network`
+      `${configuration.application.name}-network`
     ],
     networkAlias: 'messagebus',
     ports: {
-      5672: selectedEnvironment.api.address.port + 4,
-      15672: selectedEnvironment.api.address.port + 5
+      [eventBus.container.amqp.port]: eventBus.external.amqp.port,
+      [eventBus.container.http.port]: eventBus.external.http.port
     },
     restart: 'always'
   };
 
   if (persistData) {
     result.volumes = [
-      `${configuration.application}-rabbitmq-volume:/var/lib/rabbitmq`
+      `${configuration.application.name}-rabbitmq-volume:/var/lib/rabbitmq`
     ];
   }
 

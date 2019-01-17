@@ -62,7 +62,11 @@ const restart = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.restart({ directory, env, privateKey }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.restart({
+        directory,
+        env,
+        privateKey
+      }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
 

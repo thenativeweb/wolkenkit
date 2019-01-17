@@ -6,32 +6,18 @@ const errors = require('../errors'),
       getEnvironmentVariables = require('./getEnvironmentVariables'),
       shell = require('../shell');
 
-const ping = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const ping = async function ({ configuration }) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
-  }
 
-  const { configuration, env } = options;
-
-  let runtimeVersion;
-
-  try {
-    runtimeVersion = configuration.runtime.version;
-  } catch (ex) {
-    throw new errors.ConfigurationMalformed();
-  }
+  const { version } = configuration.application.runtime;
 
   let docker;
 
   try {
     /* eslint-disable global-require */
-    docker = require(`../configuration/${runtimeVersion}/docker`)();
+    docker = require(`../configuration/${version}/docker`)();
     /* eslint-enable global-require */
   } catch (ex) {
     switch (ex.code) {
@@ -42,7 +28,7 @@ const ping = async function (options) {
     }
   }
 
-  const environmentVariables = await getEnvironmentVariables({ configuration, env });
+  const environmentVariables = await getEnvironmentVariables({ configuration });
 
   let output;
 

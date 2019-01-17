@@ -5,40 +5,37 @@ const fs = require('fs'),
 
 const promisify = require('util.promisify');
 
-const errors = require('../../errors');
+const errors = require('../../errors'),
+      getConnections = require('./getConnections');
 
 const readdir = promisify(fs.readdir),
       stat = promisify(fs.stat);
 
 const getContainers = async function ({
-  forVersion,
   configuration,
-  env,
-  sharedKey,
-  persistData,
   dangerouslyExposeHttpPorts,
-  debug
+  debug,
+  forVersion,
+  persistData,
+  sharedKey
 }) {
-  if (!forVersion) {
-    throw new Error('Version is missing.');
-  }
   if (!configuration) {
     throw new Error('Configuration is missing.');
-  }
-  if (!env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!sharedKey) {
-    throw new Error('Shared key is missing.');
-  }
-  if (persistData === undefined) {
-    throw new Error('Persist data is missing.');
   }
   if (dangerouslyExposeHttpPorts === undefined) {
     throw new Error('Dangerously expose http ports is missing.');
   }
   if (debug === undefined) {
     throw new Error('Debug is missing.');
+  }
+  if (!forVersion) {
+    throw new Error('Version is missing.');
+  }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
   }
 
   const pathRuntime = path.join(__dirname, '..', '..', 'configuration', forVersion);
@@ -68,13 +65,22 @@ const getContainers = async function ({
     const container = require(path.join(pathContainer, 'container'));
     /* eslint-enable global-require */
 
+    const connections = await getConnections({
+      configuration,
+      dangerouslyExposeHttpPorts,
+      debug,
+      forVersion,
+      persistData,
+      sharedKey
+    });
+
     return container({
       configuration,
-      env,
-      sharedKey,
-      persistData,
+      connections,
       dangerouslyExposeHttpPorts,
-      debug
+      debug,
+      persistData,
+      sharedKey
     });
   }))).filter(container => container);
 
