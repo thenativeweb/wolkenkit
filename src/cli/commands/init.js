@@ -3,7 +3,8 @@
 const buntstift = require('buntstift'),
       getUsage = require('command-line-usage');
 
-const defaults = require('../defaults.json'),
+const checkDirectory = require('../../wolkenkit/commands/init/checkDirectory'),
+      defaults = require('../defaults.json'),
       globalOptionDefinitions = require('../globalOptionDefinitions'),
       showProgress = require('../showProgress'),
       wolkenkit = require('../../wolkenkit');
@@ -17,7 +18,6 @@ const init = {
         name: 'template',
         alias: 't',
         type: String,
-        defaultValue: defaults.commands.init.template,
         description: 'template to clone',
         typeLabel: '<url>'
       },
@@ -35,9 +35,6 @@ const init = {
     if (!options) {
       throw new Error('Options are missing.');
     }
-    if (!options.template) {
-      throw new Error('Template is missing.');
-    }
     if (options.force === undefined) {
       throw new Error('Force is missing.');
     }
@@ -50,7 +47,7 @@ const init = {
         { header: 'wolkenkit init', content: this.description },
         { header: 'Synopsis', content: 'wolkenkit init [--template <url>] [--force]' },
         { header: 'Options', optionList: [ ...await this.getOptionDefinitions(), ...globalOptionDefinitions ]},
-        { header: 'Remarks', content: `If you don't specify a template, ${defaults.commands.init.template} will be used as default.` }
+        { header: 'Remarks', content: `If you don't specify a template, you will be asked to select one.` }
       ]));
     }
 
@@ -58,11 +55,41 @@ const init = {
 
     const stopWaiting = buntstift.wait();
 
+    let selectedTemplate = template;
+
     try {
+      await checkDirectory({ directory, force }, showProgress(verbose, stopWaiting));
+
+      if (!selectedTemplate) {
+        const availableTemplates = [
+          {
+            description: 'Empty (directories without files)',
+            url: 'https://github.com/thenativeweb/wolkenkit-template-empty.git#master'
+          },
+          {
+            description: 'Minimal (directories and files)',
+            url: 'https://github.com/thenativeweb/wolkenkit-template-minimal.git#master'
+          },
+          {
+            description: 'Chat (sample application)',
+            url: 'https://github.com/thenativeweb/wolkenkit-template-chat.git#master'
+          }
+        ];
+
+        const selectedDescription = await buntstift.select(
+          'Select a template to initialize your application with:',
+          availableTemplates.map(availableTemplate => availableTemplate.description)
+        );
+
+        selectedTemplate = availableTemplates.find(
+          availableTemplate => availableTemplate.description === selectedDescription
+        ).url;
+      }
+
       await wolkenkit.commands.init({
         directory,
-        force,
-        template
+        template: selectedTemplate,
+        force
       }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();

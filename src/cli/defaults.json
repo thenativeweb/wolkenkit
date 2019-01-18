@@ -7,7 +7,6 @@
       "toEventStore": true
     },
     "init": {
-      "template": "https://github.com/thenativeweb/wolkenkit-template-chat.git#master",
       "force": false
     },
     "logs": {
