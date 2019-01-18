@@ -334,7 +334,7 @@ const applicationLifecycleTests = async function (runtime) {
 
           assert.that(stderr).is.matching(/Application certificate is self-signed/);
           assert.that(stderr).is.matching(/Exposed HTTP ports 3010 and 3011/);
-          assert.that(stdout).is.matching(/Started the application/);
+          assert.that(stdout).is.matching(/Restarted the application/);
           assert.that(code).is.equalTo(0);
         });
 
@@ -343,7 +343,7 @@ const applicationLifecycleTests = async function (runtime) {
 
           assert.that(stderr).is.matching(/Application certificate is self-signed/);
           assert.that(stderr).is.matching(/Exposed HTTP ports 3010 and 3011/);
-          assert.that(stdout).is.matching(/Started the application/);
+          assert.that(stdout).is.matching(/Reloaded the application/);
           assert.that(code).is.equalTo(0);
         });
 

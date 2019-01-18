@@ -43,7 +43,8 @@ const start = async function ({
   const configuration = await shared.getConfiguration({
     env,
     directory,
-    isPackageJsonRequired: true
+    isPackageJsonRequired: true,
+    port
   }, progress);
 
   shared.validateCode({ directory }, progress);
