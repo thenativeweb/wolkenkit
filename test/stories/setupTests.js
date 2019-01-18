@@ -79,23 +79,8 @@ const defaults = require('../../src/cli/defaults'),
       assert.that(directoryList).is.containingAllOf([ 'package.json' ]);
     });
 
-    await test('[wolkenkit init] initializes a new application.', async ({ directory }) => {
-      const template = defaults.commands.init.template;
-
-      const { code, stderr, stdout } = await wolkenkit('init', {}, { cwd: directory });
-
-      assert.that(stderr).is.equalTo('');
-      assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n✓ Initialized a new application.\n`);
-      assert.that(code).is.equalTo(0);
-
-      const directoryList = await getDirectoryList(directory);
-
-      assert.that(directoryList).is.containingAllOf([ 'client', 'server', 'package.json' ]);
-      assert.that(directoryList).is.not.containingAllOf([ '.git' ]);
-    });
-
     await test('[wolkenkit init --template] initializes a new application using the specified template.', async ({ directory }) => {
-      const template = 'https://github.com/thenativeweb/wolkenkit-boards.git#master';
+      const template = 'https://github.com/thenativeweb/wolkenkit-template-chat.git#master';
 
       const { code, stderr, stdout } = await wolkenkit('init', { template }, { cwd: directory });
 
@@ -109,13 +94,13 @@ const defaults = require('../../src/cli/defaults'),
       assert.that(directoryList).is.not.containingAllOf([ '.git' ]);
     });
 
-    await test('[wolkenkit init --force] overwrites existing files.', async () => {
+    await test('[wolkenkit init --template --force] overwrites existing files.', async () => {
       const directory = await isolated({
         files: [ path.join(__dirname, '..', 'shared', 'configuration', 'validJson', 'package.json') ]
       });
-      const template = defaults.commands.init.template;
+      const template = 'https://github.com/thenativeweb/wolkenkit-template-chat.git#master';
 
-      const { code, stderr, stdout } = await wolkenkit('init', { force: true }, { cwd: directory });
+      const { code, stderr, stdout } = await wolkenkit('init', { template, force: true }, { cwd: directory });
 
       assert.that(stderr).is.equalTo('');
       assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n  Creating backup file for package.json...\n✓ Initialized a new application.\n`);
@@ -127,12 +112,12 @@ const defaults = require('../../src/cli/defaults'),
       assert.that(directoryList).is.not.containingAllOf([ '.git' ]);
     });
 
-    await test('[wolkenkit init --force] ignores the .git directory.', async ({ directory }) => {
-      const template = defaults.commands.init.template;
+    await test('[wolkenkit init --template --force] ignores the .git directory.', async ({ directory }) => {
+      const template = 'https://github.com/thenativeweb/wolkenkit-template-chat.git#master';
 
       await shell.cp('-R', path.join(__dirname, '..', '..', '.git'), directory);
 
-      const { code, stderr, stdout } = await wolkenkit('init', { force: true }, { cwd: directory });
+      const { code, stderr, stdout } = await wolkenkit('init', { template, force: true }, { cwd: directory });
 
       assert.that(stderr).is.equalTo('');
       assert.that(stdout).is.equalTo(`  Initializing a new application...\n  Cloning ${template}...\n✓ Initialized a new application.\n`);

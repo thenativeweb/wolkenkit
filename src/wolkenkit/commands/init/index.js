@@ -1,17 +1,12 @@
 'use strict';
 
-const fs = require('fs'),
-      path = require('path');
+const path = require('path');
 
-const promisify = require('util.promisify');
-
-const cloneRepository = require('./cloneRepository'),
-      errors = require('../../../errors'),
+const checkDirectory = require('./checkDirectory'),
+      cloneRepository = require('./cloneRepository'),
       forceInit = require('./forceInit'),
       noop = require('../../../noop'),
       shell = require('../../../shell');
-
-const readdir = promisify(fs.readdir);
 
 const init = async function (options, progress = noop) {
   if (!options) {
@@ -33,14 +28,7 @@ const init = async function (options, progress = noop) {
     return await forceInit({ directory, template }, progress);
   }
 
-  const entries = await readdir(directory);
-
-  if (entries.length > 0) {
-    progress({ message: 'The current working directory is not empty.', type: 'info' });
-
-    throw new errors.DirectoryNotEmpty();
-  }
-
+  await checkDirectory({ directory, force }, progress);
   await cloneRepository({ directory, template }, progress);
 
   await shell.rm('-rf', path.join(directory, '.git'));

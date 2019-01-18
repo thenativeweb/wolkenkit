@@ -40,7 +40,7 @@ const cloneRepository = async function (options, progress) {
   const [ , url, branch ] = matches;
   const branchOption = branch ? `--branch ${branch}` : '';
 
-  progress({ message: `Cloning ${template}...` });
+  progress({ message: `Cloning ${template}...`, type: 'info' });
 
   try {
     await shell.exec(`git clone ${branchOption} ${url} .`, { silent: true, cwd: directory });
