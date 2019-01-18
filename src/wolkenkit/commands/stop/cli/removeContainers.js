@@ -1,31 +1,24 @@
 'use strict';
 
-const docker = require('../../../../docker'),
-      noop = require('../../../../noop');
+const docker = require('../../../../docker');
 
-const removeContainers = async function (options, progress = noop) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const removeContainers = async function ({ configuration }, progress) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
+  if (!progress) {
+    throw new Error('Progress is missing.');
   }
-
-  const { configuration, env } = options;
 
   const existingContainers = await docker.getContainers({
     configuration,
-    env,
-    where: { label: { 'wolkenkit-application': configuration.application }}
+    where: { label: { 'wolkenkit-application': configuration.application.name }}
   });
 
   const removedContainer = [];
 
   await Promise.all(existingContainers.map(async container => {
-    await docker.removeContainer({ configuration, container, env });
+    await docker.removeContainer({ configuration, container });
 
     removedContainer.push(container);
 

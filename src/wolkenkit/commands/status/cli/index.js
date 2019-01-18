@@ -5,34 +5,28 @@ const docker = require('../../../../docker'),
       health = require('../../health'),
       shared = require('../../shared');
 
-const cli = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
+const cli = async function ({ configuration, directory, env }, progress) {
+  if (!configuration) {
+    throw new Error('Configuration is missing.');
   }
-  if (!options.directory) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
-  }
-  if (!options.configuration) {
-    throw new Error('Configuration is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  const { directory, env, configuration } = options;
-
-  await shared.checkDocker({ configuration, env }, progress);
+  await shared.checkDocker({ configuration }, progress);
 
   progress({ message: `Verifying health on environment ${env}...`, type: 'info' });
   await health({ directory, env }, progress);
 
   const existingContainers = await docker.getContainers({
     configuration,
-    env,
-    where: { label: { 'wolkenkit-application': configuration.application }}
+    where: { label: { 'wolkenkit-application': configuration.application.name }}
   });
 
   progress({ message: 'Verifying application status...', type: 'info' });
@@ -51,11 +45,10 @@ const cli = async function (options, progress) {
 
   const applicationStatus = await shared.getApplicationStatus({
     configuration,
-    env,
-    sharedKey,
-    persistData,
     dangerouslyExposeHttpPorts,
-    debug
+    debug,
+    persistData,
+    sharedKey
   }, progress);
 
   if (applicationStatus === 'partially-running') {

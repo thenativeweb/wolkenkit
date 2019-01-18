@@ -6,23 +6,17 @@ const image = require('./image');
 
 const container = function ({
   configuration,
-  env,
-  sharedKey,
-  persistData,
+  connections,
   dangerouslyExposeHttpPorts,
-  debug
+  debug,
+  persistData,
+  sharedKey
 }) {
   if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!sharedKey) {
-    throw new Error('Shared key is missing.');
-  }
-  if (persistData === undefined) {
-    throw new Error('Persist data is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
   if (dangerouslyExposeHttpPorts === undefined) {
     throw new Error('Dangerously expose http ports is missing.');
@@ -30,18 +24,26 @@ const container = function ({
   if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
+  }
 
-  const selectedEnvironment = configuration.environments[env];
+  const { environment, packageJson } = configuration;
+
+  const selectedEnvironment = packageJson.environments[environment];
 
   return {
-    image: `${configuration.application}-node-modules`,
-    name: `${configuration.application}-node-modules`,
+    image: `${configuration.application.name}-node-modules`,
+    name: `${configuration.application.name}-node-modules`,
     env: {
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development')
     },
     labels: {
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-dangerously-expose-http-ports': dangerouslyExposeHttpPorts,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,

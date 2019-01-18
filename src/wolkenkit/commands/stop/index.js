@@ -10,32 +10,40 @@ const stopVia = {
   cli
 };
 
-const stop = async function (options, progress = noop) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
-    throw new Error('Directory is missing.');
-  }
-  if (options.dangerouslyDestroyData === undefined) {
+const stop = async function ({
+  dangerouslyDestroyData,
+  directory,
+  env,
+  port = undefined,
+  privateKey = undefined
+}, progress = noop) {
+  if (dangerouslyDestroyData === undefined) {
     throw new Error('Dangerously destroy data is missing.');
   }
-  if (!options.env) {
+  if (!directory) {
+    throw new Error('Directory is missing.');
+  }
+  if (!env) {
     throw new Error('Environment is missing.');
   }
 
-  const { directory, env } = options;
-
   const configuration = await shared.getConfiguration({
-    env,
     directory,
-    isPackageJsonRequired: true
+    env,
+    isPackageJsonRequired: true,
+    port
   }, progress);
 
-  const environment = configuration.environments[env];
-  const type = environment.type || 'cli';
+  const { type } = configuration;
 
-  await stopVia[type]({ ...options, configuration }, progress);
+  await stopVia[type]({
+    configuration,
+    dangerouslyDestroyData,
+    directory,
+    env,
+    port,
+    privateKey
+  }, progress);
 };
 
 module.exports = stop;

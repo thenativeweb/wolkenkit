@@ -6,21 +6,16 @@ const docker = require('../../../docker'),
       runtimes = require('../../runtimes'),
       shared = require('../shared');
 
-const install = async function (options, progress = noop) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const install = async function ({ directory, env, version }, progress = noop) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (!options.version) {
+  if (!version) {
     throw new Error('Version is missing.');
   }
-
-  const { directory, env, version } = options;
 
   const configuration = await shared.getConfiguration({
     env,
@@ -28,7 +23,7 @@ const install = async function (options, progress = noop) {
     isPackageJsonRequired: false
   }, progress);
 
-  await shared.checkDocker({ configuration, env }, progress);
+  await shared.checkDocker({ configuration }, progress);
 
   let images;
 
@@ -46,7 +41,10 @@ const install = async function (options, progress = noop) {
     throw ex;
   }
 
-  const installationStatus = await runtimes.getInstallationStatus({ configuration, env, forVersion: version });
+  const installationStatus = await runtimes.getInstallationStatus({
+    configuration,
+    forVersion: version
+  });
 
   if (installationStatus === 'installed') {
     progress({ message: `wolkenkit ${version} is already installed.`, type: 'info' });
@@ -55,10 +53,10 @@ const install = async function (options, progress = noop) {
   }
 
   await Promise.all(images.map(async image => {
-    progress({ message: `Pulling ${image.name}:${image.version}...` });
+    progress({ message: `Pulling ${image.name}:${image.version}...`, type: 'verbose' });
 
     try {
-      await docker.pullImage({ configuration, env, name: image.name, version: image.version });
+      await docker.pullImage({ configuration, name: image.name, version: image.version });
     } catch (ex) {
       progress({ message: `Failed to pull ${image.name}:${image.version}.`, type: 'info' });
 

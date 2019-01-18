@@ -18,6 +18,10 @@ const readdir = promisify(fs.readdir);
 const checkImportEventStore = async function ({
   importDirectory
 }, progress = noop) {
+  if (!importDirectory) {
+    throw new Error('Import directory is missing.');
+  }
+
   const eventStoreDirectory = path.join(importDirectory, 'event-store');
   const entries = await readdir(eventStoreDirectory);
 

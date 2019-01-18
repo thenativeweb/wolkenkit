@@ -66,7 +66,11 @@ const uninstall = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.uninstall({ directory, env, version }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.uninstall({
+        directory,
+        env,
+        version
+      }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
       buntstift.error(`Failed to uninstall wolkenkit ${version} on environment ${env}.`);

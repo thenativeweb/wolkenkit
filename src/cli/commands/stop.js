@@ -71,7 +71,12 @@ const stop = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.stop({ directory, dangerouslyDestroyData, env, privateKey }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.stop({
+        dangerouslyDestroyData,
+        directory,
+        env,
+        privateKey
+      }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
       buntstift.error('Failed to stop the application.');

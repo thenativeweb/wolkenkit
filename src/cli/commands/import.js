@@ -75,7 +75,12 @@ const importCommand = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.import({ directory, env, from, toEventStore }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.import({
+        directory,
+        env,
+        from,
+        toEventStore
+      }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
 

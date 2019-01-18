@@ -1,9 +1,11 @@
 'use strict';
 
-const commands = require('./commands'),
+const application = require('./application'),
+      commands = require('./commands'),
       runtimes = require('./runtimes');
 
 const wolkenkit = {
+  application,
   commands,
   runtimes
 };

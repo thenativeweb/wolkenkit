@@ -9,21 +9,20 @@ const axios = require('axios'),
 
 const errors = require('../../../errors');
 
-const makeAufwindRequest = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.endpoint) {
+const makeAufwindRequest = async function ({
+  endpoint,
+  tunnel,
+  uploadStream = undefined
+}, progress) {
+  if (!endpoint) {
     throw new Error('Endpoint is missing.');
   }
-  if (!options.tunnel) {
+  if (!tunnel) {
     throw new Error('Tunnel is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
-
-  const { endpoint, tunnel, uploadStream } = options;
 
   const formattedUrl = url.format(endpoint);
   let receivedData;

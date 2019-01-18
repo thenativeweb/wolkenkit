@@ -5,20 +5,12 @@ const url = require('url');
 const getEnvironmentVariables = require('./getEnvironmentVariables'),
       getIpAddresses = require('../network/getIpAddresses');
 
-const getHostIpAddresses = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const getHostIpAddresses = async function ({ configuration }) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
-  }
 
-  const { configuration, env } = options;
-
-  const environmentVariables = await getEnvironmentVariables({ configuration, env });
+  const environmentVariables = await getEnvironmentVariables({ configuration });
   const localhostAddresses = [
     { address: '127.0.0.1', family: 4 },
     { address: '::1', family: 6 }

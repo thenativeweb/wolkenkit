@@ -7,29 +7,24 @@ const arrayToSentence = require('array-to-sentence'),
 const docker = require('../../../docker'),
       errors = require('../../../errors');
 
-const checkDockerServerResolvesToApplicationAddresses = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const checkDockerServerResolvesToApplicationAddresses = async function ({
+  configuration,
+  applicationAddresses
+}, progress) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!options.applicationAddresses) {
+  if (!applicationAddresses) {
     throw new Error('Application addresses are missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  const { configuration, env, applicationAddresses } = options;
-
   let dockerAddresses;
 
   try {
-    dockerAddresses = await docker.getHostIpAddresses({ configuration, env });
+    dockerAddresses = await docker.getHostIpAddresses({ configuration });
   } catch (ex) {
     progress({ message: ex.message });
     progress({ message: 'Failed to resolve Docker server.', type: 'info' });

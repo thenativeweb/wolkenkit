@@ -24,18 +24,13 @@ const isMatching = function (left, right) {
   return false;
 };
 
-const isNameMatching = function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.certificate) {
+const isNameMatching = function ({ certificate, name }) {
+  if (!certificate) {
     throw new Error('Certificate is missing.');
   }
-  if (!options.name) {
+  if (!name) {
     throw new Error('Name is missing.');
   }
-
-  const { certificate, name } = options;
 
   if (isMatching(certificate.subject.commonName, name)) {
     return true;

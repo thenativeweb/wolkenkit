@@ -3,26 +3,20 @@
 const getImages = require('./getImages'),
       getMissingImages = require('./getMissingImages');
 
-const isPartiallyInstalled = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const isPartiallyInstalled = async function ({ configuration, forVersion }) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!options.forVersion) {
+  if (!forVersion) {
     throw new Error('Version is missing.');
   }
 
-  const { configuration, env, forVersion } = options;
-
   const images = await getImages({ forVersion });
-  const missingImages = await getMissingImages({ configuration, env, forVersion });
+  const missingImages = await getMissingImages({ configuration, forVersion });
 
-  const isRuntimePartiallyInstalled = missingImages.length !== 0 && missingImages.length !== images.length;
+  const isRuntimePartiallyInstalled =
+    missingImages.length !== 0 &&
+    missingImages.length !== images.length;
 
   return isRuntimePartiallyInstalled;
 };

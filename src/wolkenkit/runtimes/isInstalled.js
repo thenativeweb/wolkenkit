@@ -2,23 +2,15 @@
 
 const getMissingImages = require('./getMissingImages');
 
-const isInstalled = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const isInstalled = async function ({ configuration, forVersion }) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!options.forVersion) {
+  if (!forVersion) {
     throw new Error('Version is missing.');
   }
 
-  const { configuration, env, forVersion } = options;
-
-  const missingImages = await getMissingImages({ configuration, env, forVersion });
+  const missingImages = await getMissingImages({ configuration, forVersion });
   const isRuntimeInstalled = missingImages.length === 0;
 
   return isRuntimeInstalled;

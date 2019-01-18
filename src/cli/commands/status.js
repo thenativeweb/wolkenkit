@@ -61,7 +61,11 @@ const status = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.status({ directory, env, privateKey }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.status({
+        directory,
+        env,
+        privateKey
+      }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
 

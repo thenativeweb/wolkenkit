@@ -1,43 +1,51 @@
 'use strict';
 
-const application = require('../../../application'),
+const get = require('lodash/get'),
+      processenv = require('processenv');
+
+const application = require('../../application'),
+      Configuration = require('../../Configuration'),
       errors = require('../../../errors'),
-      runtimes = require('../../runtimes');
+      noop = require('../../../noop'),
+      runtimes = require('../../runtimes'),
+      switchSemver = require('../../../switchSemver');
 
 const getFallbackConfiguration = async function () {
-  return {
-    runtime: {
-      version: await runtimes.getLatestStableVersion()
-    },
-    environments: {
-      default: {}
-    }
-  };
+  const latestStableVersion = await runtimes.getLatestStableVersion();
+
+  const configuration = new Configuration({
+    type: 'cli',
+    environment: 'default',
+    applicationName: 'fallback',
+    runtimeVersion: latestStableVersion,
+    apiHostname: 'local.wolkenkit.io',
+    apiPort: 3000,
+    packageJson: {}
+  });
+
+  return configuration;
 };
 
-const getConfiguration = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const getConfiguration = async function ({
+  directory,
+  env,
+  isPackageJsonRequired,
+  port = undefined
+}, progress = noop) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (options.isPackageJsonRequired === undefined) {
+  if (isPackageJsonRequired === undefined) {
     throw new Error('Is package.json required is missing.');
   }
-  if (!progress) {
-    throw new Error('Progress is missing.');
-  }
 
-  const { env, directory, isPackageJsonRequired } = options;
-
-  let configuration;
+  let packageJson;
 
   try {
-    configuration = await application.getConfiguration({ directory });
+    packageJson = await application.getConfiguration({ directory });
   } catch (ex) {
     switch (ex.code) {
       case 'EFILENOTFOUND':
@@ -71,9 +79,37 @@ const getConfiguration = async function (options, progress) {
     throw ex;
   }
 
-  if (!configuration.environments[env]) {
-    progress({ message: `package.json does not contain environment ${env}.`, type: 'info' });
-    throw new errors.EnvironmentNotFound();
+  const runtimeVersion = packageJson.runtime.version;
+
+  let configuration;
+
+  await switchSemver(runtimeVersion, {
+    async default () {
+      const selectedEnvironment = packageJson.environments[env];
+
+      if (!selectedEnvironment) {
+        progress({ message: `package.json does not contain environment ${env}.`, type: 'info' });
+        throw new errors.EnvironmentNotFound();
+      }
+
+      const type = selectedEnvironment.type || 'cli';
+
+      configuration = new Configuration({
+        type,
+        environment: env,
+        applicationName: packageJson.application,
+        runtimeVersion,
+        apiHostname: selectedEnvironment.api.address.host,
+        apiPort: port || processenv('WOLKENKIT_PORT') || selectedEnvironment.api.address.port,
+        apiCertificate: selectedEnvironment.api.certificate,
+        dockerMachine: get(selectedEnvironment, 'docker.machine'),
+        packageJson
+      });
+    }
+  });
+
+  if (!configuration) {
+    throw new Error('Configuration is missing.');
   }
 
   return configuration;

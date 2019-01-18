@@ -4,23 +4,17 @@ const image = require('./image');
 
 const container = function ({
   configuration,
-  env,
-  sharedKey,
-  persistData,
+  connections,
   dangerouslyExposeHttpPorts,
-  debug
+  debug,
+  persistData,
+  sharedKey
 }) {
   if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!sharedKey) {
-    throw new Error('Shared key is missing.');
-  }
-  if (persistData === undefined) {
-    throw new Error('Persist data is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
   if (dangerouslyExposeHttpPorts === undefined) {
     throw new Error('Dangerously expose http ports is missing.');
@@ -28,20 +22,26 @@ const container = function ({
   if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
+  }
 
-  const selectedEnvironment = configuration.environments[env];
+  const { eventStore } = connections;
 
   const result = {
-    image: `${configuration.application}-postgres`,
-    name: `${configuration.application}-postgres`,
+    image: `${configuration.application.name}-postgres`,
+    name: `${configuration.application.name}-postgres`,
     env: {
-      POSTGRES_DB: 'wolkenkit',
-      POSTGRES_USER: 'wolkenkit',
-      POSTGRES_PASSWORD: sharedKey
+      POSTGRES_DB: eventStore.container.pg.database,
+      POSTGRES_USER: eventStore.container.pg.user,
+      POSTGRES_PASSWORD: eventStore.container.pg.password
     },
     labels: {
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-dangerously-expose-http-ports': dangerouslyExposeHttpPorts,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
@@ -49,18 +49,18 @@ const container = function ({
       'wolkenkit-type': image().type
     },
     networks: [
-      `${configuration.application}-network`
+      `${configuration.application.name}-network`
     ],
     networkAlias: 'eventstore',
     ports: {
-      5432: selectedEnvironment.api.address.port + 30
+      [eventStore.container.pg.port]: eventStore.external.pg.port
     },
     restart: 'on-failure:3'
   };
 
   if (persistData) {
     result.volumes = [
-      `${configuration.application}-postgres-volume:/var/lib/postgresql/data`
+      `${configuration.application.name}-postgres-volume:/var/lib/postgresql/data`
     ];
   }
 

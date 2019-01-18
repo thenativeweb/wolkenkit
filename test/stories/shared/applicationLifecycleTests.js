@@ -9,7 +9,8 @@ const assert = require('assertthat'),
 const changePackageJson = require('../helpers/changePackageJson'),
       copyCertificate = require('../helpers/copyCertificate'),
       getDirectoryList = require('../helpers/getDirectoryList'),
-      suite = require('../helpers/suite');
+      suite = require('../helpers/suite'),
+      switchSemver = require('../../../src/switchSemver');
 
 const applicationLifecycleTests = async function (runtime) {
   await suite(`application lifecycle on ${runtime}`, async ({ test, wolkenkit, ipAddress }) => {
@@ -311,23 +312,49 @@ const applicationLifecycleTests = async function (runtime) {
       assert.that(stopAndDestroyDataCommand.code).is.equalTo(0);
     });
 
-    await test('[wolkenkit start --dangerously-expose-http-ports] starts the application with exposed http ports.', async () => {
-      const { code, stderr, stdout } = await wolkenkit('start', {
-        'dangerously-expose-http-ports': true
-      }, { cwd: applicationDirectory });
+    await switchSemver(runtime, {
+      async '<= 3.0.0' () {
+        // Intentionally left blank.
+      },
 
-      assert.that(stderr).is.matching(/Application certificate is self-signed/);
-      assert.that(stderr).is.matching(/Dangerously exposed HTTP ports 3010 and 3011/);
-      assert.that(stdout).is.matching(/Started the application/);
-      assert.that(code).is.equalTo(0);
-    });
+      async default () {
+        await test('[wolkenkit start --dangerously-expose-http-ports] starts the application with exposed http ports.', async () => {
+          const { code, stderr, stdout } = await wolkenkit('start', {
+            'dangerously-expose-http-ports': true
+          }, { cwd: applicationDirectory });
 
-    await test('[wolkenkit stop] stops the application with exposed http ports.', async () => {
-      const { code, stderr, stdout } = await wolkenkit('stop', {}, { cwd: applicationDirectory });
+          assert.that(stderr).is.matching(/Application certificate is self-signed/);
+          assert.that(stderr).is.matching(/Exposed HTTP ports 3010 and 3011/);
+          assert.that(stdout).is.matching(/Started the application/);
+          assert.that(code).is.equalTo(0);
+        });
 
-      assert.that(stderr).is.matching(/Application certificate is self-signed/);
-      assert.that(stdout).is.matching(/Stopped the application/);
-      assert.that(code).is.equalTo(0);
+        await test('[wolkenkit restart] restarts the application with exposed http ports.', async () => {
+          const { code, stderr, stdout } = await wolkenkit('restart', {}, { cwd: applicationDirectory });
+
+          assert.that(stderr).is.matching(/Application certificate is self-signed/);
+          assert.that(stderr).is.matching(/Exposed HTTP ports 3010 and 3011/);
+          assert.that(stdout).is.matching(/Restarted the application/);
+          assert.that(code).is.equalTo(0);
+        });
+
+        await test('[wolkenkit reload] reloads the application with exposed http ports.', async () => {
+          const { code, stderr, stdout } = await wolkenkit('reload', {}, { cwd: applicationDirectory });
+
+          assert.that(stderr).is.matching(/Application certificate is self-signed/);
+          assert.that(stderr).is.matching(/Exposed HTTP ports 3010 and 3011/);
+          assert.that(stdout).is.matching(/Reloaded the application/);
+          assert.that(code).is.equalTo(0);
+        });
+
+        await test('[wolkenkit stop] stops the application with exposed http ports.', async () => {
+          const { code, stderr, stdout } = await wolkenkit('stop', {}, { cwd: applicationDirectory });
+
+          assert.that(stderr).is.matching(/Application certificate is self-signed/);
+          assert.that(stdout).is.matching(/Stopped the application/);
+          assert.that(code).is.equalTo(0);
+        });
+      }
     });
   });
 };

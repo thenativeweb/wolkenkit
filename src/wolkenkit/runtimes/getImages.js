@@ -10,15 +10,10 @@ const errors = require('../../errors');
 const readdir = promisify(fs.readdir),
       stat = promisify(fs.stat);
 
-const getImages = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.forVersion) {
+const getImages = async function ({ forVersion }) {
+  if (!forVersion) {
     throw new Error('Version is missing.');
   }
-
-  const { forVersion } = options;
 
   const pathRuntime = path.join(__dirname, '..', '..', 'configuration', forVersion);
 

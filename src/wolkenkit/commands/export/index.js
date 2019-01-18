@@ -19,8 +19,8 @@ const readdir = promisify(fs.readdir);
 const exportCommand = async function ({
   directory,
   env,
-  to,
-  fromEventStore
+  fromEventStore,
+  to
 }, progress = noop) {
   if (!directory) {
     throw new Error('Directory is missing.');
@@ -28,20 +28,20 @@ const exportCommand = async function ({
   if (!env) {
     throw new Error('Environment is missing.');
   }
-  if (!to) {
-    throw new Error('To is missing.');
-  }
   if (fromEventStore === undefined) {
     throw new Error('From event store is missing.');
   }
+  if (!to) {
+    throw new Error('To is missing.');
+  }
 
   const configuration = await shared.getConfiguration({
-    env,
     directory,
+    env,
     isPackageJsonRequired: false
   }, progress);
 
-  await shared.checkDocker({ configuration, env }, progress);
+  await shared.checkDocker({ configuration }, progress);
 
   progress({ message: `Verifying health on environment ${env}...`, type: 'info' });
   await health({ directory, env }, progress);
@@ -49,8 +49,7 @@ const exportCommand = async function ({
   progress({ message: 'Verifying application status...', type: 'info' });
   const existingContainers = await docker.getContainers({
     configuration,
-    env,
-    where: { label: { 'wolkenkit-application': configuration.application }}
+    where: { label: { 'wolkenkit-application': configuration.application.name }}
   });
 
   if (existingContainers.length === 0) {
@@ -58,21 +57,16 @@ const exportCommand = async function ({
     throw new errors.ApplicationNotRunning();
   }
 
-  const { version } = configuration.runtime;
-
   const dangerouslyExposeHttpPorts = existingContainers[0].labels['wolkenkit-dangerously-expose-http-ports'] === 'true',
         debug = existingContainers[0].labels['wolkenkit-debug'] === 'true',
         persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true',
         sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
 
-  const containers = await runtimes.getContainers({
-    forVersion: version,
-    configuration,
-    env,
-    sharedKey,
-    persistData,
+  const containers = await configuration.containers({
     dangerouslyExposeHttpPorts,
-    debug
+    debug,
+    persistData,
+    sharedKey
   });
 
   if (existingContainers.length < containers.length) {
@@ -92,13 +86,21 @@ const exportCommand = async function ({
     throw new errors.DirectoryNotEmpty();
   }
 
+  const connections = await runtimes.getConnections({
+    configuration,
+    dangerouslyExposeHttpPorts,
+    debug,
+    forVersion: configuration.application.runtime.version,
+    persistData,
+    sharedKey
+  });
+
   if (fromEventStore) {
     await exportEventStore({
       configuration,
-      env,
-      containers,
-      sharedKey,
-      exportDirectory
+      connections,
+      exportDirectory,
+      sharedKey
     }, progress);
   }
 };

@@ -20,23 +20,15 @@ const escape = function (value) {
   return escapedValue;
 };
 
-const startContainer = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const startContainer = async function ({ configuration, container }) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!options.container) {
+  if (!container) {
     throw new Error('Container is missing.');
   }
 
-  const { configuration, env, container } = options;
-
-  const environmentVariables = await getEnvironmentVariables({ configuration, env });
+  const environmentVariables = await getEnvironmentVariables({ configuration });
 
   await shell.exec(oneLine`
     docker run

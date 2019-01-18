@@ -2,34 +2,37 @@
 
 const shared = require('../../shared');
 
-const aufwind = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
+const aufwind = async function ({
+  configuration,
+  directory,
+  env,
+  privateKey = undefined
+}, progress) {
+  if (!configuration) {
+    throw new Error('Configuration is missing.');
   }
-  if (!options.directory) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
-  }
-  if (!options.configuration) {
-    throw new Error('Configuration is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  const { directory, env, privateKey, configuration } = options;
+  const tunnel = await shared.startTunnel({
+    configuration,
+    privateKey
+  }, progress);
 
-  const tunnel = await shared.startTunnel({ configuration, env, privateKey }, progress);
-
-  const application = configuration.application;
+  const applicationName = configuration.application.name;
   const endpoint = {
     protocol: 'http:',
     method: 'POST',
     hostname: tunnel.host,
     port: tunnel.port,
-    pathname: `/v1/applications/${application}/stop/${env}`
+    pathname: `/v1/applications/${applicationName}/stop/${env}`
   };
 
   await shared.streamApplication({ directory, endpoint, tunnel }, progress);

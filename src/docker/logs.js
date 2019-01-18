@@ -5,26 +5,23 @@ const combinedStream = require('combined-stream');
 const getEnvironmentVariables = require('./getEnvironmentVariables'),
       shell = require('../shell');
 
-const logs = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing');
-  }
-  if (!options.configuration) {
+const logs = async function ({
+  configuration,
+  containers,
+  follow,
+  passThrough = undefined
+}) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.containers) {
+  if (!containers) {
     throw new Error('Containers are missing');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
-  }
-  if (options.follow === undefined) {
+  if (follow === undefined) {
     throw new Error('Follow is missing.');
   }
 
-  const { configuration, containers, env, follow, passThrough } = options;
-
-  const environmentVariables = await getEnvironmentVariables({ configuration, env });
+  const environmentVariables = await getEnvironmentVariables({ configuration });
 
   const containerNames = containers.map(container => container.name);
 
@@ -37,7 +34,10 @@ const logs = async function (options) {
       args.push('--follow');
     }
 
-    const child = shell.spawn('docker', args, { env: environmentVariables, stdio: 'pipe' });
+    const child = shell.spawn('docker', args, {
+      env: environmentVariables,
+      stdio: 'pipe'
+    });
 
     child.once('close', code => {
       if (code !== 0) {

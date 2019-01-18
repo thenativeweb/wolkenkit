@@ -41,9 +41,15 @@ updateNotifier({ pkg: packageJson }).notify();
   }
 
   const command = commands[parsed.command];
-  const validOptionDefinitions = [ ...globalOptionDefinitions, ...await command.getOptionDefinitions() ];
+  const validOptionDefinitions = [
+    ...globalOptionDefinitions,
+    ...await command.getOptionDefinitions()
+  ];
 
-  const args = commandLineArgs(validOptionDefinitions, { argv: parsed.argv, partial: true });
+  const args = commandLineArgs(validOptionDefinitions, {
+    argv: parsed.argv,
+    partial: true
+  });
 
   /* eslint-disable no-underscore-dangle */
   if (args._unknown && args._unknown.length > 0) {

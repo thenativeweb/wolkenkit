@@ -2,29 +2,22 @@
 
 const path = require('path');
 
-const get = require('lodash/get');
-
-const image = require('./image');
+const defaults = require('../../../wolkenkit/defaults.json'),
+      image = require('./image');
 
 const container = function ({
   configuration,
-  env,
-  sharedKey,
-  persistData,
+  connections,
   dangerouslyExposeHttpPorts,
-  debug
+  debug,
+  persistData,
+  sharedKey
 }) {
   if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!sharedKey) {
-    throw new Error('Shared key is missing.');
-  }
-  if (persistData === undefined) {
-    throw new Error('Persist data is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
   if (dangerouslyExposeHttpPorts === undefined) {
     throw new Error('Dangerously expose http ports is missing.');
@@ -32,40 +25,46 @@ const container = function ({
   if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
+  }
 
-  const selectedEnvironment = configuration.environments[env];
+  const { api, fileStorage } = connections;
 
   const result = {
     dependsOn: [
-      `${configuration.application}-broker`
+      `${configuration.application.name}-broker`
     ],
-    image: `${configuration.application}-proxy`,
-    name: `${configuration.application}-proxy`,
+    image: `${configuration.application.name}-proxy`,
+    name: `${configuration.application.name}-proxy`,
     env: {
-      API_EXTERNAL_HOST: selectedEnvironment.api.address.host,
-      API_EXTERNAL_PORT: selectedEnvironment.api.address.port,
-      API_CERTIFICATE: get(selectedEnvironment, 'api.certificate') ?
-        path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'api.certificate'), 'certificate.pem') :
-        '/keys/local.wolkenkit.io/certificate.pem',
-      API_PRIVATE_KEY: get(selectedEnvironment, 'api.certificate') ?
-        path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'api.certificate'), 'privateKey.pem') :
-        '/keys/local.wolkenkit.io/privateKey.pem',
-      API_CONTAINER_HOST: 'broker',
-      API_CONTAINER_PORT: 80,
-      DEPOT_EXTERNAL_HOST: selectedEnvironment.api.address.host,
-      DEPOT_EXTERNAL_PORT: selectedEnvironment.api.address.port + 1,
-      DEPOT_CERTIFICATE: get(selectedEnvironment, 'api.certificate') ?
-        path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'api.certificate'), 'certificate.pem') :
-        '/keys/local.wolkenkit.io/certificate.pem',
-      DEPOT_PRIVATE_KEY: get(selectedEnvironment, 'api.certificate') ?
-        path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'api.certificate'), 'privateKey.pem') :
-        '/keys/local.wolkenkit.io/privateKey.pem',
-      DEPOT_CONTAINER_HOST: 'depot',
-      DEPOT_CONTAINER_PORT: 80
+      API_EXTERNAL_HOST: api.external.https.hostname,
+      API_EXTERNAL_PORT: api.external.https.port,
+      API_CERTIFICATE: configuration.api.host.certificate === defaults.commands.shared.certificate ?
+        path.join(configuration.api.host.certificate, 'certificate.pem') :
+        path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'certificate.pem'),
+      API_PRIVATE_KEY: configuration.api.host.certificate === defaults.commands.shared.certificate ?
+        path.join(configuration.api.host.certificate, 'privateKey.pem') :
+        path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'privateKey.pem'),
+      API_CONTAINER_HOST: api.container.http.hostname,
+      API_CONTAINER_PORT: api.container.http.port,
+      DEPOT_EXTERNAL_HOST: fileStorage.external.https.hostname,
+      DEPOT_EXTERNAL_PORT: fileStorage.external.https.port,
+      DEPOT_CERTIFICATE: configuration.api.host.certificate === defaults.commands.shared.certificate ?
+        path.join(configuration.api.host.certificate, 'certificate.pem') :
+        path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'certificate.pem'),
+      DEPOT_PRIVATE_KEY: configuration.api.host.certificate === defaults.commands.shared.certificate ?
+        path.join(configuration.api.host.certificate, 'privateKey.pem') :
+        path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'privateKey.pem'),
+      DEPOT_CONTAINER_HOST: fileStorage.container.http.hostname,
+      DEPOT_CONTAINER_PORT: fileStorage.container.http.port
     },
     labels: {
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-dangerously-expose-http-ports': dangerouslyExposeHttpPorts,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
@@ -73,12 +72,12 @@ const container = function ({
       'wolkenkit-type': image().type
     },
     networks: [
-      `${configuration.application}-network`
+      `${configuration.application.name}-network`
     ],
     networkAlias: 'proxy',
     ports: {
-      [selectedEnvironment.api.address.port]: selectedEnvironment.api.address.port,
-      [selectedEnvironment.api.address.port + 1]: selectedEnvironment.api.address.port + 1
+      [api.external.https.port]: api.external.https.port,
+      [fileStorage.external.https.port]: fileStorage.external.https.port
     },
     restart: 'on-failure:3'
   };

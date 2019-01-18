@@ -1,36 +1,36 @@
 'use strict';
 
-const noop = require('../../../noop'),
-      runtimes = require('../../runtimes'),
+const runtimes = require('../../runtimes'),
       shared = require('../shared');
 
-const ls = async function (options, progress = noop) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const ls = async function ({ directory, env }, progress) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.env) {
+  if (!env) {
     throw new Error('Environment is missing.');
   }
-
-  const { directory, env } = options;
+  if (!progress) {
+    throw new Error('Progress is missing.');
+  }
 
   const configuration = await shared.getConfiguration({
-    env,
     directory,
+    env,
     isPackageJsonRequired: false
   }, progress);
 
-  await shared.checkDocker({ configuration, env }, progress);
+  await shared.checkDocker({ configuration }, progress);
 
   const supportedVersions = await runtimes.getAllVersions();
 
   const installedVersions = [];
 
   await Promise.all(supportedVersions.map(async version => {
-    const isInstalled = await runtimes.isInstalled({ configuration, env, forVersion: version });
+    const isInstalled = await runtimes.isInstalled({
+      configuration,
+      forVersion: version
+    });
 
     if (isInstalled) {
       installedVersions.push(version);

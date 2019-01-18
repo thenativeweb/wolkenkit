@@ -75,7 +75,12 @@ const exportCommand = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.export({ directory, env, to, fromEventStore }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.export({
+        directory,
+        env,
+        fromEventStore,
+        to
+      }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
 

@@ -5,63 +5,41 @@ const path = require('path');
 const noop = require('../../../noop'),
       shared = require('../shared'),
       shell = require('../../../shell'),
-      splitStreamToFiles = require('./splitStreamToFiles'),
-      switchSemver = require('../../../switchSemver');
+      splitStreamToFiles = require('./splitStreamToFiles');
 
 const exportEventStore = async function ({
   configuration,
-  env,
-  containers,
-  sharedKey,
-  exportDirectory
+  connections,
+  exportDirectory,
+  sharedKey
 }, progress = noop) {
   if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!containers) {
-    throw new Error('Containers are missing.');
-  }
-  if (!sharedKey) {
-    throw new Error('Shared key is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
   if (!exportDirectory) {
     throw new Error('Export directory is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
   }
 
   const eventStoreDirectory = path.join(exportDirectory, 'event-store');
 
   await shell.mkdir('-p', eventStoreDirectory);
 
-  const coreContainer = containers.find(container => container.name.endsWith('core'));
-
-  if (!coreContainer) {
-    throw new Error('Invalid operation.');
-  }
+  const { type, external } = connections.eventStore;
+  const { protocol, user, password, hostname, port, database } = external.pg;
 
   /* eslint-disable global-require */
-  const eventStore = require(`wolkenkit-eventstore/${coreContainer.env.EVENTSTORE_TYPE}`);
+  const eventStore = require(`wolkenkit-eventstore/${type}`);
   /* eslint-enable global-require */
 
-  const runtimeVersion = configuration.runtime.version;
-  const currentEnvironment = configuration.environments[env];
-
-  await switchSemver(runtimeVersion, {
-    async '<= 3.0.0' () {
-      await eventStore.initialize({
-        url: `pg://wolkenkit:${sharedKey}@${currentEnvironment.api.address.host}:${currentEnvironment.api.address.port + 3}/wolkenkit`,
-        namespace: `${configuration.application}domain`
-      });
-    },
-
-    async default () {
-      await eventStore.initialize({
-        url: `pg://wolkenkit:${sharedKey}@${currentEnvironment.api.address.host}:${currentEnvironment.api.address.port + 30}/wolkenkit`,
-        namespace: `${configuration.application}domain`
-      });
-    }
+  await eventStore.initialize({
+    url: `${protocol}://${user}:${password}@${hostname}:${port}/${database}`,
+    namespace: `${configuration.application.name}domain`
   });
 
   const replayStream = await eventStore.getReplay();

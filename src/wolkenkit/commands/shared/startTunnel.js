@@ -4,45 +4,38 @@ const os = require('os'),
       url = require('url'),
       util = require('util');
 
-const freeport = require('freeport');
+const freeportCallback = require('freeport');
 
-const defaults = require('../defaults.json'),
+const defaults = require('../../defaults.json'),
       errors = require('../../../errors'),
       file = require('../../../file'),
       startOpensshTunnel = require('./startOpensshTunnel'),
       startPuttyTunnel = require('./startPuttyTunnel');
 
-const freeportAsync = util.promisify(freeport);
+const freeport = util.promisify(freeportCallback);
 
-const startTunnel = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const startTunnel = async function ({
+  configuration,
+  privateKey = undefined
+}, progress) {
+  if (!configuration) {
     throw new Error('configuration is missing.');
-  }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  const { configuration, env, privateKey } = options;
+  const { type, deployment } = configuration;
 
-  const environment = configuration.environments[env];
-
-  if (!environment.type || environment.type !== 'aufwind') {
+  if (type !== 'aufwind') {
     progress({ message: 'Environment is not of type aufwind.', type: 'info' });
     throw new errors.EnvironmentNotAufwind();
   }
 
   let server = `ssh://${defaults.commands.shared.aufwind.ssh.host}:${defaults.commands.shared.aufwind.ssh.port} `;
 
-  if (environment.deployment.server) {
-    const { host, port } = environment.deployment.server;
-
-    server = `ssh://${host}:${port}`;
+  if (deployment.server) {
+    server = `ssh://${deployment.server.host}:${deployment.server.port}`;
   }
 
   if (privateKey) {
@@ -88,7 +81,7 @@ const startTunnel = async function (options, progress) {
     },
     from: {
       host: 'localhost',
-      port: await freeportAsync()
+      port: await freeport()
     },
     to: {
       host: defaults.commands.shared.aufwind.http.host,
@@ -102,7 +95,12 @@ const startTunnel = async function (options, progress) {
     progress({ message: 'Trying to use plink...' });
 
     try {
-      tunnelServer = await startPuttyTunnel({ configuration, addresses, username, privateKey });
+      tunnelServer = await startPuttyTunnel({
+        addresses,
+        configuration,
+        privateKey,
+        username
+      });
     } catch (ex) {
       if (ex.code !== 'EEXECUTABLENOTFOUND') {
         switch (ex.code) {
@@ -124,7 +122,12 @@ const startTunnel = async function (options, progress) {
     progress({ message: 'Trying to use ssh...' });
 
     try {
-      tunnelServer = await startOpensshTunnel({ configuration, addresses, username, privateKey });
+      tunnelServer = await startOpensshTunnel({
+        addresses,
+        configuration,
+        privateKey,
+        username
+      });
     } catch (ex) {
       switch (ex.code) {
         case 'EEXECUTABLENOTFOUND':

@@ -11,21 +11,16 @@ const cloneRepository = require('./cloneRepository'),
 
 const recursiveReaddir = promisify(recursiveReaddirCallback);
 
-const forceInit = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const forceInit = async function ({ directory, template }, progress) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.template) {
+  if (!template) {
     throw new Error('Template is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
-
-  const { directory, template } = options;
 
   const tempDirectory = await isolated();
 

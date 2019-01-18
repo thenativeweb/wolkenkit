@@ -10,26 +10,22 @@ const docker = require('../../../docker'),
 
 const sleep = promisify(setTimeout);
 
-const validateLogs = async function (options, progress) {
-  if (!options) {
-    throw new Error('Options are missing');
-  }
-  if (!options.configuration) {
+const validateLogs = async function ({ configuration }, progress) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
-  }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  const { configuration, env } = options;
-
   const containers = await docker.getContainers({
     configuration,
-    env,
-    where: { label: { 'wolkenkit-application': configuration.application, 'wolkenkit-type': 'application' }}
+    where: {
+      label: {
+        'wolkenkit-application': configuration.application.name,
+        'wolkenkit-type': 'application'
+      }
+    }
   });
 
   progress({ message: 'Validating container logs...', type: 'info' });
@@ -45,6 +41,7 @@ const validateLogs = async function (options, progress) {
   (async () => {
     while (!isStopped) {
       try {
+        /* eslint-disable no-loop-func */
         await new Promise(async (resolve, reject) => {
           const passThrough = new Parser();
 
@@ -81,11 +78,17 @@ const validateLogs = async function (options, progress) {
           });
 
           try {
-            await docker.logs({ configuration, containers, env, follow: false, passThrough });
+            await docker.logs({
+              configuration,
+              containers,
+              follow: false,
+              passThrough
+            });
           } catch (ex) {
             reject(ex);
           }
         });
+        /* eslint-enable no-loop-func */
       } catch (ex) {
         isStopped = true;
 

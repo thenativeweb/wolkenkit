@@ -4,21 +4,21 @@ const errors = require('../../../errors'),
       shell = require('../../../shell'),
       waitForSshTunnel = require('./waitForSshTunnel');
 
-const startPuttyTunnel = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
-    throw new Error('Configuration is missing.');
-  }
-  if (!options.addresses) {
+const startPuttyTunnel = async function ({
+  addresses,
+  configuration,
+  privateKey = undefined,
+  username
+}) {
+  if (!addresses) {
     throw new Error('Addresses are missing.');
   }
-  if (!options.username) {
+  if (!configuration) {
+    throw new Error('Configuration is missing.');
+  }
+  if (!username) {
     throw new Error('Username is missing.');
   }
-
-  const { addresses, username, privateKey } = options;
 
   if (!await shell.which('plink')) {
     throw new errors.ExecutableNotFound();
@@ -44,7 +44,10 @@ const startPuttyTunnel = async function (options) {
     child.on('error', reject);
 
     try {
-      await waitForSshTunnel({ host: addresses.from.host, port: addresses.from.port });
+      await waitForSshTunnel({
+        host: addresses.from.host,
+        port: addresses.from.port
+      });
     } catch (ex) {
       return reject(ex);
     }

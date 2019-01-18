@@ -8,21 +8,16 @@ const checkDirectory = require('./checkDirectory'),
       noop = require('../../../noop'),
       shell = require('../../../shell');
 
-const init = async function (options, progress = noop) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.directory) {
+const init = async function ({ directory, force, template }, progress = noop) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
-  if (!options.template) {
-    throw new Error('Template is missing.');
-  }
-  if (options.force === undefined) {
+  if (force === undefined) {
     throw new Error('Force is missing.');
   }
-
-  const { directory, template, force } = options;
+  if (!template) {
+    throw new Error('Template is missing.');
+  }
 
   if (force) {
     return await forceInit({ directory, template }, progress);

@@ -3,23 +3,15 @@
 const getEnvironmentVariables = require('./getEnvironmentVariables'),
       shell = require('../shell');
 
-const removeContainer = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const removeContainer = async function ({ configuration, container }) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!options.container) {
+  if (!container) {
     throw new Error('Container is missing.');
   }
 
-  const { configuration, env, container } = options;
-
-  const environmentVariables = await getEnvironmentVariables({ configuration, env });
+  const environmentVariables = await getEnvironmentVariables({ configuration });
 
   await shell.exec(`docker rm --force --volumes "${container.name}"`, {
     env: environmentVariables

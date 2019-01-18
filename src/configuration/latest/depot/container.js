@@ -8,23 +8,17 @@ const image = require('./image');
 
 const container = function ({
   configuration,
-  env,
-  sharedKey,
-  persistData,
+  connections,
   dangerouslyExposeHttpPorts,
-  debug
+  debug,
+  persistData,
+  sharedKey
 }) {
   if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!sharedKey) {
-    throw new Error('Shared key is missing.');
-  }
-  if (persistData === undefined) {
-    throw new Error('Persist data is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
   if (dangerouslyExposeHttpPorts === undefined) {
     throw new Error('Dangerously expose http ports is missing.');
@@ -32,15 +26,24 @@ const container = function ({
   if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
+  }
 
-  const selectedEnvironment = configuration.environments[env];
+  const { environment, packageJson } = configuration;
+  const { fileStorage } = connections;
+
+  const selectedEnvironment = packageJson.environments[environment];
 
   const result = {
-    image: `${configuration.application}-depot`,
-    name: `${configuration.application}-depot`,
+    image: `${configuration.application.name}-depot`,
+    name: `${configuration.application.name}-depot`,
     env: {
-      API_CORS_ORIGIN: get(selectedEnvironment, 'fileStorage.allowAccessFrom'),
-      HTTP_PORT: 80,
+      API_CORS_ORIGIN: selectedEnvironment.fileStorage.allowAccessFrom,
+      HTTP_PORT: fileStorage.container.http.port,
       IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ?
         path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) :
         '/keys/wildcard.wolkenkit.io',
@@ -55,8 +58,8 @@ const container = function ({
       PROVIDER_DIRECTORY: '/blobs'
     },
     labels: {
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-dangerously-expose-http-ports': dangerouslyExposeHttpPorts,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
@@ -64,7 +67,7 @@ const container = function ({
       'wolkenkit-type': image().type
     },
     networks: [
-      `${configuration.application}-network`
+      `${configuration.application.name}-network`
     ],
     networkAlias: 'depot',
     ports: {},
@@ -75,12 +78,12 @@ const container = function ({
   };
 
   if (dangerouslyExposeHttpPorts) {
-    result.ports[80] = selectedEnvironment.api.address.port + 11;
+    result.ports[fileStorage.container.http.port] = fileStorage.external.http.port;
   }
 
   if (persistData) {
     result.volumes = [
-      `${configuration.application}-depot-volume:/blobs`
+      `${configuration.application.name}-depot-volume:/blobs`
     ];
   }
 

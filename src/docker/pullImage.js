@@ -3,26 +3,18 @@
 const getEnvironmentVariables = require('./getEnvironmentVariables'),
       shell = require('../shell');
 
-const pullImage = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const pullImage = async function ({ configuration, name, version }) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!options.name) {
+  if (!name) {
     throw new Error('Name is missing.');
   }
-  if (!options.version) {
+  if (!version) {
     throw new Error('Version is missing.');
   }
 
-  const { configuration, env, name, version } = options;
-
-  const environmentVariables = await getEnvironmentVariables({ configuration, env });
+  const environmentVariables = await getEnvironmentVariables({ configuration });
 
   await shell.exec(`docker pull ${name}:${version}`, {
     env: environmentVariables

@@ -2,28 +2,17 @@
 
 const axios = require('axios');
 
-const network = require('../../../network'),
-      runtimes = require('../../runtimes');
+const network = require('../../../network');
 
 const attachDebugger = async function ({
   configuration,
-  env,
-  sharedKey,
-  persistData,
   dangerouslyExposeHttpPorts,
-  debug
+  debug,
+  persistData,
+  sharedKey
 }, progress) {
   if (!configuration) {
     throw new Error('Configuration is missing.');
-  }
-  if (!env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!sharedKey) {
-    throw new Error('Shared key is missing.');
-  }
-  if (persistData === undefined) {
-    throw new Error('Persist data is missing.');
   }
   if (dangerouslyExposeHttpPorts === undefined) {
     throw new Error('Dangerously expose http ports is missing.');
@@ -31,22 +20,24 @@ const attachDebugger = async function ({
   if (debug === undefined) {
     throw new Error('Debug is missing.');
   }
+  if (persistData === undefined) {
+    throw new Error('Persist data is missing.');
+  }
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
+  }
   if (!progress) {
     throw new Error('Progress is missing.');
   }
 
-  const host = configuration.environments[env].api.address.host,
-        runtime = configuration.runtime.version;
-
-  const containers = await runtimes.getContainers({
-    forVersion: runtime,
-    configuration,
-    env,
-    sharedKey,
-    persistData,
+  const containers = await configuration.containers({
     dangerouslyExposeHttpPorts,
-    debug
+    debug,
+    persistData,
+    sharedKey
   });
+
+  const host = configuration.api.host.name;
 
   let addresses;
 

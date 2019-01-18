@@ -120,7 +120,17 @@ const init = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.start({ directory, dangerouslyDestroyData, dangerouslyExposeHttpPorts, debug, env, persist, port, privateKey, sharedKey }, showProgress(verbose, stopWaiting));
+      await wolkenkit.commands.start({
+        directory,
+        dangerouslyDestroyData,
+        dangerouslyExposeHttpPorts,
+        debug,
+        env,
+        persist,
+        port,
+        privateKey,
+        sharedKey
+      }, showProgress(verbose, stopWaiting));
     } catch (ex) {
       stopWaiting();
 

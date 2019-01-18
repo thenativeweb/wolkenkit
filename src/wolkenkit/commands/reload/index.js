@@ -1,10 +1,13 @@
 'use strict';
 
+const arrayToSentence = require('array-to-sentence');
+
 const docker = require('../../../docker'),
       errors = require('../../../errors'),
       health = require('../health'),
       noop = require('../../../noop'),
       removeContainers = require('./removeContainers'),
+      runtimes = require('../../runtimes'),
       shared = require('../shared'),
       startContainers = require('./startContainers');
 
@@ -17,20 +20,20 @@ const reload = async function ({ directory, env }, progress = noop) {
   }
 
   const configuration = await shared.getConfiguration({
-    env,
     directory,
+    env,
     isPackageJsonRequired: true
   }, progress);
 
   shared.validateCode({ directory }, progress);
 
-  const environment = configuration.environments[env];
+  const { type } = configuration;
 
-  if (environment.type === 'aufwind') {
+  if (type === 'aufwind') {
     throw new Error('Reload on environment type aufwind is not possible.');
   }
 
-  await shared.checkDocker({ configuration, env }, progress);
+  await shared.checkDocker({ configuration }, progress);
 
   progress({ message: `Verifying health on environment ${env}...`, type: 'info' });
   await health({ directory, env }, progress);
@@ -38,8 +41,7 @@ const reload = async function ({ directory, env }, progress = noop) {
   progress({ message: 'Verifying application status...', type: 'info' });
   const existingContainers = await docker.getContainers({
     configuration,
-    env,
-    where: { label: { 'wolkenkit-application': configuration.application }}
+    where: { label: { 'wolkenkit-application': configuration.application.name }}
   });
 
   // We can not use the application status here, because for that we need to
@@ -58,11 +60,10 @@ const reload = async function ({ directory, env }, progress = noop) {
 
   const applicationStatus = await shared.getApplicationStatus({
     configuration,
-    env,
-    sharedKey,
-    persistData,
     dangerouslyExposeHttpPorts,
-    debug
+    debug,
+    persistData,
+    sharedKey
   }, progress);
 
   if (applicationStatus === 'partially-running') {
@@ -71,35 +72,55 @@ const reload = async function ({ directory, env }, progress = noop) {
   }
 
   progress({ message: `Removing Docker containers...`, type: 'info' });
-  await removeContainers({ configuration, env }, progress);
+  await removeContainers({ configuration }, progress);
 
   progress({ message: 'Building Docker images...', type: 'info' });
-  await shared.buildImages({ directory, configuration, env }, progress);
+  await shared.buildImages({ configuration, directory }, progress);
 
   progress({ message: 'Starting Docker containers...', type: 'info' });
   await startContainers({
     configuration,
-    env,
-    port,
-    sharedKey,
-    persistData,
     dangerouslyExposeHttpPorts,
-    debug
+    debug,
+    persistData,
+    port,
+    sharedKey
   }, progress);
 
   progress({ message: `Using ${sharedKey} as shared key.`, type: 'info' });
 
-  await shared.waitForApplicationAndValidateLogs({ configuration, env }, progress);
+  await shared.waitForApplicationAndValidateLogs({ configuration }, progress);
 
   if (debug) {
     await shared.attachDebugger({
       configuration,
-      env,
-      sharedKey,
-      persistData,
       dangerouslyExposeHttpPorts,
-      debug
+      debug,
+      persistData,
+      sharedKey
     }, progress);
+  }
+
+  const connections = await runtimes.getConnections({
+    configuration,
+    dangerouslyExposeHttpPorts,
+    debug,
+    forVersion: configuration.application.runtime.version,
+    persistData,
+    sharedKey
+  });
+
+  if (
+    dangerouslyExposeHttpPorts &&
+    connections.api.external.http &&
+    connections.fileStorage.external.http
+  ) {
+    const httpPorts = [
+      connections.api.external.http.port,
+      connections.fileStorage.external.http.port
+    ];
+
+    progress({ message: `Exposed HTTP ports ${arrayToSentence(httpPorts)}.`, type: 'warn' });
   }
 };
 

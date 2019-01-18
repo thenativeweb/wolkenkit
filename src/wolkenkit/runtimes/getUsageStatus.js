@@ -3,24 +3,22 @@
 const isInUse = require('./isInUse'),
       isPartiallyInUse = require('./isPartiallyInUse');
 
-const getUsageStatus = async function (options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
-  if (!options.configuration) {
+const getUsageStatus = async function ({ configuration, forVersion }) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
-  if (!options.env) {
-    throw new Error('Environment is missing.');
-  }
-  if (!options.forVersion) {
+  if (!forVersion) {
     throw new Error('Version is missing.');
   }
 
-  const { configuration, env, forVersion } = options;
-
-  const isRuntimeInUse = await isInUse({ configuration, env, forVersion });
-  const isRuntimePartiallyInUse = await isPartiallyInUse({ configuration, env, forVersion });
+  const isRuntimeInUse = await isInUse({
+    configuration,
+    forVersion
+  });
+  const isRuntimePartiallyInUse = await isPartiallyInUse({
+    configuration,
+    forVersion
+  });
 
   let usageStatus = 'not-used';
 
