@@ -5,76 +5,79 @@ var get = require('lodash/get'),
 
 var image = require('./image');
 
-var container = function container(options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
+var container = function container(_ref) {
+  var configuration = _ref.configuration,
+      connections = _ref.connections,
+      dangerouslyExposeHttpPorts = _ref.dangerouslyExposeHttpPorts,
+      debug = _ref.debug,
+      persistData = _ref.persistData,
+      sharedKey = _ref.sharedKey;
 
-  if (!options.configuration) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
 
-  if (!options.env) {
-    throw new Error('Environment is missing.');
+  if (dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
 
-  if (!options.sharedKey) {
-    throw new Error('Shared key is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
 
-  if (options.persistData === undefined) {
+  if (debug === undefined) {
+    throw new Error('Debug is missing.');
+  }
+
+  if (persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
 
-  if (options.debug === undefined) {
-    throw new Error('Debug is missing.');
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
   }
-  /* eslint-disable no-unused-vars */
 
-
-  var configuration = options.configuration,
-      env = options.env,
-      sharedKey = options.sharedKey,
-      persistData = options.persistData,
-      debug = options.debug;
-  /* eslint-enable no-unused-vars */
-
-  var selectedEnvironment = configuration.environments[env];
+  var environment = configuration.environment,
+      packageJson = configuration.packageJson;
+  var commandBus = connections.commandBus,
+      eventBus = connections.eventBus,
+      eventStore = connections.eventStore,
+      flowBus = connections.flowBus,
+      debugging = connections.debugging;
+  var selectedEnvironment = packageJson.environments[environment];
   var result = {
-    dependsOn: ["".concat(configuration.application, "-mongodb"), "".concat(configuration.application, "-node-modules"), "".concat(configuration.application, "-postgres"), "".concat(configuration.application, "-rabbitmq")],
-    image: "".concat(configuration.application, "-core"),
-    name: "".concat(configuration.application, "-core"),
+    dependsOn: ["".concat(configuration.application.name, "-mongodb"), "".concat(configuration.application.name, "-node-modules"), "".concat(configuration.application.name, "-postgres"), "".concat(configuration.application.name, "-rabbitmq")],
+    image: "".concat(configuration.application.name, "-core"),
+    name: "".concat(configuration.application.name, "-core"),
     cmd: "dumb-init node ".concat(debug ? '--inspect=0.0.0.0:9229' : '', " /wolkenkit/app.js"),
     env: {
-      APPLICATION: configuration.application,
+      APPLICATION: configuration.application.name,
       COMMANDBUS_CONCURRENCY: 256,
-      COMMANDBUS_URL: "amqp://wolkenkit:".concat(sharedKey, "@messagebus:5672"),
-      EVENTBUS_URL: "amqp://wolkenkit:".concat(sharedKey, "@messagebus:5672"),
-      EVENTSTORE_TYPE: 'postgres',
-      EVENTSTORE_URL: "pg://wolkenkit:".concat(sharedKey, "@eventstore:5432/wolkenkit"),
-      FLOWBUS_URL: "amqp://wolkenkit:".concat(sharedKey, "@messagebus:5672"),
+      COMMANDBUS_URL: "".concat(commandBus.container.amqp.protocol, "://").concat(commandBus.container.amqp.user, ":").concat(commandBus.container.amqp.password, "@").concat(commandBus.container.amqp.hostname, ":").concat(commandBus.container.amqp.port),
+      EVENTBUS_URL: "".concat(eventBus.container.amqp.protocol, "://").concat(eventBus.container.amqp.user, ":").concat(eventBus.container.amqp.password, "@").concat(eventBus.container.amqp.hostname, ":").concat(eventBus.container.amqp.port),
+      EVENTSTORE_TYPE: eventStore.type,
+      EVENTSTORE_URL: "".concat(eventStore.container.pg.protocol, "://").concat(eventStore.container.pg.user, ":").concat(eventStore.container.pg.password, "@").concat(eventStore.container.pg.hostname, ":").concat(eventStore.container.pg.port, "/").concat(eventStore.container.pg.database),
+      FLOWBUS_URL: "".concat(flowBus.container.amqp.protocol, "://").concat(flowBus.container.amqp.user, ":").concat(flowBus.container.amqp.password, "@").concat(flowBus.container.amqp.hostname, ":").concat(flowBus.container.amqp.port),
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
-      PROFILING_HOST: selectedEnvironment.api.address.host,
+      PROFILING_HOST: configuration.api.host.name,
       PROFILING_PORT: 8125,
       STATUS_PORT: 3333,
       STATUS_CORS_ORIGIN: '*'
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-host': configuration.api.host.name,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
       'wolkenkit-shared-key': sharedKey,
       'wolkenkit-type': image().type
     },
-    networks: ["".concat(configuration.application, "-network")],
+    networks: ["".concat(configuration.application.name, "-network")],
     networkAlias: 'core',
-    ports: {
-      3333: selectedEnvironment.api.address.port + 10
-    },
+    ports: {},
     restart: 'on-failure:3',
-    volumesFrom: ["".concat(configuration.application, "-node-modules")]
+    volumesFrom: ["".concat(configuration.application.name, "-node-modules")]
   };
 
   if (selectedEnvironment.environmentVariables) {
@@ -82,7 +85,7 @@ var container = function container(options) {
   }
 
   if (debug) {
-    result.ports[9229] = selectedEnvironment.api.address.port + 7;
+    result.ports[9229] = debugging.core.port;
   }
 
   return result;

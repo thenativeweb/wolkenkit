@@ -15,58 +15,51 @@ var errors = require('../../../errors'),
 var cloneRepository =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options, progress) {
+  _regenerator.default.mark(function _callee(_ref, progress) {
     var directory, template, latestStableVersion, wolkenkitUrl, matches, _matches, url, branch, branchOption;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (options) {
-              _context.next = 2;
-              break;
-            }
+            directory = _ref.directory, template = _ref.template;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.directory) {
-              _context.next = 4;
+            if (directory) {
+              _context.next = 3;
               break;
             }
 
             throw new Error('Directory is missing.');
 
-          case 4:
-            if (options.template) {
-              _context.next = 6;
+          case 3:
+            if (template) {
+              _context.next = 5;
               break;
             }
 
             throw new Error('Template is missing.');
 
-          case 6:
+          case 5:
             if (progress) {
-              _context.next = 8;
+              _context.next = 7;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 8:
-            directory = options.directory, template = options.template;
-            _context.next = 11;
+          case 7:
+            _context.next = 9;
             return runtimes.getLatestStableVersion();
 
-          case 11:
+          case 9:
             latestStableVersion = _context.sent;
             wolkenkitUrl = "https://docs.wolkenkit.io/".concat(latestStableVersion, "/getting-started/installing-wolkenkit/verifying-system-requirements/");
             matches = template.match(/^((?:git:|ssh:|https:\/\/|git@[\w.]+)[\w.@:/~_-]+(?:\.git)?\/?)(?:#([a-zA-Z0-9/.\-_]+))?$/);
 
             if (matches) {
-              _context.next = 17;
+              _context.next = 15;
               break;
             }
 
@@ -76,13 +69,13 @@ function () {
             });
             throw new errors.UrlMalformed();
 
-          case 17:
-            _context.next = 19;
+          case 15:
+            _context.next = 17;
             return shell.which('git');
 
-          case 19:
+          case 17:
             if (_context.sent) {
-              _context.next = 22;
+              _context.next = 20;
               break;
             }
 
@@ -92,26 +85,27 @@ function () {
             });
             throw new errors.ExecutableNotFound();
 
-          case 22:
+          case 20:
             _matches = (0, _slicedToArray2.default)(matches, 3), url = _matches[1], branch = _matches[2];
             branchOption = branch ? "--branch ".concat(branch) : '';
             progress({
-              message: "Cloning ".concat(template, "...")
+              message: "Cloning ".concat(template, "..."),
+              type: 'info'
             });
-            _context.prev = 25;
-            _context.next = 28;
+            _context.prev = 23;
+            _context.next = 26;
             return shell.exec("git clone ".concat(branchOption, " ").concat(url, " ."), {
               silent: true,
               cwd: directory
             });
 
-          case 28:
-            _context.next = 35;
+          case 26:
+            _context.next = 33;
             break;
 
-          case 30:
-            _context.prev = 30;
-            _context.t0 = _context["catch"](25);
+          case 28:
+            _context.prev = 28;
+            _context.t0 = _context["catch"](23);
             progress({
               message: "".concat(_context.t0.stderr)
             });
@@ -121,16 +115,16 @@ function () {
             });
             throw _context.t0;
 
-          case 35:
+          case 33:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, this, [[25, 30]]);
+    }, _callee, this, [[23, 28]]);
   }));
 
   return function cloneRepository(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

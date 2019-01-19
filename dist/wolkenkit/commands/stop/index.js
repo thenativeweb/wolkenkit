@@ -4,8 +4,6 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _objectSpread2 = _interopRequireDefault(require("@babel/runtime/helpers/objectSpread"));
-
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var aufwind = require('./aufwind'),
@@ -21,72 +19,74 @@ var stopVia = {
 var stop =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options) {
-    var progress,
+  _regenerator.default.mark(function _callee(_ref) {
+    var dangerouslyDestroyData,
         directory,
         env,
+        _ref$port,
+        port,
+        _ref$privateKey,
+        privateKey,
+        progress,
         configuration,
-        environment,
         type,
         _args = arguments;
+
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
+            dangerouslyDestroyData = _ref.dangerouslyDestroyData, directory = _ref.directory, env = _ref.env, _ref$port = _ref.port, port = _ref$port === void 0 ? undefined : _ref$port, _ref$privateKey = _ref.privateKey, privateKey = _ref$privateKey === void 0 ? undefined : _ref$privateKey;
             progress = _args.length > 1 && _args[1] !== undefined ? _args[1] : noop;
 
-            if (options) {
-              _context.next = 3;
-              break;
-            }
-
-            throw new Error('Options are missing.');
-
-          case 3:
-            if (options.directory) {
-              _context.next = 5;
-              break;
-            }
-
-            throw new Error('Directory is missing.');
-
-          case 5:
-            if (!(options.dangerouslyDestroyData === undefined)) {
-              _context.next = 7;
+            if (!(dangerouslyDestroyData === undefined)) {
+              _context.next = 4;
               break;
             }
 
             throw new Error('Dangerously destroy data is missing.');
 
-          case 7:
-            if (options.env) {
-              _context.next = 9;
+          case 4:
+            if (directory) {
+              _context.next = 6;
+              break;
+            }
+
+            throw new Error('Directory is missing.');
+
+          case 6:
+            if (env) {
+              _context.next = 8;
               break;
             }
 
             throw new Error('Environment is missing.');
 
-          case 9:
-            directory = options.directory, env = options.env;
-            _context.next = 12;
+          case 8:
+            _context.next = 10;
             return shared.getConfiguration({
-              env: env,
               directory: directory,
-              isPackageJsonRequired: true
+              env: env,
+              isPackageJsonRequired: true,
+              port: port
             }, progress);
 
-          case 12:
+          case 10:
             configuration = _context.sent;
-            environment = configuration.environments[env];
-            type = environment.type === 'aufwind' ? environment.type : 'cli';
-            _context.next = 17;
-            return stopVia[type]((0, _objectSpread2.default)({}, options, {
-              configuration: configuration
-            }), progress);
+            type = configuration.type;
+            _context.next = 14;
+            return stopVia[type]({
+              configuration: configuration,
+              dangerouslyDestroyData: dangerouslyDestroyData,
+              directory: directory,
+              env: env,
+              port: port,
+              privateKey: privateKey
+            }, progress);
 
-          case 17:
+          case 14:
           case "end":
             return _context.stop();
         }
@@ -95,7 +95,7 @@ function () {
   }));
 
   return function stop(_x) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

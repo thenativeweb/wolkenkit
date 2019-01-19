@@ -21,60 +21,44 @@ var sleep = promisify(setTimeout);
 var validateLogs =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee3(options, progress) {
-    var configuration, env, containers, validate, isStopped;
+  _regenerator.default.mark(function _callee3(_ref, progress) {
+    var configuration, containers, validate, isStopped;
     return _regenerator.default.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
-            if (options) {
-              _context3.next = 2;
-              break;
-            }
+            configuration = _ref.configuration;
 
-            throw new Error('Options are missing');
-
-          case 2:
-            if (options.configuration) {
-              _context3.next = 4;
+            if (configuration) {
+              _context3.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context3.next = 6;
-              break;
-            }
-
-            throw new Error('Environment is missing.');
-
-          case 6:
+          case 3:
             if (progress) {
-              _context3.next = 8;
+              _context3.next = 5;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 8:
-            configuration = options.configuration, env = options.env;
-            _context3.next = 11;
+          case 5:
+            _context3.next = 7;
             return docker.getContainers({
               configuration: configuration,
-              env: env,
               where: {
                 label: {
-                  'wolkenkit-application': configuration.application,
+                  'wolkenkit-application': configuration.application.name,
                   'wolkenkit-type': 'application'
                 }
               }
             });
 
-          case 11:
+          case 7:
             containers = _context3.sent;
             progress({
               message: 'Validating container logs...',
@@ -102,7 +86,7 @@ function () {
                       return new Promise(
                       /*#__PURE__*/
                       function () {
-                        var _ref3 = (0, _asyncToGenerator2.default)(
+                        var _ref4 = (0, _asyncToGenerator2.default)(
                         /*#__PURE__*/
                         _regenerator.default.mark(function _callee(resolve, reject) {
                           var passThrough, unsubscribe, onData;
@@ -142,7 +126,6 @@ function () {
                                   return docker.logs({
                                     configuration: configuration,
                                     containers: containers,
-                                    env: env,
                                     follow: false,
                                     passThrough: passThrough
                                   });
@@ -165,7 +148,7 @@ function () {
                         }));
 
                         return function (_x3, _x4) {
-                          return _ref3.apply(this, arguments);
+                          return _ref4.apply(this, arguments);
                         };
                       }());
 
@@ -196,7 +179,7 @@ function () {
             }))();
             return _context3.abrupt("return", validate);
 
-          case 18:
+          case 14:
           case "end":
             return _context3.stop();
         }
@@ -205,7 +188,7 @@ function () {
   }));
 
   return function validateLogs(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

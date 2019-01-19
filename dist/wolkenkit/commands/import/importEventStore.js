@@ -33,14 +33,21 @@ function () {
   /*#__PURE__*/
   _regenerator.default.mark(function _callee(_ref) {
     var configuration,
-        env,
-        sharedKey,
-        containers,
+        connections,
         importDirectory,
+        sharedKey,
         progress,
-        coreContainer,
+        _connections$eventSto,
+        type,
+        external,
+        _external$pg,
+        protocol,
+        user,
+        password,
+        hostname,
+        port,
+        database,
         eventStore,
-        currentEnvironment,
         eventStoreDirectory,
         entries,
         eventFiles,
@@ -67,7 +74,7 @@ function () {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            configuration = _ref.configuration, env = _ref.env, sharedKey = _ref.sharedKey, containers = _ref.containers, importDirectory = _ref.importDirectory;
+            configuration = _ref.configuration, connections = _ref.connections, importDirectory = _ref.importDirectory, sharedKey = _ref.sharedKey;
             progress = _args.length > 1 && _args[1] !== undefined ? _args[1] : noop;
 
             if (configuration) {
@@ -78,70 +85,52 @@ function () {
             throw new Error('Configuration is missing.');
 
           case 4:
-            if (env) {
+            if (connections) {
               _context.next = 6;
               break;
             }
 
-            throw new Error('Environment is missing.');
+            throw new Error('Connections are missing.');
 
           case 6:
-            if (sharedKey) {
-              _context.next = 8;
-              break;
-            }
-
-            throw new Error('Shared key is missing.');
-
-          case 8:
-            if (containers) {
-              _context.next = 10;
-              break;
-            }
-
-            throw new Error('Containers are missing.');
-
-          case 10:
             if (importDirectory) {
-              _context.next = 12;
+              _context.next = 8;
               break;
             }
 
             throw new Error('Import directory is missing.');
 
-          case 12:
-            coreContainer = containers.find(function (container) {
-              return container.name.endsWith('core');
-            });
-
-            if (coreContainer) {
-              _context.next = 15;
+          case 8:
+            if (sharedKey) {
+              _context.next = 10;
               break;
             }
 
-            throw new Error('Invalid operation.');
+            throw new Error('Shared key is missing.');
 
-          case 15:
+          case 10:
+            _connections$eventSto = connections.eventStore, type = _connections$eventSto.type, external = _connections$eventSto.external;
+            _external$pg = external.pg, protocol = _external$pg.protocol, user = _external$pg.user, password = _external$pg.password, hostname = _external$pg.hostname, port = _external$pg.port, database = _external$pg.database;
             /* eslint-disable global-require */
-            eventStore = require("wolkenkit-eventstore/".concat(coreContainer.env.EVENTSTORE_TYPE));
+
+            eventStore = require("wolkenkit-eventstore/".concat(type));
             /* eslint-enable global-require */
 
-            currentEnvironment = configuration.environments[env];
-            _context.next = 19;
+            _context.next = 15;
             return eventStore.initialize({
-              url: "pg://wolkenkit:".concat(sharedKey, "@").concat(currentEnvironment.api.address.host, ":").concat(currentEnvironment.api.address.port + 3, "/wolkenkit"),
-              namespace: "".concat(configuration.application, "domain")
+              url: "".concat(protocol, "://").concat(user, ":").concat(password, "@").concat(hostname, ":").concat(port, "/").concat(database),
+              namespace: "".concat(configuration.application.name, "domain")
             });
 
-          case 19:
-            _context.next = 21;
+          case 15:
+            _context.next = 17;
             return isEventStoreEmpty({
               eventStore: eventStore
             });
 
-          case 21:
+          case 17:
             if (_context.sent) {
-              _context.next = 24;
+              _context.next = 20;
               break;
             }
 
@@ -151,12 +140,12 @@ function () {
             });
             throw new errors.EventStoreNotEmpty();
 
-          case 24:
+          case 20:
             eventStoreDirectory = path.join(importDirectory, 'event-store');
-            _context.next = 27;
+            _context.next = 23;
             return readdir(eventStoreDirectory);
 
-          case 27:
+          case 23:
             entries = _context.sent;
             eventFiles = entries.filter(function (eventFile) {
               return shared.eventFile.isValidFileName(eventFile);
@@ -165,9 +154,9 @@ function () {
             events = [], numberOfProcessedEvents = 0;
             i = 0;
 
-          case 32:
+          case 28:
             if (!(i < eventFiles.length)) {
-              _context.next = 82;
+              _context.next = 78;
               break;
             }
 
@@ -185,24 +174,24 @@ function () {
             pump(eventStream, parseStream, passThrough);
             _iteratorNormalCompletion = true;
             _didIteratorError = false;
-            _context.prev = 41;
+            _context.prev = 37;
             _iterator = (0, _asyncIterator2.default)(passThrough);
 
-          case 43:
-            _context.next = 45;
+          case 39:
+            _context.next = 41;
             return _iterator.next();
 
-          case 45:
+          case 41:
             _step = _context.sent;
             _iteratorNormalCompletion = _step.done;
-            _context.next = 49;
+            _context.next = 45;
             return _step.value;
 
-          case 49:
+          case 45:
             _value = _context.sent;
 
             if (_iteratorNormalCompletion) {
-              _context.next = 63;
+              _context.next = 59;
               break;
             }
 
@@ -212,93 +201,93 @@ function () {
             numberOfProcessedEvents += 1;
 
             if (!(events.length === numberOfEventsPerSave)) {
-              _context.next = 60;
+              _context.next = 56;
               break;
             }
 
-            _context.next = 58;
+            _context.next = 54;
             return eventStore.saveEvents({
               events: events
             });
 
-          case 58:
+          case 54:
             progress({
               message: "Processed ".concat(numberOfProcessedEvents, " events."),
               type: 'info'
             });
             events = [];
 
-          case 60:
+          case 56:
             _iteratorNormalCompletion = true;
-            _context.next = 43;
+            _context.next = 39;
             break;
 
-          case 63:
-            _context.next = 69;
+          case 59:
+            _context.next = 65;
             break;
 
-          case 65:
-            _context.prev = 65;
-            _context.t0 = _context["catch"](41);
+          case 61:
+            _context.prev = 61;
+            _context.t0 = _context["catch"](37);
             _didIteratorError = true;
             _iteratorError = _context.t0;
 
-          case 69:
-            _context.prev = 69;
-            _context.prev = 70;
+          case 65:
+            _context.prev = 65;
+            _context.prev = 66;
 
             if (!(!_iteratorNormalCompletion && _iterator.return != null)) {
-              _context.next = 74;
+              _context.next = 70;
               break;
             }
 
-            _context.next = 74;
+            _context.next = 70;
             return _iterator.return();
 
-          case 74:
-            _context.prev = 74;
+          case 70:
+            _context.prev = 70;
 
             if (!_didIteratorError) {
-              _context.next = 77;
+              _context.next = 73;
               break;
             }
 
             throw _iteratorError;
 
-          case 77:
-            return _context.finish(74);
+          case 73:
+            return _context.finish(70);
 
-          case 78:
-            return _context.finish(69);
+          case 74:
+            return _context.finish(65);
 
-          case 79:
+          case 75:
             i++;
-            _context.next = 32;
+            _context.next = 28;
             break;
 
-          case 82:
+          case 78:
             if (!(events.length > 0)) {
-              _context.next = 86;
+              _context.next = 82;
               break;
             }
 
-            _context.next = 85;
+            _context.next = 81;
             return eventStore.saveEvents({
               events: events
             });
 
-          case 85:
+          case 81:
             progress({
               message: "Processed ".concat(numberOfProcessedEvents, " events."),
               type: 'info'
             });
 
-          case 86:
+          case 82:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, this, [[41, 65, 69, 79], [70,, 74, 78]]);
+    }, _callee, this, [[37, 61, 65, 75], [66,, 70, 74]]);
   }));
 
   return function importEventStore(_x) {

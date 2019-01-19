@@ -6,75 +6,58 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"))
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var docker = require('../../../docker'),
-    noop = require('../../../noop');
+var docker = require('../../../docker');
 
 var removeContainers =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee2(options) {
-    var progress,
-        configuration,
-        env,
-        existingContainers,
-        applicationContainers,
-        removedContainer,
-        _args2 = arguments;
+  _regenerator.default.mark(function _callee2(_ref, progress) {
+    var configuration, existingContainers, applicationContainers, removedContainer;
     return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            progress = _args2.length > 1 && _args2[1] !== undefined ? _args2[1] : noop;
+            configuration = _ref.configuration;
 
-            if (options) {
+            if (configuration) {
               _context2.next = 3;
-              break;
-            }
-
-            throw new Error('Options are missing.');
-
-          case 3:
-            if (options.configuration) {
-              _context2.next = 5;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 5:
-            if (options.env) {
-              _context2.next = 7;
+          case 3:
+            if (progress) {
+              _context2.next = 5;
               break;
             }
 
             throw new Error('Environment is missing.');
 
-          case 7:
-            configuration = options.configuration, env = options.env;
-            _context2.next = 10;
+          case 5:
+            _context2.next = 7;
             return docker.getContainers({
               configuration: configuration,
-              env: env,
               where: {
                 label: {
-                  'wolkenkit-application': configuration.application
+                  'wolkenkit-application': configuration.application.name
                 }
               }
             });
 
-          case 10:
+          case 7:
             existingContainers = _context2.sent;
             applicationContainers = existingContainers.filter(function (container) {
               return container.labels['wolkenkit-type'] === 'application';
             });
             removedContainer = [];
-            _context2.next = 15;
+            _context2.next = 12;
             return Promise.all(applicationContainers.map(
             /*#__PURE__*/
             function () {
-              var _ref2 = (0, _asyncToGenerator2.default)(
+              var _ref3 = (0, _asyncToGenerator2.default)(
               /*#__PURE__*/
               _regenerator.default.mark(function _callee(container) {
                 return _regenerator.default.wrap(function _callee$(_context) {
@@ -84,8 +67,7 @@ function () {
                         _context.next = 2;
                         return docker.removeContainer({
                           configuration: configuration,
-                          container: container,
-                          env: env
+                          container: container
                         });
 
                       case 2:
@@ -103,12 +85,12 @@ function () {
                 }, _callee, this);
               }));
 
-              return function (_x2) {
-                return _ref2.apply(this, arguments);
+              return function (_x3) {
+                return _ref3.apply(this, arguments);
               };
             }()));
 
-          case 15:
+          case 12:
           case "end":
             return _context2.stop();
         }
@@ -116,8 +98,8 @@ function () {
     }, _callee2, this);
   }));
 
-  return function removeContainers(_x) {
-    return _ref.apply(this, arguments);
+  return function removeContainers(_x, _x2) {
+    return _ref2.apply(this, arguments);
   };
 }();
 

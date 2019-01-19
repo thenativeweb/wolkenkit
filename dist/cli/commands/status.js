@@ -63,9 +63,11 @@ var status = {
       }, _callee, this);
     }));
 
-    return function getOptionDefinitions() {
+    function getOptionDefinitions() {
       return _getOptionDefinitions.apply(this, arguments);
-    };
+    }
+
+    return getOptionDefinitions;
   }(),
   run: function () {
     var _run = (0, _asyncToGenerator2.default)(
@@ -96,7 +98,7 @@ var status = {
               privateKey = options['private-key'];
 
               if (!help) {
-                _context2.next = 21;
+                _context2.next = 23;
                 break;
               }
 
@@ -110,101 +112,105 @@ var status = {
                 header: 'Synopsis',
                 content: stripIndent(_templateObject())
               };
-              _context2.t4 = _toConsumableArray2.default;
-              _context2.next = 14;
+              _context2.t4 = [];
+              _context2.t5 = _toConsumableArray2.default;
+              _context2.next = 15;
               return this.getOptionDefinitions();
 
-            case 14:
-              _context2.t5 = _context2.sent;
-              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
-              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
-              _context2.t8 = {
+            case 15:
+              _context2.t6 = _context2.sent;
+              _context2.t7 = (0, _context2.t5)(_context2.t6);
+              _context2.t8 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
+              _context2.t10 = {
                 header: 'Options',
-                optionList: _context2.t7
+                optionList: _context2.t9
               };
-              _context2.t9 = [_context2.t2, _context2.t3, _context2.t8];
-              _context2.t10 = (0, _context2.t1)(_context2.t9);
-              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t10));
+              _context2.t11 = [_context2.t2, _context2.t3, _context2.t10];
+              _context2.t12 = (0, _context2.t1)(_context2.t11);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t12));
 
-            case 21:
+            case 23:
               buntstift.info('Fetching application status...');
               stopWaiting = buntstift.wait();
-              _context2.prev = 23;
-              _context2.next = 26;
+              _context2.prev = 25;
+              _context2.next = 28;
               return wolkenkit.commands.status({
                 directory: directory,
                 env: env,
                 privateKey: privateKey
               }, showProgress(verbose, stopWaiting));
 
-            case 26:
-              _context2.next = 44;
+            case 28:
+              _context2.next = 46;
               break;
 
-            case 28:
-              _context2.prev = 28;
-              _context2.t11 = _context2["catch"](23);
+            case 30:
+              _context2.prev = 30;
+              _context2.t13 = _context2["catch"](25);
               stopWaiting();
 
-              if (!(_context2.t11.code === 'EAPPLICATIONNOTRUNNING')) {
-                _context2.next = 33;
+              if (!(_context2.t13.code === 'EAPPLICATIONNOTRUNNING')) {
+                _context2.next = 35;
                 break;
               }
 
               return _context2.abrupt("return", buntstift.success('The application is stopped.'));
 
-            case 33:
-              if (!(_context2.t11.code === 'EAPPLICATIONVERIFYINGCONNECTIONS')) {
-                _context2.next = 35;
+            case 35:
+              if (!(_context2.t13.code === 'EAPPLICATIONVERIFYINGCONNECTIONS')) {
+                _context2.next = 37;
                 break;
               }
 
               return _context2.abrupt("return", buntstift.success('The application is trying to connect to infrastructure services.'));
 
-            case 35:
-              if (!(_context2.t11.code === 'EAPPLICATIONBUILDING')) {
-                _context2.next = 37;
+            case 37:
+              if (!(_context2.t13.code === 'EAPPLICATIONBUILDING')) {
+                _context2.next = 39;
                 break;
               }
 
               return _context2.abrupt("return", buntstift.success('The application is building.'));
 
-            case 37:
-              if (!(_context2.t11.code === 'EAPPLICATIONTERMINATING')) {
-                _context2.next = 39;
+            case 39:
+              if (!(_context2.t13.code === 'EAPPLICATIONTERMINATING')) {
+                _context2.next = 41;
                 break;
               }
 
               return _context2.abrupt("return", buntstift.success('The application is stopping.'));
 
-            case 39:
-              if (!(_context2.t11.code === 'EAPPLICATIONPARTIALLYRUNNING')) {
-                _context2.next = 42;
+            case 41:
+              if (!(_context2.t13.code === 'EAPPLICATIONPARTIALLYRUNNING')) {
+                _context2.next = 44;
                 break;
               }
 
               buntstift.error('The application is partially running.');
-              throw _context2.t11;
-
-            case 42:
-              buntstift.error('Failed to fetch application status.');
-              throw _context2.t11;
+              throw _context2.t13;
 
             case 44:
+              buntstift.error('Failed to fetch application status.');
+              throw _context2.t13;
+
+            case 46:
               stopWaiting();
               buntstift.success('The application is running.');
 
-            case 46:
+            case 48:
             case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[23, 28]]);
+      }, _callee2, this, [[25, 30]]);
     }));
 
-    return function run(_x) {
+    function run(_x) {
       return _run.apply(this, arguments);
-    };
+    }
+
+    return run;
   }()
 };
 module.exports = status;

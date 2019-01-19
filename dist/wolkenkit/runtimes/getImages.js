@@ -19,60 +19,53 @@ var readdir = promisify(fs.readdir),
 var getImages =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee2(options) {
+  _regenerator.default.mark(function _callee2(_ref) {
     var forVersion, pathRuntime, entries, images;
     return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            if (options) {
-              _context2.next = 2;
-              break;
-            }
+            forVersion = _ref.forVersion;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.forVersion) {
-              _context2.next = 4;
+            if (forVersion) {
+              _context2.next = 3;
               break;
             }
 
             throw new Error('Version is missing.');
 
-          case 4:
-            forVersion = options.forVersion;
+          case 3:
             pathRuntime = path.join(__dirname, '..', '..', 'configuration', forVersion);
-            _context2.prev = 6;
-            _context2.next = 9;
+            _context2.prev = 4;
+            _context2.next = 7;
             return readdir(pathRuntime);
 
-          case 9:
+          case 7:
             entries = _context2.sent;
-            _context2.next = 19;
+            _context2.next = 17;
             break;
 
-          case 12:
-            _context2.prev = 12;
-            _context2.t0 = _context2["catch"](6);
+          case 10:
+            _context2.prev = 10;
+            _context2.t0 = _context2["catch"](4);
             _context2.t1 = _context2.t0.code;
-            _context2.next = _context2.t1 === 'ENOENT' ? 17 : 18;
+            _context2.next = _context2.t1 === 'ENOENT' ? 15 : 16;
             break;
 
-          case 17:
+          case 15:
             throw new errors.VersionNotFound();
 
-          case 18:
+          case 16:
             throw _context2.t0;
 
-          case 19:
-            _context2.next = 21;
+          case 17:
+            _context2.next = 19;
             return Promise.all(entries.map(
             /*#__PURE__*/
             function () {
-              var _ref2 = (0, _asyncToGenerator2.default)(
+              var _ref3 = (0, _asyncToGenerator2.default)(
               /*#__PURE__*/
               _regenerator.default.mark(function _callee(entry) {
                 var pathImage, isDirectory, image;
@@ -110,11 +103,11 @@ function () {
               }));
 
               return function (_x2) {
-                return _ref2.apply(this, arguments);
+                return _ref3.apply(this, arguments);
               };
             }()));
 
-          case 21:
+          case 19:
             _context2.t2 = function (image) {
               return image;
             };
@@ -122,16 +115,16 @@ function () {
             images = _context2.sent.filter(_context2.t2);
             return _context2.abrupt("return", images);
 
-          case 24:
+          case 22:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, this, [[6, 12]]);
+    }, _callee2, this, [[4, 10]]);
   }));
 
   return function getImages(_x) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

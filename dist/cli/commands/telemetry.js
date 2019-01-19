@@ -55,9 +55,11 @@ var command = {
       }, _callee, this);
     }));
 
-    return function getOptionDefinitions() {
+    function getOptionDefinitions() {
       return _getOptionDefinitions.apply(this, arguments);
-    };
+    }
+
+    return getOptionDefinitions;
   }(),
   run: function () {
     var _run = (0, _asyncToGenerator2.default)(
@@ -79,7 +81,7 @@ var command = {
               help = options.help, enable = options.enable, disable = options.disable;
 
               if (!help) {
-                _context2.next = 18;
+                _context2.next = 20;
                 break;
               }
 
@@ -93,23 +95,25 @@ var command = {
                 header: 'Synopsis',
                 content: stripIndent(_templateObject())
               };
-              _context2.t4 = _toConsumableArray2.default;
-              _context2.next = 11;
+              _context2.t4 = [];
+              _context2.t5 = _toConsumableArray2.default;
+              _context2.next = 12;
               return this.getOptionDefinitions();
 
-            case 11:
-              _context2.t5 = _context2.sent;
-              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
-              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
-              _context2.t8 = {
+            case 12:
+              _context2.t6 = _context2.sent;
+              _context2.t7 = (0, _context2.t5)(_context2.t6);
+              _context2.t8 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
+              _context2.t10 = {
                 header: 'Options',
-                optionList: _context2.t7
+                optionList: _context2.t9
               };
-              _context2.t9 = [_context2.t2, _context2.t3, _context2.t8];
-              _context2.t10 = (0, _context2.t1)(_context2.t9);
-              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t10));
+              _context2.t11 = [_context2.t2, _context2.t3, _context2.t10];
+              _context2.t12 = (0, _context2.t1)(_context2.t11);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t12));
 
-            case 18:
+            case 20:
               optionList = {
                 enable: enable,
                 disable: disable
@@ -119,60 +123,60 @@ var command = {
               }).length;
 
               if (!(count === 0)) {
-                _context2.next = 27;
+                _context2.next = 29;
                 break;
               }
 
-              _context2.next = 23;
+              _context2.next = 25;
               return telemetry.isEnabled();
 
-            case 23:
+            case 25:
               isEnabled = _context2.sent;
 
               if (!isEnabled) {
-                _context2.next = 26;
+                _context2.next = 28;
                 break;
               }
 
               return _context2.abrupt("return", buntstift.success('Collecting telemetry data is enabled.'));
 
-            case 26:
+            case 28:
               return _context2.abrupt("return", buntstift.error('Collecting telemetry data is disabled.'));
 
-            case 27:
+            case 29:
               if (!(count > 1)) {
-                _context2.next = 30;
+                _context2.next = 32;
                 break;
               }
 
               buntstift.error('Either provide --enable or --disable.');
               throw new Error('Mutually exclusive parameters given');
 
-            case 30:
+            case 32:
               if (!enable) {
-                _context2.next = 34;
+                _context2.next = 36;
                 break;
               }
 
-              _context2.next = 33;
+              _context2.next = 35;
               return telemetry.enable();
 
-            case 33:
+            case 35:
               return _context2.abrupt("return", buntstift.success('Enabled collecting telemetry data.'));
 
-            case 34:
+            case 36:
               if (!disable) {
-                _context2.next = 38;
+                _context2.next = 40;
                 break;
               }
 
-              _context2.next = 37;
+              _context2.next = 39;
               return telemetry.disable();
 
-            case 37:
+            case 39:
               return _context2.abrupt("return", buntstift.success('Disabled collecting telemetry data.'));
 
-            case 38:
+            case 40:
             case "end":
               return _context2.stop();
           }
@@ -180,9 +184,11 @@ var command = {
       }, _callee2, this);
     }));
 
-    return function run(_x) {
+    function run(_x) {
       return _run.apply(this, arguments);
-    };
+    }
+
+    return run;
   }()
 };
 module.exports = command;

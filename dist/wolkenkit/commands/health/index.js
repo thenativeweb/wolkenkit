@@ -15,12 +15,12 @@ var checkCertificate = require('./checkCertificate'),
 var health =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options) {
-    var progress,
-        directory,
+  _regenerator.default.mark(function _callee(_ref) {
+    var directory,
         env,
+        progress,
         configuration,
         applicationAddresses,
         _args = arguments;
@@ -28,73 +28,61 @@ function () {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
+            directory = _ref.directory, env = _ref.env;
             progress = _args.length > 1 && _args[1] !== undefined ? _args[1] : noop;
 
-            if (options) {
-              _context.next = 3;
-              break;
-            }
-
-            throw new Error('Options are missing.');
-
-          case 3:
-            if (options.directory) {
-              _context.next = 5;
+            if (directory) {
+              _context.next = 4;
               break;
             }
 
             throw new Error('Directory is missing.');
 
-          case 5:
-            if (options.env) {
-              _context.next = 7;
+          case 4:
+            if (env) {
+              _context.next = 6;
               break;
             }
 
             throw new Error('Environment is missing.');
 
-          case 7:
-            directory = options.directory, env = options.env;
-            _context.next = 10;
+          case 6:
+            _context.next = 8;
             return shared.getConfiguration({
               env: env,
               directory: directory,
               isPackageJsonRequired: true
             }, progress);
 
-          case 10:
+          case 8:
             configuration = _context.sent;
-            _context.next = 13;
+            _context.next = 11;
             return shared.checkDocker({
-              configuration: configuration,
-              env: env
+              configuration: configuration
+            }, progress);
+
+          case 11:
+            _context.next = 13;
+            return resolveHost({
+              configuration: configuration
             }, progress);
 
           case 13:
-            _context.next = 15;
-            return resolveHost({
-              configuration: configuration,
-              env: env
-            }, progress);
-
-          case 15:
             applicationAddresses = _context.sent;
-            _context.next = 18;
+            _context.next = 16;
             return checkDockerServerResolvesToApplicationAddresses({
               configuration: configuration,
-              env: env,
               applicationAddresses: applicationAddresses
             }, progress);
 
-          case 18:
-            _context.next = 20;
+          case 16:
+            _context.next = 18;
             return checkCertificate({
               configuration: configuration,
-              env: env,
               directory: directory
             }, progress);
 
-          case 20:
+          case 18:
           case "end":
             return _context.stop();
         }
@@ -103,7 +91,7 @@ function () {
   }));
 
   return function health(_x) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

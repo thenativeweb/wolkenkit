@@ -6,81 +6,72 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"))
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var noop = require('../../../noop'),
-    runtimes = require('../../runtimes'),
+var runtimes = require('../../runtimes'),
     shared = require('../shared');
 
 var ls =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee2(options) {
-    var progress,
-        directory,
-        env,
-        configuration,
-        supportedVersions,
-        installedVersions,
-        _args2 = arguments;
+  _regenerator.default.mark(function _callee2(_ref, progress) {
+    var directory, env, configuration, supportedVersions, installedVersions;
     return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            progress = _args2.length > 1 && _args2[1] !== undefined ? _args2[1] : noop;
+            directory = _ref.directory, env = _ref.env;
 
-            if (options) {
+            if (directory) {
               _context2.next = 3;
-              break;
-            }
-
-            throw new Error('Options are missing.');
-
-          case 3:
-            if (options.directory) {
-              _context2.next = 5;
               break;
             }
 
             throw new Error('Directory is missing.');
 
-          case 5:
-            if (options.env) {
-              _context2.next = 7;
+          case 3:
+            if (env) {
+              _context2.next = 5;
               break;
             }
 
             throw new Error('Environment is missing.');
 
+          case 5:
+            if (progress) {
+              _context2.next = 7;
+              break;
+            }
+
+            throw new Error('Progress is missing.');
+
           case 7:
-            directory = options.directory, env = options.env;
-            _context2.next = 10;
+            _context2.next = 9;
             return shared.getConfiguration({
-              env: env,
               directory: directory,
+              env: env,
               isPackageJsonRequired: false
             }, progress);
 
-          case 10:
+          case 9:
             configuration = _context2.sent;
-            _context2.next = 13;
+            _context2.next = 12;
             return shared.checkDocker({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             }, progress);
 
-          case 13:
-            _context2.next = 15;
+          case 12:
+            _context2.next = 14;
             return runtimes.getAllVersions();
 
-          case 15:
+          case 14:
             supportedVersions = _context2.sent;
             installedVersions = [];
-            _context2.next = 19;
+            _context2.next = 18;
             return Promise.all(supportedVersions.map(
             /*#__PURE__*/
             function () {
-              var _ref2 = (0, _asyncToGenerator2.default)(
+              var _ref3 = (0, _asyncToGenerator2.default)(
               /*#__PURE__*/
               _regenerator.default.mark(function _callee(version) {
                 var isInstalled;
@@ -91,7 +82,6 @@ function () {
                         _context.next = 2;
                         return runtimes.isInstalled({
                           configuration: configuration,
-                          env: env,
                           forVersion: version
                         });
 
@@ -110,12 +100,12 @@ function () {
                 }, _callee, this);
               }));
 
-              return function (_x2) {
-                return _ref2.apply(this, arguments);
+              return function (_x3) {
+                return _ref3.apply(this, arguments);
               };
             }()));
 
-          case 19:
+          case 18:
             supportedVersions.forEach(function (version) {
               if (installedVersions.includes(version)) {
                 return progress({
@@ -134,7 +124,7 @@ function () {
               installed: installedVersions
             });
 
-          case 21:
+          case 20:
           case "end":
             return _context2.stop();
         }
@@ -142,8 +132,8 @@ function () {
     }, _callee2, this);
   }));
 
-  return function ls(_x) {
-    return _ref.apply(this, arguments);
+  return function ls(_x, _x2) {
+    return _ref2.apply(this, arguments);
   };
 }();
 

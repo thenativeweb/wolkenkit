@@ -111,7 +111,7 @@ var schema = function schema() {
                   type: 'object',
                   patternProperties: {
                     '.*': {
-                      type: ['integer', 'number', 'string']
+                      type: ['integer', 'number', 'string', 'boolean']
                     }
                   },
                   additionalProperties: false
@@ -322,7 +322,7 @@ var schema = function schema() {
                   type: 'object',
                   patternProperties: {
                     '.*': {
-                      type: ['integer', 'number', 'string']
+                      type: ['integer', 'number', 'string', 'boolean']
                     }
                   },
                   additionalProperties: false

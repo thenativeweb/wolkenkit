@@ -13,64 +13,58 @@ var errors = require('../../../errors'),
 var startPuttyTunnel =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee2(options) {
-    var configuration, addresses, username, privateKey, childProcess;
+  _regenerator.default.mark(function _callee2(_ref) {
+    var addresses, configuration, _ref$privateKey, privateKey, username, childProcess;
+
     return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            if (options) {
-              _context2.next = 2;
-              break;
-            }
+            addresses = _ref.addresses, configuration = _ref.configuration, _ref$privateKey = _ref.privateKey, privateKey = _ref$privateKey === void 0 ? undefined : _ref$privateKey, username = _ref.username;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context2.next = 4;
-              break;
-            }
-
-            throw new Error('Configuration is missing.');
-
-          case 4:
-            if (options.addresses) {
-              _context2.next = 6;
+            if (addresses) {
+              _context2.next = 3;
               break;
             }
 
             throw new Error('Addresses are missing.');
 
-          case 6:
-            if (options.username) {
-              _context2.next = 8;
+          case 3:
+            if (configuration) {
+              _context2.next = 5;
+              break;
+            }
+
+            throw new Error('Configuration is missing.');
+
+          case 5:
+            if (username) {
+              _context2.next = 7;
               break;
             }
 
             throw new Error('Username is missing.');
 
-          case 8:
-            configuration = options.configuration, addresses = options.addresses, username = options.username, privateKey = options.privateKey;
-            _context2.next = 11;
+          case 7:
+            _context2.next = 9;
             return shell.which('plink');
 
-          case 11:
+          case 9:
             if (_context2.sent) {
-              _context2.next = 13;
+              _context2.next = 11;
               break;
             }
 
             throw new errors.ExecutableNotFound();
 
-          case 13:
-            _context2.next = 15;
+          case 11:
+            _context2.next = 13;
             return new Promise(
             /*#__PURE__*/
             function () {
-              var _ref2 = (0, _asyncToGenerator2.default)(
+              var _ref3 = (0, _asyncToGenerator2.default)(
               /*#__PURE__*/
               _regenerator.default.mark(function _callee(resolve, reject) {
                 var args, child;
@@ -92,7 +86,6 @@ function () {
                         _context.prev = 4;
                         _context.next = 7;
                         return waitForSshTunnel({
-                          configuration: configuration,
                           host: addresses.from.host,
                           port: addresses.from.port
                         });
@@ -118,11 +111,11 @@ function () {
               }));
 
               return function (_x2, _x3) {
-                return _ref2.apply(this, arguments);
+                return _ref3.apply(this, arguments);
               };
             }());
 
-          case 15:
+          case 13:
             childProcess = _context2.sent;
             return _context2.abrupt("return", {
               close: function close() {
@@ -130,7 +123,7 @@ function () {
               }
             });
 
-          case 17:
+          case 15:
           case "end":
             return _context2.stop();
         }
@@ -139,7 +132,7 @@ function () {
   }));
 
   return function startPuttyTunnel(_x) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

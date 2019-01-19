@@ -25,21 +25,17 @@ var isMatching = function isMatching(left, right) {
   return false;
 };
 
-var isNameMatching = function isNameMatching(options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
+var isNameMatching = function isNameMatching(_ref) {
+  var certificate = _ref.certificate,
+      name = _ref.name;
 
-  if (!options.certificate) {
+  if (!certificate) {
     throw new Error('Certificate is missing.');
   }
 
-  if (!options.name) {
+  if (!name) {
     throw new Error('Name is missing.');
   }
-
-  var certificate = options.certificate,
-      name = options.name;
 
   if (isMatching(certificate.subject.commonName, name)) {
     return true;

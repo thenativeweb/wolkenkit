@@ -21,54 +21,47 @@ var errors = require('../../../errors');
 var makeAufwindRequest =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options, progress) {
-    var endpoint, tunnel, uploadStream, formattedUrl, receivedData, response, newlineJsonParser, passThrough, hasError, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, _value, data;
+  _regenerator.default.mark(function _callee(_ref, progress) {
+    var endpoint, tunnel, _ref$uploadStream, uploadStream, formattedUrl, receivedData, response, newlineJsonParser, passThrough, hasError, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, _value, data;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (options) {
-              _context.next = 2;
-              break;
-            }
+            endpoint = _ref.endpoint, tunnel = _ref.tunnel, _ref$uploadStream = _ref.uploadStream, uploadStream = _ref$uploadStream === void 0 ? undefined : _ref$uploadStream;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.endpoint) {
-              _context.next = 4;
+            if (endpoint) {
+              _context.next = 3;
               break;
             }
 
             throw new Error('Endpoint is missing.');
 
-          case 4:
-            if (options.tunnel) {
-              _context.next = 6;
+          case 3:
+            if (tunnel) {
+              _context.next = 5;
               break;
             }
 
             throw new Error('Tunnel is missing.');
 
-          case 6:
+          case 5:
             if (progress) {
-              _context.next = 8;
+              _context.next = 7;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 8:
-            endpoint = options.endpoint, tunnel = options.tunnel, uploadStream = options.uploadStream;
+          case 7:
             formattedUrl = url.format(endpoint);
             progress({
               message: "Using ".concat(endpoint.method, " ").concat(formattedUrl, " as route.")
             });
-            _context.prev = 11;
-            _context.next = 14;
+            _context.prev = 9;
+            _context.next = 12;
             return axios({
               method: endpoint.method.toLowerCase(),
               url: formattedUrl,
@@ -77,7 +70,7 @@ function () {
               responseType: 'stream'
             });
 
-          case 14:
+          case 12:
             response = _context.sent;
             newlineJsonParser = new NewlineJsonParser();
             passThrough = new PassThrough({
@@ -87,46 +80,46 @@ function () {
             hasError = false;
             _iteratorNormalCompletion = true;
             _didIteratorError = false;
-            _context.prev = 21;
+            _context.prev = 19;
             _iterator = (0, _asyncIterator2.default)(passThrough);
 
-          case 23:
-            _context.next = 25;
+          case 21:
+            _context.next = 23;
             return _iterator.next();
 
-          case 25:
+          case 23:
             _step = _context.sent;
             _iteratorNormalCompletion = _step.done;
-            _context.next = 29;
+            _context.next = 27;
             return _step.value;
 
-          case 29:
+          case 27:
             _value = _context.sent;
 
             if (_iteratorNormalCompletion) {
-              _context.next = 42;
+              _context.next = 40;
               break;
             }
 
             data = _value;
 
             if (!(data.type === 'heartbeat')) {
-              _context.next = 34;
+              _context.next = 32;
               break;
             }
 
-            return _context.abrupt("continue", 39);
+            return _context.abrupt("continue", 37);
 
-          case 34:
+          case 32:
             if (!(!data.message || !data.type)) {
-              _context.next = 37;
+              _context.next = 35;
               break;
             }
 
             receivedData = data;
-            return _context.abrupt("continue", 39);
+            return _context.abrupt("continue", 37);
 
-          case 37:
+          case 35:
             if (data.type === 'error') {
               hasError = true;
               data.type = 'info';
@@ -134,75 +127,75 @@ function () {
 
             progress(data);
 
-          case 39:
+          case 37:
             _iteratorNormalCompletion = true;
-            _context.next = 23;
+            _context.next = 21;
+            break;
+
+          case 40:
+            _context.next = 46;
             break;
 
           case 42:
-            _context.next = 48;
-            break;
-
-          case 44:
-            _context.prev = 44;
-            _context.t0 = _context["catch"](21);
+            _context.prev = 42;
+            _context.t0 = _context["catch"](19);
             _didIteratorError = true;
             _iteratorError = _context.t0;
 
-          case 48:
-            _context.prev = 48;
-            _context.prev = 49;
+          case 46:
+            _context.prev = 46;
+            _context.prev = 47;
 
             if (!(!_iteratorNormalCompletion && _iterator.return != null)) {
-              _context.next = 53;
+              _context.next = 51;
               break;
             }
 
-            _context.next = 53;
+            _context.next = 51;
             return _iterator.return();
 
-          case 53:
-            _context.prev = 53;
+          case 51:
+            _context.prev = 51;
 
             if (!_didIteratorError) {
-              _context.next = 56;
+              _context.next = 54;
               break;
             }
 
             throw _iteratorError;
 
+          case 54:
+            return _context.finish(51);
+
+          case 55:
+            return _context.finish(46);
+
           case 56:
-            return _context.finish(53);
-
-          case 57:
-            return _context.finish(48);
-
-          case 58:
             if (!hasError) {
-              _context.next = 60;
+              _context.next = 58;
               break;
             }
 
             throw new errors.RequestFailed();
 
-          case 60:
-            _context.prev = 60;
+          case 58:
+            _context.prev = 58;
             tunnel.close();
-            return _context.finish(60);
+            return _context.finish(58);
 
-          case 63:
+          case 61:
             return _context.abrupt("return", receivedData);
 
-          case 64:
+          case 62:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, this, [[11,, 60, 63], [21, 44, 48, 58], [49,, 53, 57]]);
+    }, _callee, this, [[9,, 58, 61], [19, 42, 46, 56], [47,, 51, 55]]);
   }));
 
   return function makeAufwindRequest(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

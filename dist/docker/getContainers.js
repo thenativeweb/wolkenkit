@@ -20,69 +20,53 @@ var getEnvironmentVariables = require('./getEnvironmentVariables'),
 var getContainers =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options) {
-    var configuration, env, where, environmentVariables, filter, _ref2, stdout, containers;
+  _regenerator.default.mark(function _callee(_ref) {
+    var configuration, where, environmentVariables, filter, _ref3, stdout, containers;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (options) {
-              _context.next = 2;
-              break;
-            }
+            configuration = _ref.configuration, where = _ref.where;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context.next = 4;
+            if (configuration) {
+              _context.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context.next = 6;
-              break;
-            }
-
-            throw new Error('Environment is missing.');
-
-          case 6:
-            if (options.where) {
-              _context.next = 8;
+          case 3:
+            if (where) {
+              _context.next = 5;
               break;
             }
 
             throw new Error('Where is missing.');
 
-          case 8:
-            configuration = options.configuration, env = options.env, where = options.where;
-            _context.next = 11;
+          case 5:
+            _context.next = 7;
             return getEnvironmentVariables({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             });
 
-          case 11:
+          case 7:
             environmentVariables = _context.sent;
             filter = flatten(map(where, function (keyValuePair, criterion) {
               return map(keyValuePair, function (value, key) {
                 return "--filter \"".concat(criterion, "=").concat(key, "=").concat(value, "\"");
               });
             }));
-            _context.next = 15;
+            _context.next = 11;
             return shell.exec("docker ps --all ".concat(filter.join(' '), " --format \"{{json .}}\""), {
               env: environmentVariables
             });
 
-          case 15:
-            _ref2 = _context.sent;
-            stdout = _ref2.stdout;
+          case 11:
+            _ref3 = _context.sent;
+            stdout = _ref3.stdout;
             containers = stdout.split('\n').filter(function (item) {
               return item;
             }).map(function (item) {
@@ -104,7 +88,7 @@ function () {
             });
             return _context.abrupt("return", containers);
 
-          case 19:
+          case 15:
           case "end":
             return _context.stop();
         }
@@ -113,7 +97,7 @@ function () {
   }));
 
   return function getContainers(_x) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

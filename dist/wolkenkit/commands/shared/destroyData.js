@@ -6,95 +6,84 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"))
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var docker = require('../../../docker'),
-    runtimes = require('../../runtimes');
+var docker = require('../../../docker');
 
 var destroyData =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee2(options, progress) {
-    var configuration, env, sharedKey, persistData, debug, runtime, containers;
+  _regenerator.default.mark(function _callee2(_ref, progress) {
+    var configuration, dangerouslyExposeHttpPorts, debug, persistData, sharedKey, containers;
     return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            if (options) {
-              _context2.next = 2;
-              break;
-            }
+            configuration = _ref.configuration, dangerouslyExposeHttpPorts = _ref.dangerouslyExposeHttpPorts, debug = _ref.debug, persistData = _ref.persistData, sharedKey = _ref.sharedKey;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context2.next = 4;
+            if (configuration) {
+              _context2.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context2.next = 6;
+          case 3:
+            if (!(dangerouslyExposeHttpPorts === undefined)) {
+              _context2.next = 5;
               break;
             }
 
-            throw new Error('Environment is missing.');
+            throw new Error('Dangerously expose http ports is missing.');
 
-          case 6:
-            if (options.sharedKey) {
-              _context2.next = 8;
-              break;
-            }
-
-            throw new Error('Shared key is missing.');
-
-          case 8:
-            if (!(options.persistData === undefined)) {
-              _context2.next = 10;
-              break;
-            }
-
-            throw new Error('Persist data is missing.');
-
-          case 10:
-            if (!(options.debug === undefined)) {
-              _context2.next = 12;
+          case 5:
+            if (!(debug === undefined)) {
+              _context2.next = 7;
               break;
             }
 
             throw new Error('Debug is missing.');
 
-          case 12:
+          case 7:
+            if (!(persistData === undefined)) {
+              _context2.next = 9;
+              break;
+            }
+
+            throw new Error('Persist data is missing.');
+
+          case 9:
+            if (sharedKey) {
+              _context2.next = 11;
+              break;
+            }
+
+            throw new Error('Shared key is missing.');
+
+          case 11:
             if (progress) {
-              _context2.next = 14;
+              _context2.next = 13;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 14:
-            configuration = options.configuration, env = options.env, sharedKey = options.sharedKey, persistData = options.persistData, debug = options.debug;
-            runtime = configuration.runtime.version;
-            _context2.next = 18;
-            return runtimes.getContainers({
-              forVersion: runtime,
-              configuration: configuration,
-              env: env,
-              sharedKey: sharedKey,
+          case 13:
+            _context2.next = 15;
+            return configuration.containers({
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
               persistData: persistData,
-              debug: debug
+              sharedKey: sharedKey
             });
 
-          case 18:
+          case 15:
             containers = _context2.sent;
-            _context2.next = 21;
+            _context2.next = 18;
             return Promise.all(containers.map(
             /*#__PURE__*/
             function () {
-              var _ref2 = (0, _asyncToGenerator2.default)(
+              var _ref3 = (0, _asyncToGenerator2.default)(
               /*#__PURE__*/
               _regenerator.default.mark(function _callee(container) {
                 return _regenerator.default.wrap(function _callee$(_context) {
@@ -103,7 +92,6 @@ function () {
                       case 0:
                         return _context.abrupt("return", docker.removeVolume({
                           configuration: configuration,
-                          env: env,
                           name: "".concat(container.name, "-volume")
                         }));
 
@@ -116,11 +104,11 @@ function () {
               }));
 
               return function (_x3) {
-                return _ref2.apply(this, arguments);
+                return _ref3.apply(this, arguments);
               };
             }()));
 
-          case 21:
+          case 18:
           case "end":
             return _context2.stop();
         }
@@ -129,7 +117,7 @@ function () {
   }));
 
   return function destroyData(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

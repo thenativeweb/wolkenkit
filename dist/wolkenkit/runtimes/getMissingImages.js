@@ -12,95 +12,79 @@ var docker = require('../../docker'),
 var getMissingImages =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options) {
-    var configuration, env, forVersion, missingImages, images, i, image, name, version, isInstalled;
+  _regenerator.default.mark(function _callee(_ref) {
+    var configuration, forVersion, missingImages, images, i, image, name, version, isInstalled;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (options) {
-              _context.next = 2;
-              break;
-            }
+            configuration = _ref.configuration, forVersion = _ref.forVersion;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context.next = 4;
+            if (configuration) {
+              _context.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context.next = 6;
-              break;
-            }
-
-            throw new Error('Environment is missing.');
-
-          case 6:
-            if (options.forVersion) {
-              _context.next = 8;
+          case 3:
+            if (forVersion) {
+              _context.next = 5;
               break;
             }
 
             throw new Error('Version is missing.');
 
-          case 8:
-            configuration = options.configuration, env = options.env, forVersion = options.forVersion;
+          case 5:
             missingImages = [];
-            _context.next = 12;
+            _context.next = 8;
             return getImages({
               forVersion: forVersion
             });
 
-          case 12:
+          case 8:
             images = _context.sent;
             i = 0;
 
-          case 14:
+          case 10:
             if (!(i < images.length)) {
-              _context.next = 26;
+              _context.next = 22;
               break;
             }
 
             image = images[i];
             name = image.name, version = image.version;
-            _context.next = 19;
+            _context.next = 15;
             return docker.isImageInstalled({
               configuration: configuration,
-              env: env,
               name: name,
               version: version
             });
 
-          case 19:
+          case 15:
             isInstalled = _context.sent;
 
             if (!isInstalled) {
-              _context.next = 22;
+              _context.next = 18;
               break;
             }
 
-            return _context.abrupt("continue", 23);
+            return _context.abrupt("continue", 19);
 
-          case 22:
+          case 18:
             missingImages.push(image);
 
-          case 23:
+          case 19:
             i++;
-            _context.next = 14;
+            _context.next = 10;
             break;
 
-          case 26:
+          case 22:
             return _context.abrupt("return", missingImages);
 
-          case 27:
+          case 23:
           case "end":
             return _context.stop();
         }
@@ -109,7 +93,7 @@ function () {
   }));
 
   return function getMissingImages(_x) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

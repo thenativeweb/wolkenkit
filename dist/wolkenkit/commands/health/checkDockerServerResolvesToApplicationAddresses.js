@@ -16,70 +16,54 @@ var docker = require('../../../docker'),
 var checkDockerServerResolvesToApplicationAddresses =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options, progress) {
-    var configuration, env, applicationAddresses, dockerAddresses;
+  _regenerator.default.mark(function _callee(_ref, progress) {
+    var configuration, applicationAddresses, dockerAddresses;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (options) {
-              _context.next = 2;
-              break;
-            }
+            configuration = _ref.configuration, applicationAddresses = _ref.applicationAddresses;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context.next = 4;
+            if (configuration) {
+              _context.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context.next = 6;
-              break;
-            }
-
-            throw new Error('Environment is missing.');
-
-          case 6:
-            if (options.applicationAddresses) {
-              _context.next = 8;
+          case 3:
+            if (applicationAddresses) {
+              _context.next = 5;
               break;
             }
 
             throw new Error('Application addresses are missing.');
 
-          case 8:
+          case 5:
             if (progress) {
-              _context.next = 10;
+              _context.next = 7;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 10:
-            configuration = options.configuration, env = options.env, applicationAddresses = options.applicationAddresses;
-            _context.prev = 11;
-            _context.next = 14;
+          case 7:
+            _context.prev = 7;
+            _context.next = 10;
             return docker.getHostIpAddresses({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             });
 
-          case 14:
+          case 10:
             dockerAddresses = _context.sent;
-            _context.next = 22;
+            _context.next = 18;
             break;
 
-          case 17:
-            _context.prev = 17;
-            _context.t0 = _context["catch"](11);
+          case 13:
+            _context.prev = 13;
+            _context.t0 = _context["catch"](7);
             progress({
               message: _context.t0.message
             });
@@ -89,7 +73,7 @@ function () {
             });
             throw _context.t0;
 
-          case 22:
+          case 18:
             progress({
               message: "Docker server resolves to ".concat(arrayToSentence(dockerAddresses.map(function (ip) {
                 return ip.address;
@@ -97,7 +81,7 @@ function () {
             });
 
             if (!(intersectionWith(applicationAddresses, dockerAddresses, isEqual).length === 0)) {
-              _context.next = 26;
+              _context.next = 22;
               break;
             }
 
@@ -107,16 +91,16 @@ function () {
             });
             throw new errors.AddressMismatch();
 
-          case 26:
+          case 22:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, this, [[11, 17]]);
+    }, _callee, this, [[7, 13]]);
   }));
 
   return function checkDockerServerResolvesToApplicationAddresses(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

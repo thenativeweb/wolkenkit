@@ -64,15 +64,24 @@ function () {
           case 0:
             importDirectory = _ref.importDirectory;
             progress = _args.length > 1 && _args[1] !== undefined ? _args[1] : noop;
+
+            if (importDirectory) {
+              _context.next = 4;
+              break;
+            }
+
+            throw new Error('Import directory is missing.');
+
+          case 4:
             eventStoreDirectory = path.join(importDirectory, 'event-store');
-            _context.next = 5;
+            _context.next = 7;
             return readdir(eventStoreDirectory);
 
-          case 5:
+          case 7:
             entries = _context.sent;
 
             if (!(entries.length === 0)) {
-              _context.next = 9;
+              _context.next = 11;
               break;
             }
 
@@ -82,13 +91,13 @@ function () {
             });
             throw new errors.DirectoryEmpty();
 
-          case 9:
+          case 11:
             eventFiles = entries.filter(function (eventFile) {
               return shared.eventFile.isValidFileName(eventFile);
             });
 
             if (!(eventFiles.length === 0)) {
-              _context.next = 13;
+              _context.next = 15;
               break;
             }
 
@@ -98,12 +107,12 @@ function () {
             });
             throw new errors.ExportNotFound();
 
-          case 13:
+          case 15:
             i = 0;
 
-          case 14:
+          case 16:
             if (!(i < eventFiles.length)) {
-              _context.next = 23;
+              _context.next = 25;
               break;
             }
 
@@ -111,7 +120,7 @@ function () {
             actualFileNumber = shared.eventFile.getFileNumber(eventFile), expectedFileNumber = i + 1;
 
             if (!(actualFileNumber !== expectedFileNumber)) {
-              _context.next = 20;
+              _context.next = 22;
               break;
             }
 
@@ -121,18 +130,18 @@ function () {
             });
             throw new errors.ExportInvalid();
 
-          case 20:
+          case 22:
             i++;
-            _context.next = 14;
+            _context.next = 16;
             break;
 
-          case 23:
+          case 25:
             expectedPosition = 0;
             _i = 0;
 
-          case 25:
+          case 27:
             if (!(_i < eventFiles.length)) {
-              _context.next = 81;
+              _context.next = 83;
               break;
             }
 
@@ -150,49 +159,49 @@ function () {
             pump(eventStream, parseStream, passThrough);
             _iteratorNormalCompletion = true;
             _didIteratorError = false;
-            _context.prev = 34;
+            _context.prev = 36;
             _iterator = (0, _asyncIterator2.default)(passThrough);
 
-          case 36:
-            _context.next = 38;
+          case 38:
+            _context.next = 40;
             return _iterator.next();
 
-          case 38:
+          case 40:
             _step = _context.sent;
             _iteratorNormalCompletion = _step.done;
-            _context.next = 42;
+            _context.next = 44;
             return _step.value;
 
-          case 42:
+          case 44:
             _value = _context.sent;
 
             if (_iteratorNormalCompletion) {
-              _context.next = 62;
+              _context.next = 64;
               break;
             }
 
             data = _value;
             event = void 0;
-            _context.prev = 46;
+            _context.prev = 48;
             event = Event.wrap(data);
-            _context.next = 54;
+            _context.next = 56;
             break;
 
-          case 50:
-            _context.prev = 50;
-            _context.t0 = _context["catch"](46);
+          case 52:
+            _context.prev = 52;
+            _context.t0 = _context["catch"](48);
             progress({
               message: 'Export contains malformed events.',
               type: 'info'
             });
             throw new errors.ExportInvalid();
 
-          case 54:
+          case 56:
             actualPosition = event.metadata.position;
             expectedPosition += 1;
 
             if (!(actualPosition !== expectedPosition)) {
-              _context.next = 59;
+              _context.next = 61;
               break;
             }
 
@@ -202,60 +211,60 @@ function () {
             });
             throw new errors.ExportInvalid();
 
-          case 59:
+          case 61:
             _iteratorNormalCompletion = true;
-            _context.next = 36;
-            break;
-
-          case 62:
-            _context.next = 68;
+            _context.next = 38;
             break;
 
           case 64:
-            _context.prev = 64;
-            _context.t1 = _context["catch"](34);
+            _context.next = 70;
+            break;
+
+          case 66:
+            _context.prev = 66;
+            _context.t1 = _context["catch"](36);
             _didIteratorError = true;
             _iteratorError = _context.t1;
 
-          case 68:
-            _context.prev = 68;
-            _context.prev = 69;
+          case 70:
+            _context.prev = 70;
+            _context.prev = 71;
 
             if (!(!_iteratorNormalCompletion && _iterator.return != null)) {
-              _context.next = 73;
+              _context.next = 75;
               break;
             }
 
-            _context.next = 73;
+            _context.next = 75;
             return _iterator.return();
 
-          case 73:
-            _context.prev = 73;
+          case 75:
+            _context.prev = 75;
 
             if (!_didIteratorError) {
-              _context.next = 76;
+              _context.next = 78;
               break;
             }
 
             throw _iteratorError;
 
-          case 76:
-            return _context.finish(73);
-
-          case 77:
-            return _context.finish(68);
-
           case 78:
+            return _context.finish(75);
+
+          case 79:
+            return _context.finish(70);
+
+          case 80:
             _i++;
-            _context.next = 25;
+            _context.next = 27;
             break;
 
-          case 81:
+          case 83:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, this, [[34, 64, 68, 78], [46, 50], [69,, 73, 77]]);
+    }, _callee, this, [[36, 66, 70, 80], [48, 52], [71,, 75, 79]]);
   }));
 
   return function checkImportEventStore(_x) {

@@ -68,9 +68,11 @@ var importCommand = {
       }, _callee, this);
     }));
 
-    return function getOptionDefinitions() {
+    function getOptionDefinitions() {
       return _getOptionDefinitions.apply(this, arguments);
-    };
+    }
+
+    return getOptionDefinitions;
   }(),
   run: function () {
     var _run = (0, _asyncToGenerator2.default)(
@@ -109,7 +111,7 @@ var importCommand = {
               toEventStore = options['to-event-store'];
 
               if (!help) {
-                _context2.next = 23;
+                _context2.next = 25;
                 break;
               }
 
@@ -123,36 +125,38 @@ var importCommand = {
                 header: 'Synopsis',
                 content: stripIndent(_templateObject())
               };
-              _context2.t4 = _toConsumableArray2.default;
-              _context2.next = 16;
+              _context2.t4 = [];
+              _context2.t5 = _toConsumableArray2.default;
+              _context2.next = 17;
               return this.getOptionDefinitions();
 
-            case 16:
-              _context2.t5 = _context2.sent;
-              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
-              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
-              _context2.t8 = {
+            case 17:
+              _context2.t6 = _context2.sent;
+              _context2.t7 = (0, _context2.t5)(_context2.t6);
+              _context2.t8 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
+              _context2.t10 = {
                 header: 'Options',
-                optionList: _context2.t7
+                optionList: _context2.t9
               };
-              _context2.t9 = [_context2.t2, _context2.t3, _context2.t8];
-              _context2.t10 = (0, _context2.t1)(_context2.t9);
-              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t10));
+              _context2.t11 = [_context2.t2, _context2.t3, _context2.t10];
+              _context2.t12 = (0, _context2.t1)(_context2.t11);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t12));
 
-            case 23:
+            case 25:
               if (from) {
-                _context2.next = 26;
+                _context2.next = 28;
                 break;
               }
 
               buntstift.error('The --from option is missing.');
               throw new Error('The --from option is missing.');
 
-            case 26:
+            case 28:
               buntstift.info('Importing application data...');
               stopWaiting = buntstift.wait();
-              _context2.prev = 28;
-              _context2.next = 31;
+              _context2.prev = 30;
+              _context2.next = 33;
               return wolkenkit.commands.import({
                 directory: directory,
                 env: env,
@@ -160,48 +164,50 @@ var importCommand = {
                 toEventStore: toEventStore
               }, showProgress(verbose, stopWaiting));
 
-            case 31:
-              _context2.next = 46;
-              break;
-
             case 33:
-              _context2.prev = 33;
-              _context2.t11 = _context2["catch"](28);
-              stopWaiting();
-              _context2.t12 = _context2.t11.code;
-              _context2.next = _context2.t12 === 'EAPPLICATIONNOTRUNNING' ? 39 : _context2.t12 === 'EAPPLICATIONPARTIALLYRUNNING' ? 41 : 43;
+              _context2.next = 48;
               break;
 
-            case 39:
-              buntstift.error('The application is not running.');
-              return _context2.abrupt("break", 45);
+            case 35:
+              _context2.prev = 35;
+              _context2.t13 = _context2["catch"](30);
+              stopWaiting();
+              _context2.t14 = _context2.t13.code;
+              _context2.next = _context2.t14 === 'EAPPLICATIONNOTRUNNING' ? 41 : _context2.t14 === 'EAPPLICATIONPARTIALLYRUNNING' ? 43 : 45;
+              break;
 
             case 41:
-              buntstift.error('The application is partially running.');
-              return _context2.abrupt("break", 45);
+              buntstift.error('The application is not running.');
+              return _context2.abrupt("break", 47);
 
             case 43:
-              buntstift.error('Failed to import application data.');
-              return _context2.abrupt("break", 45);
+              buntstift.error('The application is partially running.');
+              return _context2.abrupt("break", 47);
 
             case 45:
-              throw _context2.t11;
+              buntstift.error('Failed to import application data.');
+              return _context2.abrupt("break", 47);
 
-            case 46:
+            case 47:
+              throw _context2.t13;
+
+            case 48:
               stopWaiting();
               buntstift.success('Imported application data.');
 
-            case 48:
+            case 50:
             case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[28, 33]]);
+      }, _callee2, this, [[30, 35]]);
     }));
 
-    return function run(_x) {
+    function run(_x) {
       return _run.apply(this, arguments);
-    };
+    }
+
+    return run;
   }()
 };
 module.exports = importCommand;

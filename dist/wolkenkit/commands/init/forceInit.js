@@ -20,69 +20,62 @@ var recursiveReaddir = promisify(recursiveReaddirCallback);
 var forceInit =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options, progress) {
+  _regenerator.default.mark(function _callee(_ref, progress) {
     var directory, template, tempDirectory, clonedFiles, files, _loop, i;
 
     return _regenerator.default.wrap(function _callee$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            if (options) {
-              _context2.next = 2;
-              break;
-            }
+            directory = _ref.directory, template = _ref.template;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.directory) {
-              _context2.next = 4;
+            if (directory) {
+              _context2.next = 3;
               break;
             }
 
             throw new Error('Directory is missing.');
 
-          case 4:
-            if (options.template) {
-              _context2.next = 6;
+          case 3:
+            if (template) {
+              _context2.next = 5;
               break;
             }
 
             throw new Error('Template is missing.');
 
-          case 6:
+          case 5:
             if (progress) {
-              _context2.next = 8;
+              _context2.next = 7;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 8:
-            directory = options.directory, template = options.template;
-            _context2.next = 11;
+          case 7:
+            _context2.next = 9;
             return isolated();
 
-          case 11:
+          case 9:
             tempDirectory = _context2.sent;
-            _context2.next = 14;
+            _context2.next = 12;
             return cloneRepository({
               directory: tempDirectory,
               template: template
             }, progress);
 
-          case 14:
-            _context2.next = 16;
+          case 12:
+            _context2.next = 14;
             return recursiveReaddir(tempDirectory, ['.git']);
 
-          case 16:
+          case 14:
             clonedFiles = _context2.sent;
-            _context2.next = 19;
+            _context2.next = 17;
             return recursiveReaddir(directory, ['.git']);
 
-          case 19:
+          case 17:
             files = _context2.sent;
             _loop =
             /*#__PURE__*/
@@ -127,24 +120,24 @@ function () {
             });
             i = 0;
 
-          case 22:
+          case 20:
             if (!(i < clonedFiles.length)) {
-              _context2.next = 27;
+              _context2.next = 25;
               break;
             }
 
-            return _context2.delegateYield(_loop(i), "t0", 24);
+            return _context2.delegateYield(_loop(i), "t0", 22);
 
-          case 24:
+          case 22:
             i++;
-            _context2.next = 22;
+            _context2.next = 20;
             break;
 
-          case 27:
-            _context2.next = 29;
+          case 25:
+            _context2.next = 27;
             return shell.rm('-rf', tempDirectory);
 
-          case 29:
+          case 27:
           case "end":
             return _context2.stop();
         }
@@ -153,7 +146,7 @@ function () {
   }));
 
   return function forceInit(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

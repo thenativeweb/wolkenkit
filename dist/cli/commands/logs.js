@@ -49,9 +49,11 @@ var logs = {
       }, _callee, this);
     }));
 
-    return function getOptionDefinitions() {
+    function getOptionDefinitions() {
       return _getOptionDefinitions.apply(this, arguments);
-    };
+    }
+
+    return getOptionDefinitions;
   }(),
   run: function () {
     var _run = (0, _asyncToGenerator2.default)(
@@ -89,7 +91,7 @@ var logs = {
               directory = process.cwd(), env = options.env, follow = options.follow, help = options.help, verbose = options.verbose;
 
               if (!help) {
-                _context2.next = 22;
+                _context2.next = 24;
                 break;
               }
 
@@ -103,57 +105,61 @@ var logs = {
                 header: 'Synopsis',
                 content: 'wolkenkit logs [--env <env>] [--follow]'
               };
-              _context2.t4 = _toConsumableArray2.default;
-              _context2.next = 15;
+              _context2.t4 = [];
+              _context2.t5 = _toConsumableArray2.default;
+              _context2.next = 16;
               return this.getOptionDefinitions();
 
-            case 15:
-              _context2.t5 = _context2.sent;
-              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
-              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
-              _context2.t8 = {
+            case 16:
+              _context2.t6 = _context2.sent;
+              _context2.t7 = (0, _context2.t5)(_context2.t6);
+              _context2.t8 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
+              _context2.t10 = {
                 header: 'Options',
-                optionList: _context2.t7
+                optionList: _context2.t9
               };
-              _context2.t9 = [_context2.t2, _context2.t3, _context2.t8];
-              _context2.t10 = (0, _context2.t1)(_context2.t9);
-              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t10));
+              _context2.t11 = [_context2.t2, _context2.t3, _context2.t10];
+              _context2.t12 = (0, _context2.t1)(_context2.t11);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t12));
 
-            case 22:
+            case 24:
               stopWaiting = buntstift.wait();
-              _context2.prev = 23;
-              _context2.next = 26;
+              _context2.prev = 25;
+              _context2.next = 28;
               return wolkenkit.commands.logs({
                 directory: directory,
                 env: env,
                 follow: follow
               }, showProgress(verbose, stopWaiting));
 
-            case 26:
-              _context2.next = 33;
+            case 28:
+              _context2.next = 35;
               break;
 
-            case 28:
-              _context2.prev = 28;
-              _context2.t11 = _context2["catch"](23);
+            case 30:
+              _context2.prev = 30;
+              _context2.t13 = _context2["catch"](25);
               stopWaiting();
               buntstift.error('Failed to fetch application logs.');
-              throw _context2.t11;
+              throw _context2.t13;
 
-            case 33:
+            case 35:
               stopWaiting();
 
-            case 34:
+            case 36:
             case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[23, 28]]);
+      }, _callee2, this, [[25, 30]]);
     }));
 
-    return function run(_x) {
+    function run(_x) {
       return _run.apply(this, arguments);
-    };
+    }
+
+    return run;
   }()
 };
 module.exports = logs;

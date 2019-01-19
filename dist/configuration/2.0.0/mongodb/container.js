@@ -1,69 +1,69 @@
 'use strict';
 
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
 var image = require('./image');
 
-var container = function container(options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
+var container = function container(_ref) {
+  var configuration = _ref.configuration,
+      connections = _ref.connections,
+      dangerouslyExposeHttpPorts = _ref.dangerouslyExposeHttpPorts,
+      debug = _ref.debug,
+      persistData = _ref.persistData,
+      sharedKey = _ref.sharedKey;
 
-  if (!options.configuration) {
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
 
-  if (!options.env) {
-    throw new Error('Environment is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
 
-  if (!options.sharedKey) {
-    throw new Error('Shared key is missing.');
+  if (dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
 
-  if (options.persistData === undefined) {
+  if (debug === undefined) {
+    throw new Error('Debug is missing.');
+  }
+
+  if (persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
 
-  if (options.debug === undefined) {
-    throw new Error('Debug is missing.');
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
   }
-  /* eslint-disable no-unused-vars */
 
-
-  var configuration = options.configuration,
-      env = options.env,
-      sharedKey = options.sharedKey,
-      persistData = options.persistData,
-      debug = options.debug;
-  /* eslint-enable no-unused-vars */
-
-  var selectedEnvironment = configuration.environments[env];
+  var listStore = connections.listStore;
   var result = {
-    image: "thenativeweb/wolkenkit-mongodb",
-    name: "".concat(configuration.application, "-mongodb"),
+    image: 'thenativeweb/wolkenkit-mongodb',
+    name: "".concat(configuration.application.name, "-mongodb"),
     env: {
-      MONGODB_DATABASE: 'wolkenkit',
-      MONGODB_USER: 'wolkenkit',
-      MONGODB_PASS: sharedKey
+      MONGODB_DATABASE: listStore.container.mongodb.database,
+      MONGODB_USER: listStore.container.mongodb.user,
+      MONGODB_PASS: listStore.container.mongodb.password
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-host': configuration.api.host.name,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
       'wolkenkit-shared-key': sharedKey,
       'wolkenkit-type': image().type
     },
-    networks: ["".concat(configuration.application, "-network")],
+    networks: ["".concat(configuration.application.name, "-network")],
     networkAlias: 'liststore',
-    ports: {
-      27017: selectedEnvironment.api.address.port + 2
-    },
+    ports: (0, _defineProperty2.default)({}, listStore.container.mongodb.port, listStore.external.mongodb.port),
     restart: 'always'
   };
 
   if (persistData) {
-    result.volumes = ["".concat(configuration.application, "-mongodb-volume:/data/db")];
+    result.volumes = ["".concat(configuration.application.name, "-mongodb-volume:/data/db")];
   }
 
   return result;

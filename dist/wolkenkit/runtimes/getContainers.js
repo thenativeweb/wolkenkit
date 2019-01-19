@@ -11,7 +11,8 @@ var fs = require('fs'),
 
 var promisify = require('util.promisify');
 
-var errors = require('../../errors');
+var errors = require('../../errors'),
+    getConnections = require('./getConnections');
 
 var readdir = promisify(fs.readdir),
     stat = promisify(fs.stat);
@@ -19,103 +20,96 @@ var readdir = promisify(fs.readdir),
 var getContainers =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee2(options) {
-    var forVersion, configuration, env, sharedKey, persistData, debug, pathRuntime, entries, containers;
+  _regenerator.default.mark(function _callee2(_ref) {
+    var configuration, dangerouslyExposeHttpPorts, debug, forVersion, persistData, sharedKey, pathRuntime, entries, containers;
     return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            if (options) {
-              _context2.next = 2;
-              break;
-            }
+            configuration = _ref.configuration, dangerouslyExposeHttpPorts = _ref.dangerouslyExposeHttpPorts, debug = _ref.debug, forVersion = _ref.forVersion, persistData = _ref.persistData, sharedKey = _ref.sharedKey;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.forVersion) {
-              _context2.next = 4;
-              break;
-            }
-
-            throw new Error('Version is missing.');
-
-          case 4:
-            if (options.configuration) {
-              _context2.next = 6;
+            if (configuration) {
+              _context2.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 6:
-            if (options.env) {
-              _context2.next = 8;
+          case 3:
+            if (!(dangerouslyExposeHttpPorts === undefined)) {
+              _context2.next = 5;
               break;
             }
 
-            throw new Error('Environment is missing.');
+            throw new Error('Dangerously expose http ports is missing.');
 
-          case 8:
-            if (options.sharedKey) {
-              _context2.next = 10;
-              break;
-            }
-
-            throw new Error('Shared key is missing.');
-
-          case 10:
-            if (!(options.persistData === undefined)) {
-              _context2.next = 12;
-              break;
-            }
-
-            throw new Error('Persist data is missing.');
-
-          case 12:
-            if (!(options.debug === undefined)) {
-              _context2.next = 14;
+          case 5:
+            if (!(debug === undefined)) {
+              _context2.next = 7;
               break;
             }
 
             throw new Error('Debug is missing.');
 
-          case 14:
-            forVersion = options.forVersion, configuration = options.configuration, env = options.env, sharedKey = options.sharedKey, persistData = options.persistData, debug = options.debug;
+          case 7:
+            if (forVersion) {
+              _context2.next = 9;
+              break;
+            }
+
+            throw new Error('Version is missing.');
+
+          case 9:
+            if (!(persistData === undefined)) {
+              _context2.next = 11;
+              break;
+            }
+
+            throw new Error('Persist data is missing.');
+
+          case 11:
+            if (sharedKey) {
+              _context2.next = 13;
+              break;
+            }
+
+            throw new Error('Shared key is missing.');
+
+          case 13:
             pathRuntime = path.join(__dirname, '..', '..', 'configuration', forVersion);
-            _context2.prev = 16;
-            _context2.next = 19;
+            _context2.prev = 14;
+            _context2.next = 17;
             return readdir(pathRuntime);
 
-          case 19:
+          case 17:
             entries = _context2.sent;
-            _context2.next = 29;
+            _context2.next = 27;
             break;
 
-          case 22:
-            _context2.prev = 22;
-            _context2.t0 = _context2["catch"](16);
+          case 20:
+            _context2.prev = 20;
+            _context2.t0 = _context2["catch"](14);
             _context2.t1 = _context2.t0.code;
-            _context2.next = _context2.t1 === 'ENOENT' ? 27 : 28;
+            _context2.next = _context2.t1 === 'ENOENT' ? 25 : 26;
             break;
 
-          case 27:
+          case 25:
             throw new errors.VersionNotFound();
 
-          case 28:
+          case 26:
             throw _context2.t0;
 
-          case 29:
-            _context2.next = 31;
+          case 27:
+            _context2.next = 29;
             return Promise.all(entries.map(
             /*#__PURE__*/
             function () {
-              var _ref2 = (0, _asyncToGenerator2.default)(
+              var _ref3 = (0, _asyncToGenerator2.default)(
               /*#__PURE__*/
               _regenerator.default.mark(function _callee(entry) {
-                var pathContainer, isDirectory, container;
+                var pathContainer, isDirectory, container, connections;
                 return _regenerator.default.wrap(function _callee$(_context) {
                   while (1) {
                     switch (_context.prev = _context.next) {
@@ -139,15 +133,28 @@ function () {
                         container = require(path.join(pathContainer, 'container'));
                         /* eslint-enable global-require */
 
+                        _context.next = 9;
+                        return getConnections({
+                          configuration: configuration,
+                          dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+                          debug: debug,
+                          forVersion: forVersion,
+                          persistData: persistData,
+                          sharedKey: sharedKey
+                        });
+
+                      case 9:
+                        connections = _context.sent;
                         return _context.abrupt("return", container({
                           configuration: configuration,
-                          env: env,
-                          sharedKey: sharedKey,
+                          connections: connections,
+                          dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+                          debug: debug,
                           persistData: persistData,
-                          debug: debug
+                          sharedKey: sharedKey
                         }));
 
-                      case 8:
+                      case 11:
                       case "end":
                         return _context.stop();
                     }
@@ -156,11 +163,11 @@ function () {
               }));
 
               return function (_x2) {
-                return _ref2.apply(this, arguments);
+                return _ref3.apply(this, arguments);
               };
             }()));
 
-          case 31:
+          case 29:
             _context2.t2 = function (container) {
               return container;
             };
@@ -168,16 +175,16 @@ function () {
             containers = _context2.sent.filter(_context2.t2);
             return _context2.abrupt("return", containers);
 
-          case 34:
+          case 32:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, this, [[16, 22]]);
+    }, _callee2, this, [[14, 20]]);
   }));
 
   return function getContainers(_x) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

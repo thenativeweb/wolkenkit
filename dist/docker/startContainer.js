@@ -43,56 +43,40 @@ var escape = function escape(value) {
 var startContainer =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options) {
-    var configuration, env, container, environmentVariables;
+  _regenerator.default.mark(function _callee(_ref) {
+    var configuration, container, environmentVariables;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (options) {
-              _context.next = 2;
-              break;
-            }
+            configuration = _ref.configuration, container = _ref.container;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context.next = 4;
+            if (configuration) {
+              _context.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context.next = 6;
-              break;
-            }
-
-            throw new Error('Environment is missing.');
-
-          case 6:
-            if (options.container) {
-              _context.next = 8;
+          case 3:
+            if (container) {
+              _context.next = 5;
               break;
             }
 
             throw new Error('Container is missing.');
 
-          case 8:
-            configuration = options.configuration, env = options.env, container = options.container;
-            _context.next = 11;
+          case 5:
+            _context.next = 7;
             return getEnvironmentVariables({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             });
 
-          case 11:
+          case 7:
             environmentVariables = _context.sent;
-            _context.next = 14;
+            _context.next = 10;
             return shell.exec(oneLine(_templateObject(), container.env ? map(container.env, function (value, key) {
               return "--env ".concat(key, "=\"").concat(escape(value), "\"");
             }).join(' ') : '', container.labels ? map(container.labels, function (value, key) {
@@ -109,7 +93,7 @@ function () {
               env: environmentVariables
             });
 
-          case 14:
+          case 10:
           case "end":
             return _context.stop();
         }
@@ -118,7 +102,7 @@ function () {
   }));
 
   return function startContainer(_x) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

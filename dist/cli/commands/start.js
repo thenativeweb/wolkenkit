@@ -11,7 +11,7 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"))
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["\n          wolkenkit start [--port <port>] [--env <env>] [--dangerously-destroy-data] [--shared-key <key>] [--debug]\n          wolkenkit start [--env <env>] [--private-key <file>]"]);
+  var data = (0, _taggedTemplateLiteral2.default)(["\n          wolkenkit start [--port <port>] [--env <env>] [--dangerously-expose-http-port] [--dangerously-destroy-data] [--shared-key <key>] [--persist] [--debug]\n          wolkenkit start [--env <env>] [--private-key <file>]"]);
 
   _templateObject = function _templateObject() {
     return data;
@@ -47,6 +47,11 @@ var init = {
                 defaultValue: defaults.commands.start.dangerouslyDestroyData,
                 description: 'destroy persistent data'
               }, {
+                name: 'dangerously-expose-http-ports',
+                type: Boolean,
+                defaultValue: defaults.commands.start.dangerouslyExposeHttpPorts,
+                description: 'expose http ports'
+              }, {
                 name: 'debug',
                 alias: 'd',
                 type: Boolean,
@@ -59,6 +64,11 @@ var init = {
                 defaultValue: processenv('WOLKENKIT_ENV') || defaults.env,
                 description: 'select environment',
                 typeLabel: '<env>'
+              }, {
+                name: 'persist',
+                type: Boolean,
+                defaultValue: defaults.commands.start.persist,
+                description: 'enable persistence'
               }, {
                 // The port has no default value set, as this depends on the
                 // application's package.json file, which is not available here.
@@ -91,15 +101,17 @@ var init = {
       }, _callee, this);
     }));
 
-    return function getOptionDefinitions() {
+    function getOptionDefinitions() {
       return _getOptionDefinitions.apply(this, arguments);
-    };
+    }
+
+    return getOptionDefinitions;
   }(),
   run: function () {
     var _run = (0, _asyncToGenerator2.default)(
     /*#__PURE__*/
     _regenerator.default.mark(function _callee2(options) {
-      var directory, debug, env, help, port, verbose, dangerouslyDestroyData, privateKey, sharedKey, stopWaiting, formatter, formattedResult, output;
+      var directory, debug, env, help, persist, port, verbose, dangerouslyDestroyData, dangerouslyExposeHttpPorts, privateKey, sharedKey, stopWaiting, formatter, formattedResult, output;
       return _regenerator.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
@@ -120,27 +132,43 @@ var init = {
               throw new Error('Dangerously destroy data is missing.');
 
             case 4:
-              if (!(options.debug === undefined)) {
+              if (!(options['dangerously-expose-http-ports'] === undefined)) {
                 _context2.next = 6;
+                break;
+              }
+
+              throw new Error('Dangerously expose http ports is missing.');
+
+            case 6:
+              if (!(options.debug === undefined)) {
+                _context2.next = 8;
                 break;
               }
 
               throw new Error('Debug is missing.');
 
-            case 6:
+            case 8:
               if (options.env) {
-                _context2.next = 8;
+                _context2.next = 10;
                 break;
               }
 
               throw new Error('Environment is missing.');
 
-            case 8:
-              directory = process.cwd(), debug = options.debug, env = options.env, help = options.help, port = options.port, verbose = options.verbose;
-              dangerouslyDestroyData = options['dangerously-destroy-data'], privateKey = options['private-key'], sharedKey = options['shared-key'];
+            case 10:
+              if (!(options.persist === undefined)) {
+                _context2.next = 12;
+                break;
+              }
+
+              throw new Error('Persist is missing.');
+
+            case 12:
+              directory = process.cwd(), debug = options.debug, env = options.env, help = options.help, persist = options.persist, port = options.port, verbose = options.verbose;
+              dangerouslyDestroyData = options['dangerously-destroy-data'], dangerouslyExposeHttpPorts = options['dangerously-expose-http-ports'], privateKey = options['private-key'], sharedKey = options['shared-key'];
 
               if (!help) {
-                _context2.next = 25;
+                _context2.next = 31;
                 break;
               }
 
@@ -154,89 +182,95 @@ var init = {
                 header: 'Synopsis',
                 content: stripIndent(_templateObject())
               };
-              _context2.t4 = _toConsumableArray2.default;
-              _context2.next = 18;
+              _context2.t4 = [];
+              _context2.t5 = _toConsumableArray2.default;
+              _context2.next = 23;
               return this.getOptionDefinitions();
 
-            case 18:
-              _context2.t5 = _context2.sent;
-              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
-              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
-              _context2.t8 = {
+            case 23:
+              _context2.t6 = _context2.sent;
+              _context2.t7 = (0, _context2.t5)(_context2.t6);
+              _context2.t8 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
+              _context2.t10 = {
                 header: 'Options',
-                optionList: _context2.t7
+                optionList: _context2.t9
               };
-              _context2.t9 = [_context2.t2, _context2.t3, _context2.t8];
-              _context2.t10 = (0, _context2.t1)(_context2.t9);
-              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t10));
+              _context2.t11 = [_context2.t2, _context2.t3, _context2.t10];
+              _context2.t12 = (0, _context2.t1)(_context2.t11);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t12));
 
-            case 25:
+            case 31:
               buntstift.info('Starting the application...');
               stopWaiting = buntstift.wait();
-              _context2.prev = 27;
-              _context2.next = 30;
+              _context2.prev = 33;
+              _context2.next = 36;
               return wolkenkit.commands.start({
                 directory: directory,
                 dangerouslyDestroyData: dangerouslyDestroyData,
+                dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
                 debug: debug,
                 env: env,
+                persist: persist,
                 port: port,
                 privateKey: privateKey,
                 sharedKey: sharedKey
               }, showProgress(verbose, stopWaiting));
 
-            case 30:
-              _context2.next = 50;
-              break;
-
-            case 32:
-              _context2.prev = 32;
-              _context2.t11 = _context2["catch"](27);
-              stopWaiting();
-              _context2.t12 = _context2.t11.code;
-              _context2.next = _context2.t12 === 'ECODEMALFORMED' ? 38 : _context2.t12 === 'ERUNTIMEERROR' ? 44 : 47;
+            case 36:
+              _context2.next = 56;
               break;
 
             case 38:
-              formatter = eslint.CLIEngine.getFormatter();
-              formattedResult = formatter(_context2.t11.cause.results);
-              output = formattedResult.split('\n').slice(0, -2).join('\n');
-              buntstift.info(output);
-              buntstift.info(_context2.t11.message);
-              return _context2.abrupt("break", 48);
+              _context2.prev = 38;
+              _context2.t13 = _context2["catch"](33);
+              stopWaiting();
+              _context2.t14 = _context2.t13.code;
+              _context2.next = _context2.t14 === 'ECODEMALFORMED' ? 44 : _context2.t14 === 'ERUNTIMEERROR' ? 50 : 53;
+              break;
 
             case 44:
-              if (_context2.t11.orginalError) {
+              formatter = eslint.CLIEngine.getFormatter();
+              formattedResult = formatter(_context2.t13.cause.results);
+              output = formattedResult.split('\n').slice(0, -2).join('\n');
+              buntstift.info(output);
+              buntstift.info(_context2.t13.message);
+              return _context2.abrupt("break", 54);
+
+            case 50:
+              if (_context2.t13.orginalError) {
                 buntstift.newLine();
-                buntstift.info(_context2.t11.orginalError.stack);
+                buntstift.info(_context2.t13.orginalError.stack);
                 buntstift.newLine();
               }
 
               buntstift.info('Application code caused runtime error.');
-              return _context2.abrupt("break", 48);
+              return _context2.abrupt("break", 54);
 
-            case 47:
-              return _context2.abrupt("break", 48);
+            case 53:
+              return _context2.abrupt("break", 54);
 
-            case 48:
+            case 54:
               buntstift.error('Failed to start the application.');
-              throw _context2.t11;
+              throw _context2.t13;
 
-            case 50:
+            case 56:
               stopWaiting();
               buntstift.success('Started the application.');
 
-            case 52:
+            case 58:
             case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[27, 32]]);
+      }, _callee2, this, [[33, 38]]);
     }));
 
-    return function run(_x) {
+    function run(_x) {
       return _run.apply(this, arguments);
-    };
+    }
+
+    return run;
   }()
 };
 module.exports = init;

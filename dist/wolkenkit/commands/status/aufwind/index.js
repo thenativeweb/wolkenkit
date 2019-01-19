@@ -12,107 +12,100 @@ var errors = require('../../../../errors'),
 var aufwind =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options, progress) {
-    var directory, env, privateKey, configuration, tunnel, application, endpoint, response;
+  _regenerator.default.mark(function _callee(_ref, progress) {
+    var configuration, directory, env, _ref$privateKey, privateKey, tunnel, applicationName, endpoint, response;
+
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (options) {
-              _context.next = 2;
-              break;
-            }
+            configuration = _ref.configuration, directory = _ref.directory, env = _ref.env, _ref$privateKey = _ref.privateKey, privateKey = _ref$privateKey === void 0 ? undefined : _ref$privateKey;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.directory) {
-              _context.next = 4;
+            if (directory) {
+              _context.next = 3;
               break;
             }
 
             throw new Error('Directory is missing.');
 
-          case 4:
-            if (options.env) {
-              _context.next = 6;
+          case 3:
+            if (env) {
+              _context.next = 5;
               break;
             }
 
             throw new Error('Environment is missing.');
 
-          case 6:
-            if (options.configuration) {
-              _context.next = 8;
+          case 5:
+            if (configuration) {
+              _context.next = 7;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 8:
+          case 7:
             if (progress) {
-              _context.next = 10;
+              _context.next = 9;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 10:
-            directory = options.directory, env = options.env, privateKey = options.privateKey, configuration = options.configuration;
-            _context.next = 13;
+          case 9:
+            _context.next = 11;
             return shared.startTunnel({
               configuration: configuration,
-              env: env,
               privateKey: privateKey
             }, progress);
 
-          case 13:
+          case 11:
             tunnel = _context.sent;
-            application = configuration.application;
+            applicationName = configuration.application.name;
             endpoint = {
               protocol: 'http:',
               method: 'POST',
               hostname: tunnel.host,
               port: tunnel.port,
-              pathname: "/v1/applications/".concat(application, "/status/").concat(env)
+              pathname: "/v1/applications/".concat(applicationName, "/status/").concat(env)
             };
-            _context.next = 18;
+            _context.next = 16;
             return shared.streamApplication({
               directory: directory,
               endpoint: endpoint,
               tunnel: tunnel
             }, progress);
 
-          case 18:
+          case 16:
             response = _context.sent;
             _context.t0 = response.status;
-            _context.next = _context.t0 === 'not-running' ? 22 : _context.t0 === 'verifying-connections' ? 23 : _context.t0 === 'building' ? 24 : _context.t0 === 'partially-running' ? 25 : _context.t0 === 'terminating' ? 26 : _context.t0 === 'running' ? 27 : 28;
+            _context.next = _context.t0 === 'not-running' ? 20 : _context.t0 === 'verifying-connections' ? 21 : _context.t0 === 'building' ? 22 : _context.t0 === 'partially-running' ? 23 : _context.t0 === 'terminating' ? 24 : _context.t0 === 'running' ? 25 : 26;
             break;
 
-          case 22:
+          case 20:
             throw new errors.ApplicationNotRunning();
 
-          case 23:
+          case 21:
             throw new errors.ApplicationVerifyingConnections();
 
-          case 24:
+          case 22:
             throw new errors.ApplicationBuilding();
 
-          case 25:
+          case 23:
             throw new errors.ApplicationPartiallyRunning();
 
-          case 26:
+          case 24:
             throw new errors.ApplicationTerminating();
 
-          case 27:
+          case 25:
             return _context.abrupt("return");
 
-          case 28:
+          case 26:
             throw new Error("Unknown status '".concat(response.status, "'."));
 
-          case 29:
+          case 27:
           case "end":
             return _context.stop();
         }
@@ -121,7 +114,7 @@ function () {
   }));
 
   return function aufwind(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

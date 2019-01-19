@@ -44,9 +44,11 @@ var ls = {
       }, _callee, this);
     }));
 
-    return function getOptionDefinitions() {
+    function getOptionDefinitions() {
       return _getOptionDefinitions.apply(this, arguments);
-    };
+    }
+
+    return getOptionDefinitions;
   }(),
   run: function () {
     var _run = (0, _asyncToGenerator2.default)(
@@ -76,7 +78,7 @@ var ls = {
               directory = process.cwd(), env = options.env, help = options.help, verbose = options.verbose;
 
               if (!help) {
-                _context2.next = 21;
+                _context2.next = 23;
                 break;
               }
 
@@ -90,62 +92,66 @@ var ls = {
                 header: 'Synopsis',
                 content: 'wolkenkit ls [--env <env>]'
               };
-              _context2.t4 = _toConsumableArray2.default;
-              _context2.next = 13;
+              _context2.t4 = [];
+              _context2.t5 = _toConsumableArray2.default;
+              _context2.next = 14;
               return this.getOptionDefinitions();
 
-            case 13:
-              _context2.t5 = _context2.sent;
-              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
-              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
-              _context2.t8 = {
+            case 14:
+              _context2.t6 = _context2.sent;
+              _context2.t7 = (0, _context2.t5)(_context2.t6);
+              _context2.t8 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
+              _context2.t10 = {
                 header: 'Options',
-                optionList: _context2.t7
+                optionList: _context2.t9
               };
-              _context2.t9 = {
+              _context2.t11 = {
                 header: 'Remarks',
                 content: ["If you don't specify an environment, '".concat(processenv('WOLKENKIT_ENV') || defaults.env, "' will be used as default.")]
               };
-              _context2.t10 = [_context2.t2, _context2.t3, _context2.t8, _context2.t9];
-              _context2.t11 = (0, _context2.t1)(_context2.t10);
-              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t11));
+              _context2.t12 = [_context2.t2, _context2.t3, _context2.t10, _context2.t11];
+              _context2.t13 = (0, _context2.t1)(_context2.t12);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t13));
 
-            case 21:
+            case 23:
               stopWaiting = buntstift.wait();
-              _context2.prev = 22;
-              _context2.next = 25;
+              _context2.prev = 24;
+              _context2.next = 27;
               return wolkenkit.commands.ls({
                 directory: directory,
                 env: env
               }, showProgress(verbose, stopWaiting));
 
-            case 25:
+            case 27:
               versions = _context2.sent;
-              _context2.next = 33;
+              _context2.next = 35;
               break;
 
-            case 28:
-              _context2.prev = 28;
-              _context2.t12 = _context2["catch"](22);
+            case 30:
+              _context2.prev = 30;
+              _context2.t14 = _context2["catch"](24);
               stopWaiting();
               buntstift.error('Failed to list supported and installed wolkenkit versions.');
-              throw _context2.t12;
+              throw _context2.t14;
 
-            case 33:
+            case 35:
               stopWaiting();
               buntstift.success("There are ".concat(versions.installed.length, " of ").concat(versions.supported.length, " supported wolkenkit versions installed on environment ").concat(env, "."));
 
-            case 35:
+            case 37:
             case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[22, 28]]);
+      }, _callee2, this, [[24, 30]]);
     }));
 
-    return function run(_x) {
+    function run(_x) {
       return _run.apply(this, arguments);
-    };
+    }
+
+    return run;
   }()
 };
 module.exports = ls;

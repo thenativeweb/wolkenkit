@@ -6,12 +6,10 @@ var eslint = require('eslint');
 
 var errors = require('../../../errors');
 
-var validateCode = function validateCode(options, progress) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
+var validateCode = function validateCode(_ref, progress) {
+  var directory = _ref.directory;
 
-  if (!options.directory) {
+  if (!directory) {
     throw new Error('Directory is missing.');
   }
 
@@ -19,7 +17,6 @@ var validateCode = function validateCode(options, progress) {
     throw new Error('Progress is missing.');
   }
 
-  var directory = options.directory;
   var cliEngine = new eslint.CLIEngine({
     envs: ['node', 'es6'],
     parserOptions: {

@@ -1,69 +1,70 @@
 'use strict';
 
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
 var image = require('./image');
 
-var container = function container(options) {
-  if (!options) {
-    throw new Error('Options are missing.');
-  }
+var container = function container(_ref) {
+  var _ports;
 
-  if (!options.configuration) {
+  var configuration = _ref.configuration,
+      connections = _ref.connections,
+      dangerouslyExposeHttpPorts = _ref.dangerouslyExposeHttpPorts,
+      debug = _ref.debug,
+      persistData = _ref.persistData,
+      sharedKey = _ref.sharedKey;
+
+  if (!configuration) {
     throw new Error('Configuration is missing.');
   }
 
-  if (!options.env) {
-    throw new Error('Environment is missing.');
+  if (!connections) {
+    throw new Error('Connections are missing.');
   }
 
-  if (!options.sharedKey) {
-    throw new Error('Shared key is missing.');
+  if (dangerouslyExposeHttpPorts === undefined) {
+    throw new Error('Dangerously expose http ports is missing.');
   }
 
-  if (options.persistData === undefined) {
+  if (debug === undefined) {
+    throw new Error('Debug is missing.');
+  }
+
+  if (persistData === undefined) {
     throw new Error('Persist data is missing.');
   }
 
-  if (options.debug === undefined) {
-    throw new Error('Debug is missing.');
+  if (!sharedKey) {
+    throw new Error('Shared key is missing.');
   }
-  /* eslint-disable no-unused-vars */
 
-
-  var configuration = options.configuration,
-      env = options.env,
-      sharedKey = options.sharedKey,
-      persistData = options.persistData,
-      debug = options.debug;
-  /* eslint-enable no-unused-vars */
-
-  var selectedEnvironment = configuration.environments[env];
+  var eventBus = connections.eventBus;
   var result = {
-    image: "thenativeweb/wolkenkit-rabbitmq",
-    name: "".concat(configuration.application, "-rabbitmq"),
+    image: 'thenativeweb/wolkenkit-rabbitmq',
+    name: "".concat(configuration.application.name, "-rabbitmq"),
     env: {
-      RABBITMQ_DEFAULT_USER: 'wolkenkit',
-      RABBITMQ_DEFAULT_PASS: sharedKey
+      RABBITMQ_DEFAULT_USER: eventBus.container.amqp.user,
+      RABBITMQ_DEFAULT_PASS: eventBus.container.amqp.password
     },
     labels: {
-      'wolkenkit-api-host': selectedEnvironment.api.address.host,
-      'wolkenkit-api-port': selectedEnvironment.api.address.port,
-      'wolkenkit-application': configuration.application,
+      'wolkenkit-api-host': configuration.api.host.name,
+      'wolkenkit-api-port': configuration.api.port,
+      'wolkenkit-application': configuration.application.name,
       'wolkenkit-debug': debug,
       'wolkenkit-persist-data': persistData,
       'wolkenkit-shared-key': sharedKey,
       'wolkenkit-type': image().type
     },
-    networks: ["".concat(configuration.application, "-network")],
+    networks: ["".concat(configuration.application.name, "-network")],
     networkAlias: 'messagebus',
-    ports: {
-      5672: selectedEnvironment.api.address.port + 4,
-      15672: selectedEnvironment.api.address.port + 5
-    },
+    ports: (_ports = {}, (0, _defineProperty2.default)(_ports, eventBus.container.amqp.port, eventBus.external.amqp.port), (0, _defineProperty2.default)(_ports, eventBus.container.http.port, eventBus.external.http.port), _ports),
     restart: 'always'
   };
 
   if (persistData) {
-    result.volumes = ["".concat(configuration.application, "-rabbitmq-volume:/var/lib/rabbitmq")];
+    result.volumes = ["".concat(configuration.application.name, "-rabbitmq-volume:/var/lib/rabbitmq")];
   }
 
   return result;

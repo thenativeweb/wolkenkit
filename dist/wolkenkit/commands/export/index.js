@@ -30,24 +30,25 @@ function () {
   _regenerator.default.mark(function _callee(_ref) {
     var directory,
         env,
-        to,
         fromEventStore,
+        to,
         progress,
         configuration,
         existingContainers,
-        version,
+        dangerouslyExposeHttpPorts,
         debug,
         persistData,
         sharedKey,
         containers,
         exportDirectory,
         entries,
+        connections,
         _args = arguments;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            directory = _ref.directory, env = _ref.env, to = _ref.to, fromEventStore = _ref.fromEventStore;
+            directory = _ref.directory, env = _ref.env, fromEventStore = _ref.fromEventStore, to = _ref.to;
             progress = _args.length > 1 && _args[1] !== undefined ? _args[1] : noop;
 
             if (directory) {
@@ -66,26 +67,26 @@ function () {
             throw new Error('Environment is missing.');
 
           case 6:
-            if (to) {
-              _context.next = 8;
-              break;
-            }
-
-            throw new Error('To is missing.');
-
-          case 8:
             if (!(fromEventStore === undefined)) {
-              _context.next = 10;
+              _context.next = 8;
               break;
             }
 
             throw new Error('From event store is missing.');
 
+          case 8:
+            if (to) {
+              _context.next = 10;
+              break;
+            }
+
+            throw new Error('To is missing.');
+
           case 10:
             _context.next = 12;
             return shared.getConfiguration({
-              env: env,
               directory: directory,
+              env: env,
               isPackageJsonRequired: false
             }, progress);
 
@@ -93,8 +94,7 @@ function () {
             configuration = _context.sent;
             _context.next = 15;
             return shared.checkDocker({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             }, progress);
 
           case 15:
@@ -116,10 +116,9 @@ function () {
             _context.next = 21;
             return docker.getContainers({
               configuration: configuration,
-              env: env,
               where: {
                 label: {
-                  'wolkenkit-application': configuration.application
+                  'wolkenkit-application': configuration.application.name
                 }
               }
             });
@@ -139,23 +138,20 @@ function () {
             throw new errors.ApplicationNotRunning();
 
           case 25:
-            version = configuration.runtime.version;
-            debug = existingContainers[0].labels['wolkenkit-debug'] === 'true', persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true', sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
-            _context.next = 29;
-            return runtimes.getContainers({
-              forVersion: version,
-              configuration: configuration,
-              env: env,
-              sharedKey: sharedKey,
+            dangerouslyExposeHttpPorts = existingContainers[0].labels['wolkenkit-dangerously-expose-http-ports'] === 'true', debug = existingContainers[0].labels['wolkenkit-debug'] === 'true', persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true', sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
+            _context.next = 28;
+            return configuration.containers({
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
               persistData: persistData,
-              debug: debug
+              sharedKey: sharedKey
             });
 
-          case 29:
+          case 28:
             containers = _context.sent;
 
             if (!(existingContainers.length < containers.length)) {
-              _context.next = 33;
+              _context.next = 32;
               break;
             }
 
@@ -165,20 +161,20 @@ function () {
             });
             throw new errors.ApplicationPartiallyRunning();
 
-          case 33:
+          case 32:
             exportDirectory = path.isAbsolute(to) ? to : path.join(directory, to);
-            _context.next = 36;
+            _context.next = 35;
             return shell.mkdir('-p', exportDirectory);
 
-          case 36:
-            _context.next = 38;
+          case 35:
+            _context.next = 37;
             return readdir(exportDirectory);
 
-          case 38:
+          case 37:
             entries = _context.sent;
 
             if (!(entries.length > 0)) {
-              _context.next = 42;
+              _context.next = 41;
               break;
             }
 
@@ -188,22 +184,34 @@ function () {
             });
             throw new errors.DirectoryNotEmpty();
 
-          case 42:
+          case 41:
+            _context.next = 43;
+            return runtimes.getConnections({
+              configuration: configuration,
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
+              forVersion: configuration.application.runtime.version,
+              persistData: persistData,
+              sharedKey: sharedKey
+            });
+
+          case 43:
+            connections = _context.sent;
+
             if (!fromEventStore) {
-              _context.next = 45;
+              _context.next = 47;
               break;
             }
 
-            _context.next = 45;
+            _context.next = 47;
             return exportEventStore({
               configuration: configuration,
-              env: env,
-              containers: containers,
-              sharedKey: sharedKey,
-              exportDirectory: exportDirectory
+              connections: connections,
+              exportDirectory: exportDirectory,
+              sharedKey: sharedKey
             }, progress);
 
-          case 45:
+          case 47:
           case "end":
             return _context.stop();
         }

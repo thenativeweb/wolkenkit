@@ -68,9 +68,11 @@ var stop = {
       }, _callee, this);
     }));
 
-    return function getOptionDefinitions() {
+    function getOptionDefinitions() {
       return _getOptionDefinitions.apply(this, arguments);
-    };
+    }
+
+    return getOptionDefinitions;
   }(),
   run: function () {
     var _run = (0, _asyncToGenerator2.default)(
@@ -109,7 +111,7 @@ var stop = {
               dangerouslyDestroyData = options['dangerously-destroy-data'], privateKey = options['private-key'];
 
               if (!help) {
-                _context2.next = 23;
+                _context2.next = 25;
                 break;
               }
 
@@ -123,60 +125,64 @@ var stop = {
                 header: 'Synopsis',
                 content: stripIndent(_templateObject())
               };
-              _context2.t4 = _toConsumableArray2.default;
-              _context2.next = 16;
+              _context2.t4 = [];
+              _context2.t5 = _toConsumableArray2.default;
+              _context2.next = 17;
               return this.getOptionDefinitions();
 
-            case 16:
-              _context2.t5 = _context2.sent;
-              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
-              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
-              _context2.t8 = {
+            case 17:
+              _context2.t6 = _context2.sent;
+              _context2.t7 = (0, _context2.t5)(_context2.t6);
+              _context2.t8 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
+              _context2.t10 = {
                 header: 'Options',
-                optionList: _context2.t7
+                optionList: _context2.t9
               };
-              _context2.t9 = [_context2.t2, _context2.t3, _context2.t8];
-              _context2.t10 = (0, _context2.t1)(_context2.t9);
-              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t10));
+              _context2.t11 = [_context2.t2, _context2.t3, _context2.t10];
+              _context2.t12 = (0, _context2.t1)(_context2.t11);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t12));
 
-            case 23:
+            case 25:
               buntstift.info('Stopping the application...');
               stopWaiting = buntstift.wait();
-              _context2.prev = 25;
-              _context2.next = 28;
+              _context2.prev = 27;
+              _context2.next = 30;
               return wolkenkit.commands.stop({
-                directory: directory,
                 dangerouslyDestroyData: dangerouslyDestroyData,
+                directory: directory,
                 env: env,
                 privateKey: privateKey
               }, showProgress(verbose, stopWaiting));
 
-            case 28:
-              _context2.next = 35;
+            case 30:
+              _context2.next = 37;
               break;
 
-            case 30:
-              _context2.prev = 30;
-              _context2.t11 = _context2["catch"](25);
+            case 32:
+              _context2.prev = 32;
+              _context2.t13 = _context2["catch"](27);
               stopWaiting();
               buntstift.error('Failed to stop the application.');
-              throw _context2.t11;
+              throw _context2.t13;
 
-            case 35:
+            case 37:
               stopWaiting();
               buntstift.success('Stopped the application.');
 
-            case 37:
+            case 39:
             case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[25, 30]]);
+      }, _callee2, this, [[27, 32]]);
     }));
 
-    return function run(_x) {
+    function run(_x) {
       return _run.apply(this, arguments);
-    };
+    }
+
+    return run;
   }()
 };
 module.exports = stop;

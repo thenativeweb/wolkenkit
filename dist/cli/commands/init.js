@@ -11,7 +11,8 @@ var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/
 var buntstift = require('buntstift'),
     getUsage = require('command-line-usage');
 
-var defaults = require('../defaults.json'),
+var checkDirectory = require('../../wolkenkit/commands/init/checkDirectory'),
+    defaults = require('../defaults.json'),
     globalOptionDefinitions = require('../globalOptionDefinitions'),
     showProgress = require('../showProgress'),
     wolkenkit = require('../../wolkenkit');
@@ -30,7 +31,6 @@ var init = {
                 name: 'template',
                 alias: 't',
                 type: String,
-                defaultValue: defaults.commands.init.template,
                 description: 'template to clone',
                 typeLabel: '<url>'
               }, {
@@ -49,15 +49,17 @@ var init = {
       }, _callee, this);
     }));
 
-    return function getOptionDefinitions() {
+    function getOptionDefinitions() {
       return _getOptionDefinitions.apply(this, arguments);
-    };
+    }
+
+    return getOptionDefinitions;
   }(),
   run: function () {
     var _run = (0, _asyncToGenerator2.default)(
     /*#__PURE__*/
     _regenerator.default.mark(function _callee2(options) {
-      var directory, help, verbose, template, force, stopWaiting;
+      var directory, help, verbose, template, force, stopWaiting, selectedTemplate, availableTemplates, selectedDescription;
       return _regenerator.default.wrap(function _callee2$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
@@ -70,22 +72,14 @@ var init = {
               throw new Error('Options are missing.');
 
             case 2:
-              if (options.template) {
-                _context2.next = 4;
-                break;
-              }
-
-              throw new Error('Template is missing.');
-
-            case 4:
               if (!(options.force === undefined)) {
-                _context2.next = 6;
+                _context2.next = 4;
                 break;
               }
 
               throw new Error('Force is missing.');
 
-            case 6:
+            case 4:
               directory = process.cwd(), help = options.help, verbose = options.verbose, template = options.template, force = options.force;
 
               if (!help) {
@@ -103,63 +97,102 @@ var init = {
                 header: 'Synopsis',
                 content: 'wolkenkit init [--template <url>] [--force]'
               };
-              _context2.t4 = _toConsumableArray2.default;
-              _context2.next = 15;
+              _context2.t4 = [];
+              _context2.t5 = _toConsumableArray2.default;
+              _context2.next = 14;
               return this.getOptionDefinitions();
 
-            case 15:
-              _context2.t5 = _context2.sent;
-              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
-              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
-              _context2.t8 = {
+            case 14:
+              _context2.t6 = _context2.sent;
+              _context2.t7 = (0, _context2.t5)(_context2.t6);
+              _context2.t8 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
+              _context2.t10 = {
                 header: 'Options',
-                optionList: _context2.t7
+                optionList: _context2.t9
               };
-              _context2.t9 = {
+              _context2.t11 = {
                 header: 'Remarks',
-                content: "If you don't specify a template, ".concat(defaults.commands.init.template, " will be used as default.")
+                content: "If you don't specify a template, you will be asked to select one."
               };
-              _context2.t10 = [_context2.t2, _context2.t3, _context2.t8, _context2.t9];
-              _context2.t11 = (0, _context2.t1)(_context2.t10);
-              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t11));
+              _context2.t12 = [_context2.t2, _context2.t3, _context2.t10, _context2.t11];
+              _context2.t13 = (0, _context2.t1)(_context2.t12);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t13));
 
             case 23:
               buntstift.info('Initializing a new application...');
               stopWaiting = buntstift.wait();
-              _context2.prev = 25;
-              _context2.next = 28;
-              return wolkenkit.commands.init({
+              selectedTemplate = template;
+              _context2.prev = 26;
+              _context2.next = 29;
+              return checkDirectory({
                 directory: directory,
-                template: template,
                 force: force
               }, showProgress(verbose, stopWaiting));
 
-            case 28:
-              _context2.next = 35;
-              break;
+            case 29:
+              if (selectedTemplate) {
+                _context2.next = 35;
+                break;
+              }
 
-            case 30:
-              _context2.prev = 30;
-              _context2.t12 = _context2["catch"](25);
-              stopWaiting();
-              buntstift.error('Failed to initialize a new application.');
-              throw _context2.t12;
+              availableTemplates = [{
+                description: 'Empty (directories without files)',
+                url: 'https://github.com/thenativeweb/wolkenkit-template-empty.git#master'
+              }, {
+                description: 'Minimal (directories and files)',
+                url: 'https://github.com/thenativeweb/wolkenkit-template-minimal.git#master'
+              }, {
+                description: 'Chat (sample application)',
+                url: 'https://github.com/thenativeweb/wolkenkit-template-chat.git#master'
+              }];
+              _context2.next = 33;
+              return buntstift.select('Select a template to initialize your application with:', availableTemplates.map(function (availableTemplate) {
+                return availableTemplate.description;
+              }));
+
+            case 33:
+              selectedDescription = _context2.sent;
+              selectedTemplate = availableTemplates.find(function (availableTemplate) {
+                return availableTemplate.description === selectedDescription;
+              }).url;
 
             case 35:
+              _context2.next = 37;
+              return wolkenkit.commands.init({
+                directory: directory,
+                template: selectedTemplate,
+                force: force
+              }, showProgress(verbose, stopWaiting));
+
+            case 37:
+              _context2.next = 44;
+              break;
+
+            case 39:
+              _context2.prev = 39;
+              _context2.t14 = _context2["catch"](26);
+              stopWaiting();
+              buntstift.error('Failed to initialize a new application.');
+              throw _context2.t14;
+
+            case 44:
               stopWaiting();
               buntstift.success('Initialized a new application.');
 
-            case 37:
+            case 46:
             case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[25, 30]]);
+      }, _callee2, this, [[26, 39]]);
     }));
 
-    return function run(_x) {
+    function run(_x) {
       return _run.apply(this, arguments);
-    };
+    }
+
+    return run;
   }()
 };
 module.exports = init;

@@ -22,68 +22,53 @@ var mkdtemp = promisify(fs.mkdtemp),
 var buildImages =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee2(options, progress) {
-    var directory, configuration, env, name, runtime, images;
+  _regenerator.default.mark(function _callee2(_ref, progress) {
+    var configuration, directory, applicationName, runtimeVersion, images;
     return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            if (options) {
-              _context2.next = 2;
-              break;
-            }
+            configuration = _ref.configuration, directory = _ref.directory;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.directory) {
-              _context2.next = 4;
-              break;
-            }
-
-            throw new Error('Directory is missing.');
-
-          case 4:
-            if (options.configuration) {
-              _context2.next = 6;
+            if (configuration) {
+              _context2.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 6:
-            if (options.env) {
-              _context2.next = 8;
+          case 3:
+            if (directory) {
+              _context2.next = 5;
               break;
             }
 
-            throw new Error('Environment is missing.');
+            throw new Error('Directory is missing.');
 
-          case 8:
+          case 5:
             if (progress) {
-              _context2.next = 10;
+              _context2.next = 7;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 10:
-            directory = options.directory, configuration = options.configuration, env = options.env;
-            name = configuration.application, runtime = configuration.runtime.version;
-            _context2.next = 14;
+          case 7:
+            applicationName = configuration.application.name, runtimeVersion = configuration.application.runtime.version;
+            _context2.next = 10;
             return runtimes.getImages({
-              forVersion: runtime
+              forVersion: runtimeVersion
             });
 
-          case 14:
+          case 10:
             images = _context2.sent;
-            _context2.next = 17;
+            _context2.next = 13;
             return Promise.all(images.map(
             /*#__PURE__*/
             function () {
-              var _ref2 = (0, _asyncToGenerator2.default)(
+              var _ref3 = (0, _asyncToGenerator2.default)(
               /*#__PURE__*/
               _regenerator.default.mark(function _callee(image) {
                 var imageSuffix, tag, buildDirectory, dockerfile;
@@ -92,7 +77,7 @@ function () {
                     switch (_context.prev = _context.next) {
                       case 0:
                         imageSuffix = image.name.replace(/^thenativeweb\/wolkenkit-/, '');
-                        tag = "".concat(name, "-").concat(imageSuffix);
+                        tag = "".concat(applicationName, "-").concat(imageSuffix);
                         _context.next = 4;
                         return mkdtemp("".concat(os.tmpdir()).concat(path.sep));
 
@@ -116,9 +101,8 @@ function () {
                         _context.next = 14;
                         return docker.buildImage({
                           configuration: configuration,
-                          env: env,
-                          tag: tag,
-                          directory: buildDirectory
+                          directory: buildDirectory,
+                          tag: tag
                         });
 
                       case 14:
@@ -135,11 +119,11 @@ function () {
               }));
 
               return function (_x3) {
-                return _ref2.apply(this, arguments);
+                return _ref3.apply(this, arguments);
               };
             }()));
 
-          case 17:
+          case 13:
           case "end":
             return _context2.stop();
         }
@@ -148,7 +132,7 @@ function () {
   }));
 
   return function buildImages(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

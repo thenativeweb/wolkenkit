@@ -18,9 +18,9 @@ function () {
   var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
   _regenerator.default.mark(function _callee(_ref) {
-    var stream,
+    var eventsPerFile,
         getFileName,
-        eventsPerFile,
+        stream,
         progress,
         currentFileStream,
         numberOfProcessedEvents,
@@ -42,15 +42,15 @@ function () {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            stream = _ref.stream, getFileName = _ref.getFileName, eventsPerFile = _ref.eventsPerFile;
+            eventsPerFile = _ref.eventsPerFile, getFileName = _ref.getFileName, stream = _ref.stream;
             progress = _args.length > 1 && _args[1] !== undefined ? _args[1] : noop;
 
-            if (stream) {
+            if (eventsPerFile) {
               _context.next = 4;
               break;
             }
 
-            throw new Error('Stream is missing.');
+            throw new Error('Events per file is missing.');
 
           case 4:
             if (getFileName) {
@@ -61,12 +61,12 @@ function () {
             throw new Error('Get file name is missing.');
 
           case 6:
-            if (eventsPerFile) {
+            if (stream) {
               _context.next = 8;
               break;
             }
 
-            throw new Error('Events per file is missing.');
+            throw new Error('Stream is missing.');
 
           case 8:
             numberOfProcessedEvents = 0, numberOfWrittenFiles = 0;

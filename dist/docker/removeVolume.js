@@ -12,61 +12,45 @@ var getEnvironmentVariables = require('./getEnvironmentVariables'),
 var removeVolume =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options) {
-    var configuration, env, name, environmentVariables;
+  _regenerator.default.mark(function _callee(_ref) {
+    var configuration, name, environmentVariables;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (options) {
-              _context.next = 2;
-              break;
-            }
+            configuration = _ref.configuration, name = _ref.name;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context.next = 4;
+            if (configuration) {
+              _context.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context.next = 6;
-              break;
-            }
-
-            throw new Error('Environment is missing.');
-
-          case 6:
-            if (options.name) {
-              _context.next = 8;
+          case 3:
+            if (name) {
+              _context.next = 5;
               break;
             }
 
             throw new Error('Name is missing.');
 
-          case 8:
-            configuration = options.configuration, env = options.env, name = options.name;
-            _context.next = 11;
+          case 5:
+            _context.next = 7;
             return getEnvironmentVariables({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             });
 
-          case 11:
+          case 7:
             environmentVariables = _context.sent;
-            _context.next = 14;
+            _context.next = 10;
             return shell.exec("docker volume rm --force ".concat(name), {
               env: environmentVariables
             });
 
-          case 14:
+          case 10:
           case "end":
             return _context.stop();
         }
@@ -75,7 +59,7 @@ function () {
   }));
 
   return function removeVolume(_x) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

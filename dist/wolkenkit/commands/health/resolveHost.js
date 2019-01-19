@@ -13,60 +13,45 @@ var network = require('../../../network');
 var resolveHost =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options, progress) {
-    var configuration, env, host, addresses;
+  _regenerator.default.mark(function _callee(_ref, progress) {
+    var configuration, host, addresses;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (options) {
-              _context.next = 2;
-              break;
-            }
+            configuration = _ref.configuration;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context.next = 4;
+            if (configuration) {
+              _context.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context.next = 6;
-              break;
-            }
-
-            throw new Error('Environment is missing.');
-
-          case 6:
+          case 3:
             if (progress) {
-              _context.next = 8;
+              _context.next = 5;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 8:
-            configuration = options.configuration, env = options.env;
-            host = configuration.environments[env].api.address.host;
-            _context.prev = 10;
-            _context.next = 13;
+          case 5:
+            host = configuration.api.host.name;
+            _context.prev = 6;
+            _context.next = 9;
             return network.getIpAddresses(host);
 
-          case 13:
+          case 9:
             addresses = _context.sent;
-            _context.next = 21;
+            _context.next = 17;
             break;
 
-          case 16:
-            _context.prev = 16;
-            _context.t0 = _context["catch"](10);
+          case 12:
+            _context.prev = 12;
+            _context.t0 = _context["catch"](6);
             progress({
               message: _context.t0.message
             });
@@ -76,7 +61,7 @@ function () {
             });
             throw _context.t0;
 
-          case 21:
+          case 17:
             progress({
               message: "Application host ".concat(host, " resolves to ").concat(arrayToSentence(addresses.map(function (ip) {
                 return ip.address;
@@ -84,16 +69,16 @@ function () {
             });
             return _context.abrupt("return", addresses);
 
-          case 23:
+          case 19:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, this, [[10, 16]]);
+    }, _callee, this, [[6, 12]]);
   }));
 
   return function resolveHost(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

@@ -6,7 +6,8 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"))
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var processenv = require('processenv');
+var arrayToSentence = require('array-to-sentence'),
+    processenv = require('processenv');
 
 var docker = require('../../../../docker'),
     errors = require('../../../../errors'),
@@ -23,130 +24,146 @@ var docker = require('../../../../docker'),
 var cli =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options, progress) {
-    var directory, dangerouslyDestroyData, debug, env, configuration, environment, port, runtimeVersion, sharedKeyByUser, sharedKey, persistData, applicationStatus;
+  _regenerator.default.mark(function _callee(_ref, progress) {
+    var configuration, dangerouslyDestroyData, dangerouslyExposeHttpPorts, debug, directory, env, persist, port, privateKey, sharedKey, sharedKeyByUser, isSharedKeyGivenByUser, actualSharedKey, persistData, applicationStatus, runtimeVersion, connections, httpPorts;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (options) {
-              _context.next = 2;
-              break;
-            }
+            configuration = _ref.configuration, dangerouslyDestroyData = _ref.dangerouslyDestroyData, dangerouslyExposeHttpPorts = _ref.dangerouslyExposeHttpPorts, debug = _ref.debug, directory = _ref.directory, env = _ref.env, persist = _ref.persist, port = _ref.port, privateKey = _ref.privateKey, sharedKey = _ref.sharedKey;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.directory) {
-              _context.next = 4;
-              break;
-            }
-
-            throw new Error('Directory is missing.');
-
-          case 4:
-            if (!(options.dangerouslyDestroyData === undefined)) {
-              _context.next = 6;
-              break;
-            }
-
-            throw new Error('Dangerously destroy data is missing.');
-
-          case 6:
-            if (!(options.debug === undefined)) {
-              _context.next = 8;
-              break;
-            }
-
-            throw new Error('Debug is missing.');
-
-          case 8:
-            if (options.env) {
-              _context.next = 10;
-              break;
-            }
-
-            throw new Error('Environment is missing.');
-
-          case 10:
-            if (options.configuration) {
-              _context.next = 12;
+            if (configuration) {
+              _context.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 12:
+          case 3:
+            if (!(dangerouslyDestroyData === undefined)) {
+              _context.next = 5;
+              break;
+            }
+
+            throw new Error('Dangerously destroy data is missing.');
+
+          case 5:
+            if (!(dangerouslyExposeHttpPorts === undefined)) {
+              _context.next = 7;
+              break;
+            }
+
+            throw new Error('Dangerously expose http ports is missing.');
+
+          case 7:
+            if (!(debug === undefined)) {
+              _context.next = 9;
+              break;
+            }
+
+            throw new Error('Debug is missing.');
+
+          case 9:
+            if (directory) {
+              _context.next = 11;
+              break;
+            }
+
+            throw new Error('Directory is missing.');
+
+          case 11:
+            if (env) {
+              _context.next = 13;
+              break;
+            }
+
+            throw new Error('Environment is missing.');
+
+          case 13:
+            if (!(persist === undefined)) {
+              _context.next = 15;
+              break;
+            }
+
+            throw new Error('Persist is missing.');
+
+          case 15:
             if (progress) {
-              _context.next = 14;
+              _context.next = 17;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 14:
-            directory = options.directory, dangerouslyDestroyData = options.dangerouslyDestroyData, debug = options.debug, env = options.env, configuration = options.configuration;
-            environment = configuration.environments[env]; // Set the port within the configuration to the correct value (flag over
-            // environment variable over default value from the package.json file).
+          case 17:
+            sharedKeyByUser = sharedKey || processenv('WOLKENKIT_SHARED_KEY');
+            isSharedKeyGivenByUser = Boolean(sharedKeyByUser);
 
-            environment.api.address.port = options.port || processenv('WOLKENKIT_PORT') || environment.api.address.port;
-            port = environment.api.address.port;
-            runtimeVersion = configuration.runtime.version;
-            sharedKeyByUser = options.sharedKey || processenv('WOLKENKIT_SHARED_KEY');
-            _context.t0 = sharedKeyByUser;
-
-            if (_context.t0) {
-              _context.next = 25;
+            if (!(persist && !isSharedKeyGivenByUser)) {
+              _context.next = 22;
               break;
             }
 
-            _context.next = 24;
+            progress({
+              message: 'Shared key must be set when enabling persistence.',
+              type: 'info'
+            });
+            throw new errors.SharedKeyMissing();
+
+          case 22:
+            _context.t0 = sharedKeyByUser;
+
+            if (_context.t0) {
+              _context.next = 27;
+              break;
+            }
+
+            _context.next = 26;
             return generateSharedKey();
 
-          case 24:
+          case 26:
             _context.t0 = _context.sent;
 
-          case 25:
-            sharedKey = _context.t0;
-            persistData = Boolean(sharedKeyByUser);
-            _context.next = 29;
+          case 27:
+            actualSharedKey = _context.t0;
+            persistData = persist;
+            _context.next = 31;
             return shared.checkDocker({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             }, progress);
 
-          case 29:
+          case 31:
             progress({
               message: "Verifying health on environment ".concat(env, "..."),
               type: 'info'
             });
-            _context.next = 32;
+            _context.next = 34;
             return health({
               directory: directory,
               env: env
             }, progress);
 
-          case 32:
+          case 34:
             progress({
               message: 'Verifying application status...',
               type: 'info'
             });
-            _context.next = 35;
+            _context.next = 37;
             return shared.getApplicationStatus({
               configuration: configuration,
-              env: env,
-              sharedKey: sharedKey,
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
               persistData: persistData,
-              debug: debug
+              sharedKey: actualSharedKey
             }, progress);
 
-          case 35:
+          case 37:
             applicationStatus = _context.sent;
 
             if (!(applicationStatus === 'running')) {
-              _context.next = 39;
+              _context.next = 41;
               break;
             }
 
@@ -156,9 +173,9 @@ function () {
             });
             throw new errors.ApplicationAlreadyRunning();
 
-          case 39:
+          case 41:
             if (!(applicationStatus === 'partially-running')) {
-              _context.next = 42;
+              _context.next = 44;
               break;
             }
 
@@ -168,34 +185,33 @@ function () {
             });
             throw new errors.ApplicationPartiallyRunning();
 
-          case 42:
+          case 44:
             progress({
               message: 'Verifying that ports are available...',
               type: 'info'
             });
-            _context.next = 45;
+            _context.next = 47;
             return verifyThatPortsAreAvailable({
-              forVersion: runtimeVersion,
               configuration: configuration,
-              env: env,
-              sharedKey: sharedKey,
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
               persistData: persistData,
-              debug: debug
+              sharedKey: actualSharedKey
             }, progress);
 
-          case 45:
-            _context.next = 47;
+          case 47:
+            runtimeVersion = configuration.application.runtime.version;
+            _context.next = 50;
             return runtimes.getInstallationStatus({
               configuration: configuration,
-              env: env,
               forVersion: runtimeVersion
             });
 
-          case 47:
+          case 50:
             _context.t1 = _context.sent;
 
             if (!(_context.t1 !== 'installed')) {
-              _context.next = 52;
+              _context.next = 55;
               break;
             }
 
@@ -203,136 +219,161 @@ function () {
               message: "Installing wolkenkit ".concat(runtimeVersion, " on environment ").concat(env, "..."),
               type: 'info'
             });
-            _context.next = 52;
+            _context.next = 55;
             return install({
               directory: directory,
               env: env,
               version: runtimeVersion
             }, progress);
 
-          case 52:
+          case 55:
             if (!dangerouslyDestroyData) {
-              _context.next = 56;
+              _context.next = 60;
               break;
             }
 
             progress({
               message: 'Destroying previous data...',
-              type: 'info'
+              type: 'verbose'
             });
-            _context.next = 56;
+            _context.next = 59;
             return shared.destroyData({
               configuration: configuration,
-              env: env,
-              sharedKey: sharedKey,
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
               persistData: persistData,
-              debug: debug
+              sharedKey: actualSharedKey
             }, progress);
 
-          case 56:
+          case 59:
+            progress({
+              message: 'Destroyed previous data.',
+              type: 'warn'
+            });
+
+          case 60:
             progress({
               message: 'Setting up network...',
               type: 'info'
             });
-            _context.next = 59;
+            _context.next = 63;
             return docker.ensureNetworkExists({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             });
 
-          case 59:
+          case 63:
             progress({
               message: 'Building Docker images...',
               type: 'info'
             });
-            _context.next = 62;
+            _context.next = 66;
             return shared.buildImages({
-              directory: directory,
               configuration: configuration,
-              env: env
+              directory: directory
             }, progress);
 
-          case 62:
+          case 66:
             progress({
               message: 'Starting Docker containers...',
               type: 'info'
             });
-            _context.next = 65;
+            _context.next = 69;
             return startContainers({
               configuration: configuration,
-              env: env,
-              port: port,
-              sharedKey: sharedKey,
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
               persistData: persistData,
-              debug: debug
-            }, progress);
-
-          case 65:
-            progress({
-              message: "Using ".concat(sharedKey, " as shared key."),
-              type: 'info'
-            });
-            _context.prev = 66;
-            _context.next = 69;
-            return shared.waitForApplicationAndValidateLogs({
-              configuration: configuration,
-              env: env
+              sharedKey: actualSharedKey
             }, progress);
 
           case 69:
-            _context.next = 81;
-            break;
-
-          case 71:
-            _context.prev = 71;
-            _context.t2 = _context["catch"](66);
-            _context.t3 = _context.t2.code;
-            _context.next = _context.t3 === 'ERUNTIMEERROR' ? 76 : 79;
-            break;
-
-          case 76:
-            _context.next = 78;
-            return stop({
-              directory: directory,
-              dangerouslyDestroyData: false,
-              env: env,
+            progress({
+              message: "Using ".concat(actualSharedKey, " as shared key."),
+              type: 'info'
+            });
+            _context.prev = 70;
+            _context.next = 73;
+            return shared.waitForApplicationAndValidateLogs({
               configuration: configuration
-            }, noop);
+            }, progress);
 
-          case 78:
-            return _context.abrupt("break", 80);
+          case 73:
+            _context.next = 85;
+            break;
 
-          case 79:
-            return _context.abrupt("break", 80);
+          case 75:
+            _context.prev = 75;
+            _context.t2 = _context["catch"](70);
+            _context.t3 = _context.t2.code;
+            _context.next = _context.t3 === 'ERUNTIMEERROR' ? 80 : 83;
+            break;
 
           case 80:
+            _context.next = 82;
+            return stop({
+              dangerouslyDestroyData: false,
+              directory: directory,
+              env: env,
+              privateKey: privateKey,
+              port: port
+            }, noop);
+
+          case 82:
+            return _context.abrupt("break", 84);
+
+          case 83:
+            return _context.abrupt("break", 84);
+
+          case 84:
             throw _context.t2;
 
-          case 81:
+          case 85:
             if (!debug) {
-              _context.next = 84;
+              _context.next = 88;
               break;
             }
 
-            _context.next = 84;
+            _context.next = 88;
             return shared.attachDebugger({
               configuration: configuration,
-              env: env,
-              sharedKey: sharedKey,
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
               persistData: persistData,
-              debug: debug
+              sharedKey: actualSharedKey
             }, progress);
 
-          case 84:
+          case 88:
+            _context.next = 90;
+            return runtimes.getConnections({
+              configuration: configuration,
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
+              forVersion: configuration.application.runtime.version,
+              persistData: persistData,
+              sharedKey: actualSharedKey
+            });
+
+          case 90:
+            connections = _context.sent;
+
+            if (dangerouslyExposeHttpPorts && connections.api.external.http && connections.fileStorage.external.http) {
+              httpPorts = [connections.api.external.http.port, connections.fileStorage.external.http.port];
+              progress({
+                message: "Exposed HTTP ports ".concat(arrayToSentence(httpPorts), "."),
+                type: 'warn'
+              });
+            }
+
+          case 92:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, this, [[66, 71]]);
+    }, _callee, this, [[70, 75]]);
   }));
 
   return function cli(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

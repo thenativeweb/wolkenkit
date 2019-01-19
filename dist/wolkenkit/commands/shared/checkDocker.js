@@ -13,90 +13,74 @@ var docker = require('../../../docker'),
 var checkDocker =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options, progress) {
-    var configuration, env, isInstalled, latestStableVersion, wolkenkitUrl;
+  _regenerator.default.mark(function _callee(_ref, progress) {
+    var configuration, isInstalled, latestStableVersion, wolkenkitUrl;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (options) {
-              _context.next = 2;
-              break;
-            }
+            configuration = _ref.configuration;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context.next = 4;
+            if (configuration) {
+              _context.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context.next = 6;
-              break;
-            }
-
-            throw new Error('Environment is missing.');
-
-          case 6:
+          case 3:
             if (progress) {
-              _context.next = 8;
+              _context.next = 5;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 8:
-            configuration = options.configuration, env = options.env;
-            _context.next = 11;
+          case 5:
+            _context.next = 7;
             return docker.isInstalled();
 
-          case 11:
+          case 7:
             isInstalled = _context.sent;
-            _context.next = 14;
-            return runtimes.getLatestStableVersion();
-
-          case 14:
-            latestStableVersion = _context.sent;
-            wolkenkitUrl = "https://docs.wolkenkit.io/".concat(latestStableVersion, "/getting-started/installing-wolkenkit/verifying-system-requirements/");
 
             if (isInstalled) {
-              _context.next = 19;
+              _context.next = 15;
               break;
             }
 
+            _context.next = 11;
+            return runtimes.getLatestStableVersion();
+
+          case 11:
+            latestStableVersion = _context.sent;
+            wolkenkitUrl = "https://docs.wolkenkit.io/".concat(latestStableVersion, "/getting-started/installing-wolkenkit/verifying-system-requirements/");
             progress({
               message: "Docker client is not installed (see ".concat(wolkenkitUrl, " for how to install wolkenkit)."),
               type: 'info'
             });
             throw new errors.ExecutableNotFound();
 
-          case 19:
-            _context.prev = 19;
-            _context.next = 22;
+          case 15:
+            _context.prev = 15;
+            _context.next = 18;
             return docker.ping({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             });
 
-          case 22:
-            _context.next = 38;
+          case 18:
+            _context.next = 34;
             break;
 
-          case 24:
-            _context.prev = 24;
-            _context.t0 = _context["catch"](19);
+          case 20:
+            _context.prev = 20;
+            _context.t0 = _context["catch"](15);
             _context.t1 = _context.t0.code;
-            _context.next = _context.t1 === 'EEXECUTABLEFAILED' ? 29 : _context.t1 === 'EDOCKERNOTREACHABLE' ? 32 : _context.t1 === 'EVERSIONMISMATCH' ? 34 : 36;
+            _context.next = _context.t1 === 'EEXECUTABLEFAILED' ? 25 : _context.t1 === 'EDOCKERNOTREACHABLE' ? 28 : _context.t1 === 'EVERSIONMISMATCH' ? 30 : 32;
             break;
 
-          case 29:
+          case 25:
             progress({
               message: _context.t0.message
             });
@@ -104,41 +88,41 @@ function () {
               message: 'Failed to run Docker client.',
               type: 'info'
             });
-            return _context.abrupt("break", 37);
+            return _context.abrupt("break", 33);
 
-          case 32:
+          case 28:
             progress({
               message: 'Failed to reach Docker server.',
               type: 'info'
             });
-            return _context.abrupt("break", 37);
+            return _context.abrupt("break", 33);
 
-          case 34:
+          case 30:
             progress({
               message: _context.t0.message,
               type: 'info'
             });
-            return _context.abrupt("break", 37);
+            return _context.abrupt("break", 33);
 
-          case 36:
+          case 32:
             progress({
               message: _context.t0.message,
               type: 'info'
             });
 
-          case 37:
+          case 33:
             throw _context.t0;
 
-          case 38:
+          case 34:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, this, [[19, 24]]);
+    }, _callee, this, [[15, 20]]);
   }));
 
   return function checkDocker(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

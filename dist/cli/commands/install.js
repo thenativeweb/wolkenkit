@@ -59,9 +59,11 @@ var install = {
       }, _callee, this);
     }));
 
-    return function getOptionDefinitions() {
+    function getOptionDefinitions() {
       return _getOptionDefinitions.apply(this, arguments);
-    };
+    }
+
+    return getOptionDefinitions;
   }(),
   run: function () {
     var _run = (0, _asyncToGenerator2.default)(
@@ -99,7 +101,7 @@ var install = {
               directory = process.cwd(), env = options.env, help = options.help, verbose = options.verbose, version = options.version;
 
               if (!help) {
-                _context2.next = 30;
+                _context2.next = 32;
                 break;
               }
 
@@ -113,72 +115,76 @@ var install = {
                 header: 'Synopsis',
                 content: 'wolkenkit install [--version <version>] [--env <env>]'
               };
-              _context2.t4 = _toConsumableArray2.default;
-              _context2.next = 15;
+              _context2.t4 = [];
+              _context2.t5 = _toConsumableArray2.default;
+              _context2.next = 16;
               return this.getOptionDefinitions();
 
-            case 15:
-              _context2.t5 = _context2.sent;
-              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
-              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
-              _context2.t8 = {
+            case 16:
+              _context2.t6 = _context2.sent;
+              _context2.t7 = (0, _context2.t5)(_context2.t6);
+              _context2.t8 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
+              _context2.t10 = {
                 header: 'Options',
-                optionList: _context2.t7
+                optionList: _context2.t9
               };
-              _context2.t9 = "If you don't specify a version, '";
-              _context2.next = 22;
+              _context2.t11 = "If you don't specify a version, '";
+              _context2.next = 24;
               return runtimes.getLatestStableVersion();
 
-            case 22:
-              _context2.t10 = _context2.sent;
-              _context2.t11 = _context2.t9.concat.call(_context2.t9, _context2.t10, "' will be used as default.");
-              _context2.t12 = "If you don't specify an environment, '".concat(processenv('WOLKENKIT_ENV') || defaults.env, "' will be used as default.");
-              _context2.t13 = [_context2.t11, _context2.t12];
-              _context2.t14 = {
+            case 24:
+              _context2.t12 = _context2.sent;
+              _context2.t13 = _context2.t11.concat.call(_context2.t11, _context2.t12, "' will be used as default.");
+              _context2.t14 = "If you don't specify an environment, '".concat(processenv('WOLKENKIT_ENV') || defaults.env, "' will be used as default.");
+              _context2.t15 = [_context2.t13, _context2.t14];
+              _context2.t16 = {
                 header: 'Remarks',
-                content: _context2.t13
+                content: _context2.t15
               };
-              _context2.t15 = [_context2.t2, _context2.t3, _context2.t8, _context2.t14];
-              _context2.t16 = (0, _context2.t1)(_context2.t15);
-              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t16));
+              _context2.t17 = [_context2.t2, _context2.t3, _context2.t10, _context2.t16];
+              _context2.t18 = (0, _context2.t1)(_context2.t17);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t18));
 
-            case 30:
+            case 32:
               buntstift.info("Installing wolkenkit ".concat(version, " on environment ").concat(env, "..."));
               stopWaiting = buntstift.wait();
-              _context2.prev = 32;
-              _context2.next = 35;
+              _context2.prev = 34;
+              _context2.next = 37;
               return wolkenkit.commands.install({
                 directory: directory,
                 env: env,
                 version: version
               }, showProgress(verbose, stopWaiting));
 
-            case 35:
-              _context2.next = 42;
+            case 37:
+              _context2.next = 44;
               break;
 
-            case 37:
-              _context2.prev = 37;
-              _context2.t17 = _context2["catch"](32);
+            case 39:
+              _context2.prev = 39;
+              _context2.t19 = _context2["catch"](34);
               stopWaiting();
               buntstift.error("Failed to install wolkenkit ".concat(version, " on environment ").concat(env, "."));
-              throw _context2.t17;
+              throw _context2.t19;
 
-            case 42:
+            case 44:
               stopWaiting();
               buntstift.success("Installed wolkenkit ".concat(version, " on environment ").concat(env, "."));
 
-            case 44:
+            case 46:
             case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[32, 37]]);
+      }, _callee2, this, [[34, 39]]);
     }));
 
-    return function run(_x) {
+    function run(_x) {
       return _run.apply(this, arguments);
-    };
+    }
+
+    return run;
   }()
 };
 module.exports = install;

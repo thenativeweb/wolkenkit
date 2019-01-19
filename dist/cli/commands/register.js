@@ -33,9 +33,11 @@ var register = {
       }, _callee, this);
     }));
 
-    return function getOptionDefinitions() {
+    function getOptionDefinitions() {
       return _getOptionDefinitions.apply(this, arguments);
-    };
+    }
+
+    return getOptionDefinitions;
   }(),
   run: function () {
     var _run = (0, _asyncToGenerator2.default)(
@@ -57,7 +59,7 @@ var register = {
               help = options.help;
 
               if (!help) {
-                _context2.next = 18;
+                _context2.next = 20;
                 break;
               }
 
@@ -71,28 +73,30 @@ var register = {
                 header: 'Synopsis',
                 content: 'wolkenkit register'
               };
-              _context2.t4 = _toConsumableArray2.default;
-              _context2.next = 11;
+              _context2.t4 = [];
+              _context2.t5 = _toConsumableArray2.default;
+              _context2.next = 12;
               return this.getOptionDefinitions();
 
-            case 11:
-              _context2.t5 = _context2.sent;
-              _context2.t6 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
-              _context2.t7 = (0, _context2.t4)(_context2.t5).concat(_context2.t6);
-              _context2.t8 = {
+            case 12:
+              _context2.t6 = _context2.sent;
+              _context2.t7 = (0, _context2.t5)(_context2.t6);
+              _context2.t8 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+              _context2.t9 = _context2.t4.concat.call(_context2.t4, _context2.t7, _context2.t8);
+              _context2.t10 = {
                 header: 'Options',
-                optionList: _context2.t7
+                optionList: _context2.t9
               };
-              _context2.t9 = [_context2.t2, _context2.t3, _context2.t8];
-              _context2.t10 = (0, _context2.t1)(_context2.t9);
-              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t10));
+              _context2.t11 = [_context2.t2, _context2.t3, _context2.t10];
+              _context2.t12 = (0, _context2.t1)(_context2.t11);
+              return _context2.abrupt("return", _context2.t0.info.call(_context2.t0, _context2.t12));
 
-            case 18:
+            case 20:
               url = 'https://profile.thenativeweb.io';
               buntstift.info("Pointing web browser to ".concat(url, "..."));
               open(url);
 
-            case 21:
+            case 23:
             case "end":
               return _context2.stop();
           }
@@ -100,9 +104,11 @@ var register = {
       }, _callee2, this);
     }));
 
-    return function run(_x) {
+    function run(_x) {
       return _run.apply(this, arguments);
-    };
+    }
+
+    return run;
   }()
 };
 module.exports = register;

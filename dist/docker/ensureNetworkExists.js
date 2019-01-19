@@ -12,57 +12,41 @@ var getEnvironmentVariables = require('./getEnvironmentVariables'),
 var ensureNetworkExists =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options) {
-    var configuration, env, name, environmentVariables, _ref2, stdout, networks, doesNetworkExist;
+  _regenerator.default.mark(function _callee(_ref) {
+    var configuration, name, environmentVariables, _ref3, stdout, networks, doesNetworkExist;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (options) {
-              _context.next = 2;
-              break;
-            }
+            configuration = _ref.configuration;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context.next = 4;
+            if (configuration) {
+              _context.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context.next = 6;
-              break;
-            }
-
-            throw new Error('Environment is missing.');
-
-          case 6:
-            configuration = options.configuration, env = options.env;
-            name = "".concat(configuration.application, "-network");
-            _context.next = 10;
+          case 3:
+            name = "".concat(configuration.application.name, "-network");
+            _context.next = 6;
             return getEnvironmentVariables({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             });
 
-          case 10:
+          case 6:
             environmentVariables = _context.sent;
-            _context.next = 13;
+            _context.next = 9;
             return shell.exec("docker network ls --format \"{{json .}}\"", {
               env: environmentVariables
             });
 
-          case 13:
-            _ref2 = _context.sent;
-            stdout = _ref2.stdout;
+          case 9:
+            _ref3 = _context.sent;
+            stdout = _ref3.stdout;
             networks = stdout.split('\n').filter(function (item) {
               return item;
             }).map(function (item) {
@@ -73,19 +57,19 @@ function () {
             });
 
             if (!doesNetworkExist) {
-              _context.next = 19;
+              _context.next = 15;
               break;
             }
 
             return _context.abrupt("return");
 
-          case 19:
-            _context.next = 21;
+          case 15:
+            _context.next = 17;
             return shell.exec("docker network create ".concat(name), {
               env: environmentVariables
             });
 
-          case 21:
+          case 17:
           case "end":
             return _context.stop();
         }
@@ -94,7 +78,7 @@ function () {
   }));
 
   return function ensureNetworkExists(_x) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

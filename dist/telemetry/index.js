@@ -22,7 +22,7 @@ var axios = require('axios'),
     stringifyObject = require('stringify-object'),
     uuid = require('uuidv4');
 
-var getConfiguration = require('../application/getConfiguration'),
+var getConfiguration = require('../wolkenkit/commands/shared/getConfiguration'),
     packageJson = require('../../package.json');
 
 var stat = promisify(fs.stat);
@@ -169,9 +169,11 @@ var telemetry = {
       }, _callee, this, [[2, 11]]);
     }));
 
-    return function init() {
+    function init() {
       return _init.apply(this, arguments);
-    };
+    }
+
+    return init;
   }(),
   isEnabled: function () {
     var _isEnabled = (0, _asyncToGenerator2.default)(
@@ -198,9 +200,11 @@ var telemetry = {
       }, _callee2, this);
     }));
 
-    return function isEnabled() {
+    function isEnabled() {
       return _isEnabled.apply(this, arguments);
-    };
+    }
+
+    return isEnabled;
   }(),
   enable: function () {
     var _enable = (0, _asyncToGenerator2.default)(
@@ -229,9 +233,11 @@ var telemetry = {
       }, _callee3, this);
     }));
 
-    return function enable() {
+    function enable() {
       return _enable.apply(this, arguments);
-    };
+    }
+
+    return enable;
   }(),
   disable: function () {
     var _disable = (0, _asyncToGenerator2.default)(
@@ -260,9 +266,11 @@ var telemetry = {
       }, _callee4, this);
     }));
 
-    return function disable() {
+    function disable() {
       return _disable.apply(this, arguments);
-    };
+    }
+
+    return disable;
   }(),
   send: function () {
     var _send = (0, _asyncToGenerator2.default)(
@@ -270,7 +278,7 @@ var telemetry = {
     _regenerator.default.mark(function _callee6(options) {
       var _this = this;
 
-      var command, args, version, help, env, data, configuration, application, runtime, installationId, timestamp, telemetryData, stringifiedTelemetryData;
+      var command, args, version, help, env, data, configuration, applicationName, runtimeVersion, installationId, timestamp, telemetryData, stringifiedTelemetryData;
       return _regenerator.default.wrap(function _callee6$(_context6) {
         while (1) {
           switch (_context6.prev = _context6.next) {
@@ -337,12 +345,15 @@ var telemetry = {
               _context6.prev = 19;
               _context6.next = 22;
               return getConfiguration({
-                directory: process.cwd()
+                directory: process.cwd(),
+                env: env,
+                isPackageJsonRequired: true
               });
 
             case 22:
               configuration = _context6.sent;
-              application = configuration.application, runtime = configuration.runtime;
+              applicationName = configuration.application.name;
+              runtimeVersion = configuration.application.runtime.version;
               installationId = data.installationId;
               timestamp = Date.now(); // Anonymize any data that are related to the user, the machine or the
               // application.
@@ -350,7 +361,7 @@ var telemetry = {
               telemetryData = deepHash({
                 installationId: installationId,
                 application: {
-                  name: application,
+                  name: applicationName,
                   env: env
                 }
               }, installationId); // Add some non-anonymized data that do not refer to the user, the machine
@@ -361,7 +372,7 @@ var telemetry = {
                 version: version,
                 command: command
               };
-              telemetryData.runtime = runtime;
+              telemetryData.runtime = runtimeVersion;
               stringifiedTelemetryData = stringifyObject(telemetryData, {
                 indent: '  ',
                 singleQuotes: true
@@ -369,7 +380,7 @@ var telemetry = {
               stringifiedTelemetryData.forEach(function (line) {
                 buntstift.verbose(line);
               });
-              _context6.next = 34;
+              _context6.next = 35;
               return retry(
               /*#__PURE__*/
               (0, _asyncToGenerator2.default)(
@@ -410,31 +421,33 @@ var telemetry = {
                 maxTimeout: 2 * 1000
               });
 
-            case 34:
-              _context6.next = 41;
+            case 35:
+              _context6.next = 42;
               break;
 
-            case 36:
-              _context6.prev = 36;
+            case 37:
+              _context6.prev = 37;
               _context6.t0 = _context6["catch"](19);
               buntstift.verbose('Failed to send telemetry data.');
               buntstift.verbose(_context6.t0.message);
               return _context6.abrupt("return");
 
-            case 41:
+            case 42:
               buntstift.verbose('Telemetry data sent.');
 
-            case 42:
+            case 43:
             case "end":
               return _context6.stop();
           }
         }
-      }, _callee6, this, [[19, 36]]);
+      }, _callee6, this, [[19, 37]]);
     }));
 
-    return function send(_x) {
+    function send(_x) {
       return _send.apply(this, arguments);
-    };
+    }
+
+    return send;
   }()
 };
 module.exports = telemetry;

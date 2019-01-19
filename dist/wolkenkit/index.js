@@ -1,9 +1,11 @@
 'use strict';
 
-var commands = require('./commands'),
+var application = require('./application'),
+    commands = require('./commands'),
     runtimes = require('./runtimes');
 
 var wolkenkit = {
+  application: application,
   commands: commands,
   runtimes: runtimes
 };

@@ -10,90 +10,79 @@ var difference = require('lodash/difference'),
     remove = require('lodash/remove');
 
 var docker = require('../../../../docker'),
-    runtimes = require('../../../runtimes'),
     sleep = require('../../../../sleep');
 
 var startContainers =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee2(options, progress) {
-    var configuration, env, sharedKey, persistData, debug, runtime, containers, numberOfContainers, started, err, _loop;
+  _regenerator.default.mark(function _callee2(_ref, progress) {
+    var configuration, dangerouslyExposeHttpPorts, debug, persistData, sharedKey, containers, numberOfContainers, started, err, _loop;
 
     return _regenerator.default.wrap(function _callee2$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
-            if (options) {
-              _context3.next = 2;
-              break;
-            }
+            configuration = _ref.configuration, dangerouslyExposeHttpPorts = _ref.dangerouslyExposeHttpPorts, debug = _ref.debug, persistData = _ref.persistData, sharedKey = _ref.sharedKey;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context3.next = 4;
+            if (configuration) {
+              _context3.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context3.next = 6;
+          case 3:
+            if (!(dangerouslyExposeHttpPorts === undefined)) {
+              _context3.next = 5;
               break;
             }
 
-            throw new Error('Environment is missing.');
+            throw new Error('Dangerously expose http ports is missing.');
 
-          case 6:
-            if (options.sharedKey) {
-              _context3.next = 8;
-              break;
-            }
-
-            throw new Error('Shared key is missing.');
-
-          case 8:
-            if (!(options.persistData === undefined)) {
-              _context3.next = 10;
-              break;
-            }
-
-            throw new Error('Persist data is missing.');
-
-          case 10:
-            if (!(options.debug === undefined)) {
-              _context3.next = 12;
+          case 5:
+            if (!(debug === undefined)) {
+              _context3.next = 7;
               break;
             }
 
             throw new Error('Debug is missing.');
 
-          case 12:
+          case 7:
+            if (!(persistData === undefined)) {
+              _context3.next = 9;
+              break;
+            }
+
+            throw new Error('Persist data is missing.');
+
+          case 9:
+            if (sharedKey) {
+              _context3.next = 11;
+              break;
+            }
+
+            throw new Error('Shared key is missing.');
+
+          case 11:
             if (progress) {
-              _context3.next = 14;
+              _context3.next = 13;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 14:
-            configuration = options.configuration, env = options.env, sharedKey = options.sharedKey, persistData = options.persistData, debug = options.debug;
-            runtime = configuration.runtime.version;
-            _context3.next = 18;
-            return runtimes.getContainers({
-              forVersion: runtime,
-              configuration: configuration,
-              env: env,
-              sharedKey: sharedKey,
+          case 13:
+            _context3.next = 15;
+            return configuration.containers({
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
               persistData: persistData,
-              debug: debug
+              sharedKey: sharedKey
             });
 
-          case 18:
+          case 15:
             containers = _context3.sent;
             numberOfContainers = containers.length;
             started = [];
@@ -130,7 +119,6 @@ function () {
                                   _context.next = 3;
                                   return docker.startContainer({
                                     configuration: configuration,
-                                    env: env,
                                     container: nextContainerToStart
                                   });
 
@@ -169,27 +157,27 @@ function () {
               }, _loop, this);
             });
 
-          case 22:
+          case 19:
             if (!(started.length < numberOfContainers && !err)) {
-              _context3.next = 26;
+              _context3.next = 23;
               break;
             }
 
-            return _context3.delegateYield(_loop(), "t0", 24);
+            return _context3.delegateYield(_loop(), "t0", 21);
 
-          case 24:
-            _context3.next = 22;
+          case 21:
+            _context3.next = 19;
             break;
 
-          case 26:
+          case 23:
             if (!err) {
-              _context3.next = 28;
+              _context3.next = 25;
               break;
             }
 
             throw err;
 
-          case 28:
+          case 25:
           case "end":
             return _context3.stop();
         }
@@ -198,7 +186,7 @@ function () {
   }));
 
   return function startContainers(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

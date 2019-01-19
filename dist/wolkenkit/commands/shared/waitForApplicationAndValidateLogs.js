@@ -13,49 +13,34 @@ var switchSemver = require('../../../switchSemver'),
 var waitForApplicationAndValidateLogs =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee4(options, progress) {
-    var configuration, env, version;
+  _regenerator.default.mark(function _callee4(_ref, progress) {
+    var configuration, version;
     return _regenerator.default.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
           case 0:
-            if (options) {
-              _context4.next = 2;
-              break;
-            }
+            configuration = _ref.configuration;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context4.next = 4;
+            if (configuration) {
+              _context4.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context4.next = 6;
-              break;
-            }
-
-            throw new Error('Environment is missing.');
-
-          case 6:
+          case 3:
             if (progress) {
-              _context4.next = 8;
+              _context4.next = 5;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 8:
-            configuration = options.configuration, env = options.env;
-            version = configuration.runtime.version;
-            _context4.next = 12;
+          case 5:
+            version = configuration.application.runtime.version;
+            _context4.next = 8;
             return switchSemver(version, {
               '<= 2.0.0': function () {
                 var _2 = (0, _asyncToGenerator2.default)(
@@ -67,8 +52,7 @@ function () {
                         case 0:
                           _context.next = 2;
                           return waitForApplication({
-                            configuration: configuration,
-                            env: env
+                            configuration: configuration
                           }, progress);
 
                         case 2:
@@ -79,9 +63,11 @@ function () {
                   }, _callee, this);
                 }));
 
-                return function _() {
+                function _() {
                   return _2.apply(this, arguments);
-                };
+                }
+
+                return _;
               }(),
               default: function () {
                 var _default2 = (0, _asyncToGenerator2.default)(
@@ -95,7 +81,7 @@ function () {
                           return new Promise(
                           /*#__PURE__*/
                           function () {
-                            var _ref2 = (0, _asyncToGenerator2.default)(
+                            var _ref3 = (0, _asyncToGenerator2.default)(
                             /*#__PURE__*/
                             _regenerator.default.mark(function _callee2(resolve, reject) {
                               var validate;
@@ -106,8 +92,7 @@ function () {
                                       _context2.prev = 0;
                                       _context2.next = 3;
                                       return validateLogs({
-                                        configuration: configuration,
-                                        env: env
+                                        configuration: configuration
                                       }, progress);
 
                                     case 3:
@@ -115,8 +100,7 @@ function () {
                                       validate.once('error', reject);
                                       _context2.next = 7;
                                       return waitForApplication({
-                                        configuration: configuration,
-                                        env: env
+                                        configuration: configuration
                                       }, progress);
 
                                     case 7:
@@ -145,7 +129,7 @@ function () {
                             }));
 
                             return function (_x3, _x4) {
-                              return _ref2.apply(this, arguments);
+                              return _ref3.apply(this, arguments);
                             };
                           }());
 
@@ -157,13 +141,15 @@ function () {
                   }, _callee3, this);
                 }));
 
-                return function _default() {
+                function _default() {
                   return _default2.apply(this, arguments);
-                };
+                }
+
+                return _default;
               }()
             });
 
-          case 12:
+          case 8:
           case "end":
             return _context4.stop();
         }
@@ -172,7 +158,7 @@ function () {
   }));
 
   return function waitForApplicationAndValidateLogs(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

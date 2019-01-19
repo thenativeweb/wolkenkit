@@ -30,12 +30,13 @@ function () {
         progress,
         configuration,
         existingContainers,
-        version,
+        dangerouslyExposeHttpPorts,
         debug,
         persistData,
         sharedKey,
         containers,
         importDirectory,
+        connections,
         _args = arguments;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -87,8 +88,7 @@ function () {
             configuration = _context.sent;
             _context.next = 15;
             return shared.checkDocker({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             }, progress);
 
           case 15:
@@ -110,10 +110,9 @@ function () {
             _context.next = 21;
             return docker.getContainers({
               configuration: configuration,
-              env: env,
               where: {
                 label: {
-                  'wolkenkit-application': configuration.application
+                  'wolkenkit-application': configuration.application.name
                 }
               }
             });
@@ -133,23 +132,20 @@ function () {
             throw new errors.ApplicationNotRunning();
 
           case 25:
-            version = configuration.runtime.version;
-            debug = existingContainers[0].labels['wolkenkit-debug'] === 'true', persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true', sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
-            _context.next = 29;
-            return runtimes.getContainers({
-              forVersion: version,
-              configuration: configuration,
-              env: env,
-              sharedKey: sharedKey,
+            dangerouslyExposeHttpPorts = existingContainers[0].labels['wolkenkit-dangerously-expose-http-ports'] === 'true', debug = existingContainers[0].labels['wolkenkit-debug'] === 'true', persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true', sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
+            _context.next = 28;
+            return configuration.containers({
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
               persistData: persistData,
-              debug: debug
+              sharedKey: sharedKey
             });
 
-          case 29:
+          case 28:
             containers = _context.sent;
 
             if (!(existingContainers.length < containers.length)) {
-              _context.next = 33;
+              _context.next = 32;
               break;
             }
 
@@ -159,30 +155,42 @@ function () {
             });
             throw new errors.ApplicationPartiallyRunning();
 
-          case 33:
+          case 32:
             importDirectory = path.isAbsolute(from) ? from : path.join(directory, from);
-            _context.next = 36;
+            _context.next = 35;
             return checkImportDirectory({
               importDirectory: importDirectory,
               toEventStore: toEventStore
             }, progress);
 
-          case 36:
+          case 35:
+            _context.next = 37;
+            return runtimes.getConnections({
+              configuration: configuration,
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
+              forVersion: configuration.application.runtime.version,
+              persistData: persistData,
+              sharedKey: sharedKey
+            });
+
+          case 37:
+            connections = _context.sent;
+
             if (!toEventStore) {
-              _context.next = 39;
+              _context.next = 41;
               break;
             }
 
-            _context.next = 39;
+            _context.next = 41;
             return importEventStore({
               configuration: configuration,
-              env: env,
-              sharedKey: sharedKey,
-              containers: containers,
-              importDirectory: importDirectory
+              connections: connections,
+              importDirectory: importDirectory,
+              sharedKey: sharedKey
             }, progress);
 
-          case 39:
+          case 41:
           case "end":
             return _context.stop();
         }

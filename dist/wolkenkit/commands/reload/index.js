@@ -6,123 +6,119 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"))
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
+var arrayToSentence = require('array-to-sentence');
+
 var docker = require('../../../docker'),
     errors = require('../../../errors'),
     health = require('../health'),
     noop = require('../../../noop'),
     removeContainers = require('./removeContainers'),
+    runtimes = require('../../runtimes'),
     shared = require('../shared'),
     startContainers = require('./startContainers');
 
 var reload =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(options) {
-    var progress,
-        directory,
+  _regenerator.default.mark(function _callee(_ref) {
+    var directory,
         env,
+        progress,
         configuration,
-        environment,
+        type,
         existingContainers,
+        dangerouslyExposeHttpPorts,
         debug,
         persistData,
         port,
         sharedKey,
         applicationStatus,
+        connections,
+        httpPorts,
         _args = arguments;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
+            directory = _ref.directory, env = _ref.env;
             progress = _args.length > 1 && _args[1] !== undefined ? _args[1] : noop;
 
-            if (options) {
-              _context.next = 3;
-              break;
-            }
-
-            throw new Error('Options are missing.');
-
-          case 3:
-            if (options.directory) {
-              _context.next = 5;
+            if (directory) {
+              _context.next = 4;
               break;
             }
 
             throw new Error('Directory is missing.');
 
-          case 5:
-            if (options.env) {
-              _context.next = 7;
+          case 4:
+            if (env) {
+              _context.next = 6;
               break;
             }
 
             throw new Error('Environment is missing.');
 
-          case 7:
-            directory = options.directory, env = options.env;
-            _context.next = 10;
+          case 6:
+            _context.next = 8;
             return shared.getConfiguration({
-              env: env,
               directory: directory,
+              env: env,
               isPackageJsonRequired: true
             }, progress);
 
-          case 10:
+          case 8:
             configuration = _context.sent;
             shared.validateCode({
               directory: directory
             }, progress);
-            environment = configuration.environments[env];
+            type = configuration.type;
 
-            if (!(environment.type === 'aufwind')) {
-              _context.next = 15;
+            if (!(type === 'aufwind')) {
+              _context.next = 13;
               break;
             }
 
             throw new Error('Reload on environment type aufwind is not possible.');
 
-          case 15:
-            _context.next = 17;
+          case 13:
+            _context.next = 15;
             return shared.checkDocker({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             }, progress);
 
-          case 17:
+          case 15:
             progress({
               message: "Verifying health on environment ".concat(env, "..."),
               type: 'info'
             });
-            _context.next = 20;
+            _context.next = 18;
             return health({
               directory: directory,
               env: env
             }, progress);
 
-          case 20:
+          case 18:
             progress({
               message: 'Verifying application status...',
               type: 'info'
             });
-            _context.next = 23;
+            _context.next = 21;
             return docker.getContainers({
               configuration: configuration,
-              env: env,
               where: {
                 label: {
-                  'wolkenkit-application': configuration.application
+                  'wolkenkit-application': configuration.application.name
                 }
               }
             });
 
-          case 23:
+          case 21:
             existingContainers = _context.sent;
 
             if (!(existingContainers.length === 0)) {
-              _context.next = 27;
+              _context.next = 25;
               break;
             }
 
@@ -132,22 +128,22 @@ function () {
             });
             throw new errors.ApplicationNotRunning();
 
-          case 27:
-            debug = existingContainers[0].labels['wolkenkit-debug'] === 'true', persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true', port = Number(existingContainers[0].labels['wolkenkit-api-port']), sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
-            _context.next = 30;
+          case 25:
+            dangerouslyExposeHttpPorts = existingContainers[0].labels['wolkenkit-dangerously-expose-http-ports'] === 'true', debug = existingContainers[0].labels['wolkenkit-debug'] === 'true', persistData = existingContainers[0].labels['wolkenkit-persist-data'] === 'true', port = Number(existingContainers[0].labels['wolkenkit-api-port']), sharedKey = existingContainers[0].labels['wolkenkit-shared-key'];
+            _context.next = 28;
             return shared.getApplicationStatus({
               configuration: configuration,
-              env: env,
-              sharedKey: sharedKey,
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
               persistData: persistData,
-              debug: debug
+              sharedKey: sharedKey
             }, progress);
 
-          case 30:
+          case 28:
             applicationStatus = _context.sent;
 
             if (!(applicationStatus === 'partially-running')) {
-              _context.next = 34;
+              _context.next = 32;
               break;
             }
 
@@ -157,71 +153,90 @@ function () {
             });
             throw new errors.ApplicationPartiallyRunning();
 
-          case 34:
+          case 32:
             progress({
               message: "Removing Docker containers...",
               type: 'info'
             });
-            _context.next = 37;
+            _context.next = 35;
             return removeContainers({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             }, progress);
 
-          case 37:
+          case 35:
             progress({
               message: 'Building Docker images...',
               type: 'info'
             });
-            _context.next = 40;
+            _context.next = 38;
             return shared.buildImages({
-              directory: directory,
               configuration: configuration,
-              env: env
+              directory: directory
             }, progress);
 
-          case 40:
+          case 38:
             progress({
               message: 'Starting Docker containers...',
               type: 'info'
             });
-            _context.next = 43;
+            _context.next = 41;
             return startContainers({
               configuration: configuration,
-              env: env,
-              port: port,
-              sharedKey: sharedKey,
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
               persistData: persistData,
-              debug: debug
+              port: port,
+              sharedKey: sharedKey
             }, progress);
 
-          case 43:
+          case 41:
             progress({
               message: "Using ".concat(sharedKey, " as shared key."),
               type: 'info'
             });
-            _context.next = 46;
+            _context.next = 44;
             return shared.waitForApplicationAndValidateLogs({
-              configuration: configuration,
-              env: env
+              configuration: configuration
             }, progress);
 
-          case 46:
+          case 44:
             if (!debug) {
-              _context.next = 49;
+              _context.next = 47;
               break;
             }
 
-            _context.next = 49;
+            _context.next = 47;
             return shared.attachDebugger({
               configuration: configuration,
-              env: env,
-              sharedKey: sharedKey,
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
               persistData: persistData,
-              debug: debug
+              sharedKey: sharedKey
             }, progress);
 
+          case 47:
+            _context.next = 49;
+            return runtimes.getConnections({
+              configuration: configuration,
+              dangerouslyExposeHttpPorts: dangerouslyExposeHttpPorts,
+              debug: debug,
+              forVersion: configuration.application.runtime.version,
+              persistData: persistData,
+              sharedKey: sharedKey
+            });
+
           case 49:
+            connections = _context.sent;
+
+            if (dangerouslyExposeHttpPorts && connections.api.external.http && connections.fileStorage.external.http) {
+              httpPorts = [connections.api.external.http.port, connections.fileStorage.external.http.port];
+              progress({
+                message: "Exposed HTTP ports ".concat(arrayToSentence(httpPorts), "."),
+                type: 'warn'
+              });
+            }
+
+          case 51:
           case "end":
             return _context.stop();
         }
@@ -230,7 +245,7 @@ function () {
   }));
 
   return function reload(_x) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 

@@ -56,15 +56,16 @@ _regenerator.default.mark(function _callee() {
           }
 
           command = commands[parsed.command];
-          _context.t0 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
-          _context.t1 = _toConsumableArray2.default;
-          _context.next = 8;
+          _context.t0 = [];
+          _context.t1 = (0, _toConsumableArray2.default)(globalOptionDefinitions);
+          _context.t2 = _toConsumableArray2.default;
+          _context.next = 9;
           return command.getOptionDefinitions();
 
-        case 8:
-          _context.t2 = _context.sent;
-          _context.t3 = (0, _context.t1)(_context.t2);
-          validOptionDefinitions = _context.t0.concat.call(_context.t0, _context.t3);
+        case 9:
+          _context.t3 = _context.sent;
+          _context.t4 = (0, _context.t2)(_context.t3);
+          validOptionDefinitions = _context.t0.concat.call(_context.t0, _context.t1, _context.t4);
           args = commandLineArgs(validOptionDefinitions, {
             argv: parsed.argv,
             partial: true
@@ -92,37 +93,37 @@ _regenerator.default.mark(function _callee() {
 
           process.on('uncaughtException', handleException);
           process.on('unhandledRejection', handleException);
-          _context.next = 18;
+          _context.next = 19;
           return telemetry.init();
 
-        case 18:
-          _context.prev = 18;
-          _context.next = 21;
+        case 19:
+          _context.prev = 19;
+          _context.next = 22;
           return command.run(args);
 
-        case 21:
-          _context.next = 23;
+        case 22:
+          _context.next = 24;
           return telemetry.send({
             command: parsed.command,
             args: args
           });
 
-        case 23:
-          _context.next = 28;
+        case 24:
+          _context.next = 29;
           break;
 
-        case 25:
-          _context.prev = 25;
-          _context.t4 = _context["catch"](18);
-          handleException(_context.t4);
-
-        case 28:
-          buntstift.exit(0);
+        case 26:
+          _context.prev = 26;
+          _context.t5 = _context["catch"](19);
+          handleException(_context.t5);
 
         case 29:
+          buntstift.exit(0);
+
+        case 30:
         case "end":
           return _context.stop();
       }
     }
-  }, _callee, this, [[18, 25]]);
+  }, _callee, this, [[19, 26]]);
 }))();

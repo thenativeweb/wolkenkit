@@ -16,58 +16,42 @@ var errors = require('../../../errors'),
 var waitForApplication =
 /*#__PURE__*/
 function () {
-  var _ref = (0, _asyncToGenerator2.default)(
+  var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee5(options, progress) {
-    var configuration, env, version, host, port, restoreEnvironment, selectedEnvironment;
+  _regenerator.default.mark(function _callee5(_ref, progress) {
+    var configuration, _ref$host, host, _ref$port, port, version, restoreEnvironment;
+
     return _regenerator.default.wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
           case 0:
-            if (options) {
-              _context5.next = 2;
-              break;
-            }
+            configuration = _ref.configuration, _ref$host = _ref.host, host = _ref$host === void 0 ? undefined : _ref$host, _ref$port = _ref.port, port = _ref$port === void 0 ? undefined : _ref$port;
 
-            throw new Error('Options are missing.');
-
-          case 2:
-            if (options.configuration) {
-              _context5.next = 4;
+            if (configuration) {
+              _context5.next = 3;
               break;
             }
 
             throw new Error('Configuration is missing.');
 
-          case 4:
-            if (options.env) {
-              _context5.next = 6;
-              break;
-            }
-
-            throw new Error('Environment is missing.');
-
-          case 6:
+          case 3:
             if (progress) {
-              _context5.next = 8;
+              _context5.next = 5;
               break;
             }
 
             throw new Error('Progress is missing.');
 
-          case 8:
-            configuration = options.configuration, env = options.env;
-            version = configuration.runtime.version;
-            host = options.host, port = options.port;
+          case 5:
+            version = configuration.application.runtime.version;
             restoreEnvironment = nodeenv('NODE_TLS_REJECT_UNAUTHORIZED', '0');
-            selectedEnvironment = configuration.environments[env];
 
             if (!host || !port) {
-              host = selectedEnvironment.api.address.host;
-              port = selectedEnvironment.api.address.port;
+              host = configuration.api.host.name;
+              port = configuration.api.port;
             }
 
-            _context5.next = 16;
+            _context5.next = 10;
             return switchSemver(version, {
               '<= 2.0.0': function () {
                 var _2 = (0, _asyncToGenerator2.default)(
@@ -133,9 +117,11 @@ function () {
                   }, _callee2, this);
                 }));
 
-                return function _() {
+                function _() {
                   return _2.apply(this, arguments);
-                };
+                }
+
+                return _;
               }(),
               default: function () {
                 var _default2 = (0, _asyncToGenerator2.default)(
@@ -191,13 +177,15 @@ function () {
                   }, _callee4, this);
                 }));
 
-                return function _default() {
+                function _default() {
                   return _default2.apply(this, arguments);
-                };
+                }
+
+                return _default;
               }()
             });
 
-          case 16:
+          case 10:
           case "end":
             return _context5.stop();
         }
@@ -206,7 +194,7 @@ function () {
   }));
 
   return function waitForApplication(_x, _x2) {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 
