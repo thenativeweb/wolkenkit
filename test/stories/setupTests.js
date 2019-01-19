@@ -9,8 +9,7 @@ const getDirectoryList = require('./helpers/getDirectoryList'),
       shell = require('../../src/shell'),
       suite = require('./helpers/suite');
 
-const defaults = require('../../src/cli/defaults'),
-      packageJson = require('../../package.json');
+const packageJson = require('../../package.json');
 
 (async () => {
   await suite('setup', async ({ test, wolkenkit }) => {
