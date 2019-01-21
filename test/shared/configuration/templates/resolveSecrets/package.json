@@ -11,10 +11,11 @@
     "environments": {
       "default": {
         "api": {
-          "address": {
-            "host": "secret://api.address.host",
-            "port": "secret://api.address.port"
+          "host": {
+            "name": "secret://api.host.name",
+            "certificate": "secret://api.host.certificate"
           },
+          "port": "secret://api.port",
           "allowAccessFrom": "*"
         },
         "fileStorage": {

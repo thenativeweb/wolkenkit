@@ -38,21 +38,43 @@ const applicationLifecycleTests = async function (runtime) {
       assert.that(directoryList).is.containingAllOf([ 'client', 'server', 'package.json' ]);
       assert.that(directoryList).is.not.containingAllOf([ '.git' ]);
 
-      await changePackageJson({
-        directory: applicationDirectory,
-        data: {
-          wolkenkit: {
-            environments: {
-              default: {
-                api: {
-                  address: { host: ipAddress },
-                  certificate: '/server/keys'
+      await switchSemver(runtime, {
+        async '<= 3.1.0' () {
+          await changePackageJson({
+            directory: applicationDirectory,
+            data: {
+              wolkenkit: {
+                environments: {
+                  default: {
+                    api: {
+                      address: { host: ipAddress },
+                      certificate: '/server/keys'
+                    }
+                  }
                 }
               }
             }
-          }
+          });
+        },
+
+        async default () {
+          await changePackageJson({
+            directory: applicationDirectory,
+            data: {
+              wolkenkit: {
+                environments: {
+                  default: {
+                    api: {
+                      host: { name: ipAddress, certificate: '/server/keys' }
+                    }
+                  }
+                }
+              }
+            }
+          });
         }
       });
+
       await copyCertificate({ ipAddress, to: path.join(applicationDirectory, 'server', 'keys') });
     });
 

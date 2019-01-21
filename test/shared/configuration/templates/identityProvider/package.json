@@ -11,17 +11,13 @@
     "environments": {
       "default": {
         "api": {
-          "address": {
-            "host": "local.wolkenkit.io",
-            "port": 3000
-          },
           "allowAccessFrom": "*"
         },
         "fileStorage": {
           "allowAccessFrom": "*"
         },
         "identityProvider": {
-          "name": "identityprovider.example.com",
+          "issuer": "identityprovider.example.com",
           "certificate": "/server/keys/identityprovider.example.com"
         },
         "node": {

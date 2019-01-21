@@ -45,7 +45,7 @@ const container = function ({
     env: {
       IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate', '/keys/wildcard.wolkenkit.io'),
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
-      KEYS: configuration.api.host.certificate === defaults.commands.shared.certificate ?
+      KEYS: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ?
         configuration.api.host.certificate :
         path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate),
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
