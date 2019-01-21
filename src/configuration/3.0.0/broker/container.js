@@ -54,7 +54,7 @@ const container = function ({
     env: {
       API_CORS_ORIGIN: selectedEnvironment.api.allowAccessFrom,
       API_HOST: api.container.https.hostname,
-      API_KEYS: configuration.api.host.certificate === defaults.commands.shared.certificate ?
+      API_KEYS: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ?
         configuration.api.host.certificate :
         path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate),
       API_PORT: api.container.https.port,

@@ -11,12 +11,11 @@
     "environments": {
       "default": {
         "api": {
-          "address": {
-            "host": "local.wolkenkit.io",
-            "port": 3000
+          "host": {
+            "name": "local.wolkenkit.io",
+            "certificate": "/server/keys"
           },
-          "allowAccessFrom": "*",
-          "certificate": "/server/keys"
+          "allowAccessFrom": "*"
         },
         "fileStorage": {
           "allowAccessFrom": "*"

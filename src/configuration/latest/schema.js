@@ -4,17 +4,11 @@ const schema = function () {
   const result = {
     type: 'object',
     properties: {
-      application: {
-        type: 'string',
-        minLength: 1
-      },
+      application: { type: 'string', minLength: 1 },
       runtime: {
         type: 'object',
         properties: {
-          version: {
-            type: 'string',
-            minLength: 1
-          }
+          version: { type: 'string', minLength: 1 }
         },
         additionalProperties: false,
         required: [ 'version' ]
@@ -28,33 +22,27 @@ const schema = function () {
               {
                 type: 'object',
                 properties: {
-                  type: {
-                    type: 'string',
-                    enum: [ 'cli' ]
-                  },
+                  type: { type: 'string', enum: [ 'cli' ]},
                   api: {
                     type: 'object',
                     properties: {
-                      address: {
+                      host: {
                         type: 'object',
                         properties: {
-                          host: {
-                            type: 'string',
-                            minLength: 1
-                          },
-                          port: {
-                            type: 'integer'
-                          }
+                          name: { type: 'string', minLength: 1 },
+                          certificate: { type: 'string', minLength: 1 }
                         },
-                        additionalProperties: false,
-                        required: [ 'host', 'port' ]
+                        required: [ 'name', 'certificate' ],
+                        additionalProperties: false
                       },
+                      port: { type: 'integer' },
                       allowAccessFrom: {
                         oneOf: [
                           {
                             type: 'string',
                             minLength: 1
-                          }, {
+                          },
+                          {
                             type: 'array',
                             minItems: 1,
                             items: {
@@ -64,14 +52,10 @@ const schema = function () {
                             uniqueItems: true
                           }
                         ]
-                      },
-                      certificate: {
-                        type: 'string',
-                        minLength: 1
                       }
                     },
                     additionalProperties: false,
-                    required: [ 'address', 'allowAccessFrom' ]
+                    required: [ 'allowAccessFrom' ]
                   },
                   fileStorage: {
                     type: 'object',
@@ -121,10 +105,7 @@ const schema = function () {
                   node: {
                     type: 'object',
                     properties: {
-                      environment: {
-                        type: 'string',
-                        minLength: 1
-                      }
+                      environment: { type: 'string', minLength: 1 }
                     },
                     additionalProperties: false,
                     required: [ 'environment' ]
@@ -132,27 +113,16 @@ const schema = function () {
                   identityProvider: {
                     type: 'object',
                     properties: {
-                      name: {
-                        type: 'string',
-                        minLength: 1
-                      },
-                      certificate: {
-                        type: 'string',
-                        minLength: 1
-                      }
+                      issuer: { type: 'string', minLength: 1 },
+                      certificate: { type: 'string', minLength: 1 }
                     },
-                    required: [
-                      'name', 'certificate'
-                    ],
+                    required: [ 'issuer', 'certificate' ],
                     additionalProperties: false
                   },
                   docker: {
                     type: 'object',
                     properties: {
-                      machine: {
-                        type: 'string',
-                        minLength: 1
-                      }
+                      machine: { type: 'string', minLength: 1 }
                     },
                     required: [ 'machine' ],
                     additionalProperties: false
@@ -175,23 +145,15 @@ const schema = function () {
               {
                 type: 'object',
                 properties: {
-                  type: {
-                    type: 'string',
-                    enum: [ 'aufwind' ]
-                  },
+                  type: { type: 'string', enum: [ 'aufwind' ]},
                   deployment: {
                     type: 'object',
                     properties: {
                       server: {
                         type: 'object',
                         properties: {
-                          host: {
-                            type: 'string',
-                            minLength: 1
-                          },
-                          port: {
-                            type: 'integer'
-                          }
+                          host: { type: 'string', minLength: 1 },
+                          port: { type: 'integer' }
                         },
                         additionalProperties: false,
                         required: [ 'host', 'port' ]
@@ -199,10 +161,7 @@ const schema = function () {
                       provider: {
                         type: 'object',
                         properties: {
-                          name: {
-                            type: 'string',
-                            minLength: 1
-                          }
+                          name: { type: 'string', minLength: 1 }
                         },
                         additionalProperties: false,
                         required: [ 'name' ]
@@ -220,14 +179,8 @@ const schema = function () {
                           eventStore: {
                             type: 'object',
                             properties: {
-                              type: {
-                                type: 'string',
-                                enum: [ 'postgres' ]
-                              },
-                              url: {
-                                type: 'string',
-                                minLength: 1
-                              }
+                              type: { type: 'string', enum: [ 'postgres' ]},
+                              url: { type: 'string', minLength: 1 }
                             },
                             additionalProperties: false,
                             required: [ 'type', 'url' ]
@@ -242,14 +195,8 @@ const schema = function () {
                           listStore: {
                             type: 'object',
                             properties: {
-                              type: {
-                                type: 'string',
-                                enum: [ 'mongo' ]
-                              },
-                              url: {
-                                type: 'string',
-                                minLength: 1
-                              }
+                              type: { type: 'string', enum: [ 'mongo' ]},
+                              url: { type: 'string', minLength: 1 }
                             },
                             additionalProperties: false,
                             required: [ 'type', 'url' ]
@@ -264,14 +211,8 @@ const schema = function () {
                           commandBus: {
                             type: 'object',
                             properties: {
-                              type: {
-                                type: 'string',
-                                enum: [ 'rabbitmq' ]
-                              },
-                              url: {
-                                type: 'string',
-                                minLength: 1
-                              }
+                              type: { type: 'string', enum: [ 'rabbitmq' ]},
+                              url: { type: 'string', minLength: 1 }
                             },
                             additionalProperties: false,
                             required: [ 'type', 'url' ]
@@ -279,14 +220,8 @@ const schema = function () {
                           eventBus: {
                             type: 'object',
                             properties: {
-                              type: {
-                                type: 'string',
-                                enum: [ 'rabbitmq' ]
-                              },
-                              url: {
-                                type: 'string',
-                                minLength: 1
-                              }
+                              type: { type: 'string', enum: [ 'rabbitmq' ]},
+                              url: { type: 'string', minLength: 1 }
                             },
                             additionalProperties: false,
                             required: [ 'type', 'url' ]
@@ -294,14 +229,8 @@ const schema = function () {
                           flowBus: {
                             type: 'object',
                             properties: {
-                              type: {
-                                type: 'string',
-                                enum: [ 'rabbitmq' ]
-                              },
-                              url: {
-                                type: 'string',
-                                minLength: 1
-                              }
+                              type: { type: 'string', enum: [ 'rabbitmq' ]},
+                              url: { type: 'string', minLength: 1 }
                             },
                             additionalProperties: false,
                             required: [ 'type', 'url' ]
@@ -317,9 +246,14 @@ const schema = function () {
                   api: {
                     type: 'object',
                     properties: {
-                      certificate: {
-                        type: 'string',
-                        minLength: 1
+                      host: {
+                        type: 'object',
+                        properties: {
+                          name: { type: 'string', minLength: 1 },
+                          certificate: { type: 'string', minLength: 1 }
+                        },
+                        required: [ 'name', 'certificate' ],
+                        additionalProperties: false
                       },
                       allowAccessFrom: {
                         oneOf: [
@@ -336,11 +270,6 @@ const schema = function () {
                             uniqueItems: true
                           }
                         ]
-                      },
-                      customDomain: {
-                        type: 'string',
-                        format: 'hostname',
-                        minLength: 1
                       }
                     },
                     additionalProperties: false,
@@ -349,27 +278,16 @@ const schema = function () {
                   identityProvider: {
                     type: 'object',
                     properties: {
-                      name: {
-                        type: 'string',
-                        minLength: 1
-                      },
-                      certificate: {
-                        type: 'string',
-                        minLength: 1
-                      }
+                      issuer: { type: 'string', minLength: 1 },
+                      certificate: { type: 'string', minLength: 1 }
                     },
-                    required: [
-                      'name', 'certificate'
-                    ],
+                    required: [ 'issuer', 'certificate' ],
                     additionalProperties: false
                   },
                   node: {
                     type: 'object',
                     properties: {
-                      environment: {
-                        type: 'string',
-                        minLength: 1
-                      }
+                      environment: { type: 'string', minLength: 1 }
                     },
                     additionalProperties: false,
                     required: [ 'environment' ]
@@ -384,9 +302,7 @@ const schema = function () {
                     additionalProperties: false
                   }
                 },
-                required: [
-                  'type', 'deployment', 'api'
-                ],
+                required: [ 'type', 'deployment', 'api' ],
                 additionalProperties: false
               }
             ]
@@ -396,9 +312,7 @@ const schema = function () {
         additionalProperties: false
       }
     },
-    required: [
-      'application', 'runtime', 'environments'
-    ],
+    required: [ 'application', 'runtime', 'environments' ],
     additionalProperties: false
   };
 

@@ -110,12 +110,11 @@ suite('application/getConfiguration', () => {
       environments: {
         default: {
           api: {
-            address: {
-              host: 'local.wolkenkit.io',
-              port: 3000
+            host: {
+              name: 'local.wolkenkit.io',
+              certificate: '/server/keys'
             },
-            allowAccessFrom: '*',
-            certificate: '/server/keys'
+            allowAccessFrom: '*'
           },
           fileStorage: {
             allowAccessFrom: '*'
@@ -139,10 +138,6 @@ suite('application/getConfiguration', () => {
       environments: {
         default: {
           api: {
-            address: {
-              host: 'local.wolkenkit.io',
-              port: 3000
-            },
             allowAccessFrom: '*'
           },
           fileStorage: {
@@ -154,10 +149,6 @@ suite('application/getConfiguration', () => {
         },
         production: {
           api: {
-            address: {
-              host: 'local.wolkenkit.io',
-              port: 3001
-            },
             allowAccessFrom: '*'
           },
           fileStorage: {
@@ -182,10 +173,6 @@ suite('application/getConfiguration', () => {
       environments: {
         default: {
           api: {
-            address: {
-              host: 'local.wolkenkit.io',
-              port: 3000
-            },
             allowAccessFrom: '*'
           },
           fileStorage: {
@@ -200,10 +187,6 @@ suite('application/getConfiguration', () => {
         },
         production: {
           api: {
-            address: {
-              host: 'local.wolkenkit.io',
-              port: 3001
-            },
             allowAccessFrom: '*'
           },
           fileStorage: {
@@ -231,10 +214,6 @@ suite('application/getConfiguration', () => {
       environments: {
         default: {
           api: {
-            address: {
-              host: 'local.wolkenkit.io',
-              port: 3000
-            },
             allowAccessFrom: '*'
           },
           fileStorage: {
@@ -259,10 +238,6 @@ suite('application/getConfiguration', () => {
       environments: {
         default: {
           api: {
-            address: {
-              host: 'local.wolkenkit.io',
-              port: 3000
-            },
             allowAccessFrom: [
               'http://www.cradleoffilth.com',
               'http://anthrax.com',
@@ -291,17 +266,13 @@ suite('application/getConfiguration', () => {
       environments: {
         default: {
           api: {
-            address: {
-              host: 'local.wolkenkit.io',
-              port: 3000
-            },
             allowAccessFrom: '*'
           },
           fileStorage: {
             allowAccessFrom: '*'
           },
           identityProvider: {
-            name: 'identityprovider.example.com',
+            issuer: 'identityprovider.example.com',
             certificate: '/server/keys/identityprovider.example.com'
           },
           node: {
@@ -323,10 +294,6 @@ suite('application/getConfiguration', () => {
       environments: {
         default: {
           api: {
-            address: {
-              host: 'local.wolkenkit.io',
-              port: 3000
-            },
             allowAccessFrom: '*'
           },
           fileStorage: {
@@ -355,10 +322,11 @@ suite('application/getConfiguration', () => {
       environments: {
         default: {
           api: {
-            address: {
-              host: 'local.wolkenkit.io',
-              port: 3000
+            host: {
+              name: 'local.wolkenkit.io',
+              certificate: '/keys/local.wolkenkit.io'
             },
+            port: 3000,
             allowAccessFrom: '*'
           },
           fileStorage: {

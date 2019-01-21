@@ -1,7 +1,13 @@
 {
   "commands": {
     "shared": {
-      "certificate": "/keys/local.wolkenkit.io",
+      "api": {
+        "host": {
+          "name": "local.wolkenkit.io",
+          "certificate": "/keys/local.wolkenkit.io"
+        },
+        "port": 3000
+      },
       "aufwind": {
         "ssh": {
           "host": "aufwind.wolkenkit.app",

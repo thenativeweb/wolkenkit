@@ -61,7 +61,7 @@ const container = function ({
       IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ?
         path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) :
         '/keys/wildcard.wolkenkit.io',
-      IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
+      IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.issuer', 'auth.wolkenkit.io'),
       LISTSTORE_URL: `${listStore.container.mongodb.protocol}://${listStore.container.mongodb.user}:${listStore.container.mongodb.password}@${listStore.container.mongodb.hostname}:${listStore.container.mongodb.port}/${listStore.container.mongodb.database}`,
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       PROFILING_HOST: configuration.api.host.name,

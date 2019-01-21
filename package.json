@@ -46,7 +46,7 @@
     "defekt": "2.0.1",
     "docker-compare": "0.2.0",
     "dotfile-json": "1.0.3",
-    "eslint": "5.12.0",
+    "eslint": "5.12.1",
     "findsuggestions": "1.0.0",
     "flat": "4.1.0",
     "freeport": "1.0.5",
@@ -78,8 +78,8 @@
     "dir-compare": "1.6.0",
     "measure-time": "3.1.1",
     "p-queue": "3.0.0",
-    "roboter": "3.0.3",
-    "wolkenkit-client": "3.0.1"
+    "roboter": "3.0.4",
+    "wolkenkit-client": "3.1.0"
   },
   "scripts": {
     "test-stories": "node test/stories/index.js"

@@ -70,7 +70,7 @@ suite('application/getCertificateDirectory', () => {
   test('returns the fallback certificate directory if default path is configured.', async () => {
     const certificateDirectory = await getCertificateDirectory({
       directory: __dirname,
-      configuration: { api: { host: { certificate: defaults.commands.shared.certificate }}}
+      configuration: { api: { host: { certificate: defaults.commands.shared.api.host.certificate }}}
     });
 
     assert.that(certificateDirectory).is.equalTo(path.join(__dirname, '..', '..', '..', '..', 'keys', 'local.wolkenkit.io'));

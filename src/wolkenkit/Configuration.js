@@ -9,10 +9,10 @@ class Configuration {
     environment,
     applicationName,
     runtimeVersion,
-    apiHostname,
-    apiPort,
     packageJson,
+    apiHostname = undefined,
     apiCertificate = undefined,
+    apiPort = undefined,
     dockerMachine = undefined
   }) {
     if (!type) {
@@ -26,12 +26,6 @@ class Configuration {
     }
     if (!runtimeVersion) {
       throw new Error('Runtime version is missing.');
-    }
-    if (!apiHostname) {
-      throw new Error('Api hostname is missing.');
-    }
-    if (!apiPort) {
-      throw new Error('Api port is missing.');
     }
     if (!packageJson) {
       throw new Error('Package json is missing.');
@@ -47,10 +41,10 @@ class Configuration {
     };
     this.api = {
       host: {
-        name: apiHostname,
-        certificate: apiCertificate || defaults.commands.shared.certificate
+        name: apiHostname || defaults.commands.shared.api.host.name,
+        certificate: apiCertificate || defaults.commands.shared.api.host.certificate
       },
-      port: apiPort
+      port: apiPort || defaults.commands.shared.api.port
     };
     this.packageJson = packageJson;
 

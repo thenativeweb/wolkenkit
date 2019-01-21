@@ -84,7 +84,7 @@ const getConfiguration = async function ({
   let configuration;
 
   await switchSemver(runtimeVersion, {
-    async default () {
+    async '<= 3.1.0' () {
       const selectedEnvironment = packageJson.environments[env];
 
       if (!selectedEnvironment) {
@@ -104,6 +104,29 @@ const getConfiguration = async function ({
         apiCertificate: selectedEnvironment.api.certificate,
         dockerMachine: get(selectedEnvironment, 'docker.machine'),
         packageJson
+      });
+    },
+
+    async default () {
+      const selectedEnvironment = packageJson.environments[env];
+
+      if (!selectedEnvironment) {
+        progress({ message: `package.json does not contain environment ${env}.`, type: 'info' });
+        throw new errors.EnvironmentNotFound();
+      }
+
+      const type = selectedEnvironment.type || 'cli';
+
+      configuration = new Configuration({
+        type,
+        environment: env,
+        applicationName: packageJson.application,
+        runtimeVersion,
+        packageJson,
+        apiHostname: get(selectedEnvironment, 'api.host.name'),
+        apiCertificate: get(selectedEnvironment, 'api.host.certificate'),
+        apiPort: port || processenv('WOLKENKIT_PORT') || get(selectedEnvironment, 'api.port'),
+        dockerMachine: get(selectedEnvironment, 'docker.machine')
       });
     }
   });

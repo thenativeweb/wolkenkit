@@ -43,20 +43,20 @@ const container = function ({
     env: {
       API_EXTERNAL_HOST: api.external.https.hostname,
       API_EXTERNAL_PORT: api.external.https.port,
-      API_CERTIFICATE: configuration.api.host.certificate === defaults.commands.shared.certificate ?
+      API_CERTIFICATE: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ?
         path.join(configuration.api.host.certificate, 'certificate.pem') :
         path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'certificate.pem'),
-      API_PRIVATE_KEY: configuration.api.host.certificate === defaults.commands.shared.certificate ?
+      API_PRIVATE_KEY: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ?
         path.join(configuration.api.host.certificate, 'privateKey.pem') :
         path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'privateKey.pem'),
       API_CONTAINER_HOST: api.container.http.hostname,
       API_CONTAINER_PORT: api.container.http.port,
       DEPOT_EXTERNAL_HOST: fileStorage.external.https.hostname,
       DEPOT_EXTERNAL_PORT: fileStorage.external.https.port,
-      DEPOT_CERTIFICATE: configuration.api.host.certificate === defaults.commands.shared.certificate ?
+      DEPOT_CERTIFICATE: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ?
         path.join(configuration.api.host.certificate, 'certificate.pem') :
         path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'certificate.pem'),
-      DEPOT_PRIVATE_KEY: configuration.api.host.certificate === defaults.commands.shared.certificate ?
+      DEPOT_PRIVATE_KEY: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ?
         path.join(configuration.api.host.certificate, 'privateKey.pem') :
         path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'privateKey.pem'),
       DEPOT_CONTAINER_HOST: fileStorage.container.http.hostname,
