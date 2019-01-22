@@ -75,7 +75,7 @@
   },
   "devDependencies": {
     "assertthat": "2.0.1",
-    "dir-compare": "1.6.0",
+    "dir-compare": "1.7.1",
     "measure-time": "3.1.1",
     "p-queue": "3.0.0",
     "roboter": "3.0.4",

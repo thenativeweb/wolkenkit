@@ -17,7 +17,7 @@ const validateCode = function ({ directory }, progress) {
   const cliEngine = new eslint.CLIEngine({
     envs: [ 'node', 'es6' ],
     parserOptions: {
-      ecmaVersion: 2017,
+      ecmaVersion: 2019,
       ecmaFeatures: {}
     },
     rules: {
