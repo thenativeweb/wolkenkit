@@ -47,7 +47,7 @@ const start = async function ({
     port
   }, progress);
 
-  shared.validateCode({ directory }, progress);
+  await shared.validateCode({ directory }, progress);
 
   const { type } = configuration;
 
