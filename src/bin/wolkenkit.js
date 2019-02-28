@@ -59,6 +59,12 @@ updateNotifier({ pkg: packageJson }).notify();
   /* eslint-enable no-underscore-dangle */
 
   const handleException = function (ex) {
+    // In case of an exception, always enable verbose mode so that the exception
+    // details are shown.
+    if (!process.argv.includes('--verbose')) {
+      process.argv.push('--verbose');
+    }
+
     if (ex.message) {
       buntstift.verbose(ex.message);
     }
