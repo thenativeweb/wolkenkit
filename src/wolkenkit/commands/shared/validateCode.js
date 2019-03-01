@@ -17,6 +17,14 @@ const validateCode = async function ({ directory }, progress) {
 
   progress({ message: 'Validating the application code...', type: 'info' });
 
+  try {
+    await wolkenkitApplication.load({ directory });
+  } catch (ex) {
+    progress({ message: ex.message, type: 'info' });
+
+    throw ex;
+  }
+
   const cliEngine = new eslint.CLIEngine({
     envs: [ 'node', 'es6' ],
     parserOptions: {
@@ -31,26 +39,20 @@ const validateCode = async function ({ directory }, progress) {
 
   const report = cliEngine.executeOnFiles([ path.join(directory, 'server', '**', '*.js') ]);
 
-  if (report.errorCount > 0) {
-    const { errorCount, warningCount } = report;
-    const problemCount = errorCount + warningCount;
-
-    let message = '';
-
-    message += `${problemCount} problem${problemCount !== 1 ? 's' : ''} `;
-    message += `(${errorCount} error${errorCount !== 1 ? 's' : ''}, `;
-    message += `${warningCount} warning${warningCount !== 1 ? 's' : ''})`;
-
-    throw new errors.CodeMalformed(message, report);
+  if (report.errorCount === 0) {
+    return;
   }
 
-  try {
-    await wolkenkitApplication.load({ directory });
-  } catch (ex) {
-    progress({ message: ex.message, type: 'info' });
+  const { errorCount, warningCount } = report;
+  const problemCount = errorCount + warningCount;
 
-    throw ex;
-  }
+  let message = '';
+
+  message += `${problemCount} problem${problemCount !== 1 ? 's' : ''} `;
+  message += `(${errorCount} error${errorCount !== 1 ? 's' : ''}, `;
+  message += `${warningCount} warning${warningCount !== 1 ? 's' : ''})`;
+
+  throw new errors.CodeMalformed(message, report);
 };
 
 module.exports = validateCode;
