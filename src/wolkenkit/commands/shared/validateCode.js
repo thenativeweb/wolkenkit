@@ -2,16 +2,27 @@
 
 const path = require('path');
 
-const eslint = require('eslint');
+const eslint = require('eslint'),
+      wolkenkitApplication = require('wolkenkit-application');
 
 const errors = require('../../../errors');
 
-const validateCode = function ({ directory }, progress) {
+const validateCode = async function ({ directory }, progress) {
   if (!directory) {
     throw new Error('Directory is missing.');
   }
   if (!progress) {
     throw new Error('Progress is missing.');
+  }
+
+  progress({ message: 'Validating the application code...', type: 'info' });
+
+  try {
+    await wolkenkitApplication.load({ directory });
+  } catch (ex) {
+    progress({ message: ex.message, type: 'info' });
+
+    throw ex;
   }
 
   const cliEngine = new eslint.CLIEngine({
