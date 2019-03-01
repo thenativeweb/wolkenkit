@@ -47,7 +47,7 @@ const container = function ({
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
       KEYS: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ?
         configuration.api.host.certificate :
-        path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate),
+        path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate),
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       STATUS_PORT: 3333,
       STATUS_CORS_ORIGIN: '*'

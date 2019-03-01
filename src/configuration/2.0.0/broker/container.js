@@ -56,7 +56,7 @@ const container = function ({
       API_HOST: api.container.https.hostname,
       API_KEYS: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ?
         configuration.api.host.certificate :
-        path.join('/', 'wolkenkit', 'app', configuration.api.host.certificate),
+        path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate),
       API_PORT: api.container.https.port,
       APPLICATION: configuration.application.name,
       COMMANDBUS_URL: `${commandBus.container.amqp.protocol}://${commandBus.container.amqp.user}:${commandBus.container.amqp.password}@${commandBus.container.amqp.hostname}:${commandBus.container.amqp.port}`,
@@ -64,7 +64,7 @@ const container = function ({
       EVENTSTORE_TYPE: eventStore.type,
       EVENTSTORE_URL: `${eventStore.container.pg.protocol}://${eventStore.container.pg.user}:${eventStore.container.pg.password}@${eventStore.container.pg.hostname}:${eventStore.container.pg.port}/${eventStore.container.pg.database}`,
       IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ?
-        path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) :
+        path.posix.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) :
         '/keys/wildcard.wolkenkit.io',
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
       LISTSTORE_URL: `${listStore.container.mongodb.protocol}://${listStore.container.mongodb.user}:${listStore.container.mongodb.password}@${listStore.container.mongodb.hostname}:${listStore.container.mongodb.port}/${listStore.container.mongodb.database}`,
