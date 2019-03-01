@@ -2,7 +2,7 @@
 
 const buntstift = require('buntstift'),
       getUsage = require('command-line-usage'),
-      open = require('open');
+      open = require('opn');
 
 const globalOptionDefinitions = require('../globalOptionDefinitions');
 
