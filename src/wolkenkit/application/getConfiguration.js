@@ -51,7 +51,7 @@ const getConfiguration = async function ({ directory }) {
   const value = new Value(schema);
 
   try {
-    value.validate(configuration, 'wolkenkit');
+    value.validate(configuration, { valueName: 'wolkenkit' });
   } catch (ex) {
     throw new errors.ConfigurationMalformed(ex.message);
   }

@@ -25,7 +25,7 @@ const reload = async function ({ directory, env }, progress = noop) {
     isPackageJsonRequired: true
   }, progress);
 
-  shared.validateCode({ directory }, progress);
+  await shared.validateCode({ directory }, progress);
 
   const { type } = configuration;
 
