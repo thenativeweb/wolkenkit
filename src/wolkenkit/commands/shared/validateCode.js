@@ -18,7 +18,7 @@ const validateCode = async function ({ directory }, progress) {
   progress({ message: 'Validating the application code...', type: 'info' });
 
   try {
-    await wolkenkitApplication.load({ directory });
+    await wolkenkitApplication.validate({ directory });
   } catch (ex) {
     progress({ message: ex.message, type: 'info' });
 

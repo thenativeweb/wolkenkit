@@ -71,7 +71,7 @@
     "util.promisify": "1.0.0",
     "uuidv4": "3.0.1",
     "validate-value": "5.0.1",
-    "wolkenkit-application": "4.1.2",
+    "wolkenkit-application": "4.2.0",
     "wolkenkit-eventstore": "2.5.1"
   },
   "devDependencies": {
