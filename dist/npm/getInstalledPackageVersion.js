@@ -65,7 +65,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[3, 9]]);
+    }, _callee, null, [[3, 9]]);
   }));
 
   return function getInstalledPackageVersion(_x) {

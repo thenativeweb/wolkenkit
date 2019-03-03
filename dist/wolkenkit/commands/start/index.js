@@ -100,11 +100,14 @@ function () {
 
           case 16:
             configuration = _context.sent;
-            shared.validateCode({
+            _context.next = 19;
+            return shared.validateCode({
               directory: directory
             }, progress);
+
+          case 19:
             type = configuration.type;
-            _context.next = 21;
+            _context.next = 22;
             return startVia[type]({
               configuration: configuration,
               dangerouslyDestroyData: dangerouslyDestroyData,
@@ -118,12 +121,12 @@ function () {
               sharedKey: sharedKey
             }, progress);
 
-          case 21:
+          case 22:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, this);
+    }, _callee);
   }));
 
   return function start(_x) {

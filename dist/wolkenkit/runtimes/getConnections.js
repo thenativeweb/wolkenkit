@@ -116,7 +116,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[14, 19]]);
+    }, _callee, null, [[14, 19]]);
   }));
 
   return function getConnections(_x) {

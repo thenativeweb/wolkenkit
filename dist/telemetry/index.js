@@ -415,7 +415,7 @@ var telemetry = {
                         return _context5.stop();
                     }
                   }
-                }, _callee5, this);
+                }, _callee5);
               })), {
                 retries: 3,
                 maxTimeout: 2 * 1000

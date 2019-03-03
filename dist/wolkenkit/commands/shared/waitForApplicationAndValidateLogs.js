@@ -60,7 +60,7 @@ function () {
                           return _context.stop();
                       }
                     }
-                  }, _callee, this);
+                  }, _callee);
                 }));
 
                 function _() {
@@ -125,7 +125,7 @@ function () {
                                       return _context2.stop();
                                   }
                                 }
-                              }, _callee2, this, [[0, 9, 12, 15]]);
+                              }, _callee2, null, [[0, 9, 12, 15]]);
                             }));
 
                             return function (_x3, _x4) {
@@ -138,7 +138,7 @@ function () {
                           return _context3.stop();
                       }
                     }
-                  }, _callee3, this);
+                  }, _callee3);
                 }));
 
                 function _default() {
@@ -154,7 +154,7 @@ function () {
             return _context4.stop();
         }
       }
-    }, _callee4, this);
+    }, _callee4);
   }));
 
   return function waitForApplicationAndValidateLogs(_x, _x2) {

@@ -61,7 +61,7 @@ var container = function container(_ref) {
       EVENTBUS_URL: "".concat(eventBus.container.amqp.protocol, "://").concat(eventBus.container.amqp.user, ":").concat(eventBus.container.amqp.password, "@").concat(eventBus.container.amqp.hostname, ":").concat(eventBus.container.amqp.port),
       EVENTSTORE_TYPE: eventStore.type,
       EVENTSTORE_URL: "".concat(eventStore.container.pg.protocol, "://").concat(eventStore.container.pg.user, ":").concat(eventStore.container.pg.password, "@").concat(eventStore.container.pg.hostname, ":").concat(eventStore.container.pg.port, "/").concat(eventStore.container.pg.database),
-      IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ? path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) : '/keys/wildcard.wolkenkit.io',
+      IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ? path.posix.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) : '/keys/wildcard.wolkenkit.io',
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
       LISTSTORE_URL: "".concat(listStore.container.mongodb.protocol, "://").concat(listStore.container.mongodb.user, ":").concat(listStore.container.mongodb.password, "@").concat(listStore.container.mongodb.hostname, ":").concat(listStore.container.mongodb.port, "/").concat(listStore.container.mongodb.database),
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),

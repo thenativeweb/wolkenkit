@@ -99,7 +99,7 @@ function () {
                         return _context.stop();
                     }
                   }
-                }, _callee, this);
+                }, _callee);
               }));
 
               return function (_x2) {
@@ -120,7 +120,7 @@ function () {
             return _context2.stop();
         }
       }
-    }, _callee2, this, [[4, 10]]);
+    }, _callee2, null, [[4, 10]]);
   }));
 
   return function getImages(_x) {

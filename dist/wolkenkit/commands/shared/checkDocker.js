@@ -118,7 +118,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[15, 20]]);
+    }, _callee, null, [[15, 20]]);
   }));
 
   return function checkDocker(_x, _x2) {

@@ -10,7 +10,7 @@ var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/
 
 var buntstift = require('buntstift'),
     getUsage = require('command-line-usage'),
-    open = require('open');
+    open = require('opn');
 
 var globalOptionDefinitions = require('../globalOptionDefinitions');
 
@@ -30,7 +30,7 @@ var register = {
               return _context.stop();
           }
         }
-      }, _callee, this);
+      }, _callee);
     }));
 
     function getOptionDefinitions() {

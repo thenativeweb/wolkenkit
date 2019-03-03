@@ -82,7 +82,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this);
+    }, _callee);
   }));
 
   return function aufwind(_x, _x2) {

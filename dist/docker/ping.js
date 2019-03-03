@@ -132,7 +132,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[4, 8], [18, 24], [26, 30], [36, 40]]);
+    }, _callee, null, [[4, 8], [18, 24], [26, 30], [36, 40]]);
   }));
 
   return function ping(_x) {

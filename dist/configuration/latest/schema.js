@@ -34,19 +34,23 @@ var schema = function schema() {
                 api: {
                   type: 'object',
                   properties: {
-                    address: {
+                    host: {
                       type: 'object',
                       properties: {
-                        host: {
+                        name: {
                           type: 'string',
                           minLength: 1
                         },
-                        port: {
-                          type: 'integer'
+                        certificate: {
+                          type: 'string',
+                          minLength: 1
                         }
                       },
-                      additionalProperties: false,
-                      required: ['host', 'port']
+                      required: ['name', 'certificate'],
+                      additionalProperties: false
+                    },
+                    port: {
+                      type: 'integer'
                     },
                     allowAccessFrom: {
                       oneOf: [{
@@ -61,14 +65,10 @@ var schema = function schema() {
                         },
                         uniqueItems: true
                       }]
-                    },
-                    certificate: {
-                      type: 'string',
-                      minLength: 1
                     }
                   },
                   additionalProperties: false,
-                  required: ['address', 'allowAccessFrom']
+                  required: ['allowAccessFrom']
                 },
                 fileStorage: {
                   type: 'object',
@@ -131,7 +131,7 @@ var schema = function schema() {
                 identityProvider: {
                   type: 'object',
                   properties: {
-                    name: {
+                    issuer: {
                       type: 'string',
                       minLength: 1
                     },
@@ -140,7 +140,7 @@ var schema = function schema() {
                       minLength: 1
                     }
                   },
-                  required: ['name', 'certificate'],
+                  required: ['issuer', 'certificate'],
                   additionalProperties: false
                 },
                 docker: {
@@ -312,9 +312,20 @@ var schema = function schema() {
                 api: {
                   type: 'object',
                   properties: {
-                    certificate: {
-                      type: 'string',
-                      minLength: 1
+                    host: {
+                      type: 'object',
+                      properties: {
+                        name: {
+                          type: 'string',
+                          minLength: 1
+                        },
+                        certificate: {
+                          type: 'string',
+                          minLength: 1
+                        }
+                      },
+                      required: ['name', 'certificate'],
+                      additionalProperties: false
                     },
                     allowAccessFrom: {
                       oneOf: [{
@@ -329,11 +340,6 @@ var schema = function schema() {
                         },
                         uniqueItems: true
                       }]
-                    },
-                    customDomain: {
-                      type: 'string',
-                      format: 'hostname',
-                      minLength: 1
                     }
                   },
                   additionalProperties: false,
@@ -342,7 +348,7 @@ var schema = function schema() {
                 identityProvider: {
                   type: 'object',
                   properties: {
-                    name: {
+                    issuer: {
                       type: 'string',
                       minLength: 1
                     },
@@ -351,7 +357,7 @@ var schema = function schema() {
                       minLength: 1
                     }
                   },
-                  required: ['name', 'certificate'],
+                  required: ['issuer', 'certificate'],
                   additionalProperties: false
                 },
                 node: {

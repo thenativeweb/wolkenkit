@@ -80,6 +80,12 @@ _regenerator.default.mark(function _callee() {
 
 
           handleException = function handleException(ex) {
+            // In case of an exception, always enable verbose mode so that the exception
+            // details are shown.
+            if (!process.argv.includes('--verbose')) {
+              process.argv.push('--verbose');
+            }
+
             if (ex.message) {
               buntstift.verbose(ex.message);
             }
@@ -125,5 +131,5 @@ _regenerator.default.mark(function _callee() {
           return _context.stop();
       }
     }
-  }, _callee, this, [[19, 26]]);
+  }, _callee, null, [[19, 26]]);
 }))();

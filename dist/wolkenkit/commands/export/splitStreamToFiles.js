@@ -180,7 +180,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[11, 33, 37, 47], [38,, 42, 46]]);
+    }, _callee, null, [[11, 33, 37, 47], [38,, 42, 46]]);
   }));
 
   return function splitStreamToFiles(_x) {

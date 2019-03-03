@@ -120,7 +120,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[23, 28]]);
+    }, _callee, null, [[23, 28]]);
   }));
 
   return function cloneRepository(_x, _x2) {

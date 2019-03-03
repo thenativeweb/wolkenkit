@@ -90,7 +90,7 @@ function () {
                                     return _context.stop();
                                 }
                               }
-                            }, _callee, this);
+                            }, _callee);
                           })), {
                             retries: 60,
                             maxTimeout: 2 * 1000
@@ -114,7 +114,7 @@ function () {
                           return _context2.stop();
                       }
                     }
-                  }, _callee2, this);
+                  }, _callee2);
                 }));
 
                 function _() {
@@ -156,7 +156,7 @@ function () {
                                     return _context3.stop();
                                 }
                               }
-                            }, _callee3, this);
+                            }, _callee3);
                           })), {
                             retries: 60,
                             maxTimeout: 2 * 1000
@@ -174,7 +174,7 @@ function () {
                           return _context4.stop();
                       }
                     }
-                  }, _callee4, this);
+                  }, _callee4);
                 }));
 
                 function _default() {
@@ -190,7 +190,7 @@ function () {
             return _context5.stop();
         }
       }
-    }, _callee5, this);
+    }, _callee5);
   }));
 
   return function waitForApplication(_x, _x2) {

@@ -68,7 +68,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[2, 8]]);
+    }, _callee, null, [[2, 8]]);
   }));
 
   return function read(_x) {

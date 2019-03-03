@@ -76,7 +76,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[10, 15]]);
+    }, _callee, null, [[10, 15]]);
   }));
 
   return function isImageInstalled(_x) {

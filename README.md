@@ -8,22 +8,27 @@ wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and
 
 ## Table of contents
 
-<!-- toc -->
+-   [Installation](#installation)
 
-- [Installation](#installation)
-- [Quick start](#quick-start)
-- [Sample applications](#sample-applications)
-- [Getting help](#getting-help)
-  * [Reporting an issue](#reporting-an-issue)
-  * [Asking a question](#asking-a-question)
-  * [Getting support](#getting-support)
-- [Finding the code](#finding-the-code)
-- [Running the build](#running-the-build)
-- [FAQ](#faq)
-  * [Why do I get an *Error loading extension section V3_ca* message when running the story tests?](#why-do-i-get-an-error-loading-extension-section-v3_ca-message-when-running-the-story-tests)
-- [License](#license)
+-   [Quick start](#quick-start)
 
-<!-- tocstop -->
+-   [Sample applications](#sample-applications)
+
+-   [Getting help](#getting-help)
+
+    -   [Reporting an issue](#reporting-an-issue)
+    -   [Asking a question](#asking-a-question)
+    -   [Getting support](#getting-support)
+
+-   [Finding the code](#finding-the-code)
+
+-   [Running the build](#running-the-build)
+
+-   [FAQ](#faq)
+
+    -   [Why do I get an Error loading extension section V3_ca message when running the story tests?](#why-do-i-get-an-error-loading-extension-section-v3_ca-message-when-running-the-story-tests)
+
+-   [License](#license)
 
 ## Installation
 
@@ -43,11 +48,11 @@ If you are curious on what's next, have a look at the [roadmap](roadmap.md).
 
 There are a number of sample applications available:
 
-- [wolkenkit-boards](https://github.com/thenativeweb/wolkenkit-boards) is a team collaboration application.
-- [wolkenkit-geocaching](https://github.com/revrng/wolkenkit-geocaching) is a geocaching application.
-- [wolkenkit-nevercompletedgame](https://github.com/thenativeweb/wolkenkit-nevercompletedgame) is a mystery game.
-- [wolkenkit-template-chat](https://github.com/thenativeweb/wolkenkit-template-chat) is a simple messaging application.
-- [wolkenkit-todomvc](https://github.com/thenativeweb/wolkenkit-todomvc) is a todo list application.
+-   [wolkenkit-boards](https://github.com/thenativeweb/wolkenkit-boards) is a team collaboration application.
+-   [wolkenkit-geocaching](https://github.com/revrng/wolkenkit-geocaching) is a geocaching application.
+-   [wolkenkit-nevercompletedgame](https://github.com/thenativeweb/wolkenkit-nevercompletedgame) is a mystery game.
+-   [wolkenkit-template-chat](https://github.com/thenativeweb/wolkenkit-template-chat) is a simple messaging application.
+-   [wolkenkit-todomvc](https://github.com/thenativeweb/wolkenkit-todomvc) is a todo list application.
 
 ## Getting help
 
@@ -79,9 +84,9 @@ Since wolkenkit is a distributed application, its code is spread across various 
 
 Additionally, you may want to have a look at these repositories that contain the most important supporting modules:
 
-- [wolkenkit-eventstore](https://github.com/thenativeweb/wolkenkit-eventstore)
-- [commands-events](https://github.com/thenativeweb/commands-events)
-- [tailwind](https://github.com/thenativeweb/tailwind)
+-   [wolkenkit-eventstore](https://github.com/thenativeweb/wolkenkit-eventstore)
+-   [commands-events](https://github.com/thenativeweb/commands-events)
+-   [tailwind](https://github.com/thenativeweb/tailwind)
 
 ## Running the build
 
@@ -91,7 +96,7 @@ To build this module use [roboter](https://www.npmjs.com/package/roboter).
 $ npx roboter
 ```
 
-Additionally to the unit tests, there are so-called *story tests*. To run them, use the following command:
+Additionally to the unit tests, there are so-called _story tests_. To run them, use the following command:
 
 ```shell
 $ npx roboter test-stories
@@ -99,14 +104,12 @@ $ npx roboter test-stories
 
 ## FAQ
 
-### Why do I get an *Error loading extension section V3_ca* message when running the story tests?
+### Why do I get an _Error loading extension section V3_ca_ message when running the story tests?
 
-If you get the error *Error loading extension section V3_ca* when running the story tests, you have to edit your local OpenSSL configuration. You can find the configuration at `/private/etc/ssl/openssl.cnf`. In this file you have to add the following lines:
+If you get the error _Error loading extension section V3_ca_ when running the story tests, you have to edit your local OpenSSL configuration. You can find the configuration at `/private/etc/ssl/openssl.cnf`. In this file you have to add the following lines:
 
-```
-[ v3_ca ]
-basicConstraints = critical,CA:TRUE
-```
+    [ v3_ca ]
+    basicConstraints = critical,CA:TRUE
 
 ## License
 

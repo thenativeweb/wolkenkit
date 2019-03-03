@@ -74,7 +74,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[6, 12]]);
+    }, _callee, null, [[6, 12]]);
   }));
 
   return function resolveHost(_x, _x2) {

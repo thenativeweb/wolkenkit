@@ -132,7 +132,7 @@ function () {
                         return _context.stop();
                     }
                   }
-                }, _callee, this, [[10, 16]]);
+                }, _callee, null, [[10, 16]]);
               }));
 
               return function (_x3, _x4) {
@@ -149,7 +149,7 @@ function () {
             return _context2.stop();
         }
       }
-    }, _callee2, this);
+    }, _callee2);
   }));
 
   return function streamApplication(_x, _x2) {

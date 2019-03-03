@@ -175,7 +175,7 @@ function () {
                         return _context.stop();
                     }
                   }
-                }, _callee, this, [[1, 6]]);
+                }, _callee, null, [[1, 6]]);
               }));
 
               return function (_x2) {
@@ -188,7 +188,7 @@ function () {
             return _context2.stop();
         }
       }
-    }, _callee2, this, [[13, 19]]);
+    }, _callee2, null, [[13, 19]]);
   }));
 
   return function install(_x) {

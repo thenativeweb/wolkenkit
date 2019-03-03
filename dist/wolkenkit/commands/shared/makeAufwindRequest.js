@@ -191,7 +191,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[9,, 58, 61], [19, 42, 46, 56], [47,, 51, 55]]);
+    }, _callee, null, [[9,, 58, 61], [19, 42, 46, 56], [47,, 51, 55]]);
   }));
 
   return function makeAufwindRequest(_x, _x2) {

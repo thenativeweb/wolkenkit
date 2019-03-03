@@ -369,7 +369,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[70, 75]]);
+    }, _callee, null, [[70, 75]]);
   }));
 
   return function cli(_x, _x2) {

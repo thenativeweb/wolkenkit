@@ -49,7 +49,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this);
+    }, _callee);
   }));
 
   return function mv(_x, _x2, _x3) {

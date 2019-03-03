@@ -71,7 +71,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this);
+    }, _callee);
   }));
 
   return function getUsageStatus(_x) {

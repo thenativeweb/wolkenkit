@@ -144,7 +144,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[8, 14]]);
+    }, _callee, null, [[8, 14]]);
   }));
 
   return function checkCertificate(_x, _x2) {

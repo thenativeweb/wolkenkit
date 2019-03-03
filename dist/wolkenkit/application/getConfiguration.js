@@ -96,7 +96,9 @@ function () {
           case 31:
             value = new Value(schema);
             _context.prev = 32;
-            value.validate(configuration, 'wolkenkit');
+            value.validate(configuration, {
+              valueName: 'wolkenkit'
+            });
             _context.next = 39;
             break;
 
@@ -125,7 +127,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[13, 17], [20, 24], [32, 36]]);
+    }, _callee, null, [[13, 17], [20, 24], [32, 36]]);
   }));
 
   return function getConfiguration(_x) {

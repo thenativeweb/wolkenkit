@@ -26,7 +26,7 @@ var help = {
               return _context.stop();
           }
         }
-      }, _callee, this);
+      }, _callee);
     }));
 
     function getOptionDefinitions() {
@@ -74,7 +74,7 @@ var help = {
               return _context2.stop();
           }
         }
-      }, _callee2, this);
+      }, _callee2);
     }));
 
     function run() {

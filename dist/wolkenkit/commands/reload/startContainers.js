@@ -148,7 +148,7 @@ function () {
                                   return _context.stop();
                               }
                             }
-                          }, _callee, this, [[0, 8]]);
+                          }, _callee, null, [[0, 8]]);
                         }))();
                         /* eslint-enable no-loop-func */
                       }
@@ -161,7 +161,7 @@ function () {
                       return _context2.stop();
                   }
                 }
-              }, _loop, this);
+              }, _loop);
             });
 
           case 21:
@@ -189,7 +189,7 @@ function () {
             return _context3.stop();
         }
       }
-    }, _callee2, this);
+    }, _callee2);
   }));
 
   return function startContainers(_x, _x2) {

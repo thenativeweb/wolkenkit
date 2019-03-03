@@ -144,7 +144,7 @@ function () {
                                   return _context.stop();
                               }
                             }
-                          }, _callee, this, [[5, 10]]);
+                          }, _callee, null, [[5, 10]]);
                         }));
 
                         return function (_x3, _x4) {
@@ -175,7 +175,7 @@ function () {
                       return _context2.stop();
                   }
                 }
-              }, _callee2, this, [[1, 6]]);
+              }, _callee2, null, [[1, 6]]);
             }))();
             return _context3.abrupt("return", validate);
 
@@ -184,7 +184,7 @@ function () {
             return _context3.stop();
         }
       }
-    }, _callee3, this);
+    }, _callee3);
   }));
 
   return function validateLogs(_x, _x2) {

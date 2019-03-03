@@ -44,7 +44,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this);
+    }, _callee);
   }));
 
   return function installPackage(_x, _x2) {

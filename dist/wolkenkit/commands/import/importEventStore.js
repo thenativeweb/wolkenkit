@@ -287,7 +287,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[37, 61, 65, 75], [66,, 70, 74]]);
+    }, _callee, null, [[37, 61, 65, 75], [66,, 70, 74]]);
   }));
 
   return function importEventStore(_x) {

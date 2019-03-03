@@ -116,7 +116,7 @@ function () {
                       return _context.stop();
                   }
                 }
-              }, _loop, this);
+              }, _loop);
             });
             i = 0;
 
@@ -142,7 +142,7 @@ function () {
             return _context2.stop();
         }
       }
-    }, _callee, this);
+    }, _callee);
   }));
 
   return function forceInit(_x, _x2) {

@@ -64,7 +64,7 @@ function () {
                       return _context.stop();
                   }
                 }
-              }, _callee, this);
+              }, _callee);
             })), {
               retries: 5,
               maxTimeout: 2 * 1000
@@ -85,7 +85,7 @@ function () {
             return _context2.stop();
         }
       }
-    }, _callee2, this);
+    }, _callee2);
   }));
 
   return function waitForSshTunnel(_x) {

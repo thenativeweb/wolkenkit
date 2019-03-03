@@ -157,7 +157,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[17, 23]]);
+    }, _callee, null, [[17, 23]]);
   }));
 
   return function attachDebugger(_x, _x2) {

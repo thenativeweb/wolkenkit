@@ -116,7 +116,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this);
+    }, _callee);
   }));
 
   return function getApplicationStatus(_x, _x2) {

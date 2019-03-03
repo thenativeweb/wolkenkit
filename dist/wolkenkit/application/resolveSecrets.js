@@ -133,7 +133,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[5, 11]]);
+    }, _callee, null, [[5, 11]]);
   }));
 
   return function resolveSecrets(_x) {

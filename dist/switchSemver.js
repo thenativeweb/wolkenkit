@@ -94,7 +94,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this);
+    }, _callee);
   }));
 
   return function switchSemver(_x, _x2) {

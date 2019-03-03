@@ -294,7 +294,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[12, 17], [49, 55], [68, 74]]);
+    }, _callee, null, [[12, 17], [49, 55], [68, 74]]);
   }));
 
   return function startTunnel(_x, _x2) {

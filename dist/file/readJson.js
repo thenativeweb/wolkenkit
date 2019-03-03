@@ -51,7 +51,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[5, 9]]);
+    }, _callee, null, [[5, 9]]);
   }));
 
   return function readJson(_x) {

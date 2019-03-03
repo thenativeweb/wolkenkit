@@ -60,7 +60,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[2, 7]]);
+    }, _callee, null, [[2, 7]]);
   }));
 
   return function exists(_x) {

@@ -96,7 +96,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[7, 13]]);
+    }, _callee, null, [[7, 13]]);
   }));
 
   return function checkDockerServerResolvesToApplicationAddresses(_x, _x2) {

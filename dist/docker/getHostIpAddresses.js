@@ -86,7 +86,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[9, 13]]);
+    }, _callee, null, [[9, 13]]);
   }));
 
   return function getHostIpAddresses(_x) {

@@ -53,13 +53,13 @@ var container = function container(_ref) {
       API_CORS_ORIGIN: selectedEnvironment.fileStorage.allowAccessFrom,
       HTTP_PORT: fileStorage.container.http.port,
       HTTPS_PORT: fileStorage.container.https.port,
-      IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ? path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) : '/keys/wildcard.wolkenkit.io',
+      IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ? path.posix.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) : '/keys/wildcard.wolkenkit.io',
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
       IS_AUTHORIZED_COMMANDS_ADD_FILE: get(selectedEnvironment, 'fileStorage.isAuthorized.commands.addFile') ? get(selectedEnvironment, 'fileStorage.isAuthorized.commands.addFile') : {
         forAuthenticated: true,
         forPublic: false
       },
-      KEYS: get(selectedEnvironment, 'api.certificate') ? path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'api.certificate')) : '/keys/local.wolkenkit.io',
+      KEYS: get(selectedEnvironment, 'api.certificate') ? path.posix.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'api.certificate')) : '/keys/local.wolkenkit.io',
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       STATUS_PORT: 3333,
       STATUS_CORS_ORIGIN: '*',

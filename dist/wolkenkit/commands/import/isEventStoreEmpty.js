@@ -117,7 +117,7 @@ function () {
             return _context.stop();
         }
       }
-    }, _callee, this, [[8, 25, 29, 39], [30,, 34, 38]]);
+    }, _callee, null, [[8, 25, 29, 39], [30,, 34, 38]]);
   }));
 
   return function isEventStoreEmpty(_x) {

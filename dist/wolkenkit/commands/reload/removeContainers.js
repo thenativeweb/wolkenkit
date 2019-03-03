@@ -82,7 +82,7 @@ function () {
                         return _context.stop();
                     }
                   }
-                }, _callee, this);
+                }, _callee);
               }));
 
               return function (_x3) {
@@ -95,7 +95,7 @@ function () {
             return _context2.stop();
         }
       }
-    }, _callee2, this);
+    }, _callee2);
   }));
 
   return function removeContainers(_x, _x2) {

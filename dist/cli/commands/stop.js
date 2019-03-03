@@ -65,7 +65,7 @@ var stop = {
               return _context.stop();
           }
         }
-      }, _callee, this);
+      }, _callee);
     }));
 
     function getOptionDefinitions() {

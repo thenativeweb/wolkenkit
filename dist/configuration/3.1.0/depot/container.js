@@ -48,7 +48,7 @@ var container = function container(_ref) {
     env: {
       API_CORS_ORIGIN: selectedEnvironment.fileStorage.allowAccessFrom,
       HTTP_PORT: fileStorage.container.http.port,
-      IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ? path.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) : '/keys/wildcard.wolkenkit.io',
+      IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ? path.posix.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) : '/keys/wildcard.wolkenkit.io',
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
       IS_AUTHORIZED_COMMANDS_ADD_FILE: get(selectedEnvironment, 'fileStorage.isAuthorized.commands.addFile') ? get(selectedEnvironment, 'fileStorage.isAuthorized.commands.addFile') : {
         forAuthenticated: true,

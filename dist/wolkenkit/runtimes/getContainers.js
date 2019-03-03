@@ -159,7 +159,7 @@ function () {
                         return _context.stop();
                     }
                   }
-                }, _callee, this);
+                }, _callee);
               }));
 
               return function (_x2) {
@@ -180,7 +180,7 @@ function () {
             return _context2.stop();
         }
       }
-    }, _callee2, this, [[14, 20]]);
+    }, _callee2, null, [[14, 20]]);
   }));
 
   return function getContainers(_x) {

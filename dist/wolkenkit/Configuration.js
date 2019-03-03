@@ -21,11 +21,13 @@ function () {
         environment = _ref.environment,
         applicationName = _ref.applicationName,
         runtimeVersion = _ref.runtimeVersion,
-        apiHostname = _ref.apiHostname,
-        apiPort = _ref.apiPort,
         packageJson = _ref.packageJson,
+        _ref$apiHostname = _ref.apiHostname,
+        apiHostname = _ref$apiHostname === void 0 ? undefined : _ref$apiHostname,
         _ref$apiCertificate = _ref.apiCertificate,
         apiCertificate = _ref$apiCertificate === void 0 ? undefined : _ref$apiCertificate,
+        _ref$apiPort = _ref.apiPort,
+        apiPort = _ref$apiPort === void 0 ? undefined : _ref$apiPort,
         _ref$dockerMachine = _ref.dockerMachine,
         dockerMachine = _ref$dockerMachine === void 0 ? undefined : _ref$dockerMachine;
     (0, _classCallCheck2.default)(this, Configuration);
@@ -46,14 +48,6 @@ function () {
       throw new Error('Runtime version is missing.');
     }
 
-    if (!apiHostname) {
-      throw new Error('Api hostname is missing.');
-    }
-
-    if (!apiPort) {
-      throw new Error('Api port is missing.');
-    }
-
     if (!packageJson) {
       throw new Error('Package json is missing.');
     }
@@ -68,10 +62,10 @@ function () {
     };
     this.api = {
       host: {
-        name: apiHostname,
-        certificate: apiCertificate || defaults.commands.shared.certificate
+        name: apiHostname || defaults.commands.shared.api.host.name,
+        certificate: apiCertificate || defaults.commands.shared.api.host.certificate
       },
-      port: apiPort
+      port: apiPort || defaults.commands.shared.api.port
     };
     this.packageJson = packageJson;
 
