@@ -46,7 +46,7 @@
     "defekt": "2.0.1",
     "docker-compare": "0.2.0",
     "dotfile-json": "1.0.3",
-    "eslint": "5.14.1",
+    "eslint": "5.15.1",
     "findsuggestions": "1.0.0",
     "flat": "4.1.0",
     "freeport": "1.0.5",
@@ -71,15 +71,15 @@
     "util.promisify": "1.0.0",
     "uuidv4": "3.0.1",
     "validate-value": "5.0.1",
-    "wolkenkit-application": "4.2.0",
+    "wolkenkit-application": "4.3.0",
     "wolkenkit-eventstore": "2.5.1"
   },
   "devDependencies": {
     "assertthat": "2.0.3",
     "dir-compare": "1.7.2",
     "measure-time": "3.1.1",
-    "p-queue": "3.1.0",
-    "roboter": "4.0.0",
+    "p-queue": "4.0.0",
+    "roboter": "4.0.2",
     "wolkenkit-client": "3.1.0"
   },
   "scripts": {
