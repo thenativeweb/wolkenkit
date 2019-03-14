@@ -110,14 +110,20 @@ const schema = function () {
                     additionalProperties: false,
                     required: [ 'environment' ]
                   },
-                  identityProvider: {
-                    type: 'object',
-                    properties: {
-                      issuer: { type: 'string', minLength: 1 },
-                      certificate: { type: 'string', minLength: 1 }
-                    },
-                    required: [ 'issuer', 'certificate' ],
-                    additionalProperties: false
+                  identityProviders: {
+                    type: 'array',
+                    items: [
+                      {
+                        type: 'object',
+                        properties: {
+                          issuer: { type: 'string', minLength: 1 },
+                          certificate: { type: 'string', minLength: 1 }
+                        },
+                        required: [ 'issuer', 'certificate' ],
+                        additionalProperties: false
+                      }
+                    ],
+                    minItems: 1
                   },
                   docker: {
                     type: 'object',

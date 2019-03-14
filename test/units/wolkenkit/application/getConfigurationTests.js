@@ -21,7 +21,7 @@ suite('application/getConfiguration', () => {
     multipleEnvironmentsWithDockerMachine: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'multipleEnvironmentsWithDockerMachine'),
     multipleAllowAccessFrom: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'multipleAllowAccessFrom'),
     allowAccessFrom: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'allowAccessFrom'),
-    identityProvider: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'identityProvider'),
+    identityProviders: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'identityProviders'),
     transformEnvironmentVariables: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'transformEnvironmentVariables'),
     secretFileNotFound: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'secretFileNotFound'),
     secretNotFound: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'secretNotFound'),
@@ -255,8 +255,8 @@ suite('application/getConfiguration', () => {
     });
   });
 
-  test('returns a configuration if a valid identityProvider template is given.', async () => {
-    const configuration = await getConfiguration({ directory: directory.identityProvider });
+  test('returns a configuration if a valid identityProviders template is given.', async () => {
+    const configuration = await getConfiguration({ directory: directory.identityProviders });
 
     assert.that(configuration).is.equalTo({
       application: 'Chat',
@@ -271,10 +271,12 @@ suite('application/getConfiguration', () => {
           fileStorage: {
             allowAccessFrom: '*'
           },
-          identityProvider: {
-            issuer: 'identityprovider.example.com',
-            certificate: '/server/keys/identityprovider.example.com'
-          },
+          identityProviders: [
+            {
+              issuer: 'identityprovider.example.com',
+              certificate: '/server/keys/identityprovider.example.com'
+            }
+          ],
           node: {
             environment: 'development'
           }

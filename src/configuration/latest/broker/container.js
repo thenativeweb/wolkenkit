@@ -39,6 +39,22 @@ const container = function ({
 
   const selectedEnvironment = packageJson.environments[environment];
 
+  const identityProviders = [];
+
+  if (selectedEnvironment.identityProviders) {
+    for (const identityProvider of selectedEnvironment.identityProviders) {
+      identityProviders.push({
+        issuer: identityProvider.issuer,
+        certificate: path.posix.join('/', 'wolkenkit', 'app', identityProvider.certificate)
+      });
+    }
+  } else {
+    identityProviders.push({
+      issuer: 'https://token.invalid',
+      certificate: '/keys/wildcard.wolkenkit.io'
+    });
+  }
+
   const result = {
     dependsOn: [
       `${configuration.application.name}-core`,
@@ -58,10 +74,7 @@ const container = function ({
       EVENTBUS_URL: `${eventBus.container.amqp.protocol}://${eventBus.container.amqp.user}:${eventBus.container.amqp.password}@${eventBus.container.amqp.hostname}:${eventBus.container.amqp.port}`,
       EVENTSTORE_TYPE: eventStore.type,
       EVENTSTORE_URL: `${eventStore.container.pg.protocol}://${eventStore.container.pg.user}:${eventStore.container.pg.password}@${eventStore.container.pg.hostname}:${eventStore.container.pg.port}/${eventStore.container.pg.database}`,
-      IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ?
-        path.posix.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) :
-        '/keys/wildcard.wolkenkit.io',
-      IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.issuer', 'auth.wolkenkit.io'),
+      IDENTITYPROVIDERS: identityProviders,
       LISTSTORE_URL: `${listStore.container.mongodb.protocol}://${listStore.container.mongodb.user}:${listStore.container.mongodb.password}@${listStore.container.mongodb.hostname}:${listStore.container.mongodb.port}/${listStore.container.mongodb.database}`,
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       PROFILING_HOST: configuration.api.host.name,

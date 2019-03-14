@@ -38,16 +38,29 @@ const container = function ({
 
   const selectedEnvironment = packageJson.environments[environment];
 
+  const identityProviders = [];
+
+  if (selectedEnvironment.identityProviders) {
+    for (const identityProvider of selectedEnvironment.identityProviders) {
+      identityProviders.push({
+        issuer: identityProvider.issuer,
+        certificate: path.posix.join('/', 'wolkenkit', 'app', identityProvider.certificate)
+      });
+    }
+  } else {
+    identityProviders.push({
+      issuer: 'https://token.invalid',
+      certificate: '/keys/wildcard.wolkenkit.io'
+    });
+  }
+
   const result = {
     image: `${configuration.application.name}-depot`,
     name: `${configuration.application.name}-depot`,
     env: {
       API_CORS_ORIGIN: selectedEnvironment.fileStorage.allowAccessFrom,
       HTTP_PORT: fileStorage.container.http.port,
-      IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate') ?
-        path.posix.join('/', 'wolkenkit', 'app', get(selectedEnvironment, 'identityProvider.certificate')) :
-        '/keys/wildcard.wolkenkit.io',
-      IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.issuer', 'auth.wolkenkit.io'),
+      IDENTITYPROVIDERS: identityProviders,
       IS_AUTHORIZED_COMMANDS_ADD_FILE: get(selectedEnvironment, 'fileStorage.isAuthorized.commands.addFile') ?
         get(selectedEnvironment, 'fileStorage.isAuthorized.commands.addFile') :
         { forAuthenticated: true, forPublic: false },

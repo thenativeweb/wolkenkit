@@ -16,10 +16,12 @@
         "fileStorage": {
           "allowAccessFrom": "*"
         },
-        "identityProvider": {
-          "issuer": "identityprovider.example.com",
-          "certificate": "/server/keys/identityprovider.example.com"
-        },
+        "identityProviders": [
+          {
+            "issuer": "identityprovider.example.com",
+            "certificate": "/server/keys/identityprovider.example.com"
+          }
+        ],
         "node": {
           "environment": "development"
         }
