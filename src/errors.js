@@ -32,6 +32,8 @@ const errors = defekt([
   'FileAccessModeTooOpen',
   'FileNotAccessible',
   'FileNotFound',
+  'FileStorageNotAccessible',
+  'FileStorageBucketNotFound',
   'JsonMalformed',
   'OutputMalformed',
   'PortsNotAvailable',

@@ -13,6 +13,7 @@ const docker = require('../../../../docker'),
       shared = require('../../shared'),
       startContainers = require('./startContainers'),
       stop = require('../../stop'),
+      verifyThatFileStorageIsAvailable = require('./verifyThatFileStorageIsAvailable'),
       verifyThatPortsAreAvailable = require('./verifyThatPortsAreAvailable');
 
 const cli = async function ({
@@ -94,6 +95,9 @@ const cli = async function ({
     persistData,
     sharedKey: actualSharedKey
   }, progress);
+
+  progress({ message: 'Verifying that file storage is available...', type: 'info' });
+  await verifyThatFileStorageIsAvailable({ configuration }, progress);
 
   const runtimeVersion = configuration.application.runtime.version;
 
