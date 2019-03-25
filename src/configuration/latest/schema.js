@@ -76,6 +76,43 @@ const schema = function () {
                           }
                         ]
                       },
+                      provider: {
+                        oneOf: [
+                          {
+                            type: 'object',
+                            properties: {
+                              type: { type: 'string', enum: [ 'fileSystem' ]}
+                            },
+                            required: [ 'type' ],
+                            additionalProperties: false
+                          }, {
+                            type: 'object',
+                            properties: {
+                              type: { type: 'string', enum: [ 's3' ]},
+                              options: {
+                                type: 'object',
+                                properties: {
+                                  endpoint: { type: 'string', format: 'uri' },
+                                  region: { type: 'string', minLength: 1 },
+                                  bucketName: { type: 'string', minLength: 1 },
+                                  accessKey: { type: 'string', minLength: 1 },
+                                  secret: { type: 'string', minLength: 1 }
+                                },
+                                required: [
+                                  'endpoint',
+                                  'region',
+                                  'bucketName',
+                                  'accessKey',
+                                  'secret'
+                                ],
+                                additionalProperties: false
+                              }
+                            },
+                            required: [ 'type', 'options' ],
+                            additionalProperties: false
+                          }
+                        ]
+                      },
                       isAuthorized: {
                         properties: {
                           commands: {
@@ -100,7 +137,7 @@ const schema = function () {
                       }
                     },
                     additionalProperties: false,
-                    required: [ 'allowAccessFrom' ]
+                    required: [ 'allowAccessFrom', 'provider' ]
                   },
                   node: {
                     type: 'object',

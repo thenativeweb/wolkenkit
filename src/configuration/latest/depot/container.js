@@ -66,9 +66,7 @@ const container = function ({
         { forAuthenticated: true, forPublic: false },
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       STATUS_PORT: 3333,
-      STATUS_CORS_ORIGIN: '*',
-      PROVIDER_TYPE: 'fileSystem',
-      PROVIDER_DIRECTORY: '/blobs'
+      STATUS_CORS_ORIGIN: '*'
     },
     labels: {
       'wolkenkit-api-port': configuration.api.port,
@@ -89,6 +87,26 @@ const container = function ({
       '/blobs'
     ]
   };
+
+  switch (selectedEnvironment.fileStorage.provider.type) {
+    case 'fileSystem': {
+      result.env.PROVIDER_TYPE = 'fileSystem';
+      result.env.PROVIDER_DIRECTORY = '/blobs';
+      break;
+    }
+    case 's3': {
+      result.env.PROVIDER_TYPE = 's3';
+      result.env.PROVIDER_ENDPOINT = selectedEnvironment.fileStorage.provider.options.endpoint;
+      result.env.PROVIDER_REGION = selectedEnvironment.fileStorage.provider.options.region;
+      result.env.PROVIDER_BUCKET_NAME = selectedEnvironment.fileStorage.provider.options.bucketName;
+      result.env.PROVIDER_ACCESS_KEY = selectedEnvironment.fileStorage.provider.options.accessKey;
+      result.env.PROVIDER_SECRET_KEY = selectedEnvironment.fileStorage.provider.options.secret;
+      break;
+    }
+    default: {
+      throw new Error('Invalid operation.');
+    }
+  }
 
   if (dangerouslyExposeHttpPorts) {
     result.ports[fileStorage.container.http.port] = fileStorage.external.http.port;
