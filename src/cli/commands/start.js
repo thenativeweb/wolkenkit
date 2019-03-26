@@ -109,7 +109,7 @@ const init = {
       return buntstift.info(getUsage([
         { header: 'wolkenkit start', content: this.description },
         { header: 'Synopsis', content: stripIndent`
-          wolkenkit start [--port <port>] [--env <env>] [--dangerously-expose-http-port] [--dangerously-destroy-data] [--shared-key <key>] [--persist] [--debug]
+          wolkenkit start [--port <port>] [--env <env>] [--dangerously-expose-http-ports] [--dangerously-destroy-data] [--shared-key <key>] [--persist] [--debug]
           wolkenkit start [--env <env>] [--private-key <file>]` },
         { header: 'Options', optionList: [ ...await this.getOptionDefinitions(), ...globalOptionDefinitions ]}
       ]));
