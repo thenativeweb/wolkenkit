@@ -5,10 +5,10 @@ const buntstift = require('buntstift'),
       processenv = require('processenv'),
       stripIndent = require('common-tags/lib/stripIndent');
 
-const defaults = require('../../defaults.json'),
+const commands = require('../../../commands'),
+      defaults = require('../../defaults.json'),
       globalOptionDefinitions = require('../../globalOptionDefinitions'),
-      showProgress = require('../../showProgress'),
-      wolkenkit = require('../../../wolkenkit');
+      showProgress = require('../../showProgress');
 
 const exportCommand = {
   description: 'Export application data.',
@@ -75,7 +75,7 @@ const exportCommand = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.infrastructure.export({
+      await commands.infrastructure.export({
         directory,
         env,
         fromEventStore,

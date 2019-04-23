@@ -5,10 +5,10 @@ const buntstift = require('buntstift'),
       processenv = require('processenv'),
       stripIndent = require('common-tags/lib/stripIndent');
 
-const defaults = require('../../defaults.json'),
+const commands = require('../../../commands'),
+      defaults = require('../../defaults.json'),
       globalOptionDefinitions = require('../../globalOptionDefinitions'),
-      showProgress = require('../../showProgress'),
-      wolkenkit = require('../../../wolkenkit');
+      showProgress = require('../../showProgress');
 
 const restart = {
   description: 'Restart an infrastructure.',
@@ -62,7 +62,7 @@ const restart = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.infrastructure.restart({
+      await commands.infrastructure.restart({
         dangerouslyDestroyData,
         directory,
         env

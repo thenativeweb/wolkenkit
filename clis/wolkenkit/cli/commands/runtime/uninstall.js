@@ -4,11 +4,11 @@ const buntstift = require('buntstift'),
       getUsage = require('command-line-usage'),
       processenv = require('processenv');
 
-const defaults = require('../../defaults.json'),
+const commands = require('../../../commands'),
+      defaults = require('../../defaults.json'),
       globalOptionDefinitions = require('../../globalOptionDefinitions'),
-      runtimes = require('../../../wolkenkit/runtimes'),
-      showProgress = require('../../showProgress'),
-      wolkenkit = require('../../../wolkenkit');
+      runtimes = require('../../../runtimes'),
+      showProgress = require('../../showProgress');
 
 const uninstall = {
   description: 'Uninstall a runtime version.',
@@ -68,7 +68,7 @@ const uninstall = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.runtime.uninstall({
+      await commands.runtime.uninstall({
         directory,
         env,
         version

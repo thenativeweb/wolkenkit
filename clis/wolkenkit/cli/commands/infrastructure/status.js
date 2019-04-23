@@ -5,10 +5,10 @@ const buntstift = require('buntstift'),
       processenv = require('processenv'),
       stripIndent = require('common-tags/lib/stripIndent');
 
-const defaults = require('../../defaults.json'),
+const commands = require('../../../commands'),
+      defaults = require('../../defaults.json'),
       globalOptionDefinitions = require('../../globalOptionDefinitions'),
-      showProgress = require('../../showProgress'),
-      wolkenkit = require('../../../wolkenkit');
+      showProgress = require('../../showProgress');
 
 const status = {
   description: 'Fetch an infrastructure status.',
@@ -51,7 +51,7 @@ const status = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.infrastructure.status({
+      await commands.infrastructure.status({
         directory,
         env
       }, showProgress(verbose, stopWaiting));

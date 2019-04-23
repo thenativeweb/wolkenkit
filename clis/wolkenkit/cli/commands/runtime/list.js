@@ -4,10 +4,10 @@ const buntstift = require('buntstift'),
       getUsage = require('command-line-usage'),
       processenv = require('processenv');
 
-const defaults = require('../../defaults.json'),
+const commands = require('../../../commands'),
+      defaults = require('../../defaults.json'),
       globalOptionDefinitions = require('../../globalOptionDefinitions'),
-      showProgress = require('../../showProgress'),
-      wolkenkit = require('../../../wolkenkit');
+      showProgress = require('../../showProgress');
 
 const list = {
   aliases: [ 'ls' ],
@@ -57,7 +57,7 @@ const list = {
     let versions;
 
     try {
-      versions = await wolkenkit.commands.runtime.list({
+      versions = await commands.runtime.list({
         directory,
         env
       }, showProgress(verbose, stopWaiting));

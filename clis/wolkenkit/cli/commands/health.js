@@ -4,10 +4,10 @@ const buntstift = require('buntstift'),
       getUsage = require('command-line-usage'),
       processenv = require('processenv');
 
-const defaults = require('../defaults.json'),
+const commands = require('../../commands'),
+      defaults = require('../defaults.json'),
       globalOptionDefinitions = require('../globalOptionDefinitions'),
-      showProgress = require('../showProgress'),
-      wolkenkit = require('../../wolkenkit');
+      showProgress = require('../showProgress');
 
 const health = {
   description: 'Verify whether wolkenkit is setup correctly.',
@@ -50,7 +50,7 @@ const health = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.health({
+      await commands.health({
         directory,
         env
       }, showProgress(verbose, stopWaiting));

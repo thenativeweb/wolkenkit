@@ -3,11 +3,11 @@
 const buntstift = require('buntstift'),
       getUsage = require('command-line-usage');
 
-const checkDirectory = require('../../../wolkenkit/commands/application/init/checkDirectory'),
+const checkDirectory = require('../../../commands/application/init/checkDirectory'),
+      commands = require('../../../commands'),
       defaults = require('../../defaults.json'),
       globalOptionDefinitions = require('../../globalOptionDefinitions'),
-      showProgress = require('../../showProgress'),
-      wolkenkit = require('../../../wolkenkit');
+      showProgress = require('../../showProgress');
 
 const init = {
   description: 'Initialize a new application.',
@@ -86,7 +86,7 @@ const init = {
         ).url;
       }
 
-      await wolkenkit.commands.application.init({
+      await commands.application.init({
         directory,
         template: selectedTemplate,
         force

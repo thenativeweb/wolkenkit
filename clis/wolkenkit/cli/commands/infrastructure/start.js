@@ -5,10 +5,10 @@ const buntstift = require('buntstift'),
       processenv = require('processenv'),
       stripIndent = require('common-tags/lib/stripIndent');
 
-const defaults = require('../../defaults.json'),
+const commands = require('../../../commands'),
+      defaults = require('../../defaults.json'),
       globalOptionDefinitions = require('../../globalOptionDefinitions'),
-      showProgress = require('../../showProgress'),
-      wolkenkit = require('../../../wolkenkit');
+      showProgress = require('../../showProgress');
 
 const start = {
   description: 'Start an infrastructure.',
@@ -90,7 +90,7 @@ const start = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.infrastructure.start({
+      await commands.infrastructure.start({
         directory,
         dangerouslyDestroyData,
         debug,

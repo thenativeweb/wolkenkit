@@ -4,10 +4,10 @@ const buntstift = require('buntstift'),
       getUsage = require('command-line-usage'),
       processenv = require('processenv');
 
-const defaults = require('../../defaults.json'),
+const commands = require('../../../commands'),
+      defaults = require('../../defaults.json'),
       globalOptionDefinitions = require('../../globalOptionDefinitions'),
-      showProgress = require('../../showProgress'),
-      wolkenkit = require('../../../wolkenkit');
+      showProgress = require('../../showProgress');
 
 const logs = {
   description: 'Fetch an application log.',
@@ -56,7 +56,7 @@ const logs = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.application.logs({
+      await commands.application.logs({
         directory,
         env,
         follow

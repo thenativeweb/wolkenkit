@@ -5,10 +5,10 @@ const buntstift = require('buntstift'),
       processenv = require('processenv'),
       stripIndent = require('common-tags/lib/stripIndent');
 
-const defaults = require('../../defaults.json'),
+const commands = require('../../../commands'),
+      defaults = require('../../defaults.json'),
       globalOptionDefinitions = require('../../globalOptionDefinitions'),
-      showProgress = require('../../showProgress'),
-      wolkenkit = require('../../../wolkenkit');
+      showProgress = require('../../showProgress');
 
 const importCommand = {
   description: 'Import application data.',
@@ -75,7 +75,7 @@ const importCommand = {
     const stopWaiting = buntstift.wait();
 
     try {
-      await wolkenkit.commands.infrastructure.import({
+      await commands.infrastructure.import({
         directory,
         env,
         from,
