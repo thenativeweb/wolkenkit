@@ -1,25 +1,35 @@
 {
   "commands": {
-    "export": {
-      "fromEventStore": true
+    "application": {
+      "init": {
+        "force": false
+      },
+      "logs": {
+        "follow": false
+      },
+      "start": {
+        "dangerouslyDestroyData": false,
+        "dangerouslyExposeHttpPorts": false,
+        "debug": false
+      },
+      "stop": {
+        "dangerouslyDestroyData": false
+      }
     },
-    "import": {
-      "toEventStore": true
-    },
-    "init": {
-      "force": false
-    },
-    "logs": {
-      "follow": false
-    },
-    "start": {
-      "dangerouslyDestroyData": false,
-      "dangerouslyExposeHttpPorts": false,
-      "debug": false,
-      "persist": false
-    },
-    "stop": {
-      "dangerouslyDestroyData": false
+    "infrastructure": {
+      "export": {
+        "fromEventStore": true
+      },
+      "import": {
+        "toEventStore": true
+      },
+      "start": {
+        "dangerouslyDestroyData": false,
+        "debug": false
+      },
+      "stop": {
+        "dangerouslyDestroyData": false
+      }
     }
   },
   "env": "default"

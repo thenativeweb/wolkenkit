@@ -15,7 +15,7 @@ suite('application/getConfiguration', () => {
     unknownRuntimeVersion: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'unknownRuntimeVersion'),
     certificate: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'certificate'),
     doesNotContainNodeEnvironment: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'doesNotContainNodeEnvironment'),
-    doesNotContainPort: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'doesNotContainPort'),
+    doesNotContainCertificate: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'doesNotContainCertificate'),
     doesNotContainAllowAccessFrom: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'doesNotContainAllowAccessFrom'),
     multipleEnvironments: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'multipleEnvironments'),
     multipleEnvironmentsWithDockerMachine: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'multipleEnvironmentsWithDockerMachine'),
@@ -75,9 +75,9 @@ suite('application/getConfiguration', () => {
     }).is.not.throwingAsync();
   });
 
-  test('throws an error if package.json does not contain an port.', async () => {
+  test('throws an error if package.json does not contain an certificate.', async () => {
     await assert.that(async () => {
-      await getConfiguration({ directory: directory.doesNotContainPort });
+      await getConfiguration({ directory: directory.doesNotContainCertificate });
     }).is.throwingAsync(ex => ex.code === 'ECONFIGURATIONMALFORMED');
   });
 

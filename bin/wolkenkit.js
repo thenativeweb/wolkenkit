@@ -9,6 +9,8 @@ const buntstift = require('buntstift'),
       updateNotifier = require('update-notifier');
 
 const commands = require('../lib/cli/commands'),
+      getCommand = require('../lib/cli/getCommand'),
+      getCommandNames = require('../lib/cli/getCommandNames'),
       globalOptionDefinitions = require('../lib/cli/globalOptionDefinitions'),
       packageJson = require('../package.json'),
       telemetry = require('../lib/telemetry');
@@ -16,16 +18,16 @@ const commands = require('../lib/cli/commands'),
 updateNotifier({ pkg: packageJson }).notify();
 
 (async function () {
-  const validCommands = Object.keys(commands);
+  const validCommands = getCommandNames(commands);
 
   let parsed;
 
   try {
     parsed = commandLineCommands([ null, ...validCommands ]);
   } catch (ex) {
-    const suggestions = findSuggestions({ for: ex.command, in: validCommands });
+    const commandSuggestions = findSuggestions({ for: ex.command, in: validCommands });
 
-    buntstift.error(`Unknown command '${ex.command}', did you mean '${suggestions[0].suggestion}'?`);
+    buntstift.error(`Unknown command '${ex.command}', did you mean '${commandSuggestions[0].suggestion}'?`);
     buntstift.exit(1);
   }
 
@@ -38,11 +40,41 @@ updateNotifier({ pkg: packageJson }).notify();
     parsed.command = 'help';
   }
 
-  const command = commands[parsed.command];
-  const validOptionDefinitions = [
-    ...globalOptionDefinitions,
-    ...await command.getOptionDefinitions()
-  ];
+  const commandName = parsed.command;
+  const command = getCommand(commands, commandName);
+
+  let subCommand,
+      subCommandName;
+
+  if (command.subCommands) {
+    const validSubCommands = getCommandNames(command.subCommands);
+
+    subCommandName = (parsed.argv[0] || 'help').replace('--', '');
+    subCommand = getCommand(command.subCommands, subCommandName);
+
+    if (!subCommand) {
+      const subCommandSuggestions = findSuggestions({ for: subCommandName, in: validSubCommands });
+
+      buntstift.error(`Unknown command '${subCommandName}', did you mean '${subCommandSuggestions[0].suggestion}'?`);
+      buntstift.exit(1);
+    }
+
+    parsed.argv.shift();
+  }
+
+  let validOptionDefinitions = [ ...globalOptionDefinitions ];
+
+  if (subCommand) {
+    validOptionDefinitions = [
+      ...validOptionDefinitions,
+      ...await subCommand.getOptionDefinitions()
+    ];
+  } else {
+    validOptionDefinitions = [
+      ...validOptionDefinitions,
+      ...await command.getOptionDefinitions()
+    ];
+  }
 
   const args = commandLineArgs(validOptionDefinitions, {
     argv: parsed.argv,
@@ -78,8 +110,16 @@ updateNotifier({ pkg: packageJson }).notify();
   await telemetry.init();
 
   try {
-    await command.run(args);
-    await telemetry.send({ command: parsed.command, args });
+    if (subCommand) {
+      await subCommand.run(args);
+    } else {
+      await command.run(args);
+    }
+
+    await telemetry.send({
+      command: subCommandName ? `${commandName} ${subCommandName}` : commandName,
+      args
+    });
   } catch (ex) {
     handleException(ex);
   }
