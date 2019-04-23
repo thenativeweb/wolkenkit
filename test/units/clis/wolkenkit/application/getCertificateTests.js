@@ -6,7 +6,7 @@ const assert = require('assertthat');
 
 const getCertificate = require('../../../../../clis/wolkenkit/application/getCertificate');
 
-suite('application/getCertificate', () => {
+suite('[clis/wolkenkit] application/getCertificate', () => {
   test('is a function.', done => {
     assert.that(getCertificate).is.ofType('function');
     done();

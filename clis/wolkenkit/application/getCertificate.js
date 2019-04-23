@@ -1,7 +1,8 @@
 'use strict';
 
-const certificateDetails = require('certificate-details'),
-      promisify = require('util.promisify');
+const { promisify } = require('util');
+
+const certificateDetails = require('certificate-details');
 
 const errors = require('../errors'),
       getCertificateDirectory = require('./getCertificateDirectory');

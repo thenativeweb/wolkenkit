@@ -3,13 +3,10 @@
 const path = require('path');
 
 const isolated = require('isolated'),
-      promisify = require('util.promisify'),
-      recursiveReaddirCallback = require('recursive-readdir');
+      recursiveReaddir = require('recursive-readdir');
 
 const cloneRepository = require('./cloneRepository'),
       shell = require('../../../shell');
-
-const recursiveReaddir = promisify(recursiveReaddirCallback);
 
 const forceInit = async function ({ directory, template }, progress) {
   if (!directory) {

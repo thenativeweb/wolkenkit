@@ -1,8 +1,7 @@
 'use strict';
 
-const fs = require('fs');
-
-const promisify = require('util.promisify');
+const fs = require('fs'),
+      { promisify } = require('util');
 
 const checkImportEventStore = require('./checkImportEventStore'),
       errors = require('../../../errors'),

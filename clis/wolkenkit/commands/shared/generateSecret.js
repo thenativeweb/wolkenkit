@@ -1,9 +1,9 @@
 'use strict';
 
-const crypto = require('crypto');
+const crypto = require('crypto'),
+      { promisify } = require('util');
 
-const promisify = require('util.promisify'),
-      sha1 = require('sha1');
+const sha1 = require('sha1');
 
 const randomBytes = promisify(crypto.randomBytes);
 

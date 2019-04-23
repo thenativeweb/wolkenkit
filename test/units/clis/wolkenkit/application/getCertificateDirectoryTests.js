@@ -8,7 +8,7 @@ const defaults = require('../../../../../clis/wolkenkit/application/defaults.jso
       getCertificateDirectory = require('../../../../../clis/wolkenkit/application/getCertificateDirectory'),
       shell = require('../../../../../clis/wolkenkit/shell');
 
-suite('application/getCertificateDirectory', () => {
+suite('[clis/wolkenkit] application/getCertificateDirectory', () => {
   test('is a function.', done => {
     assert.that(getCertificateDirectory).is.ofType('function');
     done();

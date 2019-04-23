@@ -2,20 +2,20 @@
 
 const fs = require('fs'),
       os = require('os'),
-      path = require('path');
+      path = require('path'),
+      { promisify } = require('util');
 
 const axios = require('axios'),
       buntstift = require('buntstift'),
-      { Command } = require('commands-events'),
       deepHash = require('deep-hash'),
       dotFile = require('dotfile-json'),
-      promisify = require('util.promisify'),
       retry = require('async-retry'),
       semver = require('semver'),
       stringifyObject = require('stringify-object'),
       uuid = require('uuidv4');
 
-const getConfiguration = require('../commands/shared/getConfiguration'),
+const { Command } = require('../../../common/elements'),
+      getConfiguration = require('../commands/shared/getConfiguration'),
       packageJson = require('../../../package.json');
 
 const stat = promisify(fs.stat);

@@ -1,10 +1,10 @@
 'use strict';
 
 const fs = require('fs'),
-      path = require('path');
+      path = require('path'),
+      { promisify } = require('util');
 
-const promisify = require('util.promisify'),
-      semver = require('semver');
+const semver = require('semver');
 
 const readdir = promisify(fs.readdir);
 

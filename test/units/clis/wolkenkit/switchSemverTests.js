@@ -4,7 +4,7 @@ const assert = require('assertthat');
 
 const switchSemver = require('../../../../clis/wolkenkit/switchSemver');
 
-suite('switchSemver', () => {
+suite('[clis/wolkenkit] switchSemver', () => {
   test('is a function.', async () => {
     assert.that(switchSemver).is.ofType('function');
   });

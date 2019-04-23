@@ -1,18 +1,15 @@
 'use strict';
 
 const os = require('os'),
-      url = require('url'),
-      util = require('util');
+      url = require('url');
 
-const freeportCallback = require('freeport');
+const freeport = require('freeport-promise');
 
 const defaults = require('../defaults.json'),
       errors = require('../../errors'),
       file = require('../../file'),
       startOpensshTunnel = require('./startOpensshTunnel'),
       startPuttyTunnel = require('./startPuttyTunnel');
-
-const freeport = util.promisify(freeportCallback);
 
 const startTunnel = async function ({
   configuration,

@@ -12,6 +12,10 @@
       "email": "matthias.wagler@thenativeweb.io"
     },
     {
+      "name": "Christian Nolte",
+      "email": "christian.nolte@thenativeweb.io"
+    },
+    {
       "name": "Jan-Hendrik Grundhöfer",
       "email": "jan-hendrik.grundhoefer@thenativeweb.io"
     },
@@ -20,8 +24,28 @@
       "email": "mail@michael-scherer.net"
     },
     {
+      "name": "René Viering",
+      "email": "rene.viering@gmail.com"
+    },
+    {
       "name": "Radu Märza",
       "email": "radu.2010@gmx.de"
+    },
+    {
+      "name": "Adam Koleszar",
+      "email": "madfist@gmail.com"
+    },
+    {
+      "name": "Jimmy Beaudoin",
+      "email": "jbeaudoin11@gmail.com"
+    },
+    {
+      "name": "Manfred Mjka",
+      "email": "manfred.mjka@sclable.com"
+    },
+    {
+      "name": "Lorenz Leutgeb",
+      "email": "lorenz.leutgeb@sclable.com"
     }
   ],
   "bin": {
@@ -32,30 +56,38 @@
     "array-to-sentence": "2.0.0",
     "async-retry": "1.2.3",
     "axios": "0.18.0",
+    "boolean": "1.0.0",
     "buntstift": "1.5.1",
     "certificate-details": "0.3.1",
     "combined-stream": "1.0.7",
     "command-line-args": "5.1.1",
     "command-line-commands": "2.0.1",
     "command-line-usage": "5.0.5",
-    "commands-events": "thenativeweb/commands-events#ca11473cfb1de65d65d0342540e33e7acfa4dc78",
     "common-tags": "1.8.0",
     "deep-hash": "1.0.1",
     "defekt": "2.0.1",
+    "directory-tree": "2.2.1",
     "docker-compare": "0.2.0",
     "dotfile-json": "1.0.3",
+    "dsn-parser": "1.0.1",
     "eslint": "5.16.0",
     "findsuggestions": "1.0.0",
     "flat": "4.1.0",
-    "freeport": "1.0.5",
+    "freeport-promise": "1.1.0",
+    "humanize-string": "2.1.0",
     "is-ip": "3.0.0",
     "isolated": "1.0.1",
+    "limit-alphanumeric": "1.0.0",
     "lodash": "4.17.11",
     "minio": "7.0.6",
+    "mongodb": "3.2.3",
+    "mysql2": "1.5.3",
     "newline-json": "0.1.1",
     "nodeenv": "1.0.0",
     "object-hash": "1.3.1",
     "open": "6.2.0",
+    "pg": "7.10.0",
+    "pg-query-stream": "2.0.0",
     "portscanner": "2.2.0",
     "processenv": "1.1.0",
     "pump": "3.0.0",
@@ -66,19 +98,25 @@
     "shelljs": "0.8.3",
     "stringify-object": "3.3.0",
     "tar": "4.4.8",
+    "tarn": "1.1.5",
+    "tedious": "2.6.3",
     "update-notifier": "2.5.0",
-    "util.promisify": "1.0.0",
     "uuidv4": "4.0.0",
-    "validate-value": "5.0.2",
-    "wolkenkit-application": "thenativeweb/wolkenkit-application#8fae12059088a1fce8c106d5f1b8a84fac5dd468",
-    "wolkenkit-eventstore": "thenativeweb/wolkenkit-eventstore#85c96620e739b1db85db025318dcc6635fdf8500"
+    "validate-value": "5.0.2"
   },
   "devDependencies": {
+    "array-join-conjunction": "1.0.0",
     "assertthat": "2.0.3",
     "dir-compare": "1.7.2",
+    "execa": "1.0.0",
     "measure-time": "3.1.1",
     "p-queue": "5.0.0",
+    "retry-ignore-abort": "1.0.1",
     "roboter": "4.0.4",
+    "streamtoarray": "1.1.0",
+    "strip-ansi": "5.2.0",
+    "terminal-img": "1.1.1",
+    "twitter": "1.7.1",
     "wolkenkit-client": "3.1.0"
   },
   "scripts": {

@@ -1,12 +1,12 @@
 'use strict';
 
 const fs = require('fs'),
-      path = require('path');
+      path = require('path'),
+      { promisify } = require('util');
 
 const buntstift = require('buntstift'),
       measureTime = require('measure-time'),
-      processenv = require('processenv'),
-      promisify = require('util.promisify');
+      processenv = require('processenv');
 
 const shell = require('../../../../../clis/wolkenkit/shell');
 

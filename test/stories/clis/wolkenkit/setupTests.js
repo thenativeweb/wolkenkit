@@ -12,7 +12,7 @@ const getDirectoryList = require('./helpers/getDirectoryList'),
 const packageJson = require('../../../../package.json');
 
 (async () => {
-  await suite('setup', async ({ test, wolkenkit }) => {
+  await suite('[clis/wolkenkit] setup', async ({ test, wolkenkit }) => {
     await test('[wolkenkit] shows the usage.', async ({ directory }) => {
       const { code, stderr, stdout } = await wolkenkit('', {}, { cwd: directory });
 

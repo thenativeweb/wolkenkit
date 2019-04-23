@@ -1,9 +1,8 @@
 'use strict';
 
 const fs = require('fs'),
-      path = require('path');
-
-const promisify = require('util.promisify');
+      path = require('path'),
+      { promisify } = require('util');
 
 const shell = require('../../../../../clis/wolkenkit/shell');
 

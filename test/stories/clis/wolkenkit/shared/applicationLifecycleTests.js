@@ -12,7 +12,7 @@ const changePackageJson = require('../helpers/changePackageJson'),
       suite = require('../helpers/suite');
 
 const applicationLifecycleTests = async function (runtime) {
-  await suite(`application lifecycle on ${runtime}`, async ({ test, wolkenkit, ipAddress }) => {
+  await suite(`[clis/wolkenkit] application lifecycle on ${runtime}`, async ({ test, wolkenkit, ipAddress }) => {
     const importDirectory = {
       chatWith200000Events: path.join(__dirname, '..', '..', 'shared', 'exports', 'chat-with-200000-events'),
       chatWith200Events: path.join(__dirname, '..', '..', 'shared', 'exports', 'chat-with-200-events')

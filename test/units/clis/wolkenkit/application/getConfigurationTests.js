@@ -6,7 +6,7 @@ const assert = require('assertthat');
 
 const getConfiguration = require('../../../../../clis/wolkenkit/application/getConfiguration');
 
-suite('application/getConfiguration', () => {
+suite('[clis/wolkenkit] application/getConfiguration', () => {
   const directory = {
     missing: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'missing'),
     invalidJson: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'invalidJson'),

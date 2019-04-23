@@ -4,7 +4,7 @@ const assert = require('assertthat');
 
 const isNameMatching = require('../../../../../clis/wolkenkit/certificate/isNameMatching');
 
-suite('certificate/isNameMatching', () => {
+suite('[clis/wolkenkit] certificate/isNameMatching', () => {
   test('is a function.', done => {
     assert.that(isNameMatching).is.ofType('function');
     done();

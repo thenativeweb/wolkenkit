@@ -2,9 +2,8 @@
 
 const fs = require('fs'),
       os = require('os'),
-      path = require('path');
-
-const promisify = require('util.promisify');
+      path = require('path'),
+      { promisify } = require('util');
 
 const docker = require('../../docker'),
       shell = require('../../shell');

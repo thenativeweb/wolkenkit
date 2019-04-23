@@ -1,10 +1,10 @@
 'use strict';
 
 const fs = require('fs'),
-      path = require('path');
+      path = require('path'),
+      { promisify } = require('util');
 
-const merge = require('lodash/merge'),
-      promisify = require('util.promisify');
+const merge = require('lodash/merge');
 
 const readJson = require('../../../../../clis/wolkenkit/file/readJson');
 

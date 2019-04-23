@@ -4,7 +4,7 @@ const assert = require('assertthat');
 
 const ip = require('../../../../../clis/wolkenkit/network/ip');
 
-suite('network/ip', () => {
+suite('[clis/wolkenkit] network/ip', () => {
   test('is an object.', done => {
     assert.that(ip).is.ofType('object');
     done();

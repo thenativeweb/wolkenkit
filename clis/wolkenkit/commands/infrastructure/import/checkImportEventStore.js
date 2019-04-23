@@ -2,14 +2,14 @@
 
 const fs = require('fs'),
       { PassThrough } = require('stream'),
-      path = require('path');
+      path = require('path'),
+      { promisify } = require('util');
 
-const { Event } = require('commands-events'),
-      jsonStream = require('JSONStream'),
-      promisify = require('util.promisify'),
+const jsonStream = require('JSONStream'),
       pump = require('pump');
 
 const errors = require('../../../errors'),
+      { Event } = require('../../../../../common/elements'),
       noop = require('../../../noop'),
       shared = require('../../shared');
 

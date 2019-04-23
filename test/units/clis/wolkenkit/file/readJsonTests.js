@@ -8,7 +8,7 @@ const assert = require('assertthat'),
 const readJson = require('../../../../../clis/wolkenkit/file/readJson'),
       shell = require('../../../../../clis/wolkenkit/shell');
 
-suite('file/readJson', () => {
+suite('[clis/wolkenkit] file/readJson', () => {
   test('is a function.', done => {
     assert.that(readJson).is.ofType('function');
     done();

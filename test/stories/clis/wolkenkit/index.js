@@ -1,11 +1,11 @@
 'use strict';
 
 const childProcess = require('child_process'),
-      fs = require('fs');
+      fs = require('fs'),
+      { promisify } = require('util');
 
 const buntstift = require('buntstift'),
-      PQueue = require('p-queue'),
-      promisify = require('util.promisify');
+      PQueue = require('p-queue');
 
 const setupAws = require('./helpers/setupAws'),
       teardownAws = require('./helpers/teardownAws');

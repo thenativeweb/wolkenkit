@@ -2,10 +2,10 @@
 
 const path = require('path');
 
-const eslint = require('eslint'),
-      wolkenkitApplication = require('wolkenkit-application');
+const eslint = require('eslint');
 
-const errors = require('../../errors');
+const errors = require('../../errors'),
+      wolkenkitApplication = require('../../../../common/application');
 
 const validateCode = async function ({ directory }, progress) {
   if (!directory) {

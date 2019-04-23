@@ -1,8 +1,7 @@
 'use strict';
 
-const dns = require('dns');
-
-const promisify = require('util.promisify');
+const dns = require('dns'),
+      { promisify } = require('util');
 
 const ip = require('./ip');
 
