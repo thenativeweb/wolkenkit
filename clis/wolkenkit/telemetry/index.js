@@ -16,7 +16,7 @@ const axios = require('axios'),
       uuid = require('uuidv4');
 
 const getConfiguration = require('../wolkenkit/commands/shared/getConfiguration'),
-      packageJson = require('../../package.json');
+      packageJson = require('../../../package.json');
 
 const stat = promisify(fs.stat);
 

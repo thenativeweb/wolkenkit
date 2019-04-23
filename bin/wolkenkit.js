@@ -8,12 +8,12 @@ const buntstift = require('buntstift'),
       findSuggestions = require('findsuggestions'),
       updateNotifier = require('update-notifier');
 
-const commands = require('../lib/cli/commands'),
-      getCommand = require('../lib/cli/getCommand'),
-      getCommandNames = require('../lib/cli/getCommandNames'),
-      globalOptionDefinitions = require('../lib/cli/globalOptionDefinitions'),
+const commands = require('../clis/wolkenkit/cli/commands'),
+      getCommand = require('../clis/wolkenkit/cli/getCommand'),
+      getCommandNames = require('../clis/wolkenkit/cli/getCommandNames'),
+      globalOptionDefinitions = require('../clis/wolkenkit/cli/globalOptionDefinitions'),
       packageJson = require('../package.json'),
-      telemetry = require('../lib/telemetry');
+      telemetry = require('../clis/wolkenkit/telemetry');
 
 updateNotifier({ pkg: packageJson }).notify();
 

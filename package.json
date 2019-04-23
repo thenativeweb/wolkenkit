@@ -25,9 +25,8 @@
     }
   ],
   "bin": {
-    "wolkenkit": "lib/bin/wolkenkit.js"
+    "wolkenkit": "bin/wolkenkit.js"
   },
-  "main": "lib/wolkenkit/index.js",
   "dependencies": {
     "JSONStream": "1.3.5",
     "array-to-sentence": "2.0.0",
