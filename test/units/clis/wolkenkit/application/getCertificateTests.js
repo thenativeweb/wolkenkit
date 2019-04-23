@@ -4,7 +4,7 @@ const path = require('path');
 
 const assert = require('assertthat');
 
-const getCertificate = require('../../../../lib/wolkenkit/application/getCertificate');
+const getCertificate = require('../../../../../clis/wolkenkit/application/getCertificate');
 
 suite('application/getCertificate', () => {
   test('is a function.', done => {
@@ -38,7 +38,7 @@ suite('application/getCertificate', () => {
   test('throws an error if the certificate does not exist.', async () => {
     await assert.that(async () => {
       await getCertificate({
-        directory: path.join(__dirname, '..', '..', '..', 'shared'),
+        directory: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit'),
         configuration: { api: { host: { certificate: '/keys/empty' }}}
       });
     }).is.throwingAsync(ex => ex.code === 'EFILENOTFOUND');
@@ -46,7 +46,7 @@ suite('application/getCertificate', () => {
 
   test('returns the certificate.', async () => {
     const certificate = await getCertificate({
-      directory: path.join(__dirname, '..', '..', '..', 'shared'),
+      directory: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit'),
       configuration: { api: { host: { certificate: '/keys/local.wolkenkit.io' }}}
     });
 

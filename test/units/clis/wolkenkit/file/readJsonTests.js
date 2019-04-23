@@ -5,8 +5,8 @@ const path = require('path');
 const assert = require('assertthat'),
       isolated = require('isolated');
 
-const readJson = require('../../../lib/file/readJson'),
-      shell = require('../../../lib/shell');
+const readJson = require('../../../../../clis/wolkenkit/file/readJson'),
+      shell = require('../../../../../clis/wolkenkit/shell');
 
 suite('file/readJson', () => {
   test('is a function.', done => {
@@ -27,7 +27,7 @@ suite('file/readJson', () => {
   });
 
   test('throws an error if file is not accessible.', async () => {
-    const source = path.join(__dirname, '..', '..', 'shared', 'configuration', 'validJson', 'package.json');
+    const source = path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'validJson', 'package.json');
     const directory = await isolated({ files: [ source ]});
     const target = path.join(directory, 'package.json');
 
@@ -39,7 +39,7 @@ suite('file/readJson', () => {
   });
 
   test('throws an error if file does not contain json format.', async () => {
-    const file = path.join(__dirname, '..', '..', 'shared', 'configuration', 'invalidJson', 'package.json');
+    const file = path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'invalidJson', 'package.json');
 
     await assert.that(async () => {
       await readJson(file);
@@ -47,7 +47,7 @@ suite('file/readJson', () => {
   });
 
   test('returns json.', async () => {
-    const file = path.join(__dirname, '..', '..', 'shared', 'configuration', 'validJson', 'package.json');
+    const file = path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'validJson', 'package.json');
 
     const json = await readJson(file);
 

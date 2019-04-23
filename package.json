@@ -82,7 +82,7 @@
     "wolkenkit-client": "3.1.0"
   },
   "scripts": {
-    "test-stories": "node test/stories/index.js"
+    "test-stories": "node test/stories/clis/wolkenkit/index.js"
   },
   "repository": {
     "type": "git",

@@ -4,9 +4,9 @@ const path = require('path');
 
 const assert = require('assertthat');
 
-const defaults = require('../../../../lib/wolkenkit/defaults.json'),
-      getCertificateDirectory = require('../../../../lib/wolkenkit/application/getCertificateDirectory'),
-      shell = require('../../../../lib/shell');
+const defaults = require('../../../../../clis/wolkenkit/application/defaults.json'),
+      getCertificateDirectory = require('../../../../../clis/wolkenkit/application/getCertificateDirectory'),
+      shell = require('../../../../../clis/wolkenkit/shell');
 
 suite('application/getCertificateDirectory', () => {
   test('is a function.', done => {
@@ -38,7 +38,7 @@ suite('application/getCertificateDirectory', () => {
   });
 
   test('returns the certificate directory if an absolute path is configured.', async () => {
-    const directoryBase = path.join(__dirname, '..', '..', '..', 'shared');
+    const directoryBase = path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit');
     const directoryCertificate = '/keys/localhost';
     const directory = path.join(directoryBase, directoryCertificate);
 
@@ -53,7 +53,7 @@ suite('application/getCertificateDirectory', () => {
   });
 
   test('returns the certificate directory if a relative path is configured.', async () => {
-    const directoryBase = path.join(__dirname, '..', '..', '..', 'shared');
+    const directoryBase = path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit');
     const directoryCertificate = 'keys/localhost';
     const directory = path.join(directoryBase, directoryCertificate);
 
@@ -70,9 +70,9 @@ suite('application/getCertificateDirectory', () => {
   test('returns the fallback certificate directory if default path is configured.', async () => {
     const certificateDirectory = await getCertificateDirectory({
       directory: __dirname,
-      configuration: { api: { host: { certificate: defaults.commands.shared.api.host.certificate }}}
+      configuration: { api: { host: { certificate: defaults.api.host.certificate }}}
     });
 
-    assert.that(certificateDirectory).is.equalTo(path.join(__dirname, '..', '..', '..', '..', 'keys', 'local.wolkenkit.io'));
+    assert.that(certificateDirectory).is.equalTo(path.join(__dirname, '..', '..', '..', '..', '..', 'clis', 'wolkenkit', 'keys', 'local.wolkenkit.io'));
   });
 });

@@ -6,10 +6,10 @@ const assert = require('assertthat'),
       isolated = require('isolated');
 
 const getDirectoryList = require('./helpers/getDirectoryList'),
-      shell = require('../../lib/shell'),
+      shell = require('../../../../clis/wolkenkit/shell'),
       suite = require('./helpers/suite');
 
-const packageJson = require('../../package.json');
+const packageJson = require('../../../../package.json');
 
 (async () => {
   await suite('setup', async ({ test, wolkenkit }) => {

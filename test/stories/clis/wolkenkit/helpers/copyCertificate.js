@@ -5,7 +5,7 @@ const fs = require('fs'),
 
 const promisify = require('util.promisify');
 
-const shell = require('../../../lib/shell');
+const shell = require('../../../../../clis/wolkenkit/shell');
 
 const copyFile = promisify(fs.copyFile);
 

@@ -4,28 +4,28 @@ const path = require('path');
 
 const assert = require('assertthat');
 
-const getConfiguration = require('../../../../lib/wolkenkit/application/getConfiguration');
+const getConfiguration = require('../../../../../clis/wolkenkit/application/getConfiguration');
 
 suite('application/getConfiguration', () => {
   const directory = {
-    missing: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'missing'),
-    invalidJson: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'invalidJson'),
-    validJson: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'validJson'),
-    missingRuntimeVersion: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'missingRuntimeVersion'),
-    unknownRuntimeVersion: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'unknownRuntimeVersion'),
-    certificate: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'certificate'),
-    doesNotContainNodeEnvironment: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'doesNotContainNodeEnvironment'),
-    doesNotContainCertificate: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'doesNotContainCertificate'),
-    doesNotContainAllowAccessFrom: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'doesNotContainAllowAccessFrom'),
-    multipleEnvironments: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'multipleEnvironments'),
-    multipleEnvironmentsWithDockerMachine: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'multipleEnvironmentsWithDockerMachine'),
-    multipleAllowAccessFrom: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'multipleAllowAccessFrom'),
-    allowAccessFrom: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'allowAccessFrom'),
-    identityProviders: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'identityProviders'),
-    transformEnvironmentVariables: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'transformEnvironmentVariables'),
-    secretFileNotFound: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'secretFileNotFound'),
-    secretNotFound: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'secretNotFound'),
-    resolveSecrets: path.join(__dirname, '..', '..', '..', 'shared', 'configuration', 'templates', 'resolveSecrets')
+    missing: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'missing'),
+    invalidJson: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'invalidJson'),
+    validJson: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'validJson'),
+    missingRuntimeVersion: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'missingRuntimeVersion'),
+    unknownRuntimeVersion: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'unknownRuntimeVersion'),
+    certificate: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'certificate'),
+    doesNotContainNodeEnvironment: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'doesNotContainNodeEnvironment'),
+    doesNotContainCertificate: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'doesNotContainCertificate'),
+    doesNotContainAllowAccessFrom: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'doesNotContainAllowAccessFrom'),
+    multipleEnvironments: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'multipleEnvironments'),
+    multipleEnvironmentsWithDockerMachine: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'multipleEnvironmentsWithDockerMachine'),
+    multipleAllowAccessFrom: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'multipleAllowAccessFrom'),
+    allowAccessFrom: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'allowAccessFrom'),
+    identityProviders: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'identityProviders'),
+    transformEnvironmentVariables: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'transformEnvironmentVariables'),
+    secretFileNotFound: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'secretFileNotFound'),
+    secretNotFound: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'secretNotFound'),
+    resolveSecrets: path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'templates', 'resolveSecrets')
   };
 
   test('is a function.', done => {
