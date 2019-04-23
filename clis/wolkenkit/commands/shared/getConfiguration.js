@@ -6,8 +6,7 @@ const get = require('lodash/get'),
 const application = require('../../application'),
       errors = require('../../errors'),
       noop = require('../../noop'),
-      runtimes = require('../../runtimes'),
-      switchSemver = require('../../switchSemver');
+      runtimes = require('../../runtimes');
 
 const getFallbackConfiguration = async function () {
   const latestStableVersion = await runtimes.getLatestStableVersion();
@@ -80,54 +79,25 @@ const getConfiguration = async function ({
 
   const runtimeVersion = packageJson.runtime.version;
 
-  let configuration;
+  const selectedEnvironment = packageJson.environments[env];
 
-  await switchSemver(runtimeVersion, {
-    async '<= 3.1.0' () {
-      const selectedEnvironment = packageJson.environments[env];
+  if (!selectedEnvironment) {
+    progress({ message: `package.json does not contain environment ${env}.`, type: 'info' });
+    throw new errors.EnvironmentNotFound();
+  }
 
-      if (!selectedEnvironment) {
-        progress({ message: `package.json does not contain environment ${env}.`, type: 'info' });
-        throw new errors.EnvironmentNotFound();
-      }
+  const type = selectedEnvironment.type || 'cli';
 
-      const type = selectedEnvironment.type || 'cli';
-
-      configuration = new Configuration({
-        type,
-        environment: env,
-        applicationName: packageJson.application,
-        runtimeVersion,
-        apiHostname: selectedEnvironment.api.address.host,
-        apiPort: port || processenv('WOLKENKIT_PORT') || selectedEnvironment.api.address.port,
-        apiCertificate: selectedEnvironment.api.certificate,
-        dockerMachine: get(selectedEnvironment, 'docker.machine'),
-        packageJson
-      });
-    },
-
-    async default () {
-      const selectedEnvironment = packageJson.environments[env];
-
-      if (!selectedEnvironment) {
-        progress({ message: `package.json does not contain environment ${env}.`, type: 'info' });
-        throw new errors.EnvironmentNotFound();
-      }
-
-      const type = selectedEnvironment.type || 'cli';
-
-      configuration = new application.Configuration({
-        type,
-        environment: env,
-        applicationName: packageJson.application,
-        runtimeVersion,
-        packageJson,
-        apiHostname: get(selectedEnvironment, 'api.host.name'),
-        apiCertificate: get(selectedEnvironment, 'api.host.certificate'),
-        apiPort: port || processenv('WOLKENKIT_PORT') || get(selectedEnvironment, 'api.port'),
-        dockerMachine: get(selectedEnvironment, 'docker.machine')
-      });
-    }
+  const configuration = new application.Configuration({
+    type,
+    environment: env,
+    applicationName: packageJson.application,
+    runtimeVersion,
+    packageJson,
+    apiHostname: get(selectedEnvironment, 'api.host.name'),
+    apiCertificate: get(selectedEnvironment, 'api.host.certificate'),
+    apiPort: port || processenv('WOLKENKIT_PORT') || get(selectedEnvironment, 'api.port'),
+    dockerMachine: get(selectedEnvironment, 'docker.machine')
   });
 
   if (!configuration) {
