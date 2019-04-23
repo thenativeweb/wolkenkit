@@ -6,7 +6,7 @@ const map = require('lodash/map'),
       merge = require('lodash/merge'),
       processenv = require('processenv');
 
-const shell = require('../../../src/shell');
+const shell = require('../../../lib/shell');
 
 const getWolkenkit = async function (options) {
   if (!options) {

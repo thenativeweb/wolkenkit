@@ -2,7 +2,7 @@
 
 const assert = require('assertthat');
 
-const switchSemver = require('../../src/switchSemver');
+const switchSemver = require('../../lib/switchSemver');
 
 suite('switchSemver', () => {
   test('is a function.', async () => {

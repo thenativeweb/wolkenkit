@@ -5,7 +5,7 @@ const fs = require('fs'),
 
 const promisify = require('util.promisify');
 
-const shell = require('../../../src/shell');
+const shell = require('../../../lib/shell');
 
 const copyFile = promisify(fs.copyFile);
 

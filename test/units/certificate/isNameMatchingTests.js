@@ -2,7 +2,7 @@
 
 const assert = require('assertthat');
 
-const isNameMatching = require('../../../src/certificate/isNameMatching');
+const isNameMatching = require('../../../lib/certificate/isNameMatching');
 
 suite('certificate/isNameMatching', () => {
   test('is a function.', done => {

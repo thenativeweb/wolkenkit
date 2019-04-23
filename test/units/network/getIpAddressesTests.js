@@ -2,7 +2,7 @@
 
 const assert = require('assertthat');
 
-const getIpAddresses = require('../../../src/network/getIpAddresses');
+const getIpAddresses = require('../../../lib/network/getIpAddresses');
 
 suite('network/getIpAddresses', () => {
   test('is a function.', done => {

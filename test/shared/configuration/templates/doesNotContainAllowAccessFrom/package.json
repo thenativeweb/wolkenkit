@@ -12,7 +12,10 @@
       "default": {
         "api": {},
         "fileStorage": {
-          "allowAccessFrom": "*"
+          "allowAccessFrom": "*",
+          "provider": {
+            "type": "fileSystem"
+          }
         },
         "node": {
           "environment": "development"

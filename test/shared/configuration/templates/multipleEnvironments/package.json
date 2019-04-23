@@ -14,7 +14,10 @@
           "allowAccessFrom": "*"
         },
         "fileStorage": {
-          "allowAccessFrom": "*"
+          "allowAccessFrom": "*",
+          "provider": {
+            "type": "fileSystem"
+          }
         },
         "node": {
           "environment": "development"
@@ -25,7 +28,10 @@
           "allowAccessFrom": "*"
         },
         "fileStorage": {
-          "allowAccessFrom": "*"
+          "allowAccessFrom": "*",
+          "provider": {
+            "type": "fileSystem"
+          }
         },
         "node": {
           "environment": "production"

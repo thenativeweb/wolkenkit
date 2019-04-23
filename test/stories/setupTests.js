@@ -6,7 +6,7 @@ const assert = require('assertthat'),
       isolated = require('isolated');
 
 const getDirectoryList = require('./helpers/getDirectoryList'),
-      shell = require('../../src/shell'),
+      shell = require('../../lib/shell'),
       suite = require('./helpers/suite');
 
 const packageJson = require('../../package.json');

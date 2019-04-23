@@ -8,7 +8,7 @@ const buntstift = require('buntstift'),
       processenv = require('processenv'),
       promisify = require('util.promisify');
 
-const shell = require('../../../src/shell');
+const shell = require('../../../lib/shell');
 
 const readFile = promisify(fs.readFile);
 

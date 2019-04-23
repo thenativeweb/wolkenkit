@@ -10,7 +10,7 @@ const changePackageJson = require('../helpers/changePackageJson'),
       copyCertificate = require('../helpers/copyCertificate'),
       getDirectoryList = require('../helpers/getDirectoryList'),
       suite = require('../helpers/suite'),
-      switchSemver = require('../../../src/switchSemver');
+      switchSemver = require('../../../lib/switchSemver');
 
 const applicationLifecycleTests = async function (runtime) {
   await suite(`application lifecycle on ${runtime}`, async ({ test, wolkenkit, ipAddress }) => {

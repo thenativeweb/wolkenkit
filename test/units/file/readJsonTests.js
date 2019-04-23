@@ -5,8 +5,8 @@ const path = require('path');
 const assert = require('assertthat'),
       isolated = require('isolated');
 
-const readJson = require('../../../src/file/readJson'),
-      shell = require('../../../src/shell');
+const readJson = require('../../../lib/file/readJson'),
+      shell = require('../../../lib/shell');
 
 suite('file/readJson', () => {
   test('is a function.', done => {

@@ -1,6 +1,0 @@
-'use strict';
-
-var defekt = require('defekt');
-
-var errors = defekt(['AddressMismatch', 'ApplicationAlreadyRunning', 'ApplicationBuilding', 'ApplicationNotRunning', 'ApplicationPartiallyRunning', 'ApplicationTerminating', 'ApplicationVerifyingConnections', 'CertificateExpired', 'CertificateMismatch', 'CertificateNotYetValid', 'CodeMalformed', 'ConfigurationMalformed', 'ConfigurationNotFound', 'ConnectionRefused', 'DirectoryEmpty', 'DirectoryNotEmpty', 'DirectoryNotFound', 'DockerNotReachable', 'EnvironmentNotAufwind', 'EnvironmentNotFound', 'EnvironmentVariableMissing', 'EventStoreNotEmpty', 'ExecutableFailed', 'ExecutableNotFound', 'ExportInvalid', 'ExportNotFound', 'FileAccessModeTooOpen', 'FileNotAccessible', 'FileNotFound', 'JsonMalformed', 'OutputMalformed', 'PortsNotAvailable', 'ProtocolInvalid', 'RequestFailed', 'RuntimeAlreadyInstalled', 'RuntimeError', 'RuntimeInUse', 'RuntimeNotInstalled', 'SecretFileNotFound', 'SecretNotFound', 'SharedKeyMissing', 'UnknownError', 'UrlMalformed', 'VersionMismatch', 'VersionAlreadyInstalled', 'VersionNotFound']);
-module.exports = errors;

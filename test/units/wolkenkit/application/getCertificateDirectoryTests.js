@@ -4,9 +4,9 @@ const path = require('path');
 
 const assert = require('assertthat');
 
-const defaults = require('../../../../src/wolkenkit/defaults.json'),
-      getCertificateDirectory = require('../../../../src/wolkenkit/application/getCertificateDirectory'),
-      shell = require('../../../../src/shell');
+const defaults = require('../../../../lib/wolkenkit/defaults.json'),
+      getCertificateDirectory = require('../../../../lib/wolkenkit/application/getCertificateDirectory'),
+      shell = require('../../../../lib/shell');
 
 suite('application/getCertificateDirectory', () => {
   test('is a function.', done => {

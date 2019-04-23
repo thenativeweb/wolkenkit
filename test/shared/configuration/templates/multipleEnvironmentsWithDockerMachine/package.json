@@ -14,7 +14,10 @@
           "allowAccessFrom": "*"
         },
         "fileStorage": {
-          "allowAccessFrom": "*"
+          "allowAccessFrom": "*",
+          "provider": {
+            "type": "fileSystem"
+          }
         },
         "docker": {
           "machine": "wolkenkit-cli-test"
@@ -28,7 +31,10 @@
           "allowAccessFrom": "*"
         },
         "fileStorage": {
-          "allowAccessFrom": "*"
+          "allowAccessFrom": "*",
+          "provider": {
+            "type": "fileSystem"
+          }
         },
         "docker": {
           "machine": "wolkenkit-cli-test-2"

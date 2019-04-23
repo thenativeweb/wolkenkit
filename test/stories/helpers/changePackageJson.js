@@ -6,7 +6,7 @@ const fs = require('fs'),
 const merge = require('lodash/merge'),
       promisify = require('util.promisify');
 
-const readJson = require('../../../src/file/readJson');
+const readJson = require('../../../lib/file/readJson');
 
 const writeFile = promisify(fs.writeFile);
 

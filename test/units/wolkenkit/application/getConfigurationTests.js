@@ -4,7 +4,7 @@ const path = require('path');
 
 const assert = require('assertthat');
 
-const getConfiguration = require('../../../../src/wolkenkit/application/getConfiguration');
+const getConfiguration = require('../../../../lib/wolkenkit/application/getConfiguration');
 
 suite('application/getConfiguration', () => {
   const directory = {
@@ -117,7 +117,10 @@ suite('application/getConfiguration', () => {
             allowAccessFrom: '*'
           },
           fileStorage: {
-            allowAccessFrom: '*'
+            allowAccessFrom: '*',
+            provider: {
+              type: 'fileSystem'
+            }
           },
           node: {
             environment: 'development'
@@ -141,7 +144,10 @@ suite('application/getConfiguration', () => {
             allowAccessFrom: '*'
           },
           fileStorage: {
-            allowAccessFrom: '*'
+            allowAccessFrom: '*',
+            provider: {
+              type: 'fileSystem'
+            }
           },
           node: {
             environment: 'development'
@@ -152,7 +158,10 @@ suite('application/getConfiguration', () => {
             allowAccessFrom: '*'
           },
           fileStorage: {
-            allowAccessFrom: '*'
+            allowAccessFrom: '*',
+            provider: {
+              type: 'fileSystem'
+            }
           },
           node: {
             environment: 'production'
@@ -176,7 +185,10 @@ suite('application/getConfiguration', () => {
             allowAccessFrom: '*'
           },
           fileStorage: {
-            allowAccessFrom: '*'
+            allowAccessFrom: '*',
+            provider: {
+              type: 'fileSystem'
+            }
           },
           docker: {
             machine: 'wolkenkit-cli-test'
@@ -190,7 +202,10 @@ suite('application/getConfiguration', () => {
             allowAccessFrom: '*'
           },
           fileStorage: {
-            allowAccessFrom: '*'
+            allowAccessFrom: '*',
+            provider: {
+              type: 'fileSystem'
+            }
           },
           docker: {
             machine: 'wolkenkit-cli-test-2'
@@ -217,7 +232,10 @@ suite('application/getConfiguration', () => {
             allowAccessFrom: '*'
           },
           fileStorage: {
-            allowAccessFrom: '*'
+            allowAccessFrom: '*',
+            provider: {
+              type: 'fileSystem'
+            }
           },
           node: {
             environment: 'development'
@@ -245,7 +263,10 @@ suite('application/getConfiguration', () => {
             ]
           },
           fileStorage: {
-            allowAccessFrom: '*'
+            allowAccessFrom: '*',
+            provider: {
+              type: 'fileSystem'
+            }
           },
           node: {
             environment: 'development'
@@ -269,7 +290,10 @@ suite('application/getConfiguration', () => {
             allowAccessFrom: '*'
           },
           fileStorage: {
-            allowAccessFrom: '*'
+            allowAccessFrom: '*',
+            provider: {
+              type: 'fileSystem'
+            }
           },
           identityProviders: [
             {
@@ -299,7 +323,10 @@ suite('application/getConfiguration', () => {
             allowAccessFrom: '*'
           },
           fileStorage: {
-            allowAccessFrom: '*'
+            allowAccessFrom: '*',
+            provider: {
+              type: 'fileSystem'
+            }
           },
           node: {
             environment: 'development'
@@ -332,7 +359,10 @@ suite('application/getConfiguration', () => {
             allowAccessFrom: '*'
           },
           fileStorage: {
-            allowAccessFrom: '*'
+            allowAccessFrom: '*',
+            provider: {
+              type: 'fileSystem'
+            }
           },
           node: {
             environment: 'development'
