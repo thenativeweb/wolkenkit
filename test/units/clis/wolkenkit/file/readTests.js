@@ -8,7 +8,7 @@ const assert = require('assertthat'),
 const read = require('../../../../../clis/wolkenkit/file/read'),
       shell = require('../../../../../clis/wolkenkit/shell');
 
-suite('[clis/wolkenkit] file/read', () => {
+suite('file/read', () => {
   test('is a function.', done => {
     assert.that(read).is.ofType('function');
     done();
@@ -21,15 +21,18 @@ suite('[clis/wolkenkit] file/read', () => {
   });
 
   test('throws an error if file cannot be found.', async () => {
+    const file = path.join(__dirname, '..', '..', '..', '..', 'shared', 'files', 'does-not-exist');
+
     await assert.that(async () => {
-      await read('/not/found');
+      await read(file);
     }).is.throwingAsync(ex => ex.code === 'EFILENOTFOUND');
   });
 
   test('throws an error if file is not accessible.', async () => {
-    const source = path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'validJson', 'package.json');
+    const source = path.join(__dirname, '..', '..', '..', '..', 'shared', 'files', 'someFile.txt');
+
     const directory = await isolated({ files: [ source ]});
-    const target = path.join(directory, 'package.json');
+    const target = path.join(directory, 'someFile.txt');
 
     await shell.chmod('a-r', target);
 
@@ -39,10 +42,10 @@ suite('[clis/wolkenkit] file/read', () => {
   });
 
   test('returns string.', async () => {
-    const file = path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'validJson', 'package.json');
+    const file = path.join(__dirname, '..', '..', '..', '..', 'shared', 'files', 'someFile.txt');
 
-    const json = await read(file);
+    const text = await read(file);
 
-    assert.that(json).is.ofType('string');
+    assert.that(text).is.equalTo('some file\n');
   });
 });

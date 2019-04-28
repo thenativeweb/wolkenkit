@@ -20,7 +20,7 @@ const getCertificateDirectory = async function ({ configuration, directory }) {
   let certificateDirectory = configuration.api.host.certificate;
 
   if (certificateDirectory === defaults.api.host.certificate) {
-    certificateDirectory = path.join(__dirname, '..', certificateDirectory);
+    certificateDirectory = path.join(__dirname, '..', '..', '..', certificateDirectory);
   } else {
     certificateDirectory = path.join(directory, certificateDirectory);
   }

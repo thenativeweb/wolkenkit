@@ -5,10 +5,9 @@ const path = require('path');
 const assert = require('assertthat');
 
 const defaults = require('../../../../../clis/wolkenkit/application/defaults.json'),
-      getCertificateDirectory = require('../../../../../clis/wolkenkit/application/getCertificateDirectory'),
-      shell = require('../../../../../clis/wolkenkit/shell');
+      getCertificateDirectory = require('../../../../../clis/wolkenkit/application/getCertificateDirectory');
 
-suite('[clis/wolkenkit] application/getCertificateDirectory', () => {
+suite('application/getCertificateDirectory', () => {
   test('is a function.', done => {
     assert.that(getCertificateDirectory).is.ofType('function');
     done();
@@ -38,11 +37,9 @@ suite('[clis/wolkenkit] application/getCertificateDirectory', () => {
   });
 
   test('returns the certificate directory if an absolute path is configured.', async () => {
-    const directoryBase = path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit');
+    const directoryBase = path.join(__dirname, '..', '..', '..', '..', 'shared');
     const directoryCertificate = '/keys/localhost';
     const directory = path.join(directoryBase, directoryCertificate);
-
-    await shell.mkdir('-p', directory);
 
     const certificateDirectory = await getCertificateDirectory({
       directory: directoryBase,
@@ -53,11 +50,9 @@ suite('[clis/wolkenkit] application/getCertificateDirectory', () => {
   });
 
   test('returns the certificate directory if a relative path is configured.', async () => {
-    const directoryBase = path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit');
+    const directoryBase = path.join(__dirname, '..', '..', '..', '..', 'shared');
     const directoryCertificate = 'keys/localhost';
     const directory = path.join(directoryBase, directoryCertificate);
-
-    await shell.mkdir('-p', directory);
 
     const certificateDirectory = await getCertificateDirectory({
       directory: directoryBase,
@@ -73,6 +68,6 @@ suite('[clis/wolkenkit] application/getCertificateDirectory', () => {
       configuration: { api: { host: { certificate: defaults.api.host.certificate }}}
     });
 
-    assert.that(certificateDirectory).is.equalTo(path.join(__dirname, '..', '..', '..', '..', '..', 'clis', 'wolkenkit', 'keys', 'local.wolkenkit.io'));
+    assert.that(certificateDirectory).is.equalTo(path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io'));
   });
 });

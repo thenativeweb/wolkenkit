@@ -4,7 +4,7 @@ const assert = require('assertthat');
 
 const { Command } = require('../../../../common/elements');
 
-suite('[common/elements] Command', () => {
+suite('Command', () => {
   /* eslint-disable no-new */
   test('throws an error when no context is given.', done => {
     assert.that(() => {

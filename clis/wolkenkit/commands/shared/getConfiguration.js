@@ -1,11 +1,11 @@
 'use strict';
 
 const get = require('lodash/get'),
+      noop = require('lodash/noop'),
       processenv = require('processenv');
 
 const application = require('../../application'),
       errors = require('../../errors'),
-      noop = require('../../noop'),
       runtimes = require('../../runtimes');
 
 const getFallbackConfiguration = async function () {

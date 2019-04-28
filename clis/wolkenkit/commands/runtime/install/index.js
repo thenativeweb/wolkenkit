@@ -1,8 +1,9 @@
 'use strict';
 
+const noop = require('lodash/noop');
+
 const docker = require('../../../docker'),
       errors = require('../../../errors'),
-      noop = require('../../../noop'),
       runtimes = require('../../../runtimes'),
       shared = require('../../shared');
 

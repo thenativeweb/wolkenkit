@@ -6,7 +6,7 @@ const runtimes = require('../../../../clis/wolkenkit/runtimes'),
       suite = require('./helpers/suite');
 
 (async () => {
-  await suite('[clis/wolkenkit] installation lifecycle', async ({ test, wolkenkit }) => {
+  await suite('installation lifecycle', async ({ test, wolkenkit }) => {
     const allVersions = await runtimes.getAllVersions(),
           latestStableVersion = await runtimes.getLatestStableVersion();
 

@@ -4,7 +4,7 @@ const assert = require('assertthat');
 
 const { Event } = require('../../../../common/elements');
 
-suite('[common/elements] Event', () => {
+suite('Event', () => {
   /* eslint-disable no-new */
   test('throws an error when no context is given.', done => {
     assert.that(() => {

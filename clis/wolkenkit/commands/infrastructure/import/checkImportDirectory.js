@@ -3,9 +3,10 @@
 const fs = require('fs'),
       { promisify } = require('util');
 
+const noop = require('lodash/noop');
+
 const checkImportEventStore = require('./checkImportEventStore'),
-      errors = require('../../../errors'),
-      noop = require('../../../noop');
+      errors = require('../../../errors');
 
 const readdir = promisify(fs.readdir);
 

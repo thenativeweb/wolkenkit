@@ -4,7 +4,7 @@ const schema = function () {
   const result = {
     type: 'object',
     properties: {
-      application: { type: 'string', minLength: 1 },
+      application: { type: 'string', format: 'alphanumeric', minLength: 1, maxLength: 32 },
       runtime: {
         type: 'object',
         properties: {

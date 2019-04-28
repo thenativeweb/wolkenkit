@@ -1,6 +1,13 @@
 'use strict';
 
 const Command = require('./Command'),
-      Event = require('./Event');
+      Event = require('./Event'),
+      ReadableAggregate = require('./ReadableAggregate'),
+      WritableAggregate = require('./WritableAggregate');
 
-module.exports = { Command, Event };
+module.exports = {
+  Command,
+  Event,
+  ReadableAggregate,
+  WritableAggregate
+};

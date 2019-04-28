@@ -1,0 +1,7 @@
+{
+  "extends": "es/2015/server",
+
+  "rules": {
+    "no-unused-vars": 0
+  }
+}

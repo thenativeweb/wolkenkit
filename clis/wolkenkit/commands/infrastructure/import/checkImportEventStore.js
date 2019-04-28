@@ -6,11 +6,11 @@ const fs = require('fs'),
       { promisify } = require('util');
 
 const jsonStream = require('JSONStream'),
+      noop = require('lodash/noop'),
       pump = require('pump');
 
 const errors = require('../../../errors'),
       { Event } = require('../../../../../common/elements'),
-      noop = require('../../../noop'),
       shared = require('../../shared');
 
 const readdir = promisify(fs.readdir);

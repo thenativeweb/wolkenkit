@@ -1,8 +1,9 @@
 'use strict';
 
+const noop = require('lodash/noop');
+
 const aufwind = require('./aufwind'),
       cli = require('./cli'),
-      noop = require('../../../noop'),
       shared = require('../../shared');
 
 const startVia = {

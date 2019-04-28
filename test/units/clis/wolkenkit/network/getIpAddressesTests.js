@@ -4,7 +4,7 @@ const assert = require('assertthat');
 
 const getIpAddresses = require('../../../../../clis/wolkenkit/network/getIpAddresses');
 
-suite('[clis/wolkenkit] network/getIpAddresses', () => {
+suite('network/getIpAddresses', () => {
   test('is a function.', done => {
     assert.that(getIpAddresses).is.ofType('function');
     done();

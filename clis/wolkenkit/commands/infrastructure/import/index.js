@@ -2,12 +2,13 @@
 
 const path = require('path');
 
+const noop = require('lodash/noop');
+
 const checkImportDirectory = require('./checkImportDirectory'),
       docker = require('../../../docker'),
       errors = require('../../../errors'),
       health = require('../../health'),
       importEventStore = require('./importEventStore'),
-      noop = require('../../../noop'),
       runtimes = require('../../../runtimes'),
       shared = require('../../shared');
 

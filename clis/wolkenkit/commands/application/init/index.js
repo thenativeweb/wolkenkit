@@ -2,10 +2,11 @@
 
 const path = require('path');
 
+const noop = require('lodash/noop');
+
 const checkDirectory = require('./checkDirectory'),
       cloneRepository = require('./cloneRepository'),
       forceInit = require('./forceInit'),
-      noop = require('../../../noop'),
       shell = require('../../../shell');
 
 const init = async function ({ directory, force, template }, progress = noop) {

@@ -1,6 +1,7 @@
 'use strict';
 
-const processenv = require('processenv');
+const noop = require('lodash/noop'),
+      processenv = require('processenv');
 
 const buildImages = require('./buildImages'),
       docker = require('../../../docker'),
@@ -8,7 +9,6 @@ const buildImages = require('./buildImages'),
       errors = require('../../../errors'),
       health = require('../../health'),
       install = require('../../runtime/install'),
-      noop = require('../../../noop'),
       runtimes = require('../../../runtimes'),
       shared = require('../../shared'),
       startContainers = require('./startContainers'),

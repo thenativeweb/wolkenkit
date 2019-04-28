@@ -3,7 +3,7 @@
 const fs = require('fs'),
       { promisify } = require('util');
 
-const statFile = promisify(fs.stat);
+const stat = promisify(fs.stat);
 
 const exists = async function (path) {
   if (!path) {
@@ -11,7 +11,7 @@ const exists = async function (path) {
   }
 
   try {
-    await statFile(path);
+    await stat(path);
   } catch (ex) {
     if (ex.code === 'ENOENT') {
       return false;

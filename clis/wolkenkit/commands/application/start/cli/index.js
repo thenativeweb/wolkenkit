@@ -1,6 +1,7 @@
 'use strict';
 
-const arrayToSentence = require('array-to-sentence');
+const arrayToSentence = require('array-to-sentence'),
+      noop = require('lodash/noop');
 
 const attachDebugger = require('./attachDebugger'),
       buildImages = require('./buildImages'),
@@ -8,7 +9,6 @@ const attachDebugger = require('./attachDebugger'),
       errors = require('../../../../errors'),
       health = require('../../../health'),
       install = require('../../../runtime/install'),
-      noop = require('../../../../noop'),
       runtimes = require('../../../../runtimes'),
       shared = require('../../../shared'),
       stop = require('../../stop'),

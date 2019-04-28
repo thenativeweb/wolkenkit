@@ -4,7 +4,7 @@ const assert = require('assertthat');
 
 const omitByDeep = require('../../../../storage/eventstore/omitByDeep');
 
-suite('[storage/eventstore] omitByDeep', () => {
+suite('omitByDeep', () => {
   test('is a function.', async () => {
     assert.that(omitByDeep).is.ofType('function');
   });

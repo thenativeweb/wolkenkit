@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 
-const noop = require('../../../noop');
+const noop = require('lodash/noop');
 
 const splitStreamToFiles = async function ({
   eventsPerFile,

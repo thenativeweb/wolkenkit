@@ -8,7 +8,7 @@ const assert = require('assertthat'),
 const readJson = require('../../../../../clis/wolkenkit/file/readJson'),
       shell = require('../../../../../clis/wolkenkit/shell');
 
-suite('[clis/wolkenkit] file/readJson', () => {
+suite('file/readJson', () => {
   test('is a function.', done => {
     assert.that(readJson).is.ofType('function');
     done();
@@ -21,17 +21,19 @@ suite('[clis/wolkenkit] file/readJson', () => {
   });
 
   test('throws an error if file cannot be found.', async () => {
+    const file = path.join(__dirname, '..', '..', '..', '..', 'shared', 'files', 'does-not-exist');
+
     await assert.that(async () => {
-      await readJson('/not/found');
+      await readJson(file);
     }).is.throwingAsync(ex => ex.code === 'EFILENOTFOUND');
   });
 
   test('throws an error if file is not accessible.', async () => {
-    const source = path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'validJson', 'package.json');
+    const source = path.join(__dirname, '..', '..', '..', '..', 'shared', 'files', 'someFile.json');
     const directory = await isolated({ files: [ source ]});
-    const target = path.join(directory, 'package.json');
+    const target = path.join(directory, 'someFile.json');
 
-    await shell.chmod('a-r', target);
+    shell.chmod('a-r', target);
 
     await assert.that(async () => {
       await readJson(target);
@@ -39,7 +41,7 @@ suite('[clis/wolkenkit] file/readJson', () => {
   });
 
   test('throws an error if file does not contain json format.', async () => {
-    const file = path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'invalidJson', 'package.json');
+    const file = path.join(__dirname, '..', '..', '..', '..', 'shared', 'files', 'someFile.txt');
 
     await assert.that(async () => {
       await readJson(file);
@@ -47,18 +49,12 @@ suite('[clis/wolkenkit] file/readJson', () => {
   });
 
   test('returns json.', async () => {
-    const file = path.join(__dirname, '..', '..', '..', '..', 'shared', 'clis', 'wolkenkit', 'configuration', 'validJson', 'package.json');
+    const file = path.join(__dirname, '..', '..', '..', '..', 'shared', 'files', 'someFile.json');
 
     const json = await readJson(file);
 
     assert.that(json).is.equalTo({
-      name: 'wolkenkit-template-chat',
-      version: '0.0.0',
-      description: 'wolkenkit-template-chat is a sample application for wolkenkit.',
-      private: true,
-      dependencies: {
-        'wolkenkit-command-tools': 'git+ssh://git@github.com/thenativeweb/wolkenkit-command-tools.git#0.4.0'
-      }
+      some: 'file'
     });
   });
 });

@@ -1,5 +1,5 @@
 'use strict';
 
-const applicationManager = require('./applicationManager');
+const Application = require('./Application');
 
-module.exports = applicationManager;
+module.exports = { Application };

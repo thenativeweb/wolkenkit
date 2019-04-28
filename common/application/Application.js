@@ -2,6 +2,12 @@
 
 const stripIndent = require('common-tags/lib/stripIndent');
 
+const ApplicationCache = require('./ApplicationCache'),
+      extendEntries = require('./extendEntries'),
+      getEntries = require('./getEntries'),
+      validateDirectory = require('./validateDirectory'),
+      validateEntries = require('./validateEntries');
+
 class Application {
   constructor ({ entries }) {
     if (!entries) {
@@ -75,6 +81,41 @@ class Application {
       this.flows[flowName] = flowDefinition;
     }
   }
+
+  static async validate ({ directory }) {
+    if (!directory) {
+      throw new Error('Directory is missing.');
+    }
+
+    await validateDirectory({ directory });
+  }
+
+  static async load ({ directory }) {
+    if (!directory) {
+      throw new Error('Directory is missing.');
+    }
+
+    const cachedApplication = Application.cache.get({ directory });
+
+    if (cachedApplication) {
+      return cachedApplication;
+    }
+
+    await validateDirectory({ directory });
+
+    const entries = await getEntries({ directory });
+
+    await validateEntries({ entries });
+
+    const extendedEntries = extendEntries({ entries });
+    const application = new Application({ entries: extendedEntries });
+
+    Application.cache.set({ directory, application });
+
+    return application;
+  }
 }
+
+Application.cache = new ApplicationCache();
 
 module.exports = Application;

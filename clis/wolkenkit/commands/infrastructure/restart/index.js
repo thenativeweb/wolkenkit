@@ -1,9 +1,10 @@
 'use strict';
 
+const noop = require('lodash/noop');
+
 const docker = require('../../../docker'),
       errors = require('../../../errors'),
       health = require('../../health'),
-      noop = require('../../../noop'),
       shared = require('../../shared'),
       start = require('../start'),
       stop = require('../stop');

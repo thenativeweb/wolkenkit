@@ -2,8 +2,9 @@
 
 const path = require('path');
 
-const noop = require('../../../noop'),
-      shared = require('../../shared'),
+const noop = require('lodash/noop');
+
+const shared = require('../../shared'),
       shell = require('../../../shell'),
       splitStreamToFiles = require('./splitStreamToFiles');
 

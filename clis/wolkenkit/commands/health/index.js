@@ -1,8 +1,9 @@
 'use strict';
 
+const noop = require('lodash/noop');
+
 const checkCertificate = require('./checkCertificate'),
       checkDockerServerResolvesToApplicationAddresses = require('./checkDockerServerResolvesToApplicationAddresses'),
-      noop = require('../../noop'),
       resolveHost = require('./resolveHost'),
       shared = require('../shared');
 

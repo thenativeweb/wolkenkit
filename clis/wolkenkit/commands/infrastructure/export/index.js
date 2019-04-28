@@ -4,11 +4,12 @@ const fs = require('fs'),
       path = require('path'),
       { promisify } = require('util');
 
+const noop = require('lodash/noop');
+
 const docker = require('../../../docker'),
       errors = require('../../../errors'),
       exportEventStore = require('./exportEventStore'),
       health = require('../../health'),
-      noop = require('../../../noop'),
       runtimes = require('../../../runtimes'),
       shared = require('../../shared'),
       shell = require('../../../shell');
