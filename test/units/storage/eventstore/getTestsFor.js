@@ -1,12 +1,10 @@
 'use strict';
 
-const { EventEmitter } = require('events');
-
 const assert = require('assertthat'),
       uuid = require('uuidv4');
 
 /* eslint-disable mocha/max-top-level-suites */
-const getTestsFor = function (Eventstore, { type }) {
+const getTestsFor = function ({ Eventstore, type }) {
   let eventstore;
 
   setup(() => {
@@ -17,16 +15,12 @@ const getTestsFor = function (Eventstore, { type }) {
     assert.that(Eventstore).is.ofType('function');
   });
 
-  test('is an event emitter.', async () => {
-    assert.that(eventstore).is.instanceOf(EventEmitter);
-  });
-
   suite('initialize', () => {
     test('is a function.', async () => {
       assert.that(eventstore.initialize).is.ofType('function');
     });
 
-    if (type !== 'inmemory') {
+    if (type !== 'InMemory') {
       test('throws an error if url is missing.', async () => {
         await assert.that(async () => {
           await eventstore.initialize({});

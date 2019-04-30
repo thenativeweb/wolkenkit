@@ -13,7 +13,7 @@ const validateStructure = async function ({ entries }) {
       server: {
         type: 'object',
         properties: {
-          writeModel: {
+          domain: {
             type: 'object',
             patternProperties: {
               '.*': {
@@ -82,7 +82,7 @@ const validateStructure = async function ({ entries }) {
             },
             minProperties: 1
           },
-          readModel: {
+          views: {
             type: 'object',
             properties: {
               lists: {
@@ -202,7 +202,7 @@ const validateStructure = async function ({ entries }) {
             minProperties: 0
           }
         },
-        required: [ 'writeModel', 'readModel', 'flows' ],
+        required: [ 'domain', 'views', 'flows' ],
         additionalProperties: true
       }
     },

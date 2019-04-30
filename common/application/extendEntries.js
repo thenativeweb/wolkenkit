@@ -9,17 +9,17 @@ const extendEntries = function ({ entries }) {
 
   const extendedEntries = cloneDeep(entries);
 
-  for (const [ contextName, contextDefinition ] of Object.entries(extendedEntries.server.writeModel)) {
+  for (const [ contextName, contextDefinition ] of Object.entries(extendedEntries.server.domain)) {
     for (const [ aggregateName, aggregateDefinition ] of Object.entries(contextDefinition)) {
       for (const commandName of Object.keys(aggregateDefinition.commands)) {
         const eventNameFailed = `${commandName}Failed`;
         const eventNameRejected = `${commandName}Rejected`;
 
         if (aggregateDefinition.events[eventNameFailed]) {
-          throw new Error(`Reserved event name '${eventNameFailed}' used in server/writeModel/${contextName}/${aggregateName}.`);
+          throw new Error(`Reserved event name '${eventNameFailed}' used in server/domain/${contextName}/${aggregateName}.`);
         }
         if (aggregateDefinition.events[eventNameRejected]) {
-          throw new Error(`Reserved event name '${eventNameRejected}' used in server/writeModel/${contextName}/${aggregateName}.`);
+          throw new Error(`Reserved event name '${eventNameRejected}' used in server/domain/${contextName}/${aggregateName}.`);
         }
 
         aggregateDefinition.events[eventNameFailed] = {

@@ -15,9 +15,9 @@ const { Application } = require('../../../../common/application'),
       eventIsAuthorized = require('../../../shared/applications/valid/eventIsAuthorized'),
       eventMap = require('../../../shared/applications/valid/eventMap'),
       eventstore = require('../../../../storage/eventstore/inmemory'),
-      { Http } = require('../../../../apis/writeModel'),
+      { Http } = require('../../../../apis/domain'),
       identityProvider = require('../../../shared/identityProvider'),
-      { Repository } = require('../../../../handlers/writeModel');
+      { Repository } = require('../../../../handlers/domain');
 
 suite('Http', () => {
   const identityProviders = [ identityProvider ];
@@ -243,12 +243,12 @@ suite('Http', () => {
     test('serves the application configuration.', async () => {
       const res = await supertest(http.api).get('/v2/configuration');
 
-      const { writeModel } = application.configuration;
+      const { domain } = application.configuration;
 
       // Convert and parse as JSON, to get rid of any values that are undefined.
       // This is what the HTTP API does internally, and here we need to simulate
       // this to make things work.
-      const expectedConfiguration = JSON.parse(JSON.stringify(writeModel));
+      const expectedConfiguration = JSON.parse(JSON.stringify(domain));
 
       assert.that(res.body).is.equalTo(expectedConfiguration);
     });
@@ -659,7 +659,7 @@ suite('Http', () => {
           assert.that(message).is.atLeast({
             level: logLevel,
             message: 'Some log message.',
-            source: '/server/writeModel/sampleContext/sampleAggregate.js'
+            source: '/server/domain/sampleContext/sampleAggregate.js'
           });
         });
         /* eslint-enable no-loop-func */
@@ -1264,7 +1264,7 @@ suite('Http', () => {
           assert.that(message).is.atLeast({
             level: logLevel,
             message: 'Some log message.',
-            source: '/server/writeModel/sampleContext/sampleAggregate.js'
+            source: '/server/domain/sampleContext/sampleAggregate.js'
           });
         });
         /* eslint-enable no-loop-func */
@@ -1649,7 +1649,7 @@ suite('Http', () => {
           assert.that(message).is.atLeast({
             level: logLevel,
             message: 'Some log message.',
-            source: '/server/writeModel/sampleContext/sampleAggregate.js'
+            source: '/server/domain/sampleContext/sampleAggregate.js'
           });
         });
         /* eslint-enable no-loop-func */
@@ -2085,7 +2085,7 @@ suite('Http', () => {
           assert.that(message).is.atLeast({
             level: logLevel,
             message: 'Some log message.',
-            source: '/server/writeModel/sampleContext/sampleAggregate.js'
+            source: '/server/domain/sampleContext/sampleAggregate.js'
           });
         });
         /* eslint-enable no-loop-func */

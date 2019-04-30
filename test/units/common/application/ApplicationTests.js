@@ -7,12 +7,12 @@ const assert = require('assertthat');
 const { Application } = require('../../../../common/application'),
       invalidAggregatesAreMissing = require('../../../shared/applications/invalid/aggregatesAreMissing'),
       invalidContextsAreMissing = require('../../../shared/applications/invalid/contextsAreMissing'),
+      invalidDomainIsMissing = require('../../../shared/applications/invalid/domainIsMissing'),
       invalidFlowsAreMissing = require('../../../shared/applications/invalid/flowsAreMissing'),
       invalidListsAreMissing = require('../../../shared/applications/invalid/listsAreMissing'),
-      invalidReadModelIsMissing = require('../../../shared/applications/invalid/readModelIsMissing'),
+      invalidViewsAreMissing = require('../../../shared/applications/invalid/viewsAreMissing'),
       invalidWithDirectoriesAndWrongFileName = require('../../../shared/applications/invalid/withDirectoriesAndWrongFileName'),
       invalidWithWrongRequire = require('../../../shared/applications/invalid/withWrongRequire'),
-      invalidWriteModelIsMissing = require('../../../shared/applications/invalid/writeModelIsMissing'),
       validWithDirectories = require('../../../shared/applications/valid/withDirectories'),
       validWithDirectoriesWithoutIndex = require('../../../shared/applications/valid/withDirectoriesWithoutIndex'),
       validWithDocumentation = require('../../../shared/applications/valid/withDocumentation'),
@@ -84,91 +84,104 @@ suite('Application', () => {
         const directory = await validWithoutFlows();
         const application = await Application.load({ directory });
 
-        assert.that(application.configuration).is.equalTo({
-          writeModel: {
-            sampleContext: {
-              sampleAggregate: {
-                commands: {
-                  execute: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
-                      },
-                      required: [ 'strategy' ],
-                      additionalProperties: false
-                    }
-                  }
-                },
-                events: {
-                  succeeded: {
-                    documentation: undefined,
-                    schema: undefined
-                  },
-                  executed: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
-                      },
-                      required: [ 'strategy' ],
-                      additionalProperties: false
-                    }
-                  },
-                  executeFailed: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        reason: { type: 'string' }
-                      },
-                      required: [ 'reason' ],
-                      additionalProperties: false
-                    }
-                  },
-                  executeRejected: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        reason: { type: 'string' }
-                      },
-                      required: [ 'reason' ],
-                      additionalProperties: false
-                    }
-                  }
-                }
-              }
-            }
-          },
-          readModel: {
-            lists: {
-              sampleList: {}
-            }
-          },
-          flows: {}
-        });
+        assert.that(application.initialState.external).is.undefined();
 
-        assert.that(application.writeModel).is.atLeast({
+        assert.that(application.commands.external).is.equalTo({
           sampleContext: {
             sampleAggregate: {
-              initialState: {},
-              commands: {
-                execute: {}
-              },
-              events: {
-                succeeded: {},
-                executed: {},
-                executeFailed: {},
-                executeRejected: {}
+              execute: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                  },
+                  required: [ 'strategy' ],
+                  additionalProperties: false
+                }
               }
             }
           }
         });
 
-        assert.that(application.readModel).is.atLeast({
+        assert.that(application.events.external).is.equalTo({
+          sampleContext: {
+            sampleAggregate: {
+              succeeded: {
+                documentation: undefined,
+                schema: undefined
+              },
+              executed: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                  },
+                  required: [ 'strategy' ],
+                  additionalProperties: false
+                }
+              },
+              executeFailed: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' }
+                  },
+                  required: [ 'reason' ],
+                  additionalProperties: false
+                }
+              },
+              executeRejected: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' }
+                  },
+                  required: [ 'reason' ],
+                  additionalProperties: false
+                }
+              }
+            }
+          }
+        });
+
+        assert.that(application.views.external).is.equalTo({
+          lists: {
+            sampleList: {}
+          }
+        });
+
+        assert.that(application.flows.external).is.undefined();
+
+        assert.that(application.initialState.internal).is.equalTo({
+          sampleContext: {
+            sampleAggregate: {}
+          }
+        });
+
+        assert.that(application.commands.internal).is.atLeast({
+          sampleContext: {
+            sampleAggregate: {
+              execute: {}
+            }
+          }
+        });
+
+        assert.that(application.events.internal).is.atLeast({
+          sampleContext: {
+            sampleAggregate: {
+              succeeded: {},
+              executed: {},
+              executeFailed: {},
+              executeRejected: {}
+            }
+          }
+        });
+
+        assert.that(application.views.internal).is.atLeast({
           lists: {
             sampleList: {
               fields: {
@@ -184,219 +197,244 @@ suite('Application', () => {
           }
         });
 
-        assert.that(application.flows).is.equalTo({});
+        assert.that(application.flows.internal).is.equalTo({});
 
-        assert.that(application.writeModel.sampleContext.sampleAggregate.commands.execute.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.commands.execute.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.succeeded.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.succeeded.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executed.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executed.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeFailed.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeFailed.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeRejected.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeRejected.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.handle).is.ofType('function');
 
-        assert.that(application.readModel.lists.sampleList.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.readModel.lists.sampleList.queries.readItem.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.isAuthorized).is.ofType('function');
+
+        assert.that(application.views.internal.lists.sampleList.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.views.internal.lists.sampleList.queries.readItem.isAuthorized).is.ofType('function');
       });
 
       test('loads applications without lists.', async () => {
         const directory = await validWithoutLists();
         const application = await Application.load({ directory });
 
-        assert.that(application.configuration).is.equalTo({
-          writeModel: {
-            sampleContext: {
-              sampleAggregate: {
-                commands: {
-                  execute: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
-                      },
-                      required: [ 'strategy' ],
-                      additionalProperties: false
-                    }
-                  }
-                },
-                events: {
-                  succeeded: {
-                    documentation: undefined,
-                    schema: undefined
-                  },
-                  executed: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
-                      },
-                      required: [ 'strategy' ],
-                      additionalProperties: false
-                    }
-                  },
-                  executeFailed: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        reason: { type: 'string' }
-                      },
-                      required: [ 'reason' ],
-                      additionalProperties: false
-                    }
-                  },
-                  executeRejected: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        reason: { type: 'string' }
-                      },
-                      required: [ 'reason' ],
-                      additionalProperties: false
-                    }
-                  }
-                }
-              }
-            }
-          },
-          readModel: {
-            lists: {}
-          },
-          flows: {}
-        });
+        assert.that(application.initialState.external).is.undefined();
 
-        assert.that(application.writeModel).is.atLeast({
+        assert.that(application.commands.external).is.equalTo({
           sampleContext: {
             sampleAggregate: {
-              initialState: {},
-              commands: {
-                execute: {}
-              },
-              events: {
-                succeeded: {},
-                executed: {},
-                executeFailed: {},
-                executeRejected: {}
+              execute: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                  },
+                  required: [ 'strategy' ],
+                  additionalProperties: false
+                }
               }
             }
           }
         });
 
-        assert.that(application.readModel).is.equalTo({
+        assert.that(application.events.external).is.equalTo({
+          sampleContext: {
+            sampleAggregate: {
+              succeeded: {
+                documentation: undefined,
+                schema: undefined
+              },
+              executed: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                  },
+                  required: [ 'strategy' ],
+                  additionalProperties: false
+                }
+              },
+              executeFailed: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' }
+                  },
+                  required: [ 'reason' ],
+                  additionalProperties: false
+                }
+              },
+              executeRejected: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' }
+                  },
+                  required: [ 'reason' ],
+                  additionalProperties: false
+                }
+              }
+            }
+          }
+        });
+
+        assert.that(application.views.external).is.equalTo({
           lists: {}
         });
 
-        assert.that(application.flows).is.equalTo({});
+        assert.that(application.flows.external).is.undefined();
 
-        assert.that(application.writeModel.sampleContext.sampleAggregate.commands.execute.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.commands.execute.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.succeeded.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.succeeded.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executed.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executed.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeFailed.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeFailed.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeRejected.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeRejected.isAuthorized).is.ofType('function');
+        assert.that(application.initialState.internal).is.equalTo({
+          sampleContext: {
+            sampleAggregate: {}
+          }
+        });
+
+        assert.that(application.commands.internal).is.atLeast({
+          sampleContext: {
+            sampleAggregate: {
+              execute: {}
+            }
+          }
+        });
+
+        assert.that(application.events.internal).is.atLeast({
+          sampleContext: {
+            sampleAggregate: {
+              succeeded: {},
+              executed: {},
+              executeFailed: {},
+              executeRejected: {}
+            }
+          }
+        });
+
+        assert.that(application.views.internal).is.atLeast({
+          lists: {}
+        });
+
+        assert.that(application.flows.internal).is.equalTo({});
+
+        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.handle).is.ofType('function');
+
+        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.isAuthorized).is.ofType('function');
       });
 
       test('loads applications with flows.', async () => {
         const directory = await validWithFlows();
         const application = await Application.load({ directory });
 
-        assert.that(application.configuration).is.equalTo({
-          writeModel: {
-            sampleContext: {
-              sampleAggregate: {
-                commands: {
-                  execute: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
-                      },
-                      required: [ 'strategy' ],
-                      additionalProperties: false
-                    }
-                  }
-                },
-                events: {
-                  succeeded: {
-                    documentation: undefined,
-                    schema: undefined
+        assert.that(application.initialState.external).is.undefined();
+
+        assert.that(application.commands.external).is.equalTo({
+          sampleContext: {
+            sampleAggregate: {
+              execute: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
                   },
-                  executed: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
-                      },
-                      required: [ 'strategy' ],
-                      additionalProperties: false
-                    }
-                  },
-                  executeFailed: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        reason: { type: 'string' }
-                      },
-                      required: [ 'reason' ],
-                      additionalProperties: false
-                    }
-                  },
-                  executeRejected: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        reason: { type: 'string' }
-                      },
-                      required: [ 'reason' ],
-                      additionalProperties: false
-                    }
-                  }
+                  required: [ 'strategy' ],
+                  additionalProperties: false
                 }
               }
             }
-          },
-          readModel: {
-            lists: {
-              sampleList: {}
-            }
-          },
-          flows: {
-            stateless: {},
-            stateful: {}
           }
         });
 
-        assert.that(application.writeModel).is.atLeast({
+        assert.that(application.events.external).is.equalTo({
           sampleContext: {
             sampleAggregate: {
-              initialState: {},
-              commands: {
-                execute: {}
+              succeeded: {
+                documentation: undefined,
+                schema: undefined
               },
-              events: {
-                succeeded: {},
-                executed: {},
-                executeFailed: {},
-                executeRejected: {}
+              executed: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                  },
+                  required: [ 'strategy' ],
+                  additionalProperties: false
+                }
+              },
+              executeFailed: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' }
+                  },
+                  required: [ 'reason' ],
+                  additionalProperties: false
+                }
+              },
+              executeRejected: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' }
+                  },
+                  required: [ 'reason' ],
+                  additionalProperties: false
+                }
               }
             }
           }
         });
 
-        assert.that(application.readModel).is.atLeast({
+        assert.that(application.views.external).is.equalTo({
+          lists: {
+            sampleList: {}
+          }
+        });
+
+        assert.that(application.flows.external).is.undefined();
+
+        assert.that(application.initialState.internal).is.equalTo({
+          sampleContext: {
+            sampleAggregate: {}
+          }
+        });
+
+        assert.that(application.commands.internal).is.atLeast({
+          sampleContext: {
+            sampleAggregate: {
+              execute: {}
+            }
+          }
+        });
+
+        assert.that(application.events.internal).is.atLeast({
+          sampleContext: {
+            sampleAggregate: {
+              succeeded: {},
+              executed: {},
+              executeFailed: {},
+              executeRejected: {}
+            }
+          }
+        });
+
+        assert.that(application.views.internal).is.atLeast({
           lists: {
             sampleList: {
               fields: {
@@ -412,139 +450,144 @@ suite('Application', () => {
           }
         });
 
-        assert.that(application.flows).is.atLeast({
-          stateless: {
-            reactions: {}
-          },
+        assert.that(application.flows.internal).is.atLeast({
           stateful: {
             identity: {},
-            initialState: {
-              is: 'pristine'
-            },
-            transitions: {
-              pristine: {}
-            },
-            reactions: {
-              pristine: {}
-            }
+            initialState: { is: 'pristine' },
+            transitions: { pristine: {}},
+            reactions: { pristine: {}}
+          },
+          stateless: {
+            reactions: {}
           }
         });
 
-        assert.that(application.writeModel.sampleContext.sampleAggregate.commands.execute.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.commands.execute.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.succeeded.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.succeeded.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executed.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executed.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeFailed.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeFailed.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeRejected.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeRejected.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.handle).is.ofType('function');
 
-        assert.that(application.readModel.lists.sampleList.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.readModel.lists.sampleList.queries.readItem.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.isAuthorized).is.ofType('function');
 
-        assert.that(application.flows.stateless.reactions['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.stateless.reactions['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.stateful.identity['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.stateful.identity['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.stateful.transitions.pristine['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.stateful.transitions.pristine['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.stateful.reactions.pristine['another-state']).is.ofType('function');
+        assert.that(application.views.internal.lists.sampleList.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.views.internal.lists.sampleList.queries.readItem.isAuthorized).is.ofType('function');
+
+        assert.that(application.flows.internal.stateless.reactions['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateless.reactions['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.identity['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.identity['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.transitions.pristine['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.transitions.pristine['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.reactions.pristine['another-state']).is.ofType('function');
       });
 
       test('loads applications with directories.', async () => {
         const directory = await validWithDirectories();
         const application = await Application.load({ directory });
 
-        assert.that(application.configuration).is.equalTo({
-          writeModel: {
-            sampleContext: {
-              sampleAggregate: {
-                commands: {
-                  execute: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
-                      },
-                      required: [ 'strategy' ],
-                      additionalProperties: false
-                    }
-                  }
-                },
-                events: {
-                  succeeded: {
-                    documentation: undefined,
-                    schema: undefined
+        assert.that(application.initialState.external).is.undefined();
+
+        assert.that(application.commands.external).is.equalTo({
+          sampleContext: {
+            sampleAggregate: {
+              execute: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
                   },
-                  executed: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
-                      },
-                      required: [ 'strategy' ],
-                      additionalProperties: false
-                    }
-                  },
-                  executeFailed: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        reason: { type: 'string' }
-                      },
-                      required: [ 'reason' ],
-                      additionalProperties: false
-                    }
-                  },
-                  executeRejected: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        reason: { type: 'string' }
-                      },
-                      required: [ 'reason' ],
-                      additionalProperties: false
-                    }
-                  }
+                  required: [ 'strategy' ],
+                  additionalProperties: false
                 }
               }
             }
-          },
-          readModel: {
-            lists: {
-              sampleList: {}
-            }
-          },
-          flows: {
-            stateless: {},
-            stateful: {}
           }
         });
 
-        assert.that(application.writeModel).is.atLeast({
+        assert.that(application.events.external).is.equalTo({
           sampleContext: {
             sampleAggregate: {
-              initialState: {},
-              commands: {
-                execute: {}
+              succeeded: {
+                documentation: undefined,
+                schema: undefined
               },
-              events: {
-                succeeded: {},
-                executed: {},
-                executeFailed: {},
-                executeRejected: {}
+              executed: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                  },
+                  required: [ 'strategy' ],
+                  additionalProperties: false
+                }
+              },
+              executeFailed: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' }
+                  },
+                  required: [ 'reason' ],
+                  additionalProperties: false
+                }
+              },
+              executeRejected: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' }
+                  },
+                  required: [ 'reason' ],
+                  additionalProperties: false
+                }
               }
             }
           }
         });
 
-        assert.that(application.readModel).is.atLeast({
+        assert.that(application.views.external).is.equalTo({
+          lists: {
+            sampleList: {}
+          }
+        });
+
+        assert.that(application.flows.external).is.undefined();
+
+        assert.that(application.initialState.internal).is.equalTo({
+          sampleContext: {
+            sampleAggregate: {}
+          }
+        });
+
+        assert.that(application.commands.internal).is.atLeast({
+          sampleContext: {
+            sampleAggregate: {
+              execute: {}
+            }
+          }
+        });
+
+        assert.that(application.events.internal).is.atLeast({
+          sampleContext: {
+            sampleAggregate: {
+              succeeded: {},
+              executed: {},
+              executeFailed: {},
+              executeRejected: {}
+            }
+          }
+        });
+
+        assert.that(application.views.internal).is.atLeast({
           lists: {
             sampleList: {
               fields: {
@@ -560,139 +603,144 @@ suite('Application', () => {
           }
         });
 
-        assert.that(application.flows).is.atLeast({
-          stateless: {
-            reactions: {}
-          },
+        assert.that(application.flows.internal).is.atLeast({
           stateful: {
             identity: {},
-            initialState: {
-              is: 'pristine'
-            },
-            transitions: {
-              pristine: {}
-            },
-            reactions: {
-              pristine: {}
-            }
+            initialState: { is: 'pristine' },
+            transitions: { pristine: {}},
+            reactions: { pristine: {}}
+          },
+          stateless: {
+            reactions: {}
           }
         });
 
-        assert.that(application.writeModel.sampleContext.sampleAggregate.commands.execute.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.commands.execute.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.succeeded.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.succeeded.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executed.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executed.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeFailed.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeFailed.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeRejected.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeRejected.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.handle).is.ofType('function');
 
-        assert.that(application.readModel.lists.sampleList.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.readModel.lists.sampleList.queries.readItem.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.isAuthorized).is.ofType('function');
 
-        assert.that(application.flows.stateless.reactions['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.stateless.reactions['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.stateful.identity['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.stateful.identity['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.stateful.transitions.pristine['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.stateful.transitions.pristine['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.stateful.reactions.pristine['another-state']).is.ofType('function');
+        assert.that(application.views.internal.lists.sampleList.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.views.internal.lists.sampleList.queries.readItem.isAuthorized).is.ofType('function');
+
+        assert.that(application.flows.internal.stateless.reactions['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateless.reactions['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.identity['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.identity['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.transitions.pristine['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.transitions.pristine['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.reactions.pristine['another-state']).is.ofType('function');
       });
 
       test('loads applications with directories, without index.js files.', async () => {
         const directory = await validWithDirectoriesWithoutIndex();
         const application = await Application.load({ directory });
 
-        assert.that(application.configuration).is.equalTo({
-          writeModel: {
-            sampleContext: {
-              sampleAggregate: {
-                commands: {
-                  execute: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
-                      },
-                      required: [ 'strategy' ],
-                      additionalProperties: false
-                    }
-                  }
-                },
-                events: {
-                  succeeded: {
-                    documentation: undefined,
-                    schema: undefined
+        assert.that(application.initialState.external).is.undefined();
+
+        assert.that(application.commands.external).is.equalTo({
+          sampleContext: {
+            sampleAggregate: {
+              execute: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
                   },
-                  executed: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
-                      },
-                      required: [ 'strategy' ],
-                      additionalProperties: false
-                    }
-                  },
-                  executeFailed: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        reason: { type: 'string' }
-                      },
-                      required: [ 'reason' ],
-                      additionalProperties: false
-                    }
-                  },
-                  executeRejected: {
-                    documentation: undefined,
-                    schema: {
-                      type: 'object',
-                      properties: {
-                        reason: { type: 'string' }
-                      },
-                      required: [ 'reason' ],
-                      additionalProperties: false
-                    }
-                  }
+                  required: [ 'strategy' ],
+                  additionalProperties: false
                 }
               }
             }
-          },
-          readModel: {
-            lists: {
-              sampleList: {}
-            }
-          },
-          flows: {
-            stateless: {},
-            stateful: {}
           }
         });
 
-        assert.that(application.writeModel).is.atLeast({
+        assert.that(application.events.external).is.equalTo({
           sampleContext: {
             sampleAggregate: {
-              initialState: {},
-              commands: {
-                execute: {}
+              succeeded: {
+                documentation: undefined,
+                schema: undefined
               },
-              events: {
-                succeeded: {},
-                executed: {},
-                executeFailed: {},
-                executeRejected: {}
+              executed: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                  },
+                  required: [ 'strategy' ],
+                  additionalProperties: false
+                }
+              },
+              executeFailed: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' }
+                  },
+                  required: [ 'reason' ],
+                  additionalProperties: false
+                }
+              },
+              executeRejected: {
+                documentation: undefined,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    reason: { type: 'string' }
+                  },
+                  required: [ 'reason' ],
+                  additionalProperties: false
+                }
               }
             }
           }
         });
 
-        assert.that(application.readModel).is.atLeast({
+        assert.that(application.views.external).is.equalTo({
+          lists: {
+            sampleList: {}
+          }
+        });
+
+        assert.that(application.flows.external).is.undefined();
+
+        assert.that(application.initialState.internal).is.equalTo({
+          sampleContext: {
+            sampleAggregate: {}
+          }
+        });
+
+        assert.that(application.commands.internal).is.atLeast({
+          sampleContext: {
+            sampleAggregate: {
+              execute: {}
+            }
+          }
+        });
+
+        assert.that(application.events.internal).is.atLeast({
+          sampleContext: {
+            sampleAggregate: {
+              succeeded: {},
+              executed: {},
+              executeFailed: {},
+              executeRejected: {}
+            }
+          }
+        });
+
+        assert.that(application.views.internal).is.atLeast({
           lists: {
             sampleList: {
               fields: {
@@ -708,54 +756,54 @@ suite('Application', () => {
           }
         });
 
-        assert.that(application.flows).is.atLeast({
-          stateless: {
-            reactions: {}
-          },
+        assert.that(application.flows.internal).is.atLeast({
           stateful: {
             identity: {},
-            initialState: {
-              is: 'pristine'
-            },
-            transitions: {
-              pristine: {}
-            },
-            reactions: {
-              pristine: {}
-            }
+            initialState: { is: 'pristine' },
+            transitions: { pristine: {}},
+            reactions: { pristine: {}}
+          },
+          stateless: {
+            reactions: {}
           }
         });
 
-        assert.that(application.writeModel.sampleContext.sampleAggregate.commands.execute.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.commands.execute.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.succeeded.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.succeeded.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executed.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executed.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeFailed.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeFailed.isAuthorized).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeRejected.handle).is.ofType('function');
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executeRejected.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.handle).is.ofType('function');
 
-        assert.that(application.readModel.lists.sampleList.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.readModel.lists.sampleList.queries.readItem.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.isAuthorized).is.ofType('function');
 
-        assert.that(application.flows.stateless.reactions['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.stateless.reactions['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.stateful.identity['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.stateful.identity['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.stateful.transitions.pristine['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.stateful.transitions.pristine['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.stateful.reactions.pristine['another-state']).is.ofType('function');
+        assert.that(application.views.internal.lists.sampleList.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.views.internal.lists.sampleList.queries.readItem.isAuthorized).is.ofType('function');
+
+        assert.that(application.flows.internal.stateless.reactions['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateless.reactions['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.identity['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.identity['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.transitions.pristine['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.transitions.pristine['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful.reactions.pristine['another-state']).is.ofType('function');
       });
 
       test('loads applications with documentation.', async () => {
         const directory = await validWithDocumentation();
         const application = await Application.load({ directory });
 
-        assert.that(application.configuration.writeModel.sampleContext.sampleAggregate.commands.execute.documentation).
+        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.documentation).
           is.equalTo('# Sample aggregate\n\n## Execute');
-        assert.that(application.configuration.writeModel.sampleContext.sampleAggregate.events.executed.documentation).
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.documentation).
+          is.equalTo('# Sample aggregate\n\n## Executed');
+
+        assert.that(application.commands.external.sampleContext.sampleAggregate.execute.documentation).
+          is.equalTo('# Sample aggregate\n\n## Execute');
+        assert.that(application.events.external.sampleContext.sampleAggregate.executed.documentation).
           is.equalTo('# Sample aggregate\n\n## Executed');
       });
 
@@ -763,9 +811,9 @@ suite('Application', () => {
         const directory = await validWithFilter();
         const application = await Application.load({ directory });
 
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executed.filter).
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.filter).
           is.ofType('function');
-        assert.that(application.readModel.lists.sampleList.queries.readItem.filter).
+        assert.that(application.views.internal.lists.sampleList.queries.readItem.filter).
           is.ofType('function');
       });
 
@@ -773,20 +821,20 @@ suite('Application', () => {
         const directory = await validWithMap();
         const application = await Application.load({ directory });
 
-        assert.that(application.writeModel.sampleContext.sampleAggregate.events.executed.map).
+        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.map).
           is.ofType('function');
-        assert.that(application.readModel.lists.sampleList.queries.readItem.map).
+        assert.that(application.views.internal.lists.sampleList.queries.readItem.map).
           is.ofType('function');
       });
     });
 
     suite('invalid', () => {
-      test('throws an error if write model is missing.', async () => {
-        const directory = await invalidWriteModelIsMissing();
+      test('throws an error if domain is missing.', async () => {
+        const directory = await invalidDomainIsMissing();
 
         await assert.that(async () => {
           await Application.load({ directory });
-        }).is.throwingAsync('Missing required property: writeModel (at ./server/writeModel).');
+        }).is.throwingAsync('Missing required property: domain (at ./server/domain).');
       });
 
       test('throws an error if contexts are missing.', async () => {
@@ -794,7 +842,7 @@ suite('Application', () => {
 
         await assert.that(async () => {
           await Application.load({ directory });
-        }).is.throwingAsync('Too few properties defined (0), minimum 1 (at ./server/writeModel).');
+        }).is.throwingAsync('Too few properties defined (0), minimum 1 (at ./server/domain).');
       });
 
       test('throws an error if aggregates are missing.', async () => {
@@ -802,7 +850,7 @@ suite('Application', () => {
 
         await assert.that(async () => {
           await Application.load({ directory });
-        }).is.throwingAsync('Too few properties defined (0), minimum 1 (at ./server/writeModel/sampleContext).');
+        }).is.throwingAsync('Too few properties defined (0), minimum 1 (at ./server/domain/sampleContext).');
       });
 
       test('throws an error if file names are wrong.', async () => {
@@ -810,7 +858,7 @@ suite('Application', () => {
 
         await assert.that(async () => {
           await Application.load({ directory });
-        }).is.throwingAsync('Missing required property: initialState (at ./server/writeModel/sampleContext/sampleAggregate/initialState).');
+        }).is.throwingAsync('Missing required property: initialState (at ./server/domain/sampleContext/sampleAggregate/initialState).');
       });
 
       test('throws an error if a require is wrong.', async () => {
@@ -821,12 +869,12 @@ suite('Application', () => {
         }).is.throwingAsync(`Cannot find module 'non-existent'`);
       });
 
-      test('throws an error if read model is missing.', async () => {
-        const directory = await invalidReadModelIsMissing();
+      test('throws an error if views are missing.', async () => {
+        const directory = await invalidViewsAreMissing();
 
         await assert.that(async () => {
           await Application.load({ directory });
-        }).is.throwingAsync('Missing required property: readModel (at ./server/readModel).');
+        }).is.throwingAsync('Missing required property: views (at ./server/views).');
       });
 
       test('throws an error if lists are missing.', async () => {
@@ -834,7 +882,7 @@ suite('Application', () => {
 
         await assert.that(async () => {
           await Application.load({ directory });
-        }).is.throwingAsync('Missing required property: lists (at ./server/readModel/lists).');
+        }).is.throwingAsync('Missing required property: lists (at ./server/views/lists).');
       });
 
       test('throws an error if flows are missing.', async () => {

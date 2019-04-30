@@ -14,71 +14,68 @@ class Application {
       throw new Error('Entries are missing.');
     }
 
-    this.configuration = {
-      writeModel: {},
-      readModel: {},
-      flows: {}
-    };
+    this.initialState = { internal: {}};
+    this.commands = { internal: {}, external: {}};
+    this.events = { internal: {}, external: {}};
+    this.views = { internal: {}, external: {}};
+    this.flows = { internal: {}};
 
-    this.writeModel = {};
-    this.readModel = {};
-    this.flows = {};
+    for (const [ contextName, contextDefinition ] of Object.entries(entries.server.domain)) {
+      this.initialState.internal[contextName] = {};
+      this.commands.internal[contextName] = {};
+      this.events.internal[contextName] = {};
 
-    for (const [ contextName, contextDefinition ] of Object.entries(entries.server.writeModel)) {
-      this.configuration.writeModel[contextName] = {};
-      this.writeModel[contextName] = {};
+      this.commands.external[contextName] = {};
+      this.events.external[contextName] = {};
 
       for (const [ aggregateName, aggregateDefinition ] of Object.entries(contextDefinition)) {
-        this.configuration.writeModel[contextName][aggregateName] = {
-          commands: {},
-          events: {}
-        };
-        this.writeModel[contextName][aggregateName] = aggregateDefinition;
+        this.initialState.internal[contextName][aggregateName] = aggregateDefinition.initialState;
+        this.commands.internal[contextName][aggregateName] = aggregateDefinition.commands;
+        this.events.internal[contextName][aggregateName] = aggregateDefinition.events;
+
+        this.commands.external[contextName][aggregateName] = {};
+        this.events.external[contextName][aggregateName] = {};
 
         for (const [ commandName, commandDefinition ] of Object.entries(aggregateDefinition.commands)) {
-          this.configuration.writeModel[contextName][aggregateName].commands[commandName] = {
-            documentation: commandDefinition.documentation,
-            schema: commandDefinition.schema
-          };
+          let documentation;
+
           if (commandDefinition.documentation) {
-            this.configuration.writeModel[contextName][aggregateName].commands[commandName].documentation =
-              stripIndent(commandDefinition.documentation).trim();
+            documentation = stripIndent(commandDefinition.documentation).trim();
           }
-          if (commandDefinition.documentation) {
-            this.writeModel[contextName][aggregateName].commands[commandName].documentation =
-              stripIndent(commandDefinition.documentation).trim();
-          }
+
+          const { schema } = commandDefinition;
+
+          this.commands.internal[contextName][aggregateName][commandName].documentation = documentation;
+          this.commands.external[contextName][aggregateName][commandName] = { documentation, schema };
         }
+
         for (const [ eventName, eventDefinition ] of Object.entries(aggregateDefinition.events)) {
-          this.configuration.writeModel[contextName][aggregateName].events[eventName] = {
-            documentation: eventDefinition.documentation,
-            schema: eventDefinition.schema
-          };
+          let documentation;
+
           if (eventDefinition.documentation) {
-            this.configuration.writeModel[contextName][aggregateName].events[eventName].documentation =
-              stripIndent(eventDefinition.documentation).trim();
+            documentation = stripIndent(eventDefinition.documentation).trim();
           }
-          if (eventDefinition.documentation) {
-            this.writeModel[contextName][aggregateName].events[eventName].documentation =
-              stripIndent(eventDefinition.documentation).trim();
-          }
+
+          const { schema } = eventDefinition;
+
+          this.events.internal[contextName][aggregateName][eventName].documentation = documentation;
+          this.events.external[contextName][aggregateName][eventName] = { documentation, schema };
         }
       }
     }
 
-    for (const [ modelType, modelTypeDefinition ] of Object.entries(entries.server.readModel)) {
-      this.configuration.readModel[modelType] = {};
-      this.readModel[modelType] = {};
+    for (const [ modelType, modelTypeDefinition ] of Object.entries(entries.server.views)) {
+      this.views.internal[modelType] = {};
+      this.views.external[modelType] = {};
 
       for (const [ modelName, modelDefinition ] of Object.entries(modelTypeDefinition)) {
-        this.configuration.readModel[modelType][modelName] = {};
-        this.readModel[modelType][modelName] = modelDefinition;
+        this.views.internal[modelType][modelName] = modelDefinition;
+        this.views.external[modelType][modelName] = {};
       }
     }
 
     for (const [ flowName, flowDefinition ] of Object.entries(entries.server.flows)) {
-      this.configuration.flows[flowName] = {};
-      this.flows[flowName] = flowDefinition;
+      this.flows.internal[flowName] = flowDefinition;
     }
   }
 

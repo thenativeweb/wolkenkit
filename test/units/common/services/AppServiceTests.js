@@ -7,7 +7,7 @@ const { Application } = require('../../../../common/application'),
       { AppService } = require('../../../../common/services'),
       { Event } = require('../../../../common/elements'),
       eventstore = require('../../../../storage/eventstore/inmemory'),
-      { Repository } = require('../../../../handlers/writeModel'),
+      { Repository } = require('../../../../handlers/domain'),
       updateInitialState = require('../../../shared/applications/valid/updateInitialState');
 
 suite('AppService', () => {
@@ -87,7 +87,7 @@ suite('AppService', () => {
       });
     });
 
-    test('provides the write model structure.', async () => {
+    test('provides the domain structure.', async () => {
       assert.that(appService.sampleContext).is.ofType('object');
       assert.that(appService.sampleContext.sampleAggregate).is.ofType('function');
     });

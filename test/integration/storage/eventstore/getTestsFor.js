@@ -7,7 +7,7 @@ const assert = require('assertthat'),
 const { Event } = require('../../../../common/elements');
 
 /* eslint-disable mocha/max-top-level-suites */
-const getTestsFor = function (Eventstore, { type, url, startContainer, stopContainer }) {
+const getTestsFor = function ({ Eventstore, url }) {
   let eventstore,
       namespace;
 
@@ -17,35 +17,9 @@ const getTestsFor = function (Eventstore, { type, url, startContainer, stopConta
   });
 
   teardown(async function () {
-    this.timeout(20000);
+    this.timeout(20 * 1000);
     await eventstore.destroy();
   });
-
-  if (type !== 'inmemory') {
-    test('emits a disconnect event when the connection to the database becomes lost.', async function () {
-      this.timeout(15 * 1000);
-
-      await eventstore.initialize({ url, namespace });
-
-      await new Promise(async (resolve, reject) => {
-        eventstore.once('disconnect', async () => {
-          try {
-            await startContainer();
-            await eventstore.initialize({ url, namespace });
-          } catch (ex) {
-            return reject(ex);
-          }
-          resolve();
-        });
-
-        try {
-          await stopContainer();
-        } catch (ex) {
-          reject(ex);
-        }
-      });
-    });
-  }
 
   suite('initialize', () => {
     test('does not throw an error if the database is reachable.', async () => {

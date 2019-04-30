@@ -8,18 +8,18 @@ const assert = require('assertthat'),
 const { Application } = require('../../../../common/application'),
       { Command, Event, ReadableAggregate, WritableAggregate } = require('../../../../common/elements'),
       eventstore = require('../../../../storage/eventstore/inmemory'),
-      { Repository } = require('../../../../handlers/writeModel'),
+      { Repository } = require('../../../../handlers/domain'),
       updateInitialState = require('../../../shared/applications/valid/updateInitialState');
 
 suite('Repository', () => {
   let application,
-      writeModel;
+      domain;
 
   setup(async () => {
     const directory = await updateInitialState();
 
     application = await Application.load({ directory });
-    writeModel = application.writeModel;
+    domain = application.domain;
 
     await eventstore.initialize();
   });
@@ -66,7 +66,7 @@ suite('Repository', () => {
       command.addInitiator({ token: { sub: uuid() }});
 
       aggregate = new WritableAggregate({
-        writeModel,
+        domain,
         context: { name: command.context.name },
         aggregate: { name: command.aggregate.name, id: command.aggregate.id },
         command

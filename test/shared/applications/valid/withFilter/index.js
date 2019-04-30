@@ -7,8 +7,8 @@ const setupApplication = require('../../setupApplication');
 const withFilter = async function () {
   const directory = await setupApplication({
     remove: [
-      'server/writeModel/sampleContext/*',
-      'server/readModel/lists/*'
+      'server/domain/sampleContext/*',
+      'server/views/lists/*'
     ],
     copy: [ path.join(__dirname, 'data', '*') ]
   });

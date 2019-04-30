@@ -3,26 +3,25 @@
 const assert = require('assertthat'),
       uuid = require('uuidv4');
 
-const { ReadableAggregate } = require('../../../../common/elements'),
-      writeModel = require('./writeModel');
+const { ReadableAggregate } = require('../../../../common/elements');
 
 suite('ReadableAggregate', () => {
   test('is a function.', async () => {
     assert.that(ReadableAggregate).is.ofType('function');
   });
 
-  test('throws an error if write model is missing.', async () => {
+  test('throws an error if domain is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({});
       /* eslint-enable no-new */
-    }).is.throwing('Write model is missing.');
+    }).is.throwing('Domain is missing.');
   });
 
   test('throws an error if context is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new ReadableAggregate({ writeModel });
+      new ReadableAggregate({ domain });
       /* eslint-enable no-new */
     }).is.throwing('Context is missing.');
   });
@@ -31,7 +30,7 @@ suite('ReadableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({
-        writeModel,
+        domain,
         context: {}
       });
       /* eslint-enable no-new */
@@ -42,7 +41,7 @@ suite('ReadableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' }
       });
       /* eslint-enable no-new */
@@ -53,7 +52,7 @@ suite('ReadableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: {}
       });
@@ -65,7 +64,7 @@ suite('ReadableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup' }
       });
@@ -77,7 +76,7 @@ suite('ReadableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({
-        writeModel,
+        domain,
         context: { name: 'non-existent' },
         aggregate: { name: 'peerGroup', id: uuid() }
       });
@@ -89,7 +88,7 @@ suite('ReadableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'non-existent', id: uuid() }
       });
@@ -98,9 +97,9 @@ suite('ReadableAggregate', () => {
   });
 
   suite('definition', () => {
-    test('contains the appropriate aggregate definition from the write model.', async () => {
+    test('contains the appropriate aggregate definition from the domain.', async () => {
       const aggregate = new ReadableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() }
       });
@@ -128,7 +127,7 @@ suite('ReadableAggregate', () => {
         const aggregateId = uuid();
 
         const aggregate = new ReadableAggregate({
-          writeModel,
+          domain,
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: aggregateId }
         });
@@ -140,7 +139,7 @@ suite('ReadableAggregate', () => {
     suite('revision', () => {
       test('is 0.', async () => {
         const aggregate = new ReadableAggregate({
-          writeModel,
+          domain,
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: uuid() }
         });
@@ -152,7 +151,7 @@ suite('ReadableAggregate', () => {
     suite('uncommitted events', () => {
       test('is an empty array.', async () => {
         const aggregate = new ReadableAggregate({
-          writeModel,
+          domain,
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: uuid() }
         });
@@ -166,7 +165,7 @@ suite('ReadableAggregate', () => {
         const aggregateId = uuid();
 
         const aggregate = new ReadableAggregate({
-          writeModel,
+          domain,
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: aggregateId }
         });
@@ -178,7 +177,7 @@ suite('ReadableAggregate', () => {
         const aggregateId = uuid();
 
         const aggregate = new ReadableAggregate({
-          writeModel,
+          domain,
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: aggregateId }
         });
@@ -190,7 +189,7 @@ suite('ReadableAggregate', () => {
         const aggregateId = uuid();
 
         const aggregate = new ReadableAggregate({
-          writeModel,
+          domain,
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: aggregateId }
         });
@@ -213,7 +212,7 @@ suite('ReadableAggregate', () => {
         const id = uuid();
 
         const aggregate = new ReadableAggregate({
-          writeModel,
+          domain,
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id }
         });
@@ -224,22 +223,22 @@ suite('ReadableAggregate', () => {
       suite('state', () => {
         test('contains the initial state.', async () => {
           const aggregate = new ReadableAggregate({
-            writeModel,
+            domain,
             context: { name: 'planning' },
             aggregate: { name: 'peerGroup', id: uuid() }
           });
 
-          assert.that(aggregate.api.forReadOnly.state).is.equalTo(writeModel.planning.peerGroup.initialState);
+          assert.that(aggregate.api.forReadOnly.state).is.equalTo(domain.planning.peerGroup.initialState);
         });
 
         test('is a deep copy.', async () => {
           const aggregate = new ReadableAggregate({
-            writeModel,
+            domain,
             context: { name: 'planning' },
             aggregate: { name: 'peerGroup', id: uuid() }
           });
 
-          assert.that(aggregate.api.forReadOnly.state).is.not.sameAs(writeModel.planning.peerGroup.initialState);
+          assert.that(aggregate.api.forReadOnly.state).is.not.sameAs(domain.planning.peerGroup.initialState);
         });
       });
 
@@ -248,7 +247,7 @@ suite('ReadableAggregate', () => {
           const aggregateId = uuid();
 
           const aggregate = new ReadableAggregate({
-            writeModel,
+            domain,
             context: { name: 'planning' },
             aggregate: { name: 'peerGroup', id: aggregateId }
           });
@@ -263,7 +262,7 @@ suite('ReadableAggregate', () => {
         const id = uuid();
 
         const aggregate = new ReadableAggregate({
-          writeModel,
+          domain,
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id }
         });
@@ -274,7 +273,7 @@ suite('ReadableAggregate', () => {
       suite('state', () => {
         test('references the read-only api state.', async () => {
           const aggregate = new ReadableAggregate({
-            writeModel,
+            domain,
             context: { name: 'planning' },
             aggregate: { name: 'peerGroup', id: uuid() }
           });
@@ -286,7 +285,7 @@ suite('ReadableAggregate', () => {
       suite('setState', () => {
         test('is a function.', async () => {
           const aggregate = new ReadableAggregate({
-            writeModel,
+            domain,
             context: { name: 'planning' },
             aggregate: { name: 'peerGroup', id: uuid() }
           });
@@ -296,7 +295,7 @@ suite('ReadableAggregate', () => {
 
         test('updates the state.', async () => {
           const aggregate = new ReadableAggregate({
-            writeModel,
+            domain,
             context: { name: 'planning' },
             aggregate: { name: 'peerGroup', id: uuid() }
           });
@@ -317,7 +316,7 @@ suite('ReadableAggregate', () => {
 
         test('correctly resets arrays.', async () => {
           const aggregate = new ReadableAggregate({
-            writeModel,
+            domain,
             context: { name: 'planning' },
             aggregate: { name: 'peerGroup', id: uuid() }
           });
@@ -342,7 +341,7 @@ suite('ReadableAggregate', () => {
   suite('applySnapshot', () => {
     test('is a function.', async () => {
       const aggregate = new ReadableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() }
       });
@@ -352,7 +351,7 @@ suite('ReadableAggregate', () => {
 
     test('throws an error if snapshot is missing.', async () => {
       const aggregate = new ReadableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() }
       });
@@ -364,7 +363,7 @@ suite('ReadableAggregate', () => {
 
     test('overwrites the revision.', async () => {
       const aggregate = new ReadableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() }
       });
@@ -381,7 +380,7 @@ suite('ReadableAggregate', () => {
 
     test('overwrites the state.', async () => {
       const aggregate = new ReadableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() }
       });

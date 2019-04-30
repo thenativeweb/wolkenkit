@@ -6,7 +6,7 @@ const setupApplication = require('../../setupApplication');
 
 const withWrongRequire = async function () {
   const directory = await setupApplication({
-    remove: [ 'server/writeModel/sampleContext/*' ],
+    remove: [ 'server/domain/sampleContext/*' ],
     copy: [ path.join(__dirname, 'data', '*') ]
   });
 

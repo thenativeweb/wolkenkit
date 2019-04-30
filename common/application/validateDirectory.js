@@ -50,7 +50,7 @@ const validateDirectory = async function ({ directory }) {
       server: {
         type: 'object',
         properties: {
-          writeModel: {
+          domain: {
             type: 'object',
             patternProperties: {
               '.*': {
@@ -68,7 +68,7 @@ const validateDirectory = async function ({ directory }) {
             },
             minProperties: 1
           },
-          readModel: {
+          views: {
             type: 'object',
             properties: {
               lists: {
@@ -100,7 +100,7 @@ const validateDirectory = async function ({ directory }) {
             minProperties: 0
           }
         },
-        required: [ 'writeModel', 'readModel', 'flows' ],
+        required: [ 'domain', 'views', 'flows' ],
         additionalProperties: true
       }
     },

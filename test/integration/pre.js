@@ -54,6 +54,15 @@ const pre = async function () {
   shell.exec(oneLine`
     docker run
       -d
+      -p 5672:5672
+      -e RABBITMQ_DEFAULT_USER=wolkenkit
+      -e RABBITMQ_DEFAULT_PASS=wolkenkit
+      --name rabbitmq-integration
+      thenativeweb/wolkenkit-rabbitmq:latest
+  `);
+  shell.exec(oneLine`
+    docker run
+      -d
       -p 1433:1433
       -e ACCEPT_EULA=Y
       -e SA_PASSWORD=Wolkenkit123
@@ -61,10 +70,11 @@ const pre = async function () {
       microsoft/mssql-server-linux:2017-CU6
   `);
 
-  await waitFor.mariadb({ url: connectionStrings.mariadb.integrationTests });
-  await waitFor.mongodb({ url: connectionStrings.mongodb.integrationTests });
-  await waitFor.mysql({ url: connectionStrings.mysql.integrationTests });
+  await waitFor.mariaDb({ url: connectionStrings.mariaDb.integrationTests });
+  await waitFor.mongoDb({ url: connectionStrings.mongoDb.integrationTests });
+  await waitFor.mySql({ url: connectionStrings.mySql.integrationTests });
   await waitFor.postgres({ url: connectionStrings.postgres.integrationTests });
+  await waitFor.rabbitMq({ url: connectionStrings.rabbitMq.integrationTests });
   await waitFor.sqlServer({ url: connectionStrings.sqlServer.integrationTests });
 };
 

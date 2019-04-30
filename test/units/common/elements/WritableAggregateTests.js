@@ -3,8 +3,7 @@
 const assert = require('assertthat'),
       uuid = require('uuidv4');
 
-const { Command, WritableAggregate } = require('../../../../common/elements'),
-      writeModel = require('./writeModel');
+const { Command, WritableAggregate } = require('../../../../common/elements');
 
 suite('WritableAggregate', () => {
   let aggregateId,
@@ -27,18 +26,18 @@ suite('WritableAggregate', () => {
     assert.that(WritableAggregate).is.ofType('function');
   });
 
-  test('throws an error if write model is missing.', async () => {
+  test('throws an error if domain is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new WritableAggregate({});
       /* eslint-enable no-new */
-    }).is.throwing('Write model is missing.');
+    }).is.throwing('Domain is missing.');
   });
 
   test('throws an error if context is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new WritableAggregate({ writeModel });
+      new WritableAggregate({ domain });
       /* eslint-enable no-new */
     }).is.throwing('Context is missing.');
   });
@@ -46,7 +45,7 @@ suite('WritableAggregate', () => {
   test('throws an error if context name is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new WritableAggregate({ writeModel, context: {}});
+      new WritableAggregate({ domain, context: {}});
       /* eslint-enable no-new */
     }).is.throwing('Context name is missing.');
   });
@@ -55,7 +54,7 @@ suite('WritableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new WritableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' }
       });
       /* eslint-enable no-new */
@@ -66,7 +65,7 @@ suite('WritableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new WritableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: {}
       });
@@ -78,7 +77,7 @@ suite('WritableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new WritableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup' }
       });
@@ -90,7 +89,7 @@ suite('WritableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new WritableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() }
       });
@@ -100,7 +99,7 @@ suite('WritableAggregate', () => {
 
   test('derives from Readable.', async () => {
     const aggregate = new WritableAggregate({
-      writeModel,
+      domain,
       context: { name: 'planning' },
       aggregate: { name: 'peerGroup', id: aggregateId },
       command
@@ -126,7 +125,7 @@ suite('WritableAggregate', () => {
     assert.that(aggregate.instance.uncommittedEvents).is.equalTo([]);
 
     assert.that(aggregate.api.forReadOnly.id).is.equalTo(aggregateId);
-    assert.that(aggregate.api.forReadOnly.state).is.equalTo(writeModel.planning.peerGroup.initialState);
+    assert.that(aggregate.api.forReadOnly.state).is.equalTo(domain.planning.peerGroup.initialState);
     assert.that(aggregate.api.forEvents.id).is.sameAs(aggregate.api.forReadOnly.id);
     assert.that(aggregate.api.forEvents.state).is.sameAs(aggregate.api.forReadOnly.state);
     assert.that(aggregate.api.forEvents.setState).is.ofType('function');
@@ -138,7 +137,7 @@ suite('WritableAggregate', () => {
     suite('forCommands', () => {
       test('contains the aggregate id.', async () => {
         const aggregate = new WritableAggregate({
-          writeModel,
+          domain,
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: aggregateId },
           command
@@ -150,7 +149,7 @@ suite('WritableAggregate', () => {
       suite('state', () => {
         test('references the read-only api state.', async () => {
           const aggregate = new WritableAggregate({
-            writeModel,
+            domain,
             context: { name: 'planning' },
             aggregate: { name: 'peerGroup', id: aggregateId },
             command
@@ -163,7 +162,7 @@ suite('WritableAggregate', () => {
       suite('exists', () => {
         test('references the instance exists function.', async () => {
           const aggregate = new WritableAggregate({
-            writeModel,
+            domain,
             context: { name: 'planning' },
             aggregate: { name: 'peerGroup', id: aggregateId },
             command
@@ -177,7 +176,7 @@ suite('WritableAggregate', () => {
         suite('publish', () => {
           test('is a function.', async () => {
             const aggregate = new WritableAggregate({
-              writeModel,
+              domain,
               context: { name: 'planning' },
               aggregate: { name: 'peerGroup', id: aggregateId },
               command
@@ -188,7 +187,7 @@ suite('WritableAggregate', () => {
 
           test('throws an error if name is missing.', async () => {
             const aggregate = new WritableAggregate({
-              writeModel,
+              domain,
               context: { name: 'planning' },
               aggregate: { name: 'peerGroup', id: aggregateId },
               command
@@ -201,7 +200,7 @@ suite('WritableAggregate', () => {
 
           test('throws an error if a non-existent name is given.', async () => {
             const aggregate = new WritableAggregate({
-              writeModel,
+              domain,
               context: { name: 'planning' },
               aggregate: { name: 'peerGroup', id: aggregateId },
               command
@@ -216,7 +215,7 @@ suite('WritableAggregate', () => {
             command.addInitiator({ token: { sub: '6db3ef6a-a607-40cc-8108-65e81816b320' }});
 
             const aggregate = new WritableAggregate({
-              writeModel,
+              domain,
               context: { name: 'planning' },
               aggregate: { name: 'peerGroup', id: aggregateId },
               command
@@ -233,7 +232,7 @@ suite('WritableAggregate', () => {
             command.addInitiator({ token });
 
             const aggregate = new WritableAggregate({
-              writeModel,
+              domain,
               context: { name: 'planning' },
               aggregate: { name: 'peerGroup', id: aggregateId },
               command
@@ -250,7 +249,7 @@ suite('WritableAggregate', () => {
             command.addInitiator({ token });
 
             const aggregate = new WritableAggregate({
-              writeModel,
+              domain,
               context: { name: 'planning' },
               aggregate: { name: 'peerGroup', id: aggregateId },
               command
@@ -292,7 +291,7 @@ suite('WritableAggregate', () => {
             command.addInitiator({ token });
 
             const aggregate = new WritableAggregate({
-              writeModel,
+              domain,
               context: { name: 'planning' },
               aggregate: { name: 'peerGroup', id: aggregateId },
               command
@@ -319,7 +318,7 @@ suite('WritableAggregate', () => {
             command.addInitiator({ token });
 
             const aggregate = new WritableAggregate({
-              writeModel,
+              domain,
               context: { name: 'planning' },
               aggregate: { name: 'peerGroup', id: aggregateId },
               command
@@ -338,7 +337,7 @@ suite('WritableAggregate', () => {
             command.addInitiator({ token });
 
             const aggregate = new WritableAggregate({
-              writeModel,
+              domain,
               context: { name: 'planning' },
               aggregate: { name: 'peerGroup', id: aggregateId },
               command
@@ -358,7 +357,7 @@ suite('WritableAggregate', () => {
   suite('applySnapshot', () => {
     test('is a function.', async () => {
       const aggregate = new WritableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         command
@@ -369,7 +368,7 @@ suite('WritableAggregate', () => {
 
     test('throws an error if snapshot is missing.', async () => {
       const aggregate = new WritableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         command
@@ -382,7 +381,7 @@ suite('WritableAggregate', () => {
 
     test('overwrites the revision.', async () => {
       const aggregate = new WritableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         command
@@ -400,7 +399,7 @@ suite('WritableAggregate', () => {
 
     test('overwrites the state.', async () => {
       const aggregate = new WritableAggregate({
-        writeModel,
+        domain,
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         command

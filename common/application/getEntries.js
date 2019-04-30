@@ -14,14 +14,14 @@ const getEntries = async function ({ directory }) {
 
   // If an index.js file is given inside of an aggregate, list or flow, use it
   // instead of the individual files.
-  for (const context of Object.values(entries.writeModel)) {
+  for (const context of Object.values(entries.domain)) {
     for (const [ aggregateName, aggregate ] of Object.entries(context)) {
       if (aggregate.index) {
         context[aggregateName] = { ...aggregate.index };
       }
     }
   }
-  for (const modelType of Object.values(entries.readModel)) {
+  for (const modelType of Object.values(entries.views)) {
     for (const [ modelName, model ] of Object.entries(modelType)) {
       if (model.index) {
         modelType[modelName] = { ...model.index };
