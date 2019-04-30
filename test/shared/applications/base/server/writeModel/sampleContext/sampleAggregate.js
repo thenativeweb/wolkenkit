@@ -44,6 +44,15 @@ const events = {
   },
 
   executed: {
+    schema: {
+      type: 'object',
+      properties: {
+        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+      },
+      required: [ 'strategy' ],
+      additionalProperties: false
+    },
+
     handle () {},
 
     isAuthorized () {

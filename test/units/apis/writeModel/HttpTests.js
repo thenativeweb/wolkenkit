@@ -1,39 +1,23 @@
 'use strict';
 
-const path = require('path'),
-      { Writable } = require('stream');
+const path = require('path');
 
 const assert = require('assertthat'),
+      record = require('record-stdstreams'),
       supertest = require('supertest'),
       uuid = require('uuidv4');
 
 const { Application } = require('../../../../common/application'),
+      asJsonStream = require('../../../shared/http/asJsonStream'),
       { Command, Event } = require('../../../../common/elements'),
-      commandFailsToAuthorize = require('../../../shared/applications/valid/commandFailsToAuthorize'),
-      commandIsNotAuthorized = require('../../../shared/applications/valid/commandIsNotAuthorized'),
+      commandIsAuthorized = require('../../../shared/applications/valid/commandIsAuthorized'),
+      eventFilter = require('../../../shared/applications/valid/eventFilter'),
+      eventIsAuthorized = require('../../../shared/applications/valid/eventIsAuthorized'),
+      eventMap = require('../../../shared/applications/valid/eventMap'),
       eventstore = require('../../../../storage/eventstore/inmemory'),
       { Http } = require('../../../../apis/writeModel'),
       identityProvider = require('../../../shared/identityProvider'),
       { Repository } = require('../../../../handlers/writeModel');
-
-const asJsonStream = function (...handleJson) {
-  let counter = 0;
-
-  return new Writable({
-    write (chunk, encoding, callback) {
-      const data = JSON.parse(chunk.toString());
-
-      if (!handleJson[counter]) {
-        return callback(new Error(`Received ${counter + 1} items, but only expected ${handleJson.length}.`));
-      }
-
-      handleJson[counter](data);
-
-      counter += 1;
-      callback();
-    }
-  });
-};
 
 suite('Http', () => {
   const identityProviders = [ identityProvider ];
@@ -69,11 +53,27 @@ suite('Http', () => {
 
       await assert.that(async () => {
         await http.initialize({
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
           application,
           repository,
           identityProviders
         });
       }).is.throwingAsync('CORS origin is missing.');
+    });
+
+    test('throws an error if on receive command is missing.', async () => {
+      const http = new Http();
+
+      await assert.that(async () => {
+        await http.initialize({
+          corsOrigin: '*',
+          application,
+          repository,
+          identityProviders
+        });
+      }).is.throwingAsync('On receive command is missing.');
     });
 
     test('throws an error if application is missing.', async () => {
@@ -82,6 +82,9 @@ suite('Http', () => {
       await assert.that(async () => {
         await http.initialize({
           corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
           repository,
           identityProviders
         });
@@ -94,6 +97,9 @@ suite('Http', () => {
       await assert.that(async () => {
         await http.initialize({
           corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
           application,
           identityProviders
         });
@@ -106,6 +112,9 @@ suite('Http', () => {
       await assert.that(async () => {
         await http.initialize({
           corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
           application,
           repository
         });
@@ -119,6 +128,9 @@ suite('Http', () => {
 
       await http.initialize({
         corsOrigin: '*',
+        async onReceiveCommand () {
+          // Intentionally left blank.
+        },
         application,
         repository,
         identityProviders
@@ -175,6 +187,9 @@ suite('Http', () => {
 
         await http.initialize({
           corsOrigin: corsOrigin.allow,
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
           application,
           repository,
           identityProviders
@@ -204,6 +219,9 @@ suite('Http', () => {
 
       await http.initialize({
         corsOrigin: '*',
+        async onReceiveCommand () {
+          // Intentionally left blank.
+        },
         application,
         repository,
         identityProviders
@@ -237,13 +255,18 @@ suite('Http', () => {
   });
 
   suite('POST /v2/command', () => {
-    let http;
+    let http,
+        receivedCommands;
 
     setup(async () => {
       http = new Http();
+      receivedCommands = [];
 
       await http.initialize({
         corsOrigin: '*',
+        async onReceiveCommand ({ command, metadata }) {
+          receivedCommands.push({ command, metadata });
+        },
         application,
         repository,
         identityProviders
@@ -357,7 +380,7 @@ suite('Http', () => {
       assert.that(res.statusCode).is.equalTo(200);
     });
 
-    test('writes an incoming command to the command stream.', async () => {
+    test('receives commands.', async () => {
       const command = new Command({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
@@ -365,98 +388,282 @@ suite('Http', () => {
         data: { strategy: 'succeed' }
       });
 
-      process.nextTick(async () => {
+      await supertest(http.api).
+        post('/v2/command').
+        send(command);
+
+      assert.that(receivedCommands.length).is.equalTo(1);
+      assert.that(receivedCommands[0]).is.atLeast({
+        command: {
+          context: { name: command.context.name },
+          aggregate: { name: command.aggregate.name, id: command.aggregate.id },
+          name: command.name,
+          data: command.data,
+          initiator: {
+            id: 'anonymous',
+            token: { sub: 'anonymous', iss: 'https://token.invalid' }
+          }
+        },
+        metadata: {
+          client: {
+            user: { id: 'anonymous', token: { sub: 'anonymous' }}
+          }
+        }
+      });
+      assert.that(receivedCommands[0].metadata.client.ip).is.ofType('string');
+    });
+
+    suite('isAuthorized', () => {
+      test('returns 401 if a command is not authorized.', async () => {
+        const directory = await commandIsAuthorized();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const command = new Command({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'denyAuthorization'
+        });
+
+        const res = await supertest(http.api).
+          post('/v2/command').
+          send(command);
+
+        assert.that(res.statusCode).is.equalTo(401);
+      });
+
+      test('returns 401 if an error is thrown.', async () => {
+        const directory = await commandIsAuthorized();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const command = new Command({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'failToAuthorize'
+        });
+
+        const res = await supertest(http.api).
+          post('/v2/command').
+          send(command);
+
+        assert.that(res.statusCode).is.equalTo(401);
+      });
+
+      test('does not mutate the command.', async () => {
+        const directory = await commandIsAuthorized();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand ({ command, metadata }) {
+            receivedCommands.push({ command, metadata });
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const authorizeWithMutation = new Command({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'authorizeWithMutation'
+        });
+
+        await supertest(http.api).
+          post('/v2/command').
+          send(authorizeWithMutation);
+
+        assert.that(receivedCommands.length).is.equalTo(1);
+        assert.that(receivedCommands[0].command.data).is.equalTo(authorizeWithMutation.data);
+      });
+
+      test('uses the app service.', async () => {
+        const directory = await commandIsAuthorized();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const otherAggregateId = uuid();
+
+        const succeeded = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+          name: 'succeeded',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+        const executed = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+          name: 'executed',
+          data: { strategy: 'succeed' },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        succeeded.metadata.revision = 1;
+        executed.metadata.revision = 2;
+
+        await eventstore.saveEvents({
+          uncommittedEvents: [
+            { event: succeeded, state: {}},
+            { event: executed, state: {}}
+          ]
+        });
+
+        const command = new Command({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'useApp',
+          data: { otherAggregateId }
+        });
+
+        const stop = record();
+
         await supertest(http.api).
           post('/v2/command').
           send(command);
-      });
 
-      await new Promise((resolve, reject) => {
-        http.commandStream.once('data', data => {
-          try {
-            assert.that(data).is.atLeast({
-              command: {
-                context: { name: command.context.name },
-                aggregate: { name: command.aggregate.name, id: command.aggregate.id },
-                name: command.name,
-                data: command.data,
-                initiator: {
-                  id: 'anonymous',
-                  token: { sub: 'anonymous', iss: 'https://token.invalid' }
-                }
-              },
-              metadata: {
-                client: {
-                  user: { id: 'anonymous', token: { sub: 'anonymous' }}
-                }
-              }
-            });
-            assert.that(data.metadata.client.ip).is.ofType('string');
+        const { stdout } = stop();
+        const message = JSON.parse(stdout);
 
-            resolve();
-          } catch (ex) {
-            return reject(ex);
-          }
+        assert.that(message).is.equalTo({
+          id: otherAggregateId,
+          state: {}
         });
       });
-    });
 
-    test('returns 401 if a command is not authorized.', async () => {
-      const directory = await commandIsNotAuthorized();
+      test('uses the client service.', async () => {
+        const directory = await commandIsAuthorized();
 
-      application = await Application.load({ directory });
-      repository = new Repository({ application, eventstore });
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
 
-      http = new Http();
+        http = new Http();
 
-      await http.initialize({
-        corsOrigin: '*',
-        application,
-        repository,
-        identityProviders
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const command = new Command({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'useClient'
+        });
+
+        const stop = record();
+
+        await supertest(http.api).
+          post('/v2/command').
+          send(command);
+
+        const { stdout } = stop();
+        const message = JSON.parse(stdout);
+
+        assert.that(message).is.atLeast({
+          user: {
+            id: 'anonymous',
+            token: {
+              iss: 'https://token.invalid',
+              sub: 'anonymous'
+            }
+          }
+        });
+        assert.that(message.ip).is.ofType('string');
+        assert.that(message.ip.length).is.atLeast(1);
       });
 
-      const command = new Command({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'execute',
-        data: { strategy: 'succeed' }
-      });
+      for (const logLevel of [ 'fatal', 'error', 'warn', 'info', 'debug' ]) {
+        /* eslint-disable no-loop-func */
+        test(`uses the logger service with log level '${logLevel}'.`, async () => {
+          const directory = await commandIsAuthorized();
 
-      const res = await supertest(http.api).
-        post('/v2/command').
-        send(command);
+          application = await Application.load({ directory });
+          repository = new Repository({ application, eventstore });
 
-      assert.that(res.statusCode).is.equalTo(401);
-    });
+          http = new Http();
 
-    test('returns 401 if a command fails to authorize.', async () => {
-      const directory = await commandFailsToAuthorize();
+          await http.initialize({
+            corsOrigin: '*',
+            async onReceiveCommand () {
+              // Intentionally left blank.
+            },
+            application,
+            repository,
+            identityProviders
+          });
 
-      application = await Application.load({ directory });
-      repository = new Repository({ application, eventstore });
+          const command = new Command({
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: uuid() },
+            name: 'useLogger',
+            data: { logLevel }
+          });
 
-      http = new Http();
+          const stop = record();
 
-      await http.initialize({
-        corsOrigin: '*',
-        application,
-        repository,
-        identityProviders
-      });
+          await supertest(http.api).
+            post('/v2/command').
+            send(command);
 
-      const command = new Command({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'execute',
-        data: { strategy: 'succeed' }
-      });
+          const { stdout } = stop();
+          const message = JSON.parse(stdout);
 
-      const res = await supertest(http.api).
-        post('/v2/command').
-        send(command);
-
-      assert.that(res.statusCode).is.equalTo(401);
+          assert.that(message).is.atLeast({
+            level: logLevel,
+            message: 'Some log message.',
+            source: '/server/writeModel/sampleContext/sampleAggregate.js'
+          });
+        });
+        /* eslint-enable no-loop-func */
+      }
     });
   });
 
@@ -468,13 +675,16 @@ suite('Http', () => {
 
       await http.initialize({
         corsOrigin: '*',
+        async onReceiveCommand () {
+          // Intentionally left blank.
+        },
         application,
         repository,
         identityProviders
       });
     });
 
-    test('receives a single event from the event stream.', async () => {
+    test('delivers a single event.', async () => {
       const executed = new Event({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
@@ -483,23 +693,30 @@ suite('Http', () => {
         metadata: { causationId: uuid(), correlationId: uuid() }
       });
 
-      process.nextTick(() => {
-        http.eventStream.write({ event: executed, metadata: {}});
-      });
+      executed.metadata.revision = 1;
+
+      setTimeout(async () => {
+        await http.sendEvent({ event: executed, metadata: { state: {}, previousState: {}}});
+      }, 50);
 
       await new Promise((resolve, reject) => {
         try {
-          supertest(http.api).get('/v2/events').pipe(asJsonStream(event => {
-            assert.that(event.data).is.equalTo({ strategy: 'succeed' });
-            resolve();
-          }));
+          supertest(http.api).get('/v2/events').pipe(asJsonStream(
+            event => {
+              assert.that(event).is.equalTo({ name: 'heartbeat' });
+            },
+            event => {
+              assert.that(event.data).is.equalTo({ strategy: 'succeed' });
+              resolve();
+            }
+          ));
         } catch (ex) {
           reject(ex);
         }
       });
     });
 
-    test('receives multiple events from the event stream.', async () => {
+    test('delivers multiple events.', async () => {
       const succeeded = new Event({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
@@ -515,14 +732,20 @@ suite('Http', () => {
         metadata: { causationId: uuid(), correlationId: uuid() }
       });
 
-      process.nextTick(() => {
-        http.eventStream.write({ event: succeeded, metadata: {}});
-        http.eventStream.write({ event: executed, metadata: {}});
-      });
+      succeeded.metadata.revision = 1;
+      executed.metadata.revision = 2;
+
+      setTimeout(async () => {
+        await http.sendEvent({ event: succeeded, metadata: { state: {}, previousState: {}}});
+        await http.sendEvent({ event: executed, metadata: { state: {}, previousState: {}}});
+      }, 50);
 
       await new Promise((resolve, reject) => {
         try {
           supertest(http.api).get('/v2/events').pipe(asJsonStream(
+            event => {
+              assert.that(event).is.equalTo({ name: 'heartbeat' });
+            },
             event => {
               assert.that(event.name).is.equalTo('succeeded');
               assert.that(event.data).is.equalTo({});
@@ -539,7 +762,7 @@ suite('Http', () => {
       });
     });
 
-    test('receives filtered events from the event stream.', async () => {
+    test('delivers filtered events.', async () => {
       const succeeded = new Event({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
@@ -555,10 +778,13 @@ suite('Http', () => {
         metadata: { causationId: uuid(), correlationId: uuid() }
       });
 
-      process.nextTick(() => {
-        http.eventStream.write({ event: succeeded, metadata: {}});
-        http.eventStream.write({ event: executed, metadata: {}});
-      });
+      succeeded.metadata.revision = 1;
+      executed.metadata.revision = 2;
+
+      setTimeout(async () => {
+        await http.sendEvent({ event: succeeded, metadata: { state: {}, previousState: {}}});
+        await http.sendEvent({ event: executed, metadata: { state: {}, previousState: {}}});
+      }, 50);
 
       await new Promise((resolve, reject) => {
         try {
@@ -566,6 +792,9 @@ suite('Http', () => {
             get('/v2/events').
             query({ name: 'executed' }).
             pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
               event => {
                 assert.that(event.name).is.equalTo('executed');
                 assert.that(event.data).is.equalTo({ strategy: 'succeed' });
@@ -576,6 +805,1291 @@ suite('Http', () => {
           reject(ex);
         }
       });
+    });
+
+    test('delivers filtered events with a nested filter.', async () => {
+      const succeeded = new Event({
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: uuid() },
+        name: 'succeeded',
+        data: {},
+        metadata: { causationId: uuid(), correlationId: uuid() }
+      });
+      const executed = new Event({
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: uuid() },
+        name: 'executed',
+        data: { strategy: 'succeed' },
+        metadata: { causationId: uuid(), correlationId: uuid() }
+      });
+
+      succeeded.metadata.revision = 1;
+      executed.metadata.revision = 2;
+
+      setTimeout(async () => {
+        await http.sendEvent({ event: succeeded, metadata: { state: {}, previousState: {}}});
+        await http.sendEvent({ event: executed, metadata: { state: {}, previousState: {}}});
+      }, 50);
+
+      await new Promise((resolve, reject) => {
+        try {
+          supertest(http.api).
+            get('/v2/events').
+            query({
+              context: { name: 'sampleContext' },
+              name: 'executed'
+            }).
+            pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('executed');
+                assert.that(event.data).is.equalTo({ strategy: 'succeed' });
+                resolve();
+              }
+            ));
+        } catch (ex) {
+          reject(ex);
+        }
+      });
+    });
+
+    test('gracefully handles connections that get closed by the client.', async () => {
+      const executed = new Event({
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: uuid() },
+        name: 'executed',
+        data: { strategy: 'succeed' },
+        metadata: { causationId: uuid(), correlationId: uuid() }
+      });
+
+      executed.metadata.revision = 1;
+
+      try {
+        await supertest(http.api).
+          get('/v2/events').
+          timeout({ response: 10, deadline: 10 });
+      } catch (ex) {
+        if (ex.code !== 'ECONNABORTED') {
+          throw ex;
+        }
+
+        // Ignore aborted connections, since that's what we want to achieve
+        // here.
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      await assert.that(async () => {
+        await http.sendEvent({ event: executed, metadata: { state: {}, previousState: {}}});
+      }).is.not.throwingAsync();
+    });
+
+    suite('isAuthorized', () => {
+      test('skips an event if the event is not authorized.', async () => {
+        const directory = await eventIsAuthorized();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid();
+
+        const authorizationDenied = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'authorizationDenied',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+        const executed = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'executed',
+          data: { strategy: 'succeed' },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        authorizationDenied.metadata.revision = 1;
+        executed.metadata.revision = 2;
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: authorizationDenied, metadata: { state: {}, previousState: {}}});
+          await http.sendEvent({ event: executed, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('executed');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+      });
+
+      test('skips an event if an error is thrown.', async () => {
+        const directory = await eventIsAuthorized();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid();
+
+        const authorizationFailed = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'authorizationFailed',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+        const executed = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'executed',
+          data: { strategy: 'succeed' },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        authorizationFailed.metadata.revision = 1;
+        executed.metadata.revision = 2;
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: authorizationFailed, metadata: { state: {}, previousState: {}}});
+          await http.sendEvent({ event: executed, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('executed');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+      });
+
+      test('does not mutate the event.', async () => {
+        const directory = await eventIsAuthorized();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid();
+
+        const authorizedWithMutation = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'authorizedWithMutation',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        authorizedWithMutation.metadata.revision = 1;
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: authorizedWithMutation, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('authorizedWithMutation');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+
+        assert.that(authorizedWithMutation.data.isMutated).is.undefined();
+      });
+
+      test('uses the app service.', async () => {
+        const directory = await eventIsAuthorized();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid(),
+              otherAggregateId = uuid();
+
+        const otherSucceeded = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+          name: 'succeeded',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+        const otherExecuted = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+          name: 'executed',
+          data: { strategy: 'succeed' },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        otherSucceeded.metadata.revision = 1;
+        otherExecuted.metadata.revision = 2;
+
+        await eventstore.saveEvents({
+          uncommittedEvents: [
+            { event: otherSucceeded, state: {}},
+            { event: otherExecuted, state: {}}
+          ]
+        });
+
+        const useApp = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'useApp',
+          data: { otherAggregateId },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        useApp.metadata.revision = 3;
+
+        const stop = record();
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: useApp, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('useApp');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+
+        const { stdout } = stop();
+        const message = JSON.parse(stdout);
+
+        assert.that(message).is.equalTo({
+          id: otherAggregateId,
+          state: {}
+        });
+      });
+
+      test('uses the client service.', async () => {
+        const directory = await eventIsAuthorized();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const useClient = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'useClient',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        useClient.metadata.revision = 1;
+
+        const stop = record();
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: useClient, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('useClient');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+
+        const { stdout } = stop();
+        const message = JSON.parse(stdout);
+
+        assert.that(message).is.atLeast({
+          user: {
+            id: 'anonymous',
+            token: {
+              iss: 'https://token.invalid',
+              sub: 'anonymous'
+            }
+          }
+        });
+        assert.that(message.ip).is.ofType('string');
+        assert.that(message.ip.length).is.atLeast(1);
+      });
+
+      for (const logLevel of [ 'fatal', 'error', 'warn', 'info', 'debug' ]) {
+        /* eslint-disable no-loop-func */
+        test(`uses the logger service with log level '${logLevel}'.`, async () => {
+          const directory = await eventIsAuthorized();
+
+          application = await Application.load({ directory });
+          repository = new Repository({ application, eventstore });
+
+          http = new Http();
+
+          await http.initialize({
+            corsOrigin: '*',
+            async onReceiveCommand () {
+              // Intentionally left blank.
+            },
+            application,
+            repository,
+            identityProviders
+          });
+
+          const useLogger = new Event({
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: uuid() },
+            name: 'useLogger',
+            data: { logLevel },
+            metadata: { causationId: uuid(), correlationId: uuid() }
+          });
+
+          const stop = record();
+
+          setTimeout(async () => {
+            await http.sendEvent({ event: useLogger, metadata: { state: {}, previousState: {}}});
+          }, 50);
+
+          await new Promise((resolve, reject) => {
+            try {
+              supertest(http.api).get('/v2/events').pipe(asJsonStream(
+                event => {
+                  assert.that(event).is.equalTo({ name: 'heartbeat' });
+                },
+                event => {
+                  assert.that(event.name).is.equalTo('useLogger');
+                  resolve();
+                }
+              ));
+            } catch (ex) {
+              reject(ex);
+            }
+          });
+
+          const { stdout } = stop();
+          const message = JSON.parse(stdout);
+
+          assert.that(message).is.atLeast({
+            level: logLevel,
+            message: 'Some log message.',
+            source: '/server/writeModel/sampleContext/sampleAggregate.js'
+          });
+        });
+        /* eslint-enable no-loop-func */
+      }
+    });
+
+    suite('filter', () => {
+      test('skips an event if the event gets filtered out.', async () => {
+        const directory = await eventFilter();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid();
+
+        const filterDenied = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'filterDenied',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+        const executed = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'executed',
+          data: { strategy: 'succeed' },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        filterDenied.metadata.revision = 1;
+        executed.metadata.revision = 2;
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: filterDenied, metadata: { state: {}, previousState: {}}});
+          await http.sendEvent({ event: executed, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('executed');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+      });
+
+      test('skips an event if an error is thrown.', async () => {
+        const directory = await eventFilter();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid();
+
+        const filterFailed = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'filterFailed',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+        const executed = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'executed',
+          data: { strategy: 'succeed' },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        filterFailed.metadata.revision = 1;
+        executed.metadata.revision = 2;
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: filterFailed, metadata: { state: {}, previousState: {}}});
+          await http.sendEvent({ event: executed, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('executed');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+      });
+
+      test('does not mutate the event.', async () => {
+        const directory = await eventFilter();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid();
+
+        const filteredWithMutation = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'filteredWithMutation',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        filteredWithMutation.metadata.revision = 1;
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: filteredWithMutation, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('filteredWithMutation');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+
+        assert.that(filteredWithMutation.data.isMutated).is.undefined();
+      });
+
+      test('uses the app service.', async () => {
+        const directory = await eventFilter();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid(),
+              otherAggregateId = uuid();
+
+        const otherSucceeded = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+          name: 'succeeded',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+        const otherExecuted = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+          name: 'executed',
+          data: { strategy: 'succeed' },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        otherSucceeded.metadata.revision = 1;
+        otherExecuted.metadata.revision = 2;
+
+        await eventstore.saveEvents({
+          uncommittedEvents: [
+            { event: otherSucceeded, state: {}},
+            { event: otherExecuted, state: {}}
+          ]
+        });
+
+        const useApp = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'useApp',
+          data: { otherAggregateId },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        useApp.metadata.revision = 3;
+
+        const stop = record();
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: useApp, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('useApp');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+
+        const { stdout } = stop();
+        const message = JSON.parse(stdout);
+
+        assert.that(message).is.equalTo({
+          id: otherAggregateId,
+          state: {}
+        });
+      });
+
+      test('uses the client service.', async () => {
+        const directory = await eventFilter();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const useClient = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'useClient',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        useClient.metadata.revision = 1;
+
+        const stop = record();
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: useClient, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('useClient');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+
+        const { stdout } = stop();
+        const message = JSON.parse(stdout);
+
+        assert.that(message).is.atLeast({
+          user: {
+            id: 'anonymous',
+            token: {
+              iss: 'https://token.invalid',
+              sub: 'anonymous'
+            }
+          }
+        });
+        assert.that(message.ip).is.ofType('string');
+        assert.that(message.ip.length).is.atLeast(1);
+      });
+
+      for (const logLevel of [ 'fatal', 'error', 'warn', 'info', 'debug' ]) {
+        /* eslint-disable no-loop-func */
+        test(`uses the logger service with log level '${logLevel}'.`, async () => {
+          const directory = await eventFilter();
+
+          application = await Application.load({ directory });
+          repository = new Repository({ application, eventstore });
+
+          http = new Http();
+
+          await http.initialize({
+            corsOrigin: '*',
+            async onReceiveCommand () {
+              // Intentionally left blank.
+            },
+            application,
+            repository,
+            identityProviders
+          });
+
+          const useLogger = new Event({
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: uuid() },
+            name: 'useLogger',
+            data: { logLevel },
+            metadata: { causationId: uuid(), correlationId: uuid() }
+          });
+
+          const stop = record();
+
+          setTimeout(async () => {
+            await http.sendEvent({ event: useLogger, metadata: { state: {}, previousState: {}}});
+          }, 50);
+
+          await new Promise((resolve, reject) => {
+            try {
+              supertest(http.api).get('/v2/events').pipe(asJsonStream(
+                event => {
+                  assert.that(event).is.equalTo({ name: 'heartbeat' });
+                },
+                event => {
+                  assert.that(event.name).is.equalTo('useLogger');
+                  resolve();
+                }
+              ));
+            } catch (ex) {
+              reject(ex);
+            }
+          });
+
+          const { stdout } = stop();
+          const message = JSON.parse(stdout);
+
+          assert.that(message).is.atLeast({
+            level: logLevel,
+            message: 'Some log message.',
+            source: '/server/writeModel/sampleContext/sampleAggregate.js'
+          });
+        });
+        /* eslint-enable no-loop-func */
+      }
+    });
+
+    suite('map', () => {
+      test('maps the event.', async () => {
+        const directory = await eventMap();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid();
+
+        const mapApplied = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'mapApplied',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        mapApplied.metadata.revision = 1;
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: mapApplied, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('mapApplied');
+                assert.that(event.data).is.equalTo({ isMapped: true });
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+      });
+
+      test('skips an event if the event gets filtered out.', async () => {
+        const directory = await eventMap();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid();
+
+        const mapDenied = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'mapDenied',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+        const executed = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'executed',
+          data: { strategy: 'succeed' },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        mapDenied.metadata.revision = 1;
+        executed.metadata.revision = 2;
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: mapDenied, metadata: { state: {}, previousState: {}}});
+          await http.sendEvent({ event: executed, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('executed');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+      });
+
+      test('skips an event if an error is thrown.', async () => {
+        const directory = await eventMap();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid();
+
+        const mapFailed = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'mapFailed',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+        const executed = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'executed',
+          data: { strategy: 'succeed' },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        mapFailed.metadata.revision = 1;
+        executed.metadata.revision = 2;
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: mapFailed, metadata: { state: {}, previousState: {}}});
+          await http.sendEvent({ event: executed, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('executed');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+      });
+
+      test('does not mutate the event.', async () => {
+        const directory = await eventMap();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid();
+
+        const mapAppliedWithMutation = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'mapAppliedWithMutation',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        mapAppliedWithMutation.metadata.revision = 1;
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: mapAppliedWithMutation, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('mapAppliedWithMutation');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+
+        assert.that(mapAppliedWithMutation.data.isMutated).is.undefined();
+      });
+
+      test('uses the app service.', async () => {
+        const directory = await eventMap();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const aggregateId = uuid(),
+              otherAggregateId = uuid();
+
+        const otherSucceeded = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+          name: 'succeeded',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+        const otherExecuted = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+          name: 'executed',
+          data: { strategy: 'succeed' },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        otherSucceeded.metadata.revision = 1;
+        otherExecuted.metadata.revision = 2;
+
+        await eventstore.saveEvents({
+          uncommittedEvents: [
+            { event: otherSucceeded, state: {}},
+            { event: otherExecuted, state: {}}
+          ]
+        });
+
+        const useApp = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId },
+          name: 'useApp',
+          data: { otherAggregateId },
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        useApp.metadata.revision = 3;
+
+        const stop = record();
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: useApp, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('useApp');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+
+        const { stdout } = stop();
+        const message = JSON.parse(stdout);
+
+        assert.that(message).is.equalTo({
+          id: otherAggregateId,
+          state: {}
+        });
+      });
+
+      test('uses the client service.', async () => {
+        const directory = await eventMap();
+
+        application = await Application.load({ directory });
+        repository = new Repository({ application, eventstore });
+
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          repository,
+          identityProviders
+        });
+
+        const useClient = new Event({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'useClient',
+          metadata: { causationId: uuid(), correlationId: uuid() }
+        });
+
+        useClient.metadata.revision = 1;
+
+        const stop = record();
+
+        setTimeout(async () => {
+          await http.sendEvent({ event: useClient, metadata: { state: {}, previousState: {}}});
+        }, 50);
+
+        await new Promise((resolve, reject) => {
+          try {
+            supertest(http.api).get('/v2/events').pipe(asJsonStream(
+              event => {
+                assert.that(event).is.equalTo({ name: 'heartbeat' });
+              },
+              event => {
+                assert.that(event.name).is.equalTo('useClient');
+                resolve();
+              }
+            ));
+          } catch (ex) {
+            reject(ex);
+          }
+        });
+
+        const { stdout } = stop();
+        const message = JSON.parse(stdout);
+
+        assert.that(message).is.atLeast({
+          user: {
+            id: 'anonymous',
+            token: {
+              iss: 'https://token.invalid',
+              sub: 'anonymous'
+            }
+          }
+        });
+        assert.that(message.ip).is.ofType('string');
+        assert.that(message.ip.length).is.atLeast(1);
+      });
+
+      for (const logLevel of [ 'fatal', 'error', 'warn', 'info', 'debug' ]) {
+        /* eslint-disable no-loop-func */
+        test(`uses the logger service with log level '${logLevel}'.`, async () => {
+          const directory = await eventMap();
+
+          application = await Application.load({ directory });
+          repository = new Repository({ application, eventstore });
+
+          http = new Http();
+
+          await http.initialize({
+            corsOrigin: '*',
+            async onReceiveCommand () {
+              // Intentionally left blank.
+            },
+            application,
+            repository,
+            identityProviders
+          });
+
+          const useLogger = new Event({
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: uuid() },
+            name: 'useLogger',
+            data: { logLevel },
+            metadata: { causationId: uuid(), correlationId: uuid() }
+          });
+
+          const stop = record();
+
+          setTimeout(async () => {
+            await http.sendEvent({ event: useLogger, metadata: { state: {}, previousState: {}}});
+          }, 50);
+
+          await new Promise((resolve, reject) => {
+            try {
+              supertest(http.api).get('/v2/events').pipe(asJsonStream(
+                event => {
+                  assert.that(event).is.equalTo({ name: 'heartbeat' });
+                },
+                event => {
+                  assert.that(event.name).is.equalTo('useLogger');
+                  resolve();
+                }
+              ));
+            } catch (ex) {
+              reject(ex);
+            }
+          });
+
+          const { stdout } = stop();
+          const message = JSON.parse(stdout);
+
+          assert.that(message).is.atLeast({
+            level: logLevel,
+            message: 'Some log message.',
+            source: '/server/writeModel/sampleContext/sampleAggregate.js'
+          });
+        });
+        /* eslint-enable no-loop-func */
+      }
     });
   });
 });

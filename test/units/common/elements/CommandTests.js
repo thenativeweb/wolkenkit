@@ -6,7 +6,7 @@ const { Command } = require('../../../../common/elements');
 
 suite('Command', () => {
   /* eslint-disable no-new */
-  test('throws an error when no context is given.', done => {
+  test('throws an error when no context is given.', async () => {
     assert.that(() => {
       new Command({
         aggregate: {
@@ -16,10 +16,9 @@ suite('Command', () => {
         name: 'foo'
       });
     }).is.throwing('Context is missing.');
-    done();
   });
 
-  test('throws an error when no context name is given.', done => {
+  test('throws an error when no context name is given.', async () => {
     assert.that(() => {
       new Command({
         context: {},
@@ -30,10 +29,9 @@ suite('Command', () => {
         name: 'foo'
       });
     }).is.throwing('Context name is missing.');
-    done();
   });
 
-  test('throws an error when no aggregate is given.', done => {
+  test('throws an error when no aggregate is given.', async () => {
     assert.that(() => {
       new Command({
         context: {
@@ -42,10 +40,9 @@ suite('Command', () => {
         name: 'foo'
       });
     }).is.throwing('Aggregate is missing.');
-    done();
   });
 
-  test('throws an error when no aggregate name is given.', done => {
+  test('throws an error when no aggregate name is given.', async () => {
     assert.that(() => {
       new Command({
         context: {
@@ -57,10 +54,9 @@ suite('Command', () => {
         name: 'foo'
       });
     }).is.throwing('Aggregate name is missing.');
-    done();
   });
 
-  test('throws an error when no aggregate id is given.', done => {
+  test('throws an error when no aggregate id is given.', async () => {
     assert.that(() => {
       new Command({
         context: {
@@ -72,10 +68,9 @@ suite('Command', () => {
         name: 'foo'
       });
     }).is.throwing('Aggregate id is missing.');
-    done();
   });
 
-  test('throws an error when no name is given.', done => {
+  test('throws an error when no name is given.', async () => {
     assert.that(() => {
       new Command({
         context: {
@@ -87,10 +82,9 @@ suite('Command', () => {
         }
       });
     }).is.throwing('Name is missing.');
-    done();
   });
 
-  test('throws an error when data is not an object.', done => {
+  test('throws an error when data is not an object.', async () => {
     assert.that(() => {
       new Command({
         context: {
@@ -104,10 +98,9 @@ suite('Command', () => {
         data: 'foobarbaz'
       });
     }).is.throwing('Invalid type: string should be object (at command.data).');
-    done();
   });
 
-  test('throws an error when custom is not an object.', done => {
+  test('throws an error when custom is not an object.', async () => {
     assert.that(() => {
       new Command({
         context: {
@@ -121,10 +114,9 @@ suite('Command', () => {
         custom: 'foobarbaz'
       });
     }).is.throwing('Invalid type: string should be object (at command.custom).');
-    done();
   });
 
-  test('returns a command.', done => {
+  test('returns a command.', async () => {
     const actual = new Command({
       context: {
         name: 'foo'
@@ -151,10 +143,9 @@ suite('Command', () => {
     assert.that(actual.metadata.timestamp).is.ofType('number');
     assert.that(actual.metadata.correlationId).is.equalTo(actual.id);
     assert.that(actual.metadata.causationId).is.equalTo(actual.id);
-    done();
   });
 
-  test('returns a command with custom data.', done => {
+  test('returns a command with custom data.', async () => {
     const actual = new Command({
       context: {
         name: 'foo'
@@ -184,7 +175,6 @@ suite('Command', () => {
     assert.that(actual.metadata.timestamp).is.ofType('number');
     assert.that(actual.metadata.correlationId).is.equalTo(actual.id);
     assert.that(actual.metadata.causationId).is.equalTo(actual.id);
-    done();
   });
   /* eslint-enable no-new */
 
@@ -207,40 +197,35 @@ suite('Command', () => {
       });
     });
 
-    test('is a function.', done => {
+    test('is a function.', async () => {
       assert.that(command.addInitiator).is.ofType('function');
-      done();
     });
 
-    test('throws an error if token is missing.', done => {
+    test('throws an error if token is missing.', async () => {
       assert.that(() => {
         command.addInitiator({});
       }).is.throwing('Token is missing.');
-      done();
     });
 
-    test('adds the token.', done => {
+    test('adds the token.', async () => {
       command.addInitiator({ token: { sub: 'Jane Doe' }});
 
       assert.that(command.initiator.token).is.equalTo({ sub: 'Jane Doe' });
-      done();
     });
 
-    test('sets sub as the initiator id.', done => {
+    test('sets sub as the initiator id.', async () => {
       command.addInitiator({ token: { sub: 'Jane Doe' }});
 
       assert.that(command.initiator.id).is.equalTo('Jane Doe');
-      done();
     });
   });
 
   suite('deserialize', () => {
-    test('is a function.', done => {
+    test('is a function.', async () => {
       assert.that(Command.deserialize).is.ofType('function');
-      done();
     });
 
-    test('returns a real command object.', done => {
+    test('returns a real command object.', async () => {
       const command = new Command({
         context: {
           name: 'foo'
@@ -260,10 +245,9 @@ suite('Command', () => {
       const actual = Command.deserialize(deserializedCommand);
 
       assert.that(actual).is.instanceOf(Command);
-      done();
     });
 
-    test('throws an error when the original metadata are malformed.', done => {
+    test('throws an error when the original metadata are malformed.', async () => {
       const command = new Command({
         context: {
           name: 'foo'
@@ -285,10 +269,9 @@ suite('Command', () => {
       assert.that(() => {
         Command.deserialize(deserializedCommand);
       }).is.throwing('Invalid type: string should be number (at command.metadata.timestamp).');
-      done();
     });
 
-    test('does not change original metadata.', done => {
+    test('does not change original metadata.', async () => {
       const command = new Command({
         context: {
           name: 'foo'
@@ -311,10 +294,9 @@ suite('Command', () => {
       assert.that(actual.metadata.correlationId).is.equalTo(command.metadata.correlationId);
       assert.that(actual.metadata.causationId).is.equalTo(command.metadata.causationId);
       assert.that(actual.metadata.timestamp).is.equalTo(command.metadata.timestamp);
-      done();
     });
 
-    test('keeps custom data.', done => {
+    test('keeps custom data.', async () => {
       const command = new Command({
         context: {
           name: 'foo'
@@ -337,10 +319,9 @@ suite('Command', () => {
       const actual = Command.deserialize(deserializedCommand);
 
       assert.that(actual.custom).is.equalTo(command.custom);
-      done();
     });
 
-    test('keeps initiator data.', done => {
+    test('keeps initiator data.', async () => {
       const command = new Command({
         context: {
           name: 'foo'
@@ -362,27 +343,23 @@ suite('Command', () => {
       const actual = Command.deserialize(deserializedCommand);
 
       assert.that(actual.initiator).is.equalTo(command.initiator);
-      done();
     });
   });
 
   suite('isWellformed', () => {
-    test('is a function.', done => {
+    test('is a function.', async () => {
       assert.that(Command.isWellformed).is.ofType('function');
-      done();
     });
 
-    test('returns false for non-object types.', done => {
+    test('returns false for non-object types.', async () => {
       assert.that(Command.isWellformed()).is.false();
-      done();
     });
 
-    test('returns false for an empty object.', done => {
+    test('returns false for an empty object.', async () => {
       assert.that(Command.isWellformed({})).is.false();
-      done();
     });
 
-    test('returns false when no context is given.', done => {
+    test('returns false when no context is given.', async () => {
       assert.that(Command.isWellformed({
         aggregate: {
           name: 'bar',
@@ -400,10 +377,9 @@ suite('Command', () => {
           causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no context name is given.', done => {
+    test('returns false when no context name is given.', async () => {
       assert.that(Command.isWellformed({
         context: {},
         aggregate: {
@@ -422,10 +398,9 @@ suite('Command', () => {
           causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no aggregate is given.', done => {
+    test('returns false when no aggregate is given.', async () => {
       assert.that(Command.isWellformed({
         context: {
           name: 'foo'
@@ -442,10 +417,9 @@ suite('Command', () => {
           causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no aggregate name is given.', done => {
+    test('returns false when no aggregate name is given.', async () => {
       assert.that(Command.isWellformed({
         context: {
           name: 'foo'
@@ -465,10 +439,9 @@ suite('Command', () => {
           causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no aggregate id is given.', done => {
+    test('returns false when no aggregate id is given.', async () => {
       assert.that(Command.isWellformed({
         context: {
           name: 'foo'
@@ -488,10 +461,9 @@ suite('Command', () => {
           causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no name is given.', done => {
+    test('returns false when no name is given.', async () => {
       assert.that(Command.isWellformed({
         context: {
           name: 'foo'
@@ -511,10 +483,9 @@ suite('Command', () => {
           causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no id is given.', done => {
+    test('returns false when no id is given.', async () => {
       assert.that(Command.isWellformed({
         context: {
           name: 'foo'
@@ -534,10 +505,9 @@ suite('Command', () => {
           causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no data is given.', done => {
+    test('returns false when no data is given.', async () => {
       assert.that(Command.isWellformed({
         context: {
           name: 'foo'
@@ -555,10 +525,9 @@ suite('Command', () => {
           causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no custom data is given.', done => {
+    test('returns false when no custom data is given.', async () => {
       assert.that(Command.isWellformed({
         context: {
           name: 'foo'
@@ -578,10 +547,9 @@ suite('Command', () => {
           causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no metadata is given.', done => {
+    test('returns false when no metadata is given.', async () => {
       assert.that(Command.isWellformed({
         context: {
           name: 'foo'
@@ -597,10 +565,9 @@ suite('Command', () => {
         },
         custom: {}
       })).is.false();
-      done();
     });
 
-    test('returns false when no timestamp is given.', done => {
+    test('returns false when no timestamp is given.', async () => {
       assert.that(Command.isWellformed({
         context: {
           name: 'foo'
@@ -620,10 +587,9 @@ suite('Command', () => {
           causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no correlation id is given.', done => {
+    test('returns false when no correlation id is given.', async () => {
       assert.that(Command.isWellformed({
         context: {
           name: 'foo'
@@ -643,10 +609,9 @@ suite('Command', () => {
           causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no causation id is given.', done => {
+    test('returns false when no causation id is given.', async () => {
       assert.that(Command.isWellformed({
         context: {
           name: 'foo'
@@ -666,10 +631,9 @@ suite('Command', () => {
           correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.false();
-      done();
     });
 
-    test('returns true when the command is well-formed.', done => {
+    test('returns true when the command is well-formed.', async () => {
       assert.that(Command.isWellformed({
         context: {
           name: 'foo'
@@ -696,7 +660,6 @@ suite('Command', () => {
           causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
         }
       })).is.true();
-      done();
     });
   });
 });

@@ -108,7 +108,14 @@ suite('Application', () => {
                   },
                   executed: {
                     documentation: undefined,
-                    schema: undefined
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                      },
+                      required: [ 'strategy' ],
+                      additionalProperties: false
+                    }
                   },
                   executeFailed: {
                     documentation: undefined,
@@ -222,7 +229,14 @@ suite('Application', () => {
                   },
                   executed: {
                     documentation: undefined,
-                    schema: undefined
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                      },
+                      required: [ 'strategy' ],
+                      additionalProperties: false
+                    }
                   },
                   executeFailed: {
                     documentation: undefined,
@@ -319,7 +333,14 @@ suite('Application', () => {
                   },
                   executed: {
                     documentation: undefined,
-                    schema: undefined
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                      },
+                      required: [ 'strategy' ],
+                      additionalProperties: false
+                    }
                   },
                   executeFailed: {
                     documentation: undefined,
@@ -460,7 +481,14 @@ suite('Application', () => {
                   },
                   executed: {
                     documentation: undefined,
-                    schema: undefined
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                      },
+                      required: [ 'strategy' ],
+                      additionalProperties: false
+                    }
                   },
                   executeFailed: {
                     documentation: undefined,
@@ -601,7 +629,14 @@ suite('Application', () => {
                   },
                   executed: {
                     documentation: undefined,
-                    schema: undefined
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                      },
+                      required: [ 'strategy' ],
+                      additionalProperties: false
+                    }
                   },
                   executeFailed: {
                     documentation: undefined,

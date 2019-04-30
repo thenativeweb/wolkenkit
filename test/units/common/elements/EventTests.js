@@ -6,7 +6,7 @@ const { Event } = require('../../../../common/elements');
 
 suite('Event', () => {
   /* eslint-disable no-new */
-  test('throws an error when no context is given.', done => {
+  test('throws an error when no context is given.', async () => {
     assert.that(() => {
       new Event({
         aggregate: {
@@ -20,10 +20,9 @@ suite('Event', () => {
         }
       });
     }).is.throwing('Context is missing.');
-    done();
   });
 
-  test('throws an error when no context name is given.', done => {
+  test('throws an error when no context name is given.', async () => {
     assert.that(() => {
       new Event({
         context: {},
@@ -38,10 +37,9 @@ suite('Event', () => {
         }
       });
     }).is.throwing('Context name is missing.');
-    done();
   });
 
-  test('throws an error when no aggregate is given.', done => {
+  test('throws an error when no aggregate is given.', async () => {
     assert.that(() => {
       new Event({
         context: {
@@ -54,10 +52,9 @@ suite('Event', () => {
         }
       });
     }).is.throwing('Aggregate is missing.');
-    done();
   });
 
-  test('throws an error when no aggregate name is given.', done => {
+  test('throws an error when no aggregate name is given.', async () => {
     assert.that(() => {
       new Event({
         context: {
@@ -73,10 +70,9 @@ suite('Event', () => {
         }
       });
     }).is.throwing('Aggregate name is missing.');
-    done();
   });
 
-  test('throws an error when no aggregate id is given.', done => {
+  test('throws an error when no aggregate id is given.', async () => {
     assert.that(() => {
       new Event({
         context: {
@@ -92,10 +88,9 @@ suite('Event', () => {
         }
       });
     }).is.throwing('Aggregate id is missing.');
-    done();
   });
 
-  test('throws an error when no event name is given.', done => {
+  test('throws an error when no event name is given.', async () => {
     assert.that(() => {
       new Event({
         context: {
@@ -111,10 +106,9 @@ suite('Event', () => {
         }
       });
     }).is.throwing('Event name is missing.');
-    done();
   });
 
-  test('throws an error when type is not a string.', done => {
+  test('throws an error when type is not a string.', async () => {
     assert.that(() => {
       new Event({
         context: {
@@ -132,10 +126,9 @@ suite('Event', () => {
         }
       });
     }).is.throwing('Invalid type: integer should be string (at event.type).');
-    done();
   });
 
-  test('throws an error when data is not an object.', done => {
+  test('throws an error when data is not an object.', async () => {
     assert.that(() => {
       new Event({
         context: {
@@ -153,10 +146,9 @@ suite('Event', () => {
         }
       });
     }).is.throwing('Invalid type: string should be object (at event.data).');
-    done();
   });
 
-  test('throws an error when no metadata are given.', done => {
+  test('throws an error when no metadata are given.', async () => {
     assert.that(() => {
       new Event({
         context: {
@@ -169,10 +161,9 @@ suite('Event', () => {
         name: 'foo'
       });
     }).is.throwing('Metadata are missing.');
-    done();
   });
 
-  test('throws an error when no correlation id is given.', done => {
+  test('throws an error when no correlation id is given.', async () => {
     assert.that(() => {
       new Event({
         context: {
@@ -188,10 +179,9 @@ suite('Event', () => {
         }
       });
     }).is.throwing();
-    done();
   });
 
-  test('throws an error when no causation id is given.', done => {
+  test('throws an error when no causation id is given.', async () => {
     assert.that(() => {
       new Event({
         context: {
@@ -207,10 +197,9 @@ suite('Event', () => {
         }
       });
     }).is.throwing();
-    done();
   });
 
-  test('throws an error when custom is not an object.', done => {
+  test('throws an error when custom is not an object.', async () => {
     assert.that(() => {
       new Event({
         context: {
@@ -231,10 +220,9 @@ suite('Event', () => {
         }
       });
     }).is.throwing('Invalid type: string should be object (at event.custom).');
-    done();
   });
 
-  test('returns an event.', done => {
+  test('returns an event.', async () => {
     const actual = new Event({
       context: {
         name: 'foo'
@@ -267,10 +255,9 @@ suite('Event', () => {
     assert.that(actual.metadata.published).is.false();
     assert.that(actual.metadata.correlationId).is.equalTo('5be0cef4-9051-44ca-a18c-a57c48d711c1');
     assert.that(actual.metadata.causationId).is.equalTo('5be0cef4-9051-44ca-a18c-a57c48d711c1');
-    done();
   });
 
-  test('returns an event with custom data.', done => {
+  test('returns an event with custom data.', async () => {
     const actual = new Event({
       context: {
         name: 'foo'
@@ -306,10 +293,9 @@ suite('Event', () => {
     assert.that(actual.metadata.published).is.false();
     assert.that(actual.metadata.correlationId).is.equalTo('5be0cef4-9051-44ca-a18c-a57c48d711c1');
     assert.that(actual.metadata.causationId).is.equalTo('5be0cef4-9051-44ca-a18c-a57c48d711c1');
-    done();
   });
 
-  test('returns an event with a custom type.', done => {
+  test('returns an event with a custom type.', async () => {
     const actual = new Event({
       context: {
         name: 'foo'
@@ -342,7 +328,6 @@ suite('Event', () => {
     assert.that(actual.metadata.published).is.false();
     assert.that(actual.metadata.correlationId).is.equalTo('5be0cef4-9051-44ca-a18c-a57c48d711c1');
     assert.that(actual.metadata.causationId).is.equalTo('5be0cef4-9051-44ca-a18c-a57c48d711c1');
-    done();
   });
 
   suite('addInitiator', () => {
@@ -368,40 +353,35 @@ suite('Event', () => {
       });
     });
 
-    test('is a function.', done => {
+    test('is a function.', async () => {
       assert.that(event.addInitiator).is.ofType('function');
-      done();
     });
 
-    test('throws an error if initiator is missing.', done => {
+    test('throws an error if initiator is missing.', async () => {
       assert.that(() => {
         event.addInitiator();
       }).is.throwing('Initiator is missing.');
-      done();
     });
 
-    test('throws an error if initiator id is missing.', done => {
+    test('throws an error if initiator id is missing.', async () => {
       assert.that(() => {
         event.addInitiator({});
       }).is.throwing('Initiator id is missing.');
-      done();
     });
 
-    test('adds the initiator.', done => {
+    test('adds the initiator.', async () => {
       event.addInitiator({ id: 'Jane Doe' });
 
       assert.that(event.initiator).is.equalTo({ id: 'Jane Doe' });
-      done();
     });
   });
 
   suite('deserialize', () => {
-    test('is a function.', done => {
+    test('is a function.', async () => {
       assert.that(Event.deserialize).is.ofType('function');
-      done();
     });
 
-    test('returns a real event object.', done => {
+    test('returns a real event object.', async () => {
       const event = new Event({
         context: {
           name: 'foo'
@@ -425,10 +405,9 @@ suite('Event', () => {
       const actual = Event.deserialize(deserializedEvent);
 
       assert.that(actual).is.instanceOf(Event);
-      done();
     });
 
-    test('throws an error when the original metadata are malformed.', done => {
+    test('throws an error when the original metadata are malformed.', async () => {
       const event = new Event({
         context: {
           name: 'foo'
@@ -454,10 +433,9 @@ suite('Event', () => {
       assert.that(() => {
         Event.deserialize(deserializedEvent);
       }).is.throwing('Invalid type: string should be number (at event.metadata.timestamp).');
-      done();
     });
 
-    test('does not change original metadata.', done => {
+    test('does not change original metadata.', async () => {
       const event = new Event({
         context: {
           name: 'foo'
@@ -489,10 +467,9 @@ suite('Event', () => {
       assert.that(actual.metadata.timestamp).is.equalTo(event.metadata.timestamp);
       assert.that(actual.metadata.hash).is.equalTo(event.metadata.hash);
       assert.that(actual.metadata.hashPredecessor).is.equalTo(event.metadata.hashPredecessor);
-      done();
     });
 
-    test('keeps custom data.', done => {
+    test('keeps custom data.', async () => {
       const event = new Event({
         context: {
           name: 'foo'
@@ -519,10 +496,9 @@ suite('Event', () => {
       const actual = Event.deserialize(deserializedEvent);
 
       assert.that(actual.custom).is.equalTo(event.custom);
-      done();
     });
 
-    test('keeps initiator data.', done => {
+    test('keeps initiator data.', async () => {
       const event = new Event({
         context: {
           name: 'foo'
@@ -550,27 +526,23 @@ suite('Event', () => {
       const actual = Event.deserialize(deserializedEvent);
 
       assert.that(actual.initiator).is.equalTo(event.initiator);
-      done();
     });
   });
 
   suite('isWellformed', () => {
-    test('is a function.', done => {
+    test('is a function.', async () => {
       assert.that(Event.isWellformed).is.ofType('function');
-      done();
     });
 
-    test('returns false for non-object types.', done => {
+    test('returns false for non-object types.', async () => {
       assert.that(Event.isWellformed()).is.false();
-      done();
     });
 
-    test('returns false for an empty object.', done => {
+    test('returns false for an empty object.', async () => {
       assert.that(Event.isWellformed({})).is.false();
-      done();
     });
 
-    test('returns false when no context is given.', done => {
+    test('returns false when no context is given.', async () => {
       assert.that(Event.isWellformed({
         aggregate: {
           name: 'bar',
@@ -592,10 +564,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no context name is given.', done => {
+    test('returns false when no context name is given.', async () => {
       assert.that(Event.isWellformed({
         context: {},
         aggregate: {
@@ -618,10 +589,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no aggregate is given.', done => {
+    test('returns false when no aggregate is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -642,10 +612,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no aggregate name is given.', done => {
+    test('returns false when no aggregate name is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -669,10 +638,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no aggregate id is given.', done => {
+    test('returns false when no aggregate id is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -696,10 +664,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no name is given.', done => {
+    test('returns false when no name is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -723,10 +690,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no id is given.', done => {
+    test('returns false when no id is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -750,10 +716,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no type is given.', done => {
+    test('returns false when no type is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -777,10 +742,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no data is given.', done => {
+    test('returns false when no data is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -802,10 +766,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no custom data is given.', done => {
+    test('returns false when no custom data is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -827,10 +790,9 @@ suite('Event', () => {
           published: true
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no metadata is given.', done => {
+    test('returns false when no metadata is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -849,10 +811,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no timestamp is given.', done => {
+    test('returns false when no timestamp is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -876,10 +837,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no correlation id is given.', done => {
+    test('returns false when no correlation id is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -903,10 +863,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no causation id is given.', done => {
+    test('returns false when no causation id is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -930,10 +889,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns false when no published is given.', done => {
+    test('returns false when no published is given.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -957,10 +915,9 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.false();
-      done();
     });
 
-    test('returns true when the event is well-formed.', done => {
+    test('returns true when the event is well-formed.', async () => {
       assert.that(Event.isWellformed({
         context: {
           name: 'foo'
@@ -988,7 +945,6 @@ suite('Event', () => {
           foo: 'custom-foobar'
         }
       })).is.true();
-      done();
     });
   });
   /* eslint-enable no-new */
