@@ -21,4 +21,4 @@ jobs:
             - node_modules
           key: node-modules-{{ checksum "package.json" }}
 
-      - run: npx roboter test --type integration
+      - run: npx roboter
