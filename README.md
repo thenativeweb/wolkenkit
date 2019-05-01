@@ -6,6 +6,8 @@ wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and
 
 > wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js. wolkenkit uses an event-driven model based on DDD to setup an API for your business in no time. This way, wolkenkit bridges the language gap between your domain and technology.
 
+[![CircleCI](https://circleci.com/gh/thenativeweb/wolkenkit.svg?style=svg)](https://circleci.com/gh/thenativeweb/wolkenkit)
+
 ## Table of contents
 
 -   [Installation](#installation)
