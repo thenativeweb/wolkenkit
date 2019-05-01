@@ -2,7 +2,7 @@
 
 const getQueue = require('./getQueue');
 
-class InMemoryPublisher {
+class InMemoryDispatcher {
   async initialize ({ exchangeName }) {
     if (!exchangeName) {
       throw new Error('Exchange name is missing.');
@@ -11,9 +11,9 @@ class InMemoryPublisher {
     this.queue = getQueue({ exchangeName });
   }
 
-  async publishMessage ({ message }) {
+  async dispatchMessage ({ message }) {
     this.queue.write({ message });
   }
 }
 
-module.exports = InMemoryPublisher;
+module.exports = InMemoryDispatcher;

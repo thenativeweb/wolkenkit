@@ -52,7 +52,7 @@ const getTestsFor = function ({ Publisher, Subscriber, url }) {
 
       const message = { foo: 'bar' };
 
-      publisher.publishMessage({ message });
+      await publisher.publishMessage({ message });
 
       await new Promise(resolve => setTimeout(resolve, 250));
 
@@ -79,7 +79,7 @@ const getTestsFor = function ({ Publisher, Subscriber, url }) {
 
       const message = { foo: 'bar' };
 
-      publisher.publishMessage({ message });
+      await publisher.publishMessage({ message });
 
       await new Promise(resolve => setTimeout(resolve, 50));
 

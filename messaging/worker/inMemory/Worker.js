@@ -2,7 +2,7 @@
 
 const getQueue = require('./getQueue');
 
-class InMemorySubscriber {
+class InMemoryWorker {
   /* eslint-disable class-methods-use-this */
   async initialize ({ exchangeName, onReceiveMessage }) {
     if (!exchangeName) {
@@ -19,4 +19,4 @@ class InMemorySubscriber {
   /* eslint-enable class-methods-use-this */
 }
 
-module.exports = InMemorySubscriber;
+module.exports = InMemoryWorker;
