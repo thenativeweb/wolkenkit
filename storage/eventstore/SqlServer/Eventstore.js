@@ -13,6 +13,10 @@ const createPool = require('./createPool'),
       omitByDeep = require('../omitByDeep');
 
 class Eventstore {
+  static onUnexpectedClose () {
+    throw new Error('Connection closed unexpectedly.');
+  }
+
   async getDatabase () {
     const database = await retry(async () => {
       const connection = await this.pool.acquire().promise;
@@ -49,7 +53,7 @@ class Eventstore {
       },
 
       onDisconnect () {
-        throw new Error('Connection closed unexpectedly.');
+        Eventstore.onUnexpectedClose();
       }
     });
 

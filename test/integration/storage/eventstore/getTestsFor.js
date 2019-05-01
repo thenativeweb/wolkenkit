@@ -18,6 +18,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
   teardown(async function () {
     this.timeout(20 * 1000);
+
     await eventstore.destroy();
   });
 

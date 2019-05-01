@@ -12,6 +12,10 @@ const { Event } = require('../../../common/elements'),
       omitByDeep = require('../omitByDeep');
 
 class Eventstore {
+  static onUnexpectedClose () {
+    throw new Error('Connection closed unexpectedly.');
+  }
+
   async getDatabase () {
     const database = await retry(async () => {
       const connection = await this.pool.getConnection();
@@ -47,9 +51,7 @@ class Eventstore {
       connection.on('error', err => {
         throw err;
       });
-      connection.on('end', () => {
-        throw new Error('Connection closed unexpectedly.');
-      });
+      connection.on('end', Eventstore.onUnexpectedClose);
     });
 
     const connection = await this.getDatabase();

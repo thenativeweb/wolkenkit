@@ -18,6 +18,10 @@ class Eventstore {
     this.collections = {};
   }
 
+  static onUnexpectedClose () {
+    throw new Error('Connection closed unexpectedly.');
+  }
+
   async initialize ({ url, namespace }) {
     if (!url) {
       throw new Error('Url is missing.');
@@ -39,10 +43,7 @@ class Eventstore {
     const databaseName = parse(url).pathname.substring(1);
 
     this.db = this.client.db(databaseName);
-
-    this.db.on('close', () => {
-      throw new Error('Connection closed unexpectedly.');
-    });
+    this.db.on('close', Eventstore.onUnexpectedClose);
 
     this.collections.events = this.db.collection(`${namespace}_events`);
     this.collections.snapshots = this.db.collection(`${namespace}_snapshots`);
@@ -417,6 +418,9 @@ class Eventstore {
   }
 
   async destroy () {
+    if (this.db) {
+      this.db.removeListener('close', Eventstore.onUnexpectedClose);
+    }
     if (this.client) {
       await this.client.close(true);
     }
