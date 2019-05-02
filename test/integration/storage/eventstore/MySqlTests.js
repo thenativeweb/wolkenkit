@@ -1,13 +1,17 @@
 'use strict';
 
-const connectionStrings = require('../../../shared/connectionStrings'),
+const getConnectionOptions = require('../../../shared/getConnectionOptions'),
       getTestsFor = require('./getTestsFor'),
       { MySql } = require('../../../../storage/eventstore');
 
 suite('MySql', () => {
   getTestsFor({
     Eventstore: MySql,
-    type: 'MySql',
-    url: connectionStrings.mySql.integrationTests
+
+    getOptions () {
+      const { mySql } = getConnectionOptions({ type: 'integration' });
+
+      return mySql;
+    }
   });
 });

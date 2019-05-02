@@ -4,7 +4,7 @@ const assert = require('assertthat'),
       uuid = require('uuidv4');
 
 /* eslint-disable mocha/max-top-level-suites */
-const getTestsFor = function ({ Publisher, Subscriber, url }) {
+const getTestsFor = function ({ Publisher, Subscriber, getOptions }) {
   let exchangeName,
       publisher,
       subscriber;
@@ -19,7 +19,7 @@ const getTestsFor = function ({ Publisher, Subscriber, url }) {
     suite('initialize', () => {
       test('does not throw an error if the publisher is reachable.', async () => {
         await assert.that(async () => {
-          await publisher.initialize({ url, exchangeName });
+          await publisher.initialize({ ...getOptions(), exchangeName });
         }).is.not.throwing();
       });
     });
@@ -33,7 +33,7 @@ const getTestsFor = function ({ Publisher, Subscriber, url }) {
         };
 
         await assert.that(async () => {
-          await subscriber.initialize({ url, exchangeName, onReceiveMessage });
+          await subscriber.initialize({ ...getOptions(), exchangeName, onReceiveMessage });
         }).is.not.throwing();
       });
     });
@@ -47,8 +47,8 @@ const getTestsFor = function ({ Publisher, Subscriber, url }) {
         receivedMessages.push(message);
       };
 
-      await publisher.initialize({ url, exchangeName });
-      await subscriber.initialize({ url, exchangeName, onReceiveMessage });
+      await publisher.initialize({ ...getOptions(), exchangeName });
+      await subscriber.initialize({ ...getOptions(), exchangeName, onReceiveMessage });
 
       const message = { foo: 'bar' };
 
@@ -73,9 +73,9 @@ const getTestsFor = function ({ Publisher, Subscriber, url }) {
         receivedMessages2.push(message);
       };
 
-      await publisher.initialize({ url, exchangeName });
-      await subscriber.initialize({ url, exchangeName, onReceiveMessage: onReceiveMessage1 });
-      await subscriber2.initialize({ url, exchangeName, onReceiveMessage: onReceiveMessage2 });
+      await publisher.initialize({ ...getOptions(), exchangeName });
+      await subscriber.initialize({ ...getOptions(), exchangeName, onReceiveMessage: onReceiveMessage1 });
+      await subscriber2.initialize({ ...getOptions(), exchangeName, onReceiveMessage: onReceiveMessage2 });
 
       const message = { foo: 'bar' };
 

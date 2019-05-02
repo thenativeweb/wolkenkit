@@ -4,7 +4,7 @@ const assert = require('assertthat'),
       uuid = require('uuidv4');
 
 /* eslint-disable mocha/max-top-level-suites */
-const getTestsFor = function ({ Dispatcher, Worker, url }) {
+const getTestsFor = function ({ Dispatcher, Worker, getOptions }) {
   let dispatcher,
       exchangeName,
       worker;
@@ -19,7 +19,7 @@ const getTestsFor = function ({ Dispatcher, Worker, url }) {
     suite('initialize', () => {
       test('does not throw an error if the dispatcher is reachable.', async () => {
         await assert.that(async () => {
-          await dispatcher.initialize({ url, exchangeName });
+          await dispatcher.initialize({ ...getOptions(), exchangeName });
         }).is.not.throwing();
       });
     });
@@ -33,7 +33,7 @@ const getTestsFor = function ({ Dispatcher, Worker, url }) {
         };
 
         await assert.that(async () => {
-          await worker.initialize({ url, exchangeName, onReceiveMessage });
+          await worker.initialize({ ...getOptions(), exchangeName, onReceiveMessage });
         }).is.not.throwing();
       });
     });
@@ -47,8 +47,8 @@ const getTestsFor = function ({ Dispatcher, Worker, url }) {
         receivedMessages.push(message);
       };
 
-      await dispatcher.initialize({ url, exchangeName });
-      await worker.initialize({ url, exchangeName, onReceiveMessage });
+      await dispatcher.initialize({ ...getOptions(), exchangeName });
+      await worker.initialize({ ...getOptions(), exchangeName, onReceiveMessage });
 
       const message = { foo: 'bar' };
 
@@ -73,9 +73,9 @@ const getTestsFor = function ({ Dispatcher, Worker, url }) {
         receivedMessages2.push(message);
       };
 
-      await dispatcher.initialize({ url, exchangeName });
-      await worker.initialize({ url, exchangeName, onReceiveMessage: onReceiveMessage1 });
-      await worker2.initialize({ url, exchangeName, onReceiveMessage: onReceiveMessage2 });
+      await dispatcher.initialize({ ...getOptions(), exchangeName });
+      await worker.initialize({ ...getOptions(), exchangeName, onReceiveMessage: onReceiveMessage1 });
+      await worker2.initialize({ ...getOptions(), exchangeName, onReceiveMessage: onReceiveMessage2 });
 
       const message1 = { foo: 'bar' },
             message2 = { foo: 'baz' };

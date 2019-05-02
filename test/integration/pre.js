@@ -3,7 +3,7 @@
 const oneLine = require('common-tags/lib/oneLine'),
       shell = require('shelljs');
 
-const connectionStrings = require('../shared/connectionStrings'),
+const getConnectionOptions = require('../shared/getConnectionOptions'),
       waitFor = require('../shared/waitFor');
 
 const pre = async function () {
@@ -18,6 +18,17 @@ const pre = async function () {
       --name mariadb-integration
       mariadb:10.3.5
       --bind-address=0.0.0.0
+  `);
+  shell.exec(oneLine`
+    docker run
+      -d
+      -p 9000:9000
+      -e "MINIO_ACCESS_KEY=wolkenkit"
+      -e "MINIO_SECRET_KEY=wolkenkit"
+      --name minio-integration
+      minio/minio:latest
+      server
+      /data
   `);
   shell.exec(oneLine`
     docker run
@@ -70,12 +81,15 @@ const pre = async function () {
       microsoft/mssql-server-linux:2017-CU6
   `);
 
-  await waitFor.mariaDb({ url: connectionStrings.mariaDb.integrationTests });
-  await waitFor.mongoDb({ url: connectionStrings.mongoDb.integrationTests });
-  await waitFor.mySql({ url: connectionStrings.mySql.integrationTests });
-  await waitFor.postgres({ url: connectionStrings.postgres.integrationTests });
-  await waitFor.rabbitMq({ url: connectionStrings.rabbitMq.integrationTests });
-  await waitFor.sqlServer({ url: connectionStrings.sqlServer.integrationTests });
+  const connectionOptions = getConnectionOptions({ type: 'integration' });
+
+  await waitFor.mariaDb(connectionOptions.mariaDb);
+  await waitFor.minio(connectionOptions.minio);
+  await waitFor.mongoDb(connectionOptions.mongoDb);
+  await waitFor.mySql(connectionOptions.mySql);
+  await waitFor.postgres(connectionOptions.postgres);
+  await waitFor.rabbitMq(connectionOptions.rabbitMq);
+  await waitFor.sqlServer(connectionOptions.sqlServer);
 };
 
 module.exports = pre;

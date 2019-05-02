@@ -12,7 +12,6 @@ class AppService {
       throw new Error('Capabilities are missing.');
     }
 
-    const { writeModel } = application;
     const { readAggregates } = capabilities;
 
     if (!readAggregates) {
@@ -20,7 +19,7 @@ class AppService {
     }
 
     if (readAggregates) {
-      for (const [ contextName, contextDefinition ] of Object.entries(writeModel)) {
+      for (const [ contextName, contextDefinition ] of Object.entries(application.initialState.internal)) {
         this[contextName] = {};
 
         for (const aggregateName of Object.keys(contextDefinition)) {

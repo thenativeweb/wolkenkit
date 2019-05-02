@@ -3,25 +3,41 @@
 const assert = require('assertthat'),
       uuid = require('uuidv4');
 
-const { ReadableAggregate } = require('../../../../common/elements');
+const { Application } = require('../../../../common/application'),
+      { ReadableAggregate } = require('../../../../common/elements'),
+      validUpdateInitialState = require('../../../shared/applications/valid/updateInitialState');
 
 suite('ReadableAggregate', () => {
+  let application;
+
+  setup(async () => {
+    const directory = await validUpdateInitialState();
+
+    application = await Application.load({ directory });
+  });
+
   test('is a function.', async () => {
     assert.that(ReadableAggregate).is.ofType('function');
   });
 
-  test('throws an error if domain is missing.', async () => {
+  test('throws an error if application is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new ReadableAggregate({});
+      new ReadableAggregate({
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: uuid() }
+      });
       /* eslint-enable no-new */
-    }).is.throwing('Domain is missing.');
+    }).is.throwing('Application is missing.');
   });
 
   test('throws an error if context is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new ReadableAggregate({ domain });
+      new ReadableAggregate({
+        application,
+        aggregate: { name: 'sampleAggregate', id: uuid() }
+      });
       /* eslint-enable no-new */
     }).is.throwing('Context is missing.');
   });
@@ -30,8 +46,9 @@ suite('ReadableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({
-        domain,
-        context: {}
+        application,
+        context: {},
+        aggregate: { name: 'sampleAggregate', id: uuid() }
       });
       /* eslint-enable no-new */
     }).is.throwing('Context name is missing.');
@@ -41,8 +58,8 @@ suite('ReadableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({
-        domain,
-        context: { name: 'planning' }
+        application,
+        context: { name: 'sampleContext' }
       });
       /* eslint-enable no-new */
     }).is.throwing('Aggregate is missing.');
@@ -52,9 +69,9 @@ suite('ReadableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({
-        domain,
-        context: { name: 'planning' },
-        aggregate: {}
+        application,
+        context: { name: 'sampleContext' },
+        aggregate: { id: uuid() }
       });
       /* eslint-enable no-new */
     }).is.throwing('Aggregate name is missing.');
@@ -64,9 +81,9 @@ suite('ReadableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({
-        domain,
-        context: { name: 'planning' },
-        aggregate: { name: 'peerGroup' }
+        application,
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate' }
       });
       /* eslint-enable no-new */
     }).is.throwing('Aggregate id is missing.');
@@ -76,9 +93,9 @@ suite('ReadableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({
-        domain,
+        application,
         context: { name: 'non-existent' },
-        aggregate: { name: 'peerGroup', id: uuid() }
+        aggregate: { name: 'sampleAggregate', id: uuid() }
       });
       /* eslint-enable no-new */
     }).is.throwing('Context does not exist.');
@@ -88,48 +105,51 @@ suite('ReadableAggregate', () => {
     assert.that(() => {
       /* eslint-disable no-new */
       new ReadableAggregate({
-        domain,
-        context: { name: 'planning' },
+        application,
+        context: { name: 'sampleContext' },
         aggregate: { name: 'non-existent', id: uuid() }
       });
       /* eslint-enable no-new */
     }).is.throwing('Aggregate does not exist.');
   });
 
-  suite('definition', () => {
-    test('contains the appropriate aggregate definition from the domain.', async () => {
-      const aggregate = new ReadableAggregate({
-        domain,
-        context: { name: 'planning' },
-        aggregate: { name: 'peerGroup', id: uuid() }
-      });
-
-      assert.that(aggregate.definition).is.ofType('object');
-      assert.that(aggregate.definition.initialState.participants).is.equalTo([]);
-      assert.that(aggregate.definition.commands.start).is.ofType('object');
-      assert.that(aggregate.definition.commands.start.isAuthorized).is.ofType('function');
-      assert.that(aggregate.definition.commands.start.handle).is.ofType('function');
-      assert.that(aggregate.definition.commands.join).is.ofType('object');
-      assert.that(aggregate.definition.commands.join.isAuthorized).is.ofType('function');
-      assert.that(aggregate.definition.commands.join.handle).is.ofType('function');
-      assert.that(aggregate.definition.events.started).is.ofType('object');
-      assert.that(aggregate.definition.events.started.handle).is.ofType('function');
-      assert.that(aggregate.definition.events.started.isAuthorized).is.ofType('function');
-      assert.that(aggregate.definition.events.joined).is.ofType('object');
-      assert.that(aggregate.definition.events.joined.handle).is.ofType('function');
-      assert.that(aggregate.definition.events.joined.isAuthorized).is.ofType('function');
-    });
-  });
-
   suite('instance', () => {
+    suite('context', () => {
+      test('contains the requested aggregate\'s context name.', async () => {
+        const contextName = 'sampleContext';
+
+        const aggregate = new ReadableAggregate({
+          application,
+          context: { name: contextName },
+          aggregate: { name: 'sampleAggregate', id: uuid() }
+        });
+
+        assert.that(aggregate.instance.context.name).is.equalTo(contextName);
+      });
+    });
+
+    suite('name', () => {
+      test('contains the requested aggregate\'s name.', async () => {
+        const aggregateName = 'sampleAggregate';
+
+        const aggregate = new ReadableAggregate({
+          application,
+          context: { name: 'sampleContext' },
+          aggregate: { name: aggregateName, id: uuid() }
+        });
+
+        assert.that(aggregate.instance.name).is.equalTo(aggregateName);
+      });
+    });
+
     suite('id', () => {
       test('contains the requested aggregate\'s id.', async () => {
         const aggregateId = uuid();
 
         const aggregate = new ReadableAggregate({
-          domain,
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: aggregateId }
+          application,
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
         });
 
         assert.that(aggregate.instance.id).is.equalTo(aggregateId);
@@ -139,9 +159,9 @@ suite('ReadableAggregate', () => {
     suite('revision', () => {
       test('is 0.', async () => {
         const aggregate = new ReadableAggregate({
-          domain,
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: uuid() }
+          application,
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() }
         });
 
         assert.that(aggregate.instance.revision).is.equalTo(0);
@@ -151,9 +171,9 @@ suite('ReadableAggregate', () => {
     suite('uncommitted events', () => {
       test('is an empty array.', async () => {
         const aggregate = new ReadableAggregate({
-          domain,
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: uuid() }
+          application,
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() }
         });
 
         assert.that(aggregate.instance.uncommittedEvents).is.equalTo([]);
@@ -165,9 +185,9 @@ suite('ReadableAggregate', () => {
         const aggregateId = uuid();
 
         const aggregate = new ReadableAggregate({
-          domain,
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: aggregateId }
+          application,
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
         });
 
         assert.that(aggregate.instance.exists).is.ofType('function');
@@ -177,9 +197,9 @@ suite('ReadableAggregate', () => {
         const aggregateId = uuid();
 
         const aggregate = new ReadableAggregate({
-          domain,
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: aggregateId }
+          application,
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
         });
 
         assert.that(aggregate.instance.exists()).is.false();
@@ -189,9 +209,9 @@ suite('ReadableAggregate', () => {
         const aggregateId = uuid();
 
         const aggregate = new ReadableAggregate({
-          domain,
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: aggregateId }
+          application,
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
         });
 
         const snapshot = {
@@ -212,9 +232,9 @@ suite('ReadableAggregate', () => {
         const id = uuid();
 
         const aggregate = new ReadableAggregate({
-          domain,
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id }
+          application,
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id }
         });
 
         assert.that(aggregate.api.forReadOnly.id).is.equalTo(id);
@@ -223,22 +243,22 @@ suite('ReadableAggregate', () => {
       suite('state', () => {
         test('contains the initial state.', async () => {
           const aggregate = new ReadableAggregate({
-            domain,
-            context: { name: 'planning' },
-            aggregate: { name: 'peerGroup', id: uuid() }
+            application,
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: uuid() }
           });
 
-          assert.that(aggregate.api.forReadOnly.state).is.equalTo(domain.planning.peerGroup.initialState);
+          assert.that(aggregate.api.forReadOnly.state).is.equalTo(application.initialState.internal.sampleContext.sampleAggregate);
         });
 
         test('is a deep copy.', async () => {
           const aggregate = new ReadableAggregate({
-            domain,
-            context: { name: 'planning' },
-            aggregate: { name: 'peerGroup', id: uuid() }
+            application,
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: uuid() }
           });
 
-          assert.that(aggregate.api.forReadOnly.state).is.not.sameAs(domain.planning.peerGroup.initialState);
+          assert.that(aggregate.api.forReadOnly.state).is.not.sameAs(application.initialState.internal.sampleContext.sampleAggregate);
         });
       });
 
@@ -247,9 +267,9 @@ suite('ReadableAggregate', () => {
           const aggregateId = uuid();
 
           const aggregate = new ReadableAggregate({
-            domain,
-            context: { name: 'planning' },
-            aggregate: { name: 'peerGroup', id: aggregateId }
+            application,
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: aggregateId }
           });
 
           assert.that(aggregate.api.forReadOnly.exists).is.sameAs(aggregate.instance.exists);
@@ -262,9 +282,9 @@ suite('ReadableAggregate', () => {
         const id = uuid();
 
         const aggregate = new ReadableAggregate({
-          domain,
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id }
+          application,
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id }
         });
 
         assert.that(aggregate.api.forEvents.id).is.equalTo(id);
@@ -273,9 +293,9 @@ suite('ReadableAggregate', () => {
       suite('state', () => {
         test('references the read-only api state.', async () => {
           const aggregate = new ReadableAggregate({
-            domain,
-            context: { name: 'planning' },
-            aggregate: { name: 'peerGroup', id: uuid() }
+            application,
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: uuid() }
           });
 
           assert.that(aggregate.api.forEvents.state).is.sameAs(aggregate.api.forReadOnly.state);
@@ -285,9 +305,9 @@ suite('ReadableAggregate', () => {
       suite('setState', () => {
         test('is a function.', async () => {
           const aggregate = new ReadableAggregate({
-            domain,
-            context: { name: 'planning' },
-            aggregate: { name: 'peerGroup', id: uuid() }
+            application,
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: uuid() }
           });
 
           assert.that(aggregate.api.forEvents.setState).is.ofType('function');
@@ -295,44 +315,36 @@ suite('ReadableAggregate', () => {
 
         test('updates the state.', async () => {
           const aggregate = new ReadableAggregate({
-            domain,
-            context: { name: 'planning' },
-            aggregate: { name: 'peerGroup', id: uuid() }
+            application,
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: uuid() }
           });
 
-          assert.that(aggregate.api.forEvents.state.initiator).is.undefined();
-          assert.that(aggregate.api.forEvents.state.destination).is.undefined();
-          assert.that(aggregate.api.forEvents.state.participants).is.equalTo([]);
+          assert.that(aggregate.api.forEvents.state.events).is.equalTo([]);
 
           aggregate.api.forEvents.setState({
-            initiator: 'Jane Doe',
-            participants: [ 'Jane Doe' ]
+            events: [ 'succeeded' ]
           });
 
-          assert.that(aggregate.api.forEvents.state.initiator).is.equalTo('Jane Doe');
-          assert.that(aggregate.api.forEvents.state.destination).is.undefined();
-          assert.that(aggregate.api.forEvents.state.participants).is.equalTo([ 'Jane Doe' ]);
+          assert.that(aggregate.api.forEvents.state.events).is.equalTo([ 'succeeded' ]);
         });
 
         test('correctly resets arrays.', async () => {
           const aggregate = new ReadableAggregate({
-            domain,
-            context: { name: 'planning' },
-            aggregate: { name: 'peerGroup', id: uuid() }
+            application,
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: uuid() }
           });
 
           aggregate.api.forEvents.setState({
-            initiator: 'Jane Doe',
-            participants: [ 'Jane Doe' ]
+            events: [ 'succeeded' ]
           });
 
           aggregate.api.forEvents.setState({
-            participants: []
+            events: []
           });
 
-          assert.that(aggregate.api.forEvents.state.initiator).is.equalTo('Jane Doe');
-          assert.that(aggregate.api.forEvents.state.destination).is.undefined();
-          assert.that(aggregate.api.forEvents.state.participants).is.equalTo([]);
+          assert.that(aggregate.api.forEvents.state.events).is.equalTo([]);
         });
       });
     });
@@ -341,9 +353,9 @@ suite('ReadableAggregate', () => {
   suite('applySnapshot', () => {
     test('is a function.', async () => {
       const aggregate = new ReadableAggregate({
-        domain,
-        context: { name: 'planning' },
-        aggregate: { name: 'peerGroup', id: uuid() }
+        application,
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: uuid() }
       });
 
       assert.that(aggregate.applySnapshot).is.ofType('function');
@@ -351,9 +363,9 @@ suite('ReadableAggregate', () => {
 
     test('throws an error if snapshot is missing.', async () => {
       const aggregate = new ReadableAggregate({
-        domain,
-        context: { name: 'planning' },
-        aggregate: { name: 'peerGroup', id: uuid() }
+        application,
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: uuid() }
       });
 
       assert.that(() => {
@@ -363,9 +375,9 @@ suite('ReadableAggregate', () => {
 
     test('overwrites the revision.', async () => {
       const aggregate = new ReadableAggregate({
-        domain,
-        context: { name: 'planning' },
-        aggregate: { name: 'peerGroup', id: uuid() }
+        application,
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: uuid() }
       });
 
       const snapshot = {
@@ -380,9 +392,9 @@ suite('ReadableAggregate', () => {
 
     test('overwrites the state.', async () => {
       const aggregate = new ReadableAggregate({
-        domain,
-        context: { name: 'planning' },
-        aggregate: { name: 'peerGroup', id: uuid() }
+        application,
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: uuid() }
       });
 
       const snapshot = {

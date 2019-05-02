@@ -16,8 +16,7 @@ const validateCommand = function ({ command, application }) {
     throw new Error('Malformed command.');
   }
 
-  const { writeModel } = application;
-  const context = writeModel[command.context.name];
+  const context = application.commands.internal[command.context.name];
 
   if (!context) {
     throw new Error('Invalid context name.');
@@ -29,12 +28,11 @@ const validateCommand = function ({ command, application }) {
     throw new Error('Invalid aggregate name.');
   }
 
-  if (!aggregate.commands || !aggregate.commands[command.name]) {
+  if (!aggregate[command.name]) {
     throw new Error('Invalid command name.');
   }
 
-  const { schema } =
-    writeModel[command.context.name][command.aggregate.name].commands[command.name];
+  const { schema } = aggregate[command.name];
 
   if (!schema) {
     return;

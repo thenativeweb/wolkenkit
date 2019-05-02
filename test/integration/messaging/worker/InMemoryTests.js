@@ -7,6 +7,9 @@ suite('InMemory', () => {
   getTestsFor({
     Dispatcher: InMemoryDispatcher,
     Worker: InMemoryWorker,
-    type: 'InMemory'
+
+    getOptions () {
+      return {};
+    }
   });
 });

@@ -2,8 +2,7 @@
 
 const path = require('path');
 
-const assert = require('assertthat'),
-      uuid = require('uuidv4');
+const assert = require('assertthat');
 
 const { Application } = require('../../../../common/application'),
       { QueryList } = require('../../../../common/elements'),

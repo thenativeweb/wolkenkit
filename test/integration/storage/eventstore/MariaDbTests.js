@@ -1,13 +1,17 @@
 'use strict';
 
-const connectionStrings = require('../../../shared/connectionStrings'),
+const getConnectionOptions = require('../../../shared/getConnectionOptions'),
       getTestsFor = require('./getTestsFor'),
       { MariaDb } = require('../../../../storage/eventstore');
 
 suite('MariaDb', () => {
   getTestsFor({
     Eventstore: MariaDb,
-    type: 'MariaDb',
-    url: connectionStrings.mariaDb.integrationTests
+
+    getOptions () {
+      const { mariaDb } = getConnectionOptions({ type: 'integration' });
+
+      return mariaDb;
+    }
   });
 });

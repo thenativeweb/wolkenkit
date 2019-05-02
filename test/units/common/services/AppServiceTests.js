@@ -6,17 +6,19 @@ const assert = require('assertthat'),
 const { Application } = require('../../../../common/application'),
       { AppService } = require('../../../../common/services'),
       { Event } = require('../../../../common/elements'),
-      eventstore = require('../../../../storage/eventstore/inmemory'),
-      { Repository } = require('../../../../handlers/domain'),
+      { InMemory } = require('../../../../storage/eventstore'),
+      { Repository } = require('../../../../common/domain'),
       updateInitialState = require('../../../shared/applications/valid/updateInitialState');
 
 suite('AppService', () => {
   let application,
+      eventstore,
       repository;
 
   setup(async () => {
     const directory = await updateInitialState();
 
+    eventstore = new InMemory();
     await eventstore.initialize();
 
     application = await Application.load({ directory });

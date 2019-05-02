@@ -7,7 +7,7 @@ const assert = require('assertthat'),
 
 const { Http } = require('../../../../apis/static');
 
-suite('Http', () => {
+suite('static/Http', () => {
   let serveStatic;
 
   setup(async () => {

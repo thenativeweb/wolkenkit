@@ -6,6 +6,9 @@ const getTestsFor = require('./getTestsFor'),
 suite('InMemory', () => {
   getTestsFor({
     Eventstore: InMemory,
-    type: 'InMemory'
+
+    getOptions () {
+      return {};
+    }
   });
 });

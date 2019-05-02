@@ -7,9 +7,9 @@ const Event = require('./Event'),
       ReadableAggregate = require('./ReadableAggregate');
 
 class WritableAggregate extends ReadableAggregate {
-  constructor ({ writeModel, context, aggregate, command }) {
-    if (!writeModel) {
-      throw new Error('Write model is missing.');
+  constructor ({ application, context, aggregate, command }) {
+    if (!application) {
+      throw new Error('Application is missing.');
     }
     if (!context) {
       throw new Error('Context is missing.');
@@ -30,7 +30,7 @@ class WritableAggregate extends ReadableAggregate {
       throw new Error('Command is missing.');
     }
 
-    super({ writeModel, context, aggregate });
+    super({ application, context, aggregate });
 
     this.api.forCommands = {};
     this.api.forCommands.id = aggregate.id;
@@ -42,11 +42,14 @@ class WritableAggregate extends ReadableAggregate {
       if (!eventName) {
         throw new Error('Event name is missing.');
       }
-      if (!this.definition.events[eventName]) {
+      const eventDefinition =
+        application.events.internal[context.name][aggregate.name][eventName];
+
+      if (!eventDefinition) {
         throw new Error('Unknown event.');
       }
 
-      const { handle, schema } = this.definition.events[eventName];
+      const { handle, schema } = eventDefinition;
 
       if (schema) {
         const value = new Value(schema);

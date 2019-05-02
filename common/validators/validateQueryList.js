@@ -14,9 +14,7 @@ const validateQueryList = function ({ queryList, application }) {
     throw new Error('Malformed query list.');
   }
 
-  const { readModel } = application;
-
-  if (!readModel.lists[queryList.list.name]) {
+  if (!application.views.internal.lists[queryList.list.name]) {
     throw new Error('Invalid query list name.');
   }
 };

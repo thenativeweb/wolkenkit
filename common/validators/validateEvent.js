@@ -16,8 +16,7 @@ const validateEvent = function ({ event, application }) {
     throw new Error('Malformed event.');
   }
 
-  const { writeModel } = application;
-  const context = writeModel[event.context.name];
+  const context = application.events.internal[event.context.name];
 
   if (!context) {
     throw new Error('Invalid context name.');
@@ -29,12 +28,11 @@ const validateEvent = function ({ event, application }) {
     throw new Error('Invalid aggregate name.');
   }
 
-  if (!aggregate.events || !aggregate.events[event.name]) {
+  if (!aggregate[event.name]) {
     throw new Error('Invalid event name.');
   }
 
-  const { schema } =
-    writeModel[event.context.name][event.aggregate.name].events[event.name];
+  const { schema } = aggregate[event.name];
 
   if (!schema) {
     return;

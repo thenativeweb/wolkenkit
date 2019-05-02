@@ -5,7 +5,7 @@ const assert = require('assertthat'),
 
 const { Http } = require('../../../../apis/health');
 
-suite('Http', () => {
+suite('health/Http', () => {
   test('is a function.', async () => {
     assert.that(Http).is.ofType('function');
   });
@@ -99,7 +99,7 @@ suite('Http', () => {
     }
   });
 
-  suite('GET /v2/status', () => {
+  suite('GET /v2/', () => {
     let http;
 
     setup(async () => {
@@ -109,19 +109,19 @@ suite('Http', () => {
     });
 
     test('returns 200.', async () => {
-      const res = await supertest(http.api).get('/v2/status');
+      const res = await supertest(http.api).get('/v2/');
 
       assert.that(res.statusCode).is.equalTo(200);
     });
 
     test('returns application/json.', async () => {
-      const res = await supertest(http.api).get('/v2/status');
+      const res = await supertest(http.api).get('/v2/');
 
       assert.that(res.headers['content-type']).is.equalTo('application/json; charset=utf-8');
     });
 
     test('answers with the api version.', async () => {
-      const res = await supertest(http.api).get('/v2/status');
+      const res = await supertest(http.api).get('/v2/');
 
       assert.that(res.body).is.equalTo({ api: 'v2' });
     });

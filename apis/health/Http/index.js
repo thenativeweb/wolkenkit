@@ -5,7 +5,7 @@ const cors = require('cors'),
       flatten = require('lodash/flatten'),
       nocache = require('nocache');
 
-const v2 = require('./v2');
+const V2 = require('./V2');
 
 class Http {
   async initialize ({ corsOrigin }) {
@@ -21,6 +21,8 @@ class Http {
       transformedCorsOrigin = flatten([ corsOrigin ]);
     }
 
+    this.v2 = new V2();
+
     this.api = express();
 
     this.api.options('*', cors({
@@ -35,7 +37,7 @@ class Http {
     }));
 
     this.api.use(nocache());
-    this.api.use('/v2', v2());
+    this.api.use('/v2', this.v2.api);
   }
 }
 

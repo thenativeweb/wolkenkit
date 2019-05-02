@@ -7,7 +7,7 @@ const assert = require('assertthat'),
 const { Event } = require('../../../../common/elements');
 
 /* eslint-disable mocha/max-top-level-suites */
-const getTestsFor = function ({ Eventstore, url }) {
+const getTestsFor = function ({ Eventstore, getOptions }) {
   let eventstore,
       namespace;
 
@@ -25,14 +25,14 @@ const getTestsFor = function ({ Eventstore, url }) {
   suite('initialize', () => {
     test('does not throw an error if the database is reachable.', async () => {
       await assert.that(async () => {
-        await eventstore.initialize({ url, namespace });
+        await eventstore.initialize({ ...getOptions(), namespace });
       }).is.not.throwingAsync();
     });
 
     test('does not throw an error if tables, indexes & co. do already exist.', async () => {
       await assert.that(async () => {
-        await eventstore.initialize({ url, namespace });
-        await eventstore.initialize({ url, namespace });
+        await eventstore.initialize({ ...getOptions(), namespace });
+        await eventstore.initialize({ ...getOptions(), namespace });
       }).is.not.throwingAsync();
     });
 
@@ -47,7 +47,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
       event.metadata.revision = 1;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({ uncommittedEvents: { event, state: {}}});
 
       await assert.that(async () => {
@@ -67,7 +67,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
         event.metadata.revision = 1;
 
-        await eventstore.initialize({ url, namespace });
+        await eventstore.initialize({ ...getOptions(), namespace });
         await eventstore.saveEvents({ uncommittedEvents: { event, state: {}}});
 
         const eventStream = await eventstore.getEventStream({ aggregateId: event.aggregate.id });
@@ -97,7 +97,7 @@ const getTestsFor = function ({ Eventstore, url }) {
         eventStarted.metadata.revision = 1;
         eventJoined.metadata.revision = 2;
 
-        await eventstore.initialize({ url, namespace });
+        await eventstore.initialize({ ...getOptions(), namespace });
         await eventstore.saveEvents({
           uncommittedEvents: [
             { event: eventStarted, state: {}},
@@ -133,7 +133,7 @@ const getTestsFor = function ({ Eventstore, url }) {
         eventStarted.metadata.revision = 1;
         eventJoined.metadata.revision = 2;
 
-        await eventstore.initialize({ url, namespace });
+        await eventstore.initialize({ ...getOptions(), namespace });
         await eventstore.saveEvents({ uncommittedEvents: { event: eventStarted, state: {}}});
         await eventstore.saveEvents({ uncommittedEvents: { event: eventJoined, state: {}}});
 
@@ -165,7 +165,7 @@ const getTestsFor = function ({ Eventstore, url }) {
         eventStarted1.metadata.revision = 1;
         eventStarted2.metadata.revision = 1;
 
-        await eventstore.initialize({ url, namespace });
+        await eventstore.initialize({ ...getOptions(), namespace });
         await eventstore.saveEvents({ uncommittedEvents: { event: eventStarted1, state: {}}});
         await eventstore.saveEvents({ uncommittedEvents: { event: eventStarted2, state: {}}});
 
@@ -193,7 +193,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
         event.metadata.revision = 1;
 
-        await eventstore.initialize({ url, namespace });
+        await eventstore.initialize({ ...getOptions(), namespace });
         const savedEvents = await eventstore.saveEvents({ uncommittedEvents: { event, state: {}}});
 
         assert.that(savedEvents.length).is.equalTo(1);
@@ -211,7 +211,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
         event.metadata.revision = 1;
 
-        await eventstore.initialize({ url, namespace });
+        await eventstore.initialize({ ...getOptions(), namespace });
         await eventstore.saveEvents({ uncommittedEvents: { event, state: {}}});
 
         assert.that(event.metadata.position).is.undefined();
@@ -221,7 +221,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
   suite('getLastEvent', () => {
     test('returns undefined for an aggregate without events.', async () => {
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
 
       const event = await eventstore.getLastEvent(uuid());
 
@@ -250,7 +250,7 @@ const getTestsFor = function ({ Eventstore, url }) {
       eventStarted.metadata.revision = 1;
       eventJoined.metadata.revision = 2;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
         uncommittedEvents: [
           { event: eventStarted, state: {}},
@@ -281,7 +281,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
       eventJoined.metadata.revision = 1;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({ uncommittedEvents: [{ event: eventJoined, state: {}}]});
 
       const event = await eventstore.getLastEvent(aggregateId);
@@ -293,7 +293,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
   suite('getEventStream', () => {
     test('returns an empty stream for a non-existent aggregate.', async () => {
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
 
       const eventStream = await eventstore.getEventStream({ aggregateId: uuid() });
       const aggregateEvents = await toArray(eventStream);
@@ -321,7 +321,7 @@ const getTestsFor = function ({ Eventstore, url }) {
       eventStarted.metadata.revision = 1;
       eventJoined.metadata.revision = 2;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
         uncommittedEvents: [
           { event: eventStarted, state: {}},
@@ -357,7 +357,7 @@ const getTestsFor = function ({ Eventstore, url }) {
       eventStarted.metadata.revision = 1;
       eventJoined.metadata.revision = 2;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
         uncommittedEvents: [
           { event: eventStarted, state: {}},
@@ -392,7 +392,7 @@ const getTestsFor = function ({ Eventstore, url }) {
       eventStarted.metadata.revision = 1;
       eventJoined.metadata.revision = 2;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
         uncommittedEvents: [
           { event: eventStarted, state: {}},
@@ -410,7 +410,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
   suite('getUnpublishedEventStream', () => {
     test('returns an empty stream if there are no unpublished events.', async () => {
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
 
       const eventStream = await eventstore.getUnpublishedEventStream();
       const unpublishedEvents = await toArray(eventStream);
@@ -439,7 +439,7 @@ const getTestsFor = function ({ Eventstore, url }) {
       eventStarted.metadata.published = true;
       eventJoined.metadata.revision = 2;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
         uncommittedEvents: [
           { event: eventStarted, state: {}},
@@ -467,7 +467,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
       event.metadata.revision = 1;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({ uncommittedEvents: { event, state: {}}});
 
       const eventStream = await eventstore.getEventStream({ aggregateId: event.aggregate.id });
@@ -503,7 +503,7 @@ const getTestsFor = function ({ Eventstore, url }) {
       eventStarted.metadata.revision = 1;
       eventJoined.metadata.revision = 2;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
         uncommittedEvents: [
           { event: eventStarted, state: {}},
@@ -539,7 +539,7 @@ const getTestsFor = function ({ Eventstore, url }) {
       eventStarted.metadata.revision = 1;
       eventJoined.metadata.revision = 2;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       const savedEvents = await eventstore.saveEvents({
         uncommittedEvents: [
           { event: eventStarted, state: {}},
@@ -565,7 +565,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
       event.metadata.revision = 1;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({ uncommittedEvents: { event, state: {}}});
 
       const eventStream = await eventstore.getEventStream({ aggregateId: event.aggregate.id });
@@ -584,7 +584,7 @@ const getTestsFor = function ({ Eventstore, url }) {
         metadata: { correlationId: uuid(), causationId: uuid() }
       });
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
 
       await assert.that(async () => {
         await eventstore.saveEvents({ uncommittedEvents: { event, state: {}}});
@@ -602,7 +602,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
       event.metadata.revision = 0;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
 
       await assert.that(async () => {
         await eventstore.saveEvents({ uncommittedEvents: { event, state: {}}});
@@ -638,7 +638,7 @@ const getTestsFor = function ({ Eventstore, url }) {
       eventJoinedFirst.metadata.revision = 100;
       eventJoinedSecond.metadata.revision = 101;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
         uncommittedEvents: [
           {
@@ -697,7 +697,7 @@ const getTestsFor = function ({ Eventstore, url }) {
       eventJoinedFirst.metadata.revision = 103;
       eventJoinedSecond.metadata.revision = 104;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
         uncommittedEvents: [
           {
@@ -751,7 +751,7 @@ const getTestsFor = function ({ Eventstore, url }) {
       eventJoinedFirst.metadata.revision = 2;
       eventJoinedSecond.metadata.revision = 3;
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
         uncommittedEvents: [
           { event: eventStarted, state: {}},
@@ -777,7 +777,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
   suite('getSnapshot', () => {
     test('returns undefined for an aggregate without a snapshot.', async () => {
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
 
       const snapshot = await eventstore.getSnapshot(uuid());
 
@@ -793,7 +793,7 @@ const getTestsFor = function ({ Eventstore, url }) {
         participants: [ 'Jane Doe' ]
       };
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveSnapshot({ aggregateId, revision: 5, state });
 
       const snapshot = await eventstore.getSnapshot(aggregateId);
@@ -813,7 +813,7 @@ const getTestsFor = function ({ Eventstore, url }) {
         participants: []
       };
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveSnapshot({ aggregateId, revision: 5, state });
 
       const snapshot = await eventstore.getSnapshot(aggregateId);
@@ -840,7 +840,7 @@ const getTestsFor = function ({ Eventstore, url }) {
         participants: [ 'Jane Doe', 'Jenny Doe' ]
       };
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveSnapshot({ aggregateId, revision: 5, state: stateOld });
       await eventstore.saveSnapshot({ aggregateId, revision: 10, state: stateNew });
 
@@ -862,7 +862,7 @@ const getTestsFor = function ({ Eventstore, url }) {
         participants: [ 'Jane Doe' ]
       };
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveSnapshot({ aggregateId, revision: 10, state });
 
       const snapshot = await eventstore.getSnapshot(aggregateId);
@@ -882,7 +882,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
       const aggregateIds = [ uuid(), uuid(), uuid() ];
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
 
       for (const aggregateId of aggregateIds) {
         await eventstore.saveSnapshot({ aggregateId, revision: 10, state });
@@ -906,7 +906,7 @@ const getTestsFor = function ({ Eventstore, url }) {
         participants: []
       };
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveSnapshot({ aggregateId, revision: 10, state });
 
       const snapshot = await eventstore.getSnapshot(aggregateId);
@@ -928,7 +928,7 @@ const getTestsFor = function ({ Eventstore, url }) {
         participants: [ 'Jane Doe' ]
       };
 
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveSnapshot({ aggregateId, revision: 10, state });
       await eventstore.saveSnapshot({ aggregateId, revision: 10, state });
     });
@@ -936,7 +936,7 @@ const getTestsFor = function ({ Eventstore, url }) {
 
   suite('getReplay', () => {
     test('returns an empty stream.', async () => {
-      await eventstore.initialize({ url, namespace });
+      await eventstore.initialize({ ...getOptions(), namespace });
 
       const replayStream = await eventstore.getReplay();
       const replayEvents = await toArray(replayStream);
@@ -974,7 +974,7 @@ const getTestsFor = function ({ Eventstore, url }) {
         eventJoinedFirst.metadata.revision = 2;
         eventJoinedSecond.metadata.revision = 3;
 
-        await eventstore.initialize({ url, namespace });
+        await eventstore.initialize({ ...getOptions(), namespace });
         await eventstore.saveEvents({
           uncommittedEvents: [
             { event: eventStarted, state: {}},

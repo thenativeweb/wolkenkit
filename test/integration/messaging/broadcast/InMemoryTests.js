@@ -7,6 +7,9 @@ suite('InMemory', () => {
   getTestsFor({
     Publisher: InMemoryPublisher,
     Subscriber: InMemorySubscriber,
-    type: 'InMemory'
+
+    getOptions () {
+      return {};
+    }
   });
 });
