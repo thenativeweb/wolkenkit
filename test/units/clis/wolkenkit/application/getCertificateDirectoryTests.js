@@ -7,7 +7,7 @@ const assert = require('assertthat');
 const defaults = require('../../../../../clis/wolkenkit/application/defaults.json'),
       getCertificateDirectory = require('../../../../../clis/wolkenkit/application/getCertificateDirectory');
 
-suite('application/getCertificateDirectory', () => {
+suite('getCertificateDirectory', () => {
   test('is a function.', done => {
     assert.that(getCertificateDirectory).is.ofType('function');
     done();

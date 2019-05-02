@@ -10,7 +10,7 @@ const getConfiguration = require('../../../../../clis/wolkenkit/application/getC
       invalidPackageJsonWithUnknownRuntimeVersion = require('../../../../shared/applications/invalid/packageJsonWithUnknownRuntimeVersion'),
       validPackageJsonWithoutNodeEnvironment = require('../../../../shared/applications/valid/packageJsonWithoutNodeEnvironment');
 
-suite('application/getConfiguration', () => {
+suite('getConfiguration', () => {
   test('is a function.', done => {
     assert.that(getConfiguration).is.ofType('function');
     done();
