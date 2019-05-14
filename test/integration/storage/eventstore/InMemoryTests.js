@@ -1,7 +1,7 @@
 'use strict';
 
 const getTestsFor = require('./getTestsFor'),
-      { InMemory } = require('../../../../storage/eventstore');
+      { InMemory } = require('../../../../stores/eventstore');
 
 suite('InMemory', () => {
   getTestsFor({

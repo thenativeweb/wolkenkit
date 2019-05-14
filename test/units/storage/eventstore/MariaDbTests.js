@@ -1,7 +1,7 @@
 'use strict';
 
 const getTestsFor = require('./getTestsFor'),
-      { MariaDb } = require('../../../../storage/eventstore');
+      { MariaDb } = require('../../../../stores/eventstore');
 
 suite('MariaDb', () => {
   getTestsFor({

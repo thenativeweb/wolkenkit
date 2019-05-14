@@ -2,7 +2,7 @@
 
 const getConnectionOptions = require('../../../shared/getConnectionOptions'),
       getTestsFor = require('./getTestsFor'),
-      { MySql } = require('../../../../storage/eventstore');
+      { MySql } = require('../../../../stores/eventstore');
 
 suite('MySql', () => {
   getTestsFor({

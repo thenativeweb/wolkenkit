@@ -1,7 +1,7 @@
 'use strict';
 
 const getTestsFor = require('./getTestsFor'),
-      { Postgres } = require('../../../../storage/eventstore');
+      { Postgres } = require('../../../../stores/eventstore');
 
 suite('Postgres', () => {
   getTestsFor({

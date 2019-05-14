@@ -1,7 +1,7 @@
 'use strict';
 
 const getTestsFor = require('./getTestsFor'),
-      { FileSystem } = require('../../../../storage/filestore');
+      { FileSystem } = require('../../../../stores/filestore');
 
 suite('FileSystem', () => {
   getTestsFor({

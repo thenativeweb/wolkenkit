@@ -12,7 +12,7 @@ const { Application } = require('../../../../common/application'),
       commandIsAuthorized = require('../../../shared/applications/valid/commandIsAuthorized'),
       { Http } = require('../../../../apis/commands'),
       identityProvider = require('../../../shared/identityProvider'),
-      { InMemory } = require('../../../../storage/eventstore'),
+      { InMemory } = require('../../../../stores/eventstore'),
       { Repository } = require('../../../../common/domain');
 
 suite('commands/Http', () => {

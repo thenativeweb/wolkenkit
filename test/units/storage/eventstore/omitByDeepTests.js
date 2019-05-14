@@ -2,7 +2,7 @@
 
 const assert = require('assertthat');
 
-const omitByDeep = require('../../../../storage/eventstore/omitByDeep');
+const omitByDeep = require('../../../../stores/eventstore/omitByDeep');
 
 suite('omitByDeep', () => {
   test('is a function.', async () => {

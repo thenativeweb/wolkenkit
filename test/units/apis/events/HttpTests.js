@@ -15,7 +15,7 @@ const { Application } = require('../../../../common/application'),
       eventMap = require('../../../shared/applications/valid/eventMap'),
       { Http } = require('../../../../apis/events'),
       identityProvider = require('../../../shared/identityProvider'),
-      { InMemory } = require('../../../../storage/eventstore'),
+      { InMemory } = require('../../../../stores/eventstore'),
       { Repository } = require('../../../../common/domain');
 
 suite('events/Http', () => {

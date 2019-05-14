@@ -2,7 +2,7 @@
 
 const getConnectionOptions = require('../../../shared/getConnectionOptions'),
       getTestsFor = require('./getTestsFor'),
-      { SqlServer } = require('../../../../storage/eventstore');
+      { SqlServer } = require('../../../../stores/eventstore');
 
 suite('SqlServer', () => {
   getTestsFor({

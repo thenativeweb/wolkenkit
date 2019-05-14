@@ -7,7 +7,7 @@ const assert = require('assertthat'),
 
 const { Application } = require('../../../../common/application'),
       { Command, Event, ReadableAggregate, WritableAggregate } = require('../../../../common/elements'),
-      { InMemory } = require('../../../../storage/eventstore'),
+      { InMemory } = require('../../../../stores/eventstore'),
       { Repository } = require('../../../../common/domain'),
       updateInitialState = require('../../../shared/applications/valid/updateInitialState');
 

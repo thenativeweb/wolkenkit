@@ -2,7 +2,7 @@
 
 const getConnectionOptions = require('../../../shared/getConnectionOptions'),
       getTestsFor = require('./getTestsFor'),
-      { MongoDb } = require('../../../../storage/eventstore');
+      { MongoDb } = require('../../../../stores/eventstore');
 
 suite('MongoDb', () => {
   getTestsFor({

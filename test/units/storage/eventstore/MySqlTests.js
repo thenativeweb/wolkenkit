@@ -1,7 +1,7 @@
 'use strict';
 
 const getTestsFor = require('./getTestsFor'),
-      { MySql } = require('../../../../storage/eventstore');
+      { MySql } = require('../../../../stores/eventstore');
 
 suite('MySql', () => {
   getTestsFor({
