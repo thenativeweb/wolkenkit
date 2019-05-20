@@ -64,8 +64,7 @@ const importEventStore = async function ({
   let events = [],
       numberOfProcessedEvents = 0;
 
-  for (let i = 0; i < eventFiles.length; i++) {
-    const eventFile = eventFiles[i];
+  for (const eventFile of eventFiles) {
     const eventFileAbsolute = path.join(eventStoreDirectory, eventFile);
 
     const eventStream = fs.createReadStream(eventFileAbsolute, { encoding: 'utf8' });

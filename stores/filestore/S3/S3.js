@@ -1,12 +1,20 @@
 'use strict';
 
 const Minio = require('minio'),
-      toString = require('stream-to-string');
+      streamToString = require('stream-to-string');
 
 const errors = require('../../../common/errors');
 
 class S3 {
-  async initialize ({ endpoint, port, useSsl, accessKey, secretKey, region, bucketName }) {
+  async initialize ({
+    hostname,
+    port,
+    encryptConnection = false,
+    accessKey,
+    secretKey,
+    region,
+    bucketName
+  }) {
     if (!accessKey) {
       throw new Error('Access key is missing.');
     }
@@ -15,17 +23,15 @@ class S3 {
     }
 
     const options = {
-      endPoint: endpoint || 's3.amazonaws.com',
+      endPoint: hostname || 's3.amazonaws.com',
       accessKey,
       secretKey,
-      region: region || 'eu-central-1a'
+      region: region || 'eu-central-1a',
+      useSSL: encryptConnection
     };
 
     if (port) {
       options.port = port;
-    }
-    if (useSsl !== undefined) {
-      options.useSSL = useSsl;
     }
 
     this.client = new Minio.Client(options);
@@ -119,7 +125,7 @@ class S3 {
     }
 
     const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`);
-    const rawMetadata = await toString(metadataStream);
+    const rawMetadata = await streamToString(metadataStream);
 
     const metadata = JSON.parse(rawMetadata);
 
@@ -162,9 +168,7 @@ class S3 {
 
     let notFoundErrors = 0;
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
+    for (const file of files) {
       try {
         await this.client.statObject(this.bucketName, file);
         await this.client.removeObject(this.bucketName, file);
@@ -202,7 +206,7 @@ class S3 {
     }
 
     const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`);
-    const rawMetadata = await toString(metadataStream);
+    const rawMetadata = await streamToString(metadataStream);
 
     const metadata = JSON.parse(rawMetadata);
 
@@ -231,7 +235,7 @@ class S3 {
     }
 
     const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`);
-    const rawMetadata = await toString(metadataStream);
+    const rawMetadata = await streamToString(metadataStream);
 
     const metadata = JSON.parse(rawMetadata);
 

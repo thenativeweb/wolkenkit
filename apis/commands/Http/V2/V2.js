@@ -7,22 +7,18 @@ const getConfiguration = require('./getConfiguration'),
       postCommand = require('./postCommand');
 
 class V2 {
-  constructor ({ onReceiveCommand, application, repository, identityProviders }) {
+  constructor ({ onReceiveCommand, application, identityProviders }) {
     if (!onReceiveCommand) {
       throw new Error('On receive command is missing.');
     }
     if (!application) {
       throw new Error('Application is missing.');
     }
-    if (!repository) {
-      throw new Error('Repository is missing.');
-    }
     if (!identityProviders) {
       throw new Error('Identity providers are missing.');
     }
 
     this.application = application;
-    this.repository = repository;
 
     const limes = new Limes({ identityProviders });
     const verifyTokenMiddleware = limes.verifyTokenMiddleware({
@@ -40,8 +36,7 @@ class V2 {
 
     this.api.post('/', verifyTokenMiddleware, postCommand({
       onReceiveCommand,
-      application,
-      repository
+      application
     }));
   }
 }

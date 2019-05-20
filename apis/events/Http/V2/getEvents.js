@@ -29,7 +29,9 @@ const getEvents = function ({ connections, writeLine, heartbeatInterval }) {
     res.socket.once('close', onClose);
     res.writeHead(200, { 'content-type': 'application/x-ndjson' });
 
+    /* eslint-disable no-param-reassign */
     connections[connectionId] = { req, res };
+    /* eslint-enable no-param-reassign */
 
     // Send an initial heartbeat to initialize the connection. If we do not do
     // this, sometimes the connection does not become open until the first data

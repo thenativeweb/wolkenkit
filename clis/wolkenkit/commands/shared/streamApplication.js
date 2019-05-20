@@ -30,8 +30,11 @@ const streamApplication = async function ({
   progress({ message: `Uploading .tar.gz file...` });
 
   const response = await new Promise(async (resolve, reject) => {
-    endpoint.headers = {
-      'content-type': 'application/gzip'
+    const endpointWithHeaders = {
+      ...endpoint,
+      headers: {
+        'content-type': 'application/gzip'
+      }
     };
 
     const files = [ 'package.json', 'server' ];
@@ -60,7 +63,7 @@ const streamApplication = async function ({
 
     try {
       receivedData = await makeAufwindRequest({
-        endpoint,
+        endpoint: endpointWithHeaders,
         tunnel,
         uploadStream
       }, progress);

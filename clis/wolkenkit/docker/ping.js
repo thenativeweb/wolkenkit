@@ -41,7 +41,7 @@ const ping = async function ({ configuration }) {
 
     try {
       result = JSON.parse(ex.stdout);
-    } catch (exInner) {
+    } catch {
       // Here, it is of interest why the command failed, not why the JSON
       // parsing failed. Hence, we ignore exInner and fall back to ex.
       throw ex;
@@ -58,7 +58,7 @@ const ping = async function ({ configuration }) {
 
   try {
     result = JSON.parse(output.stdout);
-  } catch (ex) {
+  } catch {
     throw new errors.JsonMalformed();
   }
 

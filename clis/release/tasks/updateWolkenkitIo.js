@@ -26,7 +26,7 @@ const updateWolkenkitIo = async function ({ versions, cwd }) {
     const metadataFile = path.join(cwdWebsite, 'src', 'metadata.js');
     const metadata = await files.read(metadataFile);
 
-    const newMetadata = metadata.replace(/wolkenkit: '\d+\.\d+\.\d+'/g, `wolkenkit: '${versions.wolkenkit}'`);
+    const newMetadata = metadata.replace(/wolkenkit: '\d+\.\d+\.\d+'/ug, `wolkenkit: '${versions.wolkenkit}'`);
 
     await files.write(metadataFile, newMetadata);
 

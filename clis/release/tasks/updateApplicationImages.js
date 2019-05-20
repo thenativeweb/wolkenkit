@@ -32,7 +32,7 @@ const updateApplicationImages = async function ({ versions, cwd }) {
     const fileName = path.join(cwdApplicationImage, 'Dockerfile');
     const dockerfile = await files.read(fileName);
 
-    const updatedDockerfile = dockerfile.replace(/FROM thenativeweb\/wolkenkit-box-node:\d+\.\d+\.\d+/g, `FROM thenativeweb/wolkenkit-box-node:${versions.wolkenkit}`);
+    const updatedDockerfile = dockerfile.replace(/FROM thenativeweb\/wolkenkit-box-node:\d+\.\d+\.\d+/ug, `FROM thenativeweb/wolkenkit-box-node:${versions.wolkenkit}`);
 
     await files.write(fileName, updatedDockerfile);
 

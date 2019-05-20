@@ -20,7 +20,7 @@ const isImageInstalled = async function ({ configuration, name, version }) {
     await shell.exec(`docker inspect --type=image ${name}:${version}`, {
       env: environmentVariables
     });
-  } catch (ex) {
+  } catch {
     return false;
   }
 

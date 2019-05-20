@@ -3,10 +3,10 @@
 const assert = require('assertthat');
 
 const runtimes = require('../../../../clis/wolkenkit/runtimes'),
-      suite = require('./helpers/suite');
+      suiteAws = require('./helpers/suiteAws');
 
 (async () => {
-  await suite('installation lifecycle', async ({ test, wolkenkit }) => {
+  await suiteAws('installation lifecycle', async ({ test, wolkenkit }) => {
     const allVersions = await runtimes.getAllVersions(),
           latestStableVersion = await runtimes.getLatestStableVersion();
 
@@ -22,7 +22,7 @@ const runtimes = require('../../../../clis/wolkenkit/runtimes'),
       const { code, stderr, stdout } = await wolkenkit('runtime install', {}, { cwd: directory });
 
       assert.that(stderr).is.equalTo('');
-      assert.that(stdout).is.matching(new RegExp(`Installed wolkenkit ${latestStableVersion} on environment default`));
+      assert.that(stdout).is.matching(new RegExp(`Installed wolkenkit ${latestStableVersion} on environment default`, 'u'));
       assert.that(code).is.equalTo(0);
     });
 
@@ -30,7 +30,7 @@ const runtimes = require('../../../../clis/wolkenkit/runtimes'),
       const { code, stderr, stdout } = await wolkenkit('runtime ls', {}, { cwd: directory });
 
       assert.that(stderr).is.equalTo('');
-      assert.that(stdout).is.matching(/There are 1 of \d+ supported wolkenkit versions installed on environment default/);
+      assert.that(stdout).is.matching(/There are 1 of \d+ supported wolkenkit versions installed on environment default/u);
       assert.that(code).is.equalTo(0);
     });
 
@@ -38,7 +38,7 @@ const runtimes = require('../../../../clis/wolkenkit/runtimes'),
       const { code, stderr, stdout } = await wolkenkit('runtime uninstall', {}, { cwd: directory });
 
       assert.that(stderr).is.equalTo('');
-      assert.that(stdout).is.matching(new RegExp(`Uninstalled wolkenkit ${latestStableVersion} on environment default`));
+      assert.that(stdout).is.matching(new RegExp(`Uninstalled wolkenkit ${latestStableVersion} on environment default`, 'u'));
       assert.that(code).is.equalTo(0);
     });
 
@@ -46,7 +46,7 @@ const runtimes = require('../../../../clis/wolkenkit/runtimes'),
       const { code, stderr, stdout } = await wolkenkit('runtime install', { version: 'latest' }, { cwd: directory });
 
       assert.that(stderr).is.equalTo('');
-      assert.that(stdout).is.matching(/Installed wolkenkit latest on environment default./);
+      assert.that(stdout).is.matching(/Installed wolkenkit latest on environment default./u);
       assert.that(code).is.equalTo(0);
     });
 
@@ -62,7 +62,7 @@ const runtimes = require('../../../../clis/wolkenkit/runtimes'),
       const { code, stderr, stdout } = await wolkenkit('runtime ls', {}, { cwd: directory });
 
       assert.that(stderr).is.equalTo('');
-      assert.that(stdout).is.matching(/There are 1 of \d+ supported wolkenkit versions installed on environment default/);
+      assert.that(stdout).is.matching(/There are 1 of \d+ supported wolkenkit versions installed on environment default/u);
       assert.that(code).is.equalTo(0);
     });
 
@@ -70,7 +70,7 @@ const runtimes = require('../../../../clis/wolkenkit/runtimes'),
       const { code, stderr, stdout } = await wolkenkit('runtime uninstall', { version: 'latest' }, { cwd: directory });
 
       assert.that(stderr).is.equalTo('');
-      assert.that(stdout).is.matching(/Uninstalled wolkenkit latest on environment default./);
+      assert.that(stdout).is.matching(/Uninstalled wolkenkit latest on environment default./u);
       assert.that(code).is.equalTo(0);
     });
 

@@ -18,7 +18,7 @@ const cloneRepository = async function ({ directory, template }, progress) {
   const latestStableVersion = await runtimes.getLatestStableVersion();
   const wolkenkitUrl = `https://docs.wolkenkit.io/${latestStableVersion}/getting-started/installing-wolkenkit/verifying-system-requirements/`;
 
-  const matches = template.match(/^((?:git:|ssh:|https:\/\/|git@[\w.]+)[\w.@:/~_-]+(?:\.git)?\/?)(?:#([a-zA-Z0-9/.\-_]+))?$/);
+  const matches = template.match(/^(?<protocol>(?:git:|ssh:|https:\/\/|git@[\w.]+)[\w.@:/~_-]+(?:\.git)?\/?)(?:#(?<commitId>[a-zA-Z0-9/.\-_]+))?$/u);
 
   if (!matches) {
     progress({ message: 'Malformed url.', type: 'info' });

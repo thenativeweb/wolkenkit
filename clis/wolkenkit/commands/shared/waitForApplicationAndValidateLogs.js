@@ -21,7 +21,10 @@ const waitForApplicationAndValidateLogs = async function ({
 
       validate.once('error', reject);
 
-      await waitForApplication({ configuration }, progress);
+      await waitForApplication({
+        host: configuration.api.host.name,
+        port: configuration.api.port
+      }, progress);
     } catch (ex) {
       return reject(ex);
     } finally {

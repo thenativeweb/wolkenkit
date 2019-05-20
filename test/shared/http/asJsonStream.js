@@ -10,7 +10,7 @@ const asJsonStream = function (...handleJson) {
       const data = JSON.parse(chunk.toString());
 
       if (!handleJson[counter]) {
-        return callback(new Error(`Received ${counter + 1} items, but only expected ${handleJson.length}.`));
+        return callback(new Error(`Received ${counter + 1} items (${JSON.stringify(data)}), but only expected ${handleJson.length}.`));
       }
 
       handleJson[counter](data);

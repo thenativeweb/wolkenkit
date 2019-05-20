@@ -1,9 +1,19 @@
 'use strict';
 
 const { Connection } = require('tedious'),
+      noop = require('lodash/noop'),
       { Pool } = require('tarn');
 
-const createPool = function ({ host, port, user, password, database, encrypt, onError, onDisconnect }) {
+const createPool = function ({
+  host,
+  port,
+  user,
+  password,
+  database,
+  encrypt,
+  onError = noop,
+  onDisconnect = noop
+}) {
   if (!host) {
     throw new Error('Host is missing.');
   }
@@ -22,14 +32,6 @@ const createPool = function ({ host, port, user, password, database, encrypt, on
   if (encrypt === undefined) {
     throw new Error('Encrypt is missing.');
   }
-
-  onError = onError || (() => {
-    // Intentionally left blank.
-  });
-
-  onDisconnect = onDisconnect || (() => {
-    // Intentionally left blank.
-  });
 
   const pool = new Pool({
     min: 2,

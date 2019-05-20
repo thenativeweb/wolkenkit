@@ -90,20 +90,17 @@ class V2 {
     }
   }
 
-  async prepareEvent ({ connectionId, event, metadata: eventMetadata }) {
+  async prepareEvent ({ connectionId, event }) {
     if (!connectionId) {
       throw new Error('Connection id is missing.');
     }
     if (!event) {
       throw new Error('Event is missing.');
     }
-    if (!eventMetadata) {
-      throw new Error('Metadata are missing.');
-    }
-    if (!eventMetadata.state) {
+    if (!event.annotations.state) {
       throw new Error('State is missing.');
     }
-    if (!eventMetadata.previousState) {
+    if (!event.annotations.previousState) {
       throw new Error('Previous state is missing.');
     }
 
@@ -145,11 +142,9 @@ class V2 {
       return;
     }
 
-    const metadata = { ...eventMetadata, client: clientMetadata };
-
     const services = {
       app: new AppService({ application, repository, capabilities: { readAggregates: true }}),
-      client: new ClientService({ metadata }),
+      client: new ClientService({ clientMetadata }),
       logger: new LoggerService({ fileName: `/server/domain/${event.context.name}/${event.aggregate.name}.js` })
     };
 
@@ -161,13 +156,13 @@ class V2 {
 
     aggregateInstance.applySnapshot({
       revision: event.metadata.revision,
-      state: eventMetadata.state
+      state: event.annotations.state
     });
 
     // Additionally, attach the previous state, and do this in the same way as
     // applySnapshot works.
-    aggregateInstance.api.forReadOnly.previousState = eventMetadata.previousState;
-    aggregateInstance.api.forEvents.previousState = eventMetadata.previousState;
+    aggregateInstance.api.forReadOnly.previousState = event.annotations.previousState;
+    aggregateInstance.api.forEvents.previousState = event.annotations.previousState;
 
     const { isAuthorized, filter, map } =
       application.events.internal[event.context.name][event.aggregate.name][event.name];
@@ -181,7 +176,7 @@ class V2 {
         return;
       }
     } catch (ex) {
-      services.logger.error('Is authorized failed.', { event, metadata, ex });
+      services.logger.error('Is authorized failed.', { event, clientMetadata, ex });
 
       return;
     }
@@ -196,7 +191,7 @@ class V2 {
           return;
         }
       } catch (ex) {
-        services.logger.error('Filter failed.', { event, metadata, ex });
+        services.logger.error('Filter failed.', { event, clientMetadata, ex });
 
         return;
       }
@@ -211,7 +206,7 @@ class V2 {
         mappedEvent =
           await map(aggregateInstance.api.forReadOnly, clonedEvent, services);
       } catch (ex) {
-        services.logger.error('Map failed.', { event, metadata, ex });
+        services.logger.error('Map failed.', { event, clientMetadata, ex });
 
         return;
       }
@@ -220,22 +215,23 @@ class V2 {
     return mappedEvent;
   }
 
-  async sendEvent ({ event, metadata }) {
+  async sendEvent ({ event }) {
     if (!event) {
       throw new Error('Event is missing.');
     }
-    if (!metadata) {
-      throw new Error('Metadata are missing.');
-    }
 
     for (const connectionId of Object.keys(this.connectionsForGetEvents)) {
-      const preparedEvent = await this.prepareEvent({ connectionId, event, metadata });
+      const preparedEvent = await this.prepareEvent({ connectionId, event });
 
       if (!preparedEvent) {
         continue;
       }
 
-      this.writeLine({ connectionId, data: preparedEvent });
+      // Ensure that we never send out annotations of an event, since they
+      // contain sensitive data such as tokens.
+      const eventWithoutAnnotations = { ...preparedEvent, annotations: {}};
+
+      this.writeLine({ connectionId, data: eventWithoutAnnotations });
     }
   }
 }

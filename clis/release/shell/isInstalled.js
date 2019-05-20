@@ -7,7 +7,7 @@ const isInstalled = async function (application) {
     await execLive(`command -v ${application}`, { silent: true });
 
     return true;
-  } catch (ex) {
+  } catch {
     return false;
   }
 };

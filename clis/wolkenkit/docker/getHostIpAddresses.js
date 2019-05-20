@@ -24,7 +24,7 @@ const getHostIpAddresses = async function ({ configuration }) {
 
   try {
     parsedUrl = url.parse(environmentVariables.DOCKER_HOST);
-  } catch (ex) {
+  } catch {
     // If there is no valid url in the environment variable, we assume that
     // it contains a path to a socket, so we can assume localhost.
     return localhostAddresses;

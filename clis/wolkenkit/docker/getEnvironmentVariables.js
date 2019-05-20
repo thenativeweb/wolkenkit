@@ -29,15 +29,15 @@ const getEnvironmentVariables = async function ({ configuration }) {
 
   const { stdout } = await shell.exec(`docker-machine env --shell bash ${configuration.docker.machine}`);
 
-  const matches = stdout.match(/^export .*$/gm);
+  const matches = stdout.match(/^export .*$/ugm);
 
   if (!matches) {
     throw new errors.OutputMalformed();
   }
 
   matches.
-    map(match => match.replace(/^export /, '')).
-    map(match => match.replace(/"/g, '')).
+    map(match => match.replace(/^export /u, '')).
+    map(match => match.replace(/"/ug, '')).
     forEach(match => {
       const [ key, value ] = match.split('=');
 

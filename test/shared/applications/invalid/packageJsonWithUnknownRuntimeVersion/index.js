@@ -2,14 +2,18 @@
 
 const path = require('path');
 
+const cloneDeep = require('lodash/cloneDeep');
+
 const setupApplication = require('../../setupApplication');
 
 const packageJsonWithUnknownRuntimeVersion = async function () {
   const directory = await setupApplication({
     configure (packageJson) {
-      packageJson.wolkenkit.runtime.version = 'unknown.runtime.version';
+      const configuredPackageJson = cloneDeep(packageJson);
 
-      return packageJson;
+      configuredPackageJson.wolkenkit.runtime.version = 'unknown.runtime.version';
+
+      return configuredPackageJson;
     }
   });
 

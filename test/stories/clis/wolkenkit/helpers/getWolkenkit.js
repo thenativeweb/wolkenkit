@@ -3,7 +3,6 @@
 const path = require('path');
 
 const map = require('lodash/map'),
-      merge = require('lodash/merge'),
       processenv = require('processenv');
 
 const shell = require('../../../../../clis/wolkenkit/shell');
@@ -32,16 +31,21 @@ const getWolkenkit = async function (options) {
       return `--${key}=${value}`;
     }).join(' ')}`;
 
-    opts.env = merge({}, processenv(), opts.env || {}, {
-      DOCKER_HOST: `tcp://${ipAddress}:2376`,
-      DOCKER_TLS_VERIFY: 'yes',
-      DOCKER_CERT_PATH: path.join(__dirname, '..', 'terraform', '.docker', ipAddress)
-    });
+    const execOptions = {
+      ...opts,
+      env: {
+        ...processenv(),
+        ...opts.env || {},
+        DOCKER_HOST: `tcp://${ipAddress}:2376`,
+        DOCKER_TLS_VERIFY: 'yes',
+        DOCKER_CERT_PATH: path.join(__dirname, '..', 'terraform', '.docker', ipAddress)
+      }
+    };
 
     const output = { code: 0, stdout: '', stderr: '' };
 
     try {
-      const { stdout, stderr } = await shell.exec(command, opts);
+      const { stdout, stderr } = await shell.exec(command, execOptions);
 
       output.stdout = stdout;
       output.stderr = stderr;
@@ -52,7 +56,7 @@ const getWolkenkit = async function (options) {
     }
 
     // Remove spinner output.
-    output.stderr = output.stderr.replace(/(\r⠋|\r⠙|\r⠹|\r⠸|\r⠼|\r⠴|\r⠦|\r⠧|\r⠇|\r⠏|\r)+/, '');
+    output.stderr = output.stderr.replace(/(?<spinner>\r⠋|\r⠙|\r⠹|\r⠸|\r⠼|\r⠴|\r⠦|\r⠧|\r⠇|\r⠏|\r)+/u, '');
 
     return output;
   };

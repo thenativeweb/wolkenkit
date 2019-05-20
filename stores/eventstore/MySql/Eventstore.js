@@ -3,7 +3,6 @@
 const { PassThrough } = require('stream');
 
 const cloneDeep = require('lodash/cloneDeep'),
-      DsnParser = require('dsn-parser'),
       limitAlphanumeric = require('limit-alphanumeric'),
       mysql = require('mysql2/promise'),
       retry = require('async-retry');
@@ -26,9 +25,21 @@ class Eventstore {
     return database;
   }
 
-  async initialize ({ url, namespace }) {
-    if (!url) {
-      throw new Error('Url is missing.');
+  async initialize ({ hostname, port, username, password, database, namespace }) {
+    if (!hostname) {
+      throw new Error('Hostname is missing.');
+    }
+    if (!port) {
+      throw new Error('Port is missing.');
+    }
+    if (!username) {
+      throw new Error('Username is missing.');
+    }
+    if (!password) {
+      throw new Error('Password is missing.');
+    }
+    if (!database) {
+      throw new Error('Database is missing.');
     }
     if (!namespace) {
       throw new Error('Namespace is missing.');
@@ -36,12 +47,10 @@ class Eventstore {
 
     this.namespace = `store_${limitAlphanumeric(namespace)}`;
 
-    const { host, port, user, password, database } = new DsnParser(url).getParts();
-
     this.pool = mysql.createPool({
-      host,
+      host: hostname,
       port,
-      user,
+      user: username,
       password,
       database,
       multipleStatements: true
@@ -154,7 +163,7 @@ class Eventstore {
 
       const event = Event.deserialize(rows[0].event);
 
-      event.metadata.position = Number(rows[0].position);
+      event.annotations.position = Number(rows[0].position);
 
       return event;
     } finally {
@@ -165,7 +174,7 @@ class Eventstore {
   async getEventStream ({
     aggregateId,
     fromRevision = 1,
-    toRevision = 2 ** 31 - 1
+    toRevision = (2 ** 31) - 1
   }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
@@ -211,8 +220,8 @@ class Eventstore {
     onResult = function (row) {
       const event = Event.deserialize(row.event);
 
-      event.metadata.position = Number(row.position);
-      event.metadata.published = Boolean(row.hasBeenPublished);
+      event.annotations.position = Number(row.position);
+      event.metadata.isPublished = Boolean(row.hasBeenPublished);
 
       passThrough.write(event);
     };
@@ -260,8 +269,8 @@ class Eventstore {
     onResult = function (row) {
       const event = Event.deserialize(row.event);
 
-      event.metadata.position = Number(row.position);
-      event.metadata.published = Boolean(row.hasBeenPublished);
+      event.annotations.position = Number(row.position);
+      event.metadata.isPublished = Boolean(row.hasBeenPublished);
       passThrough.write(event);
     };
 
@@ -275,9 +284,6 @@ class Eventstore {
   async saveEvents ({ uncommittedEvents }) {
     if (!uncommittedEvents) {
       throw new Error('Uncommitted events are missing.');
-    }
-    if (!Array.isArray(uncommittedEvents)) {
-      uncommittedEvents = [ uncommittedEvents ];
     }
     if (uncommittedEvents.length === 0) {
       throw new Error('Uncommitted events are missing.');
@@ -304,7 +310,7 @@ class Eventstore {
       }
 
       placeholders.push('(UuidToBin(?), ?, ?, ?)');
-      values.push(event.aggregate.id, event.metadata.revision, JSON.stringify(event), event.metadata.published);
+      values.push(event.aggregate.id, event.metadata.revision, JSON.stringify(event), event.metadata.isPublished);
     }
 
     const text = `
@@ -323,7 +329,7 @@ class Eventstore {
       // single INSERT statement, the database guarantees that the positions are
       // sequential, so we easily calculate them by ourselves.
       for (let i = 0; i < committedEvents.length; i++) {
-        committedEvents[i].event.metadata.position = Number(rows[0].position) + i;
+        committedEvents[i].event.annotations.position = Number(rows[0].position) + i;
       }
     } catch (ex) {
       if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'aggregateId\'')) {
@@ -341,8 +347,8 @@ class Eventstore {
 
     if (indexForSnapshot !== -1) {
       const aggregateId = committedEvents[indexForSnapshot].event.aggregate.id;
-      const revision = committedEvents[indexForSnapshot].event.metadata.revision;
-      const state = committedEvents[indexForSnapshot].state;
+      const { revision } = committedEvents[indexForSnapshot].event.metadata;
+      const { state } = committedEvents[indexForSnapshot];
 
       await this.saveSnapshot({ aggregateId, revision, state });
     }
@@ -420,7 +426,7 @@ class Eventstore {
       throw new Error('State is missing.');
     }
 
-    state = omitByDeep(state, value => value === undefined);
+    const filteredState = omitByDeep(state, value => value === undefined);
 
     const connection = await this.getDatabase();
 
@@ -429,17 +435,15 @@ class Eventstore {
         INSERT IGNORE INTO ${this.namespace}_snapshots
           (aggregateId, revision, state)
           VALUES (UuidToBin(?), ?, ?);
-      `, [ aggregateId, revision, JSON.stringify(state) ]);
+      `, [ aggregateId, revision, JSON.stringify(filteredState) ]);
     } finally {
       await connection.release();
     }
   }
 
-  async getReplay (options) {
-    options = options || {};
-
+  async getReplay (options = {}) {
     const fromPosition = options.fromPosition || 1;
-    const toPosition = options.toPosition || 2 ** 31 - 1;
+    const toPosition = options.toPosition || (2 ** 31) - 1;
 
     if (fromPosition > toPosition) {
       throw new Error('From position is greater than to position.');
@@ -481,7 +485,7 @@ class Eventstore {
     onResult = function (row) {
       const event = Event.deserialize(row.event);
 
-      event.metadata.position = Number(row.position);
+      event.annotations.position = Number(row.position);
       passThrough.write(event);
     };
 

@@ -18,7 +18,7 @@ const schema = function () {
         patternProperties: {
           '.*': {
             oneOf: [
-              // cli environment
+              // CLI environment
               {
                 type: 'object',
                 properties: {
@@ -184,7 +184,7 @@ const schema = function () {
                 additionalProperties: false
               },
 
-              // aufwind environment
+              // Aufwind environment
               {
                 type: 'object',
                 properties: {

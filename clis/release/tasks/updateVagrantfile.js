@@ -34,8 +34,8 @@ const updateVagrantfile = async function ({ versions, cwd }) {
 
     /* eslint-disable camelcase */
     const newVagrantfile = vagrantfile.
-      replace(/Vagrant.require_version ">= \d+\.\d+\.\d+"/g, `Vagrant.require_version ">= ${versions.vagrant}"`).
-      replace(/config.vm.box_version = "\d+\.\d+\.\d+"/g, `config.vm.box_version = "${versions.cli}"`);
+      replace(/Vagrant.require_version ">= \d+\.\d+\.\d+"/ug, `Vagrant.require_version ">= ${versions.vagrant}"`).
+      replace(/config.vm.box_version = "\d+\.\d+\.\d+"/ug, `config.vm.box_version = "${versions.cli}"`);
     /* eslint-enable camelcase */
 
     await files.write(filename, newVagrantfile);

@@ -33,46 +33,117 @@ const value = new Value({
       required: [],
       additionalProperties: true
     },
-    custom: {
-      type: 'object',
-      properties: {},
-      required: [],
-      additionalProperties: true
-    },
-    initiator: {
-      oneOf: [
-        {
-          type: 'null'
-        },
-        {
-          type: 'object',
-          properties: {
-            id: { type: 'string', minLength: 1 }
-          },
-          required: [ 'id' ],
-          additionalProperties: false
-        }
-      ]
-    },
     metadata: {
       type: 'object',
       properties: {
         timestamp: { type: 'number' },
-        published: { type: 'boolean' },
+        isPublished: { type: 'boolean' },
+        causationId: { type: 'string', pattern: uuidRegex },
         correlationId: { type: 'string', pattern: uuidRegex },
-        causationId: { type: 'string', pattern: uuidRegex }
+        revision: {
+          type: 'object',
+          properties: {
+            aggregate: { type: 'number', minimum: 1 },
+            global: {
+              anyOf: [{ type: 'number', minimum: 1 }, { type: 'null' }]
+            }
+          },
+          required: [ 'aggregate' ],
+          additionalProperties: false
+        },
+        initiator: {
+          type: 'object',
+          properties: {
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', minLength: 1 },
+                claims: {
+                  type: 'object',
+                  properties: {
+                    sub: { type: 'string', minLength: 1 }
+                  },
+                  required: [ 'sub' ],
+                  additionalProperties: true
+                }
+              },
+              required: [ 'id', 'claims' ],
+              additionalProperties: false
+            }
+          },
+          required: [ 'user' ],
+          additionalProperties: false
+        }
       },
-      required: [ 'timestamp', 'published', 'correlationId', 'causationId' ],
-      additionalProperties: true
+      required: [
+        'timestamp',
+        'isPublished',
+        'causationId',
+        'correlationId',
+        'revision',
+        'initiator'
+      ],
+      additionalProperties: false
     },
-    type: { type: 'string', minLength: 1 }
+    annotations: {
+      type: 'object',
+      properties: {
+        client: {
+          type: 'object',
+          properties: {
+            token: { type: 'string', minLength: 1 },
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', minLength: 1 },
+                claims: {
+                  type: 'object',
+                  properties: {
+                    sub: { type: 'string', minLength: 1 }
+                  },
+                  required: [ 'sub' ],
+                  additionalProperties: true
+                }
+              },
+              required: [ 'id', 'claims' ],
+              additionalProperties: false
+            },
+            ip: { type: 'string', minLength: 1 }
+          },
+          required: [ 'token', 'user', 'ip' ],
+          additionalProperties: false
+        },
+        state: {
+          type: 'object',
+          properties: {},
+          required: [],
+          additionalProperties: true
+        },
+        previousState: {
+          type: 'object',
+          properties: {},
+          required: [],
+          additionalProperties: true
+        }
+      },
+      required: [],
+      additionalProperties: false
+    }
   },
-  required: [ 'context', 'aggregate', 'name', 'id', 'data', 'custom', 'metadata', 'type' ],
+  required: [ 'context', 'aggregate', 'name', 'id', 'data', 'metadata', 'annotations' ],
   additionalProperties: false
 });
 
 class Event {
-  constructor ({ context, aggregate, name, metadata, type = 'domain', data = {}, custom = {}}) {
+  constructor ({
+    context,
+    aggregate,
+    name,
+    id,
+    data,
+    metadata,
+    annotations
+  }) {
     if (!context) {
       throw new Error('Context is missing.');
     }
@@ -89,81 +160,179 @@ class Event {
       throw new Error('Aggregate id is missing.');
     }
     if (!name) {
-      throw new Error('Event name is missing.');
+      throw new Error('Name is missing.');
+    }
+    if (!id) {
+      throw new Error('Id is missing.');
+    }
+    if (!data) {
+      throw new Error('Data is missing.');
     }
     if (!metadata) {
       throw new Error('Metadata are missing.');
     }
-    if (!metadata.correlationId) {
-      throw new Error('Correlation id is missing.');
+    if (!metadata.timestamp) {
+      throw new Error('Timestamp is missing.');
+    }
+    if (metadata.isPublished === undefined) {
+      throw new Error('Is published is missing.');
     }
     if (!metadata.causationId) {
       throw new Error('Causation id is missing.');
+    }
+    if (!metadata.correlationId) {
+      throw new Error('Correlation id is missing.');
+    }
+    if (!metadata.revision) {
+      throw new Error('Revision is missing.');
+    }
+    if (metadata.position === undefined) {
+      throw new Error('Position is missing.');
+    }
+    if (!metadata.initiator) {
+      throw new Error('Initiator is missing.');
     }
 
     this.context = { name: context.name };
     this.aggregate = { name: aggregate.name, id: aggregate.id };
     this.name = name;
-    this.id = uuid();
-    this.type = type;
+    this.id = id;
 
     this.data = data;
-    this.custom = custom;
-    this.initiator = null;
-    this.metadata = {
-      timestamp: (new Date()).getTime(),
-      published: false,
-      correlationId: metadata.correlationId,
-      causationId: metadata.causationId
-    };
+    this.metadata = metadata;
+    this.annotations = annotations;
 
     value.validate(this, { valueName: 'event' });
   }
 
-  addInitiator (initiator) {
-    if (!initiator) {
-      throw new Error('Initiator is missing.');
-    }
-    if (!initiator.id) {
-      throw new Error('Initiator id is missing.');
-    }
-
-    this.initiator = {
-      id: initiator.id
-    };
-  }
-
-  static deserialize ({
-    context,
-    aggregate,
-    name,
-    id,
-    initiator,
-    metadata,
-    type,
-    data,
-    custom
-  }) {
-    const event = new Event({ context, aggregate, name, metadata, type, data, custom });
-
-    event.id = id;
-    event.metadata = metadata;
-
-    if (initiator && initiator.id) {
-      event.addInitiator(initiator);
-    }
-
-    value.validate(event, { valueName: 'event' });
+  withoutAnnotations () {
+    const event = new Event({
+      context: this.context,
+      aggregate: this.aggregate,
+      name: this.name,
+      id: this.id,
+      data: this.data,
+      metadata: this.metadata,
+      annotations: {}
+    });
 
     return event;
   }
 
-  static isWellformed (event) {
-    if (!event) {
-      return false;
+  static create ({
+    context,
+    aggregate,
+    name,
+    data = {},
+    metadata = {},
+    annotations = {}
+  }) {
+    if (!context) {
+      throw new Error('Context is missing.');
+    }
+    if (!context.name) {
+      throw new Error('Context name is missing.');
+    }
+    if (!aggregate) {
+      throw new Error('Aggregate is missing.');
+    }
+    if (!aggregate.name) {
+      throw new Error('Aggregate name is missing.');
+    }
+    if (!aggregate.id) {
+      throw new Error('Aggregate id is missing.');
+    }
+    if (!name) {
+      throw new Error('Name is missing.');
+    }
+    if (
+      (metadata.causationId && !metadata.correlationId) ||
+      (!metadata.causationId && metadata.correlationId)
+    ) {
+      throw new Error('Causation id and correlation id must either be given both or none.');
     }
 
-    return value.isValid(event);
+    const id = uuid();
+
+    const event = new Event({
+      context,
+      aggregate,
+      name,
+      id,
+      data,
+      metadata: {
+        ...metadata,
+        isPublished: false,
+        causationId: metadata.causationId || id,
+        correlationId: metadata.correlationId || id,
+        timestamp: Date.now()
+      },
+      annotations
+    });
+
+    return event;
+  }
+
+  static fromObject ({
+    context,
+    aggregate,
+    name,
+    id,
+    data,
+    metadata,
+    annotations
+  }) {
+    if (!context) {
+      throw new Error('Context is missing.');
+    }
+    if (!context.name) {
+      throw new Error('Context name is missing.');
+    }
+    if (!aggregate) {
+      throw new Error('Aggregate is missing.');
+    }
+    if (!aggregate.name) {
+      throw new Error('Aggregate name is missing.');
+    }
+    if (!aggregate.id) {
+      throw new Error('Aggregate id is missing.');
+    }
+    if (!name) {
+      throw new Error('Name is missing.');
+    }
+    if (!id) {
+      throw new Error('Id is missing.');
+    }
+    if (!data) {
+      throw new Error('Data is missing.');
+    }
+    if (!metadata) {
+      throw new Error('Metadata is missing.');
+    }
+    if (!metadata.timestamp) {
+      throw new Error('Timestamp is missing.');
+    }
+    if (!metadata.causationId) {
+      throw new Error('Causation id is missing.');
+    }
+    if (!metadata.correlationId) {
+      throw new Error('Correlation id is missing.');
+    }
+    if (!annotations) {
+      throw new Error('Annotations are missing.');
+    }
+
+    const event = new Event({
+      context,
+      aggregate,
+      name,
+      id,
+      data,
+      metadata,
+      annotations
+    });
+
+    return event;
   }
 }
 

@@ -29,7 +29,7 @@ const getConfiguration = async function ({ directory }) {
 
   try {
     runtimeVersion = configuration.runtime.version;
-  } catch (ex) {
+  } catch {
     throw new errors.ConfigurationMalformed();
   }
 

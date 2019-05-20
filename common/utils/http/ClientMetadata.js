@@ -5,11 +5,17 @@ class ClientMetadata {
     if (!req) {
       throw new Error('Request is missing.');
     }
+    if (!req.token) {
+      throw new Error('Token is missing.');
+    }
     if (!req.user) {
       throw new Error('User is missing.');
     }
-    if (!req.user.sub) {
-      throw new Error('Sub is missing.');
+    if (!req.user.id) {
+      throw new Error('User id is missing.');
+    }
+    if (!req.user.claims) {
+      throw new Error('User claims are missing.');
     }
     if (!req.connection) {
       throw new Error('Connection is missing.');
@@ -21,7 +27,8 @@ class ClientMetadata {
       throw new Error('Headers are missing.');
     }
 
-    this.user = { id: req.user.sub, token: req.user };
+    this.token = req.token;
+    this.user = { id: req.user.id, claims: req.user.claims };
     this.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   }
 }

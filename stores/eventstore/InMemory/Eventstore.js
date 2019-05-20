@@ -55,7 +55,7 @@ class Eventstore {
   async getEventStream ({
     aggregateId,
     fromRevision = 1,
-    toRevision = 2 ** 31 - 1
+    toRevision = (2 ** 31) - 1
   }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
@@ -81,7 +81,7 @@ class Eventstore {
 
   async getUnpublishedEventStream () {
     const filteredEvents = this.getStoredEvents().
-      filter(event => event.metadata.published === false);
+      filter(event => event.metadata.isPublished === false);
 
     const passThrough = new PassThrough({ objectMode: true });
 
@@ -97,9 +97,6 @@ class Eventstore {
     if (!uncommittedEvents) {
       throw new Error('Uncommitted events are missing.');
     }
-    if (!Array.isArray(uncommittedEvents)) {
-      uncommittedEvents = [ uncommittedEvents ];
-    }
     if (uncommittedEvents.length === 0) {
       throw new Error('Uncommitted events are missing.');
     }
@@ -108,7 +105,7 @@ class Eventstore {
 
     const eventsInDatabase = this.getStoredEvents();
 
-    committedEvents.forEach(committedEvent => {
+    for (const committedEvent of committedEvents) {
       if (!committedEvent.event.metadata) {
         throw new Error('Metadata are missing.');
       }
@@ -132,10 +129,10 @@ class Eventstore {
       const newPosition = eventsInDatabase.length + 1;
 
       committedEvent.event.data = omitByDeep(committedEvent.event.data, value => value === undefined);
-      committedEvent.event.metadata.position = newPosition;
+      committedEvent.event.annotations.position = newPosition;
 
       this.storeEventAtDatabase(committedEvent.event);
-    });
+    }
 
     const indexForSnapshot = committedEvents.findIndex(
       committedEvent => committedEvent.event.metadata.revision % 100 === 0
@@ -143,8 +140,8 @@ class Eventstore {
 
     if (indexForSnapshot !== -1) {
       const aggregateId = committedEvents[indexForSnapshot].event.aggregate.id;
-      const revision = committedEvents[indexForSnapshot].event.metadata.revision;
-      const state = committedEvents[indexForSnapshot].state;
+      const { revision } = committedEvents[indexForSnapshot].event.metadata;
+      const { state } = committedEvents[indexForSnapshot];
 
       await this.saveSnapshot({ aggregateId, revision, state });
     }
@@ -174,14 +171,12 @@ class Eventstore {
       event.metadata.revision >= fromRevision &&
       event.metadata.revision <= toRevision;
 
-    for (let i = 0; i < eventsFromDatabase.length; i++) {
-      const event = eventsFromDatabase[i];
-
+    for (const [ index, event ] of eventsFromDatabase.entries()) {
       if (shouldEventBeMarkedAsPublished(event)) {
         const eventToUpdate = cloneDeep(event);
 
-        eventToUpdate.metadata.published = true;
-        this.updateEventInDatabaseAtIndex(i, eventToUpdate);
+        eventToUpdate.metadata.isPublished = true;
+        this.updateEventInDatabaseAtIndex(index, eventToUpdate);
       }
     }
   }
@@ -222,22 +217,20 @@ class Eventstore {
       throw new Error('State is missing.');
     }
 
-    state = omitByDeep(state, value => value === undefined);
+    const filteredState = omitByDeep(state, value => value === undefined);
 
     const snapshot = {
       aggregateId,
       revision,
-      state
+      state: filteredState
     };
 
     this.storeSnapshotAtDatabase(snapshot);
   }
 
-  async getReplay (options) {
-    options = options || {};
-
+  async getReplay (options = {}) {
     const fromPosition = options.fromPosition || 1;
-    const toPosition = options.toPosition || 2 ** 31 - 1;
+    const toPosition = options.toPosition || (2 ** 31) - 1;
 
     if (fromPosition > toPosition) {
       throw new Error('From position is greater than to position.');
@@ -246,8 +239,8 @@ class Eventstore {
     const passThrough = new PassThrough({ objectMode: true });
 
     const filteredEvents = this.getStoredEvents().
-      filter(event => event.metadata.position >= fromPosition &&
-                      event.metadata.position <= toPosition);
+      filter(event => event.annotations.position >= fromPosition &&
+                      event.annotations.position <= toPosition);
 
     filteredEvents.forEach(event => {
       passThrough.write(Event.deserialize(event));
@@ -257,14 +250,9 @@ class Eventstore {
     return passThrough;
   }
 
-  /* eslint-disable*/
   async destroy () {
-    this.database = {
-      events: [],
-      snapshots: []
-    };
+    this.database = { events: [], snapshots: []};
   }
-  /* eslint-enable*/
 }
 
 module.exports = Eventstore;

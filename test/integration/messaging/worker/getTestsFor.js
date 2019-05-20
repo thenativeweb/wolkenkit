@@ -3,6 +3,8 @@
 const assert = require('assertthat'),
       uuid = require('uuidv4');
 
+const sleep = require('../../../../common/utils/sleep');
+
 /* eslint-disable mocha/max-top-level-suites */
 const getTestsFor = function ({ Dispatcher, Worker, getOptions }) {
   let dispatcher,
@@ -54,7 +56,7 @@ const getTestsFor = function ({ Dispatcher, Worker, getOptions }) {
 
       await dispatcher.dispatchMessage({ message });
 
-      await new Promise(resolve => setTimeout(resolve, 250));
+      await sleep({ ms: 250 });
 
       assert.that(receivedMessages.length).is.equalTo(1);
       assert.that(receivedMessages[0]).is.equalTo(message);
@@ -83,7 +85,7 @@ const getTestsFor = function ({ Dispatcher, Worker, getOptions }) {
       await dispatcher.dispatchMessage({ message: message1 });
       await dispatcher.dispatchMessage({ message: message2 });
 
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await sleep({ ms: 50 });
 
       assert.that(receivedMessages1.length).is.equalTo(1);
       assert.that(receivedMessages1[0]).is.equalTo(message1);

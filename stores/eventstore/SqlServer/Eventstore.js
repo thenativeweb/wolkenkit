@@ -3,7 +3,6 @@
 const { PassThrough } = require('stream');
 
 const cloneDeep = require('lodash/cloneDeep'),
-      DsnParser = require('dsn-parser'),
       limitAlphanumeric = require('limit-alphanumeric'),
       { Request, TYPES } = require('tedious'),
       retry = require('async-retry');
@@ -27,9 +26,29 @@ class Eventstore {
     return database;
   }
 
-  async initialize ({ url, namespace }) {
-    if (!url) {
-      throw new Error('Url is missing.');
+  async initialize ({
+    hostname,
+    port,
+    username,
+    password,
+    database,
+    encryptConnection = false,
+    namespace
+  }) {
+    if (!hostname) {
+      throw new Error('Hostname is missing.');
+    }
+    if (!port) {
+      throw new Error('Port is missing.');
+    }
+    if (!username) {
+      throw new Error('Username is missing.');
+    }
+    if (!password) {
+      throw new Error('Password is missing.');
+    }
+    if (!database) {
+      throw new Error('Database is missing.');
     }
     if (!namespace) {
       throw new Error('Namespace is missing.');
@@ -37,16 +56,13 @@ class Eventstore {
 
     this.namespace = `store_${limitAlphanumeric(namespace)}`;
 
-    const { host, port, user, password, database, params } = new DsnParser(url).getParts();
-    const encrypt = params.encrypt || false;
-
     this.pool = createPool({
-      host,
+      host: hostname,
       port,
-      user,
+      user: username,
       password,
       database,
-      encrypt,
+      encrypt: encryptConnection,
 
       onError (err) {
         throw err;
@@ -96,7 +112,7 @@ class Eventstore {
           // When multiple clients initialize at the same time, e.g. during
           // integration tests, SQL Server might throw an error. In this case
           // we simply ignore it.
-          if (err.message.match(/There is already an object named.*_events/)) {
+          if (err.message.match(/There is already an object named.*_events/u)) {
             return resolve();
           }
 
@@ -140,7 +156,7 @@ class Eventstore {
         request.once('row', columns => {
           resultEvent = Event.deserialize(JSON.parse(columns[0].value));
 
-          resultEvent.metadata.position = Number(columns[1].value);
+          resultEvent.annotations.position = Number(columns[1].value);
         });
 
         request.addParameter('aggregateId', TYPES.UniqueIdentifier, aggregateId);
@@ -161,7 +177,7 @@ class Eventstore {
   async getEventStream ({
     aggregateId,
     fromRevision = 1,
-    toRevision = 2 ** 31 - 1
+    toRevision = (2 ** 31) - 1
   }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
@@ -193,8 +209,8 @@ class Eventstore {
     onRow = columns => {
       const event = Event.deserialize(JSON.parse(columns[0].value));
 
-      event.metadata.position = Number(columns[1].value);
-      event.metadata.published = columns[2].value;
+      event.annotations.position = Number(columns[1].value);
+      event.metadata.isPublished = columns[2].value;
 
       passThrough.write(event);
     };
@@ -251,8 +267,8 @@ class Eventstore {
     onRow = columns => {
       const event = Event.deserialize(JSON.parse(columns[0].value));
 
-      event.metadata.position = Number(columns[1].value);
-      event.metadata.published = columns[2].value;
+      event.annotations.position = Number(columns[1].value);
+      event.metadata.isPublished = columns[2].value;
 
       passThrough.write(event);
     };
@@ -284,9 +300,6 @@ class Eventstore {
     if (!uncommittedEvents) {
       throw new Error('Uncommitted events are missing.');
     }
-    if (!Array.isArray(uncommittedEvents)) {
-      uncommittedEvents = [ uncommittedEvents ];
-    }
     if (uncommittedEvents.length === 0) {
       throw new Error('Uncommitted events are missing.');
     }
@@ -316,7 +329,7 @@ class Eventstore {
         { key: `aggregateId${rowId}`, value: event.aggregate.id, type: TYPES.UniqueIdentifier },
         { key: `revision${rowId}`, value: event.metadata.revision, type: TYPES.Int },
         { key: `event${rowId}`, value: JSON.stringify(event), type: TYPES.NVarChar, options: { length: 4000 }},
-        { key: `hasBeenPublished${rowId}`, value: event.metadata.published, type: TYPES.Bit }
+        { key: `hasBeenPublished${rowId}`, value: event.metadata.isPublished, type: TYPES.Bit }
       ];
 
       placeholders.push(`(@${row[0].key}, @${row[1].key}, @${row[2].key}, @${row[3].key})`);
@@ -348,14 +361,12 @@ class Eventstore {
           resolve(committedEvents);
         });
 
-        for (let i = 0; i < values.length; i++) {
-          const value = values[i];
-
+        for (const value of values) {
           request.addParameter(value.key, value.type, value.value, value.options);
         }
 
         onRow = columns => {
-          committedEvents[resultCount].event.metadata.position = Number(columns[0].value);
+          committedEvents[resultCount].event.annotations.position = Number(columns[0].value);
 
           resultCount += 1;
         };
@@ -380,8 +391,8 @@ class Eventstore {
 
     if (indexForSnapshot !== -1) {
       const aggregateId = updatedEvents[indexForSnapshot].event.aggregate.id;
-      const revision = updatedEvents[indexForSnapshot].event.metadata.revision;
-      const state = updatedEvents[indexForSnapshot].state;
+      const { revision } = updatedEvents[indexForSnapshot].event.metadata;
+      const { state } = updatedEvents[indexForSnapshot];
 
       await this.saveSnapshot({ aggregateId, revision, state });
     }
@@ -490,7 +501,7 @@ class Eventstore {
       throw new Error('State is missing.');
     }
 
-    state = omitByDeep(state, value => value === undefined);
+    const filteredState = omitByDeep(state, value => value === undefined);
 
     const database = await this.getDatabase();
 
@@ -512,7 +523,7 @@ class Eventstore {
 
         request.addParameter('aggregateId', TYPES.UniqueIdentifier, aggregateId);
         request.addParameter('revision', TYPES.Int, revision);
-        request.addParameter('state', TYPES.NVarChar, JSON.stringify(state), { length: 4000 });
+        request.addParameter('state', TYPES.NVarChar, JSON.stringify(filteredState), { length: 4000 });
 
         database.execSql(request);
       });
@@ -521,11 +532,9 @@ class Eventstore {
     }
   }
 
-  async getReplay (options) {
-    options = options || {};
-
+  async getReplay (options = {}) {
     const fromPosition = options.fromPosition || 1;
-    const toPosition = options.toPosition || 2 ** 31 - 1;
+    const toPosition = options.toPosition || (2 ** 31) - 1;
 
     if (fromPosition > toPosition) {
       throw new Error('From position is greater than to position.');
@@ -554,7 +563,7 @@ class Eventstore {
     onRow = columns => {
       const event = Event.deserialize(JSON.parse(columns[0].value));
 
-      event.metadata.position = Number(columns[1].value);
+      event.annotations.position = Number(columns[1].value);
 
       passThrough.write(event);
     };

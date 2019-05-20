@@ -1,6 +1,6 @@
 'use strict';
 
-const getConnectionOptions = require('../../../shared/getConnectionOptions'),
+const getConnectionOptions = require('../../../shared/containers/getConnectionOptions'),
       getTestsFor = require('./getTestsFor'),
       { AmqpDispatcher, AmqpWorker } = require('../../../../messaging/worker');
 
@@ -10,7 +10,7 @@ suite('Amqp', () => {
     Worker: AmqpWorker,
 
     getOptions () {
-      const { rabbitMq } = getConnectionOptions({ type: 'integration' });
+      const { rabbitMq } = getConnectionOptions();
 
       return rabbitMq;
     }

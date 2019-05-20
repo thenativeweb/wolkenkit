@@ -28,7 +28,7 @@ const buildImages = async function ({ configuration, directory, images }, progre
   const applicationName = configuration.application.name;
 
   await Promise.all(images.map(async image => {
-    const imageSuffix = image.name.replace(/^thenativeweb\/wolkenkit-/, '');
+    const imageSuffix = image.name.replace(/^thenativeweb\/wolkenkit-/u, '');
     const tag = `${applicationName}-${imageSuffix}`;
 
     const buildDirectory = await mkdtemp(`${os.tmpdir()}${path.sep}`);

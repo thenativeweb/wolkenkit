@@ -60,11 +60,11 @@ const askForDetails = async function ({ existingVersions }) {
   result.versions.ios = existingVersions.ios;
   result.versions.android = existingVersions.android;
 
-  result.description = await buntstift.ask(`What's new? Start with 'The new version' and end with a '.':`, /^The new version .+\.$/g);
+  result.description = await buntstift.ask(`What's new? Start with 'The new version' and end with a '.':`, /^The new version .+\.$/ug);
 
-  result.versions.node = await buntstift.ask('Node.js version:', { default: existingVersions.node, mask: /^\d+\.\d+\.\d+$/g });
-  result.versions.docker = await buntstift.ask('Docker version:', { default: existingVersions.docker, mask: /^\d{2}\.\d{2}$/g });
-  result.versions.vagrant = await buntstift.ask('Vagrant version:', { default: existingVersions.vagrant, mask: /^\d+\.\d+\.\d+$/g });
+  result.versions.node = await buntstift.ask('Node.js version:', { default: existingVersions.node, mask: /^\d+\.\d+\.\d+$/ug });
+  result.versions.docker = await buntstift.ask('Docker version:', { default: existingVersions.docker, mask: /^\d{2}\.\d{2}$/ug });
+  result.versions.vagrant = await buntstift.ask('Vagrant version:', { default: existingVersions.vagrant, mask: /^\d+\.\d+\.\d+$/ug });
 
   result.mode = await buntstift.select('Simulation or release:', [ 'simulation', 'release' ]);
   result.twitterHandles = [];
@@ -73,7 +73,7 @@ const askForDetails = async function ({ existingVersions }) {
     /* eslint-disable no-constant-condition */
     while (true) {
       /* eslint-enable no-constant-condition */
-      const twitterHandle = await buntstift.ask('Twitter handle of contributor (@name or empty to end):', /^$|^@.+$/g);
+      const twitterHandle = await buntstift.ask('Twitter handle of contributor (@name or empty to end):', /^$|^@.+$/ug);
 
       if (!twitterHandle) {
         break;

@@ -4,9 +4,26 @@ const amqp = require('amqplib');
 
 class AmqpWorker {
   /* eslint-disable class-methods-use-this */
-  async initialize ({ url, exchangeName, concurrency = 1, onReceiveMessage }) {
-    if (!url) {
-      throw new Error('Url is missing.');
+  async initialize ({
+    hostname,
+    port,
+    username,
+    password,
+    exchangeName,
+    concurrency = 1,
+    onReceiveMessage
+  }) {
+    if (!hostname) {
+      throw new Error('Hostname is missing.');
+    }
+    if (!port) {
+      throw new Error('Port is missing.');
+    }
+    if (!username) {
+      throw new Error('Username is missing.');
+    }
+    if (!password) {
+      throw new Error('Password is missing.');
     }
     if (!exchangeName) {
       throw new Error('Exchange name is missing.');
@@ -15,6 +32,7 @@ class AmqpWorker {
       throw new Error('On receive message is missing.');
     }
 
+    const url = `amqp://${username}:${password}@${hostname}:${port}`;
     const connection = await amqp.connect(url, {});
 
     connection.on('error', err => {

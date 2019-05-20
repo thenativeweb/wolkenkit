@@ -25,12 +25,14 @@ const defaultValidators = {
 };
 
 const extendReject = function (validators = {}) {
-  for (const [ name, validator ] of Object.entries(defaultValidators)) {
-    if (validators[name]) {
+  const mergedValidators = { ...defaultValidators };
+
+  for (const [ name, validator ] of Object.entries(validators)) {
+    if (defaultValidators[name]) {
       throw new Error(`Reserved name '${name}' can not be used.`);
     }
 
-    validators[name] = validator;
+    mergedValidators[name] = validator;
   }
 
   const reject = function (command) {
@@ -38,7 +40,7 @@ const extendReject = function (validators = {}) {
       if (aggregateInstance) {
         const result = {};
 
-        for (const [ name, validator ] of Object.entries(validators)) {
+        for (const [ name, validator ] of Object.entries(mergedValidators)) {
           result[name] = function () {
             return validator(aggregateInstance, command);
           };

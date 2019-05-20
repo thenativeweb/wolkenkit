@@ -45,14 +45,14 @@ const attachDebugger = async function ({
     throw ex;
   }
 
-  for (let i = 0; i < containers.length; i++) {
-    const container = containers[i];
-
+  for (const container of containers) {
     if (!container.ports) {
       continue;
     }
 
+    /* eslint-disable prefer-destructuring */
     const debugPort = container.ports[9229];
+    /* eslint-enable prefer-destructuring */
 
     if (!debugPort) {
       continue;
@@ -63,7 +63,7 @@ const attachDebugger = async function ({
       url: `http://${addresses[0].address}:${debugPort}/json`
     });
 
-    const { id } = response.data[0];
+    const [{ id }] = response.data;
 
     const debugUrl = `chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=${host}:${debugPort}/${id}`;
 

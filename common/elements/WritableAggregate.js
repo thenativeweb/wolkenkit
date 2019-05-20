@@ -1,6 +1,7 @@
 'use strict';
 
 const cloneDeep = require('lodash/cloneDeep'),
+      omit = require('lodash/omit'),
       Value = require('validate-value');
 
 const Event = require('./Event'),
@@ -64,12 +65,13 @@ class WritableAggregate extends ReadableAggregate {
         data,
         metadata: {
           correlationId: command.metadata.correlationId,
-          causationId: command.id
+          causationId: command.id,
+          revision: this.instance.revision + this.instance.uncommittedEvents.length + 1
+        },
+        annotations: {
+          initiator: omit(command.annotations.initiator, 'token')
         }
       });
-
-      event.addInitiator(command.initiator);
-      event.metadata.revision = this.instance.revision + this.instance.uncommittedEvents.length + 1;
 
       const previousState = cloneDeep(this.api.forCommands.state);
 

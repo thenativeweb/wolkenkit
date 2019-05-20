@@ -33,7 +33,7 @@ const postAddFile = function ({ addFileAuthorizationOptions, provider }) {
 
     try {
       metadata = JSON.parse(req.headers['x-metadata']);
-    } catch (ex) {
+    } catch {
       return res.status(400).send('Header x-metadata is malformed.');
     }
 

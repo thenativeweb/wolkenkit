@@ -1,14 +1,12 @@
 'use strict';
 
-const path = require('path'),
-      { promisify } = require('util');
+const path = require('path');
 
 const buntstift = require('buntstift');
 
 const artefacts = require('../artefacts'),
-      shell = require('../shell');
-
-const sleep = promisify(setTimeout);
+      shell = require('../shell'),
+      sleep = require('../../../common/utils/sleep');
 
 const releaseArtefacts = async function ({ type, mode, releaseType, versions, cwd }) {
   if (!type) {
@@ -59,7 +57,7 @@ const releaseArtefacts = async function ({ type, mode, releaseType, versions, cw
           throw ex;
         }
 
-        await sleep(15 * 1000);
+        await sleep({ ms: 15 * 1000 });
       }
     }
   }

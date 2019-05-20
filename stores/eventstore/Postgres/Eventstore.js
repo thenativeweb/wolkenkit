@@ -2,9 +2,7 @@
 
 const { PassThrough } = require('stream');
 
-const boolean = require('boolean'),
-      cloneDeep = require('lodash/cloneDeep'),
-      DsnParser = require('dsn-parser'),
+const cloneDeep = require('lodash/cloneDeep'),
       limitAlphanumeric = require('limit-alphanumeric'),
       pg = require('pg'),
       QueryStream = require('pg-query-stream'),
@@ -28,9 +26,29 @@ class Eventstore {
     return database;
   }
 
-  async initialize ({ url, namespace }) {
-    if (!url) {
-      throw new Error('Url is missing.');
+  async initialize ({
+    hostname,
+    port,
+    username,
+    password,
+    database,
+    encryptConnection = false,
+    namespace
+  }) {
+    if (!hostname) {
+      throw new Error('Hostname is missing.');
+    }
+    if (!port) {
+      throw new Error('Port is missing.');
+    }
+    if (!username) {
+      throw new Error('Username is missing.');
+    }
+    if (!password) {
+      throw new Error('Password is missing.');
+    }
+    if (!database) {
+      throw new Error('Database is missing.');
     }
     if (!namespace) {
       throw new Error('Namespace is missing.');
@@ -38,17 +56,29 @@ class Eventstore {
 
     this.namespace = `store_${limitAlphanumeric(namespace)}`;
 
-    const { host, port, user, password, database, params } = new DsnParser(url).getParts();
-    const ssl = boolean(params.ssl);
+    this.pool = new pg.Pool({
+      host: hostname,
+      port,
+      user: username,
+      password,
+      database,
+      ssl: encryptConnection
+    });
 
-    this.pool = new pg.Pool({ host, port, user, password, database, ssl });
     this.pool.on('error', err => {
       throw err;
     });
 
     const connection = await this.getDatabase();
 
-    this.disconnectWatcher = new pg.Client({ host, port, user, password, database, ssl });
+    this.disconnectWatcher = new pg.Client({
+      host: hostname,
+      port,
+      user: username,
+      password,
+      database,
+      ssl: encryptConnection
+    });
 
     this.disconnectWatcher.on('error', err => {
       throw err;
@@ -114,7 +144,7 @@ class Eventstore {
 
       const event = Event.deserialize(result.rows[0].event);
 
-      event.metadata.position = Number(result.rows[0].position);
+      event.annotations.position = Number(result.rows[0].position);
 
       return event;
     } finally {
@@ -125,7 +155,7 @@ class Eventstore {
   async getEventStream ({
     aggregateId,
     fromRevision = 1,
-    toRevision = 2 ** 31 - 1
+    toRevision = (2 ** 31) - 1
   }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
@@ -162,8 +192,8 @@ class Eventstore {
     onData = function (data) {
       const event = Event.deserialize(data.event);
 
-      event.metadata.position = Number(data.position);
-      event.metadata.published = data.hasBeenPublished;
+      event.annotations.position = Number(data.position);
+      event.metadata.isPublished = data.hasBeenPublished;
 
       passThrough.write(event);
     };
@@ -212,8 +242,8 @@ class Eventstore {
     onData = function (data) {
       const event = Event.deserialize(data.event);
 
-      event.metadata.position = Number(data.position);
-      event.metadata.published = data.hasBeenPublished;
+      event.annotations.position = Number(data.position);
+      event.metadata.isPublished = data.hasBeenPublished;
       passThrough.write(event);
     };
 
@@ -239,9 +269,6 @@ class Eventstore {
     if (!uncommittedEvents) {
       throw new Error('Uncommitted events are missing.');
     }
-    if (!Array.isArray(uncommittedEvents)) {
-      uncommittedEvents = [ uncommittedEvents ];
-    }
     if (uncommittedEvents.length === 0) {
       throw new Error('Uncommitted events are missing.');
     }
@@ -252,7 +279,7 @@ class Eventstore {
           values = [];
 
     for (let i = 0; i < committedEvents.length; i++) {
-      const base = 4 * i + 1;
+      const base = (4 * i) + 1;
       const { event } = committedEvents[i];
 
       if (!event.metadata) {
@@ -266,7 +293,7 @@ class Eventstore {
       }
 
       placeholders.push(`($${base}, $${base + 1}, $${base + 2}, $${base + 3})`);
-      values.push(event.aggregate.id, event.metadata.revision, event, event.metadata.published);
+      values.push(event.aggregate.id, event.metadata.revision, event, event.metadata.isPublished);
     }
 
     const connection = await this.getDatabase();
@@ -282,7 +309,7 @@ class Eventstore {
       const result = await connection.query({ name: `save events ${committedEvents.length}`, text, values });
 
       for (let i = 0; i < result.rows.length; i++) {
-        committedEvents[i].event.metadata.position = Number(result.rows[i].position);
+        committedEvents[i].event.annotations.position = Number(result.rows[i].position);
       }
     } catch (ex) {
       if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", revision)')) {
@@ -300,8 +327,8 @@ class Eventstore {
 
     if (indexForSnapshot !== -1) {
       const aggregateId = committedEvents[indexForSnapshot].event.aggregate.id;
-      const revision = committedEvents[indexForSnapshot].event.metadata.revision;
-      const state = committedEvents[indexForSnapshot].state;
+      const { revision } = committedEvents[indexForSnapshot].event.metadata;
+      const { state } = committedEvents[indexForSnapshot];
 
       await this.saveSnapshot({ aggregateId, revision, state });
     }
@@ -387,7 +414,7 @@ class Eventstore {
       throw new Error('State is missing.');
     }
 
-    state = omitByDeep(state, value => value === undefined);
+    const filteredState = omitByDeep(state, value => value === undefined);
 
     const connection = await this.getDatabase();
 
@@ -400,18 +427,16 @@ class Eventstore {
         ) VALUES ($1, $2, $3)
         ON CONFLICT DO NOTHING;
         `,
-        values: [ aggregateId, revision, state ]
+        values: [ aggregateId, revision, filteredState ]
       });
     } finally {
       connection.release();
     }
   }
 
-  async getReplay (options) {
-    options = options || {};
-
+  async getReplay (options = {}) {
     const fromPosition = options.fromPosition || 1;
-    const toPosition = options.toPosition || 2 ** 31 - 1;
+    const toPosition = options.toPosition || (2 ** 31) - 1;
 
     if (fromPosition > toPosition) {
       throw new Error('From position is greater than to position.');
@@ -444,7 +469,7 @@ class Eventstore {
     onData = function (data) {
       const event = Event.deserialize(data.event);
 
-      event.metadata.position = Number(data.position);
+      event.annotations.position = Number(data.position);
       passThrough.write(event);
     };
 

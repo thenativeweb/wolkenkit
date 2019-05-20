@@ -36,7 +36,9 @@ const commands = {
 
 const events = {
   succeeded: {
-    handle () {},
+    handle () {
+      // Intentionally left blank.
+    },
 
     isAuthorized () {
       return true;
@@ -53,7 +55,9 @@ const events = {
       additionalProperties: false
     },
 
-    handle () {},
+    handle () {
+      // Intentionally left blank.
+    },
 
     isAuthorized () {
       return true;

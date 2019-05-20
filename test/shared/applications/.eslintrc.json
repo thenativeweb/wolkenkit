@@ -1,7 +1,7 @@
 {
-  "extends": "es/2015/server",
+  "extends": "es/node",
 
   "rules": {
-    "no-unused-vars": 0
+    "no-unused-vars": "off"
   }
 }

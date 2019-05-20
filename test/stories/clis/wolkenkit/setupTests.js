@@ -7,21 +7,21 @@ const assert = require('assertthat'),
 
 const getDirectoryList = require('./helpers/getDirectoryList'),
       shell = require('../../../../clis/wolkenkit/shell'),
-      suite = require('./helpers/suite');
+      suiteAws = require('./helpers/suiteAws');
 
 const packageJson = require('../../../../package.json');
 
 (async () => {
-  await suite('setup', async ({ test, wolkenkit }) => {
+  await suiteAws('setup', async ({ test, wolkenkit }) => {
     await test('[wolkenkit] shows the usage.', async ({ directory }) => {
       const { code, stderr, stdout } = await wolkenkit('', {}, { cwd: directory });
 
       assert.that(stderr).is.equalTo('');
-      assert.that(stdout).is.matching(/Verify whether wolkenkit is setup correctly/);
-      assert.that(stdout).is.matching(/Show the help/);
-      assert.that(stdout).is.matching(/Initialize a new application/);
-      assert.that(stdout).is.matching(/List supported and installed wolkenkit versions/);
-      assert.that(stdout).is.matching(/Start an application/);
+      assert.that(stdout).is.matching(/Verify whether wolkenkit is setup correctly/u);
+      assert.that(stdout).is.matching(/Show the help/u);
+      assert.that(stdout).is.matching(/Initialize a new application/u);
+      assert.that(stdout).is.matching(/List supported and installed wolkenkit versions/u);
+      assert.that(stdout).is.matching(/Start an application/u);
       assert.that(code).is.equalTo(0);
     });
 
@@ -29,11 +29,11 @@ const packageJson = require('../../../../package.json');
       const { code, stderr, stdout } = await wolkenkit('help', {}, { cwd: directory });
 
       assert.that(stderr).is.equalTo('');
-      assert.that(stdout).is.matching(/Verify whether wolkenkit is setup correctly/);
-      assert.that(stdout).is.matching(/Show the help/);
-      assert.that(stdout).is.matching(/Initialize a new application/);
-      assert.that(stdout).is.matching(/List supported and installed wolkenkit versions/);
-      assert.that(stdout).is.matching(/Start an application/);
+      assert.that(stdout).is.matching(/Verify whether wolkenkit is setup correctly/u);
+      assert.that(stdout).is.matching(/Show the help/u);
+      assert.that(stdout).is.matching(/Initialize a new application/u);
+      assert.that(stdout).is.matching(/List supported and installed wolkenkit versions/u);
+      assert.that(stdout).is.matching(/Start an application/u);
       assert.that(code).is.equalTo(0);
     });
 
@@ -41,8 +41,8 @@ const packageJson = require('../../../../package.json');
       const { code, stderr, stdout } = await wolkenkit('application init', { help: true }, { cwd: directory });
 
       assert.that(stderr).is.equalTo('');
-      assert.that(stdout).is.matching(/Initialize a new application/);
-      assert.that(stdout).is.matching(/wolkenkit application init \[--template <url>\]/);
+      assert.that(stdout).is.matching(/Initialize a new application/u);
+      assert.that(stdout).is.matching(/wolkenkit application init \[--template <url>\]/u);
       assert.that(code).is.equalTo(0);
     });
 

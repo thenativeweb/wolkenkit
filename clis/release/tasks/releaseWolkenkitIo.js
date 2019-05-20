@@ -1,15 +1,13 @@
 'use strict';
 
-const path = require('path'),
-      { promisify } = require('util');
+const path = require('path');
 
 const buntstift = require('buntstift');
 
 const artefacts = require('../artefacts'),
       files = require('../files'),
-      shell = require('../shell');
-
-const sleep = promisify(setTimeout);
+      shell = require('../shell'),
+      sleep = require('../../../common/utils/sleep');
 
 const releaseArtefacts = async function ({ mode, versions, cwd }) {
   if (!mode) {
@@ -45,7 +43,9 @@ const releaseArtefacts = async function ({ mode, versions, cwd }) {
     const packageJsonFile = path.join(cwdWebsite, 'package.json');
     const packageJson = JSON.parse(await files.read(packageJsonFile));
 
+    /* eslint-disable no-param-reassign */
     versions.wolkenkitIo = packageJson.version;
+    /* eslint-enable no-param-reassign */
 
     /* eslint-disable no-constant-condition */
     while (true) {
@@ -59,7 +59,7 @@ const releaseArtefacts = async function ({ mode, versions, cwd }) {
           throw ex;
         }
 
-        await sleep(15 * 1000);
+        await sleep({ ms: 15 * 1000 });
       }
     }
   }

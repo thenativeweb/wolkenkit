@@ -56,7 +56,7 @@ const startTunnel = async function ({
     const stats = await file.stat(privateKey);
     const mode = stats.mode.toString(8);
 
-    if (/^\d\d\d(4|6)00$/g.test(mode) === false) {
+    if (/^\d\d\d(?<ownerPermission>4|6)00$/ug.test(mode) === false) {
       progress({ message: 'Private key permissions are too open.', type: 'info' });
 
       throw new errors.FileAccessModeTooOpen();
@@ -145,7 +145,7 @@ const startTunnel = async function ({
   progress({ message: `Opened SSH tunnel from ${addresses.from.host}:${addresses.from.port} to ${addresses.server.host}:${addresses.server.port}.` });
 
   return {
-    close: () => {
+    close () {
       tunnelServer.close();
       progress({ message: 'Closed SSH tunnel.' });
     },
