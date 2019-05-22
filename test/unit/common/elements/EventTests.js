@@ -1,456 +1,292 @@
 'use strict';
 
-const assert = require('assertthat');
+const assert = require('assertthat'),
+      capitalize = require('lodash/capitalize'),
+      cloneDeep = require('lodash/cloneDeep'),
+      getFlatObjectKeys = require('flat-object-keys'),
+      lowerCase = require('lodash/lowerCase'),
+      unset = require('lodash/unset'),
+      uuid = require('uuidv4');
 
 const { Event } = require('../../../../common/elements');
 
 suite('Event', () => {
-  /* eslint-disable no-new */
-  test('throws an error when no context is given.', async () => {
-    assert.that(() => {
-      new Event({
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'foo',
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
-        }
-      });
-    }).is.throwing('Context is missing.');
-  });
+  suite('create', () => {
+    test('is a function.', async () => {
+      assert.that(Event.create).is.ofType('function');
+    });
 
-  test('throws an error when no context name is given.', async () => {
-    assert.that(() => {
-      new Event({
-        context: {},
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'foo',
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
-        }
-      });
-    }).is.throwing('Context name is missing.');
-  });
-
-  test('throws an error when no aggregate is given.', async () => {
-    assert.that(() => {
-      new Event({
+    suite('parameters', () => {
+      const options = {
         context: {
-          name: 'bar'
-        },
-        name: 'foo',
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
-        }
-      });
-    }).is.throwing('Aggregate is missing.');
-  });
-
-  test('throws an error when no aggregate name is given.', async () => {
-    assert.that(() => {
-      new Event({
-        context: {
-          name: 'bar'
+          name: 'sampleContext'
         },
         aggregate: {
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
+          name: 'sampleAggregate',
+          id: uuid()
         },
-        name: 'foo',
+        name: 'sampleEvent',
         metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
+          revision: {
+            aggregate: 1
+          },
+          initiator: {
+            user: { id: uuid(), claims: { sub: uuid() }}
+          }
         }
-      });
-    }).is.throwing('Aggregate name is missing.');
-  });
+      };
 
-  test('throws an error when no aggregate id is given.', async () => {
-    assert.that(() => {
-      new Event({
-        context: {
-          name: 'bar'
-        },
-        aggregate: {
-          name: 'baz'
-        },
-        name: 'foo',
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
-        }
-      });
-    }).is.throwing('Aggregate id is missing.');
-  });
+      const paths = getFlatObjectKeys({ from: options });
 
-  test('throws an error when no event name is given.', async () => {
-    assert.that(() => {
-      new Event({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
-        }
-      });
-    }).is.throwing('Event name is missing.');
-  });
+      for (const path of paths) {
+        const spacedPath = lowerCase(path);
+        const capitalizedPath = capitalize(spacedPath);
 
-  test('throws an error when type is not a string.', async () => {
-    assert.that(() => {
-      new Event({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'foo',
-        type: 23,
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
-        }
-      });
-    }).is.throwing('Invalid type: integer should be string (at event.type).');
-  });
+        /* eslint-disable no-loop-func */
+        test(`throws an error when no ${spacedPath} is given.`, async () => {
+          const clonedOptions = cloneDeep(options);
 
-  test('throws an error when data is not an object.', async () => {
-    assert.that(() => {
-      new Event({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'foo',
-        data: 'foobarbaz',
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
-        }
-      });
-    }).is.throwing('Invalid type: string should be object (at event.data).');
-  });
+          unset(clonedOptions, path);
 
-  test('throws an error when no metadata are given.', async () => {
-    assert.that(() => {
-      new Event({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'foo'
-      });
-    }).is.throwing('Metadata are missing.');
-  });
-
-  test('throws an error when no correlation id is given.', async () => {
-    assert.that(() => {
-      new Event({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'foo',
-        metadata: {
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
-        }
-      });
-    }).is.throwing('Correlation id is missing.');
-  });
-
-  test('throws an error when no causation id is given.', async () => {
-    assert.that(() => {
-      new Event({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'foo',
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
-        }
-      });
-    }).is.throwing('Causation id is missing.');
-  });
-
-  test('throws an error when no revision is given.', async () => {
-    assert.that(() => {
-      new Event({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'foo',
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1'
-        }
-      });
-    }).is.throwing('Revision is missing.');
-  });
-
-  test('throws an error when annotations is not an object.', async () => {
-    assert.that(() => {
-      new Event({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: 'foobarbaz',
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
-        }
-      });
-    }).is.throwing('Invalid type: string should be object (at event.annotations).');
-  });
-
-  test('returns an event.', async () => {
-    const actual = new Event({
-      context: {
-        name: 'foo'
-      },
-      aggregate: {
-        name: 'bar',
-        id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-      },
-      name: 'baz',
-      data: {
-        foo: 'foobarbaz'
-      },
-      metadata: {
-        correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-        causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-        revision: 1
+          assert.that(() => {
+            Event.create(clonedOptions);
+          }).is.throwing(`${capitalizedPath} is missing.`);
+        });
+        /* eslint-enable no-loop-func */
       }
     });
 
-    assert.that(actual).is.ofType('object');
-    assert.that(actual.context.name).is.equalTo('foo');
-    assert.that(actual.aggregate.name).is.equalTo('bar');
-    assert.that(actual.aggregate.id).is.equalTo('85932442-bf87-472d-8b5a-b0eac3aa8be9');
-    assert.that(actual.name).is.equalTo('baz');
-    assert.that(actual.id).is.ofType('string');
-    assert.that(actual.type).is.equalTo('domain');
-    assert.that(actual.data).is.equalTo({ foo: 'foobarbaz' });
-    assert.that(actual.annotations).is.equalTo({});
-    assert.that(actual.metadata.timestamp).is.ofType('number');
-    assert.that(actual.metadata.isPublished).is.false();
-    assert.that(actual.metadata.correlationId).is.equalTo('5be0cef4-9051-44ca-a18c-a57c48d711c1');
-    assert.that(actual.metadata.causationId).is.equalTo('5be0cef4-9051-44ca-a18c-a57c48d711c1');
-    assert.that(actual.metadata.revision).is.equalTo(1);
-  });
+    test('returns an event.', async () => {
+      const aggregateId = uuid();
 
-  test('returns an event with annotations.', async () => {
-    const actual = new Event({
-      context: {
-        name: 'foo'
-      },
-      aggregate: {
-        name: 'bar',
-        id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-      },
-      name: 'baz',
-      data: {
-        foo: 'foobarbaz'
-      },
-      annotations: {
+      const event = Event.create({
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: aggregateId
+        },
+        name: 'sampleEvent',
+        data: {
+          foo: 'bar'
+        },
+        metadata: {
+          revision: {
+            aggregate: 1
+          },
+          initiator: {
+            user: { id: uuid(), claims: { sub: uuid() }}
+          }
+        }
+      });
+
+      assert.that(event).is.instanceOf(Event);
+      assert.that(event.context.name).is.equalTo('sampleContext');
+      assert.that(event.aggregate.name).is.equalTo('sampleAggregate');
+      assert.that(event.aggregate.id).is.equalTo(aggregateId);
+      assert.that(event.name).is.equalTo('sampleEvent');
+      assert.that(event.id).is.ofType('string');
+      assert.that(uuid.is(event.id)).is.true();
+      assert.that(event.data).is.equalTo({ foo: 'bar' });
+      assert.that(event.metadata.timestamp).is.ofType('number');
+      assert.that(event.metadata.isPublished).is.false();
+      assert.that(event.metadata.correlationId).is.equalTo(event.id);
+      assert.that(event.metadata.causationId).is.equalTo(event.id);
+      assert.that(event.metadata.revision.aggregate).is.equalTo(1);
+      assert.that(event.metadata.revision.global).is.null();
+      assert.that(event.annotations).is.equalTo({});
+    });
+
+    test('returns an event with annotations.', async () => {
+      const aggregateId = uuid();
+      const userId = uuid();
+
+      const event = Event.create({
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: aggregateId
+        },
+        name: 'sampleEvent',
+        data: {
+          foo: 'bar'
+        },
+        metadata: {
+          revision: {
+            aggregate: 1
+          },
+          initiator: {
+            user: { id: userId, claims: { sub: userId }}
+          }
+        },
+        annotations: {
+          client: {
+            token: '...',
+            user: { id: userId, claims: { sub: userId }},
+            ip: '127.0.0.1'
+          }
+        }
+      });
+
+      assert.that(event).is.instanceOf(Event);
+      assert.that(event.context.name).is.equalTo('sampleContext');
+      assert.that(event.aggregate.name).is.equalTo('sampleAggregate');
+      assert.that(event.aggregate.id).is.equalTo(aggregateId);
+      assert.that(event.name).is.equalTo('sampleEvent');
+      assert.that(event.id).is.ofType('string');
+      assert.that(uuid.is(event.id)).is.true();
+      assert.that(event.data).is.equalTo({ foo: 'bar' });
+      assert.that(event.metadata.timestamp).is.ofType('number');
+      assert.that(event.metadata.isPublished).is.false();
+      assert.that(event.metadata.correlationId).is.equalTo(event.id);
+      assert.that(event.metadata.causationId).is.equalTo(event.id);
+      assert.that(event.metadata.revision.aggregate).is.equalTo(1);
+      assert.that(event.metadata.revision.global).is.null();
+      assert.that(event.annotations).is.equalTo({
         client: {
           token: '...',
-          user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
+          user: { id: userId, claims: { sub: userId }},
           ip: '127.0.0.1'
         }
-      },
-      metadata: {
-        correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-        causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-        revision: 1
-      }
+      });
     });
-
-    assert.that(actual).is.ofType('object');
-    assert.that(actual.context.name).is.equalTo('foo');
-    assert.that(actual.aggregate.name).is.equalTo('bar');
-    assert.that(actual.aggregate.id).is.equalTo('85932442-bf87-472d-8b5a-b0eac3aa8be9');
-    assert.that(actual.name).is.equalTo('baz');
-    assert.that(actual.id).is.ofType('string');
-    assert.that(actual.type).is.equalTo('domain');
-    assert.that(actual.data).is.equalTo({ foo: 'foobarbaz' });
-    assert.that(actual.annotations).is.equalTo({
-      client: {
-        token: '...',
-        user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-        ip: '127.0.0.1'
-      }
-    });
-    assert.that(actual.metadata.timestamp).is.ofType('number');
-    assert.that(actual.metadata.isPublished).is.false();
-    assert.that(actual.metadata.correlationId).is.equalTo('5be0cef4-9051-44ca-a18c-a57c48d711c1');
-    assert.that(actual.metadata.causationId).is.equalTo('5be0cef4-9051-44ca-a18c-a57c48d711c1');
-    assert.that(actual.metadata.revision).is.equalTo(1);
   });
 
-  test('returns an event with a custom type.', async () => {
-    const actual = new Event({
-      context: {
-        name: 'foo'
-      },
-      aggregate: {
-        name: 'bar',
-        id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-      },
-      name: 'baz',
-      type: 'error',
-      data: {
-        foo: 'foobarbaz'
-      },
-      metadata: {
-        correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-        causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-        revision: 1
-      }
-    });
-
-    assert.that(actual).is.ofType('object');
-    assert.that(actual.context.name).is.equalTo('foo');
-    assert.that(actual.aggregate.name).is.equalTo('bar');
-    assert.that(actual.aggregate.id).is.equalTo('85932442-bf87-472d-8b5a-b0eac3aa8be9');
-    assert.that(actual.name).is.equalTo('baz');
-    assert.that(actual.id).is.ofType('string');
-    assert.that(actual.type).is.equalTo('error');
-    assert.that(actual.data).is.equalTo({ foo: 'foobarbaz' });
-    assert.that(actual.metadata.timestamp).is.ofType('number');
-    assert.that(actual.metadata.isPublished).is.false();
-    assert.that(actual.metadata.correlationId).is.equalTo('5be0cef4-9051-44ca-a18c-a57c48d711c1');
-    assert.that(actual.metadata.causationId).is.equalTo('5be0cef4-9051-44ca-a18c-a57c48d711c1');
-    assert.that(actual.metadata.revision).is.equalTo(1);
-  });
-
-  suite('deserialize', () => {
+  suite('fromObject', () => {
     test('is a function.', async () => {
-      assert.that(Event.deserialize).is.ofType('function');
+      assert.that(Event.fromObject).is.ofType('function');
+    });
+
+    suite('parameters', () => {
+      const id = uuid();
+      const aggregateId = uuid(),
+            userId = uuid();
+
+      const options = {
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: aggregateId
+        },
+        name: 'sampleEvent',
+        id,
+        data: {
+          foo: 'bar'
+        },
+        metadata: {
+          timestamp: Date.now(),
+          causationId: id,
+          correlationId: id,
+          revision: { aggregate: 1, global: null },
+          initiator: { user: { id: userId, claims: { sub: userId }}}
+        },
+        annotations: {
+          client: {
+            token: '...',
+            user: { id: userId, claims: { sub: userId }},
+            ip: '127.0.0.1'
+          }
+        }
+      };
+
+      const paths = getFlatObjectKeys({ from: options, excludes: [ 'data.foo', 'annotations.client' ]});
+
+      for (const path of paths) {
+        const spacedPath = lowerCase(path);
+        const capitalizedPath = capitalize(spacedPath);
+
+        /* eslint-disable no-loop-func */
+        test(`throws an error when no ${spacedPath} is given.`, async () => {
+          const clonedOptions = cloneDeep(options);
+
+          unset(clonedOptions, path);
+
+          assert.that(() => {
+            Event.fromObject(clonedOptions);
+          }).is.throwing(`${capitalizedPath} is missing.`);
+        });
+        /* eslint-enable no-loop-func */
+      }
     });
 
     test('returns a real event object.', async () => {
-      const event = new Event({
+      const event = Event.create({
         context: {
-          name: 'foo'
+          name: 'sampleContext'
         },
         aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
+          name: 'sampleAggregate',
+          id: uuid()
         },
-        name: 'baz',
-        data: {
-          foo: 'foobarbaz'
-        },
+        name: 'sampleEvent',
         metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
+          revision: {
+            aggregate: 1
+          },
+          initiator: {
+            user: { id: uuid(), claims: { sub: uuid() }}
+          }
         }
       });
 
       const deserializedEvent = JSON.parse(JSON.stringify(event));
 
-      const actual = Event.deserialize(deserializedEvent);
+      const actual = Event.fromObject(deserializedEvent);
 
       assert.that(actual).is.instanceOf(Event);
     });
 
     test('throws an error when the original metadata are malformed.', async () => {
-      const event = new Event({
+      const event = Event.create({
         context: {
-          name: 'foo'
+          name: 'sampleContext'
         },
         aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
+          name: 'sampleAggregate',
+          id: uuid()
         },
-        name: 'baz',
-        data: {
-          foo: 'foobarbaz'
-        },
+        name: 'sampleEvent',
         metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
+          revision: {
+            aggregate: 1
+          },
+          initiator: {
+            user: { id: uuid(), claims: { sub: uuid() }}
+          }
         }
       });
 
       const deserializedEvent = JSON.parse(JSON.stringify(event));
 
-      deserializedEvent.metadata.timestamp = 'foo';
+      deserializedEvent.metadata.timestamp = 'malformed';
 
       assert.that(() => {
-        Event.deserialize(deserializedEvent);
+        Event.fromObject(deserializedEvent);
       }).is.throwing('Invalid type: string should be number (at event.metadata.timestamp).');
     });
 
     test('keeps annotations.', async () => {
-      const event = new Event({
+      const event = Event.create({
         context: {
-          name: 'foo'
+          name: 'sampleContext'
         },
         aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
+          name: 'sampleAggregate',
+          id: uuid()
         },
-        name: 'baz',
-        data: {
-          foo: 'foobarbaz'
-        },
+        name: 'sampleEvent',
         metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          revision: 1
+          revision: {
+            aggregate: 1
+          },
+          initiator: {
+            user: { id: uuid(), claims: { sub: uuid() }}
+          }
         },
         annotations: {
           client: {
@@ -463,532 +299,152 @@ suite('Event', () => {
 
       const deserializedEvent = JSON.parse(JSON.stringify(event));
 
-      const actual = Event.deserialize(deserializedEvent);
+      const actual = Event.fromObject(deserializedEvent);
 
       assert.that(actual.annotations).is.equalTo(event.annotations);
     });
   });
 
-  suite('isWellformed', () => {
-    test('is a function.', async () => {
-      assert.that(Event.isWellformed).is.ofType('function');
-    });
+  suite('instance', () => {
+    let event;
 
-    test('returns false for non-object types.', async () => {
-      assert.that(Event.isWellformed()).is.false();
-    });
+    setup(async () => {
+      const userId = uuid();
 
-    test('returns false for an empty object.', async () => {
-      assert.that(Event.isWellformed({})).is.false();
-    });
-
-    test('returns false when no context is given.', async () => {
-      assert.that(Event.isWellformed({
+      event = Event.create({
+        context: {
+          name: 'sampleContext'
+        },
         aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
+          name: 'sampleAggregate',
+          id: uuid()
         },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
+        name: 'sampleEvent',
         metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
-          isPublished: true,
-          revision: 1
+          revision: {
+            aggregate: 1
+          },
+          initiator: {
+            user: { id: uuid(), claims: { sub: uuid() }}
+          }
         },
         annotations: {
           client: {
             token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
+            user: { id: userId, claims: { sub: userId }},
             ip: '127.0.0.1'
           }
         }
-      })).is.false();
+      });
     });
 
-    test('returns false when no context name is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {},
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
-          isPublished: true,
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
+    suite('clone', () => {
+      test('is a function.', async () => {
+        assert.that(event.clone).is.ofType('function');
+      });
+
+      test('returns a cloned event.', async () => {
+        const clonedEvent = event.clone();
+
+        assert.that(clonedEvent).is.equalTo(event);
+        assert.that(clonedEvent).is.not.sameAs(event);
+      });
+    });
+
+    suite('setData', () => {
+      test('is a function.', async () => {
+        assert.that(event.setData).is.ofType('function');
+      });
+
+      test('throws an error if data is missing.', async () => {
+        assert.that(() => {
+          event.setData({});
+        }).is.throwing('Data is missing.');
+      });
+
+      test('returns a new event with the given data.', async () => {
+        const updatedEvent = event.setData({ data: { foo: 'bar' }});
+
+        assert.that(updatedEvent.context).is.equalTo(event.context);
+        assert.that(updatedEvent.aggregate).is.equalTo(event.aggregate);
+        assert.that(updatedEvent.name).is.equalTo(event.name);
+        assert.that(updatedEvent.id).is.equalTo(event.id);
+        assert.that(updatedEvent.data).is.equalTo({ foo: 'bar' });
+        assert.that(updatedEvent.metadata).is.equalTo(event.metadata);
+        assert.that(updatedEvent.annotations).is.equalTo(event.annotations);
+        assert.that(updatedEvent).is.not.sameAs(event);
+      });
+    });
+
+    suite('setRevisionGlobal', () => {
+      test('is a function.', async () => {
+        assert.that(event.setRevisionGlobal).is.ofType('function');
+      });
+
+      test('throws an error if revision global is missing.', async () => {
+        assert.that(() => {
+          event.setRevisionGlobal({});
+        }).is.throwing('Revision global is missing.');
+      });
+
+      test('returns a new event with the given global revision.', async () => {
+        const updatedEvent = event.setRevisionGlobal({ revisionGlobal: 1 });
+
+        assert.that(updatedEvent.context).is.equalTo(event.context);
+        assert.that(updatedEvent.aggregate).is.equalTo(event.aggregate);
+        assert.that(updatedEvent.name).is.equalTo(event.name);
+        assert.that(updatedEvent.id).is.equalTo(event.id);
+        assert.that(updatedEvent.data).is.equalTo(event.data);
+        assert.that(updatedEvent.metadata).is.equalTo({
+          ...event.metadata,
+          revision: {
+            ...event.metadata.revision,
+            global: 1
           }
-        }
-      })).is.false();
+        });
+        assert.that(updatedEvent.annotations).is.equalTo(event.annotations);
+        assert.that(updatedEvent).is.not.sameAs(event);
+      });
     });
 
-    test('returns false when no aggregate is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
-          isPublished: true,
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
-    });
+    suite('markAsPublished', () => {
+      test('is a function.', async () => {
+        assert.that(event.markAsPublished).is.ofType('function');
+      });
 
-    test('returns false when no aggregate name is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
-          isPublished: true,
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
-    });
+      test('returns a new event that is marked as published.', async () => {
+        const publishedEvent = event.markAsPublished();
 
-    test('returns false when no aggregate id is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
-          isPublished: true,
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
-    });
-
-    test('returns false when no name is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
-          isPublished: true,
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
-    });
-
-    test('returns false when no id is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
-          isPublished: true,
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
-    });
-
-    test('returns false when no type is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
-          isPublished: true,
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
-    });
-
-    test('returns false when no data is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
-          isPublished: true,
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
-    });
-
-    test('returns false when no annotations are given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
-          isPublished: true,
-          revision: 1
-        }
-      })).is.false();
-    });
-
-    test('returns false when no metadata is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
-    });
-
-    test('returns false when no timestamp is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          isPublished: true,
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
-    });
-
-    test('returns false when no correlation id is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          timestamp: Date.now(),
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          isPublished: true,
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
-    });
-
-    test('returns false when no causation id is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          timestamp: Date.now(),
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          isPublished: true,
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
-    });
-
-    test('returns false when no is published is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
-    });
-
-    test('returns false when no revision is given.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
+        assert.that(publishedEvent.context).is.equalTo(event.context);
+        assert.that(publishedEvent.aggregate).is.equalTo(event.aggregate);
+        assert.that(publishedEvent.name).is.equalTo(event.name);
+        assert.that(publishedEvent.id).is.equalTo(event.id);
+        assert.that(publishedEvent.data).is.equalTo(event.data);
+        assert.that(publishedEvent.metadata).is.equalTo({
+          ...event.metadata,
           isPublished: true
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.false();
+        });
+        assert.that(publishedEvent.annotations).is.equalTo(event.annotations);
+        assert.that(publishedEvent).is.not.sameAs(event);
+      });
     });
 
-    test('returns true when the event is well-formed.', async () => {
-      assert.that(Event.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '85932442-bf87-472d-8b5a-b0eac3aa8be9'
-        },
-        name: 'baz',
-        id: '37ab3da0-3d04-469b-827d-44230cec53e2',
-        type: 'foobar',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          correlationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          causationId: '5be0cef4-9051-44ca-a18c-a57c48d711c1',
-          timestamp: Date.now(),
-          isPublished: true,
-          revision: 1
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-            ip: '127.0.0.1'
-          }
-        }
-      })).is.true();
+    suite('withoutAnnotations', () => {
+      test('is a function.', async () => {
+        assert.that(event.withoutAnnotations).is.ofType('function');
+      });
+
+      test('returns a new event without annotations.', async () => {
+        const eventWithoutAnnotations = event.withoutAnnotations();
+
+        assert.that(eventWithoutAnnotations).is.not.sameAs(event);
+        assert.that(eventWithoutAnnotations.context).is.equalTo(event.context);
+        assert.that(eventWithoutAnnotations.aggregate).is.equalTo(event.aggregate);
+        assert.that(eventWithoutAnnotations.name).is.equalTo(event.name);
+        assert.that(eventWithoutAnnotations.id).is.equalTo(event.id);
+        assert.that(eventWithoutAnnotations.data).is.equalTo(event.data);
+        assert.that(eventWithoutAnnotations.metadata).is.equalTo(event.metadata);
+      });
     });
   });
-  /* eslint-enable no-new */
 });

@@ -58,10 +58,14 @@ const sqlServer = {
 
     const configuration = {
       server: hostname,
-      options: { port, encrypt: false },
-      userName: username,
-      password,
-      database: 'master'
+      options: { port, database: 'master', encrypt: false },
+      authentication: {
+        type: 'default',
+        options: {
+          userName: username,
+          password
+        }
+      }
     };
 
     let connection;
@@ -72,6 +76,7 @@ const sqlServer = {
 
         const removeListeners = () => {
           connection.removeAllListeners('connect');
+          connection.removeAllListeners('error');
           connection.removeAllListeners('end');
         };
 
@@ -85,6 +90,12 @@ const sqlServer = {
           resolve();
         };
 
+        const handleError = err => {
+          removeListeners();
+
+          reject(err);
+        };
+
         const handleEnd = () => {
           removeListeners();
 
@@ -92,6 +103,7 @@ const sqlServer = {
         };
 
         connection.on('connect', handleConnect);
+        connection.on('error', handleError);
         connection.on('end', handleEnd);
       });
     });

@@ -12,7 +12,9 @@ const validateEvent = function ({ event, application }) {
     throw new Error('Application is missing.');
   }
 
-  if (!Event.isWellformed(event)) {
+  try {
+    Event.fromObject(event);
+  } catch {
     throw new Error('Malformed event.');
   }
 

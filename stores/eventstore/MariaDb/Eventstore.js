@@ -2,8 +2,7 @@
 
 const { PassThrough } = require('stream');
 
-const cloneDeep = require('lodash/cloneDeep'),
-      limitAlphanumeric = require('limit-alphanumeric'),
+const limitAlphanumeric = require('limit-alphanumeric'),
       mysql = require('mysql2/promise'),
       retry = require('async-retry');
 
@@ -53,6 +52,7 @@ class Eventstore {
       user: username,
       password,
       database,
+      connectTimeout: 0,
       multipleStatements: true
     });
 
@@ -87,22 +87,22 @@ class Eventstore {
         ));
 
       CREATE TABLE IF NOT EXISTS ${this.namespace}_events (
-        position SERIAL,
+        revisionGlobal SERIAL,
         aggregateId BINARY(16) NOT NULL,
-        revision INT NOT NULL,
+        revisionAggregate INT NOT NULL,
         event JSON NOT NULL,
-        hasBeenPublished BOOLEAN NOT NULL,
+        isPublished BOOLEAN NOT NULL,
 
-        PRIMARY KEY(position),
-        UNIQUE (aggregateId, revision)
+        PRIMARY KEY(revisionGlobal),
+        UNIQUE (aggregateId, revisionAggregate)
       ) ENGINE=InnoDB;
 
       CREATE TABLE IF NOT EXISTS ${this.namespace}_snapshots (
         aggregateId BINARY(16) NOT NULL,
-        revision INT NOT NULL,
+        revisionAggregate INT NOT NULL,
         state JSON NOT NULL,
 
-        PRIMARY KEY(aggregateId, revision)
+        PRIMARY KEY(aggregateId, revisionAggregate)
       ) ENGINE=InnoDB;
     `;
 
@@ -111,7 +111,7 @@ class Eventstore {
     await connection.release();
   }
 
-  async getLastEvent (aggregateId) {
+  async getLastEvent ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -120,10 +120,10 @@ class Eventstore {
 
     try {
       const [ rows ] = await connection.execute(`
-        SELECT event, position
+        SELECT event, revisionGlobal
           FROM ${this.namespace}_events
           WHERE aggregateId = UuidToBin(?)
-          ORDER BY revision DESC
+          ORDER BY revisionAggregate DESC
           LIMIT 1
         `, [ aggregateId ]);
 
@@ -131,9 +131,11 @@ class Eventstore {
         return;
       }
 
-      const event = Event.deserialize(JSON.parse(rows[0].event));
+      let event = Event.fromObject(JSON.parse(rows[0].event));
 
-      event.annotations.position = Number(rows[0].position);
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(rows[0].revisionGlobal)
+      });
 
       return event;
     } finally {
@@ -157,12 +159,12 @@ class Eventstore {
 
     const passThrough = new PassThrough({ objectMode: true });
     const eventStream = connection.connection.execute(`
-      SELECT event, position, hasBeenPublished
+      SELECT event, revisionGlobal, isPublished
         FROM ${this.namespace}_events
         WHERE aggregateId = UuidToBin(?)
-          AND revision >= ?
-          AND revision <= ?
-        ORDER BY revision`,
+          AND revisionAggregate >= ?
+          AND revisionAggregate <= ?
+        ORDER BY revisionAggregate`,
     [ aggregateId, fromRevision, toRevision ]);
 
     let onEnd,
@@ -188,10 +190,15 @@ class Eventstore {
     };
 
     onResult = function (row) {
-      const event = Event.deserialize(JSON.parse(row.event));
+      let event = Event.fromObject(JSON.parse(row.event));
 
-      event.annotations.position = Number(row.position);
-      event.metadata.isPublished = Boolean(row.hasBeenPublished);
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(row.revisionGlobal)
+      });
+
+      if (row.isPublished) {
+        event = event.markAsPublished();
+      }
 
       passThrough.write(event);
     };
@@ -208,10 +215,10 @@ class Eventstore {
 
     const passThrough = new PassThrough({ objectMode: true });
     const eventStream = connection.connection.execute(`
-      SELECT event, position, hasBeenPublished
+      SELECT event, revisionGlobal, isPublished
         FROM ${this.namespace}_events
-        WHERE hasBeenPublished = false
-        ORDER BY position
+        WHERE isPublished = false
+        ORDER BY revisionGlobal
     `);
 
     let onEnd,
@@ -237,10 +244,16 @@ class Eventstore {
     };
 
     onResult = function (row) {
-      const event = Event.deserialize(JSON.parse(row.event));
+      let event = Event.fromObject(JSON.parse(row.event));
 
-      event.annotations.position = Number(row.position);
-      event.metadata.isPublished = Boolean(row.hasBeenPublished);
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(row.revisionGlobal)
+      });
+
+      if (row.isPublished) {
+        event = event.markAsPublished();
+      }
+
       passThrough.write(event);
     };
 
@@ -259,47 +272,48 @@ class Eventstore {
       throw new Error('Uncommitted events are missing.');
     }
 
-    const committedEvents = cloneDeep(uncommittedEvents);
-
     const connection = await this.getDatabase();
 
     const placeholders = [],
           values = [];
 
-    for (let i = 0; i < committedEvents.length; i++) {
-      const { event } = committedEvents[i];
-
-      if (!event.metadata) {
-        throw new Error('Metadata are missing.');
-      }
-      if (event.metadata.revision === undefined) {
-        throw new Error('Revision is missing.');
-      }
-      if (event.metadata.revision < 1) {
-        throw new Error('Revision must not be less than 1.');
+    for (const uncommittedEvent of uncommittedEvents) {
+      if (!uncommittedEvent.annotations.state) {
+        throw new Error('Annotations state is missing.');
       }
 
       placeholders.push('(UuidToBin(?), ?, ?, ?)');
-      values.push(event.aggregate.id, event.metadata.revision, JSON.stringify(event), event.metadata.isPublished);
+      values.push(
+        uncommittedEvent.aggregate.id,
+        uncommittedEvent.metadata.revision.aggregate,
+        JSON.stringify(uncommittedEvent.withoutAnnotations()),
+        uncommittedEvent.metadata.isPublished
+      );
     }
 
     const text = `
       INSERT INTO ${this.namespace}_events
-        (aggregateId, revision, event, hasBeenPublished)
+        (aggregateId, revisionAggregate, event, isPublished)
       VALUES
         ${placeholders.join(',')};
     `;
 
+    const committedEvents = [];
+
     try {
       await connection.execute(text, values);
 
-      const [ rows ] = await connection.execute('SELECT LAST_INSERT_ID() AS position;');
+      const [ rows ] = await connection.execute('SELECT LAST_INSERT_ID() AS revisionGlobal;');
 
       // We only get the ID of the first inserted row, but since it's all in a
-      // single INSERT statement, the database guarantees that the positions are
-      // sequential, so we easily calculate them by ourselves.
-      for (let i = 0; i < committedEvents.length; i++) {
-        committedEvents[i].event.annotations.position = Number(rows[0].position) + i;
+      // single INSERT statement, the database guarantees that the global
+      // revisions are sequential, so we easily calculate them by ourselves.
+      for (const [ index, uncommittedEvent ] of uncommittedEvents.entries()) {
+        const committedEvent = uncommittedEvent.setRevisionGlobal({
+          revisionGlobal: Number(rows[0].revisionGlobal) + index
+        });
+
+        committedEvents.push(committedEvent);
       }
     } catch (ex) {
       if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'aggregateId\'')) {
@@ -312,15 +326,15 @@ class Eventstore {
     }
 
     const indexForSnapshot = committedEvents.findIndex(
-      committedEvent => committedEvent.event.metadata.revision % 100 === 0
+      committedEvent => committedEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const aggregateId = committedEvents[indexForSnapshot].event.aggregate.id;
-      const { revision } = committedEvents[indexForSnapshot].event.metadata;
-      const { state } = committedEvents[indexForSnapshot];
+      const aggregateId = committedEvents[indexForSnapshot].aggregate.id;
+      const { aggregate: revisionAggregate } = committedEvents[indexForSnapshot].metadata.revision;
+      const { state } = committedEvents[indexForSnapshot].annotations;
 
-      await this.saveSnapshot({ aggregateId, revision, state });
+      await this.saveSnapshot({ aggregateId, revision: revisionAggregate, state });
     }
 
     return committedEvents;
@@ -346,17 +360,17 @@ class Eventstore {
     try {
       await connection.execute(`
         UPDATE ${this.namespace}_events
-          SET hasBeenPublished = true
+          SET isPublished = true
           WHERE aggregateId = UuidToBin(?)
-            AND revision >= ?
-            AND revision <= ?
+            AND revisionAggregate >= ?
+            AND revisionAggregate <= ?
       `, [ aggregateId, fromRevision, toRevision ]);
     } finally {
       await connection.release();
     }
   }
 
-  async getSnapshot (aggregateId) {
+  async getSnapshot ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -365,10 +379,10 @@ class Eventstore {
 
     try {
       const [ rows ] = await connection.execute(`
-        SELECT state, revision
+        SELECT state, revisionAggregate
           FROM ${this.namespace}_snapshots
           WHERE aggregateId = UuidToBin(?)
-          ORDER BY revision DESC
+          ORDER BY revisionAggregate DESC
           LIMIT 1
       `, [ aggregateId ]);
 
@@ -377,7 +391,7 @@ class Eventstore {
       }
 
       return {
-        revision: rows[0].revision,
+        revision: rows[0].revisionAggregate,
         state: JSON.parse(rows[0].state)
       };
     } finally {
@@ -403,7 +417,7 @@ class Eventstore {
     try {
       await connection.execute(`
         INSERT IGNORE INTO ${this.namespace}_snapshots
-          (aggregateId, revision, state)
+          (aggregateId, revisionAggregate, state)
           VALUES (UuidToBin(?), ?, ?);
       `, [ aggregateId, revision, JSON.stringify(filteredState) ]);
     } finally {
@@ -411,24 +425,24 @@ class Eventstore {
     }
   }
 
-  async getReplay (options = {}) {
-    const fromPosition = options.fromPosition || 1;
-    const toPosition = options.toPosition || (2 ** 31) - 1;
-
-    if (fromPosition > toPosition) {
-      throw new Error('From position is greater than to position.');
+  async getReplay ({
+    fromRevisionGlobal = 1,
+    toRevisionGlobal = (2 ** 31) - 1
+  } = {}) {
+    if (fromRevisionGlobal > toRevisionGlobal) {
+      throw new Error('From revision global is greater than to revision global.');
     }
 
     const connection = await this.getDatabase();
 
     const passThrough = new PassThrough({ objectMode: true });
     const eventStream = connection.connection.execute(`
-      SELECT event, position
+      SELECT event, revisionGlobal
         FROM ${this.namespace}_events
-        WHERE position >= ?
-          AND position <= ?
-        ORDER BY position
-      `, [ fromPosition, toPosition ]);
+        WHERE revisionGlobal >= ?
+          AND revisionGlobal <= ?
+        ORDER BY revisionGlobal
+      `, [ fromRevisionGlobal, toRevisionGlobal ]);
 
     let onEnd,
         onError,
@@ -453,9 +467,12 @@ class Eventstore {
     };
 
     onResult = function (row) {
-      const event = Event.deserialize(JSON.parse(row.event));
+      let event = Event.fromObject(JSON.parse(row.event));
 
-      event.annotations.position = Number(row.position);
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(row.revisionGlobal)
+      });
+
       passThrough.write(event);
     };
 

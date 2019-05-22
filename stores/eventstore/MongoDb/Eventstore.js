@@ -3,8 +3,7 @@
 const { parse } = require('url'),
       { PassThrough } = require('stream');
 
-const cloneDeep = require('lodash/cloneDeep'),
-      limitAlphanumeric = require('limit-alphanumeric'),
+const limitAlphanumeric = require('limit-alphanumeric'),
       { MongoClient } = require('mongodb'),
       retry = require('async-retry');
 
@@ -69,13 +68,13 @@ class Eventstore {
         name: `${this.namespace}_aggregateId`
       },
       {
-        key: { 'aggregate.id': 1, 'metadata.revision': 1 },
-        name: `${this.namespace}_aggregateId_revision`,
+        key: { 'aggregate.id': 1, 'metadata.revision.aggregate': 1 },
+        name: `${this.namespace}_aggregateId_revisionAggregate`,
         unique: true
       },
       {
-        key: { 'annotations.position': 1 },
-        name: `${this.namespace}_position`,
+        key: { 'metadata.revision.global': 1 },
+        name: `${this.namespace}_revisionGlobal`,
         unique: true
       }
     ]);
@@ -97,7 +96,11 @@ class Eventstore {
     }
   }
 
-  async getNextSequence (name) {
+  async getNextSequence ({ name }) {
+    if (!name) {
+      throw new Error('Name is missing.');
+    }
+
     const counter = await this.collections.counters.findOneAndUpdate({ _id: name }, {
       $inc: { seq: 1 }
     }, { returnOriginal: false });
@@ -105,7 +108,7 @@ class Eventstore {
     return counter.value.seq;
   }
 
-  async getLastEvent (aggregateId) {
+  async getLastEvent ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -114,7 +117,7 @@ class Eventstore {
       'aggregate.id': aggregateId
     }, {
       projection: { _id: 0 },
-      sort: { 'metadata.revision': -1 },
+      sort: { 'metadata.revision.aggregate': -1 },
       limit: 1
     }).toArray();
 
@@ -122,7 +125,7 @@ class Eventstore {
       return;
     }
 
-    return Event.deserialize(events[0]);
+    return Event.fromObject(events[0]);
   }
 
   async getEventStream ({
@@ -141,12 +144,12 @@ class Eventstore {
     const eventStream = this.collections.events.find({
       $and: [
         { 'aggregate.id': aggregateId },
-        { 'metadata.revision': { $gte: fromRevision }},
-        { 'metadata.revision': { $lte: toRevision }}
+        { 'metadata.revision.aggregate': { $gte: fromRevision }},
+        { 'metadata.revision.aggregate': { $lte: toRevision }}
       ]
     }, {
       projection: { _id: 0 },
-      sort: 'metadata.revision'
+      sort: 'metadata.revision.aggregate'
     }).stream();
 
     let onData,
@@ -160,7 +163,7 @@ class Eventstore {
     };
 
     onData = function (data) {
-      passThrough.write(Event.deserialize(data));
+      passThrough.write(Event.fromObject(data));
     };
 
     onEnd = function () {
@@ -197,7 +200,7 @@ class Eventstore {
       'metadata.isPublished': false
     }, {
       projection: { _id: 0 },
-      sort: 'annotations.position'
+      sort: 'metadata.revision.global'
     }).stream();
 
     let onData,
@@ -211,7 +214,7 @@ class Eventstore {
     };
 
     onData = function (data) {
-      passThrough.write(Event.deserialize(data));
+      passThrough.write(Event.fromObject(data));
     };
 
     onEnd = function () {
@@ -250,30 +253,26 @@ class Eventstore {
       throw new Error('Uncommitted events are missing.');
     }
 
-    const committedEvents = cloneDeep(uncommittedEvents);
+    const committedEvents = [];
 
     try {
-      for (let i = 0; i < committedEvents.length; i++) {
-        const { event } = committedEvents[i];
-
-        if (!event.metadata) {
-          throw new Error('Metadata are missing.');
-        }
-        if (event.metadata.revision === undefined) {
-          throw new Error('Revision is missing.');
-        }
-        if (event.metadata.revision < 1) {
-          throw new Error('Revision must not be less than 1.');
+      for (const uncommittedEvent of uncommittedEvents) {
+        if (!uncommittedEvent.annotations.state) {
+          throw new Error('Annotations state is missing.');
         }
 
-        const seq = await this.getNextSequence('events');
+        const revisionGlobal = await this.getNextSequence({ name: 'events' });
 
-        event.data = omitByDeep(event.data, value => value === undefined);
-        event.annotations.position = seq;
+        let committedEvent = uncommittedEvent.setData({
+          data: omitByDeep(uncommittedEvent.data, value => value === undefined)
+        });
+
+        committedEvent = committedEvent.setRevisionGlobal({ revisionGlobal });
+        committedEvents.push(committedEvent);
 
         // Use cloned events here to hinder MongoDB from adding an _id property
         // to the original event objects.
-        await this.collections.events.insertOne(cloneDeep(event));
+        await this.collections.events.insertOne(committedEvent.withoutAnnotations());
       }
     } catch (ex) {
       if (ex.code === 11000 && ex.message.includes('_aggregateId_revision')) {
@@ -284,15 +283,15 @@ class Eventstore {
     }
 
     const indexForSnapshot = committedEvents.findIndex(
-      committedEvent => committedEvent.event.metadata.revision % 100 === 0
+      committedEvent => committedEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const aggregateId = committedEvents[indexForSnapshot].event.aggregate.id;
-      const { revision } = committedEvents[indexForSnapshot].event.metadata;
-      const { state } = committedEvents[indexForSnapshot];
+      const aggregateId = committedEvents[indexForSnapshot].aggregate.id;
+      const { aggregate: revisionAggregate } = committedEvents[indexForSnapshot].metadata.revision;
+      const { state } = committedEvents[indexForSnapshot].annotations;
 
-      await this.saveSnapshot({ aggregateId, revision, state });
+      await this.saveSnapshot({ aggregateId, revision: revisionAggregate, state });
     }
 
     return committedEvents;
@@ -315,7 +314,7 @@ class Eventstore {
 
     await this.collections.events.updateMany({
       'aggregate.id': aggregateId,
-      'metadata.revision': {
+      'metadata.revision.aggregate': {
         $gte: fromRevision,
         $lte: toRevision
       }
@@ -328,21 +327,26 @@ class Eventstore {
     });
   }
 
-  async getSnapshot (aggregateId) {
+  async getSnapshot ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
 
     const snapshot = await this.collections.snapshots.findOne(
       { aggregateId },
-      { projection: { _id: false, revision: true, state: true }}
+      { projection: { _id: false, revisionAggregate: true, state: true }}
     );
 
     if (!snapshot) {
       return;
     }
 
-    return snapshot;
+    const mappedSnapshot = {
+      revision: snapshot.revisionAggregate,
+      state: snapshot.state
+    };
+
+    return mappedSnapshot;
   }
 
   async saveSnapshot ({ aggregateId, revision, state }) {
@@ -360,28 +364,28 @@ class Eventstore {
 
     await this.collections.snapshots.updateOne(
       { aggregateId },
-      { $set: { aggregateId, state: filteredState, revision }},
+      { $set: { aggregateId, state: filteredState, revisionAggregate: revision }},
       { upsert: true }
     );
   }
 
-  async getReplay (options = {}) {
-    const fromPosition = options.fromPosition || 1;
-    const toPosition = options.toPosition || (2 ** 31) - 1;
-
-    if (fromPosition > toPosition) {
-      throw new Error('From position is greater than to position.');
+  async getReplay ({
+    fromRevisionGlobal = 1,
+    toRevisionGlobal = (2 ** 31) - 1
+  } = {}) {
+    if (fromRevisionGlobal > toRevisionGlobal) {
+      throw new Error('From revision global is greater than to revision global.');
     }
 
     const passThrough = new PassThrough({ objectMode: true });
     const replayStream = this.collections.events.find({
       $and: [
-        { 'annotations.position': { $gte: fromPosition }},
-        { 'annotations.position': { $lte: toPosition }}
+        { 'metadata.revision.global': { $gte: fromRevisionGlobal }},
+        { 'metadata.revision.global': { $lte: toRevisionGlobal }}
       ]
     }, {
       projection: { _id: 0 },
-      sort: 'annotations.position'
+      sort: 'metadata.revision.global'
     }).stream();
 
     let onData,
@@ -395,7 +399,7 @@ class Eventstore {
     };
 
     onData = function (data) {
-      passThrough.write(Event.deserialize(data));
+      passThrough.write(Event.fromObject(data));
     };
 
     onEnd = function () {

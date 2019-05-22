@@ -1,287 +1,99 @@
 'use strict';
 
 const assert = require('assertthat'),
+      capitalize = require('lodash/capitalize'),
+      cloneDeep = require('lodash/cloneDeep'),
+      getFlatObjectKeys = require('flat-object-keys'),
+      lowerCase = require('lodash/lowerCase'),
+      unset = require('lodash/unset'),
       uuid = require('uuidv4');
 
 const { Command } = require('../../../../common/elements');
 
 suite('Command', () => {
-  /* eslint-disable no-new */
-  test('throws an error when no context is given.', async () => {
-    assert.that(() => {
-      new Command({
-        aggregate: {
-          name: 'bar',
-          id: uuid()
-        },
-        name: 'foo'
-      });
-    }).is.throwing('Context is missing.');
-  });
-
-  test('throws an error when no context name is given.', async () => {
-    assert.that(() => {
-      new Command({
-        context: {},
-        aggregate: {
-          name: 'bar',
-          id: uuid()
-        },
-        name: 'foo'
-      });
-    }).is.throwing('Context name is missing.');
-  });
-
-  test('throws an error when no aggregate is given.', async () => {
-    assert.that(() => {
-      new Command({
-        context: {
-          name: 'bar'
-        },
-        name: 'foo'
-      });
-    }).is.throwing('Aggregate is missing.');
-  });
-
-  test('throws an error when no aggregate name is given.', async () => {
-    assert.that(() => {
-      new Command({
-        context: {
-          name: 'bar'
-        },
-        aggregate: {
-          id: uuid()
-        },
-        name: 'foo'
-      });
-    }).is.throwing('Aggregate name is missing.');
-  });
-
-  test('throws an error when no aggregate id is given.', async () => {
-    assert.that(() => {
-      new Command({
-        context: {
-          name: 'bar'
-        },
-        aggregate: {
-          name: 'baz'
-        },
-        name: 'foo'
-      });
-    }).is.throwing('Aggregate id is missing.');
-  });
-
-  test('throws an error when no name is given.', async () => {
-    assert.that(() => {
-      new Command({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: uuid()
-        }
-      });
-    }).is.throwing('Name is missing.');
-  });
-
-  test('throws an error when data is not an object.', async () => {
-    assert.that(() => {
-      new Command({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: uuid()
-        },
-        name: 'baz',
-        data: 'foobarbaz'
-      });
-    }).is.throwing('Invalid type: string should be object (at command.data).');
-  });
-
-  test('throws an error when annotations is not an object.', async () => {
-    assert.that(() => {
-      new Command({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: uuid()
-        },
-        name: 'baz',
-        annotations: 'foobarbaz'
-      });
-    }).is.throwing('Invalid type: string should be object (at command.annotations).');
-  });
-
-  test('returns a command.', async () => {
-    const id = uuid();
-
-    const actual = new Command({
-      context: {
-        name: 'foo'
-      },
-      aggregate: {
-        name: 'bar',
-        id
-      },
-      name: 'baz',
-      data: {
-        foo: 'foobarbaz'
-      }
-    });
-
-    assert.that(actual).is.ofType('object');
-    assert.that(actual.context.name).is.equalTo('foo');
-    assert.that(actual.aggregate.name).is.equalTo('bar');
-    assert.that(actual.aggregate.id).is.equalTo(id);
-    assert.that(actual.name).is.equalTo('baz');
-    assert.that(actual.id).is.ofType('string');
-    assert.that(actual.data).is.equalTo({ foo: 'foobarbaz' });
-    assert.that(actual.annotations).is.equalTo({});
-    assert.that(actual.metadata.timestamp).is.ofType('number');
-    assert.that(actual.metadata.correlationId).is.equalTo(actual.id);
-    assert.that(actual.metadata.causationId).is.equalTo(actual.id);
-  });
-
-  test('returns a command with annotations.', async () => {
-    const aggregateId = uuid(),
-          userId = uuid();
-
-    const actual = new Command({
-      context: {
-        name: 'foo'
-      },
-      aggregate: {
-        name: 'bar',
-        id: aggregateId
-      },
-      name: 'baz',
-      data: {
-        foo: 'foobarbaz'
-      },
-      annotations: {
-        client: {
-          token: '...',
-          user: { id: userId, claims: { sub: userId }},
-          ip: '127.0.0.1'
-        }
-      }
-    });
-
-    assert.that(actual).is.ofType('object');
-    assert.that(actual.context.name).is.equalTo('foo');
-    assert.that(actual.aggregate.name).is.equalTo('bar');
-    assert.that(actual.aggregate.id).is.equalTo(aggregateId);
-    assert.that(actual.name).is.equalTo('baz');
-    assert.that(actual.id).is.ofType('string');
-    assert.that(actual.data).is.equalTo({ foo: 'foobarbaz' });
-    assert.that(actual.annotations).is.equalTo({
-      client: {
-        token: '...',
-        user: { id: userId, claims: { sub: userId }},
-        ip: '127.0.0.1'
-      }
-    });
-    assert.that(actual.metadata.timestamp).is.ofType('number');
-    assert.that(actual.metadata.correlationId).is.equalTo(actual.id);
-    assert.that(actual.metadata.causationId).is.equalTo(actual.id);
-  });
-  /* eslint-enable no-new */
-
-  suite('deserialize', () => {
+  suite('create', () => {
     test('is a function.', async () => {
-      assert.that(Command.deserialize).is.ofType('function');
+      assert.that(Command.create).is.ofType('function');
     });
 
-    test('returns a real command object.', async () => {
-      const command = new Command({
+    suite('parameters', () => {
+      const options = {
         context: {
-          name: 'foo'
+          name: 'sampleContext'
         },
         aggregate: {
-          name: 'bar',
+          name: 'sampleAggregate',
           id: uuid()
         },
-        name: 'baz',
+        name: 'sampleCommand'
+      };
+
+      const paths = getFlatObjectKeys({ from: options });
+
+      for (const path of paths) {
+        const spacedPath = lowerCase(path);
+        const capitalizedPath = capitalize(spacedPath);
+
+        /* eslint-disable no-loop-func */
+        test(`throws an error when no ${spacedPath} is given.`, async () => {
+          const clonedOptions = cloneDeep(options);
+
+          unset(clonedOptions, path);
+
+          assert.that(() => {
+            Command.create(clonedOptions);
+          }).is.throwing(`${capitalizedPath} is missing.`);
+        });
+        /* eslint-enable no-loop-func */
+      }
+    });
+
+    test('returns a command.', async () => {
+      const aggregateId = uuid();
+
+      const command = Command.create({
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: aggregateId
+        },
+        name: 'sampleCommand',
         data: {
-          foo: 'foobarbaz'
+          foo: 'bar'
         }
       });
 
-      const deserializedCommand = JSON.parse(JSON.stringify(command));
-
-      const actual = Command.deserialize(deserializedCommand);
-
-      assert.that(actual).is.instanceOf(Command);
+      assert.that(command).is.instanceOf(Command);
+      assert.that(command.context.name).is.equalTo('sampleContext');
+      assert.that(command.aggregate.name).is.equalTo('sampleAggregate');
+      assert.that(command.aggregate.id).is.equalTo(aggregateId);
+      assert.that(command.name).is.equalTo('sampleCommand');
+      assert.that(command.id).is.ofType('string');
+      assert.that(uuid.is(command.id)).is.true();
+      assert.that(command.data).is.equalTo({ foo: 'bar' });
+      assert.that(command.metadata.timestamp).is.ofType('number');
+      assert.that(command.metadata.correlationId).is.equalTo(command.id);
+      assert.that(command.metadata.causationId).is.equalTo(command.id);
+      assert.that(command.annotations).is.equalTo({});
     });
 
-    test('throws an error when the original metadata are malformed.', async () => {
-      const command = new Command({
+    test('returns a command with annotations.', async () => {
+      const aggregateId = uuid(),
+            userId = uuid();
+
+      const command = Command.create({
         context: {
-          name: 'foo'
+          name: 'sampleContext'
         },
         aggregate: {
-          name: 'bar',
-          id: uuid()
+          name: 'sampleAggregate',
+          id: aggregateId
         },
-        name: 'baz',
+        name: 'sampleCommand',
         data: {
-          foo: 'foobarbaz'
-        }
-      });
-
-      const deserializedCommand = JSON.parse(JSON.stringify(command));
-
-      deserializedCommand.metadata.timestamp = 'foo';
-
-      assert.that(() => {
-        Command.deserialize(deserializedCommand);
-      }).is.throwing('Invalid type: string should be number (at command.metadata.timestamp).');
-    });
-
-    test('does not change original metadata.', async () => {
-      const command = new Command({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: uuid()
-        },
-        name: 'baz',
-        data: {
-          foo: 'foobarbaz'
-        }
-      });
-
-      const deserializedCommand = JSON.parse(JSON.stringify(command));
-
-      const actual = Command.deserialize(deserializedCommand);
-
-      assert.that(actual.id).is.equalTo(command.id);
-      assert.that(actual.metadata.correlationId).is.equalTo(command.metadata.correlationId);
-      assert.that(actual.metadata.causationId).is.equalTo(command.metadata.causationId);
-      assert.that(actual.metadata.timestamp).is.equalTo(command.metadata.timestamp);
-    });
-
-    test('keeps annotations.', async () => {
-      const userId = uuid();
-
-      const command = new Command({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: uuid()
-        },
-        name: 'baz',
-        data: {
-          foo: 'foobarbaz'
+          foo: 'bar'
         },
         annotations: {
           client: {
@@ -292,322 +104,242 @@ suite('Command', () => {
         }
       });
 
+      assert.that(command).is.instanceOf(Command);
+      assert.that(command.context.name).is.equalTo('sampleContext');
+      assert.that(command.aggregate.name).is.equalTo('sampleAggregate');
+      assert.that(command.aggregate.id).is.equalTo(aggregateId);
+      assert.that(command.name).is.equalTo('sampleCommand');
+      assert.that(command.id).is.ofType('string');
+      assert.that(uuid.is(command.id)).is.true();
+      assert.that(command.data).is.equalTo({ foo: 'bar' });
+      assert.that(command.metadata.timestamp).is.ofType('number');
+      assert.that(command.metadata.correlationId).is.equalTo(command.id);
+      assert.that(command.metadata.causationId).is.equalTo(command.id);
+      assert.that(command.annotations).is.equalTo({
+        client: {
+          token: '...',
+          user: { id: userId, claims: { sub: userId }},
+          ip: '127.0.0.1'
+        }
+      });
+    });
+  });
+
+  suite('fromObject', () => {
+    test('is a function.', async () => {
+      assert.that(Command.fromObject).is.ofType('function');
+    });
+
+    suite('parameters', () => {
+      const id = uuid();
+      const aggregateId = uuid(),
+            userId = uuid();
+
+      const options = {
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: aggregateId
+        },
+        name: 'sampleCommand',
+        id,
+        data: {
+          foo: 'bar'
+        },
+        metadata: {
+          timestamp: Date.now(),
+          causationId: id,
+          correlationId: id
+        },
+        annotations: {
+          client: {
+            token: '...',
+            user: { id: userId, claims: { sub: userId }},
+            ip: '127.0.0.1'
+          }
+        }
+      };
+
+      const paths = getFlatObjectKeys({ from: options, excludes: [ 'data.foo', 'annotations.client' ]});
+
+      for (const path of paths) {
+        const spacedPath = lowerCase(path);
+        const capitalizedPath = capitalize(spacedPath);
+
+        /* eslint-disable no-loop-func */
+        test(`throws an error when no ${spacedPath} is given.`, async () => {
+          const clonedOptions = cloneDeep(options);
+
+          unset(clonedOptions, path);
+
+          assert.that(() => {
+            Command.fromObject(clonedOptions);
+          }).is.throwing(`${capitalizedPath} is missing.`);
+        });
+        /* eslint-enable no-loop-func */
+      }
+    });
+
+    test('returns a real command object.', async () => {
+      const command = Command.create({
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'sampleCommand',
+        data: {
+          foo: 'bar'
+        }
+      });
+
       const deserializedCommand = JSON.parse(JSON.stringify(command));
 
-      const actual = Command.deserialize(deserializedCommand);
+      const actual = Command.fromObject(deserializedCommand);
+
+      assert.that(actual).is.instanceOf(Command);
+    });
+
+    test('throws an error when the original metadata are malformed.', async () => {
+      const command = Command.create({
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'sampleCommand',
+        data: {
+          foo: 'bar'
+        }
+      });
+
+      const deserializedCommand = JSON.parse(JSON.stringify(command));
+
+      deserializedCommand.metadata.timestamp = 'malformed';
+
+      assert.that(() => {
+        Command.fromObject(deserializedCommand);
+      }).is.throwing('Invalid type: string should be number (at command.metadata.timestamp).');
+    });
+
+    test('does not change original metadata.', async () => {
+      const command = Command.create({
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'sampleCommand',
+        data: {
+          foo: 'bar'
+        }
+      });
+
+      const deserializedCommand = JSON.parse(JSON.stringify(command));
+
+      const actual = Command.fromObject(deserializedCommand);
+
+      assert.that(actual.id).is.equalTo(command.id);
+      assert.that(actual.metadata.correlationId).is.equalTo(command.metadata.correlationId);
+      assert.that(actual.metadata.causationId).is.equalTo(command.metadata.causationId);
+      assert.that(actual.metadata.timestamp).is.equalTo(command.metadata.timestamp);
+    });
+
+    test('keeps annotations.', async () => {
+      const command = Command.create({
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'sampleCommand',
+        data: {
+          foo: 'bar'
+        },
+        annotations: {
+          client: {
+            token: '...',
+            user: { id: uuid(), claims: { sub: uuid() }},
+            ip: '127.0.0.1'
+          }
+        }
+      });
+
+      const deserializedCommand = JSON.parse(JSON.stringify(command));
+
+      const actual = Command.fromObject(deserializedCommand);
 
       assert.that(actual.annotations).is.equalTo(command.annotations);
     });
   });
 
-  suite('isWellformed', () => {
-    test('is a function.', async () => {
-      assert.that(Command.isWellformed).is.ofType('function');
-    });
+  suite('instance', () => {
+    let command;
 
-    test('returns false for non-object types.', async () => {
-      assert.that(Command.isWellformed()).is.false();
-    });
+    setup(async () => {
+      const userId = uuid();
 
-    test('returns false for an empty object.', async () => {
-      assert.that(Command.isWellformed({})).is.false();
-    });
-
-    test('returns false when no context is given.', async () => {
-      assert.that(Command.isWellformed({
-        aggregate: {
-          name: 'bar',
-          id: '75e26d8a-f9d1-4083-a9c2-f61c84acf7e3'
-        },
-        name: 'baz',
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: {},
-        metadata: {
-          timestamp: 1409334527796,
-          correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-          causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
-        }
-      })).is.false();
-    });
-
-    test('returns false when no context name is given.', async () => {
-      assert.that(Command.isWellformed({
-        context: {},
-        aggregate: {
-          name: 'bar',
-          id: '75e26d8a-f9d1-4083-a9c2-f61c84acf7e3'
-        },
-        name: 'baz',
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: {},
-        metadata: {
-          timestamp: 1409334527796,
-          correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-          causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
-        }
-      })).is.false();
-    });
-
-    test('returns false when no aggregate is given.', async () => {
-      assert.that(Command.isWellformed({
+      command = Command.create({
         context: {
-          name: 'foo'
-        },
-        name: 'baz',
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: {},
-        metadata: {
-          timestamp: 1409334527796,
-          correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-          causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
-        }
-      })).is.false();
-    });
-
-    test('returns false when no aggregate name is given.', async () => {
-      assert.that(Command.isWellformed({
-        context: {
-          name: 'foo'
+          name: 'sampleContext'
         },
         aggregate: {
-          id: '75e26d8a-f9d1-4083-a9c2-f61c84acf7e3'
+          name: 'sampleAggregate',
+          id: uuid()
         },
-        name: 'baz',
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
+        name: 'sampleCommand',
         data: {
-          foo: 'foobarbaz'
+          foo: 'bar'
         },
-        annotations: {},
-        metadata: {
-          timestamp: 1409334527796,
-          correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-          causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
+        annotations: {
+          client: {
+            token: '...',
+            user: { id: userId, claims: { sub: userId }},
+            ip: '127.0.0.1'
+          }
         }
-      })).is.false();
+      });
     });
 
-    test('returns false when no aggregate id is given.', async () => {
-      assert.that(Command.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar'
-        },
-        name: 'baz',
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: {},
-        metadata: {
-          timestamp: 1409334527796,
-          correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-          causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
-        }
-      })).is.false();
+    suite('clone', () => {
+      test('is a function.', async () => {
+        assert.that(command.clone).is.ofType('function');
+      });
+
+      test('returns a cloned command.', async () => {
+        const clonedCommand = command.clone();
+
+        assert.that(clonedCommand).is.equalTo(command);
+        assert.that(clonedCommand).is.not.sameAs(command);
+      });
     });
 
-    test('returns false when no name is given.', async () => {
-      assert.that(Command.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '75e26d8a-f9d1-4083-a9c2-f61c84acf7e3'
-        },
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: {},
-        metadata: {
-          timestamp: 1409334527796,
-          correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-          causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
-        }
-      })).is.false();
-    });
+    suite('withoutAnnotations', () => {
+      test('is a function.', async () => {
+        assert.that(command.withoutAnnotations).is.ofType('function');
+      });
 
-    test('returns false when no id is given.', async () => {
-      assert.that(Command.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '75e26d8a-f9d1-4083-a9c2-f61c84acf7e3'
-        },
-        name: 'baz',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: {},
-        metadata: {
-          timestamp: 1409334527796,
-          correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-          causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
-        }
-      })).is.false();
-    });
+      test('returns a new command without annotations.', async () => {
+        const commandWithoutAnnotations = command.withoutAnnotations();
 
-    test('returns false when no data is given.', async () => {
-      assert.that(Command.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '75e26d8a-f9d1-4083-a9c2-f61c84acf7e3'
-        },
-        name: 'baz',
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-        annotations: {},
-        metadata: {
-          timestamp: 1409334527796,
-          correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-          causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
-        }
-      })).is.false();
-    });
-
-    test('returns false when no annotations are given.', async () => {
-      assert.that(Command.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '75e26d8a-f9d1-4083-a9c2-f61c84acf7e3'
-        },
-        name: 'baz',
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-        data: {
-          foo: 'foobarbaz'
-        },
-        metadata: {
-          timestamp: 1409334527796,
-          correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-          causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
-        }
-      })).is.false();
-    });
-
-    test('returns false when no metadata is given.', async () => {
-      assert.that(Command.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '75e26d8a-f9d1-4083-a9c2-f61c84acf7e3'
-        },
-        name: 'baz',
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: {}
-      })).is.false();
-    });
-
-    test('returns false when no timestamp is given.', async () => {
-      assert.that(Command.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '75e26d8a-f9d1-4083-a9c2-f61c84acf7e3'
-        },
-        name: 'baz',
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: {},
-        metadata: {
-          correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-          causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
-        }
-      })).is.false();
-    });
-
-    test('returns false when no correlation id is given.', async () => {
-      assert.that(Command.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '75e26d8a-f9d1-4083-a9c2-f61c84acf7e3'
-        },
-        name: 'baz',
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: {},
-        metadata: {
-          timestamp: 1409334527796,
-          causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
-        }
-      })).is.false();
-    });
-
-    test('returns false when no causation id is given.', async () => {
-      assert.that(Command.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '75e26d8a-f9d1-4083-a9c2-f61c84acf7e3'
-        },
-        name: 'baz',
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: {},
-        metadata: {
-          timestamp: 1409334527796,
-          correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
-        }
-      })).is.false();
-    });
-
-    test('returns true when the command is well-formed.', async () => {
-      assert.that(Command.isWellformed({
-        context: {
-          name: 'foo'
-        },
-        aggregate: {
-          name: 'bar',
-          id: '75e26d8a-f9d1-4083-a9c2-f61c84acf7e3'
-        },
-        name: 'baz',
-        id: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-        data: {
-          foo: 'foobarbaz'
-        },
-        annotations: {},
-        metadata: {
-          timestamp: 1409334527796,
-          correlationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b',
-          causationId: '8f64f9be-edc0-4196-b48d-8bf0e770843b'
-        }
-      })).is.true();
+        assert.that(commandWithoutAnnotations).is.not.sameAs(command);
+        assert.that(commandWithoutAnnotations.context).is.equalTo(command.context);
+        assert.that(commandWithoutAnnotations.aggregate).is.equalTo(command.aggregate);
+        assert.that(commandWithoutAnnotations.name).is.equalTo(command.name);
+        assert.that(commandWithoutAnnotations.id).is.equalTo(command.id);
+        assert.that(commandWithoutAnnotations.data).is.equalTo(command.data);
+        assert.that(commandWithoutAnnotations.metadata).is.equalTo(command.metadata);
+      });
     });
   });
 });

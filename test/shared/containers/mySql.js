@@ -37,7 +37,8 @@ const mySql = {
       port,
       user: username,
       password,
-      database
+      database,
+      connectTimeout: 0
     });
 
     await retry(async () => {

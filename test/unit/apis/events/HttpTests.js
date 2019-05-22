@@ -237,12 +237,15 @@ suite('events/Http', () => {
     });
 
     test('delivers a single event.', async () => {
-      const executed = new Event({
+      const executed = Event.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'executed',
         data: { strategy: 'succeed' },
-        metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
         annotations: { state: {}, previousState: {}}
       });
 
@@ -268,20 +271,26 @@ suite('events/Http', () => {
     });
 
     test('delivers multiple events.', async () => {
-      const succeeded = new Event({
+      const succeeded = Event.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'succeeded',
         data: {},
-        metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
         annotations: { state: {}, previousState: {}}
       });
-      const executed = new Event({
+      const executed = Event.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'executed',
         data: { strategy: 'succeed' },
-        metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 },
+        metadata: {
+          revision: { aggregate: 2 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
         annotations: { state: {}, previousState: {}}
       });
 
@@ -313,20 +322,26 @@ suite('events/Http', () => {
     });
 
     test('delivers filtered events.', async () => {
-      const succeeded = new Event({
+      const succeeded = Event.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'succeeded',
         data: {},
-        metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
         annotations: { state: {}, previousState: {}}
       });
-      const executed = new Event({
+      const executed = Event.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'executed',
         data: { strategy: 'succeed' },
-        metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 },
+        metadata: {
+          revision: { aggregate: 2 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
         annotations: { state: {}, previousState: {}}
       });
 
@@ -357,20 +372,26 @@ suite('events/Http', () => {
     });
 
     test('delivers filtered events with a nested filter.', async () => {
-      const succeeded = new Event({
+      const succeeded = Event.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'succeeded',
         data: {},
-        metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
         annotations: { state: {}, previousState: {}}
       });
-      const executed = new Event({
+      const executed = Event.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'executed',
         data: { strategy: 'succeed' },
-        metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 },
+        metadata: {
+          revision: { aggregate: 2 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
         annotations: { state: {}, previousState: {}}
       });
 
@@ -404,12 +425,15 @@ suite('events/Http', () => {
     });
 
     test('removes annotations before delivery.', async () => {
-      const executed = new Event({
+      const executed = Event.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'executed',
         data: { strategy: 'succeed' },
-        metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
         annotations: { state: {}, previousState: {}}
       });
 
@@ -435,12 +459,15 @@ suite('events/Http', () => {
     });
 
     test('gracefully handles connections that get closed by the client.', async () => {
-      const executed = new Event({
+      const executed = Event.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'executed',
         data: { strategy: 'succeed' },
-        metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
         annotations: { state: {}, previousState: {}}
       });
 
@@ -482,19 +509,25 @@ suite('events/Http', () => {
 
         const aggregateId = uuid();
 
-        const authorizationDenied = new Event({
+        const authorizationDenied = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'authorizationDenied',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
-        const executed = new Event({
+        const executed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 },
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -537,19 +570,25 @@ suite('events/Http', () => {
 
         const aggregateId = uuid();
 
-        const authorizationFailed = new Event({
+        const authorizationFailed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'authorizationFailed',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
-        const executed = new Event({
+        const executed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 },
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -592,11 +631,14 @@ suite('events/Http', () => {
 
         const aggregateId = uuid();
 
-        const authorizedWithMutation = new Event({
+        const authorizedWithMutation = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'authorizedWithMutation',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -641,35 +683,41 @@ suite('events/Http', () => {
         const aggregateId = uuid(),
               otherAggregateId = uuid();
 
-        const otherSucceeded = new Event({
+        const otherSucceeded = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: otherAggregateId },
           name: 'succeeded',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
-        const otherExecuted = new Event({
+        const otherExecuted = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: otherAggregateId },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 },
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.saveEvents({
-          uncommittedEvents: [
-            { event: otherSucceeded, state: otherSucceeded.annotations.state },
-            { event: otherExecuted, state: otherExecuted.annotations.state }
-          ]
+          uncommittedEvents: [ otherSucceeded, otherExecuted ]
         });
 
-        const useApp = new Event({
+        const useApp = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'useApp',
           data: { otherAggregateId },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 3 },
+          metadata: {
+            revision: { aggregate: 3 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -719,11 +767,14 @@ suite('events/Http', () => {
           identityProviders
         });
 
-        const useClient = new Event({
+        const useClient = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'useClient',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -782,12 +833,15 @@ suite('events/Http', () => {
             identityProviders
           });
 
-          const useLogger = new Event({
+          const useLogger = Event.create({
             context: { name: 'sampleContext' },
             aggregate: { name: 'sampleAggregate', id: uuid() },
             name: 'useLogger',
             data: { logLevel },
-            metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+            metadata: {
+              revision: { aggregate: 1 },
+              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+            },
             annotations: { state: {}, previousState: {}}
           });
 
@@ -844,19 +898,25 @@ suite('events/Http', () => {
 
         const aggregateId = uuid();
 
-        const filterDenied = new Event({
+        const filterDenied = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'filterDenied',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
-        const executed = new Event({
+        const executed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 },
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -899,19 +959,25 @@ suite('events/Http', () => {
 
         const aggregateId = uuid();
 
-        const filterFailed = new Event({
+        const filterFailed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'filterFailed',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
-        const executed = new Event({
+        const executed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 },
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -954,11 +1020,14 @@ suite('events/Http', () => {
 
         const aggregateId = uuid();
 
-        const filteredWithMutation = new Event({
+        const filteredWithMutation = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'filteredWithMutation',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -1003,35 +1072,41 @@ suite('events/Http', () => {
         const aggregateId = uuid(),
               otherAggregateId = uuid();
 
-        const otherSucceeded = new Event({
+        const otherSucceeded = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: otherAggregateId },
           name: 'succeeded',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
-        const otherExecuted = new Event({
+        const otherExecuted = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: otherAggregateId },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 },
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.saveEvents({
-          uncommittedEvents: [
-            { event: otherSucceeded, state: otherSucceeded.annotations.state },
-            { event: otherExecuted, state: otherExecuted.annotations.state }
-          ]
+          uncommittedEvents: [ otherSucceeded, otherExecuted ]
         });
 
-        const useApp = new Event({
+        const useApp = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'useApp',
           data: { otherAggregateId },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 3 },
+          metadata: {
+            revision: { aggregate: 3 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -1081,11 +1156,14 @@ suite('events/Http', () => {
           identityProviders
         });
 
-        const useClient = new Event({
+        const useClient = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'useClient',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -1144,12 +1222,15 @@ suite('events/Http', () => {
             identityProviders
           });
 
-          const useLogger = new Event({
+          const useLogger = Event.create({
             context: { name: 'sampleContext' },
             aggregate: { name: 'sampleAggregate', id: uuid() },
             name: 'useLogger',
             data: { logLevel },
-            metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+            metadata: {
+              revision: { aggregate: 1 },
+              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+            },
             annotations: { state: {}, previousState: {}}
           });
 
@@ -1206,11 +1287,14 @@ suite('events/Http', () => {
 
         const aggregateId = uuid();
 
-        const mapApplied = new Event({
+        const mapApplied = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'mapApplied',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -1253,19 +1337,25 @@ suite('events/Http', () => {
 
         const aggregateId = uuid();
 
-        const mapDenied = new Event({
+        const mapDenied = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'mapDenied',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
-        const executed = new Event({
+        const executed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 },
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -1308,19 +1398,25 @@ suite('events/Http', () => {
 
         const aggregateId = uuid();
 
-        const mapFailed = new Event({
+        const mapFailed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'mapFailed',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
-        const executed = new Event({
+        const executed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 },
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -1363,11 +1459,14 @@ suite('events/Http', () => {
 
         const aggregateId = uuid();
 
-        const mapAppliedWithMutation = new Event({
+        const mapAppliedWithMutation = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'mapAppliedWithMutation',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -1412,35 +1511,41 @@ suite('events/Http', () => {
         const aggregateId = uuid(),
               otherAggregateId = uuid();
 
-        const otherSucceeded = new Event({
+        const otherSucceeded = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: otherAggregateId },
           name: 'succeeded',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
-        const otherExecuted = new Event({
+        const otherExecuted = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: otherAggregateId },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 },
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.saveEvents({
-          uncommittedEvents: [
-            { event: otherSucceeded, state: otherSucceeded.annotations.state },
-            { event: otherExecuted, state: otherExecuted.annotations.state }
-          ]
+          uncommittedEvents: [ otherSucceeded, otherExecuted ]
         });
 
-        const useApp = new Event({
+        const useApp = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'useApp',
           data: { otherAggregateId },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 3 },
+          metadata: {
+            revision: { aggregate: 3 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -1490,11 +1595,14 @@ suite('events/Http', () => {
           identityProviders
         });
 
-        const useClient = new Event({
+        const useClient = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'useClient',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
           annotations: { state: {}, previousState: {}}
         });
 
@@ -1553,12 +1661,15 @@ suite('events/Http', () => {
             identityProviders
           });
 
-          const useLogger = new Event({
+          const useLogger = Event.create({
             context: { name: 'sampleContext' },
             aggregate: { name: 'sampleAggregate', id: uuid() },
             name: 'useLogger',
             data: { logLevel },
-            metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 },
+            metadata: {
+              revision: { aggregate: 1 },
+              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+            },
             annotations: { state: {}, previousState: {}}
           });
 

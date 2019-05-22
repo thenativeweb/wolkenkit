@@ -1,6 +1,7 @@
 'use strict';
 
-const uuid = require('uuidv4'),
+const cloneDeep = require('lodash/cloneDeep'),
+      uuid = require('uuidv4'),
       Value = require('validate-value');
 
 const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
@@ -169,7 +170,7 @@ class Event {
       throw new Error('Data is missing.');
     }
     if (!metadata) {
-      throw new Error('Metadata are missing.');
+      throw new Error('Metadata is missing.');
     }
     if (!metadata.timestamp) {
       throw new Error('Timestamp is missing.');
@@ -186,11 +187,29 @@ class Event {
     if (!metadata.revision) {
       throw new Error('Revision is missing.');
     }
-    if (metadata.position === undefined) {
-      throw new Error('Position is missing.');
+    if (!metadata.revision.aggregate) {
+      throw new Error('Revision aggregate is missing.');
+    }
+    if (metadata.revision.global === undefined) {
+      throw new Error('Revision global is missing.');
     }
     if (!metadata.initiator) {
       throw new Error('Initiator is missing.');
+    }
+    if (!metadata.initiator.user) {
+      throw new Error('Initiator user is missing.');
+    }
+    if (!metadata.initiator.user.id) {
+      throw new Error('Initiator user id is missing.');
+    }
+    if (!metadata.initiator.user.claims) {
+      throw new Error('Initiator user claims is missing.');
+    }
+    if (!metadata.initiator.user.claims.sub) {
+      throw new Error('Initiator user claims sub is missing.');
+    }
+    if (!annotations) {
+      throw new Error('Annotations is missing.');
     }
 
     this.context = { name: context.name };
@@ -205,18 +224,54 @@ class Event {
     value.validate(this, { valueName: 'event' });
   }
 
-  withoutAnnotations () {
-    const event = new Event({
-      context: this.context,
-      aggregate: this.aggregate,
-      name: this.name,
-      id: this.id,
-      data: this.data,
-      metadata: this.metadata,
-      annotations: {}
-    });
+  clone () {
+    const clonedEvent = Event.fromObject(cloneDeep(this));
 
-    return event;
+    return clonedEvent;
+  }
+
+  setData ({ data }) {
+    if (!data) {
+      throw new Error('Data is missing.');
+    }
+
+    const updatedEvent = this.clone();
+
+    updatedEvent.data = data;
+    value.validate(updatedEvent, { valueName: 'event' });
+
+    return updatedEvent;
+  }
+
+  setRevisionGlobal ({ revisionGlobal }) {
+    if (!revisionGlobal) {
+      throw new Error('Revision global is missing.');
+    }
+
+    const updatedEvent = this.clone();
+
+    updatedEvent.metadata.revision.global = revisionGlobal;
+    value.validate(updatedEvent, { valueName: 'event' });
+
+    return updatedEvent;
+  }
+
+  markAsPublished () {
+    const publishedEvent = this.clone();
+
+    publishedEvent.metadata.isPublished = true;
+    value.validate(publishedEvent, { valueName: 'event' });
+
+    return publishedEvent;
+  }
+
+  withoutAnnotations () {
+    const eventWithoutAnnotations = this.clone();
+
+    eventWithoutAnnotations.annotations = {};
+    value.validate(eventWithoutAnnotations, { valueName: 'event' });
+
+    return eventWithoutAnnotations;
   }
 
   static create ({
@@ -224,7 +279,7 @@ class Event {
     aggregate,
     name,
     data = {},
-    metadata = {},
+    metadata,
     annotations = {}
   }) {
     if (!context) {
@@ -245,11 +300,35 @@ class Event {
     if (!name) {
       throw new Error('Name is missing.');
     }
+    if (!metadata) {
+      throw new Error('Metadata is missing.');
+    }
     if (
       (metadata.causationId && !metadata.correlationId) ||
       (!metadata.causationId && metadata.correlationId)
     ) {
       throw new Error('Causation id and correlation id must either be given both or none.');
+    }
+    if (!metadata.revision) {
+      throw new Error('Metadata revision is missing.');
+    }
+    if (!metadata.revision.aggregate) {
+      throw new Error('Metadata revision aggregate is missing.');
+    }
+    if (!metadata.initiator) {
+      throw new Error('Metadata initiator is missing.');
+    }
+    if (!metadata.initiator.user) {
+      throw new Error('Metadata initiator user is missing.');
+    }
+    if (!metadata.initiator.user.id) {
+      throw new Error('Metadata initiator user id is missing.');
+    }
+    if (!metadata.initiator.user.claims) {
+      throw new Error('Metadata initiator user claims is missing.');
+    }
+    if (!metadata.initiator.user.claims.sub) {
+      throw new Error('Metadata initiator user claims sub is missing.');
     }
 
     const id = uuid();
@@ -262,10 +341,14 @@ class Event {
       data,
       metadata: {
         ...metadata,
+        timestamp: Date.now(),
         isPublished: false,
         causationId: metadata.causationId || id,
         correlationId: metadata.correlationId || id,
-        timestamp: Date.now()
+        revision: {
+          aggregate: metadata.revision.aggregate,
+          global: null
+        }
       },
       annotations
     });
@@ -310,16 +393,40 @@ class Event {
       throw new Error('Metadata is missing.');
     }
     if (!metadata.timestamp) {
-      throw new Error('Timestamp is missing.');
+      throw new Error('Metadata timestamp is missing.');
     }
     if (!metadata.causationId) {
-      throw new Error('Causation id is missing.');
+      throw new Error('Metadata causation id is missing.');
     }
     if (!metadata.correlationId) {
-      throw new Error('Correlation id is missing.');
+      throw new Error('Metadata correlation id is missing.');
+    }
+    if (!metadata.revision) {
+      throw new Error('Metadata revision is missing.');
+    }
+    if (!metadata.revision.aggregate) {
+      throw new Error('Metadata revision aggregate is missing.');
+    }
+    if (metadata.revision.global === undefined) {
+      throw new Error('Metadata revision global is missing.');
+    }
+    if (!metadata.initiator) {
+      throw new Error('Metadata initiator is missing.');
+    }
+    if (!metadata.initiator.user) {
+      throw new Error('Metadata initiator user is missing.');
+    }
+    if (!metadata.initiator.user.id) {
+      throw new Error('Metadata initiator user id is missing.');
+    }
+    if (!metadata.initiator.user.claims) {
+      throw new Error('Metadata initiator user claims is missing.');
+    }
+    if (!metadata.initiator.user.claims.sub) {
+      throw new Error('Metadata initiator user claims sub is missing.');
     }
     if (!annotations) {
-      throw new Error('Annotations are missing.');
+      throw new Error('Annotations is missing.');
     }
 
     const event = new Event({

@@ -66,7 +66,7 @@ suite('Sequencer', () => {
         }
       });
 
-      const command = new Command({
+      const command = Command.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleCommand'
@@ -91,13 +91,13 @@ suite('Sequencer', () => {
 
       const aggregateId = uuid();
 
-      const commandSlow = new Command({
+      const commandSlow = Command.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: aggregateId },
         name: 'sampleCommand',
         data: { delay: 50 }
       });
-      const commandFast = new Command({
+      const commandFast = Command.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: aggregateId },
         name: 'sampleCommand',
@@ -125,13 +125,13 @@ suite('Sequencer', () => {
         }
       });
 
-      const commandSlow = new Command({
+      const commandSlow = Command.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleCommand',
         data: { delay: 50 }
       });
-      const commandFast = new Command({
+      const commandFast = Command.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleCommand',

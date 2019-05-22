@@ -9,7 +9,7 @@ const { AppService, ClientService, LoggerService } = require('../../../../common
       ClientMetadata = require('../../../../common/utils/http/ClientMetadata'),
       getConfiguration = require('./getConfiguration'),
       getEvents = require('./getEvents'),
-      { ReadableAggregate } = require('../../../../common/elements'),
+      { Event, ReadableAggregate } = require('../../../../common/elements'),
       { validateEvent } = require('../../../../common/validators');
 
 class V2 {
@@ -205,6 +205,8 @@ class V2 {
 
         mappedEvent =
           await map(aggregateInstance.api.forReadOnly, clonedEvent, services);
+
+        mappedEvent = Event.fromObject(mappedEvent);
       } catch (ex) {
         services.logger.error('Map failed.', { event, clientMetadata, ex });
 
@@ -229,7 +231,7 @@ class V2 {
 
       // Ensure that we never send out annotations of an event, since they
       // contain sensitive data such as tokens.
-      const eventWithoutAnnotations = { ...preparedEvent, annotations: {}};
+      const eventWithoutAnnotations = preparedEvent.withoutAnnotations();
 
       this.writeLine({ connectionId, data: eventWithoutAnnotations });
     }

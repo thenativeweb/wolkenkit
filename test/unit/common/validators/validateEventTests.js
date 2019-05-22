@@ -43,12 +43,17 @@ suite('validateEvent', () => {
   test('throws an error if context name is invalid.', async () => {
     assert.that(() => {
       validateEvent({
-        event: new Event({
+        event: Event.create({
           context: { name: 'nonExistent' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 }
+          }
         }),
         application
       });
@@ -58,12 +63,17 @@ suite('validateEvent', () => {
   test('throws an error if aggregate name is invalid.', async () => {
     assert.that(() => {
       validateEvent({
-        event: new Event({
+        event: Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'nonExistent', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 }
+          }
         }),
         application
       });
@@ -73,12 +83,17 @@ suite('validateEvent', () => {
   test('throws an error if event name is invalid.', async () => {
     assert.that(() => {
       validateEvent({
-        event: new Event({
+        event: Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'nonExistent',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 }
+          }
         }),
         application
       });
@@ -88,12 +103,17 @@ suite('validateEvent', () => {
   test('throws an error if the schema does not match.', async () => {
     assert.that(() => {
       validateEvent({
-        event: new Event({
+        event: Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'nonExistent' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 }
+          }
         }),
         application
       });
@@ -103,12 +123,17 @@ suite('validateEvent', () => {
   test('does not throw an error if the schema matches.', async () => {
     assert.that(() => {
       validateEvent({
-        event: new Event({
+        event: Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 }
+          }
         }),
         application
       });

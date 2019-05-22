@@ -49,10 +49,11 @@ const createPool = function ({
       return new Promise((resolve, reject) => {
         const connection = new Connection({
           server: host,
-          options: { port, encrypt },
-          userName: user,
-          password,
-          database
+          options: { port, database, encrypt },
+          authentication: {
+            type: 'default',
+            options: { userName: user, password }
+          }
         });
 
         let handleConnect,

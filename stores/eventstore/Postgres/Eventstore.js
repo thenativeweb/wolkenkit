@@ -2,8 +2,7 @@
 
 const { PassThrough } = require('stream');
 
-const cloneDeep = require('lodash/cloneDeep'),
-      limitAlphanumeric = require('limit-alphanumeric'),
+const limitAlphanumeric = require('limit-alphanumeric'),
       pg = require('pg'),
       QueryStream = require('pg-query-stream'),
       retry = require('async-retry');
@@ -91,21 +90,21 @@ class Eventstore {
       await retry(async () => {
         await connection.query(`
           CREATE TABLE IF NOT EXISTS "${this.namespace}_events" (
-            "position" bigserial NOT NULL,
+            "revisionGlobal" bigserial NOT NULL,
             "aggregateId" uuid NOT NULL,
-            "revision" integer NOT NULL,
+            "revisionAggregate" integer NOT NULL,
             "event" jsonb NOT NULL,
-            "hasBeenPublished" boolean NOT NULL,
+            "isPublished" boolean NOT NULL,
 
-            CONSTRAINT "${this.namespace}_events_pk" PRIMARY KEY("position"),
-            CONSTRAINT "${this.namespace}_aggregateId_revision" UNIQUE ("aggregateId", "revision")
+            CONSTRAINT "${this.namespace}_events_pk" PRIMARY KEY("revisionGlobal"),
+            CONSTRAINT "${this.namespace}_aggregateId_revisionAggregate" UNIQUE ("aggregateId", "revisionAggregate")
           );
           CREATE TABLE IF NOT EXISTS "${this.namespace}_snapshots" (
             "aggregateId" uuid NOT NULL,
-            "revision" integer NOT NULL,
+            "revisionAggregate" integer NOT NULL,
             "state" jsonb NOT NULL,
 
-            CONSTRAINT "${this.namespace}_snapshots_pk" PRIMARY KEY("aggregateId", "revision")
+            CONSTRAINT "${this.namespace}_snapshots_pk" PRIMARY KEY("aggregateId", "revisionAggregate")
           );
         `);
       }, {
@@ -118,7 +117,7 @@ class Eventstore {
     }
   }
 
-  async getLastEvent (aggregateId) {
+  async getLastEvent ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -129,10 +128,10 @@ class Eventstore {
       const result = await connection.query({
         name: 'get last event',
         text: `
-          SELECT "event", "position"
+          SELECT "event", "revisionGlobal"
             FROM "${this.namespace}_events"
             WHERE "aggregateId" = $1
-            ORDER BY "revision" DESC
+            ORDER BY "revisionAggregate" DESC
             LIMIT 1
         `,
         values: [ aggregateId ]
@@ -142,9 +141,11 @@ class Eventstore {
         return;
       }
 
-      const event = Event.deserialize(result.rows[0].event);
+      let event = Event.fromObject(result.rows[0].event);
 
-      event.annotations.position = Number(result.rows[0].position);
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(result.rows[0].revisionGlobal)
+      });
 
       return event;
     } finally {
@@ -169,12 +170,12 @@ class Eventstore {
     const passThrough = new PassThrough({ objectMode: true });
     const eventStream = connection.query(
       new QueryStream(`
-        SELECT "event", "position", "hasBeenPublished"
+        SELECT "event", "revisionGlobal", "isPublished"
           FROM "${this.namespace}_events"
           WHERE "aggregateId" = $1
-            AND "revision" >= $2
-            AND "revision" <= $3
-          ORDER BY "revision"`,
+            AND "revisionAggregate" >= $2
+            AND "revisionAggregate" <= $3
+          ORDER BY "revisionAggregate"`,
       [ aggregateId, fromRevision, toRevision ])
     );
 
@@ -190,10 +191,15 @@ class Eventstore {
     };
 
     onData = function (data) {
-      const event = Event.deserialize(data.event);
+      let event = Event.fromObject(data.event);
 
-      event.annotations.position = Number(data.position);
-      event.metadata.isPublished = data.hasBeenPublished;
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(data.revisionGlobal)
+      });
+
+      if (data.isPublished) {
+        event = event.markAsPublished();
+      }
 
       passThrough.write(event);
     };
@@ -222,10 +228,10 @@ class Eventstore {
     const passThrough = new PassThrough({ objectMode: true });
     const eventStream = connection.query(
       new QueryStream(`
-        SELECT "event", "position", "hasBeenPublished"
+        SELECT "event", "revisionGlobal", "isPublished"
           FROM "${this.namespace}_events"
-          WHERE "hasBeenPublished" = false
-          ORDER BY "position"`)
+          WHERE "isPublished" = false
+          ORDER BY "revisionGlobal"`)
     );
 
     let onData,
@@ -240,10 +246,16 @@ class Eventstore {
     };
 
     onData = function (data) {
-      const event = Event.deserialize(data.event);
+      let event = Event.fromObject(data.event);
 
-      event.annotations.position = Number(data.position);
-      event.metadata.isPublished = data.hasBeenPublished;
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(data.revisionGlobal)
+      });
+
+      if (data.isPublished) {
+        event = event.markAsPublished();
+      }
+
       passThrough.write(event);
     };
 
@@ -273,46 +285,52 @@ class Eventstore {
       throw new Error('Uncommitted events are missing.');
     }
 
-    const committedEvents = cloneDeep(uncommittedEvents);
-
     const placeholders = [],
           values = [];
 
-    for (let i = 0; i < committedEvents.length; i++) {
-      const base = (4 * i) + 1;
-      const { event } = committedEvents[i];
+    for (const [ index, uncommittedEvent ] of uncommittedEvents.entries()) {
+      if (!uncommittedEvent.annotations.state) {
+        throw new Error('Annotations state is missing.');
+      }
 
-      if (!event.metadata) {
-        throw new Error('Metadata are missing.');
-      }
-      if (event.metadata.revision === undefined) {
-        throw new Error('Revision is missing.');
-      }
-      if (event.metadata.revision < 1) {
-        throw new Error('Revision must not be less than 1.');
-      }
+      const base = (4 * index) + 1;
 
       placeholders.push(`($${base}, $${base + 1}, $${base + 2}, $${base + 3})`);
-      values.push(event.aggregate.id, event.metadata.revision, event, event.metadata.isPublished);
+      values.push(
+        uncommittedEvent.aggregate.id,
+        uncommittedEvent.metadata.revision.aggregate,
+        uncommittedEvent.withoutAnnotations(),
+        uncommittedEvent.metadata.isPublished
+      );
     }
 
     const connection = await this.getDatabase();
 
     const text = `
       INSERT INTO "${this.namespace}_events"
-        ("aggregateId", "revision", "event", "hasBeenPublished")
+        ("aggregateId", "revisionAggregate", "event", "isPublished")
       VALUES
-        ${placeholders.join(',')} RETURNING position;
+        ${placeholders.join(',')} RETURNING "revisionGlobal";
     `;
 
-    try {
-      const result = await connection.query({ name: `save events ${committedEvents.length}`, text, values });
+    const committedEvents = [];
 
-      for (let i = 0; i < result.rows.length; i++) {
-        committedEvents[i].event.annotations.position = Number(result.rows[i].position);
+    try {
+      const result = await connection.query({
+        name: `save events ${uncommittedEvents.length}`,
+        text,
+        values
+      });
+
+      for (const [ index, uncommittedEvent ] of uncommittedEvents.entries()) {
+        const committedEvent = uncommittedEvent.setRevisionGlobal({
+          revisionGlobal: Number(result.rows[index].revisionGlobal)
+        });
+
+        committedEvents.push(committedEvent);
       }
     } catch (ex) {
-      if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", revision)')) {
+      if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", "revisionAggregate")')) {
         throw new Error('Aggregate id and revision already exist.');
       }
 
@@ -322,15 +340,15 @@ class Eventstore {
     }
 
     const indexForSnapshot = committedEvents.findIndex(
-      committedEvent => committedEvent.event.metadata.revision % 100 === 0
+      committedEvent => committedEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const aggregateId = committedEvents[indexForSnapshot].event.aggregate.id;
-      const { revision } = committedEvents[indexForSnapshot].event.metadata;
-      const { state } = committedEvents[indexForSnapshot];
+      const aggregateId = committedEvents[indexForSnapshot].aggregate.id;
+      const { aggregate: revisionAggregate } = committedEvents[indexForSnapshot].metadata.revision;
+      const { state } = committedEvents[indexForSnapshot].annotations;
 
-      await this.saveSnapshot({ aggregateId, revision, state });
+      await this.saveSnapshot({ aggregateId, revision: revisionAggregate, state });
     }
 
     return committedEvents;
@@ -358,10 +376,10 @@ class Eventstore {
         name: 'mark events as published',
         text: `
           UPDATE "${this.namespace}_events"
-            SET "hasBeenPublished" = true
+            SET "isPublished" = true
             WHERE "aggregateId" = $1
-              AND "revision" >= $2
-              AND "revision" <= $3
+              AND "revisionAggregate" >= $2
+              AND "revisionAggregate" <= $3
         `,
         values: [ aggregateId, fromRevision, toRevision ]
       });
@@ -370,7 +388,7 @@ class Eventstore {
     }
   }
 
-  async getSnapshot (aggregateId) {
+  async getSnapshot ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -381,10 +399,10 @@ class Eventstore {
       const result = await connection.query({
         name: 'get snapshot',
         text: `
-          SELECT "state", "revision"
+          SELECT "state", "revisionAggregate"
             FROM "${this.namespace}_snapshots"
             WHERE "aggregateId" = $1
-            ORDER BY "revision" DESC
+            ORDER BY "revisionAggregate" DESC
             LIMIT 1
         `,
         values: [ aggregateId ]
@@ -395,7 +413,7 @@ class Eventstore {
       }
 
       return {
-        revision: result.rows[0].revision,
+        revision: result.rows[0].revisionAggregate,
         state: result.rows[0].state
       };
     } finally {
@@ -423,7 +441,7 @@ class Eventstore {
         name: 'save snapshot',
         text: `
         INSERT INTO "${this.namespace}_snapshots" (
-          "aggregateId", revision, state
+          "aggregateId", "revisionAggregate", state
         ) VALUES ($1, $2, $3)
         ON CONFLICT DO NOTHING;
         `,
@@ -434,12 +452,12 @@ class Eventstore {
     }
   }
 
-  async getReplay (options = {}) {
-    const fromPosition = options.fromPosition || 1;
-    const toPosition = options.toPosition || (2 ** 31) - 1;
-
-    if (fromPosition > toPosition) {
-      throw new Error('From position is greater than to position.');
+  async getReplay ({
+    fromRevisionGlobal = 1,
+    toRevisionGlobal = (2 ** 31) - 1
+  } = {}) {
+    if (fromRevisionGlobal > toRevisionGlobal) {
+      throw new Error('From revision global is greater than to revision global.');
     }
 
     const connection = await this.getDatabase();
@@ -447,12 +465,12 @@ class Eventstore {
     const passThrough = new PassThrough({ objectMode: true });
     const eventStream = connection.query(
       new QueryStream(`
-        SELECT "event", "position"
+        SELECT "event", "revisionGlobal"
           FROM "${this.namespace}_events"
-          WHERE "position" >= $1
-            AND "position" <= $2
-          ORDER BY "position"`,
-      [ fromPosition, toPosition ])
+          WHERE "revisionGlobal" >= $1
+            AND "revisionGlobal" <= $2
+          ORDER BY "revisionGlobal"`,
+      [ fromRevisionGlobal, toRevisionGlobal ])
     );
 
     let onData,
@@ -467,9 +485,12 @@ class Eventstore {
     };
 
     onData = function (data) {
-      const event = Event.deserialize(data.event);
+      let event = Event.fromObject(data.event);
 
-      event.annotations.position = Number(data.position);
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(data.revisionGlobal)
+      });
+
       passThrough.write(event);
     };
 

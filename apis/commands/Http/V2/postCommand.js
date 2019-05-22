@@ -34,17 +34,19 @@ const postCommand = function ({ onReceiveCommand, application }) {
       return res.status(400).send(ex.message);
     }
 
-    command = Command.deserialize({
+    command = Command.fromObject({
       ...command,
-      annotations: {
-        client: new ClientMetadata({ req }),
+      metadata: {
+        ...command.metadata,
         initiator: {
-          token: req.token,
           user: {
             id: req.user.id,
             claims: req.user.claims
           }
         }
+      },
+      annotations: {
+        client: new ClientMetadata({ req })
       }
     });
 

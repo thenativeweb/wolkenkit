@@ -272,7 +272,7 @@ suite('commands/Http', () => {
     });
 
     test('returns 400 if a wellformed command is sent with a non-existent context name.', async () => {
-      const command = new Command({
+      const command = Command.create({
         context: { name: 'nonExistent' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'execute',
@@ -288,7 +288,7 @@ suite('commands/Http', () => {
     });
 
     test('returns 400 if a wellformed command is sent with a non-existent aggregate name.', async () => {
-      const command = new Command({
+      const command = Command.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'nonExistent', id: uuid() },
         name: 'execute',
@@ -304,7 +304,7 @@ suite('commands/Http', () => {
     });
 
     test('returns 400 if a wellformed command is sent with a non-existent command name.', async () => {
-      const command = new Command({
+      const command = Command.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'nonExistent',
@@ -320,7 +320,7 @@ suite('commands/Http', () => {
     });
 
     test('returns 400 if a command is sent with a payload that does not match the schema.', async () => {
-      const command = new Command({
+      const command = Command.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'execute',
@@ -336,7 +336,7 @@ suite('commands/Http', () => {
     });
 
     test('returns 200 if a wellformed and existing command is sent.', async () => {
-      const command = new Command({
+      const command = Command.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'execute',
@@ -351,7 +351,7 @@ suite('commands/Http', () => {
     });
 
     test('receives commands.', async () => {
-      const command = new Command({
+      const command = Command.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'execute',
@@ -367,15 +367,20 @@ suite('commands/Http', () => {
         context: { name: command.context.name },
         aggregate: { name: command.aggregate.name, id: command.aggregate.id },
         name: command.name,
+        id: command.id,
         data: command.data,
-        annotations: {
-          client: {
+        metadata: {
+          causationId: command.id,
+          correlationId: command.id,
+          initiator: {
             user: {
               id: 'anonymous',
               claims: { sub: 'anonymous', iss: 'https://token.invalid' }
             }
-          },
-          initiator: {
+          }
+        },
+        annotations: {
+          client: {
             user: {
               id: 'anonymous',
               claims: { sub: 'anonymous', iss: 'https://token.invalid' }
@@ -384,10 +389,8 @@ suite('commands/Http', () => {
         }
       });
 
-      assert.that(receivedCommands[0].annotations.client.ip).is.ofType('string');
-
       assert.that(receivedCommands[0].annotations.client.token).is.ofType('string');
-      assert.that(receivedCommands[0].annotations.initiator.token).is.ofType('string');
+      assert.that(receivedCommands[0].annotations.client.ip).is.ofType('string');
     });
   });
 });

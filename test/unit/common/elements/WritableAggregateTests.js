@@ -19,18 +19,15 @@ suite('WritableAggregate', () => {
 
     aggregateId = uuid();
 
-    command = new Command({
+    command = Command.create({
       context: { name: 'sampleContext' },
       aggregate: { name: 'sampleAggregate', id: aggregateId },
       name: 'execute',
       data: {
         strategy: 'succeed'
       },
-      annotations: {
-        initiator: {
-          token: '...',
-          user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-        }
+      metadata: {
+        initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
       }
     });
   });
@@ -266,21 +263,21 @@ suite('WritableAggregate', () => {
 
             assert.that(aggregate.instance.uncommittedEvents.length).is.equalTo(2);
 
-            assert.that(aggregate.instance.uncommittedEvents[0].event.context.name).is.equalTo('sampleContext');
-            assert.that(aggregate.instance.uncommittedEvents[0].event.aggregate.name).is.equalTo('sampleAggregate');
-            assert.that(aggregate.instance.uncommittedEvents[0].event.aggregate.id).is.equalTo(aggregateId);
-            assert.that(aggregate.instance.uncommittedEvents[0].event.name).is.equalTo('succeeded');
-            assert.that(aggregate.instance.uncommittedEvents[0].event.data).is.equalTo({});
-            assert.that(aggregate.instance.uncommittedEvents[0].event.annotations.initiator.user.id).is.equalTo(command.annotations.initiator.user.id);
-            assert.that(aggregate.instance.uncommittedEvents[0].event.metadata.revision).is.equalTo(1);
+            assert.that(aggregate.instance.uncommittedEvents[0].context.name).is.equalTo('sampleContext');
+            assert.that(aggregate.instance.uncommittedEvents[0].aggregate.name).is.equalTo('sampleAggregate');
+            assert.that(aggregate.instance.uncommittedEvents[0].aggregate.id).is.equalTo(aggregateId);
+            assert.that(aggregate.instance.uncommittedEvents[0].name).is.equalTo('succeeded');
+            assert.that(aggregate.instance.uncommittedEvents[0].data).is.equalTo({});
+            assert.that(aggregate.instance.uncommittedEvents[0].metadata.initiator.user.id).is.equalTo(command.metadata.initiator.user.id);
+            assert.that(aggregate.instance.uncommittedEvents[0].metadata.revision.aggregate).is.equalTo(1);
 
-            assert.that(aggregate.instance.uncommittedEvents[1].event.context.name).is.equalTo('sampleContext');
-            assert.that(aggregate.instance.uncommittedEvents[1].event.aggregate.name).is.equalTo('sampleAggregate');
-            assert.that(aggregate.instance.uncommittedEvents[1].event.aggregate.id).is.equalTo(aggregateId);
-            assert.that(aggregate.instance.uncommittedEvents[1].event.name).is.equalTo('executed');
-            assert.that(aggregate.instance.uncommittedEvents[1].event.data).is.equalTo({ strategy: 'succeed' });
-            assert.that(aggregate.instance.uncommittedEvents[1].event.annotations.initiator.user.id).is.equalTo(command.annotations.initiator.user.id);
-            assert.that(aggregate.instance.uncommittedEvents[1].event.metadata.revision).is.equalTo(2);
+            assert.that(aggregate.instance.uncommittedEvents[1].context.name).is.equalTo('sampleContext');
+            assert.that(aggregate.instance.uncommittedEvents[1].aggregate.name).is.equalTo('sampleAggregate');
+            assert.that(aggregate.instance.uncommittedEvents[1].aggregate.id).is.equalTo(aggregateId);
+            assert.that(aggregate.instance.uncommittedEvents[1].name).is.equalTo('executed');
+            assert.that(aggregate.instance.uncommittedEvents[1].data).is.equalTo({ strategy: 'succeed' });
+            assert.that(aggregate.instance.uncommittedEvents[1].metadata.initiator.user.id).is.equalTo(command.metadata.initiator.user.id);
+            assert.that(aggregate.instance.uncommittedEvents[1].metadata.revision.aggregate).is.equalTo(2);
           });
 
           test('sets the correlation and the causation id of the new event.', async () => {
@@ -295,26 +292,10 @@ suite('WritableAggregate', () => {
             aggregate.api.forCommands.events.publish('executed', { strategy: 'succeed' });
 
             assert.that(aggregate.instance.uncommittedEvents.length).is.equalTo(2);
-            assert.that(aggregate.instance.uncommittedEvents[0].event.metadata.correlationId).is.equalTo(command.metadata.correlationId);
-            assert.that(aggregate.instance.uncommittedEvents[0].event.metadata.causationId).is.equalTo(command.id);
-            assert.that(aggregate.instance.uncommittedEvents[1].event.metadata.correlationId).is.equalTo(command.metadata.correlationId);
-            assert.that(aggregate.instance.uncommittedEvents[1].event.metadata.causationId).is.equalTo(command.id);
-          });
-
-          test(`does not copy the command initiator's token to the event.`, async () => {
-            const aggregate = new WritableAggregate({
-              application,
-              context: { name: 'sampleContext' },
-              aggregate: { name: 'sampleAggregate', id: aggregateId },
-              command
-            });
-
-            assert.that(command.annotations.initiator.token).is.not.undefined();
-
-            aggregate.api.forCommands.events.publish('succeeded', {});
-
-            assert.that(aggregate.instance.uncommittedEvents.length).is.equalTo(1);
-            assert.that(aggregate.instance.uncommittedEvents[0].event.annotations.initiator.token).is.undefined();
+            assert.that(aggregate.instance.uncommittedEvents[0].metadata.correlationId).is.equalTo(command.metadata.correlationId);
+            assert.that(aggregate.instance.uncommittedEvents[0].metadata.causationId).is.equalTo(command.id);
+            assert.that(aggregate.instance.uncommittedEvents[1].metadata.correlationId).is.equalTo(command.metadata.correlationId);
+            assert.that(aggregate.instance.uncommittedEvents[1].metadata.causationId).is.equalTo(command.id);
           });
 
           test('does not increase the aggregate revision.', async () => {

@@ -117,25 +117,34 @@ suite('AppService', () => {
         test('returns the requested aggregate.', async () => {
           const aggregateId = uuid();
 
-          const succeeded = new Event({
+          const succeeded = Event.create({
             context: { name: 'sampleContext' },
             aggregate: { name: 'sampleAggregate', id: aggregateId },
             name: 'succeeded',
-            metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 }
+            metadata: {
+              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+              causationId: uuid(),
+              correlationId: uuid(),
+              revision: { aggregate: 1 }
+            },
+            annotations: { state: {}}
           });
-          const executed = new Event({
+          const executed = Event.create({
             context: { name: 'sampleContext' },
             aggregate: { name: 'sampleAggregate', id: aggregateId },
             name: 'executed',
             data: { strategy: 'succeed' },
-            metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 }
+            metadata: {
+              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+              causationId: uuid(),
+              correlationId: uuid(),
+              revision: { aggregate: 2 }
+            },
+            annotations: { state: {}}
           });
 
           await eventstore.saveEvents({
-            uncommittedEvents: [
-              { event: succeeded, state: {}},
-              { event: executed, state: {}}
-            ]
+            uncommittedEvents: [ succeeded, executed ]
           });
 
           const aggregate = await appService.sampleContext.sampleAggregate(aggregateId).read();

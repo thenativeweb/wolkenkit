@@ -56,16 +56,13 @@ suite('Repository', () => {
     setup(() => {
       repository = new Repository({ application, eventstore });
 
-      command = new Command({
+      command = Command.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'execute',
         data: { strategy: 'succeed' },
-        annotations: {
-          initiator: {
-            token: '...',
-            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-          }
+        metadata: {
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
 
@@ -133,10 +130,10 @@ suite('Repository', () => {
         const committedEvents = await repository.saveAggregate({ aggregate });
 
         assert.that(committedEvents.length).is.equalTo(2);
-        assert.that(committedEvents[0].event.annotations.position).is.ofType('number');
-        assert.that(committedEvents[1].event.annotations.position).is.ofType('number');
-        assert.that(committedEvents[0].event.annotations.position + 1).is.equalTo(
-          committedEvents[1].event.annotations.position
+        assert.that(committedEvents[0].metadata.revision.global).is.ofType('number');
+        assert.that(committedEvents[1].metadata.revision.global).is.ofType('number');
+        assert.that(committedEvents[0].metadata.revision.global + 1).is.equalTo(
+          committedEvents[1].metadata.revision.global
         );
       });
 
@@ -167,24 +164,33 @@ suite('Repository', () => {
       });
 
       test('throws an error if the aggregate type does not match the events.', async () => {
-        const succeeded = new Event({
+        const succeeded = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'succeeded',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 }
+          },
+          annotations: { state: {}}
         });
-        const nonExistent = new Event({
+        const nonExistent = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'nonExistent',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 2 }
+          },
+          annotations: { state: {}}
         });
 
         await eventstore.saveEvents({
-          uncommittedEvents: [
-            { event: succeeded, state: {}},
-            { event: nonExistent, state: {}}
-          ]
+          uncommittedEvents: [ succeeded, nonExistent ]
         });
 
         await assert.that(async () => {
@@ -193,25 +199,34 @@ suite('Repository', () => {
       });
 
       test('applies previously saved events.', async () => {
-        const succeeded = new Event({
+        const succeeded = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'succeeded',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 }
+          },
+          annotations: { state: {}}
         });
-        const executed = new Event({
+        const executed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 2 }
+          },
+          annotations: { state: {}}
         });
 
         await eventstore.saveEvents({
-          uncommittedEvents: [
-            { event: succeeded, state: {}},
-            { event: executed, state: {}}
-          ]
+          uncommittedEvents: [ succeeded, executed ]
         });
 
         const aggregateReplayed = await repository.replayAggregate({ aggregate });
@@ -222,30 +237,34 @@ suite('Repository', () => {
       });
 
       test('applies previously saved snapshots and events.', async () => {
-        const succeeded = new Event({
+        const succeeded = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'succeeded',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 100 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 100 }
+          },
+          annotations: { state: { events: [ 'succeeded', 'succeeded', 'succeeded' ]}}
         });
-        const executed = new Event({
+        const executed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 101 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 101 }
+          },
+          annotations: { state: {}}
         });
 
         await eventstore.saveEvents({
-          uncommittedEvents: [
-            {
-              event: succeeded,
-              state: { events: [ 'succeeded', 'succeeded', 'succeeded' ]}
-            },
-            {
-              event: executed, state: {}
-            }
-          ]
+          uncommittedEvents: [ succeeded, executed ]
         });
 
         const aggregateReplayed = await repository.replayAggregate({ aggregate });
@@ -289,25 +308,34 @@ suite('Repository', () => {
       });
 
       test('returns a replayed aggregate.', async () => {
-        const succeeded = new Event({
+        const succeeded = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'succeeded',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 }
+          },
+          annotations: { state: {}}
         });
-        const executed = new Event({
+        const executed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 2 }
+          },
+          annotations: { state: {}}
         });
 
         await eventstore.saveEvents({
-          uncommittedEvents: [
-            { event: succeeded, state: {}},
-            { event: executed, state: {}}
-          ]
+          uncommittedEvents: [ succeeded, executed ]
         });
 
         const loadedAggregate = await repository.loadAggregate({
@@ -335,25 +363,34 @@ suite('Repository', () => {
       });
 
       test('returns a replayed aggregate.', async () => {
-        const succeeded = new Event({
+        const succeeded = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'succeeded',
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 1 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 }
+          },
+          annotations: { state: {}}
         });
-        const executed = new Event({
+        const executed = Event.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'executed',
           data: { strategy: 'succeed' },
-          metadata: { causationId: uuid(), correlationId: uuid(), revision: 2 }
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 2 }
+          },
+          annotations: { state: {}}
         });
 
         await eventstore.saveEvents({
-          uncommittedEvents: [
-            { event: succeeded, state: {}},
-            { event: executed, state: {}}
-          ]
+          uncommittedEvents: [ succeeded, executed ]
         });
 
         const loadedAggregate = await repository.loadAggregateForCommand({

@@ -43,7 +43,7 @@ suite('validateCommand', () => {
   test('throws an error if context name is invalid.', async () => {
     assert.that(() => {
       validateCommand({
-        command: new Command({
+        command: Command.create({
           context: { name: 'nonExistent' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'execute'
@@ -56,7 +56,7 @@ suite('validateCommand', () => {
   test('throws an error if aggregate name is invalid.', async () => {
     assert.that(() => {
       validateCommand({
-        command: new Command({
+        command: Command.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'nonExistent', id: uuid() },
           name: 'execute'
@@ -69,7 +69,7 @@ suite('validateCommand', () => {
   test('throws an error if command name is invalid.', async () => {
     assert.that(() => {
       validateCommand({
-        command: new Command({
+        command: Command.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'nonExistent'
@@ -82,7 +82,7 @@ suite('validateCommand', () => {
   test('throws an error if the schema does not match.', async () => {
     assert.that(() => {
       validateCommand({
-        command: new Command({
+        command: Command.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'execute',
@@ -96,7 +96,7 @@ suite('validateCommand', () => {
   test('does not throw an error if the schema matches.', async () => {
     assert.that(() => {
       validateCommand({
-        command: new Command({
+        command: Command.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'execute',

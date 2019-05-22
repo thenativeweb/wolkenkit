@@ -20,7 +20,9 @@ class Repository {
       throw new Error('Aggregate is missing.');
     }
 
-    const snapshot = await this.eventstore.getSnapshot(aggregate.instance.id);
+    const snapshot = await this.eventstore.getSnapshot({
+      aggregateId: aggregate.instance.id
+    });
 
     let fromRevision = 1;
 
@@ -50,7 +52,7 @@ class Repository {
 
       // TODO: Think about splitting this code into repository and aggregate
       //       classes.
-      aggregate.instance.revision = event.metadata.revision;
+      aggregate.instance.revision = event.metadata.revision.aggregate;
     }
 
     return aggregate;

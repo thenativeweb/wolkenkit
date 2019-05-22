@@ -85,7 +85,7 @@ const getTestsFor = function ({ Eventstore, type }) {
 
     test('throws an error if aggregate id is missing.', async () => {
       await assert.that(async () => {
-        await eventstore.getLastEvent();
+        await eventstore.getLastEvent({});
       }).is.throwingAsync('Aggregate id is missing.');
     });
   });
@@ -157,7 +157,7 @@ const getTestsFor = function ({ Eventstore, type }) {
 
     test('throws an error if aggregate id is missing.', async () => {
       await assert.that(async () => {
-        await eventstore.getSnapshot();
+        await eventstore.getSnapshot({});
       }).is.throwingAsync('Aggregate id is missing.');
     });
   });
@@ -191,10 +191,10 @@ const getTestsFor = function ({ Eventstore, type }) {
       assert.that(eventstore.getReplay).is.ofType('function');
     });
 
-    test('throws an error if fromPosition is greater than toPosition.', async () => {
+    test('throws an error if from revision global is greater than to revision global.', async () => {
       await assert.that(async () => {
-        await eventstore.getReplay({ fromPosition: 23, toPosition: 7 });
-      }).is.throwingAsync('From position is greater than to position.');
+        await eventstore.getReplay({ fromRevisionGlobal: 23, toRevisionGlobal: 7 });
+      }).is.throwingAsync('From revision global is greater than to revision global.');
     });
   });
 

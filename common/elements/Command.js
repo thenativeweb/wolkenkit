@@ -1,6 +1,7 @@
 'use strict';
 
-const uuid = require('uuidv4'),
+const cloneDeep = require('lodash/cloneDeep'),
+      uuid = require('uuidv4'),
       Value = require('validate-value');
 
 const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
@@ -141,16 +142,16 @@ class Command {
       throw new Error('Metadata is missing.');
     }
     if (!metadata.timestamp) {
-      throw new Error('Timestamp is missing.');
+      throw new Error('Metadata timestamp is missing.');
     }
     if (!metadata.causationId) {
-      throw new Error('Causation id is missing.');
+      throw new Error('Metadata causation id is missing.');
     }
     if (!metadata.correlationId) {
-      throw new Error('Correlation id is missing.');
+      throw new Error('Metadata correlation id is missing.');
     }
     if (!annotations) {
-      throw new Error('Annotations are missing.');
+      throw new Error('Annotations is missing.');
     }
 
     this.context = { name: context.name };
@@ -165,18 +166,19 @@ class Command {
     value.validate(this, { valueName: 'command' });
   }
 
-  withoutAnnotations () {
-    const command = new Command({
-      context: this.context,
-      aggregate: this.aggregate,
-      name: this.name,
-      id: this.id,
-      data: this.data,
-      metadata: this.metadata,
-      annotations: {}
-    });
+  clone () {
+    const clonedCommand = Command.fromObject(cloneDeep(this));
 
-    return command;
+    return clonedCommand;
+  }
+
+  withoutAnnotations () {
+    const commandWithoutAnnotations = this.clone();
+
+    commandWithoutAnnotations.annotations = {};
+    value.validate(commandWithoutAnnotations, { valueName: 'command' });
+
+    return commandWithoutAnnotations;
   }
 
   static create ({
@@ -269,16 +271,16 @@ class Command {
       throw new Error('Metadata is missing.');
     }
     if (!metadata.timestamp) {
-      throw new Error('Timestamp is missing.');
+      throw new Error('Metadata timestamp is missing.');
     }
     if (!metadata.causationId) {
-      throw new Error('Causation id is missing.');
+      throw new Error('Metadata causation id is missing.');
     }
     if (!metadata.correlationId) {
-      throw new Error('Correlation id is missing.');
+      throw new Error('Metadata correlation id is missing.');
     }
     if (!annotations) {
-      throw new Error('Annotations are missing.');
+      throw new Error('Annotations is missing.');
     }
 
     const command = new Command({

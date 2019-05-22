@@ -35,178 +35,14 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
         await eventstore.initialize({ ...getOptions(), namespace });
       }).is.not.throwingAsync();
     });
-
-    test('throws an error if the aggregate id and revision of the new event are already in use.', async () => {
-      const event = new Event({
-        context: { name: 'planning' },
-        aggregate: { name: 'peerGroup', id: uuid() },
-        name: 'started',
-        data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
-      });
-
-      await eventstore.initialize({ ...getOptions(), namespace });
-      await eventstore.saveEvents({ uncommittedEvents: [{ event, state: {}}]});
-
-      await assert.that(async () => {
-        await eventstore.saveEvents({ uncommittedEvents: [{ event, state: {}}]});
-      }).is.throwingAsync('Aggregate id and revision already exist.');
-    });
-
-    suite('event stream order', () => {
-      test('assigns the position 1 to the first event.', async () => {
-        const event = new Event({
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: uuid() },
-          name: 'started',
-          data: { initiator: 'Jane Doe', destination: 'Riva' },
-          metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
-        });
-
-        await eventstore.initialize({ ...getOptions(), namespace });
-        await eventstore.saveEvents({ uncommittedEvents: [{ event, state: {}}]});
-
-        const eventStream = await eventstore.getEventStream({ aggregateId: event.aggregate.id });
-        const aggregateEvents = await toArray(eventStream);
-
-        assert.that(aggregateEvents.length).is.equalTo(1);
-        assert.that(aggregateEvents[0].annotations.position).is.equalTo(1);
-      });
-
-      test('assigns increasing positions to subsequent events.', async () => {
-        const eventStarted = new Event({
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: uuid() },
-          name: 'started',
-          data: { initiator: 'Jane Doe', destination: 'Riva' },
-          metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
-        });
-
-        const eventJoined = new Event({
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
-          name: 'joined',
-          data: { participant: 'Jane Doe' },
-          metadata: { correlationId: uuid(), causationId: uuid(), revision: 2 }
-        });
-
-        await eventstore.initialize({ ...getOptions(), namespace });
-        await eventstore.saveEvents({
-          uncommittedEvents: [
-            { event: eventStarted, state: {}},
-            { event: eventJoined, state: {}}
-          ]
-        });
-
-        const eventStream = await eventstore.getEventStream({ aggregateId: eventStarted.aggregate.id });
-        const aggregateEvents = await toArray(eventStream);
-
-        assert.that(aggregateEvents.length).is.equalTo(2);
-        assert.that(aggregateEvents[0].annotations.position).is.equalTo(1);
-        assert.that(aggregateEvents[1].annotations.position).is.equalTo(2);
-      });
-
-      test('assigns increasing positions even when saving the events individually.', async () => {
-        const eventStarted = new Event({
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: uuid() },
-          name: 'started',
-          data: { initiator: 'Jane Doe', destination: 'Riva' },
-          metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
-        });
-
-        const eventJoined = new Event({
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
-          name: 'joined',
-          data: { participant: 'Jane Doe' },
-          metadata: { correlationId: uuid(), causationId: uuid(), revision: 2 }
-        });
-
-        await eventstore.initialize({ ...getOptions(), namespace });
-        await eventstore.saveEvents({ uncommittedEvents: [{ event: eventStarted, state: {}}]});
-        await eventstore.saveEvents({ uncommittedEvents: [{ event: eventJoined, state: {}}]});
-
-        const eventStream = await eventstore.getEventStream({ aggregateId: eventStarted.aggregate.id });
-        const aggregateEvents = await toArray(eventStream);
-
-        assert.that(aggregateEvents.length).is.equalTo(2);
-        assert.that(aggregateEvents[0].annotations.position).is.equalTo(1);
-        assert.that(aggregateEvents[1].annotations.position).is.equalTo(2);
-      });
-
-      test('ensures that positions are unique across aggregates.', async () => {
-        const eventStarted1 = new Event({
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: uuid() },
-          name: 'started',
-          data: { initiator: 'Jane Doe', destination: 'Riva' },
-          metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
-        });
-
-        const eventStarted2 = new Event({
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: uuid() },
-          name: 'started',
-          data: { initiator: 'Jane Doe', destination: 'Riva' },
-          metadata: { correlationId: uuid(), causationId: uuid(), revision: 2 }
-        });
-
-        await eventstore.initialize({ ...getOptions(), namespace });
-        await eventstore.saveEvents({ uncommittedEvents: [{ event: eventStarted1, state: {}}]});
-        await eventstore.saveEvents({ uncommittedEvents: [{ event: eventStarted2, state: {}}]});
-
-        const eventStream1 = await eventstore.getEventStream({ aggregateId: eventStarted1.aggregate.id });
-        const aggregateEvents1 = await toArray(eventStream1);
-
-        assert.that(aggregateEvents1.length).is.equalTo(1);
-        assert.that(aggregateEvents1[0].annotations.position).is.equalTo(1);
-
-        const eventStream2 = await eventstore.getEventStream({ aggregateId: eventStarted2.aggregate.id });
-        const aggregateEvents2 = await toArray(eventStream2);
-
-        assert.that(aggregateEvents2.length).is.equalTo(1);
-        assert.that(aggregateEvents2[0].annotations.position).is.equalTo(2);
-      });
-
-      test('returns the saved events enriched by their positions.', async () => {
-        const event = new Event({
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: uuid() },
-          name: 'started',
-          data: { initiator: 'Jane Doe', destination: 'Riva' },
-          metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
-        });
-
-        await eventstore.initialize({ ...getOptions(), namespace });
-        const savedEvents = await eventstore.saveEvents({ uncommittedEvents: [{ event, state: {}}]});
-
-        assert.that(savedEvents.length).is.equalTo(1);
-        assert.that(savedEvents[0].event.annotations.position).is.equalTo(1);
-      });
-
-      test('does not change the events that were given as arguments.', async () => {
-        const event = new Event({
-          context: { name: 'planning' },
-          aggregate: { name: 'peerGroup', id: uuid() },
-          name: 'started',
-          data: { initiator: 'Jane Doe', destination: 'Riva' },
-          metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
-        });
-
-        await eventstore.initialize({ ...getOptions(), namespace });
-        await eventstore.saveEvents({ uncommittedEvents: [{ event, state: {}}]});
-
-        assert.that(event.annotations.position).is.undefined();
-      });
-    });
   });
 
   suite('getLastEvent', () => {
     test('returns undefined for an aggregate without events.', async () => {
       await eventstore.initialize({ ...getOptions(), namespace });
 
-      const event = await eventstore.getLastEvent(uuid());
+      const aggregateId = uuid();
+      const event = await eventstore.getLastEvent({ aggregateId });
 
       assert.that(event).is.undefined();
     });
@@ -214,40 +50,45 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     test('returns the last event for the given aggregate.', async () => {
       const aggregateId = uuid();
 
-      const eventStarted = new Event({
+      const eventStarted = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: aggregateId },
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
-      const eventJoined = new Event({
+      const eventJoined = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'Jane Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 2 }
+        metadata: {
+          revision: { aggregate: 2 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
-        uncommittedEvents: [
-          { event: eventStarted, state: {}},
-          { event: eventJoined, state: {}}
-        ]
+        uncommittedEvents: [ eventStarted, eventJoined ]
       });
 
-      const event = await eventstore.getLastEvent(aggregateId);
+      const event = await eventstore.getLastEvent({ aggregateId });
 
       assert.that(event.name).is.equalTo('joined');
-      assert.that(event.metadata.revision).is.equalTo(2);
+      assert.that(event.metadata.revision.aggregate).is.equalTo(2);
     });
 
     test('correctly handles null, undefined and empty arrays.', async () => {
       const aggregateId = uuid();
 
-      const eventJoined = new Event({
+      const eventJoined = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: aggregateId },
         name: 'joined',
@@ -256,13 +97,17 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           destination: undefined,
           participants: []
         },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
-      await eventstore.saveEvents({ uncommittedEvents: [{ event: eventJoined, state: {}}]});
+      await eventstore.saveEvents({ uncommittedEvents: [ eventJoined ]});
 
-      const event = await eventstore.getLastEvent(aggregateId);
+      const event = await eventstore.getLastEvent({ aggregateId });
 
       assert.that(event.data.initiator).is.null();
       assert.that(event.data.participants).is.equalTo([]);
@@ -280,28 +125,33 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('returns a stream of events for the given aggregate.', async () => {
-      const eventStarted = new Event({
+      const eventStarted = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
-      const eventJoined = new Event({
+      const eventJoined = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'Jane Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 2 }
+        metadata: {
+          revision: { aggregate: 2 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
-        uncommittedEvents: [
-          { event: eventStarted, state: {}},
-          { event: eventJoined, state: {}}
-        ]
+        uncommittedEvents: [ eventStarted, eventJoined ]
       });
 
       const eventStream = await eventstore.getEventStream({ aggregateId: eventStarted.aggregate.id });
@@ -313,31 +163,39 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('returns a stream from revision.', async () => {
-      const eventStarted = new Event({
+      const eventStarted = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
-      const eventJoined = new Event({
+      const eventJoined = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'Jane Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 2 }
+        metadata: {
+          revision: { aggregate: 2 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
-        uncommittedEvents: [
-          { event: eventStarted, state: {}},
-          { event: eventJoined, state: {}}
-        ]
+        uncommittedEvents: [ eventStarted, eventJoined ]
       });
 
-      const eventStream = await eventstore.getEventStream({ aggregateId: eventStarted.aggregate.id, fromRevision: 2 });
+      const eventStream = await eventstore.getEventStream({
+        aggregateId: eventStarted.aggregate.id,
+        fromRevision: 2
+      });
       const aggregateEvents = await toArray(eventStream);
 
       assert.that(aggregateEvents.length).is.equalTo(1);
@@ -345,31 +203,39 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('returns a stream to revision.', async () => {
-      const eventStarted = new Event({
+      const eventStarted = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
-      const eventJoined = new Event({
+      const eventJoined = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'Jane Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 2 }
+        metadata: {
+          revision: { aggregate: 2 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
-        uncommittedEvents: [
-          { event: eventStarted, state: {}},
-          { event: eventJoined, state: {}}
-        ]
+        uncommittedEvents: [ eventStarted, eventJoined ]
       });
 
-      const eventStream = await eventstore.getEventStream({ aggregateId: eventStarted.aggregate.id, toRevision: 1 });
+      const eventStream = await eventstore.getEventStream({
+        aggregateId: eventStarted.aggregate.id,
+        toRevision: 1
+      });
       const aggregateEvents = await toArray(eventStream);
 
       assert.that(aggregateEvents.length).is.equalTo(1);
@@ -388,30 +254,35 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('returns a stream of unpublished events.', async () => {
-      const eventStarted = new Event({
+      let eventStarted = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
-      eventStarted.metadata.isPublished = true;
+      eventStarted = eventStarted.markAsPublished();
 
-      const eventJoined = new Event({
+      const eventJoined = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'Jane Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 2 }
+        metadata: {
+          revision: { aggregate: 2 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
-        uncommittedEvents: [
-          { event: eventStarted, state: {}},
-          { event: eventJoined, state: {}}
-        ]
+        uncommittedEvents: [ eventStarted, eventJoined ]
       });
 
       const eventStream = await eventstore.getUnpublishedEventStream();
@@ -429,32 +300,58 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       }).is.throwingAsync('Uncommitted events are missing.');
     });
 
-    test('saves events.', async () => {
-      const eventStarted = new Event({
+    test('throws an error if annotations state is missing.', async () => {
+      const eventStarted = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
       });
 
-      const eventJoined = new Event({
+      await eventstore.initialize({ ...getOptions(), namespace });
+
+      await assert.that(async () => {
+        await eventstore.saveEvents({ uncommittedEvents: [ eventStarted ]});
+      }).is.throwingAsync('Annotations state is missing.');
+    });
+
+    test('saves events.', async () => {
+      const eventStarted = Event.create({
+        context: { name: 'planning' },
+        aggregate: { name: 'peerGroup', id: uuid() },
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
+      });
+
+      const eventJoined = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'Jane Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 2 }
+        metadata: {
+          revision: { aggregate: 2 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
-        uncommittedEvents: [
-          { event: eventStarted, state: {}},
-          { event: eventJoined, state: {}}
-        ]
+        uncommittedEvents: [ eventStarted, eventJoined ]
       });
 
-      const eventStream = await eventstore.getEventStream({ aggregateId: eventStarted.aggregate.id });
+      const eventStream = await eventstore.getEventStream({
+        aggregateId: eventStarted.aggregate.id
+      });
       const aggregateEvents = await toArray(eventStream);
 
       assert.that(aggregateEvents.length).is.equalTo(2);
@@ -462,49 +359,128 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       assert.that(aggregateEvents[1].name).is.equalTo('joined');
     });
 
-    test('returns events with updated positions.', async () => {
-      const eventStarted = new Event({
+    test('does not save annotations.', async () => {
+      const eventStarted = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: { foo: 'bar' }}
       });
 
-      const eventJoined = new Event({
+      await eventstore.initialize({ ...getOptions(), namespace });
+      await eventstore.saveEvents({
+        uncommittedEvents: [ eventStarted ]
+      });
+
+      const eventStream = await eventstore.getEventStream({
+        aggregateId: eventStarted.aggregate.id
+      });
+      const aggregateEvents = await toArray(eventStream);
+
+      assert.that(aggregateEvents.length).is.equalTo(1);
+      assert.that(aggregateEvents[0].annotations).is.equalTo({});
+    });
+
+    test('does not remove annotations from committed events.', async () => {
+      const eventStarted = Event.create({
+        context: { name: 'planning' },
+        aggregate: { name: 'peerGroup', id: uuid() },
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: { foo: 'bar' }}
+      });
+
+      await eventstore.initialize({ ...getOptions(), namespace });
+
+      const [ committedEvent ] = await eventstore.saveEvents({
+        uncommittedEvents: [ eventStarted ]
+      });
+
+      assert.that(committedEvent.annotations).is.equalTo({ state: { foo: 'bar' }});
+    });
+
+    test('throws an error if the aggregate id and revision of the new event are already in use.', async () => {
+      const event = Event.create({
+        context: { name: 'planning' },
+        aggregate: { name: 'peerGroup', id: uuid() },
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
+      });
+
+      await eventstore.initialize({ ...getOptions(), namespace });
+      await eventstore.saveEvents({ uncommittedEvents: [ event ]});
+
+      await assert.that(async () => {
+        await eventstore.saveEvents({ uncommittedEvents: [ event ]});
+      }).is.throwingAsync('Aggregate id and revision already exist.');
+    });
+
+    test('returns events with updated global revisions.', async () => {
+      const eventStarted = Event.create({
+        context: { name: 'planning' },
+        aggregate: { name: 'peerGroup', id: uuid() },
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
+      });
+
+      const eventJoined = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'Jane Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 2 }
+        metadata: {
+          revision: { aggregate: 2 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
       const savedEvents = await eventstore.saveEvents({
-        uncommittedEvents: [
-          { event: eventStarted, state: {}},
-          { event: eventJoined, state: {}}
-        ]
+        uncommittedEvents: [ eventStarted, eventJoined ]
       });
 
       assert.that(savedEvents.length).is.equalTo(2);
-      assert.that(savedEvents[0].event.name).is.equalTo('started');
-      assert.that(savedEvents[0].event.annotations.position).is.equalTo(1);
-      assert.that(savedEvents[1].event.name).is.equalTo('joined');
-      assert.that(savedEvents[1].event.annotations.position).is.equalTo(2);
+      assert.that(savedEvents[0].name).is.equalTo('started');
+      assert.that(savedEvents[0].metadata.revision.global).is.equalTo(1);
+      assert.that(savedEvents[1].name).is.equalTo('joined');
+      assert.that(savedEvents[1].metadata.revision.global).is.equalTo(2);
     });
 
     test('correctly handles undefined and null.', async () => {
-      const event = new Event({
+      const event = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
         data: { initiator: null, destination: undefined },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
-      await eventstore.saveEvents({ uncommittedEvents: [{ event, state: {}}]});
+      await eventstore.saveEvents({ uncommittedEvents: [ event ]});
 
       const eventStream = await eventstore.getEventStream({ aggregateId: event.aggregate.id });
       const aggregateEvents = await toArray(eventStream);
@@ -514,49 +490,48 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('saves a snapshot when one of the events has a revision divisible by 100.', async () => {
-      const eventStarted = new Event({
+      const eventStarted = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 99 }
+        metadata: {
+          revision: { aggregate: 99 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: []}}
       });
 
-      const eventJoinedFirst = new Event({
+      const eventJoinedFirst = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'Jane Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 100 }
+        metadata: {
+          revision: { aggregate: 100 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe' ]}}
       });
 
-      const eventJoinedSecond = new Event({
+      const eventJoinedSecond = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'John Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 101 }
+        metadata: {
+          revision: { aggregate: 101 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe', 'John Doe' ]}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
-        uncommittedEvents: [
-          {
-            event: eventStarted,
-            state: { initiator: 'Jane Doe', destination: 'Riva', participants: []}
-          },
-          {
-            event: eventJoinedFirst,
-            state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe' ]}
-          },
-          {
-            event: eventJoinedSecond,
-            state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe', 'John Doe' ]}
-          }
-        ]
+        uncommittedEvents: [ eventStarted, eventJoinedFirst, eventJoinedSecond ]
       });
 
-      const snapshot = await eventstore.getSnapshot(eventStarted.aggregate.id);
+      const snapshot = await eventstore.getSnapshot({ aggregateId: eventStarted.aggregate.id });
 
       assert.that(snapshot).is.equalTo({
         revision: 100,
@@ -569,87 +544,275 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('does not save a snapshot when none of the events has a revision divisible by 100.', async () => {
-      const eventStarted = new Event({
+      const eventStarted = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 102 }
+        metadata: {
+          revision: { aggregate: 102 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: []}}
       });
 
-      const eventJoinedFirst = new Event({
+      const eventJoinedFirst = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'Jane Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 103 }
+        metadata: {
+          revision: { aggregate: 103 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe' ]}}
       });
 
-      const eventJoinedSecond = new Event({
+      const eventJoinedSecond = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'John Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 104 }
+        metadata: {
+          revision: { aggregate: 104 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe', 'John Doe' ]}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
-        uncommittedEvents: [
-          {
-            event: eventStarted,
-            state: { initiator: 'Jane Doe', destination: 'Riva', participants: []}
-          },
-          {
-            event: eventJoinedFirst,
-            state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe' ]}
-          },
-          {
-            event: eventJoinedSecond,
-            state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe', 'John Doe' ]}
-          }
-        ]
+        uncommittedEvents: [ eventStarted, eventJoinedFirst, eventJoinedSecond ]
       });
 
-      const snapshot = await eventstore.getSnapshot(eventStarted.aggregate.id);
+      const snapshot = await eventstore.getSnapshot({ aggregateId: eventStarted.aggregate.id });
 
       assert.that(snapshot).is.undefined();
+    });
+
+    suite('event stream order', () => {
+      test('assigns the global revision 1 to the first event.', async () => {
+        const event = Event.create({
+          context: { name: 'planning' },
+          aggregate: { name: 'peerGroup', id: uuid() },
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
+          annotations: { state: {}}
+        });
+
+        await eventstore.initialize({ ...getOptions(), namespace });
+        await eventstore.saveEvents({ uncommittedEvents: [ event ]});
+
+        const eventStream = await eventstore.getEventStream({ aggregateId: event.aggregate.id });
+        const aggregateEvents = await toArray(eventStream);
+
+        assert.that(aggregateEvents.length).is.equalTo(1);
+        assert.that(aggregateEvents[0].metadata.revision.global).is.equalTo(1);
+      });
+
+      test('assigns increasing global revisions to subsequent events.', async () => {
+        const eventStarted = Event.create({
+          context: { name: 'planning' },
+          aggregate: { name: 'peerGroup', id: uuid() },
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
+          annotations: { state: {}}
+        });
+
+        const eventJoined = Event.create({
+          context: { name: 'planning' },
+          aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
+          name: 'joined',
+          data: { participant: 'Jane Doe' },
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
+          annotations: { state: {}}
+        });
+
+        await eventstore.initialize({ ...getOptions(), namespace });
+        await eventstore.saveEvents({
+          uncommittedEvents: [ eventStarted, eventJoined ]
+        });
+
+        const eventStream = await eventstore.getEventStream({ aggregateId: eventStarted.aggregate.id });
+        const aggregateEvents = await toArray(eventStream);
+
+        assert.that(aggregateEvents.length).is.equalTo(2);
+        assert.that(aggregateEvents[0].metadata.revision.global).is.equalTo(1);
+        assert.that(aggregateEvents[1].metadata.revision.global).is.equalTo(2);
+      });
+
+      test('assigns increasing global revisions even when saving the events individually.', async () => {
+        const eventStarted = Event.create({
+          context: { name: 'planning' },
+          aggregate: { name: 'peerGroup', id: uuid() },
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
+          annotations: { state: {}}
+        });
+
+        const eventJoined = Event.create({
+          context: { name: 'planning' },
+          aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
+          name: 'joined',
+          data: { participant: 'Jane Doe' },
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
+          annotations: { state: {}}
+        });
+
+        await eventstore.initialize({ ...getOptions(), namespace });
+        await eventstore.saveEvents({ uncommittedEvents: [ eventStarted ]});
+        await eventstore.saveEvents({ uncommittedEvents: [ eventJoined ]});
+
+        const eventStream = await eventstore.getEventStream({ aggregateId: eventStarted.aggregate.id });
+        const aggregateEvents = await toArray(eventStream);
+
+        assert.that(aggregateEvents.length).is.equalTo(2);
+        assert.that(aggregateEvents[0].metadata.revision.global).is.equalTo(1);
+        assert.that(aggregateEvents[1].metadata.revision.global).is.equalTo(2);
+      });
+
+      test('ensures that global revisions are unique across aggregates.', async () => {
+        const eventStarted1 = Event.create({
+          context: { name: 'planning' },
+          aggregate: { name: 'peerGroup', id: uuid() },
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
+          annotations: { state: {}}
+        });
+
+        const eventStarted2 = Event.create({
+          context: { name: 'planning' },
+          aggregate: { name: 'peerGroup', id: uuid() },
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
+          annotations: { state: {}}
+        });
+
+        await eventstore.initialize({ ...getOptions(), namespace });
+        await eventstore.saveEvents({ uncommittedEvents: [ eventStarted1 ]});
+        await eventstore.saveEvents({ uncommittedEvents: [ eventStarted2 ]});
+
+        const eventStream1 = await eventstore.getEventStream({ aggregateId: eventStarted1.aggregate.id });
+        const aggregateEvents1 = await toArray(eventStream1);
+
+        assert.that(aggregateEvents1.length).is.equalTo(1);
+        assert.that(aggregateEvents1[0].metadata.revision.global).is.equalTo(1);
+
+        const eventStream2 = await eventstore.getEventStream({ aggregateId: eventStarted2.aggregate.id });
+        const aggregateEvents2 = await toArray(eventStream2);
+
+        assert.that(aggregateEvents2.length).is.equalTo(1);
+        assert.that(aggregateEvents2[0].metadata.revision.global).is.equalTo(2);
+      });
+
+      test('returns the saved events enriched by their global revisions.', async () => {
+        const event = Event.create({
+          context: { name: 'planning' },
+          aggregate: { name: 'peerGroup', id: uuid() },
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
+          annotations: { state: {}}
+        });
+
+        await eventstore.initialize({ ...getOptions(), namespace });
+        const savedEvents = await eventstore.saveEvents({ uncommittedEvents: [ event ]});
+
+        assert.that(savedEvents.length).is.equalTo(1);
+        assert.that(savedEvents[0].metadata.revision.global).is.equalTo(1);
+      });
+
+      test('does not change the events that were given as arguments.', async () => {
+        const event = Event.create({
+          context: { name: 'planning' },
+          aggregate: { name: 'peerGroup', id: uuid() },
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
+          annotations: { state: {}}
+        });
+
+        await eventstore.initialize({ ...getOptions(), namespace });
+        await eventstore.saveEvents({ uncommittedEvents: [ event ]});
+
+        assert.that(event.metadata.revision.global).is.null();
+      });
     });
   });
 
   suite('markEventsAsPublished', () => {
     test('marks the specified events as published.', async () => {
-      const eventStarted = new Event({
+      const eventStarted = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
-      const eventJoinedFirst = new Event({
+      const eventJoinedFirst = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'Jane Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 2 }
+        metadata: {
+          revision: { aggregate: 2 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
-      const eventJoinedSecond = new Event({
+      const eventJoinedSecond = Event.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
         data: { participant: 'Jennifer Doe' },
-        metadata: { correlationId: uuid(), causationId: uuid(), revision: 3 }
+        metadata: {
+          revision: { aggregate: 3 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        },
+        annotations: { state: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveEvents({
-        uncommittedEvents: [
-          { event: eventStarted, state: {}},
-          { event: eventJoinedFirst, state: {}},
-          { event: eventJoinedSecond, state: {}}
-        ]
+        uncommittedEvents: [ eventStarted, eventJoinedFirst, eventJoinedSecond ]
       });
 
       await eventstore.markEventsAsPublished({
@@ -671,7 +834,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     test('returns undefined for an aggregate without a snapshot.', async () => {
       await eventstore.initialize({ ...getOptions(), namespace });
 
-      const snapshot = await eventstore.getSnapshot(uuid());
+      const snapshot = await eventstore.getSnapshot({ aggregateId: uuid() });
 
       assert.that(snapshot).is.undefined();
     });
@@ -688,7 +851,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveSnapshot({ aggregateId, revision: 5, state });
 
-      const snapshot = await eventstore.getSnapshot(aggregateId);
+      const snapshot = await eventstore.getSnapshot({ aggregateId });
 
       assert.that(snapshot).is.equalTo({
         revision: 5,
@@ -708,7 +871,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveSnapshot({ aggregateId, revision: 5, state });
 
-      const snapshot = await eventstore.getSnapshot(aggregateId);
+      const snapshot = await eventstore.getSnapshot({ aggregateId });
 
       assert.that(snapshot.revision).is.equalTo(5);
       assert.that(snapshot.state).is.equalTo({
@@ -736,7 +899,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       await eventstore.saveSnapshot({ aggregateId, revision: 5, state: stateOld });
       await eventstore.saveSnapshot({ aggregateId, revision: 10, state: stateNew });
 
-      const snapshot = await eventstore.getSnapshot(aggregateId);
+      const snapshot = await eventstore.getSnapshot({ aggregateId });
 
       assert.that(snapshot).is.equalTo({
         revision: 10,
@@ -757,7 +920,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveSnapshot({ aggregateId, revision: 10, state });
 
-      const snapshot = await eventstore.getSnapshot(aggregateId);
+      const snapshot = await eventstore.getSnapshot({ aggregateId });
 
       assert.that(snapshot).is.equalTo({
         revision: 10,
@@ -781,7 +944,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       }
 
       for (const aggregateId of aggregateIds) {
-        const snapshot = await eventstore.getSnapshot(aggregateId);
+        const snapshot = await eventstore.getSnapshot({ aggregateId });
 
         assert.that(snapshot).is.equalTo({
           revision: 10,
@@ -801,7 +964,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       await eventstore.initialize({ ...getOptions(), namespace });
       await eventstore.saveSnapshot({ aggregateId, revision: 10, state });
 
-      const snapshot = await eventstore.getSnapshot(aggregateId);
+      const snapshot = await eventstore.getSnapshot({ aggregateId });
 
       assert.that(snapshot).is.equalTo({
         revision: 10,
@@ -838,37 +1001,45 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
 
     suite('with existent data', () => {
       setup(async () => {
-        const eventStarted = new Event({
+        const eventStarted = Event.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: uuid() },
           name: 'started',
           data: { initiator: 'Jane Doe', destination: 'Riva' },
-          metadata: { correlationId: uuid(), causationId: uuid(), revision: 1 }
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
+          annotations: { state: {}}
         });
 
-        const eventJoinedFirst = new Event({
+        const eventJoinedFirst = Event.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
           name: 'joined',
           data: { participant: 'Jane Doe' },
-          metadata: { correlationId: uuid(), causationId: uuid(), revision: 2 }
+          metadata: {
+            revision: { aggregate: 2 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
+          annotations: { state: {}}
         });
 
-        const eventJoinedSecond = new Event({
+        const eventJoinedSecond = Event.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
           name: 'joined',
           data: { participant: 'Jennifer Doe' },
-          metadata: { correlationId: uuid(), causationId: uuid(), revision: 3 }
+          metadata: {
+            revision: { aggregate: 3 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          },
+          annotations: { state: {}}
         });
 
         await eventstore.initialize({ ...getOptions(), namespace });
         await eventstore.saveEvents({
-          uncommittedEvents: [
-            { event: eventStarted, state: {}},
-            { event: eventJoinedFirst, state: {}},
-            { event: eventJoinedSecond, state: {}}
-          ]
+          uncommittedEvents: [ eventStarted, eventJoinedFirst, eventJoinedSecond ]
         });
       });
 
@@ -878,42 +1049,45 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
 
         assert.that(replayEvents.length).is.equalTo(3);
         assert.that(replayEvents[0].name).is.equalTo('started');
-        assert.that(replayEvents[0].annotations.position).is.equalTo(1);
+        assert.that(replayEvents[0].metadata.revision.global).is.equalTo(1);
         assert.that(replayEvents[1].name).is.equalTo('joined');
-        assert.that(replayEvents[1].annotations.position).is.equalTo(2);
+        assert.that(replayEvents[1].metadata.revision.global).is.equalTo(2);
         assert.that(replayEvents[2].name).is.equalTo('joined');
-        assert.that(replayEvents[2].annotations.position).is.equalTo(3);
+        assert.that(replayEvents[2].metadata.revision.global).is.equalTo(3);
       });
 
-      test('returns all events from the given position.', async () => {
-        const replayStream = await eventstore.getReplay({ fromPosition: 2 });
+      test('returns all events from the given global revision.', async () => {
+        const replayStream = await eventstore.getReplay({ fromRevisionGlobal: 2 });
         const replayEvents = await toArray(replayStream);
 
         assert.that(replayEvents.length).is.equalTo(2);
         assert.that(replayEvents[0].name).is.equalTo('joined');
-        assert.that(replayEvents[0].annotations.position).is.equalTo(2);
+        assert.that(replayEvents[0].metadata.revision.global).is.equalTo(2);
         assert.that(replayEvents[1].name).is.equalTo('joined');
-        assert.that(replayEvents[1].annotations.position).is.equalTo(3);
+        assert.that(replayEvents[1].metadata.revision.global).is.equalTo(3);
       });
 
-      test('returns all events to the given position.', async () => {
-        const replayStream = await eventstore.getReplay({ toPosition: 2 });
+      test('returns all events to the given global revision.', async () => {
+        const replayStream = await eventstore.getReplay({ toRevisionGlobal: 2 });
         const replayEvents = await toArray(replayStream);
 
         assert.that(replayEvents.length).is.equalTo(2);
         assert.that(replayEvents[0].name).is.equalTo('started');
-        assert.that(replayEvents[0].annotations.position).is.equalTo(1);
+        assert.that(replayEvents[0].metadata.revision.global).is.equalTo(1);
         assert.that(replayEvents[1].name).is.equalTo('joined');
-        assert.that(replayEvents[1].annotations.position).is.equalTo(2);
+        assert.that(replayEvents[1].metadata.revision.global).is.equalTo(2);
       });
 
-      test('returns all events between the given positions.', async () => {
-        const replayStream = await eventstore.getReplay({ fromPosition: 2, toPosition: 2 });
+      test('returns all events between the given global revisions.', async () => {
+        const replayStream = await eventstore.getReplay({
+          fromRevisionGlobal: 2,
+          toRevisionGlobal: 2
+        });
         const replayEvents = await toArray(replayStream);
 
         assert.that(replayEvents.length).is.equalTo(1);
         assert.that(replayEvents[0].name).is.equalTo('joined');
-        assert.that(replayEvents[0].annotations.position).is.equalTo(2);
+        assert.that(replayEvents[0].metadata.revision.global).is.equalTo(2);
       });
     });
   });

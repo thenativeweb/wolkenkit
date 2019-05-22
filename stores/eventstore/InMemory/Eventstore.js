@@ -2,8 +2,6 @@
 
 const { PassThrough } = require('stream');
 
-const cloneDeep = require('lodash/cloneDeep');
-
 const { Event } = require('../../../common/elements'),
       omitByDeep = require('../omitByDeep');
 
@@ -35,7 +33,7 @@ class Eventstore {
     this.database.events[index] = newEventData;
   }
 
-  async getLastEvent (aggregateId) {
+  async getLastEvent ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -49,7 +47,7 @@ class Eventstore {
 
     const lastEvent = eventsInDatabase[eventsInDatabase.length - 1];
 
-    return Event.deserialize(lastEvent);
+    return Event.fromObject(lastEvent);
   }
 
   async getEventStream ({
@@ -68,12 +66,13 @@ class Eventstore {
 
     const filteredEvents = this.getStoredEvents().
       filter(event => event.aggregate.id === aggregateId &&
-                      event.metadata.revision >= fromRevision &&
-                      event.metadata.revision <= toRevision);
+                      event.metadata.revision.aggregate >= fromRevision &&
+                      event.metadata.revision.aggregate <= toRevision);
 
-    filteredEvents.forEach(event => {
-      passThrough.write(Event.deserialize(event));
-    });
+    for (const event of filteredEvents) {
+      passThrough.write(Event.fromObject(event));
+    }
+
     passThrough.end();
 
     return passThrough;
@@ -81,13 +80,14 @@ class Eventstore {
 
   async getUnpublishedEventStream () {
     const filteredEvents = this.getStoredEvents().
-      filter(event => event.metadata.isPublished === false);
+      filter(event => !event.metadata.isPublished);
 
     const passThrough = new PassThrough({ objectMode: true });
 
-    filteredEvents.forEach(event => {
-      passThrough.write(Event.deserialize(event));
-    });
+    for (const event of filteredEvents) {
+      passThrough.write(Event.fromObject(event));
+    }
+
     passThrough.end();
 
     return passThrough;
@@ -101,49 +101,43 @@ class Eventstore {
       throw new Error('Uncommitted events are missing.');
     }
 
-    const committedEvents = cloneDeep(uncommittedEvents);
-
     const eventsInDatabase = this.getStoredEvents();
+    const committedEvents = [];
 
-    for (const committedEvent of committedEvents) {
-      if (!committedEvent.event.metadata) {
-        throw new Error('Metadata are missing.');
-      }
-      if (committedEvent.event.metadata.revision === undefined) {
-        throw new Error('Revision is missing.');
-      }
-      if (committedEvent.event.metadata.revision < 1) {
-        throw new Error('Revision must not be less than 1.');
+    for (const uncommittedEvent of uncommittedEvents) {
+      if (!uncommittedEvent.annotations.state) {
+        throw new Error('Annotations state is missing.');
       }
 
-      if (
-        eventsInDatabase.find(
-          eventInDatabase =>
-            committedEvent.event.aggregate.id === eventInDatabase.aggregate.id &&
-            committedEvent.event.metadata.revision === eventInDatabase.metadata.revision
-        )
-      ) {
+      const alreadyExists = eventsInDatabase.some(eventInDatabase =>
+        uncommittedEvent.aggregate.id === eventInDatabase.aggregate.id &&
+        uncommittedEvent.metadata.revision.aggregate === eventInDatabase.metadata.revision.aggregate);
+
+      if (alreadyExists) {
         throw new Error('Aggregate id and revision already exist.');
       }
 
-      const newPosition = eventsInDatabase.length + 1;
+      const revisionGlobal = eventsInDatabase.length + 1;
+      let committedEvent = uncommittedEvent.setData({
+        data: omitByDeep(uncommittedEvent.data, value => value === undefined)
+      });
 
-      committedEvent.event.data = omitByDeep(committedEvent.event.data, value => value === undefined);
-      committedEvent.event.annotations.position = newPosition;
+      committedEvent = committedEvent.setRevisionGlobal({ revisionGlobal });
+      committedEvents.push(committedEvent);
 
-      this.storeEventAtDatabase(committedEvent.event);
+      this.storeEventAtDatabase(committedEvent.withoutAnnotations());
     }
 
     const indexForSnapshot = committedEvents.findIndex(
-      committedEvent => committedEvent.event.metadata.revision % 100 === 0
+      committedEvent => committedEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const aggregateId = committedEvents[indexForSnapshot].event.aggregate.id;
-      const { revision } = committedEvents[indexForSnapshot].event.metadata;
-      const { state } = committedEvents[indexForSnapshot];
+      const aggregateId = committedEvents[indexForSnapshot].aggregate.id;
+      const { aggregate: revisionAggregate } = committedEvents[indexForSnapshot].metadata.revision;
+      const { state } = committedEvents[indexForSnapshot].annotations;
 
-      await this.saveSnapshot({ aggregateId, revision, state });
+      await this.saveSnapshot({ aggregateId, revision: revisionAggregate, state });
     }
 
     return committedEvents;
@@ -168,20 +162,19 @@ class Eventstore {
 
     const shouldEventBeMarkedAsPublished = event =>
       event.aggregate.id === aggregateId &&
-      event.metadata.revision >= fromRevision &&
-      event.metadata.revision <= toRevision;
+      event.metadata.revision.aggregate >= fromRevision &&
+      event.metadata.revision.aggregate <= toRevision;
 
     for (const [ index, event ] of eventsFromDatabase.entries()) {
       if (shouldEventBeMarkedAsPublished(event)) {
-        const eventToUpdate = cloneDeep(event);
+        const eventToUpdate = event.markAsPublished();
 
-        eventToUpdate.metadata.isPublished = true;
         this.updateEventInDatabaseAtIndex(index, eventToUpdate);
       }
     }
   }
 
-  async getSnapshot (aggregateId) {
+  async getSnapshot ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -228,23 +221,24 @@ class Eventstore {
     this.storeSnapshotAtDatabase(snapshot);
   }
 
-  async getReplay (options = {}) {
-    const fromPosition = options.fromPosition || 1;
-    const toPosition = options.toPosition || (2 ** 31) - 1;
-
-    if (fromPosition > toPosition) {
-      throw new Error('From position is greater than to position.');
+  async getReplay ({
+    fromRevisionGlobal = 1,
+    toRevisionGlobal = (2 ** 31) - 1
+  } = {}) {
+    if (fromRevisionGlobal > toRevisionGlobal) {
+      throw new Error('From revision global is greater than to revision global.');
     }
 
     const passThrough = new PassThrough({ objectMode: true });
 
     const filteredEvents = this.getStoredEvents().
-      filter(event => event.annotations.position >= fromPosition &&
-                      event.annotations.position <= toPosition);
+      filter(event => event.metadata.revision.global >= fromRevisionGlobal &&
+                      event.metadata.revision.global <= toRevisionGlobal);
 
-    filteredEvents.forEach(event => {
-      passThrough.write(Event.deserialize(event));
-    });
+    for (const event of filteredEvents) {
+      passThrough.write(Event.fromObject(event));
+    }
+
     passThrough.end();
 
     return passThrough;

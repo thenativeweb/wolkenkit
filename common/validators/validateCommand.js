@@ -12,7 +12,9 @@ const validateCommand = function ({ command, application }) {
     throw new Error('Application is missing.');
   }
 
-  if (!Command.isWellformed(command)) {
+  try {
+    Command.fromObject(command);
+  } catch {
     throw new Error('Malformed command.');
   }
 
