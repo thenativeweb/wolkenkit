@@ -28,7 +28,7 @@ const mySql = {
         -e MYSQL_PASSWORD=${password}
         -e MYSQL_DATABASE=${database}
         --name test-mysql
-        mysql:5.7.21
+        thenativeweb/wolkenkit-mysql:latest
         --bind-address=0.0.0.0
     `);
 

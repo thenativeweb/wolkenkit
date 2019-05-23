@@ -50,8 +50,6 @@ class Repository {
 
       await handle(aggregate.api.forEvents, event);
 
-      // TODO: Think about splitting this code into repository and aggregate
-      //       classes.
       aggregate.instance.revision = event.metadata.revision.aggregate;
     }
 

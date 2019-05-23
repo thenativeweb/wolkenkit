@@ -27,7 +27,7 @@ const minio = {
         -e "MINIO_ACCESS_KEY=${accessKey}"
         -e "MINIO_SECRET_KEY=${secretKey}"
         --name test-minio
-        minio/minio:latest
+        thenativeweb/wolkenkit-minio:latest
         server
         /data
     `);

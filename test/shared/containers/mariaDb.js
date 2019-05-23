@@ -28,7 +28,7 @@ const mariaDb = {
         -e MYSQL_PASSWORD=${password}
         -e MYSQL_DATABASE=${database}
         --name test-mariadb
-        mariadb:10.3.5
+        thenativeweb/wolkenkit-mariadb:latest
         --bind-address=0.0.0.0
     `);
 

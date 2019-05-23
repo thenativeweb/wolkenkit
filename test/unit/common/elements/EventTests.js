@@ -1,11 +1,7 @@
 'use strict';
 
 const assert = require('assertthat'),
-      capitalize = require('lodash/capitalize'),
-      cloneDeep = require('lodash/cloneDeep'),
-      getFlatObjectKeys = require('flat-object-keys'),
-      lowerCase = require('lodash/lowerCase'),
-      unset = require('lodash/unset'),
+      getOptionTests = require('get-option-tests'),
       uuid = require('uuidv4');
 
 const { Event } = require('../../../../common/elements');
@@ -16,43 +12,20 @@ suite('Event', () => {
       assert.that(Event.create).is.ofType('function');
     });
 
-    suite('parameters', () => {
-      const options = {
-        context: {
-          name: 'sampleContext'
-        },
-        aggregate: {
-          name: 'sampleAggregate',
-          id: uuid()
-        },
+    getOptionTests({
+      options: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleEvent',
         metadata: {
-          revision: {
-            aggregate: 1
-          },
+          revision: { aggregate: 1 },
           initiator: {
             user: { id: uuid(), claims: { sub: uuid() }}
           }
         }
-      };
-
-      const paths = getFlatObjectKeys({ from: options });
-
-      for (const path of paths) {
-        const spacedPath = lowerCase(path);
-        const capitalizedPath = capitalize(spacedPath);
-
-        /* eslint-disable no-loop-func */
-        test(`throws an error when no ${spacedPath} is given.`, async () => {
-          const clonedOptions = cloneDeep(options);
-
-          unset(clonedOptions, path);
-
-          assert.that(() => {
-            Event.create(clonedOptions);
-          }).is.throwing(`${capitalizedPath} is missing.`);
-        });
-        /* eslint-enable no-loop-func */
+      },
+      run (options) {
+        Event.create(options);
       }
     });
 
@@ -160,57 +133,31 @@ suite('Event', () => {
       assert.that(Event.fromObject).is.ofType('function');
     });
 
-    suite('parameters', () => {
-      const id = uuid();
-      const aggregateId = uuid(),
-            userId = uuid();
-
-      const options = {
-        context: {
-          name: 'sampleContext'
-        },
-        aggregate: {
-          name: 'sampleAggregate',
-          id: aggregateId
-        },
+    getOptionTests({
+      options: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleEvent',
-        id,
-        data: {
-          foo: 'bar'
-        },
+        id: uuid(),
+        data: { foo: 'bar' },
         metadata: {
           timestamp: Date.now(),
-          causationId: id,
-          correlationId: id,
+          causationId: uuid(),
+          correlationId: uuid(),
           revision: { aggregate: 1, global: null },
-          initiator: { user: { id: userId, claims: { sub: userId }}}
+          initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
         },
         annotations: {
           client: {
             token: '...',
-            user: { id: userId, claims: { sub: userId }},
+            user: { id: uuid(), claims: { sub: uuid() }},
             ip: '127.0.0.1'
           }
         }
-      };
-
-      const paths = getFlatObjectKeys({ from: options, excludes: [ 'data.foo', 'annotations.client' ]});
-
-      for (const path of paths) {
-        const spacedPath = lowerCase(path);
-        const capitalizedPath = capitalize(spacedPath);
-
-        /* eslint-disable no-loop-func */
-        test(`throws an error when no ${spacedPath} is given.`, async () => {
-          const clonedOptions = cloneDeep(options);
-
-          unset(clonedOptions, path);
-
-          assert.that(() => {
-            Event.fromObject(clonedOptions);
-          }).is.throwing(`${capitalizedPath} is missing.`);
-        });
-        /* eslint-enable no-loop-func */
+      },
+      excludes: [ 'data.foo', 'annotations.client' ],
+      run (options) {
+        Event.fromObject(options);
       }
     });
 

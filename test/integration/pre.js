@@ -1,8 +1,11 @@
 'use strict';
 
-const containers = require('../shared/containers');
+const buildImages = require('../../docker/buildImages'),
+      containers = require('../shared/containers');
 
 const pre = async function () {
+  await buildImages();
+
   await Promise.all([
     containers.mariaDb.start(),
     containers.minio.start(),

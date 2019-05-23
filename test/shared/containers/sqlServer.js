@@ -53,7 +53,7 @@ const sqlServer = {
         -e ACCEPT_EULA=Y
         -e SA_PASSWORD=${password}
         --name test-sqlserver
-        microsoft/mssql-server-linux:2017-CU6
+        thenativeweb/wolkenkit-sqlserver:latest
     `);
 
     const configuration = {
