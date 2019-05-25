@@ -11,10 +11,12 @@ const express = require('express'),
       processenv = require('processenv');
 
 const { Application } = require('../../common/application'),
-      { CommandExternal } = require('../../common/elements'),
+      { CommandInternal } = require('../../common/elements'),
+      getHandleDispatchCommand = require('./getHandleDispatchCommand'),
       getHandleReceivedCommand = require('./getHandleReceivedCommand'),
       { Http: CommandHttp } = require('../../apis/command'),
       { Http: HealthHttp } = require('../../apis/health'),
+      { InMemory: DispatcherCore } = require('../../cores/dispatcher'),
       registerExceptionHandler = require('../../common/utils/process/registerExceptionHandler');
 
 (async () => {
@@ -27,10 +29,10 @@ const { Application } = require('../../common/application'),
   const corsOriginCommand = getCorsOrigin(processenv('COMMAND_CORS_ORIGIN', '*')),
         corsOriginHealth = getCorsOrigin(processenv('HEALTH_CORS_ORIGIN', '*'));
 
-  const dispatcherServer = {
-    hostname: processenv('DISPATCHER_SERVER_HOSTNAME', 'dispatcher'),
-    port: processenv('DISPATCHER_SERVER_PORT', 3000),
-    disableRetries: processenv('DISPATCHER_SERVER_DISABLE_RETRIES', false)
+  const domainServer = {
+    hostname: processenv('DOMAIN_SERVER_HOSTNAME', 'domain'),
+    port: processenv('DOMAIN_SERVER_PORT', 3000),
+    disableRetries: processenv('DOMAIN_SERVER_DISABLE_RETRIES', false)
   };
 
   const identityProviders = processenv('IDENTITY_PROVIDERS', [
@@ -51,14 +53,22 @@ const { Application } = require('../../common/application'),
     directory: applicationDirectory
   });
 
-  const handleReceivedCommand = getHandleReceivedCommand({ dispatcherServer });
+  const handleDispatchCommand = getHandleDispatchCommand({ domainServer });
+  const dispatcher = new DispatcherCore();
+
+  await dispatcher.initialize({
+    concurrency: processenv('CONCURRENCY', 256),
+    onDispatch: handleDispatchCommand
+  });
+
+  const handleReceivedCommand = getHandleReceivedCommand({ dispatcher });
 
   const commandHttp = new CommandHttp();
   const healthHttp = new HealthHttp();
 
   await commandHttp.initialize({
     corsOrigin: corsOriginCommand,
-    Command: CommandExternal,
+    Command: CommandInternal,
     onReceiveCommand: handleReceivedCommand,
     application,
     identityProviders
@@ -75,6 +85,6 @@ const { Application } = require('../../common/application'),
   const server = http.createServer(api);
 
   server.listen(port, () => {
-    logger.info('Command server started.', { port });
+    logger.info('Dispatcher server started.', { port });
   });
 })();

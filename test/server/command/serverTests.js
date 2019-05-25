@@ -12,17 +12,17 @@ const { CommandExternal } = require('../../../common/elements'),
 suite('command', function () {
   this.timeout(5 * 1000);
 
-  let commandReceivedByDispatcher,
+  let commandReceivedByDispatcherServer,
       port,
       stopServer;
 
   setup(async () => {
-    const portDispatcher = await freeport();
+    const portDispatcherServer = await freeport();
 
     await startCatchAllServer({
-      port: portDispatcher,
+      port: portDispatcherServer,
       onRequest (req, res) {
-        commandReceivedByDispatcher = req.body;
+        commandReceivedByDispatcherServer = req.body;
         res.status(200).end();
       }
     });
@@ -33,8 +33,8 @@ suite('command', function () {
       name: 'command',
       env: {
         PORT: port,
-        DISPATCHER_HOSTNAME: 'localhost',
-        DISPATCHER_PORT: portDispatcher
+        DISPATCHER_SERVER_HOSTNAME: 'localhost',
+        DISPATCHER_SERVER_PORT: portDispatcherServer
       }
     });
   });
@@ -45,7 +45,7 @@ suite('command', function () {
     }
 
     stopServer = undefined;
-    commandReceivedByDispatcher = undefined;
+    commandReceivedByDispatcherServer = undefined;
   });
 
   suite('GET /health/v2', () => {
@@ -77,7 +77,7 @@ suite('command', function () {
       }).is.throwingAsync(ex => ex.response.status === 400);
     });
 
-    test('dispatches commands.', async () => {
+    test('forwards commands to the dispatcher server.', async () => {
       const command = CommandExternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
@@ -93,7 +93,7 @@ suite('command', function () {
 
       assert.that(status).is.equalTo(200);
 
-      assert.that(commandReceivedByDispatcher).is.atLeast({
+      assert.that(commandReceivedByDispatcherServer).is.atLeast({
         ...command,
         annotations: {
           client: {
@@ -106,16 +106,16 @@ suite('command', function () {
       });
     });
 
-    test('returns 500 if dispatching the given command fails.', async () => {
+    test('returns 500 if forwarding the given command to the dispatcher server fails.', async () => {
       stopServer();
 
       stopServer = await startServer({
         name: 'command',
         env: {
           PORT: port,
-          DISPATCHER_HOSTNAME: 'non-existent',
-          DISPATCHER_PORT: 12345,
-          DISPATCHER_DISABLE_RETRIES: true
+          DISPATCHER_SERVER_HOSTNAME: 'non-existent',
+          DISPATCHER_SERVER_PORT: 12345,
+          DISPATCHER_SERVER_DISABLE_RETRIES: true
         }
       });
 
@@ -134,7 +134,7 @@ suite('command', function () {
         });
       }).is.throwingAsync(ex => ex.response.status === 500);
 
-      assert.that(commandReceivedByDispatcher).is.undefined();
+      assert.that(commandReceivedByDispatcherServer).is.undefined();
     });
   });
 });

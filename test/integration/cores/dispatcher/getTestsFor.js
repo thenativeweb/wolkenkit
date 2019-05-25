@@ -1,71 +1,52 @@
 'use strict';
 
 const assert = require('assertthat'),
+      until = require('async-wait-until'),
       uuid = require('uuidv4');
 
 const { CommandInternal } = require('../../../../common/elements'),
-      { Sequencer } = require('../../../../handlers/domain'),
       sleep = require('../../../../common/utils/sleep');
 
-suite('Sequencer', () => {
-  test('is a function.', async () => {
-    assert.that(Sequencer).is.ofType('function');
+/* eslint-disable mocha/max-top-level-suites */
+const getTestsFor = function ({ Dispatcher }) {
+  if (!Dispatcher) {
+    throw new Error('Dispatcher is missing.');
+  }
+
+  let dispatcher;
+
+  setup(() => {
+    dispatcher = new Dispatcher();
   });
 
-  test('throws an error if concurrency is missing.', async () => {
-    assert.that(() => {
-      /* eslint-disable no-new */
-      new Sequencer({
-        onHandle () {
-          // Intentionally left blank.
-        }
-      });
-      /* eslint-enable no-new */
-    }).is.throwing('Concurrency is missing.');
+  suite('initialize', () => {
+    test('does not throw an error.', async () => {
+      await assert.that(async () => {
+        await dispatcher.initialize({
+          concurrency: 256,
+          async onDispatch () {
+            // ...
+          }
+        });
+      }).is.not.throwingAsync();
+    });
   });
 
-  test('throws an error if on handle is missing.', async () => {
-    assert.that(() => {
-      /* eslint-disable no-new */
-      new Sequencer({
-        concurrency: 256
-      });
-      /* eslint-enable no-new */
-    }).is.throwing('On handle is missing.');
-  });
-
-  suite('add', () => {
-    let sequencer;
+  suite('schedule', () => {
+    let dispatchedCommands;
 
     setup(async () => {
-      sequencer = new Sequencer({
+      dispatchedCommands = [];
+
+      await dispatcher.initialize({
         concurrency: 256,
-        onHandle () {
-          // Intentionally left blank.
+        async onDispatch ({ command }) {
+          dispatchedCommands.push(command);
         }
       });
     });
 
-    test('is a function.', async () => {
-      assert.that(sequencer.add).is.ofType('function');
-    });
-
-    test('throws an error if command is missing.', async () => {
-      await assert.that(async () => {
-        await sequencer.add({});
-      }).is.throwingAsync('Command is missing.');
-    });
-
-    test('adds the given command.', async () => {
-      let handledCommand;
-
-      sequencer = new Sequencer({
-        concurrency: 256,
-        async onHandle ({ command }) {
-          handledCommand = command;
-        }
-      });
-
+    test('dispatches the given command.', async () => {
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
@@ -76,20 +57,23 @@ suite('Sequencer', () => {
         }
       });
 
-      await sequencer.add({ command });
+      await dispatcher.schedule({ command });
 
-      assert.that(handledCommand).is.equalTo(command);
+      await until(() => dispatchedCommands.length === 1);
+
+      assert.that(dispatchedCommands.length).is.equalTo(1);
+      assert.that(dispatchedCommands[0]).is.equalTo(command);
     });
 
-    test('executes commands for the same aggregate one after the other.', async () => {
-      const handledCommands = [];
+    test('dispatches commands for the same aggregate one after the other.', async () => {
+      dispatcher = new Dispatcher();
 
-      sequencer = new Sequencer({
+      await dispatcher.initialize({
         concurrency: 256,
-        async onHandle ({ command }) {
+        async onDispatch ({ command }) {
           await sleep({ ms: command.data.delay });
 
-          handledCommands.push(command);
+          dispatchedCommands.push(command);
         }
       });
 
@@ -117,23 +101,26 @@ suite('Sequencer', () => {
       });
 
       await Promise.all([
-        sequencer.add({ command: commandSlow }),
-        sequencer.add({ command: commandFast })
+        dispatcher.schedule({ command: commandSlow }),
+        dispatcher.schedule({ command: commandFast })
       ]);
 
-      assert.that(handledCommands[0]).is.equalTo(commandSlow);
-      assert.that(handledCommands[1]).is.equalTo(commandFast);
+      await until(() => dispatchedCommands.length === 2);
+
+      assert.that(dispatchedCommands.length).is.equalTo(2);
+      assert.that(dispatchedCommands[0]).is.equalTo(commandSlow);
+      assert.that(dispatchedCommands[1]).is.equalTo(commandFast);
     });
 
-    test('executes commands for different aggregates in parallel.', async () => {
-      const handledCommands = [];
+    test('dispatches commands for different aggregates in parallel.', async () => {
+      dispatcher = new Dispatcher();
 
-      sequencer = new Sequencer({
+      await dispatcher.initialize({
         concurrency: 256,
-        async onHandle ({ command }) {
+        async onDispatch ({ command }) {
           await sleep({ ms: command.data.delay });
 
-          handledCommands.push(command);
+          dispatchedCommands.push(command);
         }
       });
 
@@ -159,12 +146,18 @@ suite('Sequencer', () => {
       });
 
       await Promise.all([
-        sequencer.add({ command: commandSlow }),
-        sequencer.add({ command: commandFast })
+        dispatcher.schedule({ command: commandSlow }),
+        dispatcher.schedule({ command: commandFast })
       ]);
 
-      assert.that(handledCommands[0]).is.equalTo(commandFast);
-      assert.that(handledCommands[1]).is.equalTo(commandSlow);
+      await until(() => dispatchedCommands.length === 2);
+
+      assert.that(dispatchedCommands.length).is.equalTo(2);
+      assert.that(dispatchedCommands[0]).is.equalTo(commandFast);
+      assert.that(dispatchedCommands[1]).is.equalTo(commandSlow);
     });
   });
-});
+};
+/* eslint-enable mocha/max-top-level-suites */
+
+module.exports = getTestsFor;

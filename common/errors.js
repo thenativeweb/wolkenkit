@@ -6,6 +6,7 @@ const errors = defekt([
   'DispatchFailed',
   'FileAlreadyExists',
   'FileNotFound',
+  'ForwardFailed',
   'RequestFailed'
 ]);
 

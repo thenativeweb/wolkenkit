@@ -7,25 +7,25 @@ const errors = require('../../common/errors'),
 
 const logger = flaschenpost.getLogger();
 
-const getHandleReceivedCommand = function ({ dispatcher }) {
-  if (!dispatcher) {
-    throw new Error('Dispatcher is missing.');
+const getHandleReceivedCommand = function ({ dispatcherServer }) {
+  if (!dispatcherServer) {
+    throw new Error('Dispatcher server is missing.');
   }
-  if (!dispatcher.hostname) {
-    throw new Error('Dispatcher hostname is missing.');
+  if (!dispatcherServer.hostname) {
+    throw new Error('Dispatcher server hostname is missing.');
   }
-  if (!dispatcher.port) {
-    throw new Error('Dispatcher port is missing.');
+  if (!dispatcherServer.port) {
+    throw new Error('Dispatcher server port is missing.');
   }
-  if (dispatcher.disableRetries === undefined) {
-    throw new Error('Dispatcher disable retries is missing.');
+  if (dispatcherServer.disableRetries === undefined) {
+    throw new Error('Dispatcher server disable retries is missing.');
   }
 
-  const { hostname, port } = dispatcher;
+  const { hostname, port, disableRetries } = dispatcherServer;
 
   let retries = 4;
 
-  if (dispatcher.disableRetries) {
+  if (disableRetries) {
     retries = 0;
   }
 
@@ -44,11 +44,11 @@ const getHandleReceivedCommand = function ({ dispatcher }) {
         retries
       });
 
-      logger.info('Command dispatched.', { command });
+      logger.info('Command forwarded to dispatcher server.', { command });
     } catch (ex) {
-      logger.error('Failed to dispatch command.', { command, ex });
+      logger.error('Failed to forward command to dispatcher server.', { command, ex });
 
-      throw new errors.DispatchFailed();
+      throw new errors.ForwardFailed();
     }
   };
 };

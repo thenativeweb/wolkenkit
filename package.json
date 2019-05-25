@@ -119,6 +119,7 @@
   "devDependencies": {
     "array-join-conjunction": "1.0.0",
     "assertthat": "3.0.0",
+    "async-wait-until": "1.2.4",
     "dir-compare": "1.7.2",
     "execa": "1.0.0",
     "get-option-tests": "1.1.0",
