@@ -6,7 +6,7 @@ const limitAlphanumeric = require('limit-alphanumeric'),
       mysql = require('mysql2/promise'),
       retry = require('async-retry');
 
-const { Event } = require('../../../common/elements'),
+const { EventExternal, EventInternal } = require('../../../common/elements'),
       omitByDeep = require('../omitByDeep');
 
 class Eventstore {
@@ -161,7 +161,7 @@ class Eventstore {
         return;
       }
 
-      let event = Event.fromObject(rows[0].event);
+      let event = EventExternal.fromObject(rows[0].event);
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(rows[0].revisionGlobal)
@@ -220,7 +220,7 @@ class Eventstore {
     };
 
     onResult = function (row) {
-      let event = Event.fromObject(row.event);
+      let event = EventExternal.fromObject(row.event);
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(row.revisionGlobal)
@@ -274,7 +274,7 @@ class Eventstore {
     };
 
     onResult = function (row) {
-      let event = Event.fromObject(row.event);
+      let event = EventExternal.fromObject(row.event);
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(row.revisionGlobal)
@@ -308,15 +308,15 @@ class Eventstore {
           values = [];
 
     for (const uncommittedEvent of uncommittedEvents) {
-      if (!uncommittedEvent.annotations.state) {
-        throw new Error('Annotations state is missing.');
+      if (!(uncommittedEvent instanceof EventInternal)) {
+        throw new Error('Event must be internal.');
       }
 
       placeholders.push('(UuidToBin(?), ?, ?, ?)');
       values.push(
         uncommittedEvent.aggregate.id,
         uncommittedEvent.metadata.revision.aggregate,
-        JSON.stringify(uncommittedEvent.withoutAnnotations()),
+        JSON.stringify(uncommittedEvent.asExternal()),
         uncommittedEvent.metadata.isPublished
       );
     }
@@ -497,7 +497,7 @@ class Eventstore {
     };
 
     onResult = function (row) {
-      let event = Event.fromObject(row.event);
+      let event = EventExternal.fromObject(row.event);
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(row.revisionGlobal)

@@ -5,18 +5,18 @@ const assert = require('assertthat'),
       freeport = require('freeport-promise'),
       uuid = require('uuidv4');
 
-const { Command } = require('../../../common/elements'),
+const { CommandExternal } = require('../../../common/elements'),
       startCatchAllServer = require('../../shared/servers/startCatchAllServer'),
       startServer = require('../../shared/servers/startServer');
 
-suite('command', () => {
+suite('command', function () {
+  this.timeout(5 * 1000);
+
   let commandReceivedByDispatcher,
       port,
       stopServer;
 
-  setup(async function () {
-    this.timeout(5 * 1000);
-
+  setup(async () => {
     const portDispatcher = await freeport();
 
     await startCatchAllServer({
@@ -62,7 +62,7 @@ suite('command', () => {
 
   suite('POST /command/v2', () => {
     test('rejects invalid commands.', async () => {
-      const command = Command.create({
+      const command = CommandExternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'nonExistent'
@@ -78,7 +78,7 @@ suite('command', () => {
     });
 
     test('dispatches commands.', async () => {
-      const command = Command.create({
+      const command = CommandExternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'execute',
@@ -95,14 +95,11 @@ suite('command', () => {
 
       assert.that(commandReceivedByDispatcher).is.atLeast({
         ...command,
-        metadata: {
-          ...command.metadata,
-          initiator: {
-            user: { id: 'anonymous', claims: { sub: 'anonymous' }}
-          }
-        },
         annotations: {
           client: {
+            user: { id: 'anonymous', claims: { sub: 'anonymous' }}
+          },
+          initiator: {
             user: { id: 'anonymous', claims: { sub: 'anonymous' }}
           }
         }
@@ -122,7 +119,7 @@ suite('command', () => {
         }
       });
 
-      const command = Command.create({
+      const command = CommandExternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'execute',

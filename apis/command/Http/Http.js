@@ -11,16 +11,16 @@ const V2 = require('./V2');
 class Http {
   async initialize ({
     corsOrigin,
-    overwriteInitiatorAndClient,
+    Command,
     onReceiveCommand,
     application,
     identityProviders
   }) {
     if (!corsOrigin) {
-      throw new Error('CORS origin is missing.');
+      throw new Error('Cors origin is missing.');
     }
-    if (overwriteInitiatorAndClient === undefined) {
-      throw new Error('Overwrite initiator and client is missing.');
+    if (!Command) {
+      throw new Error('Command is missing.');
     }
     if (!onReceiveCommand) {
       throw new Error('On receive command is missing.');
@@ -29,7 +29,7 @@ class Http {
       throw new Error('Application is missing.');
     }
     if (!identityProviders) {
-      throw new Error('Identity providers are missing.');
+      throw new Error('Identity providers is missing.');
     }
 
     let transformedCorsOrigin;
@@ -41,7 +41,7 @@ class Http {
     }
 
     this.v2 = new V2({
-      overwriteInitiatorAndClient,
+      Command,
       onReceiveCommand,
       application,
       identityProviders

@@ -3,11 +3,12 @@
 const assert = require('assertthat'),
       uuid = require('uuidv4');
 
-const { Application } = require('../../../../common/application'),
-      { Command, WritableAggregate } = require('../../../../common/elements'),
+const { AggregateWriteable, CommandInternal, EventInternal } = require('../../../../common/elements'),
+      { Application } = require('../../../../common/application'),
+      { InMemory } = require('../../../../stores/eventstore'),
       validUpdateInitialState = require('../../../shared/applications/valid/updateInitialState');
 
-suite('WritableAggregate', () => {
+suite('AggregateWriteable', () => {
   let aggregateId,
       application,
       command;
@@ -19,27 +20,28 @@ suite('WritableAggregate', () => {
 
     aggregateId = uuid();
 
-    command = Command.create({
+    command = CommandInternal.create({
       context: { name: 'sampleContext' },
       aggregate: { name: 'sampleAggregate', id: aggregateId },
       name: 'execute',
       data: {
         strategy: 'succeed'
       },
-      metadata: {
+      annotations: {
+        client: { token: '...', user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}, ip: '127.0.0.1' },
         initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
       }
     });
   });
 
   test('is a function.', async () => {
-    assert.that(WritableAggregate).is.ofType('function');
+    assert.that(AggregateWriteable).is.ofType('function');
   });
 
   test('throws an error if application is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new WritableAggregate({
+      new AggregateWriteable({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: aggregateId },
         command
@@ -51,7 +53,7 @@ suite('WritableAggregate', () => {
   test('throws an error if context is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new WritableAggregate({
+      new AggregateWriteable({
         application,
         aggregate: { name: 'sampleAggregate', id: aggregateId },
         command
@@ -63,7 +65,7 @@ suite('WritableAggregate', () => {
   test('throws an error if context name is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new WritableAggregate({
+      new AggregateWriteable({
         application,
         context: {},
         aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -76,7 +78,7 @@ suite('WritableAggregate', () => {
   test('throws an error if aggregate is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new WritableAggregate({
+      new AggregateWriteable({
         application,
         context: { name: 'sampleContext' },
         command
@@ -88,7 +90,7 @@ suite('WritableAggregate', () => {
   test('throws an error if aggregate name is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new WritableAggregate({
+      new AggregateWriteable({
         application,
         context: { name: 'sampleContext' },
         aggregate: { id: aggregateId },
@@ -101,7 +103,7 @@ suite('WritableAggregate', () => {
   test('throws an error if aggregate id is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new WritableAggregate({
+      new AggregateWriteable({
         application,
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate' },
@@ -114,7 +116,7 @@ suite('WritableAggregate', () => {
   test('throws an error if command is missing.', async () => {
     assert.that(() => {
       /* eslint-disable no-new */
-      new WritableAggregate({
+      new AggregateWriteable({
         application,
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: aggregateId }
@@ -124,7 +126,7 @@ suite('WritableAggregate', () => {
   });
 
   test('derives from Readable.', async () => {
-    const aggregate = new WritableAggregate({
+    const aggregate = new AggregateWriteable({
       application,
       context: { name: 'sampleContext' },
       aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -149,7 +151,7 @@ suite('WritableAggregate', () => {
   suite('api', () => {
     suite('forCommands', () => {
       test('contains the aggregate id.', async () => {
-        const aggregate = new WritableAggregate({
+        const aggregate = new AggregateWriteable({
           application,
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -161,7 +163,7 @@ suite('WritableAggregate', () => {
 
       suite('state', () => {
         test('references the read-only api state.', async () => {
-          const aggregate = new WritableAggregate({
+          const aggregate = new AggregateWriteable({
             application,
             context: { name: 'sampleContext' },
             aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -174,7 +176,7 @@ suite('WritableAggregate', () => {
 
       suite('exists', () => {
         test('references the instance exists function.', async () => {
-          const aggregate = new WritableAggregate({
+          const aggregate = new AggregateWriteable({
             application,
             context: { name: 'sampleContext' },
             aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -188,7 +190,7 @@ suite('WritableAggregate', () => {
       suite('events', () => {
         suite('publish', () => {
           test('is a function.', async () => {
-            const aggregate = new WritableAggregate({
+            const aggregate = new AggregateWriteable({
               application,
               context: { name: 'sampleContext' },
               aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -199,7 +201,7 @@ suite('WritableAggregate', () => {
           });
 
           test('throws an error if name is missing.', async () => {
-            const aggregate = new WritableAggregate({
+            const aggregate = new AggregateWriteable({
               application,
               context: { name: 'sampleContext' },
               aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -212,7 +214,7 @@ suite('WritableAggregate', () => {
           });
 
           test('throws an error if a non-existent name is given.', async () => {
-            const aggregate = new WritableAggregate({
+            const aggregate = new AggregateWriteable({
               application,
               context: { name: 'sampleContext' },
               aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -225,7 +227,7 @@ suite('WritableAggregate', () => {
           });
 
           test('does not throw an error if data is missing.', async () => {
-            const aggregate = new WritableAggregate({
+            const aggregate = new AggregateWriteable({
               application,
               context: { name: 'sampleContext' },
               aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -238,7 +240,7 @@ suite('WritableAggregate', () => {
           });
 
           test('throws an error if a schema is given and data does not match.', async () => {
-            const aggregate = new WritableAggregate({
+            const aggregate = new AggregateWriteable({
               application,
               context: { name: 'sampleContext' },
               aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -251,7 +253,7 @@ suite('WritableAggregate', () => {
           });
 
           test('creates a new event and adds it to the list of uncommitted events.', async () => {
-            const aggregate = new WritableAggregate({
+            const aggregate = new AggregateWriteable({
               application,
               context: { name: 'sampleContext' },
               aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -268,7 +270,7 @@ suite('WritableAggregate', () => {
             assert.that(aggregate.instance.uncommittedEvents[0].aggregate.id).is.equalTo(aggregateId);
             assert.that(aggregate.instance.uncommittedEvents[0].name).is.equalTo('succeeded');
             assert.that(aggregate.instance.uncommittedEvents[0].data).is.equalTo({});
-            assert.that(aggregate.instance.uncommittedEvents[0].metadata.initiator.user.id).is.equalTo(command.metadata.initiator.user.id);
+            assert.that(aggregate.instance.uncommittedEvents[0].metadata.initiator.user.id).is.equalTo(command.annotations.initiator.user.id);
             assert.that(aggregate.instance.uncommittedEvents[0].metadata.revision.aggregate).is.equalTo(1);
 
             assert.that(aggregate.instance.uncommittedEvents[1].context.name).is.equalTo('sampleContext');
@@ -276,12 +278,12 @@ suite('WritableAggregate', () => {
             assert.that(aggregate.instance.uncommittedEvents[1].aggregate.id).is.equalTo(aggregateId);
             assert.that(aggregate.instance.uncommittedEvents[1].name).is.equalTo('executed');
             assert.that(aggregate.instance.uncommittedEvents[1].data).is.equalTo({ strategy: 'succeed' });
-            assert.that(aggregate.instance.uncommittedEvents[1].metadata.initiator.user.id).is.equalTo(command.metadata.initiator.user.id);
+            assert.that(aggregate.instance.uncommittedEvents[1].metadata.initiator.user.id).is.equalTo(command.annotations.initiator.user.id);
             assert.that(aggregate.instance.uncommittedEvents[1].metadata.revision.aggregate).is.equalTo(2);
           });
 
           test('sets the correlation and the causation id of the new event.', async () => {
-            const aggregate = new WritableAggregate({
+            const aggregate = new AggregateWriteable({
               application,
               context: { name: 'sampleContext' },
               aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -299,7 +301,7 @@ suite('WritableAggregate', () => {
           });
 
           test('does not increase the aggregate revision.', async () => {
-            const aggregate = new WritableAggregate({
+            const aggregate = new AggregateWriteable({
               application,
               context: { name: 'sampleContext' },
               aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -314,7 +316,7 @@ suite('WritableAggregate', () => {
           });
 
           test('updates the aggregate state.', async () => {
-            const aggregate = new WritableAggregate({
+            const aggregate = new AggregateWriteable({
               application,
               context: { name: 'sampleContext' },
               aggregate: { name: 'sampleAggregate', id: aggregateId },
@@ -334,7 +336,7 @@ suite('WritableAggregate', () => {
 
   suite('applySnapshot', () => {
     test('is a function.', async () => {
-      const aggregate = new WritableAggregate({
+      const aggregate = new AggregateWriteable({
         application,
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
@@ -345,7 +347,7 @@ suite('WritableAggregate', () => {
     });
 
     test('throws an error if snapshot is missing.', async () => {
-      const aggregate = new WritableAggregate({
+      const aggregate = new AggregateWriteable({
         application,
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
@@ -353,12 +355,12 @@ suite('WritableAggregate', () => {
       });
 
       assert.that(() => {
-        aggregate.applySnapshot();
+        aggregate.applySnapshot({});
       }).is.throwing('Snapshot is missing.');
     });
 
     test('overwrites the revision.', async () => {
-      const aggregate = new WritableAggregate({
+      const aggregate = new AggregateWriteable({
         application,
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
@@ -370,13 +372,13 @@ suite('WritableAggregate', () => {
         revision: 23
       };
 
-      aggregate.applySnapshot(snapshot);
+      aggregate.applySnapshot({ snapshot });
 
       assert.that(aggregate.instance.revision).is.equalTo(23);
     });
 
     test('overwrites the state.', async () => {
-      const aggregate = new WritableAggregate({
+      const aggregate = new AggregateWriteable({
         application,
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
@@ -388,11 +390,222 @@ suite('WritableAggregate', () => {
         revision: 23
       };
 
-      aggregate.applySnapshot(snapshot);
+      aggregate.applySnapshot({ snapshot });
 
       assert.that(aggregate.api.forReadOnly.state).is.equalTo(snapshot.state);
       assert.that(aggregate.api.forEvents.state).is.sameAs(aggregate.api.forReadOnly.state);
       assert.that(aggregate.api.forCommands.state).is.sameAs(aggregate.api.forReadOnly.state);
+    });
+  });
+
+  suite('applyEventStream', () => {
+    let aggregate,
+        eventstore,
+        eventStream;
+
+    setup(async () => {
+      eventstore = new InMemory();
+
+      await eventstore.initialize();
+
+      const succeeded = EventInternal.create({
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregateId },
+        name: 'succeeded',
+        metadata: {
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          causationId: uuid(),
+          correlationId: uuid(),
+          revision: { aggregate: 1 }
+        },
+        annotations: { state: {}, previousState: {}}
+      });
+      const executed = EventInternal.create({
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregateId },
+        name: 'executed',
+        data: { strategy: 'succeed' },
+        metadata: {
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          causationId: uuid(),
+          correlationId: uuid(),
+          revision: { aggregate: 2 }
+        },
+        annotations: { state: {}, previousState: {}}
+      });
+
+      await eventstore.saveEvents({
+        uncommittedEvents: [ succeeded, executed ]
+      });
+
+      aggregate = new AggregateWriteable({
+        application,
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregateId },
+        command
+      });
+      eventStream = await eventstore.getEventStream({ aggregateId });
+    });
+
+    teardown(async () => {
+      await eventstore.destroy();
+    });
+
+    test('is a function.', async () => {
+      assert.that(aggregate.applyEventStream).is.ofType('function');
+    });
+
+    test('throws an error if application is missing.', async () => {
+      await assert.that(async () => {
+        await aggregate.applyEventStream({
+          eventStream
+        });
+      }).is.throwingAsync('Application is missing.');
+    });
+
+    test('throws an error if event stream is missing.', async () => {
+      await assert.that(async () => {
+        await aggregate.applyEventStream({
+          application
+        });
+      }).is.throwingAsync('Event stream is missing.');
+    });
+
+    test('throws an error if the context name does not match.', async () => {
+      const otherAggregateId = uuid();
+      const event = EventInternal.create({
+        context: { name: 'nonExistent' },
+        aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+        name: 'executed',
+        data: { strategy: 'succeed' },
+        metadata: {
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          causationId: uuid(),
+          correlationId: uuid(),
+          revision: { aggregate: 1 }
+        },
+        annotations: { state: {}, previousState: {}}
+      });
+
+      await eventstore.saveEvents({
+        uncommittedEvents: [ event ]
+      });
+
+      eventStream = await eventstore.getEventStream({ aggregateId: otherAggregateId });
+
+      await assert.that(async () => {
+        await aggregate.applyEventStream({
+          application,
+          eventStream
+        });
+      }).is.throwingAsync('Context name does not match.');
+    });
+
+    test('throws an error if the aggregate name does not match.', async () => {
+      const otherAggregateId = uuid();
+      const event = EventInternal.create({
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'nonExistent', id: otherAggregateId },
+        name: 'executed',
+        data: { strategy: 'succeed' },
+        metadata: {
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          causationId: uuid(),
+          correlationId: uuid(),
+          revision: { aggregate: 1 }
+        },
+        annotations: { state: {}, previousState: {}}
+      });
+
+      await eventstore.saveEvents({
+        uncommittedEvents: [ event ]
+      });
+
+      eventStream = await eventstore.getEventStream({ aggregateId: otherAggregateId });
+
+      await assert.that(async () => {
+        await aggregate.applyEventStream({
+          application,
+          eventStream
+        });
+      }).is.throwingAsync('Aggregate name does not match.');
+    });
+
+    test('throws an error if the aggregate id does not match.', async () => {
+      const otherAggregateId = uuid();
+      const event = EventInternal.create({
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+        name: 'executed',
+        data: { strategy: 'succeed' },
+        metadata: {
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          causationId: uuid(),
+          correlationId: uuid(),
+          revision: { aggregate: 1 }
+        },
+        annotations: { state: {}, previousState: {}}
+      });
+
+      await eventstore.saveEvents({
+        uncommittedEvents: [ event ]
+      });
+
+      eventStream = await eventstore.getEventStream({ aggregateId: otherAggregateId });
+
+      await assert.that(async () => {
+        await aggregate.applyEventStream({
+          application,
+          eventStream
+        });
+      }).is.throwingAsync('Aggregate id does not match.');
+    });
+
+    test('throws an error if an unknown event name is given.', async () => {
+      // Reset the eventstore to ensure to get only one event.
+      await eventstore.destroy();
+      await eventstore.initialize();
+
+      const event = EventInternal.create({
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
+        name: 'nonExistent',
+        data: { strategy: 'succeed' },
+        metadata: {
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          causationId: uuid(),
+          correlationId: uuid(),
+          revision: { aggregate: 1 }
+        },
+        annotations: { state: {}, previousState: {}}
+      });
+
+      await eventstore.saveEvents({
+        uncommittedEvents: [ event ]
+      });
+
+      eventStream = await eventstore.getEventStream({ aggregateId: aggregate.instance.id });
+
+      await assert.that(async () => {
+        await aggregate.applyEventStream({
+          application,
+          eventStream
+        });
+      }).is.throwingAsync('Unknown event.');
+    });
+
+    test('applies the event stream.', async () => {
+      await aggregate.applyEventStream({
+        application,
+        eventStream
+      });
+
+      assert.that(aggregate.api.forEvents.state).is.equalTo({
+        events: [ 'succeeded', 'executed' ]
+      });
+      assert.that(aggregate.api.forReadOnly.state).is.sameAs(aggregate.api.forEvents.state);
+      assert.that(aggregate.api.forCommands.state).is.sameAs(aggregate.api.forEvents.state);
+      assert.that(aggregate.instance.revision).is.equalTo(2);
     });
   });
 });

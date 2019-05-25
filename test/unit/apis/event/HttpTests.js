@@ -9,7 +9,7 @@ const assert = require('assertthat'),
 
 const { Application } = require('../../../../common/application'),
       asJsonStream = require('../../../shared/http/asJsonStream'),
-      { Event } = require('../../../../common/elements'),
+      { EventExternal, EventInternal } = require('../../../../common/elements'),
       eventFilter = require('../../../shared/applications/valid/eventFilter'),
       eventIsAuthorized = require('../../../shared/applications/valid/eventIsAuthorized'),
       eventMap = require('../../../shared/applications/valid/eventMap'),
@@ -236,8 +236,25 @@ suite('event/Http', () => {
       });
     });
 
+    test('throws an error on external events.', async () => {
+      const executed = EventExternal.create({
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: uuid() },
+        name: 'executed',
+        data: { strategy: 'succeed' },
+        metadata: {
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
+      });
+
+      await assert.that(async () => {
+        await http.sendEvent({ event: executed });
+      }).is.throwingAsync('Event must be internal.');
+    });
+
     test('delivers a single event.', async () => {
-      const executed = Event.create({
+      const executed = EventInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'executed',
@@ -271,7 +288,7 @@ suite('event/Http', () => {
     });
 
     test('delivers multiple events.', async () => {
-      const succeeded = Event.create({
+      const succeeded = EventInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'succeeded',
@@ -282,7 +299,7 @@ suite('event/Http', () => {
         },
         annotations: { state: {}, previousState: {}}
       });
-      const executed = Event.create({
+      const executed = EventInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'executed',
@@ -322,7 +339,7 @@ suite('event/Http', () => {
     });
 
     test('delivers filtered events.', async () => {
-      const succeeded = Event.create({
+      const succeeded = EventInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'succeeded',
@@ -333,7 +350,7 @@ suite('event/Http', () => {
         },
         annotations: { state: {}, previousState: {}}
       });
-      const executed = Event.create({
+      const executed = EventInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'executed',
@@ -372,7 +389,7 @@ suite('event/Http', () => {
     });
 
     test('delivers filtered events with a nested filter.', async () => {
-      const succeeded = Event.create({
+      const succeeded = EventInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'succeeded',
@@ -383,7 +400,7 @@ suite('event/Http', () => {
         },
         annotations: { state: {}, previousState: {}}
       });
-      const executed = Event.create({
+      const executed = EventInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'executed',
@@ -425,7 +442,7 @@ suite('event/Http', () => {
     });
 
     test('removes annotations before delivery.', async () => {
-      const executed = Event.create({
+      const executed = EventInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'executed',
@@ -448,7 +465,7 @@ suite('event/Http', () => {
               assert.that(event).is.equalTo({ name: 'heartbeat' });
             },
             event => {
-              assert.that(event.annotations).is.equalTo({});
+              assert.that(event.annotations).is.undefined();
               resolve();
             }
           ));
@@ -459,7 +476,7 @@ suite('event/Http', () => {
     });
 
     test('gracefully handles connections that get closed by the client.', async () => {
-      const executed = Event.create({
+      const executed = EventInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'executed',
@@ -509,7 +526,7 @@ suite('event/Http', () => {
 
         const aggregateId = uuid();
 
-        const authorizationDenied = Event.create({
+        const authorizationDenied = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'authorizationDenied',
@@ -519,7 +536,7 @@ suite('event/Http', () => {
           },
           annotations: { state: {}, previousState: {}}
         });
-        const executed = Event.create({
+        const executed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'executed',
@@ -570,7 +587,7 @@ suite('event/Http', () => {
 
         const aggregateId = uuid();
 
-        const authorizationFailed = Event.create({
+        const authorizationFailed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'authorizationFailed',
@@ -580,7 +597,7 @@ suite('event/Http', () => {
           },
           annotations: { state: {}, previousState: {}}
         });
-        const executed = Event.create({
+        const executed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'executed',
@@ -631,7 +648,7 @@ suite('event/Http', () => {
 
         const aggregateId = uuid();
 
-        const authorizedWithMutation = Event.create({
+        const authorizedWithMutation = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'authorizedWithMutation',
@@ -683,7 +700,7 @@ suite('event/Http', () => {
         const aggregateId = uuid(),
               otherAggregateId = uuid();
 
-        const otherSucceeded = Event.create({
+        const otherSucceeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: otherAggregateId },
           name: 'succeeded',
@@ -693,7 +710,7 @@ suite('event/Http', () => {
           },
           annotations: { state: {}, previousState: {}}
         });
-        const otherExecuted = Event.create({
+        const otherExecuted = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: otherAggregateId },
           name: 'executed',
@@ -709,7 +726,7 @@ suite('event/Http', () => {
           uncommittedEvents: [ otherSucceeded, otherExecuted ]
         });
 
-        const useApp = Event.create({
+        const useApp = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'useApp',
@@ -767,7 +784,7 @@ suite('event/Http', () => {
           identityProviders
         });
 
-        const useClient = Event.create({
+        const useClient = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'useClient',
@@ -833,7 +850,7 @@ suite('event/Http', () => {
             identityProviders
           });
 
-          const useLogger = Event.create({
+          const useLogger = EventInternal.create({
             context: { name: 'sampleContext' },
             aggregate: { name: 'sampleAggregate', id: uuid() },
             name: 'useLogger',
@@ -898,7 +915,7 @@ suite('event/Http', () => {
 
         const aggregateId = uuid();
 
-        const filterDenied = Event.create({
+        const filterDenied = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'filterDenied',
@@ -908,7 +925,7 @@ suite('event/Http', () => {
           },
           annotations: { state: {}, previousState: {}}
         });
-        const executed = Event.create({
+        const executed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'executed',
@@ -959,7 +976,7 @@ suite('event/Http', () => {
 
         const aggregateId = uuid();
 
-        const filterFailed = Event.create({
+        const filterFailed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'filterFailed',
@@ -969,7 +986,7 @@ suite('event/Http', () => {
           },
           annotations: { state: {}, previousState: {}}
         });
-        const executed = Event.create({
+        const executed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'executed',
@@ -1020,7 +1037,7 @@ suite('event/Http', () => {
 
         const aggregateId = uuid();
 
-        const filteredWithMutation = Event.create({
+        const filteredWithMutation = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'filteredWithMutation',
@@ -1072,7 +1089,7 @@ suite('event/Http', () => {
         const aggregateId = uuid(),
               otherAggregateId = uuid();
 
-        const otherSucceeded = Event.create({
+        const otherSucceeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: otherAggregateId },
           name: 'succeeded',
@@ -1082,7 +1099,7 @@ suite('event/Http', () => {
           },
           annotations: { state: {}, previousState: {}}
         });
-        const otherExecuted = Event.create({
+        const otherExecuted = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: otherAggregateId },
           name: 'executed',
@@ -1098,7 +1115,7 @@ suite('event/Http', () => {
           uncommittedEvents: [ otherSucceeded, otherExecuted ]
         });
 
-        const useApp = Event.create({
+        const useApp = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'useApp',
@@ -1156,7 +1173,7 @@ suite('event/Http', () => {
           identityProviders
         });
 
-        const useClient = Event.create({
+        const useClient = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'useClient',
@@ -1222,7 +1239,7 @@ suite('event/Http', () => {
             identityProviders
           });
 
-          const useLogger = Event.create({
+          const useLogger = EventInternal.create({
             context: { name: 'sampleContext' },
             aggregate: { name: 'sampleAggregate', id: uuid() },
             name: 'useLogger',
@@ -1287,7 +1304,7 @@ suite('event/Http', () => {
 
         const aggregateId = uuid();
 
-        const mapApplied = Event.create({
+        const mapApplied = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'mapApplied',
@@ -1337,7 +1354,7 @@ suite('event/Http', () => {
 
         const aggregateId = uuid();
 
-        const mapDenied = Event.create({
+        const mapDenied = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'mapDenied',
@@ -1347,7 +1364,7 @@ suite('event/Http', () => {
           },
           annotations: { state: {}, previousState: {}}
         });
-        const executed = Event.create({
+        const executed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'executed',
@@ -1398,7 +1415,7 @@ suite('event/Http', () => {
 
         const aggregateId = uuid();
 
-        const mapFailed = Event.create({
+        const mapFailed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'mapFailed',
@@ -1408,7 +1425,7 @@ suite('event/Http', () => {
           },
           annotations: { state: {}, previousState: {}}
         });
-        const executed = Event.create({
+        const executed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'executed',
@@ -1459,7 +1476,7 @@ suite('event/Http', () => {
 
         const aggregateId = uuid();
 
-        const mapAppliedWithMutation = Event.create({
+        const mapAppliedWithMutation = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'mapAppliedWithMutation',
@@ -1511,7 +1528,7 @@ suite('event/Http', () => {
         const aggregateId = uuid(),
               otherAggregateId = uuid();
 
-        const otherSucceeded = Event.create({
+        const otherSucceeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: otherAggregateId },
           name: 'succeeded',
@@ -1521,7 +1538,7 @@ suite('event/Http', () => {
           },
           annotations: { state: {}, previousState: {}}
         });
-        const otherExecuted = Event.create({
+        const otherExecuted = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: otherAggregateId },
           name: 'executed',
@@ -1537,7 +1554,7 @@ suite('event/Http', () => {
           uncommittedEvents: [ otherSucceeded, otherExecuted ]
         });
 
-        const useApp = Event.create({
+        const useApp = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregateId },
           name: 'useApp',
@@ -1595,7 +1612,7 @@ suite('event/Http', () => {
           identityProviders
         });
 
-        const useClient = Event.create({
+        const useClient = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: uuid() },
           name: 'useClient',
@@ -1661,7 +1678,7 @@ suite('event/Http', () => {
             identityProviders
           });
 
-          const useLogger = Event.create({
+          const useLogger = EventInternal.create({
             context: { name: 'sampleContext' },
             aggregate: { name: 'sampleAggregate', id: uuid() },
             name: 'useLogger',

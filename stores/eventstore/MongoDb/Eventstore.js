@@ -7,7 +7,7 @@ const limitAlphanumeric = require('limit-alphanumeric'),
       { MongoClient } = require('mongodb'),
       retry = require('async-retry');
 
-const { Event } = require('../../../common/elements'),
+const { EventExternal, EventInternal } = require('../../../common/elements'),
       omitByDeep = require('../omitByDeep');
 
 class Eventstore {
@@ -125,7 +125,7 @@ class Eventstore {
       return;
     }
 
-    return Event.fromObject(events[0]);
+    return EventExternal.fromObject(events[0]);
   }
 
   async getEventStream ({
@@ -163,7 +163,7 @@ class Eventstore {
     };
 
     onData = function (data) {
-      passThrough.write(Event.fromObject(data));
+      passThrough.write(EventExternal.fromObject(data));
     };
 
     onEnd = function () {
@@ -214,7 +214,7 @@ class Eventstore {
     };
 
     onData = function (data) {
-      passThrough.write(Event.fromObject(data));
+      passThrough.write(EventExternal.fromObject(data));
     };
 
     onEnd = function () {
@@ -257,8 +257,8 @@ class Eventstore {
 
     try {
       for (const uncommittedEvent of uncommittedEvents) {
-        if (!uncommittedEvent.annotations.state) {
-          throw new Error('Annotations state is missing.');
+        if (!(uncommittedEvent instanceof EventInternal)) {
+          throw new Error('Event must be internal.');
         }
 
         const revisionGlobal = await this.getNextSequence({ name: 'events' });
@@ -272,7 +272,7 @@ class Eventstore {
 
         // Use cloned events here to hinder MongoDB from adding an _id property
         // to the original event objects.
-        await this.collections.events.insertOne(committedEvent.withoutAnnotations());
+        await this.collections.events.insertOne(committedEvent.asExternal());
       }
     } catch (ex) {
       if (ex.code === 11000 && ex.message.includes('_aggregateId_revision')) {
@@ -399,7 +399,7 @@ class Eventstore {
     };
 
     onData = function (data) {
-      passThrough.write(Event.fromObject(data));
+      passThrough.write(EventExternal.fromObject(data));
     };
 
     onEnd = function () {

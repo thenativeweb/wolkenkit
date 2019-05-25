@@ -6,7 +6,8 @@ const bodyParser = require('body-parser'),
       flatten = require('lodash/flatten'),
       nocache = require('nocache');
 
-const V2 = require('./V2');
+const { EventInternal } = require('../../../common/elements'),
+      V2 = require('./V2');
 
 class Http {
   async initialize ({
@@ -66,6 +67,9 @@ class Http {
   async sendEvent ({ event }) {
     if (!event) {
       throw new Error('Event is missing.');
+    }
+    if (!(event instanceof EventInternal)) {
+      throw new Error('Event must be internal.');
     }
 
     await this.v2.sendEvent({ event });

@@ -4,18 +4,17 @@ const flaschenpost = require('flaschenpost'),
       typer = require('content-type');
 
 const ClientMetadata = require('../../../../common/utils/http/ClientMetadata'),
-      { Command } = require('../../../../common/elements'),
-      { validateCommand } = require('../../../../common/validators');
+      { CommandExternal, CommandInternal } = require('../../../../common/elements');
 
 const logger = flaschenpost.getLogger();
 
 const postCommand = function ({
-  overwriteInitiatorAndClient,
+  Command,
   onReceiveCommand,
   application
 }) {
-  if (overwriteInitiatorAndClient === undefined) {
-    throw new Error('Overwrite initiator and client is undefined.');
+  if (!Command) {
+    throw new Error('Command is missing.');
   }
   if (!onReceiveCommand) {
     throw new Error('On receive command is missing.');
@@ -39,29 +38,26 @@ const postCommand = function ({
     }
 
     try {
-      validateCommand({ command, application });
+      Command.validate({ command, application });
     } catch (ex) {
       return res.status(400).send(ex.message);
     }
 
-    if (!overwriteInitiatorAndClient) {
-      command = Command.fromObject(command);
-    } else {
-      command = Command.fromObject({
-        ...command,
-        metadata: {
-          ...command.metadata,
-          initiator: {
-            user: {
-              id: req.user.id,
-              claims: req.user.claims
-            }
+    switch (Command) {
+      case CommandInternal:
+        command = CommandInternal.fromObject(command);
+        break;
+      case CommandExternal:
+        command = CommandInternal.fromObject({
+          ...command,
+          annotations: {
+            client: new ClientMetadata({ req }),
+            initiator: { user: { id: req.user.id, claims: req.user.claims }}
           }
-        },
-        annotations: {
-          client: new ClientMetadata({ req })
-        }
-      });
+        });
+        break;
+      default:
+        throw new Error('Invalid operation.');
     }
 
     logger.info('Command received.', { command });

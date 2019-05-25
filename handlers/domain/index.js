@@ -1,6 +1,5 @@
 'use strict';
 
-const Handler = require('./Handler'),
-      Sequencer = require('./Sequencer');
+const Sequencer = require('./Sequencer');
 
-module.exports = { Handler, Sequencer };
+module.exports = { Sequencer };

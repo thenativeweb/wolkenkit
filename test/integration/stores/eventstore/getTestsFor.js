@@ -4,7 +4,7 @@ const assert = require('assertthat'),
       toArray = require('streamtoarray'),
       uuid = require('uuidv4');
 
-const { Event } = require('../../../../common/elements');
+const { EventExternal, EventInternal } = require('../../../../common/elements');
 
 /* eslint-disable mocha/max-top-level-suites */
 const getTestsFor = function ({ Eventstore, getOptions }) {
@@ -50,7 +50,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     test('returns the last event for the given aggregate.', async () => {
       const aggregateId = uuid();
 
-      const eventStarted = Event.create({
+      const eventStarted = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: aggregateId },
         name: 'started',
@@ -59,10 +59,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
-      const eventJoined = Event.create({
+      const eventJoined = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -71,7 +71,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 2 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -88,7 +88,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     test('correctly handles null, undefined and empty arrays.', async () => {
       const aggregateId = uuid();
 
-      const eventJoined = Event.create({
+      const eventJoined = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: aggregateId },
         name: 'joined',
@@ -101,7 +101,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -125,7 +125,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('returns a stream of events for the given aggregate.', async () => {
-      const eventStarted = Event.create({
+      const eventStarted = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -134,10 +134,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
-      const eventJoined = Event.create({
+      const eventJoined = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -146,7 +146,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 2 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -163,7 +163,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('returns a stream from revision.', async () => {
-      const eventStarted = Event.create({
+      const eventStarted = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -172,10 +172,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
-      const eventJoined = Event.create({
+      const eventJoined = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -184,7 +184,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 2 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -203,7 +203,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('returns a stream to revision.', async () => {
-      const eventStarted = Event.create({
+      const eventStarted = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -212,10 +212,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
-      const eventJoined = Event.create({
+      const eventJoined = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -224,7 +224,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 2 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -254,7 +254,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('returns a stream of unpublished events.', async () => {
-      let eventStarted = Event.create({
+      let eventStarted = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -263,12 +263,12 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
       eventStarted = eventStarted.markAsPublished();
 
-      const eventJoined = Event.create({
+      const eventJoined = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -277,7 +277,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 2 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -300,8 +300,8 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       }).is.throwingAsync('Uncommitted events are missing.');
     });
 
-    test('throws an error if annotations state is missing.', async () => {
-      const eventStarted = Event.create({
+    test('throws an error if event is not internal.', async () => {
+      const eventExternal = EventExternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -315,12 +315,12 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       await eventstore.initialize({ ...getOptions(), namespace });
 
       await assert.that(async () => {
-        await eventstore.saveEvents({ uncommittedEvents: [ eventStarted ]});
-      }).is.throwingAsync('Annotations state is missing.');
+        await eventstore.saveEvents({ uncommittedEvents: [ eventExternal ]});
+      }).is.throwingAsync('Event must be internal.');
     });
 
     test('saves events.', async () => {
-      const eventStarted = Event.create({
+      const eventStarted = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -329,10 +329,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
-      const eventJoined = Event.create({
+      const eventJoined = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -341,7 +341,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 2 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -360,7 +360,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('does not save annotations.', async () => {
-      const eventStarted = Event.create({
+      const eventStarted = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -369,7 +369,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: { foo: 'bar' }}
+        annotations: { state: { foo: 'bar' }, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -383,11 +383,11 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       const aggregateEvents = await toArray(eventStream);
 
       assert.that(aggregateEvents.length).is.equalTo(1);
-      assert.that(aggregateEvents[0].annotations).is.equalTo({});
+      assert.that(aggregateEvents[0].annotations).is.undefined();
     });
 
     test('does not remove annotations from committed events.', async () => {
-      const eventStarted = Event.create({
+      const eventStarted = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -396,7 +396,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: { foo: 'bar' }}
+        annotations: { state: { foo: 'bar' }, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -405,11 +405,11 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
         uncommittedEvents: [ eventStarted ]
       });
 
-      assert.that(committedEvent.annotations).is.equalTo({ state: { foo: 'bar' }});
+      assert.that(committedEvent.annotations).is.equalTo({ state: { foo: 'bar' }, previousState: {}});
     });
 
     test('throws an error if the aggregate id and revision of the new event are already in use.', async () => {
-      const event = Event.create({
+      const event = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -418,7 +418,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -430,7 +430,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('returns events with updated global revisions.', async () => {
-      const eventStarted = Event.create({
+      const eventStarted = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -439,10 +439,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
-      const eventJoined = Event.create({
+      const eventJoined = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -451,7 +451,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 2 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -467,7 +467,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('correctly handles undefined and null.', async () => {
-      const event = Event.create({
+      const event = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -476,7 +476,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -490,7 +490,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('saves a snapshot when one of the events has a revision divisible by 100.', async () => {
-      const eventStarted = Event.create({
+      const eventStarted = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -499,10 +499,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 99 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: []}}
+        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: []}, previousState: {}}
       });
 
-      const eventJoinedFirst = Event.create({
+      const eventJoinedFirst = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -511,10 +511,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 100 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe' ]}}
+        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe' ]}, previousState: {}}
       });
 
-      const eventJoinedSecond = Event.create({
+      const eventJoinedSecond = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -523,7 +523,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 101 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe', 'John Doe' ]}}
+        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe', 'John Doe' ]}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -544,7 +544,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
 
     test('does not save a snapshot when none of the events has a revision divisible by 100.', async () => {
-      const eventStarted = Event.create({
+      const eventStarted = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -553,10 +553,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 102 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: []}}
+        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: []}, previousState: {}}
       });
 
-      const eventJoinedFirst = Event.create({
+      const eventJoinedFirst = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -565,10 +565,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 103 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe' ]}}
+        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe' ]}, previousState: {}}
       });
 
-      const eventJoinedSecond = Event.create({
+      const eventJoinedSecond = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -577,7 +577,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 104 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe', 'John Doe' ]}}
+        annotations: { state: { initiator: 'Jane Doe', destination: 'Riva', participants: [ 'Jane Doe', 'John Doe' ]}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -592,7 +592,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
 
     suite('event stream order', () => {
       test('assigns the global revision 1 to the first event.', async () => {
-        const event = Event.create({
+        const event = EventInternal.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: uuid() },
           name: 'started',
@@ -601,7 +601,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
             revision: { aggregate: 1 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.initialize({ ...getOptions(), namespace });
@@ -615,7 +615,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       });
 
       test('assigns increasing global revisions to subsequent events.', async () => {
-        const eventStarted = Event.create({
+        const eventStarted = EventInternal.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: uuid() },
           name: 'started',
@@ -624,10 +624,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
             revision: { aggregate: 1 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
-        const eventJoined = Event.create({
+        const eventJoined = EventInternal.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
           name: 'joined',
@@ -636,7 +636,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
             revision: { aggregate: 2 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.initialize({ ...getOptions(), namespace });
@@ -653,7 +653,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       });
 
       test('assigns increasing global revisions even when saving the events individually.', async () => {
-        const eventStarted = Event.create({
+        const eventStarted = EventInternal.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: uuid() },
           name: 'started',
@@ -662,10 +662,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
             revision: { aggregate: 1 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
-        const eventJoined = Event.create({
+        const eventJoined = EventInternal.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
           name: 'joined',
@@ -674,7 +674,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
             revision: { aggregate: 2 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.initialize({ ...getOptions(), namespace });
@@ -690,7 +690,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       });
 
       test('ensures that global revisions are unique across aggregates.', async () => {
-        const eventStarted1 = Event.create({
+        const eventStarted1 = EventInternal.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: uuid() },
           name: 'started',
@@ -699,10 +699,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
             revision: { aggregate: 1 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
-        const eventStarted2 = Event.create({
+        const eventStarted2 = EventInternal.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: uuid() },
           name: 'started',
@@ -711,7 +711,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
             revision: { aggregate: 2 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.initialize({ ...getOptions(), namespace });
@@ -732,7 +732,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       });
 
       test('returns the saved events enriched by their global revisions.', async () => {
-        const event = Event.create({
+        const event = EventInternal.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: uuid() },
           name: 'started',
@@ -741,7 +741,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
             revision: { aggregate: 1 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.initialize({ ...getOptions(), namespace });
@@ -752,7 +752,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       });
 
       test('does not change the events that were given as arguments.', async () => {
-        const event = Event.create({
+        const event = EventInternal.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: uuid() },
           name: 'started',
@@ -761,7 +761,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
             revision: { aggregate: 1 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.initialize({ ...getOptions(), namespace });
@@ -774,7 +774,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
 
   suite('markEventsAsPublished', () => {
     test('marks the specified events as published.', async () => {
-      const eventStarted = Event.create({
+      const eventStarted = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: uuid() },
         name: 'started',
@@ -783,10 +783,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 1 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
-      const eventJoinedFirst = Event.create({
+      const eventJoinedFirst = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -795,10 +795,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 2 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
-      const eventJoinedSecond = Event.create({
+      const eventJoinedSecond = EventInternal.create({
         context: { name: 'planning' },
         aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
         name: 'joined',
@@ -807,7 +807,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
           revision: { aggregate: 3 },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         },
-        annotations: { state: {}}
+        annotations: { state: {}, previousState: {}}
       });
 
       await eventstore.initialize({ ...getOptions(), namespace });
@@ -1001,7 +1001,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
 
     suite('with existent data', () => {
       setup(async () => {
-        const eventStarted = Event.create({
+        const eventStarted = EventInternal.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: uuid() },
           name: 'started',
@@ -1010,10 +1010,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
             revision: { aggregate: 1 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
-        const eventJoinedFirst = Event.create({
+        const eventJoinedFirst = EventInternal.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
           name: 'joined',
@@ -1022,10 +1022,10 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
             revision: { aggregate: 2 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
-        const eventJoinedSecond = Event.create({
+        const eventJoinedSecond = EventInternal.create({
           context: { name: 'planning' },
           aggregate: { name: 'peerGroup', id: eventStarted.aggregate.id },
           name: 'joined',
@@ -1034,7 +1034,7 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
             revision: { aggregate: 3 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.initialize({ ...getOptions(), namespace });

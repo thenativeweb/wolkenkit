@@ -7,7 +7,7 @@ const limitAlphanumeric = require('limit-alphanumeric'),
       retry = require('async-retry');
 
 const createPool = require('./createPool'),
-      { Event } = require('../../../common/elements'),
+      { EventExternal, EventInternal } = require('../../../common/elements'),
       omitByDeep = require('../omitByDeep');
 
 class Eventstore {
@@ -153,7 +153,7 @@ class Eventstore {
         });
 
         request.once('row', columns => {
-          resultEvent = Event.fromObject(JSON.parse(columns[0].value));
+          resultEvent = EventExternal.fromObject(JSON.parse(columns[0].value));
 
           resultEvent = resultEvent.setRevisionGlobal({
             revisionGlobal: Number(columns[1].value)
@@ -208,7 +208,7 @@ class Eventstore {
     };
 
     onRow = columns => {
-      let event = Event.fromObject(JSON.parse(columns[0].value));
+      let event = EventExternal.fromObject(JSON.parse(columns[0].value));
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(columns[1].value)
@@ -271,7 +271,7 @@ class Eventstore {
     };
 
     onRow = columns => {
-      let event = Event.fromObject(JSON.parse(columns[0].value));
+      let event = EventExternal.fromObject(JSON.parse(columns[0].value));
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(columns[1].value)
@@ -321,15 +321,15 @@ class Eventstore {
     let resultCount = 0;
 
     for (const [ index, uncommittedEvent ] of uncommittedEvents.entries()) {
-      if (!uncommittedEvent.annotations.state) {
-        throw new Error('Annotations state is missing.');
+      if (!(uncommittedEvent instanceof EventInternal)) {
+        throw new Error('Event must be internal.');
       }
 
       const rowId = index + 1;
       const row = [
         { key: `aggregateId${rowId}`, value: uncommittedEvent.aggregate.id, type: TYPES.UniqueIdentifier },
         { key: `revisionAggregate${rowId}`, value: uncommittedEvent.metadata.revision.aggregate, type: TYPES.Int },
-        { key: `event${rowId}`, value: JSON.stringify(uncommittedEvent.withoutAnnotations()), type: TYPES.NVarChar, options: { length: 4000 }},
+        { key: `event${rowId}`, value: JSON.stringify(uncommittedEvent.asExternal()), type: TYPES.NVarChar, options: { length: 4000 }},
         { key: `isPublished${rowId}`, value: uncommittedEvent.metadata.isPublished, type: TYPES.Bit }
       ];
 
@@ -566,7 +566,7 @@ class Eventstore {
     };
 
     onRow = columns => {
-      let event = Event.fromObject(JSON.parse(columns[0].value));
+      let event = EventExternal.fromObject(JSON.parse(columns[0].value));
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(columns[1].value)

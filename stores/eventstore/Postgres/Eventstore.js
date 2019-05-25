@@ -7,7 +7,7 @@ const limitAlphanumeric = require('limit-alphanumeric'),
       QueryStream = require('pg-query-stream'),
       retry = require('async-retry');
 
-const { Event } = require('../../../common/elements'),
+const { EventExternal, EventInternal } = require('../../../common/elements'),
       omitByDeep = require('../omitByDeep');
 
 class Eventstore {
@@ -141,7 +141,7 @@ class Eventstore {
         return;
       }
 
-      let event = Event.fromObject(result.rows[0].event);
+      let event = EventExternal.fromObject(result.rows[0].event);
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(result.rows[0].revisionGlobal)
@@ -191,7 +191,7 @@ class Eventstore {
     };
 
     onData = function (data) {
-      let event = Event.fromObject(data.event);
+      let event = EventExternal.fromObject(data.event);
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(data.revisionGlobal)
@@ -246,7 +246,7 @@ class Eventstore {
     };
 
     onData = function (data) {
-      let event = Event.fromObject(data.event);
+      let event = EventExternal.fromObject(data.event);
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(data.revisionGlobal)
@@ -289,8 +289,8 @@ class Eventstore {
           values = [];
 
     for (const [ index, uncommittedEvent ] of uncommittedEvents.entries()) {
-      if (!uncommittedEvent.annotations.state) {
-        throw new Error('Annotations state is missing.');
+      if (!(uncommittedEvent instanceof EventInternal)) {
+        throw new Error('Event must be internal.');
       }
 
       const base = (4 * index) + 1;
@@ -299,7 +299,7 @@ class Eventstore {
       values.push(
         uncommittedEvent.aggregate.id,
         uncommittedEvent.metadata.revision.aggregate,
-        uncommittedEvent.withoutAnnotations(),
+        uncommittedEvent.asExternal(),
         uncommittedEvent.metadata.isPublished
       );
     }
@@ -485,7 +485,7 @@ class Eventstore {
     };
 
     onData = function (data) {
-      let event = Event.fromObject(data.event);
+      let event = EventExternal.fromObject(data.event);
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(data.revisionGlobal)

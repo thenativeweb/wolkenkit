@@ -5,12 +5,11 @@ const cloneDeep = require('lodash/cloneDeep'),
       Limes = require('limes'),
       partOf = require('partof');
 
-const { AppService, ClientService, LoggerService } = require('../../../../common/services'),
+const { AggregateReadable, EventInternal } = require('../../../../common/elements'),
+      { AppService, ClientService, LoggerService } = require('../../../../common/services'),
       ClientMetadata = require('../../../../common/utils/http/ClientMetadata'),
       getConfiguration = require('./getConfiguration'),
-      getEvents = require('./getEvents'),
-      { Event, ReadableAggregate } = require('../../../../common/elements'),
-      { validateEvent } = require('../../../../common/validators');
+      getEvents = require('./getEvents');
 
 class V2 {
   constructor ({ application, repository, identityProviders, heartbeatInterval }) {
@@ -97,11 +96,8 @@ class V2 {
     if (!event) {
       throw new Error('Event is missing.');
     }
-    if (!event.annotations.state) {
-      throw new Error('State is missing.');
-    }
-    if (!event.annotations.previousState) {
-      throw new Error('Previous state is missing.');
+    if (!(event instanceof EventInternal)) {
+      throw new Error('Event must be internal.');
     }
 
     const connection = this.connectionsForGetEvents[connectionId];
@@ -136,7 +132,7 @@ class V2 {
 
     const queryFilter = req.query || {};
 
-    validateEvent({ event, application });
+    EventInternal.validate({ event, application });
 
     if (!partOf(queryFilter, event)) {
       return;
@@ -148,15 +144,17 @@ class V2 {
       logger: new LoggerService({ fileName: `/server/domain/${event.context.name}/${event.aggregate.name}.js` })
     };
 
-    const aggregateInstance = new ReadableAggregate({
+    const aggregateInstance = new AggregateReadable({
       application,
       context: { name: event.context.name },
       aggregate: { name: event.aggregate.name, id: event.aggregate.id }
     });
 
     aggregateInstance.applySnapshot({
-      revision: event.metadata.revision,
-      state: event.annotations.state
+      snapshot: {
+        revision: event.metadata.revision,
+        state: event.annotations.state
+      }
     });
 
     // Additionally, attach the previous state, and do this in the same way as
@@ -206,7 +204,7 @@ class V2 {
         mappedEvent =
           await map(aggregateInstance.api.forReadOnly, clonedEvent, services);
 
-        mappedEvent = Event.fromObject(mappedEvent);
+        mappedEvent = EventInternal.fromObject(mappedEvent);
       } catch (ex) {
         services.logger.error('Map failed.', { event, clientMetadata, ex });
 
@@ -221,6 +219,9 @@ class V2 {
     if (!event) {
       throw new Error('Event is missing.');
     }
+    if (!(event instanceof EventInternal)) {
+      throw new Error('Event must be internal.');
+    }
 
     for (const connectionId of Object.keys(this.connectionsForGetEvents)) {
       const preparedEvent = await this.prepareEvent({ connectionId, event });
@@ -229,11 +230,9 @@ class V2 {
         continue;
       }
 
-      // Ensure that we never send out annotations of an event, since they
-      // contain sensitive data such as tokens.
-      const eventWithoutAnnotations = preparedEvent.withoutAnnotations();
+      const externalEvent = preparedEvent.asExternal();
 
-      this.writeLine({ connectionId, data: eventWithoutAnnotations });
+      this.writeLine({ connectionId, data: externalEvent });
     }
   }
 }

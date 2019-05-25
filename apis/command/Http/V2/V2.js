@@ -8,13 +8,13 @@ const getConfiguration = require('./getConfiguration'),
 
 class V2 {
   constructor ({
-    overwriteInitiatorAndClient,
+    Command,
     onReceiveCommand,
     application,
     identityProviders
   }) {
-    if (overwriteInitiatorAndClient === undefined) {
-      throw new Error('Overwrite initiator and client is missing.');
+    if (!Command) {
+      throw new Error('Command is missing.');
     }
     if (!onReceiveCommand) {
       throw new Error('On receive command is missing.');
@@ -23,7 +23,7 @@ class V2 {
       throw new Error('Application is missing.');
     }
     if (!identityProviders) {
-      throw new Error('Identity providers are missing.');
+      throw new Error('Identity providers is missing.');
     }
 
     this.application = application;
@@ -43,7 +43,7 @@ class V2 {
     this.api.get('/configuration', getConfiguration({ application }));
 
     this.api.post('/', verifyTokenMiddleware, postCommand({
-      overwriteInitiatorAndClient,
+      Command,
       onReceiveCommand,
       application
     }));

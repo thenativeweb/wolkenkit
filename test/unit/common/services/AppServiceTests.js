@@ -5,7 +5,7 @@ const assert = require('assertthat'),
 
 const { Application } = require('../../../../common/application'),
       { AppService } = require('../../../../common/services'),
-      { Event } = require('../../../../common/elements'),
+      { EventInternal } = require('../../../../common/elements'),
       { InMemory } = require('../../../../stores/eventstore'),
       { Repository } = require('../../../../common/domain'),
       updateInitialState = require('../../../shared/applications/valid/updateInitialState');
@@ -117,7 +117,7 @@ suite('AppService', () => {
         test('returns the requested aggregate.', async () => {
           const aggregateId = uuid();
 
-          const succeeded = Event.create({
+          const succeeded = EventInternal.create({
             context: { name: 'sampleContext' },
             aggregate: { name: 'sampleAggregate', id: aggregateId },
             name: 'succeeded',
@@ -127,9 +127,9 @@ suite('AppService', () => {
               correlationId: uuid(),
               revision: { aggregate: 1 }
             },
-            annotations: { state: {}}
+            annotations: { state: {}, previousState: {}}
           });
-          const executed = Event.create({
+          const executed = EventInternal.create({
             context: { name: 'sampleContext' },
             aggregate: { name: 'sampleAggregate', id: aggregateId },
             name: 'executed',
@@ -140,7 +140,7 @@ suite('AppService', () => {
               correlationId: uuid(),
               revision: { aggregate: 2 }
             },
-            annotations: { state: {}}
+            annotations: { state: {}, previousState: {}}
           });
 
           await eventstore.saveEvents({

@@ -3,11 +3,12 @@
 const path = require('path');
 
 const assert = require('assertthat'),
+      getOptionTests = require('get-option-tests'),
       supertest = require('supertest'),
       uuid = require('uuidv4');
 
 const { Application } = require('../../../../common/application'),
-      { Command } = require('../../../../common/elements'),
+      { CommandExternal, CommandInternal } = require('../../../../common/elements'),
       { Http } = require('../../../../apis/command'),
       identityProvider = require('../../../shared/identityProvider'),
       { InMemory } = require('../../../../stores/eventstore');
@@ -15,15 +16,18 @@ const { Application } = require('../../../../common/application'),
 suite('command/Http', () => {
   const identityProviders = [ identityProvider ];
   let application,
-      eventstore;
+      eventstore,
+      http;
 
   setup(async () => {
     const directory = path.join(__dirname, '..', '..', '..', 'shared', 'applications', 'base');
 
+    application = await Application.load({ directory });
+
     eventstore = new InMemory();
     await eventstore.initialize();
 
-    application = await Application.load({ directory });
+    http = new Http();
   });
 
   teardown(async () => {
@@ -36,92 +40,31 @@ suite('command/Http', () => {
 
   suite('initialize', () => {
     test('is a function.', async () => {
-      const http = new Http();
-
       assert.that(http.initialize).is.ofType('function');
     });
 
-    test('throws an error if CORS origin is missing.', async () => {
-      const http = new Http();
-
-      await assert.that(async () => {
-        await http.initialize({
-          overwriteInitiatorAndClient: true,
-          async onReceiveCommand () {
-            // Intentionally left blank.
-          },
-          application,
-          identityProviders
-        });
-      }).is.throwingAsync('CORS origin is missing.');
-    });
-
-    test('throws an error if overwrite initiator and client is missing.', async () => {
-      const http = new Http();
-
-      await assert.that(async () => {
-        await http.initialize({
-          corsOrigin: '*',
-          async onReceiveCommand () {
-            // Intentionally left blank.
-          },
-          application,
-          identityProviders
-        });
-      }).is.throwingAsync('Overwrite initiator and client is missing.');
-    });
-
-    test('throws an error if on receive command is missing.', async () => {
-      const http = new Http();
-
-      await assert.that(async () => {
-        await http.initialize({
-          corsOrigin: '*',
-          overwriteInitiatorAndClient: true,
-          application,
-          identityProviders
-        });
-      }).is.throwingAsync('On receive command is missing.');
-    });
-
-    test('throws an error if application is missing.', async () => {
-      const http = new Http();
-
-      await assert.that(async () => {
-        await http.initialize({
-          corsOrigin: '*',
-          overwriteInitiatorAndClient: true,
-          async onReceiveCommand () {
-            // Intentionally left blank.
-          },
-          identityProviders
-        });
-      }).is.throwingAsync('Application is missing.');
-    });
-
-    test('throws an error if identity providers are missing.', async () => {
-      const http = new Http();
-
-      await assert.that(async () => {
-        await http.initialize({
-          corsOrigin: '*',
-          overwriteInitiatorAndClient: true,
-          async onReceiveCommand () {
-            // Intentionally left blank.
-          },
-          application
-        });
-      }).is.throwingAsync('Identity providers are missing.');
+    getOptionTests({
+      options: {
+        corsOrigin: '*',
+        Command: CommandExternal,
+        async onReceiveCommand () {
+          // Intentionally left blank.
+        },
+        application: {},
+        identityProviders
+      },
+      exclude: [ 'identityProviders.*' ],
+      async run (options) {
+        await http.initialize(options);
+      }
     });
 
     test('sets api to an Express application.', async () => {
-      const http = new Http();
-
       assert.that(http.api).is.undefined();
 
       await http.initialize({
         corsOrigin: '*',
-        overwriteInitiatorAndClient: true,
+        Command: CommandExternal,
         async onReceiveCommand () {
           // Intentionally left blank.
         },
@@ -176,11 +119,9 @@ suite('command/Http', () => {
     for (const corsOrigin of corsOrigins) {
       /* eslint-disable no-loop-func */
       test(corsOrigin.title, async () => {
-        const http = new Http();
-
         await http.initialize({
           corsOrigin: corsOrigin.allow,
-          overwriteInitiatorAndClient: true,
+          Command: CommandExternal,
           async onReceiveCommand () {
             // Intentionally left blank.
           },
@@ -205,14 +146,10 @@ suite('command/Http', () => {
   });
 
   suite('GET /v2/configuration', () => {
-    let http;
-
     setup(async () => {
-      http = new Http();
-
       await http.initialize({
         corsOrigin: '*',
-        overwriteInitiatorAndClient: true,
+        Command: CommandExternal,
         async onReceiveCommand () {
           // Intentionally left blank.
         },
@@ -248,335 +185,430 @@ suite('command/Http', () => {
   });
 
   suite('POST /v2/', () => {
-    let http,
-        receivedCommands;
+    suite('receiving external commands', () => {
+      let receivedCommands;
 
-    setup(async () => {
-      http = new Http();
-      receivedCommands = [];
+      setup(async () => {
+        http = new Http();
+        receivedCommands = [];
 
-      await http.initialize({
-        corsOrigin: '*',
-        overwriteInitiatorAndClient: true,
-        async onReceiveCommand ({ command }) {
-          receivedCommands.push(command);
-        },
-        application,
-        identityProviders
-      });
-    });
-
-    test('returns 415 if the content-type header is missing.', async () => {
-      const res = await supertest(http.api).post('/v2/');
-
-      assert.that(res.statusCode).is.equalTo(415);
-      assert.that(res.text).is.equalTo('Header content-type must be application/json.');
-    });
-
-    test('returns 415 if content-type is not set to application/json.', async () => {
-      const res = await supertest(http.api).
-        post('/v2/').
-        set({
-          'content-type': 'text/plain'
-        }).
-        send('foobar');
-
-      assert.that(res.statusCode).is.equalTo(415);
-      assert.that(res.text).is.equalTo('Header content-type must be application/json.');
-    });
-
-    test('returns 400 if a malformed command is sent.', async () => {
-      const res = await supertest(http.api).
-        post('/v2/').
-        send({ foo: 'bar' });
-
-      assert.that(res.statusCode).is.equalTo(400);
-      assert.that(res.text).is.equalTo('Malformed command.');
-    });
-
-    test('returns 400 if a wellformed command is sent with a non-existent context name.', async () => {
-      const command = Command.create({
-        context: { name: 'nonExistent' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'execute',
-        data: { strategy: 'succeed' }
+        await http.initialize({
+          corsOrigin: '*',
+          Command: CommandExternal,
+          async onReceiveCommand ({ command }) {
+            receivedCommands.push(command);
+          },
+          application,
+          identityProviders
+        });
       });
 
-      const res = await supertest(http.api).
-        post('/v2/').
-        send(command);
+      test('returns 415 if the content-type header is missing.', async () => {
+        const res = await supertest(http.api).post('/v2/');
 
-      assert.that(res.statusCode).is.equalTo(400);
-      assert.that(res.text).is.equalTo('Invalid context name.');
-    });
-
-    test('returns 400 if a wellformed command is sent with a non-existent aggregate name.', async () => {
-      const command = Command.create({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'nonExistent', id: uuid() },
-        name: 'execute',
-        data: { strategy: 'succeed' }
+        assert.that(res.statusCode).is.equalTo(415);
+        assert.that(res.text).is.equalTo('Header content-type must be application/json.');
       });
 
-      const res = await supertest(http.api).
-        post('/v2/').
-        send(command);
+      test('returns 415 if content-type is not set to application/json.', async () => {
+        const res = await supertest(http.api).
+          post('/v2/').
+          set({
+            'content-type': 'text/plain'
+          }).
+          send('foobar');
 
-      assert.that(res.statusCode).is.equalTo(400);
-      assert.that(res.text).is.equalTo('Invalid aggregate name.');
-    });
-
-    test('returns 400 if a wellformed command is sent with a non-existent command name.', async () => {
-      const command = Command.create({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'nonExistent',
-        data: { strategy: 'succeed' }
+        assert.that(res.statusCode).is.equalTo(415);
+        assert.that(res.text).is.equalTo('Header content-type must be application/json.');
       });
 
-      const res = await supertest(http.api).
-        post('/v2/').
-        send(command);
+      test('returns 400 if a malformed command is sent.', async () => {
+        const res = await supertest(http.api).
+          post('/v2/').
+          send({ foo: 'bar' });
 
-      assert.that(res.statusCode).is.equalTo(400);
-      assert.that(res.text).is.equalTo('Invalid command name.');
-    });
-
-    test('returns 400 if a command is sent with a payload that does not match the schema.', async () => {
-      const command = Command.create({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'execute',
-        data: { strategy: 'invalid-value' }
+        assert.that(res.statusCode).is.equalTo(400);
+        assert.that(res.text).is.equalTo('Malformed command.');
       });
 
-      const res = await supertest(http.api).
-        post('/v2/').
-        send(command);
+      test('returns 400 if a wellformed command is sent with a non-existent context name.', async () => {
+        const command = CommandExternal.create({
+          context: { name: 'nonExistent' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          data: { strategy: 'succeed' }
+        });
 
-      assert.that(res.statusCode).is.equalTo(400);
-      assert.that(res.text).is.equalTo('No enum match (invalid-value), expects: succeed, fail, reject (at command.data.strategy).');
-    });
+        const res = await supertest(http.api).
+          post('/v2/').
+          send(command);
 
-    test('returns 200 if a wellformed and existing command is sent.', async () => {
-      const command = Command.create({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'execute',
-        data: { strategy: 'succeed' }
+        assert.that(res.statusCode).is.equalTo(400);
+        assert.that(res.text).is.equalTo('Invalid context name.');
       });
 
-      const { statusCode } = await supertest(http.api).
-        post('/v2/').
-        send(command);
+      test('returns 400 if a wellformed command is sent with a non-existent aggregate name.', async () => {
+        const command = CommandExternal.create({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'nonExistent', id: uuid() },
+          name: 'execute',
+          data: { strategy: 'succeed' }
+        });
 
-      assert.that(statusCode).is.equalTo(200);
-    });
+        const res = await supertest(http.api).
+          post('/v2/').
+          send(command);
 
-    test('receives commands.', async () => {
-      const command = Command.create({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'execute',
-        data: { strategy: 'succeed' }
+        assert.that(res.statusCode).is.equalTo(400);
+        assert.that(res.text).is.equalTo('Invalid aggregate name.');
       });
 
-      await supertest(http.api).
-        post('/v2/').
-        send(command);
+      test('returns 400 if a wellformed command is sent with a non-existent command name.', async () => {
+        const command = CommandExternal.create({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'nonExistent',
+          data: { strategy: 'succeed' }
+        });
 
-      assert.that(receivedCommands.length).is.equalTo(1);
-      assert.that(receivedCommands[0]).is.atLeast({
-        context: { name: command.context.name },
-        aggregate: { name: command.aggregate.name, id: command.aggregate.id },
-        name: command.name,
-        id: command.id,
-        data: command.data,
-        metadata: {
-          causationId: command.id,
-          correlationId: command.id,
-          initiator: {
-            user: {
-              id: 'anonymous',
-              claims: { sub: 'anonymous', iss: 'https://token.invalid' }
-            }
-          }
-        },
-        annotations: {
-          client: {
-            user: {
-              id: 'anonymous',
-              claims: { sub: 'anonymous', iss: 'https://token.invalid' }
-            }
-          }
-        }
+        const res = await supertest(http.api).
+          post('/v2/').
+          send(command);
+
+        assert.that(res.statusCode).is.equalTo(400);
+        assert.that(res.text).is.equalTo('Invalid command name.');
       });
 
-      assert.that(receivedCommands[0].annotations.client.token).is.ofType('string');
-      assert.that(receivedCommands[0].annotations.client.ip).is.ofType('string');
-    });
+      test('returns 400 if a command is sent with a payload that does not match the schema.', async () => {
+        const command = CommandExternal.create({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          data: { strategy: 'invalid-value' }
+        });
 
-    test('overwrites the initiator and client.', async () => {
-      const command = Command.create({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'execute',
-        data: { strategy: 'succeed' },
-        metadata: {
-          initiator: {
-            user: {
-              id: 'provided externally',
-              claims: { sub: 'provided externally', iss: 'https://external-identity-provider.invalid' }
-            }
-          }
-        },
-        annotations: {
-          client: {
-            token: 'external token',
-            user: {
-              id: 'provided externally',
-              claims: { sub: 'provided externally', iss: 'https://external-identity-provider.invalid' }
+        const res = await supertest(http.api).
+          post('/v2/').
+          send(command);
+
+        assert.that(res.statusCode).is.equalTo(400);
+        assert.that(res.text).is.equalTo('No enum match (invalid-value), expects: succeed, fail, reject (at command.data.strategy).');
+      });
+
+      test('returns 200 if a wellformed and existing command is sent.', async () => {
+        const command = CommandExternal.create({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          data: { strategy: 'succeed' }
+        });
+
+        const { statusCode } = await supertest(http.api).
+          post('/v2/').
+          send(command);
+
+        assert.that(statusCode).is.equalTo(200);
+      });
+
+      test('receives commands.', async () => {
+        const command = CommandExternal.create({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          data: { strategy: 'succeed' }
+        });
+
+        await supertest(http.api).
+          post('/v2/').
+          send(command);
+
+        assert.that(receivedCommands.length).is.equalTo(1);
+        assert.that(receivedCommands[0]).is.atLeast({
+          context: { name: command.context.name },
+          aggregate: { name: command.aggregate.name, id: command.aggregate.id },
+          name: command.name,
+          id: command.id,
+          data: command.data,
+          metadata: {
+            causationId: command.id,
+            correlationId: command.id
+          },
+          annotations: {
+            client: {
+              user: { id: 'anonymous', claims: { sub: 'anonymous', iss: 'https://token.invalid' }}
             },
-            ip: '1.2.3.4'
-          }
-        }
-      });
-
-      await supertest(http.api).
-        post('/v2/').
-        send(command);
-
-      assert.that(receivedCommands.length).is.equalTo(1);
-      assert.that(receivedCommands[0]).is.atLeast({
-        context: { name: command.context.name },
-        aggregate: { name: command.aggregate.name, id: command.aggregate.id },
-        name: command.name,
-        id: command.id,
-        data: command.data,
-        metadata: {
-          causationId: command.id,
-          correlationId: command.id,
-          initiator: {
-            user: {
-              id: 'anonymous',
-              claims: { sub: 'anonymous', iss: 'https://token.invalid' }
+            initiator: {
+              user: { id: 'anonymous', claims: { sub: 'anonymous', iss: 'https://token.invalid' }}
             }
           }
-        },
-        annotations: {
-          client: {
-            user: {
-              id: 'anonymous',
-              claims: { sub: 'anonymous', iss: 'https://token.invalid' }
-            }
-          }
-        }
+        });
+
+        assert.that(receivedCommands[0].annotations.client.token).is.ofType('string');
+        assert.that(receivedCommands[0].annotations.client.ip).is.ofType('string');
       });
 
-      assert.that(receivedCommands[0].annotations.client.token).is.ofType('string');
-      assert.that(receivedCommands[0].annotations.client.ip).is.ofType('string');
+      test('returns 500 if on received command throws an error.', async () => {
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          Command: CommandExternal,
+          async onReceiveCommand () {
+            throw new Error('Failed to handle received command.');
+          },
+          application,
+          identityProviders
+        });
+
+        const command = CommandExternal.create({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          data: { strategy: 'succeed' }
+        });
+
+        const { statusCode } = await supertest(http.api).
+          post('/v2/').
+          send(command);
+
+        assert.that(statusCode).is.equalTo(500);
+      });
     });
 
-    test('does not overwrite the initiator and client, if the API is configured accordingly.', async () => {
-      http = new Http();
+    suite('receiving internal commands', () => {
+      let receivedCommands;
 
-      await http.initialize({
-        corsOrigin: '*',
-        overwriteInitiatorAndClient: false,
-        async onReceiveCommand ({ command }) {
-          receivedCommands.push(command);
-        },
-        application,
-        identityProviders
+      setup(async () => {
+        http = new Http();
+        receivedCommands = [];
+
+        await http.initialize({
+          corsOrigin: '*',
+          Command: CommandInternal,
+          async onReceiveCommand ({ command }) {
+            receivedCommands.push(command);
+          },
+          application,
+          identityProviders
+        });
       });
 
-      const command = Command.create({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'execute',
-        data: { strategy: 'succeed' },
-        metadata: {
-          initiator: {
-            user: {
-              id: 'provided externally',
-              claims: { sub: 'provided externally', iss: 'https://external-identity-provider.invalid' }
-            }
-          }
-        },
-        annotations: {
-          client: {
-            token: 'external token',
-            user: {
-              id: 'provided externally',
-              claims: { sub: 'provided externally', iss: 'https://external-identity-provider.invalid' }
+      test('returns 415 if the content-type header is missing.', async () => {
+        const res = await supertest(http.api).post('/v2/');
+
+        assert.that(res.statusCode).is.equalTo(415);
+        assert.that(res.text).is.equalTo('Header content-type must be application/json.');
+      });
+
+      test('returns 415 if content-type is not set to application/json.', async () => {
+        const res = await supertest(http.api).
+          post('/v2/').
+          set({
+            'content-type': 'text/plain'
+          }).
+          send('foobar');
+
+        assert.that(res.statusCode).is.equalTo(415);
+        assert.that(res.text).is.equalTo('Header content-type must be application/json.');
+      });
+
+      test('returns 400 if a malformed command is sent.', async () => {
+        const res = await supertest(http.api).
+          post('/v2/').
+          send({ foo: 'bar' });
+
+        assert.that(res.statusCode).is.equalTo(400);
+        assert.that(res.text).is.equalTo('Malformed command.');
+      });
+
+      test('returns 400 if a wellformed command is sent with a non-existent context name.', async () => {
+        const command = CommandInternal.create({
+          context: { name: 'nonExistent' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          data: { strategy: 'succeed' },
+          annotations: {
+            client: {
+              token: '...',
+              user: { id: uuid(), claims: { sub: uuid() }},
+              ip: '127.0.0.1'
             },
-            ip: '1.2.3.4'
+            initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
           }
-        }
+        });
+
+        const res = await supertest(http.api).
+          post('/v2/').
+          send(command);
+
+        assert.that(res.statusCode).is.equalTo(400);
+        assert.that(res.text).is.equalTo('Invalid context name.');
       });
 
-      await supertest(http.api).
-        post('/v2/').
-        send(command);
-
-      assert.that(receivedCommands.length).is.equalTo(1);
-      assert.that(receivedCommands[0]).is.atLeast({
-        context: { name: command.context.name },
-        aggregate: { name: command.aggregate.name, id: command.aggregate.id },
-        name: command.name,
-        id: command.id,
-        data: command.data,
-        metadata: {
-          causationId: command.id,
-          correlationId: command.id,
-          initiator: {
-            user: {
-              id: 'provided externally',
-              claims: { sub: 'provided externally', iss: 'https://external-identity-provider.invalid' }
-            }
-          }
-        },
-        annotations: {
-          client: {
-            token: 'external token',
-            user: {
-              id: 'provided externally',
-              claims: { sub: 'provided externally', iss: 'https://external-identity-provider.invalid' }
+      test('returns 400 if a wellformed command is sent with a non-existent aggregate name.', async () => {
+        const command = CommandInternal.create({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'nonExistent', id: uuid() },
+          name: 'execute',
+          data: { strategy: 'succeed' },
+          annotations: {
+            client: {
+              token: '...',
+              user: { id: uuid(), claims: { sub: uuid() }},
+              ip: '127.0.0.1'
             },
-            ip: '1.2.3.4'
+            initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
           }
-        }
+        });
+
+        const res = await supertest(http.api).
+          post('/v2/').
+          send(command);
+
+        assert.that(res.statusCode).is.equalTo(400);
+        assert.that(res.text).is.equalTo('Invalid aggregate name.');
       });
 
-      assert.that(receivedCommands[0].annotations.client.token).is.ofType('string');
-      assert.that(receivedCommands[0].annotations.client.ip).is.ofType('string');
-    });
+      test('returns 400 if a wellformed command is sent with a non-existent command name.', async () => {
+        const command = CommandInternal.create({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'nonExistent',
+          data: { strategy: 'succeed' },
+          annotations: {
+            client: {
+              token: '...',
+              user: { id: uuid(), claims: { sub: uuid() }},
+              ip: '127.0.0.1'
+            },
+            initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
+          }
+        });
 
-    test('returns 500 if on received command throws an error.', async () => {
-      http = new Http();
+        const res = await supertest(http.api).
+          post('/v2/').
+          send(command);
 
-      await http.initialize({
-        corsOrigin: '*',
-        overwriteInitiatorAndClient: true,
-        async onReceiveCommand () {
-          throw new Error('Failed to handle received command.');
-        },
-        application,
-        identityProviders
+        assert.that(res.statusCode).is.equalTo(400);
+        assert.that(res.text).is.equalTo('Invalid command name.');
       });
 
-      const command = Command.create({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'execute',
-        data: { strategy: 'succeed' }
+      test('returns 400 if a command is sent with a payload that does not match the schema.', async () => {
+        const command = CommandInternal.create({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          data: { strategy: 'invalid-value' },
+          annotations: {
+            client: {
+              token: '...',
+              user: { id: uuid(), claims: { sub: uuid() }},
+              ip: '127.0.0.1'
+            },
+            initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
+          }
+        });
+
+        const res = await supertest(http.api).
+          post('/v2/').
+          send(command);
+
+        assert.that(res.statusCode).is.equalTo(400);
+        assert.that(res.text).is.equalTo('No enum match (invalid-value), expects: succeed, fail, reject (at command.data.strategy).');
       });
 
-      const { statusCode } = await supertest(http.api).
-        post('/v2/').
-        send(command);
+      test('returns 200 if a wellformed and existing command is sent.', async () => {
+        const command = CommandInternal.create({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          data: { strategy: 'succeed' },
+          annotations: {
+            client: {
+              token: '...',
+              user: { id: uuid(), claims: { sub: uuid() }},
+              ip: '127.0.0.1'
+            },
+            initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
+          }
+        });
 
-      assert.that(statusCode).is.equalTo(500);
+        const { statusCode } = await supertest(http.api).
+          post('/v2/').
+          send(command);
+
+        assert.that(statusCode).is.equalTo(200);
+      });
+
+      test('receives commands and does not overwrite the annotations.', async () => {
+        const command = CommandInternal.create({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          data: { strategy: 'succeed' },
+          annotations: {
+            client: {
+              token: '...',
+              user: { id: uuid(), claims: { sub: uuid() }},
+              ip: '127.0.0.1'
+            },
+            initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
+          }
+        });
+
+        await supertest(http.api).
+          post('/v2/').
+          send(command);
+
+        assert.that(receivedCommands.length).is.equalTo(1);
+        assert.that(receivedCommands[0]).is.atLeast({
+          context: { name: command.context.name },
+          aggregate: { name: command.aggregate.name, id: command.aggregate.id },
+          name: command.name,
+          id: command.id,
+          data: command.data,
+          metadata: {
+            causationId: command.id,
+            correlationId: command.id
+          },
+          annotations: command.annotations
+        });
+      });
+
+      test('returns 500 if on received command throws an error.', async () => {
+        http = new Http();
+
+        await http.initialize({
+          corsOrigin: '*',
+          Command: CommandInternal,
+          async onReceiveCommand () {
+            throw new Error('Failed to handle received command.');
+          },
+          application,
+          identityProviders
+        });
+
+        const command = CommandInternal.create({
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          data: { strategy: 'succeed' },
+          annotations: {
+            client: {
+              token: '...',
+              user: { id: uuid(), claims: { sub: uuid() }},
+              ip: '127.0.0.1'
+            },
+            initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
+          }
+        });
+
+        const { statusCode } = await supertest(http.api).
+          post('/v2/').
+          send(command);
+
+        assert.that(statusCode).is.equalTo(500);
+      });
     });
   });
 });

@@ -1,8 +1,9 @@
 'use strict';
 
-const cloneDeep = require('lodash/cloneDeep'),
-      uuid = require('uuidv4'),
+const uuid = require('uuidv4'),
       Value = require('validate-value');
+
+const CommandExternal = require('./CommandExternal');
 
 const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
 
@@ -39,30 +40,7 @@ const value = new Value({
       properties: {
         timestamp: { type: 'number' },
         correlationId: { type: 'string', pattern: uuidRegex },
-        causationId: { type: 'string', pattern: uuidRegex },
-        initiator: {
-          type: 'object',
-          properties: {
-            user: {
-              type: 'object',
-              properties: {
-                id: { type: 'string', minLength: 1 },
-                claims: {
-                  type: 'object',
-                  properties: {
-                    sub: { type: 'string', minLength: 1 }
-                  },
-                  required: [ 'sub' ],
-                  additionalProperties: true
-                }
-              },
-              required: [ 'id', 'claims' ],
-              additionalProperties: false
-            }
-          },
-          required: [ 'user' ],
-          additionalProperties: false
-        }
+        causationId: { type: 'string', pattern: uuidRegex }
       },
       required: [ 'timestamp', 'correlationId', 'causationId' ],
       additionalProperties: false
@@ -94,9 +72,32 @@ const value = new Value({
           },
           required: [ 'token', 'user', 'ip' ],
           additionalProperties: false
+        },
+        initiator: {
+          type: 'object',
+          properties: {
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', minLength: 1 },
+                claims: {
+                  type: 'object',
+                  properties: {
+                    sub: { type: 'string', minLength: 1 }
+                  },
+                  required: [ 'sub' ],
+                  additionalProperties: true
+                }
+              },
+              required: [ 'id', 'claims' ],
+              additionalProperties: false
+            }
+          },
+          required: [ 'user' ],
+          additionalProperties: false
         }
       },
-      required: [],
+      required: [ 'client', 'initiator' ],
       additionalProperties: false
     }
   },
@@ -104,7 +105,7 @@ const value = new Value({
   additionalProperties: false
 });
 
-class Command {
+class CommandInternal extends CommandExternal {
   constructor ({
     context,
     aggregate,
@@ -153,32 +154,17 @@ class Command {
     if (!annotations) {
       throw new Error('Annotations is missing.');
     }
+    if (!annotations.client) {
+      throw new Error('Annotations client is missing.');
+    }
+    if (!annotations.initiator) {
+      throw new Error('Annotations initiator is missing.');
+    }
 
-    this.context = { name: context.name };
-    this.aggregate = { name: aggregate.name, id: aggregate.id };
-    this.name = name;
-    this.id = id;
-
-    this.data = data;
-    this.metadata = metadata;
+    super({ context, aggregate, name, id, data, metadata });
     this.annotations = annotations;
 
     value.validate(this, { valueName: 'command' });
-  }
-
-  clone () {
-    const clonedCommand = Command.fromObject(cloneDeep(this));
-
-    return clonedCommand;
-  }
-
-  withoutAnnotations () {
-    const commandWithoutAnnotations = this.clone();
-
-    commandWithoutAnnotations.annotations = {};
-    value.validate(commandWithoutAnnotations, { valueName: 'command' });
-
-    return commandWithoutAnnotations;
   }
 
   static create ({
@@ -187,7 +173,7 @@ class Command {
     name,
     data = {},
     metadata = {},
-    annotations = {}
+    annotations
   }) {
     if (!context) {
       throw new Error('Context is missing.');
@@ -207,6 +193,16 @@ class Command {
     if (!name) {
       throw new Error('Name is missing.');
     }
+    if (!annotations) {
+      throw new Error('Annotations is missing.');
+    }
+    if (!annotations.client) {
+      throw new Error('Annotations client is missing.');
+    }
+    if (!annotations.initiator) {
+      throw new Error('Annotations initiator is missing.');
+    }
+
     if (
       (metadata.causationId && !metadata.correlationId) ||
       (!metadata.causationId && metadata.correlationId)
@@ -216,14 +212,13 @@ class Command {
 
     const id = uuid();
 
-    const command = new Command({
+    const command = new CommandInternal({
       context,
       aggregate,
       name,
       id,
       data,
       metadata: {
-        ...metadata,
         causationId: metadata.causationId || id,
         correlationId: metadata.correlationId || id,
         timestamp: Date.now()
@@ -282,8 +277,14 @@ class Command {
     if (!annotations) {
       throw new Error('Annotations is missing.');
     }
+    if (!annotations.client) {
+      throw new Error('Annotations client is missing.');
+    }
+    if (!annotations.initiator) {
+      throw new Error('Annotations initiator is missing.');
+    }
 
-    const command = new Command({
+    const command = new CommandInternal({
       context,
       aggregate,
       name,
@@ -295,6 +296,47 @@ class Command {
 
     return command;
   }
+
+  static validate ({ command, application }) {
+    if (!command) {
+      throw new Error('Command is missing.');
+    }
+    if (!application) {
+      throw new Error('Application is missing.');
+    }
+
+    try {
+      CommandInternal.fromObject(command);
+    } catch {
+      throw new Error('Malformed command.');
+    }
+
+    const context = application.commands.internal[command.context.name];
+
+    if (!context) {
+      throw new Error('Invalid context name.');
+    }
+
+    const aggregate = context[command.aggregate.name];
+
+    if (!aggregate) {
+      throw new Error('Invalid aggregate name.');
+    }
+
+    if (!aggregate[command.name]) {
+      throw new Error('Invalid command name.');
+    }
+
+    const { schema } = aggregate[command.name];
+
+    if (!schema) {
+      return;
+    }
+
+    const dataValue = new Value(schema);
+
+    dataValue.validate(command.data, { valueName: 'command.data' });
+  }
 }
 
-module.exports = Command;
+module.exports = CommandInternal;

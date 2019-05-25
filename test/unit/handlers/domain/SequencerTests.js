@@ -3,7 +3,7 @@
 const assert = require('assertthat'),
       uuid = require('uuidv4');
 
-const { Command } = require('../../../../common/elements'),
+const { CommandInternal } = require('../../../../common/elements'),
       { Sequencer } = require('../../../../handlers/domain'),
       sleep = require('../../../../common/utils/sleep');
 
@@ -66,10 +66,14 @@ suite('Sequencer', () => {
         }
       });
 
-      const command = Command.create({
+      const command = CommandInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'sampleCommand'
+        name: 'sampleCommand',
+        annotations: {
+          client: { token: '...', user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}, ip: '127.0.0.1' },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
       });
 
       await sequencer.add({ command });
@@ -91,17 +95,25 @@ suite('Sequencer', () => {
 
       const aggregateId = uuid();
 
-      const commandSlow = Command.create({
+      const commandSlow = CommandInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: aggregateId },
         name: 'sampleCommand',
-        data: { delay: 50 }
+        data: { delay: 50 },
+        annotations: {
+          client: { token: '...', user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}, ip: '127.0.0.1' },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
       });
-      const commandFast = Command.create({
+      const commandFast = CommandInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: aggregateId },
         name: 'sampleCommand',
-        data: { delay: 25 }
+        data: { delay: 25 },
+        annotations: {
+          client: { token: '...', user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}, ip: '127.0.0.1' },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
       });
 
       await Promise.all([
@@ -125,17 +137,25 @@ suite('Sequencer', () => {
         }
       });
 
-      const commandSlow = Command.create({
+      const commandSlow = CommandInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleCommand',
-        data: { delay: 50 }
+        data: { delay: 50 },
+        annotations: {
+          client: { token: '...', user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}, ip: '127.0.0.1' },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
       });
-      const commandFast = Command.create({
+      const commandFast = CommandInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleCommand',
-        data: { delay: 25 }
+        data: { delay: 25 },
+        annotations: {
+          client: { token: '...', user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}, ip: '127.0.0.1' },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
       });
 
       await Promise.all([

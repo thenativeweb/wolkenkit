@@ -2,7 +2,7 @@
 
 const { PassThrough } = require('stream');
 
-const { Event } = require('../../../common/elements'),
+const { EventExternal, EventInternal } = require('../../../common/elements'),
       omitByDeep = require('../omitByDeep');
 
 class Eventstore {
@@ -47,7 +47,7 @@ class Eventstore {
 
     const lastEvent = eventsInDatabase[eventsInDatabase.length - 1];
 
-    return Event.fromObject(lastEvent);
+    return EventExternal.fromObject(lastEvent);
   }
 
   async getEventStream ({
@@ -70,7 +70,7 @@ class Eventstore {
                       event.metadata.revision.aggregate <= toRevision);
 
     for (const event of filteredEvents) {
-      passThrough.write(Event.fromObject(event));
+      passThrough.write(EventExternal.fromObject(event));
     }
 
     passThrough.end();
@@ -85,7 +85,7 @@ class Eventstore {
     const passThrough = new PassThrough({ objectMode: true });
 
     for (const event of filteredEvents) {
-      passThrough.write(Event.fromObject(event));
+      passThrough.write(EventExternal.fromObject(event));
     }
 
     passThrough.end();
@@ -105,8 +105,8 @@ class Eventstore {
     const committedEvents = [];
 
     for (const uncommittedEvent of uncommittedEvents) {
-      if (!uncommittedEvent.annotations.state) {
-        throw new Error('Annotations state is missing.');
+      if (!(uncommittedEvent instanceof EventInternal)) {
+        throw new Error('Event must be internal.');
       }
 
       const alreadyExists = eventsInDatabase.some(eventInDatabase =>
@@ -125,7 +125,7 @@ class Eventstore {
       committedEvent = committedEvent.setRevisionGlobal({ revisionGlobal });
       committedEvents.push(committedEvent);
 
-      this.storeEventAtDatabase(committedEvent.withoutAnnotations());
+      this.storeEventAtDatabase(committedEvent.asExternal());
     }
 
     const indexForSnapshot = committedEvents.findIndex(
@@ -236,7 +236,7 @@ class Eventstore {
                       event.metadata.revision.global <= toRevisionGlobal);
 
     for (const event of filteredEvents) {
-      passThrough.write(Event.fromObject(event));
+      passThrough.write(EventExternal.fromObject(event));
     }
 
     passThrough.end();

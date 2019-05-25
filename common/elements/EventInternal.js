@@ -4,6 +4,8 @@ const cloneDeep = require('lodash/cloneDeep'),
       uuid = require('uuidv4'),
       Value = require('validate-value');
 
+const EventExternal = require('./EventExternal');
+
 const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
 
 const value = new Value({
@@ -89,31 +91,6 @@ const value = new Value({
     annotations: {
       type: 'object',
       properties: {
-        client: {
-          type: 'object',
-          properties: {
-            token: { type: 'string', minLength: 1 },
-            user: {
-              type: 'object',
-              properties: {
-                id: { type: 'string', minLength: 1 },
-                claims: {
-                  type: 'object',
-                  properties: {
-                    sub: { type: 'string', minLength: 1 }
-                  },
-                  required: [ 'sub' ],
-                  additionalProperties: true
-                }
-              },
-              required: [ 'id', 'claims' ],
-              additionalProperties: false
-            },
-            ip: { type: 'string', minLength: 1 }
-          },
-          required: [ 'token', 'user', 'ip' ],
-          additionalProperties: false
-        },
         state: {
           type: 'object',
           properties: {},
@@ -127,7 +104,7 @@ const value = new Value({
           additionalProperties: true
         }
       },
-      required: [],
+      required: [ 'state', 'previousState' ],
       additionalProperties: false
     }
   },
@@ -135,7 +112,7 @@ const value = new Value({
   additionalProperties: false
 });
 
-class Event {
+class EventInternal extends EventExternal {
   constructor ({
     context,
     aggregate,
@@ -212,20 +189,14 @@ class Event {
       throw new Error('Annotations is missing.');
     }
 
-    this.context = { name: context.name };
-    this.aggregate = { name: aggregate.name, id: aggregate.id };
-    this.name = name;
-    this.id = id;
-
-    this.data = data;
-    this.metadata = metadata;
+    super({ context, aggregate, name, id, data, metadata });
     this.annotations = annotations;
 
     value.validate(this, { valueName: 'event' });
   }
 
   clone () {
-    const clonedEvent = Event.fromObject(cloneDeep(this));
+    const clonedEvent = EventInternal.fromObject(cloneDeep(this));
 
     return clonedEvent;
   }
@@ -265,13 +236,18 @@ class Event {
     return publishedEvent;
   }
 
-  withoutAnnotations () {
-    const eventWithoutAnnotations = this.clone();
+  asExternal () {
+    const clonedEvent = this.clone();
+    const externalEvent = EventExternal.fromObject({
+      context: clonedEvent.context,
+      aggregate: clonedEvent.aggregate,
+      name: clonedEvent.name,
+      id: clonedEvent.id,
+      data: clonedEvent.data,
+      metadata: clonedEvent.metadata
+    });
 
-    eventWithoutAnnotations.annotations = {};
-    value.validate(eventWithoutAnnotations, { valueName: 'event' });
-
-    return eventWithoutAnnotations;
+    return externalEvent;
   }
 
   static create ({
@@ -280,7 +256,7 @@ class Event {
     name,
     data = {},
     metadata,
-    annotations = {}
+    annotations
   }) {
     if (!context) {
       throw new Error('Context is missing.');
@@ -330,10 +306,19 @@ class Event {
     if (!metadata.initiator.user.claims.sub) {
       throw new Error('Metadata initiator user claims sub is missing.');
     }
+    if (!annotations) {
+      throw new Error('Annotations is missing.');
+    }
+    if (!annotations.state) {
+      throw new Error('Annotations state is missing.');
+    }
+    if (!annotations.previousState) {
+      throw new Error('Annotations previous state is missing.');
+    }
 
     const id = uuid();
 
-    const event = new Event({
+    const event = new EventInternal({
       context,
       aggregate,
       name,
@@ -428,8 +413,14 @@ class Event {
     if (!annotations) {
       throw new Error('Annotations is missing.');
     }
+    if (!annotations.state) {
+      throw new Error('Annotations state is missing.');
+    }
+    if (!annotations.previousState) {
+      throw new Error('Annotations previous state is missing.');
+    }
 
-    const event = new Event({
+    const event = new EventInternal({
       context,
       aggregate,
       name,
@@ -441,6 +432,47 @@ class Event {
 
     return event;
   }
+
+  static validate ({ event, application }) {
+    if (!event) {
+      throw new Error('Event is missing.');
+    }
+    if (!application) {
+      throw new Error('Application is missing.');
+    }
+
+    try {
+      EventInternal.fromObject(event);
+    } catch {
+      throw new Error('Malformed event.');
+    }
+
+    const context = application.events.internal[event.context.name];
+
+    if (!context) {
+      throw new Error('Invalid context name.');
+    }
+
+    const aggregate = context[event.aggregate.name];
+
+    if (!aggregate) {
+      throw new Error('Invalid aggregate name.');
+    }
+
+    if (!aggregate[event.name]) {
+      throw new Error('Invalid event name.');
+    }
+
+    const { schema } = aggregate[event.name];
+
+    if (!schema) {
+      return;
+    }
+
+    const valueData = new Value(schema);
+
+    valueData.validate(event.data, { valueName: 'event.data' });
+  }
 }
 
-module.exports = Event;
+module.exports = EventInternal;

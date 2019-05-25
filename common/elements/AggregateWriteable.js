@@ -3,10 +3,11 @@
 const cloneDeep = require('lodash/cloneDeep'),
       Value = require('validate-value');
 
-const Event = require('./Event'),
-      ReadableAggregate = require('./ReadableAggregate');
+const AggregateReadable = require('./AggregateReadable'),
+      EventExternal = require('./EventExternal'),
+      EventInternal = require('./EventInternal');
 
-class WritableAggregate extends ReadableAggregate {
+class AggregateWriteable extends AggregateReadable {
   constructor ({ application, context, aggregate, command }) {
     if (!application) {
       throw new Error('Application is missing.');
@@ -57,32 +58,31 @@ class WritableAggregate extends ReadableAggregate {
         value.validate(data, { valueName: 'data', separator: '.' });
       }
 
-      let event = Event.create({
+      let event = EventExternal.create({
         context: { name: context.name },
         aggregate: { name: aggregate.name, id: aggregate.id },
         name: eventName,
         data,
         metadata: {
-          initiator: command.metadata.initiator,
+          initiator: command.annotations.initiator,
           correlationId: command.metadata.correlationId,
           causationId: command.id,
           revision: {
             aggregate: this.instance.revision + this.instance.uncommittedEvents.length + 1
           }
-        },
-        annotations: {
-          previousState: cloneDeep(this.api.forCommands.state)
         }
       });
+
+      const previousState = cloneDeep(this.api.forCommands.state);
 
       handle(this.api.forEvents, event);
 
       const state = cloneDeep(this.api.forCommands.state);
 
-      event = Event.fromObject({
+      event = EventInternal.fromObject({
         ...event,
         annotations: {
-          ...event.annotations,
+          previousState,
           state
         }
       });
@@ -91,10 +91,26 @@ class WritableAggregate extends ReadableAggregate {
     };
   }
 
-  applySnapshot (snapshot) {
-    super.applySnapshot(snapshot);
-    this.api.forCommands.state = snapshot.state;
+  applySnapshot ({ snapshot }) {
+    if (!snapshot) {
+      throw new Error('Snapshot is missing.');
+    }
+
+    super.applySnapshot({ snapshot });
+    this.api.forCommands.state = this.api.forEvents.state;
+  }
+
+  async applyEventStream ({ application, eventStream }) {
+    if (!application) {
+      throw new Error('Application is missing.');
+    }
+    if (!eventStream) {
+      throw new Error('Event stream is missing.');
+    }
+
+    await super.applyEventStream({ application, eventStream });
+    this.api.forCommands.state = this.api.forEvents.state;
   }
 }
 
-module.exports = WritableAggregate;
+module.exports = AggregateWriteable;

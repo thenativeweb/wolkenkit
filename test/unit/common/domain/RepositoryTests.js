@@ -6,7 +6,7 @@ const assert = require('assertthat'),
       uuid = require('uuidv4');
 
 const { Application } = require('../../../../common/application'),
-      { Command, Event, ReadableAggregate, WritableAggregate } = require('../../../../common/elements'),
+      { AggregateReadable, AggregateWriteable, CommandInternal, EventInternal } = require('../../../../common/elements'),
       { InMemory } = require('../../../../stores/eventstore'),
       { Repository } = require('../../../../common/domain'),
       updateInitialState = require('../../../shared/applications/valid/updateInitialState');
@@ -56,17 +56,18 @@ suite('Repository', () => {
     setup(() => {
       repository = new Repository({ application, eventstore });
 
-      command = Command.create({
+      command = CommandInternal.create({
         context: { name: 'sampleContext' },
         aggregate: { name: 'sampleAggregate', id: uuid() },
         name: 'execute',
         data: { strategy: 'succeed' },
-        metadata: {
+        annotations: {
+          client: { token: '...', user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}, ip: '127.0.0.1' },
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
 
-      aggregate = new WritableAggregate({
+      aggregate = new AggregateWriteable({
         application,
         context: { name: command.context.name },
         aggregate: { name: command.aggregate.name, id: command.aggregate.id },
@@ -164,7 +165,7 @@ suite('Repository', () => {
       });
 
       test('throws an error if the aggregate type does not match the events.', async () => {
-        const succeeded = Event.create({
+        const succeeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'succeeded',
@@ -174,9 +175,9 @@ suite('Repository', () => {
             correlationId: uuid(),
             revision: { aggregate: 1 }
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
-        const nonExistent = Event.create({
+        const nonExistent = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'nonExistent',
@@ -186,7 +187,7 @@ suite('Repository', () => {
             correlationId: uuid(),
             revision: { aggregate: 2 }
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.saveEvents({
@@ -195,11 +196,11 @@ suite('Repository', () => {
 
         await assert.that(async () => {
           await repository.replayAggregate({ aggregate });
-        }).is.throwingAsync('Aggregate not found.');
+        }).is.throwingAsync('Unknown event.');
       });
 
       test('applies previously saved events.', async () => {
-        const succeeded = Event.create({
+        const succeeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'succeeded',
@@ -209,9 +210,9 @@ suite('Repository', () => {
             correlationId: uuid(),
             revision: { aggregate: 1 }
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
-        const executed = Event.create({
+        const executed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'executed',
@@ -222,7 +223,7 @@ suite('Repository', () => {
             correlationId: uuid(),
             revision: { aggregate: 2 }
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.saveEvents({
@@ -237,7 +238,7 @@ suite('Repository', () => {
       });
 
       test('applies previously saved snapshots and events.', async () => {
-        const succeeded = Event.create({
+        const succeeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'succeeded',
@@ -247,9 +248,9 @@ suite('Repository', () => {
             correlationId: uuid(),
             revision: { aggregate: 100 }
           },
-          annotations: { state: { events: [ 'succeeded', 'succeeded', 'succeeded' ]}}
+          annotations: { state: { events: [ 'succeeded', 'succeeded', 'succeeded' ]}, previousState: {}}
         });
-        const executed = Event.create({
+        const executed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'executed',
@@ -260,7 +261,7 @@ suite('Repository', () => {
             correlationId: uuid(),
             revision: { aggregate: 101 }
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.saveEvents({
@@ -308,7 +309,7 @@ suite('Repository', () => {
       });
 
       test('returns a replayed aggregate.', async () => {
-        const succeeded = Event.create({
+        const succeeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'succeeded',
@@ -318,9 +319,9 @@ suite('Repository', () => {
             correlationId: uuid(),
             revision: { aggregate: 1 }
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
-        const executed = Event.create({
+        const executed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'executed',
@@ -331,7 +332,7 @@ suite('Repository', () => {
             correlationId: uuid(),
             revision: { aggregate: 2 }
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.saveEvents({
@@ -344,7 +345,7 @@ suite('Repository', () => {
           aggregateId: aggregate.instance.id
         });
 
-        assert.that(loadedAggregate).is.instanceOf(ReadableAggregate);
+        assert.that(loadedAggregate).is.instanceOf(AggregateReadable);
         assert.that(loadedAggregate.api.forReadOnly.state).is.equalTo({
           events: [ 'succeeded', 'executed' ]
         });
@@ -363,7 +364,7 @@ suite('Repository', () => {
       });
 
       test('returns a replayed aggregate.', async () => {
-        const succeeded = Event.create({
+        const succeeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'succeeded',
@@ -373,9 +374,9 @@ suite('Repository', () => {
             correlationId: uuid(),
             revision: { aggregate: 1 }
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
-        const executed = Event.create({
+        const executed = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
           name: 'executed',
@@ -386,7 +387,7 @@ suite('Repository', () => {
             correlationId: uuid(),
             revision: { aggregate: 2 }
           },
-          annotations: { state: {}}
+          annotations: { state: {}, previousState: {}}
         });
 
         await eventstore.saveEvents({
@@ -400,7 +401,7 @@ suite('Repository', () => {
           command
         });
 
-        assert.that(loadedAggregate).is.instanceOf(WritableAggregate);
+        assert.that(loadedAggregate).is.instanceOf(AggregateWriteable);
         assert.that(loadedAggregate.api.forCommands.state).is.equalTo({
           events: [ 'succeeded', 'executed' ]
         });

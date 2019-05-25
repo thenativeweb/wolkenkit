@@ -11,6 +11,7 @@ const express = require('express'),
       processenv = require('processenv');
 
 const { Application } = require('../../common/application'),
+      { CommandExternal } = require('../../common/elements'),
       getHandleReceivedCommand = require('./getHandleReceivedCommand'),
       { Http: CommandHttp } = require('../../apis/command'),
       { Http: HealthHttp } = require('../../apis/health'),
@@ -57,7 +58,7 @@ const { Application } = require('../../common/application'),
 
   await commandHttp.initialize({
     corsOrigin: corsOriginCommand,
-    overwriteInitiatorAndClient: true,
+    Command: CommandExternal,
     onReceiveCommand: handleReceivedCommand,
     application,
     identityProviders
