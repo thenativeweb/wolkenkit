@@ -99,7 +99,7 @@
     "stringify-object": "3.3.0",
     "tar": "4.4.8",
     "tarn": "1.1.5",
-    "tedious": "2.6.3",
+    "tedious": "6.1.1",
     "update-notifier": "2.5.0",
     "uuidv4": "4.0.0",
     "validate-value": "5.0.2"
