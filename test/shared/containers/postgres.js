@@ -5,7 +5,8 @@ const oneLine = require('common-tags/lib/oneLine'),
       retry = require('async-retry'),
       shell = require('shelljs');
 
-const getConnectionOptions = require('./getConnectionOptions');
+const getConnectionOptions = require('./getConnectionOptions'),
+      getRetryOptions = require('./getRetryOptions');
 
 const postgres = {
   async start () {
@@ -42,7 +43,7 @@ const postgres = {
       const connection = await pool.connect();
 
       connection.release();
-    });
+    }, getRetryOptions());
 
     await pool.end();
   },

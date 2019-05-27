@@ -6,7 +6,8 @@ const Minio = require('minio'),
       shell = require('shelljs'),
       uuid = require('uuidv4');
 
-const getConnectionOptions = require('./getConnectionOptions');
+const getConnectionOptions = require('./getConnectionOptions'),
+      getRetryOptions = require('./getRetryOptions');
 
 const minio = {
   async start () {
@@ -42,7 +43,7 @@ const minio = {
       });
 
       await client.bucketExists(uuid());
-    });
+    }, getRetryOptions());
   },
 
   async stop () {

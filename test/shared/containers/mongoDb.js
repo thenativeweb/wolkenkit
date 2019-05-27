@@ -5,7 +5,8 @@ const { MongoClient } = require('mongodb'),
       retry = require('async-retry'),
       shell = require('shelljs');
 
-const getConnectionOptions = require('./getConnectionOptions');
+const getConnectionOptions = require('./getConnectionOptions'),
+      getRetryOptions = require('./getRetryOptions');
 
 const mongoDb = {
   async start () {
@@ -38,7 +39,7 @@ const mongoDb = {
       /* eslint-enable id-length */
 
       await client.close();
-    });
+    }, getRetryOptions());
   },
 
   async stop () {

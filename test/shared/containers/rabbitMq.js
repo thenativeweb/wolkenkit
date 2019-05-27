@@ -5,7 +5,8 @@ const amqp = require('amqplib'),
       retry = require('async-retry'),
       shell = require('shelljs');
 
-const getConnectionOptions = require('./getConnectionOptions');
+const getConnectionOptions = require('./getConnectionOptions'),
+      getRetryOptions = require('./getRetryOptions');
 
 const rabbitMq = {
   async start () {
@@ -34,7 +35,7 @@ const rabbitMq = {
       const connection = await amqp.connect(url, {});
 
       await connection.close();
-    });
+    }, getRetryOptions());
   },
 
   async stop () {

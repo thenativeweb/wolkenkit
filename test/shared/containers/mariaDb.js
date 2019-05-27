@@ -5,7 +5,8 @@ const mysql = require('mysql2/promise'),
       retry = require('async-retry'),
       shell = require('shelljs');
 
-const getConnectionOptions = require('./getConnectionOptions');
+const getConnectionOptions = require('./getConnectionOptions'),
+      getRetryOptions = require('./getRetryOptions');
 
 const mariaDb = {
   async start () {
@@ -45,7 +46,7 @@ const mariaDb = {
       const connection = await pool.getConnection();
 
       await connection.release();
-    });
+    }, getRetryOptions());
 
     await pool.end();
   },

@@ -5,7 +5,8 @@ const { Connection, Request } = require('tedious'),
       retry = require('async-retry'),
       shell = require('shelljs');
 
-const getConnectionOptions = require('./getConnectionOptions');
+const getConnectionOptions = require('./getConnectionOptions'),
+      getRetryOptions = require('./getRetryOptions');
 
 const createDatabase = async function ({ connection, database }) {
   if (!connection) {
@@ -106,7 +107,7 @@ const sqlServer = {
         connection.on('error', handleError);
         connection.on('end', handleEnd);
       });
-    });
+    }, getRetryOptions());
 
     await createDatabase({ connection, database });
 
