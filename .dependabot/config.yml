@@ -4,7 +4,6 @@ update_configs:
   - package_manager: "javascript"
     directory: "/"
     update_schedule: "live"
-    target_branch: "monorepo-commandhandler"
     default_reviewers:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
@@ -20,7 +19,6 @@ update_configs:
   - package_manager: "docker"
     directory: "/docker/wolkenkit"
     update_schedule: "daily"
-    target_branch: "monorepo-commandhandler"
     default_reviewers:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
@@ -32,7 +30,6 @@ update_configs:
   - package_manager: "docker"
     directory: "/docker/wolkenkit-mariadb"
     update_schedule: "daily"
-    target_branch: "monorepo-commandhandler"
     default_reviewers:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
@@ -44,7 +41,6 @@ update_configs:
   - package_manager: "docker"
     directory: "/docker/wolkenkit-minio"
     update_schedule: "daily"
-    target_branch: "monorepo-commandhandler"
     default_reviewers:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
@@ -56,7 +52,6 @@ update_configs:
   - package_manager: "docker"
     directory: "/docker/wolkenkit-mongodb"
     update_schedule: "daily"
-    target_branch: "monorepo-commandhandler"
     default_reviewers:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
@@ -68,7 +63,6 @@ update_configs:
   - package_manager: "docker"
     directory: "/docker/wolkenkit-mysql"
     update_schedule: "daily"
-    target_branch: "monorepo-commandhandler"
     default_reviewers:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
@@ -80,7 +74,6 @@ update_configs:
   - package_manager: "docker"
     directory: "/docker/wolkenkit-postgres"
     update_schedule: "daily"
-    target_branch: "monorepo-commandhandler"
     default_reviewers:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
@@ -92,7 +85,6 @@ update_configs:
   - package_manager: "docker"
     directory: "/docker/wolkenkit-proxy"
     update_schedule: "daily"
-    target_branch: "monorepo-commandhandler"
     default_reviewers:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
@@ -104,7 +96,6 @@ update_configs:
   - package_manager: "docker"
     directory: "/docker/wolkenkit-rabbitmq"
     update_schedule: "daily"
-    target_branch: "monorepo-commandhandler"
     default_reviewers:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
@@ -116,7 +107,6 @@ update_configs:
   - package_manager: "docker"
     directory: "/docker/wolkenkit-sqlserver"
     update_schedule: "daily"
-    target_branch: "monorepo-commandhandler"
     default_reviewers:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
