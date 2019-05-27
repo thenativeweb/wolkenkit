@@ -3,6 +3,9 @@
 const dns = require('dns'),
       { promisify } = require('util');
 
+const isEqual = require('lodash/isEqual'),
+      uniqWith = require('lodash/uniqWith');
+
 const ip = require('./ip');
 
 const lookup = promisify(dns.lookup);
@@ -17,8 +20,9 @@ const getIpAddresses = async function (hostOrIp) {
   }
 
   const addresses = await lookup(hostOrIp, { all: true });
+  const uniqueAddresses = uniqWith(addresses, isEqual);
 
-  return addresses;
+  return uniqueAddresses;
 };
 
 module.exports = getIpAddresses;
