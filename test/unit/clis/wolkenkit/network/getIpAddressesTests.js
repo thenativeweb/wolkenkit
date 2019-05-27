@@ -25,11 +25,10 @@ suite('getIpAddresses', () => {
   test('returns addresses if host is given.', async () => {
     const addresses = await getIpAddresses('localhost');
 
-    assert.that(
-      addresses.filter(item => item.address === '127.0.0.1' || item.address === '::1')
-    ).is.equalTo([
-      { address: '127.0.0.1', family: 4 },
-      { address: '::1', family: 6 }
-    ]);
+    assert.that(addresses.some(
+      item =>
+        (item.address === '127.0.0.1' && item.family === 4) ||
+        (item.address === '::1' && item.family === 6)
+    )).is.true();
   });
 });
