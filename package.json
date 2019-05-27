@@ -106,7 +106,7 @@
   },
   "devDependencies": {
     "array-join-conjunction": "1.0.0",
-    "assertthat": "2.0.3",
+    "assertthat": "3.0.0",
     "dir-compare": "1.7.2",
     "execa": "1.0.0",
     "measure-time": "3.1.1",
