@@ -9,10 +9,21 @@ const { AggregateReadable, EventInternal } = require('../../../../common/element
       { AppService, ClientService, LoggerService } = require('../../../../common/services'),
       ClientMetadata = require('../../../../common/utils/http/ClientMetadata'),
       getConfiguration = require('./getConfiguration'),
-      getEvents = require('./getEvents');
+      getEvents = require('./getEvents'),
+      postEvent = require('./postEvent');
 
 class V2 {
-  constructor ({ application, repository, identityProviders, heartbeatInterval }) {
+  constructor ({
+    purpose,
+    onReceiveEvent,
+    application,
+    repository,
+    identityProviders,
+    heartbeatInterval
+  }) {
+    if (!purpose) {
+      throw new Error('Purpose is missing.');
+    }
     if (!application) {
       throw new Error('Application is missing.');
     }
@@ -26,8 +37,13 @@ class V2 {
       throw new Error('Heartbeat interval is missing.');
     }
 
+    if (![ 'internal', 'external' ].includes(purpose)) {
+      throw new Error(`Purpose must either be 'internal' or 'external'.`);
+    }
+
     this.writeLine = this.writeLine.bind(this);
 
+    this.purpose = purpose;
     this.application = application;
     this.repository = repository;
 
@@ -43,14 +59,32 @@ class V2 {
 
     this.api = express();
 
-    this.api.get('/configuration', getConfiguration({ application }));
+    switch (purpose) {
+      case 'internal':
+        if (!onReceiveEvent) {
+          throw new Error('On receive event is missing.');
+        }
 
-    this.connectionsForGetEvents = {};
-    this.api.get('/', verifyTokenMiddleware, getEvents({
-      connections: this.connectionsForGetEvents,
-      writeLine: this.writeLine,
-      heartbeatInterval
-    }));
+        this.api.post('/', postEvent({
+          onReceiveEvent,
+          application
+        }));
+
+        break;
+      case 'external':
+        this.api.get('/configuration', getConfiguration({ application }));
+
+        this.connectionsForGetEvents = {};
+        this.api.get('/', verifyTokenMiddleware, getEvents({
+          connections: this.connectionsForGetEvents,
+          writeLine: this.writeLine,
+          heartbeatInterval
+        }));
+
+        break;
+      default:
+        throw new Error('Invalid operation.');
+    }
   }
 
   writeLine ({ connectionId, data }) {
@@ -59,6 +93,10 @@ class V2 {
     }
     if (!data) {
       throw new Error('Data is missing.');
+    }
+
+    if (this.purpose !== 'external') {
+      throw new Error('Invalid operation.');
     }
 
     const connection = this.connectionsForGetEvents[connectionId];
@@ -98,6 +136,10 @@ class V2 {
     }
     if (!(event instanceof EventInternal)) {
       throw new Error('Event must be internal.');
+    }
+
+    if (this.purpose !== 'external') {
+      throw new Error('Invalid operation.');
     }
 
     const connection = this.connectionsForGetEvents[connectionId];
@@ -221,6 +263,10 @@ class V2 {
     }
     if (!(event instanceof EventInternal)) {
       throw new Error('Event must be internal.');
+    }
+
+    if (this.purpose !== 'external') {
+      throw new Error('Invalid operation.');
     }
 
     for (const connectionId of Object.keys(this.connectionsForGetEvents)) {

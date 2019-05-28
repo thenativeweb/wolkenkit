@@ -7,11 +7,10 @@ const http = require('http'),
 
 const express = require('express'),
       flaschenpost = require('flaschenpost'),
-      getCorsOrigin = require('get-cors-origin'),
-      processenv = require('processenv');
+      getCorsOrigin = require('get-cors-origin');
 
 const { Application } = require('../../common/application'),
-      { CommandExternal } = require('../../common/elements'),
+      getEnvironmentVariables = require('../../common/utils/process/getEnvironmentVariables'),
       getHandleReceivedCommand = require('./getHandleReceivedCommand'),
       { Http: CommandHttp } = require('../../apis/command'),
       { Http: HealthHttp } = require('../../apis/health'),
@@ -22,33 +21,34 @@ const { Application } = require('../../common/application'),
 
   const logger = flaschenpost.getLogger();
 
-  const port = processenv('PORT', 3000);
-
-  const corsOriginCommand = getCorsOrigin(processenv('COMMAND_CORS_ORIGIN', '*')),
-        corsOriginHealth = getCorsOrigin(processenv('HEALTH_CORS_ORIGIN', '*'));
-
-  const dispatcherServer = {
-    hostname: processenv('DISPATCHER_SERVER_HOSTNAME', 'dispatcher'),
-    port: processenv('DISPATCHER_SERVER_PORT', 3000),
-    disableRetries: processenv('DISPATCHER_SERVER_DISABLE_RETRIES', false)
-  };
-
-  const identityProviders = processenv('IDENTITY_PROVIDERS', [
-    {
+  const environmentVariables = getEnvironmentVariables({
+    APPLICATION_DIRECTORY: path.join(__dirname, '..', '..', 'test', 'shared', 'applications', 'base'),
+    COMMAND_CORS_ORIGIN: '*',
+    DISPATCHER_SERVER_DISABLE_RETRIES: false,
+    DISPATCHER_SERVER_HOSTNAME: 'dispatcher',
+    DISPATCHER_SERVER_PORT: 3000,
+    HEALTH_CORS_ORIGIN: '*',
+    IDENTITY_PROVIDERS: [{
       issuer: 'https://token.invalid',
       certificate: path.join(__dirname, '..', '..', 'keys', 'local.wolkenkit.io')
-    }
-  ]).
+    }],
+    PORT: 3000
+  });
+
+  const dispatcherServer = {
+    hostname: environmentVariables.DISPATCHER_SERVER_HOSTNAME,
+    port: environmentVariables.DISPATCHER_SERVER_PORT,
+    disableRetries: environmentVariables.DISPATCHER_SERVER_DISABLE_RETRIES
+  };
+
+  const identityProviders = environmentVariables.IDENTITY_PROVIDERS.
     map(identityProvider => ({
       issuer: identityProvider.issuer,
       certificate: path.join(identityProvider.certificate, 'certificate.pem')
     }));
 
-  const applicationDirectory = processenv('APPLICATION_DIRECTORY',
-    path.join(__dirname, '..', '..', 'test', 'shared', 'applications', 'base'));
-
   const application = await Application.load({
-    directory: applicationDirectory
+    directory: environmentVariables.APPLICATION_DIRECTORY
   });
 
   const handleReceivedCommand = getHandleReceivedCommand({ dispatcherServer });
@@ -57,14 +57,14 @@ const { Application } = require('../../common/application'),
   const healthHttp = new HealthHttp();
 
   await commandHttp.initialize({
-    corsOrigin: corsOriginCommand,
-    Command: CommandExternal,
+    corsOrigin: getCorsOrigin(environmentVariables.COMMAND_CORS_ORIGIN),
+    purpose: 'external',
     onReceiveCommand: handleReceivedCommand,
     application,
     identityProviders
   });
   await healthHttp.initialize({
-    corsOrigin: corsOriginHealth
+    corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN)
   });
 
   const api = express();
@@ -74,7 +74,7 @@ const { Application } = require('../../common/application'),
 
   const server = http.createServer(api);
 
-  server.listen(port, () => {
-    logger.info('Command server started.', { port });
+  server.listen(environmentVariables.PORT, () => {
+    logger.info('Command server started.', { port: environmentVariables.PORT });
   });
 })();

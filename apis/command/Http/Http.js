@@ -11,7 +11,7 @@ const V2 = require('./V2');
 class Http {
   async initialize ({
     corsOrigin,
-    Command,
+    purpose,
     onReceiveCommand,
     application,
     identityProviders
@@ -19,8 +19,8 @@ class Http {
     if (!corsOrigin) {
       throw new Error('Cors origin is missing.');
     }
-    if (!Command) {
-      throw new Error('Command is missing.');
+    if (!purpose) {
+      throw new Error('Purpose is missing.');
     }
     if (!onReceiveCommand) {
       throw new Error('On receive command is missing.');
@@ -32,6 +32,10 @@ class Http {
       throw new Error('Identity providers is missing.');
     }
 
+    if (![ 'internal', 'external' ].includes(purpose)) {
+      throw new Error(`Purpose must either be 'internal' or 'external'.`);
+    }
+
     let transformedCorsOrigin;
 
     if (corsOrigin === '*') {
@@ -41,7 +45,7 @@ class Http {
     }
 
     this.v2 = new V2({
-      Command,
+      purpose,
       onReceiveCommand,
       application,
       identityProviders

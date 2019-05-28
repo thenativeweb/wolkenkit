@@ -8,13 +8,13 @@ const getConfiguration = require('./getConfiguration'),
 
 class V2 {
   constructor ({
-    Command,
+    purpose,
     onReceiveCommand,
     application,
     identityProviders
   }) {
-    if (!Command) {
-      throw new Error('Command is missing.');
+    if (!purpose) {
+      throw new Error('Purpose is missing.');
     }
     if (!onReceiveCommand) {
       throw new Error('On receive command is missing.');
@@ -24,6 +24,10 @@ class V2 {
     }
     if (!identityProviders) {
       throw new Error('Identity providers is missing.');
+    }
+
+    if (![ 'internal', 'external' ].includes(purpose)) {
+      throw new Error(`Purpose must either be 'internal' or 'external'.`);
     }
 
     this.application = application;
@@ -43,7 +47,7 @@ class V2 {
     this.api.get('/configuration', getConfiguration({ application }));
 
     this.api.post('/', verifyTokenMiddleware, postCommand({
-      Command,
+      purpose,
       onReceiveCommand,
       application
     }));

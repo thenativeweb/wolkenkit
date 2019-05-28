@@ -6,9 +6,12 @@ const axios = require('axios'),
       retry = require('async-retry'),
       runfork = require('runfork');
 
-const startServer = async function ({ name, env = {}}) {
+const startServer = async function ({ name, port, env = {}}) {
   if (!name) {
     throw new Error('Name is missing.');
+  }
+  if (!port) {
+    throw new Error('Port is missing.');
   }
 
   const stopServer = runfork({
@@ -16,8 +19,6 @@ const startServer = async function ({ name, env = {}}) {
     env,
     silent: false
   });
-
-  const port = env.PORT || 3000;
 
   await retry(async () => {
     await axios({

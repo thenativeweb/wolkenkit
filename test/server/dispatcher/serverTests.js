@@ -34,6 +34,7 @@ suite('dispatcher', function () {
 
     stopServer = await startServer({
       name: 'dispatcher',
+      port,
       env: {
         PORT: port,
         DOMAIN_SERVER_HOSTNAME: 'localhost',

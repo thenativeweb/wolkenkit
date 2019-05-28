@@ -9,18 +9,22 @@ const ClientMetadata = require('../../../../common/utils/http/ClientMetadata'),
 const logger = flaschenpost.getLogger();
 
 const postCommand = function ({
-  Command,
+  purpose,
   onReceiveCommand,
   application
 }) {
-  if (!Command) {
-    throw new Error('Command is missing.');
+  if (!purpose) {
+    throw new Error('Purpose is missing.');
   }
   if (!onReceiveCommand) {
     throw new Error('On receive command is missing.');
   }
   if (!application) {
     throw new Error('Application is missing.');
+  }
+
+  if (![ 'internal', 'external' ].includes(purpose)) {
+    throw new Error(`Purpose must either be 'internal' or 'external'.`);
   }
 
   return async function (req, res) {
@@ -37,17 +41,23 @@ const postCommand = function ({
       return res.status(415).send('Header content-type must be application/json.');
     }
 
-    try {
-      Command.validate({ command, application });
-    } catch (ex) {
-      return res.status(400).send(ex.message);
-    }
+    switch (purpose) {
+      case 'internal':
+        try {
+          CommandInternal.validate({ command, application });
+        } catch (ex) {
+          return res.status(400).send(ex.message);
+        }
 
-    switch (Command) {
-      case CommandInternal:
         command = CommandInternal.fromObject(command);
         break;
-      case CommandExternal:
+      case 'external':
+        try {
+          CommandExternal.validate({ command, application });
+        } catch (ex) {
+          return res.status(400).send(ex.message);
+        }
+
         command = CommandInternal.fromObject({
           ...command,
           annotations: {

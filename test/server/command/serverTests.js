@@ -31,6 +31,7 @@ suite('command', function () {
 
     stopServer = await startServer({
       name: 'command',
+      port,
       env: {
         PORT: port,
         DISPATCHER_SERVER_HOSTNAME: 'localhost',
@@ -111,6 +112,7 @@ suite('command', function () {
 
       stopServer = await startServer({
         name: 'command',
+        port,
         env: {
           PORT: port,
           DISPATCHER_SERVER_HOSTNAME: 'non-existent',

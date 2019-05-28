@@ -12,6 +12,8 @@ const { EventInternal } = require('../../../common/elements'),
 class Http {
   async initialize ({
     corsOrigin,
+    purpose,
+    onReceiveEvent,
     application,
     repository,
     identityProviders,
@@ -19,6 +21,9 @@ class Http {
   }) {
     if (!corsOrigin) {
       throw new Error('CORS origin is missing.');
+    }
+    if (!purpose) {
+      throw new Error('Purpose is missing.');
     }
     if (!application) {
       throw new Error('Application is missing.');
@@ -30,6 +35,10 @@ class Http {
       throw new Error('Identity providers are missing.');
     }
 
+    if (![ 'internal', 'external' ].includes(purpose)) {
+      throw new Error(`Purpose must either be 'internal' or 'external'.`);
+    }
+
     let transformedCorsOrigin;
 
     if (corsOrigin === '*') {
@@ -38,7 +47,11 @@ class Http {
       transformedCorsOrigin = flatten([ corsOrigin ]);
     }
 
+    this.purpose = purpose;
+
     this.v2 = new V2({
+      purpose,
+      onReceiveEvent,
       application,
       repository,
       identityProviders,
@@ -70,6 +83,10 @@ class Http {
     }
     if (!(event instanceof EventInternal)) {
       throw new Error('Event must be internal.');
+    }
+
+    if (this.purpose !== 'external') {
+      throw new Error('Invalid operation.');
     }
 
     await this.v2.sendEvent({ event });

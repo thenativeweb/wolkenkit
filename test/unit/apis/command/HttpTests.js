@@ -46,7 +46,7 @@ suite('command/Http', () => {
     getOptionTests({
       options: {
         corsOrigin: '*',
-        Command: CommandExternal,
+        purpose: 'external',
         async onReceiveCommand () {
           // Intentionally left blank.
         },
@@ -59,12 +59,26 @@ suite('command/Http', () => {
       }
     });
 
+    test('throws an error if an invalid purpose is given.', async () => {
+      await assert.that(async () => {
+        await http.initialize({
+          corsOrigin: '*',
+          purpose: 'invalid',
+          async onReceiveCommand () {
+            // Intentionally left blank.
+          },
+          application,
+          identityProviders
+        });
+      }).is.throwingAsync(`Purpose must either be 'internal' or 'external'.`);
+    });
+
     test('sets api to an Express application.', async () => {
       assert.that(http.api).is.undefined();
 
       await http.initialize({
         corsOrigin: '*',
-        Command: CommandExternal,
+        purpose: 'external',
         async onReceiveCommand () {
           // Intentionally left blank.
         },
@@ -121,7 +135,7 @@ suite('command/Http', () => {
       test(corsOrigin.title, async () => {
         await http.initialize({
           corsOrigin: corsOrigin.allow,
-          Command: CommandExternal,
+          purpose: 'external',
           async onReceiveCommand () {
             // Intentionally left blank.
           },
@@ -149,7 +163,7 @@ suite('command/Http', () => {
     setup(async () => {
       await http.initialize({
         corsOrigin: '*',
-        Command: CommandExternal,
+        purpose: 'external',
         async onReceiveCommand () {
           // Intentionally left blank.
         },
@@ -194,7 +208,7 @@ suite('command/Http', () => {
 
         await http.initialize({
           corsOrigin: '*',
-          Command: CommandExternal,
+          purpose: 'external',
           async onReceiveCommand ({ command }) {
             receivedCommands.push(command);
           },
@@ -352,7 +366,7 @@ suite('command/Http', () => {
 
         await http.initialize({
           corsOrigin: '*',
-          Command: CommandExternal,
+          purpose: 'external',
           async onReceiveCommand () {
             throw new Error('Failed to handle received command.');
           },
@@ -384,7 +398,7 @@ suite('command/Http', () => {
 
         await http.initialize({
           corsOrigin: '*',
-          Command: CommandInternal,
+          purpose: 'internal',
           async onReceiveCommand ({ command }) {
             receivedCommands.push(command);
           },
@@ -580,7 +594,7 @@ suite('command/Http', () => {
 
         await http.initialize({
           corsOrigin: '*',
-          Command: CommandInternal,
+          purpose: 'internal',
           async onReceiveCommand () {
             throw new Error('Failed to handle received command.');
           },
