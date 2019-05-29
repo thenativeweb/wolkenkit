@@ -79,11 +79,13 @@ class Eventstore {
       ssl: encryptConnection
     });
 
+    this.disconnectWatcher.on('end', Eventstore.onUnexpectedClose);
     this.disconnectWatcher.on('error', err => {
       throw err;
     });
-    this.disconnectWatcher.connect(() => {
-      this.disconnectWatcher.on('end', Eventstore.onUnexpectedClose);
+
+    await new Promise(resolve => {
+      this.disconnectWatcher.connect(resolve);
     });
 
     try {
@@ -513,12 +515,12 @@ class Eventstore {
   }
 
   async destroy () {
-    if (this.pool) {
-      await this.pool.end();
-    }
     if (this.disconnectWatcher) {
       this.disconnectWatcher.removeListener('end', Eventstore.onUnexpectedClose);
       await this.disconnectWatcher.end();
+    }
+    if (this.pool) {
+      await this.pool.end();
     }
   }
 }
