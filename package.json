@@ -3,50 +3,30 @@
   "version": "3.1.1",
   "description": "wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and Node.js that perfectly matches DDD.",
   "contributors": [
-    {
-      "name": "Golo Roden",
-      "email": "golo.roden@thenativeweb.io"
-    },
-    {
-      "name": "Matthias Wagler",
-      "email": "matthias.wagler@thenativeweb.io"
-    },
-    {
-      "name": "Christian Nolte",
-      "email": "christian.nolte@thenativeweb.io"
-    },
-    {
-      "name": "Jan-Hendrik Grundhöfer",
-      "email": "jan-hendrik.grundhoefer@thenativeweb.io"
-    },
-    {
-      "name": "Michael Scherer",
-      "email": "mail@michael-scherer.net"
-    },
-    {
-      "name": "René Viering",
-      "email": "rene.viering@gmail.com"
-    },
-    {
-      "name": "Radu Märza",
-      "email": "radu.2010@gmx.de"
-    },
-    {
-      "name": "Adam Koleszar",
-      "email": "madfist@gmail.com"
-    },
-    {
-      "name": "Jimmy Beaudoin",
-      "email": "jbeaudoin11@gmail.com"
-    },
-    {
-      "name": "Manfred Mjka",
-      "email": "manfred.mjka@sclable.com"
-    },
-    {
-      "name": "Lorenz Leutgeb",
-      "email": "lorenz.leutgeb@sclable.com"
-    }
+    { "name": "Golo Roden", "email": "golo.roden@thenativeweb.io" },
+    { "name": "Matthias Wagler", "email": "matthias.wagler@thenativeweb.io" },
+    { "name": "Susanna Roden", "email": "susanna.roden@thenativeweb.io" },
+    { "name": "Jan-Hendrik Grundhöfer", "email": "jan-hendrik.grundhoefer@thenativeweb.io" },
+    { "name": "Christian Nolte", "email": "christian.nolte@thenativeweb.io" },
+
+    { "name": "Adam Koleszar", "email": "madfist@gmail.com" },
+    { "name": "Christian Zosel", "email": "chrzosel@gmail.com" },
+    { "name": "Damien Benon", "email": "damien.benon@myprysm.fr" },
+    { "name": "Hannes Leutloff", "email": "hannes.leutloff@yeldirium.de" },
+    { "name": "Henning Storck", "email": "henning.storck@outlook.de" },
+    { "name": "Jimmy Beaudoin", "email": "jbeaudoin11@gmail.com" },
+    { "name": "Jonathan Weiß", "email": "info@jonathanweiss.net" },
+    { "name": "Lorenz Leutgeb", "email": "lorenz.leutgeb@sclable.com" },
+    { "name": "Manfred Mjka", "email": "manfred.mjka@sclable.com" },
+    { "name": "Marcus Stenbeck", "email": "marcus.stenbeck@gmail.com" },
+    { "name": "Max Tilford", "email": "maxtilford@gmail.com" },
+    { "name": "Michael Scherer", "email": "mail@michael-scherer.net" },
+    { "name": "Nelson Reina", "email": "nelreina@icloud.com" },
+    { "name": "Nicolai Süper", "email": "nico@k40s.net" },
+    { "name": "Radu Märza", "email": "radu.2010@gmx.de" },
+    { "name": "René Viering", "email": "rene.viering@gmail.com" },
+    { "name": "Tobias Schmücker", "email": "schmuecker.tobias@gmail.com" },
+    { "name": "Tom Ceuppens", "email": "t-c@live.be" }
   ],
   "bin": {
     "wolkenkit": "bin/wolkenkit.js"
