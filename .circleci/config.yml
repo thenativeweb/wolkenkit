@@ -14,8 +14,8 @@ jobs:
             export NVM_DIR="/opt/circleci/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-            nvm install v10.15.3
-            nvm alias default v10.15.3
+            nvm install v10.16.0
+            nvm alias default v10.16.0
 
       - restore_cache:
           keys:

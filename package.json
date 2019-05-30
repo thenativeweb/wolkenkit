@@ -3,30 +3,98 @@
   "version": "3.1.1",
   "description": "wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and Node.js that perfectly matches DDD.",
   "contributors": [
-    { "name": "Golo Roden", "email": "golo.roden@thenativeweb.io" },
-    { "name": "Matthias Wagler", "email": "matthias.wagler@thenativeweb.io" },
-    { "name": "Susanna Roden", "email": "susanna.roden@thenativeweb.io" },
-    { "name": "Jan-Hendrik Grundhöfer", "email": "jan-hendrik.grundhoefer@thenativeweb.io" },
-    { "name": "Christian Nolte", "email": "christian.nolte@thenativeweb.io" },
-
-    { "name": "Adam Koleszar", "email": "madfist@gmail.com" },
-    { "name": "Christian Zosel", "email": "chrzosel@gmail.com" },
-    { "name": "Damien Benon", "email": "damien.benon@myprysm.fr" },
-    { "name": "Hannes Leutloff", "email": "hannes.leutloff@yeldirium.de" },
-    { "name": "Henning Storck", "email": "henning.storck@outlook.de" },
-    { "name": "Jimmy Beaudoin", "email": "jbeaudoin11@gmail.com" },
-    { "name": "Jonathan Weiß", "email": "info@jonathanweiss.net" },
-    { "name": "Lorenz Leutgeb", "email": "lorenz.leutgeb@sclable.com" },
-    { "name": "Manfred Mjka", "email": "manfred.mjka@sclable.com" },
-    { "name": "Marcus Stenbeck", "email": "marcus.stenbeck@gmail.com" },
-    { "name": "Max Tilford", "email": "maxtilford@gmail.com" },
-    { "name": "Michael Scherer", "email": "mail@michael-scherer.net" },
-    { "name": "Nelson Reina", "email": "nelreina@icloud.com" },
-    { "name": "Nicolai Süper", "email": "nico@k40s.net" },
-    { "name": "Radu Märza", "email": "radu.2010@gmx.de" },
-    { "name": "René Viering", "email": "rene.viering@gmail.com" },
-    { "name": "Tobias Schmücker", "email": "schmuecker.tobias@gmail.com" },
-    { "name": "Tom Ceuppens", "email": "t-c@live.be" }
+    {
+      "name": "Golo Roden",
+      "email": "golo.roden@thenativeweb.io"
+    },
+    {
+      "name": "Matthias Wagler",
+      "email": "matthias.wagler@thenativeweb.io"
+    },
+    {
+      "name": "Susanna Roden",
+      "email": "susanna.roden@thenativeweb.io"
+    },
+    {
+      "name": "Jan-Hendrik Grundhöfer",
+      "email": "jan-hendrik.grundhoefer@thenativeweb.io"
+    },
+    {
+      "name": "Christian Nolte",
+      "email": "christian.nolte@thenativeweb.io"
+    },
+    {
+      "name": "Adam Koleszar",
+      "email": "madfist@gmail.com"
+    },
+    {
+      "name": "Christian Zosel",
+      "email": "chrzosel@gmail.com"
+    },
+    {
+      "name": "Damien Benon",
+      "email": "damien.benon@myprysm.fr"
+    },
+    {
+      "name": "Hannes Leutloff",
+      "email": "hannes.leutloff@yeldirium.de"
+    },
+    {
+      "name": "Henning Storck",
+      "email": "henning.storck@outlook.de"
+    },
+    {
+      "name": "Jimmy Beaudoin",
+      "email": "jbeaudoin11@gmail.com"
+    },
+    {
+      "name": "Jonathan Weiß",
+      "email": "info@jonathanweiss.net"
+    },
+    {
+      "name": "Lorenz Leutgeb",
+      "email": "lorenz.leutgeb@sclable.com"
+    },
+    {
+      "name": "Manfred Mjka",
+      "email": "manfred.mjka@sclable.com"
+    },
+    {
+      "name": "Marcus Stenbeck",
+      "email": "marcus.stenbeck@gmail.com"
+    },
+    {
+      "name": "Max Tilford",
+      "email": "maxtilford@gmail.com"
+    },
+    {
+      "name": "Michael Scherer",
+      "email": "mail@michael-scherer.net"
+    },
+    {
+      "name": "Nelson Reina",
+      "email": "nelreina@icloud.com"
+    },
+    {
+      "name": "Nicolai Süper",
+      "email": "nico@k40s.net"
+    },
+    {
+      "name": "Radu Märza",
+      "email": "radu.2010@gmx.de"
+    },
+    {
+      "name": "René Viering",
+      "email": "rene.viering@gmail.com"
+    },
+    {
+      "name": "Tobias Schmücker",
+      "email": "schmuecker.tobias@gmail.com"
+    },
+    {
+      "name": "Tom Ceuppens",
+      "email": "t-c@live.be"
+    }
   ],
   "bin": {
     "wolkenkit": "bin/wolkenkit.js"
@@ -36,7 +104,7 @@
     "amqplib": "0.5.3",
     "array-to-sentence": "2.0.0",
     "async-retry": "1.2.3",
-    "axios": "0.18.0",
+    "axios": "0.19.0",
     "body-parser": "1.19.0",
     "buntstift": "1.5.1",
     "certificate-details": "0.3.1",
@@ -46,6 +114,7 @@
     "command-line-usage": "5.0.5",
     "common-tags": "1.8.0",
     "compression": "1.7.4",
+    "consul": "0.34.1",
     "content-type": "1.0.4",
     "cors": "2.8.5",
     "deep-hash": "1.0.1",
@@ -83,7 +152,7 @@
     "pump": "3.0.0",
     "recursive-readdir": "2.2.2",
     "require-dir": "1.2.0",
-    "semver": "6.1.0",
+    "semver": "6.1.1",
     "sha1": "1.1.1",
     "shelljs": "0.8.3",
     "stream-to-string": "1.2.0",

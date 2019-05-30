@@ -1,4 +1,4 @@
-FROM nginx:1.14.2-alpine
+FROM nginx:1.15.12-alpine
 LABEL maintainer="the native web <hello@thenativeweb.io>"
 
 ADD ./keys /keys/

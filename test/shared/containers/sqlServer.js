@@ -1,6 +1,7 @@
 'use strict';
 
-const { Connection, Request } = require('tedious'),
+const buntstift = require('buntstift'),
+      { Connection, Request } = require('tedious'),
       oneLine = require('common-tags/lib/oneLine'),
       retry = require('async-retry'),
       shell = require('shelljs');
@@ -71,43 +72,49 @@ const sqlServer = {
 
     let connection;
 
-    await retry(async () => {
-      await new Promise((resolve, reject) => {
-        connection = new Connection(configuration);
+    try {
+      await retry(async () => {
+        await new Promise((resolve, reject) => {
+          connection = new Connection(configuration);
 
-        const removeListeners = () => {
-          connection.removeAllListeners('connect');
-          connection.removeAllListeners('error');
-          connection.removeAllListeners('end');
-        };
+          const removeListeners = () => {
+            connection.removeAllListeners('connect');
+            connection.removeAllListeners('error');
+            connection.removeAllListeners('end');
+          };
 
-        const handleConnect = err => {
-          removeListeners();
+          const handleConnect = err => {
+            removeListeners();
 
-          if (err) {
-            return reject(err);
-          }
+            if (err) {
+              return reject(err);
+            }
 
-          resolve();
-        };
+            resolve();
+          };
 
-        const handleError = err => {
-          removeListeners();
+          const handleError = err => {
+            removeListeners();
 
-          reject(err);
-        };
+            reject(err);
+          };
 
-        const handleEnd = () => {
-          removeListeners();
+          const handleEnd = () => {
+            removeListeners();
 
-          reject(new Error('Could not connect.'));
-        };
+            reject(new Error('Could not connect.'));
+          };
 
-        connection.on('connect', handleConnect);
-        connection.on('error', handleError);
-        connection.on('end', handleEnd);
-      });
-    }, getRetryOptions());
+          connection.on('connect', handleConnect);
+          connection.on('error', handleError);
+          connection.on('end', handleEnd);
+        });
+      }, getRetryOptions());
+    } catch (ex) {
+      buntstift.info(ex.message);
+      buntstift.error('Failed to connect to SQL Server.');
+      throw ex;
+    }
 
     await createDatabase({ connection, database });
 

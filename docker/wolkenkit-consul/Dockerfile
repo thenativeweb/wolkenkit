@@ -1,2 +1,2 @@
-FROM rabbitmq:3.7.15-management-alpine
+FROM consul:1.5.1
 LABEL maintainer="the native web <hello@thenativeweb.io>"

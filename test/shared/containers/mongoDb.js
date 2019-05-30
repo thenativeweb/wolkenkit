@@ -1,6 +1,7 @@
 'use strict';
 
-const { MongoClient } = require('mongodb'),
+const buntstift = require('buntstift'),
+      { MongoClient } = require('mongodb'),
       oneLine = require('common-tags/lib/oneLine'),
       retry = require('async-retry'),
       shell = require('shelljs');
@@ -33,13 +34,19 @@ const mongoDb = {
 
     const url = `mongodb://${username}:${password}@${hostname}:${port}/${database}`;
 
-    await retry(async () => {
-      /* eslint-disable id-length */
-      const client = await MongoClient.connect(url, { w: 1, useNewUrlParser: true });
-      /* eslint-enable id-length */
+    try {
+      await retry(async () => {
+        /* eslint-disable id-length */
+        const client = await MongoClient.connect(url, { w: 1, useNewUrlParser: true });
+        /* eslint-enable id-length */
 
-      await client.close();
-    }, getRetryOptions());
+        await client.close();
+      }, getRetryOptions());
+    } catch (ex) {
+      buntstift.info(ex.message);
+      buntstift.error('Failed to connect to MongoDB.');
+      throw ex;
+    }
   },
 
   async stop () {

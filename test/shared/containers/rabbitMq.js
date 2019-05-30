@@ -1,6 +1,7 @@
 'use strict';
 
 const amqp = require('amqplib'),
+      buntstift = require('buntstift'),
       oneLine = require('common-tags/lib/oneLine'),
       retry = require('async-retry'),
       shell = require('shelljs');
@@ -31,11 +32,17 @@ const rabbitMq = {
 
     const url = `amqp://${username}:${password}@${hostname}:${port}`;
 
-    await retry(async () => {
-      const connection = await amqp.connect(url, {});
+    try {
+      await retry(async () => {
+        const connection = await amqp.connect(url, {});
 
-      await connection.close();
-    }, getRetryOptions());
+        await connection.close();
+      }, getRetryOptions());
+    } catch (ex) {
+      buntstift.info(ex.message);
+      buntstift.error('Failed to connect to RabbitMQ.');
+      throw ex;
+    }
   },
 
   async stop () {

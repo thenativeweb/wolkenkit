@@ -1,6 +1,7 @@
 'use strict';
 
-const Minio = require('minio'),
+const buntstift = require('buntstift'),
+      Minio = require('minio'),
       oneLine = require('common-tags/lib/oneLine'),
       retry = require('async-retry'),
       shell = require('shelljs'),
@@ -33,17 +34,23 @@ const minio = {
         /data
     `);
 
-    await retry(async () => {
-      const client = new Minio.Client({
-        endPoint: hostname,
-        port,
-        useSSL: encryptConnection,
-        accessKey,
-        secretKey
-      });
+    try {
+      await retry(async () => {
+        const client = new Minio.Client({
+          endPoint: hostname,
+          port,
+          useSSL: encryptConnection,
+          accessKey,
+          secretKey
+        });
 
-      await client.bucketExists(uuid());
-    }, getRetryOptions());
+        await client.bucketExists(uuid());
+      }, getRetryOptions());
+    } catch (ex) {
+      buntstift.info(ex.message);
+      buntstift.error('Failed to connect to Minio.');
+      throw ex;
+    }
   },
 
   async stop () {

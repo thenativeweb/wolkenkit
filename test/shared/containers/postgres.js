@@ -1,6 +1,7 @@
 'use strict';
 
-const oneLine = require('common-tags/lib/oneLine'),
+const buntstift = require('buntstift'),
+      oneLine = require('common-tags/lib/oneLine'),
       pg = require('pg'),
       retry = require('async-retry'),
       shell = require('shelljs');
@@ -39,11 +40,17 @@ const postgres = {
       database
     });
 
-    await retry(async () => {
-      const connection = await pool.connect();
+    try {
+      await retry(async () => {
+        const connection = await pool.connect();
 
-      connection.release();
-    }, getRetryOptions());
+        connection.release();
+      }, getRetryOptions());
+    } catch (ex) {
+      buntstift.info(ex.message);
+      buntstift.error('Failed to connect to Postgres.');
+      throw ex;
+    }
 
     await pool.end();
   },

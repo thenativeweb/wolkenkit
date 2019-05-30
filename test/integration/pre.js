@@ -7,6 +7,7 @@ const pre = async function () {
   await buildImages();
 
   await Promise.all([
+    containers.consul.start(),
     containers.mariaDb.start(),
     containers.minio.start(),
     containers.mongoDb.start(),

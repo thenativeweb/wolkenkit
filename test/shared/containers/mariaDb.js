@@ -1,6 +1,7 @@
 'use strict';
 
-const mysql = require('mysql2/promise'),
+const buntstift = require('buntstift'),
+      mysql = require('mysql2/promise'),
       oneLine = require('common-tags/lib/oneLine'),
       retry = require('async-retry'),
       shell = require('shelljs');
@@ -42,11 +43,17 @@ const mariaDb = {
       connectTimeout: 0
     });
 
-    await retry(async () => {
-      const connection = await pool.getConnection();
+    try {
+      await retry(async () => {
+        const connection = await pool.getConnection();
 
-      await connection.release();
-    }, getRetryOptions());
+        await connection.release();
+      }, getRetryOptions());
+    } catch (ex) {
+      buntstift.info(ex.message);
+      buntstift.error('Failed to connect to MariaDB.');
+      throw ex;
+    }
 
     await pool.end();
   },
