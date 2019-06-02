@@ -3,7 +3,9 @@
 const { initialState, commands, events } = require('../../../base/server/domain/sampleContext/sampleAggregate');
 
 events.mapApplied = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;
@@ -15,21 +17,27 @@ events.mapApplied = {
 };
 
 events.mapAppliedWithMutation = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;
   },
 
   map (sampleAggregate, event) {
+    /* eslint-disable no-param-reassign */
     event.data.isMutated = true;
+    /* eslint-enable no-param-reassign */
 
     return event;
   }
 };
 
 events.mapDenied = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;
@@ -44,7 +52,9 @@ events.mapDenied = {
 };
 
 events.mapFailed = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;
@@ -56,7 +66,9 @@ events.mapFailed = {
 };
 
 events.useApp = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;
@@ -77,7 +89,9 @@ events.useApp = {
 };
 
 events.useClient = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;
@@ -93,7 +107,9 @@ events.useClient = {
 };
 
 events.useLogger = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;

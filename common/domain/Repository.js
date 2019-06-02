@@ -1,6 +1,6 @@
 'use strict';
 
-const { ReadableAggregate, WritableAggregate } = require('../elements');
+const { AggregateReadable, AggregateWriteable } = require('../elements');
 
 class Repository {
   constructor ({ application, eventstore }) {
@@ -20,12 +20,14 @@ class Repository {
       throw new Error('Aggregate is missing.');
     }
 
-    const snapshot = await this.eventstore.getSnapshot(aggregate.instance.id);
+    const snapshot = await this.eventstore.getSnapshot({
+      aggregateId: aggregate.instance.id
+    });
 
     let fromRevision = 1;
 
     if (snapshot) {
-      aggregate.applySnapshot(snapshot);
+      aggregate.applySnapshot({ snapshot });
       fromRevision = snapshot.revision + 1;
     }
 
@@ -34,22 +36,10 @@ class Repository {
       fromRevision
     });
 
-    for await (const event of eventStream) {
-      if (
-        !this.application.events.internal[aggregate.instance.context.name] ||
-        !this.application.events.internal[aggregate.instance.context.name][aggregate.instance.name] ||
-        !this.application.events.internal[aggregate.instance.context.name][aggregate.instance.name][event.name]
-      ) {
-        throw new Error('Aggregate not found.');
-      }
-
-      const { handle } =
-        this.application.events.internal[aggregate.instance.context.name][aggregate.instance.name][event.name];
-
-      await handle(aggregate.api.forEvents, event);
-
-      aggregate.instance.revision = event.metadata.revision;
-    }
+    await aggregate.applyEventStream({
+      application: this.application,
+      eventStream
+    });
 
     return aggregate;
   }
@@ -65,7 +55,7 @@ class Repository {
       throw new Error('Aggregate id is missing.');
     }
 
-    const aggregate = new ReadableAggregate({
+    const aggregate = new AggregateReadable({
       application: this.application,
       context: { name: contextName },
       aggregate: { name: aggregateName, id: aggregateId }
@@ -81,7 +71,7 @@ class Repository {
       throw new Error('Command is missing.');
     }
 
-    const aggregate = new WritableAggregate({
+    const aggregate = new AggregateWriteable({
       application: this.application,
       context: { name: command.context.name },
       aggregate: { name: command.aggregate.name, id: command.aggregate.id },

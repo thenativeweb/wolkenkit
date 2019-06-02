@@ -12,8 +12,8 @@ const writeFile = promisify(fs.writeFile);
 
 const fixPathSeparators = function (entry) {
   const entryWithFixedPathSeparators = entry.
-    replace(/\//g, path.sep).
-    replace(/\\/g, path.sep);
+    replace(/\//ug, path.sep).
+    replace(/\\/ug, path.sep);
 
   return entryWithFixedPathSeparators;
 };

@@ -4,12 +4,16 @@ const { initialState, commands, events } = require('../../../base/server/domain/
 
 commands.authorizeWithMutation = {
   isAuthorized (sampleAggregate, command) {
+    /* eslint-disable no-param-reassign */
     command.data.isMutated = true;
+    /* eslint-enable no-param-reassign */
 
     return true;
   },
 
-  handle () {}
+  handle () {
+    // Intentionally left blank.
+  }
 };
 
 commands.denyAuthorization = {
@@ -17,7 +21,9 @@ commands.denyAuthorization = {
     return false;
   },
 
-  handle () {}
+  handle () {
+    // Intentionally left blank.
+  }
 };
 
 commands.failToAuthorize = {
@@ -25,7 +31,9 @@ commands.failToAuthorize = {
     throw new Error('Is authorized failed.');
   },
 
-  handle () {}
+  handle () {
+    // Intentionally left blank.
+  }
 };
 
 commands.useApp = {
@@ -42,7 +50,9 @@ commands.useApp = {
     return true;
   },
 
-  handle () {}
+  handle () {
+    // Intentionally left blank.
+  }
 };
 
 commands.useClient = {
@@ -54,7 +64,9 @@ commands.useClient = {
     return true;
   },
 
-  handle () {}
+  handle () {
+    // Intentionally left blank.
+  }
 };
 
 commands.useLogger = {
@@ -66,7 +78,9 @@ commands.useLogger = {
     return true;
   },
 
-  handle () {}
+  handle () {
+    // Intentionally left blank.
+  }
 };
 
 module.exports = { initialState, commands, events };

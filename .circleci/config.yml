@@ -1,24 +1,44 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: circleci/node:10.15.3
+    machine: true
 
     steps:
-      - setup_remote_docker
-
       - checkout
+
+      - run:
+          name: Install Node.js
+          command: |
+            set +e
+
+            export NVM_DIR="/opt/circleci/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+            nvm install v10.16.0
+            nvm alias default v10.16.0
 
       - restore_cache:
           keys:
             - node-modules-{{ checksum "package.json" }}
             - node-modules-
 
-      - run: npm install
+      - run:
+          name: npm install
+          command: |
+            export NVM_DIR="/opt/circleci/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+            npm install
 
       - save_cache:
           paths:
             - node_modules
           key: node-modules-{{ checksum "package.json" }}
 
-      - run: npx roboter
+      - run:
+          name: npx roboter
+          command: |
+            export NVM_DIR="/opt/circleci/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+            npx roboter

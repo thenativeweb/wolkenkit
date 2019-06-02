@@ -9,7 +9,7 @@ const getLatestPackageVersion = async function (name) {
 
   const output = await shell.exec(`npm view ${name} version`, { silent: true });
 
-  const latestPackageVersion = output.stdout.replace(/(\r\n|\n|\r)/gm, '');
+  const latestPackageVersion = output.stdout.replace(/(?<eol>\r\n|\n|\r)/ugm, '');
 
   return latestPackageVersion;
 };

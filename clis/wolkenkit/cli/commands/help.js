@@ -15,7 +15,7 @@ const help = {
     // at runtime, not at load-time.
 
     /* eslint-disable global-require */
-    const commands = require('./index');
+    const commands = require('.');
     /* eslint-enable global-require */
 
     buntstift.info(getUsage([

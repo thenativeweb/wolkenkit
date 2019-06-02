@@ -1,7 +1,7 @@
 'use strict';
 
 const fileNamePrefix = 'events-',
-      fileNameRegex = /^events-\d{16}\.json$/,
+      fileNameRegex = /^events-\d{16}\.json$/u,
       fileNameSuffix = '.json',
       fileNumberLength = 16;
 

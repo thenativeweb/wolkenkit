@@ -43,7 +43,6 @@ const aufwind = async function ({
   }, progress);
 
   await shared.waitForApplication({
-    configuration,
     host: response.host,
     port: response.port
   }, progress);

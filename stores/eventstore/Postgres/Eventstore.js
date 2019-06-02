@@ -2,15 +2,12 @@
 
 const { PassThrough } = require('stream');
 
-const boolean = require('boolean'),
-      cloneDeep = require('lodash/cloneDeep'),
-      DsnParser = require('dsn-parser'),
-      limitAlphanumeric = require('limit-alphanumeric'),
+const limitAlphanumeric = require('limit-alphanumeric'),
       pg = require('pg'),
       QueryStream = require('pg-query-stream'),
       retry = require('async-retry');
 
-const { Event } = require('../../../common/elements'),
+const { EventExternal, EventInternal } = require('../../../common/elements'),
       omitByDeep = require('../omitByDeep');
 
 class Eventstore {
@@ -28,9 +25,29 @@ class Eventstore {
     return database;
   }
 
-  async initialize ({ url, namespace }) {
-    if (!url) {
-      throw new Error('Url is missing.');
+  async initialize ({
+    hostname,
+    port,
+    username,
+    password,
+    database,
+    encryptConnection = false,
+    namespace
+  }) {
+    if (!hostname) {
+      throw new Error('Hostname is missing.');
+    }
+    if (!port) {
+      throw new Error('Port is missing.');
+    }
+    if (!username) {
+      throw new Error('Username is missing.');
+    }
+    if (!password) {
+      throw new Error('Password is missing.');
+    }
+    if (!database) {
+      throw new Error('Database is missing.');
     }
     if (!namespace) {
       throw new Error('Namespace is missing.');
@@ -38,44 +55,58 @@ class Eventstore {
 
     this.namespace = `store_${limitAlphanumeric(namespace)}`;
 
-    const { host, port, user, password, database, params } = new DsnParser(url).getParts();
-    const ssl = boolean(params.ssl);
+    this.pool = new pg.Pool({
+      host: hostname,
+      port,
+      user: username,
+      password,
+      database,
+      ssl: encryptConnection
+    });
 
-    this.pool = new pg.Pool({ host, port, user, password, database, ssl });
     this.pool.on('error', err => {
       throw err;
     });
 
     const connection = await this.getDatabase();
 
-    this.disconnectWatcher = new pg.Client({ host, port, user, password, database, ssl });
+    this.disconnectWatcher = new pg.Client({
+      host: hostname,
+      port,
+      user: username,
+      password,
+      database,
+      ssl: encryptConnection
+    });
 
+    this.disconnectWatcher.on('end', Eventstore.onUnexpectedClose);
     this.disconnectWatcher.on('error', err => {
       throw err;
     });
-    this.disconnectWatcher.connect(() => {
-      this.disconnectWatcher.on('end', Eventstore.onUnexpectedClose);
+
+    await new Promise(resolve => {
+      this.disconnectWatcher.connect(resolve);
     });
 
     try {
       await retry(async () => {
         await connection.query(`
           CREATE TABLE IF NOT EXISTS "${this.namespace}_events" (
-            "position" bigserial NOT NULL,
+            "revisionGlobal" bigserial NOT NULL,
             "aggregateId" uuid NOT NULL,
-            "revision" integer NOT NULL,
+            "revisionAggregate" integer NOT NULL,
             "event" jsonb NOT NULL,
-            "hasBeenPublished" boolean NOT NULL,
+            "isPublished" boolean NOT NULL,
 
-            CONSTRAINT "${this.namespace}_events_pk" PRIMARY KEY("position"),
-            CONSTRAINT "${this.namespace}_aggregateId_revision" UNIQUE ("aggregateId", "revision")
+            CONSTRAINT "${this.namespace}_events_pk" PRIMARY KEY("revisionGlobal"),
+            CONSTRAINT "${this.namespace}_aggregateId_revisionAggregate" UNIQUE ("aggregateId", "revisionAggregate")
           );
           CREATE TABLE IF NOT EXISTS "${this.namespace}_snapshots" (
             "aggregateId" uuid NOT NULL,
-            "revision" integer NOT NULL,
+            "revisionAggregate" integer NOT NULL,
             "state" jsonb NOT NULL,
 
-            CONSTRAINT "${this.namespace}_snapshots_pk" PRIMARY KEY("aggregateId", "revision")
+            CONSTRAINT "${this.namespace}_snapshots_pk" PRIMARY KEY("aggregateId", "revisionAggregate")
           );
         `);
       }, {
@@ -88,7 +119,7 @@ class Eventstore {
     }
   }
 
-  async getLastEvent (aggregateId) {
+  async getLastEvent ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -99,10 +130,10 @@ class Eventstore {
       const result = await connection.query({
         name: 'get last event',
         text: `
-          SELECT "event", "position"
+          SELECT "event", "revisionGlobal"
             FROM "${this.namespace}_events"
             WHERE "aggregateId" = $1
-            ORDER BY "revision" DESC
+            ORDER BY "revisionAggregate" DESC
             LIMIT 1
         `,
         values: [ aggregateId ]
@@ -112,9 +143,11 @@ class Eventstore {
         return;
       }
 
-      const event = Event.deserialize(result.rows[0].event);
+      let event = EventExternal.fromObject(result.rows[0].event);
 
-      event.metadata.position = Number(result.rows[0].position);
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(result.rows[0].revisionGlobal)
+      });
 
       return event;
     } finally {
@@ -125,7 +158,7 @@ class Eventstore {
   async getEventStream ({
     aggregateId,
     fromRevision = 1,
-    toRevision = 2 ** 31 - 1
+    toRevision = (2 ** 31) - 1
   }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
@@ -139,12 +172,12 @@ class Eventstore {
     const passThrough = new PassThrough({ objectMode: true });
     const eventStream = connection.query(
       new QueryStream(`
-        SELECT "event", "position", "hasBeenPublished"
+        SELECT "event", "revisionGlobal", "isPublished"
           FROM "${this.namespace}_events"
           WHERE "aggregateId" = $1
-            AND "revision" >= $2
-            AND "revision" <= $3
-          ORDER BY "revision"`,
+            AND "revisionAggregate" >= $2
+            AND "revisionAggregate" <= $3
+          ORDER BY "revisionAggregate"`,
       [ aggregateId, fromRevision, toRevision ])
     );
 
@@ -160,10 +193,15 @@ class Eventstore {
     };
 
     onData = function (data) {
-      const event = Event.deserialize(data.event);
+      let event = EventExternal.fromObject(data.event);
 
-      event.metadata.position = Number(data.position);
-      event.metadata.published = data.hasBeenPublished;
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(data.revisionGlobal)
+      });
+
+      if (data.isPublished) {
+        event = event.markAsPublished();
+      }
 
       passThrough.write(event);
     };
@@ -192,10 +230,10 @@ class Eventstore {
     const passThrough = new PassThrough({ objectMode: true });
     const eventStream = connection.query(
       new QueryStream(`
-        SELECT "event", "position", "hasBeenPublished"
+        SELECT "event", "revisionGlobal", "isPublished"
           FROM "${this.namespace}_events"
-          WHERE "hasBeenPublished" = false
-          ORDER BY "position"`)
+          WHERE "isPublished" = false
+          ORDER BY "revisionGlobal"`)
     );
 
     let onData,
@@ -210,10 +248,16 @@ class Eventstore {
     };
 
     onData = function (data) {
-      const event = Event.deserialize(data.event);
+      let event = EventExternal.fromObject(data.event);
 
-      event.metadata.position = Number(data.position);
-      event.metadata.published = data.hasBeenPublished;
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(data.revisionGlobal)
+      });
+
+      if (data.isPublished) {
+        event = event.markAsPublished();
+      }
+
       passThrough.write(event);
     };
 
@@ -239,53 +283,56 @@ class Eventstore {
     if (!uncommittedEvents) {
       throw new Error('Uncommitted events are missing.');
     }
-    if (!Array.isArray(uncommittedEvents)) {
-      uncommittedEvents = [ uncommittedEvents ];
-    }
     if (uncommittedEvents.length === 0) {
       throw new Error('Uncommitted events are missing.');
     }
 
-    const committedEvents = cloneDeep(uncommittedEvents);
-
     const placeholders = [],
           values = [];
 
-    for (let i = 0; i < committedEvents.length; i++) {
-      const base = 4 * i + 1;
-      const { event } = committedEvents[i];
+    for (const [ index, uncommittedEvent ] of uncommittedEvents.entries()) {
+      if (!(uncommittedEvent instanceof EventInternal)) {
+        throw new Error('Event must be internal.');
+      }
 
-      if (!event.metadata) {
-        throw new Error('Metadata are missing.');
-      }
-      if (event.metadata.revision === undefined) {
-        throw new Error('Revision is missing.');
-      }
-      if (event.metadata.revision < 1) {
-        throw new Error('Revision must not be less than 1.');
-      }
+      const base = (4 * index) + 1;
 
       placeholders.push(`($${base}, $${base + 1}, $${base + 2}, $${base + 3})`);
-      values.push(event.aggregate.id, event.metadata.revision, event, event.metadata.published);
+      values.push(
+        uncommittedEvent.aggregate.id,
+        uncommittedEvent.metadata.revision.aggregate,
+        uncommittedEvent.asExternal(),
+        uncommittedEvent.metadata.isPublished
+      );
     }
 
     const connection = await this.getDatabase();
 
     const text = `
       INSERT INTO "${this.namespace}_events"
-        ("aggregateId", "revision", "event", "hasBeenPublished")
+        ("aggregateId", "revisionAggregate", "event", "isPublished")
       VALUES
-        ${placeholders.join(',')} RETURNING position;
+        ${placeholders.join(',')} RETURNING "revisionGlobal";
     `;
 
-    try {
-      const result = await connection.query({ name: `save events ${committedEvents.length}`, text, values });
+    const committedEvents = [];
 
-      for (let i = 0; i < result.rows.length; i++) {
-        committedEvents[i].event.metadata.position = Number(result.rows[i].position);
+    try {
+      const result = await connection.query({
+        name: `save events ${uncommittedEvents.length}`,
+        text,
+        values
+      });
+
+      for (const [ index, uncommittedEvent ] of uncommittedEvents.entries()) {
+        const committedEvent = uncommittedEvent.setRevisionGlobal({
+          revisionGlobal: Number(result.rows[index].revisionGlobal)
+        });
+
+        committedEvents.push(committedEvent);
       }
     } catch (ex) {
-      if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", revision)')) {
+      if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", "revisionAggregate")')) {
         throw new Error('Aggregate id and revision already exist.');
       }
 
@@ -295,15 +342,15 @@ class Eventstore {
     }
 
     const indexForSnapshot = committedEvents.findIndex(
-      committedEvent => committedEvent.event.metadata.revision % 100 === 0
+      committedEvent => committedEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const aggregateId = committedEvents[indexForSnapshot].event.aggregate.id;
-      const revision = committedEvents[indexForSnapshot].event.metadata.revision;
-      const state = committedEvents[indexForSnapshot].state;
+      const aggregateId = committedEvents[indexForSnapshot].aggregate.id;
+      const { aggregate: revisionAggregate } = committedEvents[indexForSnapshot].metadata.revision;
+      const { state } = committedEvents[indexForSnapshot].annotations;
 
-      await this.saveSnapshot({ aggregateId, revision, state });
+      await this.saveSnapshot({ aggregateId, revision: revisionAggregate, state });
     }
 
     return committedEvents;
@@ -331,10 +378,10 @@ class Eventstore {
         name: 'mark events as published',
         text: `
           UPDATE "${this.namespace}_events"
-            SET "hasBeenPublished" = true
+            SET "isPublished" = true
             WHERE "aggregateId" = $1
-              AND "revision" >= $2
-              AND "revision" <= $3
+              AND "revisionAggregate" >= $2
+              AND "revisionAggregate" <= $3
         `,
         values: [ aggregateId, fromRevision, toRevision ]
       });
@@ -343,7 +390,7 @@ class Eventstore {
     }
   }
 
-  async getSnapshot (aggregateId) {
+  async getSnapshot ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -354,10 +401,10 @@ class Eventstore {
       const result = await connection.query({
         name: 'get snapshot',
         text: `
-          SELECT "state", "revision"
+          SELECT "state", "revisionAggregate"
             FROM "${this.namespace}_snapshots"
             WHERE "aggregateId" = $1
-            ORDER BY "revision" DESC
+            ORDER BY "revisionAggregate" DESC
             LIMIT 1
         `,
         values: [ aggregateId ]
@@ -368,7 +415,7 @@ class Eventstore {
       }
 
       return {
-        revision: result.rows[0].revision,
+        revision: result.rows[0].revisionAggregate,
         state: result.rows[0].state
       };
     } finally {
@@ -387,7 +434,7 @@ class Eventstore {
       throw new Error('State is missing.');
     }
 
-    state = omitByDeep(state, value => value === undefined);
+    const filteredState = omitByDeep(state, value => value === undefined);
 
     const connection = await this.getDatabase();
 
@@ -396,25 +443,23 @@ class Eventstore {
         name: 'save snapshot',
         text: `
         INSERT INTO "${this.namespace}_snapshots" (
-          "aggregateId", revision, state
+          "aggregateId", "revisionAggregate", state
         ) VALUES ($1, $2, $3)
         ON CONFLICT DO NOTHING;
         `,
-        values: [ aggregateId, revision, state ]
+        values: [ aggregateId, revision, filteredState ]
       });
     } finally {
       connection.release();
     }
   }
 
-  async getReplay (options) {
-    options = options || {};
-
-    const fromPosition = options.fromPosition || 1;
-    const toPosition = options.toPosition || 2 ** 31 - 1;
-
-    if (fromPosition > toPosition) {
-      throw new Error('From position is greater than to position.');
+  async getReplay ({
+    fromRevisionGlobal = 1,
+    toRevisionGlobal = (2 ** 31) - 1
+  } = {}) {
+    if (fromRevisionGlobal > toRevisionGlobal) {
+      throw new Error('From revision global is greater than to revision global.');
     }
 
     const connection = await this.getDatabase();
@@ -422,12 +467,12 @@ class Eventstore {
     const passThrough = new PassThrough({ objectMode: true });
     const eventStream = connection.query(
       new QueryStream(`
-        SELECT "event", "position"
+        SELECT "event", "revisionGlobal"
           FROM "${this.namespace}_events"
-          WHERE "position" >= $1
-            AND "position" <= $2
-          ORDER BY "position"`,
-      [ fromPosition, toPosition ])
+          WHERE "revisionGlobal" >= $1
+            AND "revisionGlobal" <= $2
+          ORDER BY "revisionGlobal"`,
+      [ fromRevisionGlobal, toRevisionGlobal ])
     );
 
     let onData,
@@ -442,9 +487,12 @@ class Eventstore {
     };
 
     onData = function (data) {
-      const event = Event.deserialize(data.event);
+      let event = EventExternal.fromObject(data.event);
 
-      event.metadata.position = Number(data.position);
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(data.revisionGlobal)
+      });
+
       passThrough.write(event);
     };
 
@@ -467,12 +515,12 @@ class Eventstore {
   }
 
   async destroy () {
-    if (this.pool) {
-      await this.pool.end();
-    }
     if (this.disconnectWatcher) {
       this.disconnectWatcher.removeListener('end', Eventstore.onUnexpectedClose);
       await this.disconnectWatcher.end();
+    }
+    if (this.pool) {
+      await this.pool.end();
     }
   }
 }

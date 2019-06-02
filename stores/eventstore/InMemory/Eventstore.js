@@ -2,9 +2,7 @@
 
 const { PassThrough } = require('stream');
 
-const cloneDeep = require('lodash/cloneDeep');
-
-const { Event } = require('../../../common/elements'),
+const { EventExternal, EventInternal } = require('../../../common/elements'),
       omitByDeep = require('../omitByDeep');
 
 class Eventstore {
@@ -35,7 +33,7 @@ class Eventstore {
     this.database.events[index] = newEventData;
   }
 
-  async getLastEvent (aggregateId) {
+  async getLastEvent ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -49,13 +47,13 @@ class Eventstore {
 
     const lastEvent = eventsInDatabase[eventsInDatabase.length - 1];
 
-    return Event.deserialize(lastEvent);
+    return EventExternal.fromObject(lastEvent);
   }
 
   async getEventStream ({
     aggregateId,
     fromRevision = 1,
-    toRevision = 2 ** 31 - 1
+    toRevision = (2 ** 31) - 1
   }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
@@ -68,12 +66,13 @@ class Eventstore {
 
     const filteredEvents = this.getStoredEvents().
       filter(event => event.aggregate.id === aggregateId &&
-                      event.metadata.revision >= fromRevision &&
-                      event.metadata.revision <= toRevision);
+                      event.metadata.revision.aggregate >= fromRevision &&
+                      event.metadata.revision.aggregate <= toRevision);
 
-    filteredEvents.forEach(event => {
-      passThrough.write(Event.deserialize(event));
-    });
+    for (const event of filteredEvents) {
+      passThrough.write(EventExternal.fromObject(event));
+    }
+
     passThrough.end();
 
     return passThrough;
@@ -81,13 +80,14 @@ class Eventstore {
 
   async getUnpublishedEventStream () {
     const filteredEvents = this.getStoredEvents().
-      filter(event => event.metadata.published === false);
+      filter(event => !event.metadata.isPublished);
 
     const passThrough = new PassThrough({ objectMode: true });
 
-    filteredEvents.forEach(event => {
-      passThrough.write(Event.deserialize(event));
-    });
+    for (const event of filteredEvents) {
+      passThrough.write(EventExternal.fromObject(event));
+    }
+
     passThrough.end();
 
     return passThrough;
@@ -97,56 +97,47 @@ class Eventstore {
     if (!uncommittedEvents) {
       throw new Error('Uncommitted events are missing.');
     }
-    if (!Array.isArray(uncommittedEvents)) {
-      uncommittedEvents = [ uncommittedEvents ];
-    }
     if (uncommittedEvents.length === 0) {
       throw new Error('Uncommitted events are missing.');
     }
 
-    const committedEvents = cloneDeep(uncommittedEvents);
-
     const eventsInDatabase = this.getStoredEvents();
+    const committedEvents = [];
 
-    committedEvents.forEach(committedEvent => {
-      if (!committedEvent.event.metadata) {
-        throw new Error('Metadata are missing.');
-      }
-      if (committedEvent.event.metadata.revision === undefined) {
-        throw new Error('Revision is missing.');
-      }
-      if (committedEvent.event.metadata.revision < 1) {
-        throw new Error('Revision must not be less than 1.');
+    for (const uncommittedEvent of uncommittedEvents) {
+      if (!(uncommittedEvent instanceof EventInternal)) {
+        throw new Error('Event must be internal.');
       }
 
-      if (
-        eventsInDatabase.find(
-          eventInDatabase =>
-            committedEvent.event.aggregate.id === eventInDatabase.aggregate.id &&
-            committedEvent.event.metadata.revision === eventInDatabase.metadata.revision
-        )
-      ) {
+      const alreadyExists = eventsInDatabase.some(eventInDatabase =>
+        uncommittedEvent.aggregate.id === eventInDatabase.aggregate.id &&
+        uncommittedEvent.metadata.revision.aggregate === eventInDatabase.metadata.revision.aggregate);
+
+      if (alreadyExists) {
         throw new Error('Aggregate id and revision already exist.');
       }
 
-      const newPosition = eventsInDatabase.length + 1;
+      const revisionGlobal = eventsInDatabase.length + 1;
+      let committedEvent = uncommittedEvent.setData({
+        data: omitByDeep(uncommittedEvent.data, value => value === undefined)
+      });
 
-      committedEvent.event.data = omitByDeep(committedEvent.event.data, value => value === undefined);
-      committedEvent.event.metadata.position = newPosition;
+      committedEvent = committedEvent.setRevisionGlobal({ revisionGlobal });
+      committedEvents.push(committedEvent);
 
-      this.storeEventAtDatabase(committedEvent.event);
-    });
+      this.storeEventAtDatabase(committedEvent.asExternal());
+    }
 
     const indexForSnapshot = committedEvents.findIndex(
-      committedEvent => committedEvent.event.metadata.revision % 100 === 0
+      committedEvent => committedEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const aggregateId = committedEvents[indexForSnapshot].event.aggregate.id;
-      const revision = committedEvents[indexForSnapshot].event.metadata.revision;
-      const state = committedEvents[indexForSnapshot].state;
+      const aggregateId = committedEvents[indexForSnapshot].aggregate.id;
+      const { aggregate: revisionAggregate } = committedEvents[indexForSnapshot].metadata.revision;
+      const { state } = committedEvents[indexForSnapshot].annotations;
 
-      await this.saveSnapshot({ aggregateId, revision, state });
+      await this.saveSnapshot({ aggregateId, revision: revisionAggregate, state });
     }
 
     return committedEvents;
@@ -171,22 +162,19 @@ class Eventstore {
 
     const shouldEventBeMarkedAsPublished = event =>
       event.aggregate.id === aggregateId &&
-      event.metadata.revision >= fromRevision &&
-      event.metadata.revision <= toRevision;
+      event.metadata.revision.aggregate >= fromRevision &&
+      event.metadata.revision.aggregate <= toRevision;
 
-    for (let i = 0; i < eventsFromDatabase.length; i++) {
-      const event = eventsFromDatabase[i];
-
+    for (const [ index, event ] of eventsFromDatabase.entries()) {
       if (shouldEventBeMarkedAsPublished(event)) {
-        const eventToUpdate = cloneDeep(event);
+        const eventToUpdate = event.markAsPublished();
 
-        eventToUpdate.metadata.published = true;
-        this.updateEventInDatabaseAtIndex(i, eventToUpdate);
+        this.updateEventInDatabaseAtIndex(index, eventToUpdate);
       }
     }
   }
 
-  async getSnapshot (aggregateId) {
+  async getSnapshot ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -222,49 +210,43 @@ class Eventstore {
       throw new Error('State is missing.');
     }
 
-    state = omitByDeep(state, value => value === undefined);
+    const filteredState = omitByDeep(state, value => value === undefined);
 
     const snapshot = {
       aggregateId,
       revision,
-      state
+      state: filteredState
     };
 
     this.storeSnapshotAtDatabase(snapshot);
   }
 
-  async getReplay (options) {
-    options = options || {};
-
-    const fromPosition = options.fromPosition || 1;
-    const toPosition = options.toPosition || 2 ** 31 - 1;
-
-    if (fromPosition > toPosition) {
-      throw new Error('From position is greater than to position.');
+  async getReplay ({
+    fromRevisionGlobal = 1,
+    toRevisionGlobal = (2 ** 31) - 1
+  } = {}) {
+    if (fromRevisionGlobal > toRevisionGlobal) {
+      throw new Error('From revision global is greater than to revision global.');
     }
 
     const passThrough = new PassThrough({ objectMode: true });
 
     const filteredEvents = this.getStoredEvents().
-      filter(event => event.metadata.position >= fromPosition &&
-                      event.metadata.position <= toPosition);
+      filter(event => event.metadata.revision.global >= fromRevisionGlobal &&
+                      event.metadata.revision.global <= toRevisionGlobal);
 
-    filteredEvents.forEach(event => {
-      passThrough.write(Event.deserialize(event));
-    });
+    for (const event of filteredEvents) {
+      passThrough.write(EventExternal.fromObject(event));
+    }
+
     passThrough.end();
 
     return passThrough;
   }
 
-  /* eslint-disable*/
   async destroy () {
-    this.database = {
-      events: [],
-      snapshots: []
-    };
+    this.database = { events: [], snapshots: []};
   }
-  /* eslint-enable*/
 }
 
 module.exports = Eventstore;

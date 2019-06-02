@@ -13,18 +13,18 @@ const getInstalledPackageVersion = async function (name) {
 
   try {
     output = await shell.exec(`npm list -g ${name}`, { silent: true });
-  } catch (ex) {
+  } catch {
     return installedVersion;
   }
 
-  const regExp = new RegExp(`${name}@(.*?)\\s`, 'gm');
+  const regExp = new RegExp(`${name}@(.*?)\\s`, 'ugm');
   const matches = regExp.exec(output.stdout);
 
   if (!matches) {
     throw new errors.OutputMalformed();
   }
 
-  installedVersion = matches[1];
+  [ , installedVersion ] = matches;
 
   return installedVersion;
 };

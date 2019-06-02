@@ -40,10 +40,9 @@ const checkImportEventStore = async function ({
     throw new errors.ExportNotFound();
   }
 
-  for (let i = 0; i < eventFiles.length; i++) {
-    const eventFile = eventFiles[i];
+  for (const [ index, eventFile ] of eventFiles.entries()) {
     const actualFileNumber = shared.eventFile.getFileNumber(eventFile),
-          expectedFileNumber = i + 1;
+          expectedFileNumber = index + 1;
 
     if (actualFileNumber !== expectedFileNumber) {
       progress({ message: 'Export is missing event files.', type: 'info' });
@@ -54,8 +53,7 @@ const checkImportEventStore = async function ({
 
   let expectedPosition = 0;
 
-  for (let i = 0; i < eventFiles.length; i++) {
-    const eventFile = eventFiles[i];
+  for (const eventFile of eventFiles) {
     const eventFileAbsolute = path.join(eventStoreDirectory, eventFile);
 
     const eventStream = fs.createReadStream(eventFileAbsolute, { encoding: 'utf8' });
@@ -71,7 +69,7 @@ const checkImportEventStore = async function ({
 
       try {
         event = Event.wrap(data);
-      } catch (ex) {
+      } catch {
         progress({ message: 'Export contains malformed events.', type: 'info' });
 
         throw new errors.ExportInvalid();

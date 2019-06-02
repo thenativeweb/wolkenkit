@@ -3,21 +3,27 @@
 const { initialState, commands, events } = require('../../../base/server/domain/sampleContext/sampleAggregate');
 
 events.filteredWithMutation = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;
   },
 
   filter (sampleAggregate, event) {
+    /* eslint-disable no-param-reassign */
     event.data.isMutated = true;
+    /* eslint-enable no-param-reassign */
 
     return true;
   }
 };
 
 events.filterDenied = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;
@@ -29,7 +35,9 @@ events.filterDenied = {
 };
 
 events.filterFailed = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;
@@ -41,7 +49,9 @@ events.filterFailed = {
 };
 
 events.useApp = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;
@@ -62,7 +72,9 @@ events.useApp = {
 };
 
 events.useClient = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;
@@ -78,7 +90,9 @@ events.useClient = {
 };
 
 events.useLogger = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return true;

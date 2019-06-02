@@ -12,7 +12,7 @@ const exists = async function (fileName) {
 
   try {
     await access(fileName, fs.constants.F_OK);
-  } catch (ex) {
+  } catch {
     return false;
   }
 

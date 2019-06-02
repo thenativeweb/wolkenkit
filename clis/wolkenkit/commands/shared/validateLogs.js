@@ -1,14 +1,12 @@
 'use strict';
 
-const EventEmitter = require('events'),
-      { promisify } = require('util');
+const EventEmitter = require('events');
 
 const { Parser } = require('newline-json');
 
 const docker = require('../../docker'),
-      errors = require('../../errors');
-
-const sleep = promisify(setTimeout);
+      errors = require('../../errors'),
+      sleep = require('../../../common/utils/sleep');
 
 const validateLogs = async function ({ configuration }, progress) {
   if (!configuration) {
@@ -97,9 +95,9 @@ const validateLogs = async function ({ configuration }, progress) {
         validate.emit('error', ex);
       }
 
-      // We don't want to collect the logs as often as possible.
-      // Because this can cause to performance issues, hence the sleep timeout.
-      await sleep(250);
+      // We don't want to collect the logs continuously, because this could lead
+      // to performance issues. Hence, delay here.
+      await sleep({ ms: 250 });
     }
   })();
 

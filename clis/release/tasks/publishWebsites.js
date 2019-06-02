@@ -1,16 +1,14 @@
 'use strict';
 
-const path = require('path'),
-      { promisify } = require('util');
+const path = require('path');
 
 const axios = require('axios'),
       buntstift = require('buntstift');
 
 const artefacts = require('../artefacts'),
       files = require('../files'),
-      shell = require('../shell');
-
-const sleep = promisify(setTimeout);
+      shell = require('../shell'),
+      sleep = require('../../../common/utils/sleep');
 
 const publishWebsites = async function ({ mode, versions, cwd }) {
   if (!mode) {
@@ -48,13 +46,13 @@ const publishWebsites = async function ({ mode, versions, cwd }) {
 
     const wolkenkitIoFile = path.join(cwdKubernetes, 'applications', 'websites', 'wolkenkit.yaml');
     const wolkenkitIo = await files.read(wolkenkitIoFile);
-    const newWolkenkitIo = wolkenkitIo.replace(/image: thenativeweb\/wolkenkit.io:\d+\.\d+\.\d+/g, `image: thenativeweb/wolkenkit.io:${versions.wolkenkitIo}`);
+    const newWolkenkitIo = wolkenkitIo.replace(/image: thenativeweb\/wolkenkit.io:\d+\.\d+\.\d+/ug, `image: thenativeweb/wolkenkit.io:${versions.wolkenkitIo}`);
 
     await files.write(wolkenkitIoFile, newWolkenkitIo);
 
     const wolkenkitDocumentationFile = path.join(cwdKubernetes, 'applications', 'websites', 'wolkenkit-documentation.yaml');
     const wolkenkitDocumentation = await files.read(wolkenkitDocumentationFile);
-    const newWolkenkitDocumentation = wolkenkitDocumentation.replace(/image: thenativeweb\/wolkenkit-documentation:(\d+\.\d+\.\d+|latest)/g, `image: thenativeweb/wolkenkit-documentation:${versions.wolkenkit}`);
+    const newWolkenkitDocumentation = wolkenkitDocumentation.replace(/image: thenativeweb\/wolkenkit-documentation:(?<version>\d+\.\d+\.\d+|latest)/ug, `image: thenativeweb/wolkenkit-documentation:${versions.wolkenkit}`);
 
     await files.write(wolkenkitDocumentationFile, newWolkenkitDocumentation);
 
@@ -74,8 +72,8 @@ const publishWebsites = async function ({ mode, versions, cwd }) {
         await axios.get(documentationUrl);
 
         break;
-      } catch (ex) {
-        await sleep(15 * 1000);
+      } catch {
+        await sleep({ ms: 15 * 1000 });
       }
     }
   }

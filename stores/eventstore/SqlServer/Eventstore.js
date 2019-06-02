@@ -2,14 +2,12 @@
 
 const { PassThrough } = require('stream');
 
-const cloneDeep = require('lodash/cloneDeep'),
-      DsnParser = require('dsn-parser'),
-      limitAlphanumeric = require('limit-alphanumeric'),
+const limitAlphanumeric = require('limit-alphanumeric'),
       { Request, TYPES } = require('tedious'),
       retry = require('async-retry');
 
 const createPool = require('./createPool'),
-      { Event } = require('../../../common/elements'),
+      { EventExternal, EventInternal } = require('../../../common/elements'),
       omitByDeep = require('../omitByDeep');
 
 class Eventstore {
@@ -27,9 +25,29 @@ class Eventstore {
     return database;
   }
 
-  async initialize ({ url, namespace }) {
-    if (!url) {
-      throw new Error('Url is missing.');
+  async initialize ({
+    hostname,
+    port,
+    username,
+    password,
+    database,
+    encryptConnection = false,
+    namespace
+  }) {
+    if (!hostname) {
+      throw new Error('Hostname is missing.');
+    }
+    if (!port) {
+      throw new Error('Port is missing.');
+    }
+    if (!username) {
+      throw new Error('Username is missing.');
+    }
+    if (!password) {
+      throw new Error('Password is missing.');
+    }
+    if (!database) {
+      throw new Error('Database is missing.');
     }
     if (!namespace) {
       throw new Error('Namespace is missing.');
@@ -37,16 +55,13 @@ class Eventstore {
 
     this.namespace = `store_${limitAlphanumeric(namespace)}`;
 
-    const { host, port, user, password, database, params } = new DsnParser(url).getParts();
-    const encrypt = params.encrypt || false;
-
     this.pool = createPool({
-      host,
+      host: hostname,
       port,
-      user,
+      user: username,
       password,
       database,
-      encrypt,
+      encrypt: encryptConnection,
 
       onError (err) {
         throw err;
@@ -65,14 +80,14 @@ class Eventstore {
       IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${this.namespace}_events')
         BEGIN
           CREATE TABLE [${this.namespace}_events] (
-            [position] BIGINT IDENTITY(1,1),
+            [revisionGlobal] BIGINT IDENTITY(1,1),
             [aggregateId] UNIQUEIDENTIFIER NOT NULL,
-            [revision] INT NOT NULL,
+            [revisionAggregate] INT NOT NULL,
             [event] NVARCHAR(4000) NOT NULL,
-            [hasBeenPublished] BIT NOT NULL,
+            [isPublished] BIT NOT NULL,
 
-            CONSTRAINT [${this.namespace}_events_pk] PRIMARY KEY([position]),
-            CONSTRAINT [${this.namespace}_aggregateId_revision] UNIQUE ([aggregateId], [revision])
+            CONSTRAINT [${this.namespace}_events_pk] PRIMARY KEY([revisionGlobal]),
+            CONSTRAINT [${this.namespace}_aggregateId_revisionAggregate] UNIQUE ([aggregateId], [revisionAggregate])
           );
         END
 
@@ -80,10 +95,10 @@ class Eventstore {
         BEGIN
           CREATE TABLE [${this.namespace}_snapshots] (
             [aggregateId] UNIQUEIDENTIFIER NOT NULL,
-            [revision] INT NOT NULL,
+            [revisionAggregate] INT NOT NULL,
             [state] NVARCHAR(4000) NOT NULL,
 
-            CONSTRAINT [${this.namespace}_snapshots_pk] PRIMARY KEY([aggregateId], [revision])
+            CONSTRAINT [${this.namespace}_snapshots_pk] PRIMARY KEY([aggregateId], [revisionAggregate])
           );
         END
 
@@ -96,7 +111,7 @@ class Eventstore {
           // When multiple clients initialize at the same time, e.g. during
           // integration tests, SQL Server might throw an error. In this case
           // we simply ignore it.
-          if (err.message.match(/There is already an object named.*_events/)) {
+          if (err.message.match(/There is already an object named.*_events/u)) {
             return resolve();
           }
 
@@ -112,7 +127,7 @@ class Eventstore {
     await this.pool.release(connection);
   }
 
-  async getLastEvent (aggregateId) {
+  async getLastEvent ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -124,10 +139,10 @@ class Eventstore {
         let resultEvent;
 
         const request = new Request(`
-          SELECT TOP(1) [event], [position]
+          SELECT TOP(1) [event], [revisionGlobal]
             FROM ${this.namespace}_events
             WHERE [aggregateId] = @aggregateId
-            ORDER BY [revision] DESC
+            ORDER BY [revisionAggregate] DESC
           ;
         `, err => {
           if (err) {
@@ -138,9 +153,11 @@ class Eventstore {
         });
 
         request.once('row', columns => {
-          resultEvent = Event.deserialize(JSON.parse(columns[0].value));
+          resultEvent = EventExternal.fromObject(JSON.parse(columns[0].value));
 
-          resultEvent.metadata.position = Number(columns[1].value);
+          resultEvent = resultEvent.setRevisionGlobal({
+            revisionGlobal: Number(columns[1].value)
+          });
         });
 
         request.addParameter('aggregateId', TYPES.UniqueIdentifier, aggregateId);
@@ -161,7 +178,7 @@ class Eventstore {
   async getEventStream ({
     aggregateId,
     fromRevision = 1,
-    toRevision = 2 ** 31 - 1
+    toRevision = (2 ** 31) - 1
   }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
@@ -191,21 +208,26 @@ class Eventstore {
     };
 
     onRow = columns => {
-      const event = Event.deserialize(JSON.parse(columns[0].value));
+      let event = EventExternal.fromObject(JSON.parse(columns[0].value));
 
-      event.metadata.position = Number(columns[1].value);
-      event.metadata.published = columns[2].value;
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(columns[1].value)
+      });
+
+      if (columns[2].value) {
+        event = event.markAsPublished();
+      }
 
       passThrough.write(event);
     };
 
     request = new Request(`
-      SELECT [event], [position], [hasBeenPublished]
+      SELECT [event], [revisionAggregate], [isPublished]
         FROM [${this.namespace}_events]
         WHERE [aggregateId] = @aggregateId
-          AND [revision] >= @fromRevision
-          AND [revision] <= @toRevision
-        ORDER BY [revision]`, err => {
+          AND [revisionAggregate] >= @fromRevision
+          AND [revisionAggregate] <= @toRevision
+        ORDER BY [revisionAggregate]`, err => {
       unsubscribe();
 
       if (err) {
@@ -249,19 +271,24 @@ class Eventstore {
     };
 
     onRow = columns => {
-      const event = Event.deserialize(JSON.parse(columns[0].value));
+      let event = EventExternal.fromObject(JSON.parse(columns[0].value));
 
-      event.metadata.position = Number(columns[1].value);
-      event.metadata.published = columns[2].value;
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(columns[1].value)
+      });
+
+      if (columns[2].value) {
+        event = event.markAsPublished();
+      }
 
       passThrough.write(event);
     };
 
     request = new Request(`
-      SELECT [event], [position], [hasBeenPublished]
+      SELECT [event], [revisionGlobal], [isPublished]
         FROM [${this.namespace}_events]
-        WHERE [hasBeenPublished] = 0
-        ORDER BY [position]
+        WHERE [isPublished] = 0
+        ORDER BY [revisionGlobal]
       `, err => {
       unsubscribe();
 
@@ -284,39 +311,26 @@ class Eventstore {
     if (!uncommittedEvents) {
       throw new Error('Uncommitted events are missing.');
     }
-    if (!Array.isArray(uncommittedEvents)) {
-      uncommittedEvents = [ uncommittedEvents ];
-    }
     if (uncommittedEvents.length === 0) {
       throw new Error('Uncommitted events are missing.');
     }
-
-    const committedEvents = cloneDeep(uncommittedEvents);
 
     const placeholders = [],
           values = [];
 
     let resultCount = 0;
 
-    for (let i = 0; i < committedEvents.length; i++) {
-      const { event } = committedEvents[i],
-            rowId = i + 1;
-
-      if (!event.metadata) {
-        throw new Error('Metadata are missing.');
-      }
-      if (event.metadata.revision === undefined) {
-        throw new Error('Revision is missing.');
-      }
-      if (event.metadata.revision < 1) {
-        throw new Error('Revision must not be less than 1.');
+    for (const [ index, uncommittedEvent ] of uncommittedEvents.entries()) {
+      if (!(uncommittedEvent instanceof EventInternal)) {
+        throw new Error('Event must be internal.');
       }
 
+      const rowId = index + 1;
       const row = [
-        { key: `aggregateId${rowId}`, value: event.aggregate.id, type: TYPES.UniqueIdentifier },
-        { key: `revision${rowId}`, value: event.metadata.revision, type: TYPES.Int },
-        { key: `event${rowId}`, value: JSON.stringify(event), type: TYPES.NVarChar, options: { length: 4000 }},
-        { key: `hasBeenPublished${rowId}`, value: event.metadata.published, type: TYPES.Bit }
+        { key: `aggregateId${rowId}`, value: uncommittedEvent.aggregate.id, type: TYPES.UniqueIdentifier },
+        { key: `revisionAggregate${rowId}`, value: uncommittedEvent.metadata.revision.aggregate, type: TYPES.Int },
+        { key: `event${rowId}`, value: JSON.stringify(uncommittedEvent.asExternal()), type: TYPES.NVarChar, options: { length: 4000 }},
+        { key: `isPublished${rowId}`, value: uncommittedEvent.metadata.isPublished, type: TYPES.Bit }
       ];
 
       placeholders.push(`(@${row[0].key}, @${row[1].key}, @${row[2].key}, @${row[3].key})`);
@@ -327,15 +341,15 @@ class Eventstore {
     const database = await this.getDatabase();
 
     const text = `
-      INSERT INTO [${this.namespace}_events] ([aggregateId], [revision], [event], [hasBeenPublished])
-        OUTPUT INSERTED.position
+      INSERT INTO [${this.namespace}_events] ([aggregateId], [revisionAggregate], [event], [isPublished])
+        OUTPUT INSERTED.[revisionGlobal]
       VALUES ${placeholders.join(',')};
     `;
 
-    let updatedEvents;
+    const committedEvents = [];
 
     try {
-      updatedEvents = await new Promise((resolve, reject) => {
+      await new Promise((resolve, reject) => {
         let onRow;
 
         const request = new Request(text, err => {
@@ -345,18 +359,20 @@ class Eventstore {
             return reject(err);
           }
 
-          resolve(committedEvents);
+          resolve();
         });
 
-        for (let i = 0; i < values.length; i++) {
-          const value = values[i];
-
+        for (const value of values) {
           request.addParameter(value.key, value.type, value.value, value.options);
         }
 
         onRow = columns => {
-          committedEvents[resultCount].event.metadata.position = Number(columns[0].value);
+          const uncommittedEvent = uncommittedEvents[resultCount];
+          const committedEvent = uncommittedEvent.setRevisionGlobal({
+            revisionGlobal: Number(columns[0].value)
+          });
 
+          committedEvents.push(committedEvent);
           resultCount += 1;
         };
 
@@ -365,7 +381,7 @@ class Eventstore {
         database.execSql(request);
       });
     } catch (ex) {
-      if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.includes('_aggregateId_revision')) {
+      if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.includes('_aggregateId_revisionAggregate')) {
         throw new Error('Aggregate id and revision already exist.');
       }
 
@@ -374,19 +390,19 @@ class Eventstore {
       await this.pool.release(database);
     }
 
-    const indexForSnapshot = updatedEvents.findIndex(
-      committedEvent => committedEvent.event.metadata.revision % 100 === 0
+    const indexForSnapshot = committedEvents.findIndex(
+      committedEvent => committedEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const aggregateId = updatedEvents[indexForSnapshot].event.aggregate.id;
-      const revision = updatedEvents[indexForSnapshot].event.metadata.revision;
-      const state = updatedEvents[indexForSnapshot].state;
+      const aggregateId = committedEvents[indexForSnapshot].aggregate.id;
+      const { aggregate: revisionAggregate } = committedEvents[indexForSnapshot].metadata.revision;
+      const { state } = committedEvents[indexForSnapshot].annotations;
 
-      await this.saveSnapshot({ aggregateId, revision, state });
+      await this.saveSnapshot({ aggregateId, revision: revisionAggregate, state });
     }
 
-    return updatedEvents;
+    return committedEvents;
   }
 
   async markEventsAsPublished ({ aggregateId, fromRevision, toRevision }) {
@@ -410,10 +426,10 @@ class Eventstore {
       await new Promise((resolve, reject) => {
         const request = new Request(`
           UPDATE [${this.namespace}_events]
-            SET [hasBeenPublished] = 1
+            SET [isPublished] = 1
             WHERE [aggregateId] = @aggregateId
-              AND [revision] >= @fromRevision
-              AND [revision] <= @toRevision
+              AND [revisionAggregate] >= @fromRevision
+              AND [revisionAggregate] <= @toRevision
           `, err => {
           if (err) {
             return reject(err);
@@ -433,7 +449,7 @@ class Eventstore {
     }
   }
 
-  async getSnapshot (aggregateId) {
+  async getSnapshot ({ aggregateId }) {
     if (!aggregateId) {
       throw new Error('Aggregate id is missing.');
     }
@@ -445,10 +461,10 @@ class Eventstore {
         let resultRow;
 
         const request = new Request(`
-          SELECT TOP(1) [state], [revision]
+          SELECT TOP(1) [state], [revisionAggregate]
             FROM ${this.namespace}_snapshots
             WHERE [aggregateId] = @aggregateId
-            ORDER BY [revision] DESC
+            ORDER BY [revisionAggregate] DESC
           ;`, err => {
           if (err) {
             return reject(err);
@@ -490,17 +506,17 @@ class Eventstore {
       throw new Error('State is missing.');
     }
 
-    state = omitByDeep(state, value => value === undefined);
+    const filteredState = omitByDeep(state, value => value === undefined);
 
     const database = await this.getDatabase();
 
     try {
       await new Promise((resolve, reject) => {
         const request = new Request(`
-          IF NOT EXISTS (SELECT TOP(1) * FROM ${this.namespace}_snapshots WHERE [aggregateId] = @aggregateId and [revision] = @revision)
+          IF NOT EXISTS (SELECT TOP(1) * FROM ${this.namespace}_snapshots WHERE [aggregateId] = @aggregateId and [revisionAggregate] = @revisionAggregate)
             BEGIN
-              INSERT INTO [${this.namespace}_snapshots] ([aggregateId], [revision], [state])
-              VALUES (@aggregateId, @revision, @state);
+              INSERT INTO [${this.namespace}_snapshots] ([aggregateId], [revisionAggregate], [state])
+              VALUES (@aggregateId, @revisionAggregate, @state);
             END
           `, err => {
           if (err) {
@@ -511,8 +527,8 @@ class Eventstore {
         });
 
         request.addParameter('aggregateId', TYPES.UniqueIdentifier, aggregateId);
-        request.addParameter('revision', TYPES.Int, revision);
-        request.addParameter('state', TYPES.NVarChar, JSON.stringify(state), { length: 4000 });
+        request.addParameter('revisionAggregate', TYPES.Int, revision);
+        request.addParameter('state', TYPES.NVarChar, JSON.stringify(filteredState), { length: 4000 });
 
         database.execSql(request);
       });
@@ -521,14 +537,12 @@ class Eventstore {
     }
   }
 
-  async getReplay (options) {
-    options = options || {};
-
-    const fromPosition = options.fromPosition || 1;
-    const toPosition = options.toPosition || 2 ** 31 - 1;
-
-    if (fromPosition > toPosition) {
-      throw new Error('From position is greater than to position.');
+  async getReplay ({
+    fromRevisionGlobal = 1,
+    toRevisionGlobal = (2 ** 31) - 1
+  } = {}) {
+    if (fromRevisionGlobal > toRevisionGlobal) {
+      throw new Error('From revision global is greater than to revision global.');
     }
 
     const database = await this.getDatabase();
@@ -552,19 +566,21 @@ class Eventstore {
     };
 
     onRow = columns => {
-      const event = Event.deserialize(JSON.parse(columns[0].value));
+      let event = EventExternal.fromObject(JSON.parse(columns[0].value));
 
-      event.metadata.position = Number(columns[1].value);
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(columns[1].value)
+      });
 
       passThrough.write(event);
     };
 
     request = new Request(`
-      SELECT [event], [position]
+      SELECT [event], [revisionGlobal]
         FROM [${this.namespace}_events]
-        WHERE [position] >= @fromPosition
-          AND [position] <= @toPosition
-        ORDER BY [position]`, err => {
+        WHERE [revisionGlobal] >= @fromRevisionGlobal
+          AND [revisionGlobal] <= @toRevisionGlobal
+        ORDER BY [revisionGlobal]`, err => {
       unsubscribe();
 
       if (err) {
@@ -574,8 +590,8 @@ class Eventstore {
       passThrough.end();
     });
 
-    request.addParameter('fromPosition', TYPES.BigInt, fromPosition);
-    request.addParameter('toPosition', TYPES.BigInt, toPosition);
+    request.addParameter('fromRevisionGlobal', TYPES.BigInt, fromRevisionGlobal);
+    request.addParameter('toRevisionGlobal', TYPES.BigInt, toRevisionGlobal);
 
     request.on('error', onError);
     request.on('row', onRow);

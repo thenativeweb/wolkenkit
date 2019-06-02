@@ -45,9 +45,9 @@ const logs = async function ({
           process.kill();
         });
 
-        /* eslint-disable no-process-exit */
+        /* eslint-disable unicorn/no-process-exit */
         process.exit(1);
-        /* eslint-enable no-process-exit */
+        /* eslint-enable unicorn/no-process-exit */
       }
     });
 

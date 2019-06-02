@@ -23,9 +23,10 @@ const testArtefacts = async function ({ type, cwd }) {
 
     await shell.execLive(`npx roboter`, {
       cwd: path.join(cwd, artefact.repository),
-      env: Object.assign({}, processenv(), {
+      env: {
+        ...processenv(),
         SELENIUM_ENV: 'browserstack'
-      })
+      }
     });
   }
 };

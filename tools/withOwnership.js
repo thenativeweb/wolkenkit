@@ -16,9 +16,11 @@ const withOwnership = function (aggregate) {
     throw new Error(`Event name 'transferredOwnership' is already being used.`);
   }
 
-  aggregate.initialState.owner = undefined;
+  const modifiedAggregate = { ...aggregate };
 
-  aggregate.commands.transferOwnership = {
+  modifiedAggregate.initialState.owner = undefined;
+
+  modifiedAggregate.commands.transferOwnership = {
     isAuthorized: forOwner(),
 
     handle (aggregateInstance, command) {
@@ -36,7 +38,7 @@ const withOwnership = function (aggregate) {
     }
   };
 
-  aggregate.events.transferredOwnership = {
+  modifiedAggregate.events.transferredOwnership = {
     handle (aggregateInstance, event) {
       aggregateInstance.setState({
         owner: event.data.to
@@ -56,7 +58,7 @@ const withOwnership = function (aggregate) {
     }
   };
 
-  return aggregate;
+  return modifiedAggregate;
 };
 
 module.exports = withOwnership;

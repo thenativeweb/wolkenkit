@@ -12,40 +12,88 @@
       "email": "matthias.wagler@thenativeweb.io"
     },
     {
-      "name": "Christian Nolte",
-      "email": "christian.nolte@thenativeweb.io"
+      "name": "Susanna Roden",
+      "email": "susanna.roden@thenativeweb.io"
     },
     {
       "name": "Jan-Hendrik Grundhöfer",
       "email": "jan-hendrik.grundhoefer@thenativeweb.io"
     },
     {
-      "name": "Michael Scherer",
-      "email": "mail@michael-scherer.net"
-    },
-    {
-      "name": "René Viering",
-      "email": "rene.viering@gmail.com"
-    },
-    {
-      "name": "Radu Märza",
-      "email": "radu.2010@gmx.de"
+      "name": "Christian Nolte",
+      "email": "christian.nolte@thenativeweb.io"
     },
     {
       "name": "Adam Koleszar",
       "email": "madfist@gmail.com"
     },
     {
+      "name": "Christian Zosel",
+      "email": "chrzosel@gmail.com"
+    },
+    {
+      "name": "Damien Benon",
+      "email": "damien.benon@myprysm.fr"
+    },
+    {
+      "name": "Hannes Leutloff",
+      "email": "hannes.leutloff@yeldirium.de"
+    },
+    {
+      "name": "Henning Storck",
+      "email": "henning.storck@outlook.de"
+    },
+    {
       "name": "Jimmy Beaudoin",
       "email": "jbeaudoin11@gmail.com"
+    },
+    {
+      "name": "Jonathan Weiß",
+      "email": "info@jonathanweiss.net"
+    },
+    {
+      "name": "Lorenz Leutgeb",
+      "email": "lorenz.leutgeb@sclable.com"
     },
     {
       "name": "Manfred Mjka",
       "email": "manfred.mjka@sclable.com"
     },
     {
-      "name": "Lorenz Leutgeb",
-      "email": "lorenz.leutgeb@sclable.com"
+      "name": "Marcus Stenbeck",
+      "email": "marcus.stenbeck@gmail.com"
+    },
+    {
+      "name": "Max Tilford",
+      "email": "maxtilford@gmail.com"
+    },
+    {
+      "name": "Michael Scherer",
+      "email": "mail@michael-scherer.net"
+    },
+    {
+      "name": "Nelson Reina",
+      "email": "nelreina@icloud.com"
+    },
+    {
+      "name": "Nicolai Süper",
+      "email": "nico@k40s.net"
+    },
+    {
+      "name": "Radu Märza",
+      "email": "radu.2010@gmx.de"
+    },
+    {
+      "name": "René Viering",
+      "email": "rene.viering@gmail.com"
+    },
+    {
+      "name": "Tobias Schmücker",
+      "email": "schmuecker.tobias@gmail.com"
+    },
+    {
+      "name": "Tom Ceuppens",
+      "email": "t-c@live.be"
     }
   ],
   "bin": {
@@ -54,15 +102,13 @@
   "dependencies": {
     "JSONStream": "1.3.5",
     "amqplib": "0.5.3",
-    "app-root-path": "2.2.1",
     "array-to-sentence": "2.0.0",
     "async-retry": "1.2.3",
-    "axios": "0.18.0",
-    "body-parser": "1.18.3",
-    "boolean": "1.0.0",
+    "axios": "0.19.0",
+    "body-parser": "1.19.0",
     "buntstift": "1.5.1",
     "certificate-details": "0.3.1",
-    "combined-stream": "1.0.7",
+    "combined-stream": "1.0.8",
     "command-line-args": "5.1.1",
     "command-line-commands": "2.0.1",
     "command-line-usage": "5.0.5",
@@ -72,61 +118,67 @@
     "cors": "2.8.5",
     "deep-hash": "1.0.1",
     "defekt": "2.0.1",
-    "directory-tree": "2.2.1",
+    "directory-tree": "2.2.3",
     "docker-compare": "0.2.0",
     "dotfile-json": "1.0.3",
-    "dsn-parser": "1.0.1",
     "eslint": "5.16.0",
-    "express": "4.16.4",
+    "express": "4.17.1",
     "findsuggestions": "1.0.0",
     "flaschenpost": "2.1.0",
     "flat": "4.1.0",
     "freeport-promise": "1.1.0",
-    "fs-extra": "7.0.1",
+    "fs-extra": "8.0.1",
+    "get-cors-origin": "1.0.0",
     "humanize-string": "2.1.0",
     "is-ip": "3.0.0",
     "isolated": "1.0.1",
-    "limes": "2.0.0",
+    "limes": "3.0.0",
     "limit-alphanumeric": "1.0.0",
     "lodash": "4.17.11",
-    "minio": "7.0.7",
-    "mongodb": "3.2.3",
-    "mysql2": "1.5.3",
+    "marble-run": "2.0.0",
+    "minio": "7.0.8",
+    "mongodb": "3.2.6",
+    "mysql2": "1.6.5",
     "newline-json": "0.1.1",
-    "nocache": "2.0.0",
-    "nodeenv": "1.0.0",
+    "nocache": "2.1.0",
     "object-hash": "1.3.1",
-    "open": "6.2.0",
+    "open": "6.3.0",
     "partof": "1.0.0",
-    "pg": "7.10.0",
+    "pg": "7.11.0",
     "pg-query-stream": "2.0.0",
     "portscanner": "2.2.0",
     "processenv": "1.1.0",
     "pump": "3.0.0",
     "recursive-readdir": "2.2.2",
     "require-dir": "1.2.0",
-    "semver": "6.0.0",
+    "semver": "6.1.1",
     "sha1": "1.1.1",
     "shelljs": "0.8.3",
     "stream-to-string": "1.2.0",
     "stringify-object": "3.3.0",
-    "tar": "4.4.8",
+    "tar": "4.4.9",
     "tarn": "1.1.5",
-    "tedious": "2.6.3",
-    "update-notifier": "2.5.0",
+    "tedious": "6.1.1",
+    "update-notifier": "3.0.0",
     "uuidv4": "4.0.0",
     "validate-value": "5.0.2"
   },
   "devDependencies": {
     "array-join-conjunction": "1.0.0",
     "assertthat": "3.0.0",
+    "async-wait-until": "1.2.4",
     "dir-compare": "1.7.2",
     "execa": "1.0.0",
+    "get-option-tests": "1.1.0",
     "measure-time": "3.1.1",
+    "nock": "10.0.6",
+    "nodeenv": "1.0.0",
     "p-queue": "5.0.0",
     "record-stdstreams": "1.0.0",
     "retry-ignore-abort": "1.0.1",
-    "roboter": "4.1.0",
+    "roboter": "6.1.0",
+    "run-script-os": "1.0.5",
+    "runfork": "1.1.0",
     "streamtoarray": "1.1.0",
     "strip-ansi": "5.2.0",
     "supertest": "4.0.2",
@@ -134,7 +186,12 @@
     "twitter": "1.7.1"
   },
   "scripts": {
-    "test-stories": "node test/stories/clis/wolkenkit/index.js"
+    "build": "run-script-os",
+    "build:darwin:linux": "node bin/build.js --color",
+    "build:win32": "node bin\\build.js --color",
+    "test-stories": "run-script-os",
+    "test-stories:darin:linux": "node test/story/clis/wolkenkit/index.js",
+    "test-stories:win32": "node test\\story\\clis\\wolkenkit\\index.js"
   },
   "repository": {
     "type": "git",

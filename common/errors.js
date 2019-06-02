@@ -3,8 +3,11 @@
 const defekt = require('defekt');
 
 const errors = defekt([
+  'DispatchFailed',
   'FileAlreadyExists',
-  'FileNotFound'
+  'FileNotFound',
+  'ForwardFailed',
+  'RequestFailed'
 ]);
 
 module.exports = errors;

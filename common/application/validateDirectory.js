@@ -39,7 +39,7 @@ const validateDirectory = async function ({ directory }) {
   await access(serverDirectory, fs.constants.R_OK);
 
   const tree = directoryTree(serverDirectory, {
-    extensions: /\.js$/
+    extensions: /\.js$/u
   });
 
   const transformedTree = transformTree([ tree ]);

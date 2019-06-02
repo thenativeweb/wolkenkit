@@ -14,7 +14,7 @@ const readJson = async function (path) {
 
   try {
     json = JSON.parse(data);
-  } catch (ex) {
+  } catch {
     throw new errors.JsonMalformed();
   }
 

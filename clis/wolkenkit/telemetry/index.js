@@ -23,13 +23,11 @@ const stat = promisify(fs.stat);
 const telemetry = {
   fileName: '.wolkenkit',
 
-  // We need to change `allowedCommands` here, because the new structure is
-  // something like `application start`
   allowedCommands: {
-    // reload: { event: 'reloaded' },
-    // restart: { event: 'restarted' },
-    // start: { event: 'started' },
-    // stop: { event: 'stopped' }
+    reload: { event: 'reloaded' },
+    restart: { event: 'restarted' },
+    start: { event: 'started' },
+    stop: { event: 'stopped' }
   },
 
   async init () {

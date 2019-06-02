@@ -14,9 +14,7 @@ const getMissingImages = async function ({ configuration, forVersion }) {
   const missingImages = [];
   const images = await getImages({ forVersion });
 
-  for (let i = 0; i < images.length; i++) {
-    const image = images[i];
-
+  for (const image of images) {
     const { name, version } = image;
     const isInstalled = await docker.isImageInstalled({ configuration, name, version });
 

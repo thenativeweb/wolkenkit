@@ -3,9 +3,25 @@
 const amqp = require('amqplib');
 
 class AmqpDispatcher {
-  async initialize ({ url, exchangeName, concurrency = 1 }) {
-    if (!url) {
-      throw new Error('Url is missing.');
+  async initialize ({
+    hostname,
+    port,
+    username,
+    password,
+    exchangeName,
+    concurrency = 1
+  }) {
+    if (!hostname) {
+      throw new Error('Hostname is missing.');
+    }
+    if (!port) {
+      throw new Error('Port is missing.');
+    }
+    if (!username) {
+      throw new Error('Username is missing.');
+    }
+    if (!password) {
+      throw new Error('Password is missing.');
     }
     if (!exchangeName) {
       throw new Error('Exchange name is missing.');
@@ -13,6 +29,7 @@ class AmqpDispatcher {
 
     this.exchangeName = exchangeName;
 
+    const url = `amqp://${username}:${password}@${hostname}:${port}`;
     const connection = await amqp.connect(url, {});
 
     connection.on('error', err => {

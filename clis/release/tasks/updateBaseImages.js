@@ -33,7 +33,7 @@ const updateBaseImages = async function ({ versions, cwd }) {
     const fileName = path.join(cwdBaseImage, 'Dockerfile');
     const dockerfile = await files.read(fileName);
 
-    const [ , currentVersion ] = /FROM node:(\d+\.\d+\.\d+)/g.exec(dockerfile);
+    const [ , currentVersion ] = /FROM node:(?<version>\d+\.\d+\.\d+)/ug.exec(dockerfile);
 
     const isRequestedNodeVersionTooOld = semver.lt(versions.node, currentVersion);
     const isRequestedNodeVersionNewer = semver.gt(versions.node, currentVersion);
@@ -43,7 +43,7 @@ const updateBaseImages = async function ({ versions, cwd }) {
     }
 
     if (isRequestedNodeVersionNewer) {
-      const updatedDockerfile = dockerfile.replace(/FROM node:\d+\.\d+\.\d+/g, `FROM node:${versions.node}`);
+      const updatedDockerfile = dockerfile.replace(/FROM node:\d+\.\d+\.\d+/ug, `FROM node:${versions.node}`);
 
       await files.write(fileName, updatedDockerfile);
 

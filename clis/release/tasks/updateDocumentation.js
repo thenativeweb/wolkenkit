@@ -26,7 +26,7 @@ const updateDockerfile = async function ({ cwdDocumentation, versions }) {
   const filename = path.join(cwdDocumentation, 'Dockerfile');
   const dockerfile = await files.read(filename);
 
-  const updatedDockerfile = dockerfile.replace(/FROM thenativeweb\/wolkenkit-box-node:\d+\.\d+\.\d+/g, `FROM thenativeweb/wolkenkit-box-node:${versions.wolkenkit}`);
+  const updatedDockerfile = dockerfile.replace(/FROM thenativeweb\/wolkenkit-box-node:\d+\.\d+\.\d+/ug, `FROM thenativeweb/wolkenkit-box-node:${versions.wolkenkit}`);
 
   await files.write(filename, updatedDockerfile);
 };
@@ -112,7 +112,7 @@ const updateChangelog = async function ({ cwdDocumentation, versions }) {
   const filename = path.join(cwdDocumentation, 'lib', 'docs', 'latest', 'getting-started', 'updating-wolkenkit', 'changelog', 'index.md');
   const changelog = await files.read(filename);
 
-  const updatedChangelog = changelog.replace(/<%= current\.version %>/g, versions.wolkenkit);
+  const updatedChangelog = changelog.replace(/<%= current\.version %>/ug, versions.wolkenkit);
 
   const [ title,, subtitle,, ...rest ] = updatedChangelog.split('\n');
 

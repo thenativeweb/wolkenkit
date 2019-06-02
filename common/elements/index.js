@@ -1,15 +1,17 @@
 'use strict';
 
-const Command = require('./Command'),
-      Event = require('./Event'),
-      QueryList = require('./QueryList'),
-      ReadableAggregate = require('./ReadableAggregate'),
-      WritableAggregate = require('./WritableAggregate');
+const AggregateReadable = require('./AggregateReadable'),
+      AggregateWriteable = require('./AggregateWriteable'),
+      CommandExternal = require('./CommandExternal'),
+      CommandInternal = require('./CommandInternal'),
+      EventExternal = require('./EventExternal'),
+      EventInternal = require('./EventInternal');
 
 module.exports = {
-  Command,
-  Event,
-  QueryList,
-  ReadableAggregate,
-  WritableAggregate
+  AggregateReadable,
+  AggregateWriteable,
+  CommandExternal,
+  CommandInternal,
+  EventExternal,
+  EventInternal
 };

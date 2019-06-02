@@ -1,30 +1,31 @@
 'use strict';
 
 class ClientService {
-  constructor ({ metadata }) {
-    if (!metadata) {
-      throw new Error('Metadata are missing.');
-    }
-    if (!metadata.client) {
-      throw new Error('Client is missing.');
+  constructor ({ clientMetadata }) {
+    if (!clientMetadata) {
+      throw new Error('Client metadata are missing.');
     }
 
-    const { user, ip } = metadata.client;
+    const { token, user, ip } = clientMetadata;
 
+    if (!token) {
+      throw new Error('Token is missing.');
+    }
     if (!user) {
       throw new Error('User is missing.');
     }
     if (!user.id) {
       throw new Error('User id is missing.');
     }
-    if (!user.token) {
-      throw new Error('Token is missing.');
+    if (!user.claims) {
+      throw new Error('User claims are missing.');
     }
     if (!ip) {
-      throw new Error('Ip is missing.');
+      throw new Error('IP is missing.');
     }
 
-    this.user = { id: user.id, token: user.token };
+    this.token = token;
+    this.user = { id: user.id, claims: user.claims };
     this.ip = ip;
   }
 }

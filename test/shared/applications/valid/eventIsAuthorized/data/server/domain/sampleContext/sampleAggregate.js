@@ -3,17 +3,23 @@
 const { initialState, commands, events } = require('../../../base/server/domain/sampleContext/sampleAggregate');
 
 events.authorizedWithMutation = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized (sampleAggregate, event) {
+    /* eslint-disable no-param-reassign */
     event.data.isMutated = true;
+    /* eslint-enable no-param-reassign */
 
     return true;
   }
 };
 
 events.authorizationDenied = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     return false;
@@ -21,7 +27,9 @@ events.authorizationDenied = {
 };
 
 events.authorizationFailed = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized () {
     throw new Error('Is authorized failed.');
@@ -29,7 +37,9 @@ events.authorizationFailed = {
 };
 
 events.useApp = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   async isAuthorized (sampleAggregate, event, { app }) {
     const { otherAggregateId } = event.data;
@@ -46,7 +56,9 @@ events.useApp = {
 };
 
 events.useClient = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized (sampleAggregate, event, { client }) {
     /* eslint-disable no-console */
@@ -58,7 +70,9 @@ events.useClient = {
 };
 
 events.useLogger = {
-  handle () {},
+  handle () {
+    // Intentionally left blank.
+  },
 
   isAuthorized (sampleAggregate, event, { logger }) {
     const { logLevel } = event.data;

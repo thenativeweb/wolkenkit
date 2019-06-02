@@ -24,7 +24,7 @@ const updateDocker = async function ({ directory, versions }) {
   const dockerFile = path.join(directory, 'docker.js');
   const data = await files.read(dockerFile);
 
-  const newData = data.replace(/minimumVersion: '\d{2}\.\d{2}'/g, `minimumVersion: '${versions.docker}'`);
+  const newData = data.replace(/minimumVersion: '\d{2}\.\d{2}'/ug, `minimumVersion: '${versions.docker}'`);
 
   await files.write(dockerFile, newData);
 };
