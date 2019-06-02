@@ -1,7 +1,7 @@
 .circleci
+.dependabot
 .git
 .github
 assets
-documentation
 node_modules
 test
