@@ -7,30 +7,32 @@ const http = require('http'),
 
 const express = require('express'),
       flaschenpost = require('flaschenpost'),
-      getCorsOrigin = require('get-cors-origin');
+      getCorsOrigin = require('get-cors-origin'),
+      uuid = require('uuidv4');
 
-const { Application } = require('../../common/application'),
-      getEnvironmentVariables = require('../../common/utils/process/getEnvironmentVariables'),
+const { Application } = require('../../../../common/application'),
+      getEnvironmentVariables = require('../../../../common/utils/process/getEnvironmentVariables'),
       getHandleReceivedEvent = require('./getHandleReceivedEvent'),
-      { Http: EventHttp } = require('../../apis/event'),
-      { Http: HealthHttp } = require('../../apis/health'),
-      registerExceptionHandler = require('../../common/utils/process/registerExceptionHandler'),
-      { Repository } = require('../../common/domain');
+      { Http: EventHttp } = require('../../../../apis/event'),
+      { Http: HealthHttp } = require('../../../../apis/health'),
+      registerExceptionHandler = require('../../../../common/utils/process/registerExceptionHandler'),
+      { Repository } = require('../../../../common/domain');
 
 (async () => {
   registerExceptionHandler();
 
-  const logger = flaschenpost.getLogger();
+  const logger = flaschenpost.getLogger(),
+        processId = uuid();
 
   const environmentVariables = getEnvironmentVariables({
-    APPLICATION_DIRECTORY: path.join(__dirname, '..', '..', 'test', 'shared', 'applications', 'base'),
+    APPLICATION_DIRECTORY: path.join(__dirname, '..', '..', '..', '..', 'test', 'shared', 'applications', 'base'),
     EVENT_CORS_ORIGIN: '*',
     EVENTSTORE_OPTIONS: {},
     EVENTSTORE_TYPE: 'InMemory',
     HEALTH_CORS_ORIGIN: '*',
     IDENTITY_PROVIDERS: [{
       issuer: 'https://token.invalid',
-      certificate: path.join(__dirname, '..', '..', 'keys', 'local.wolkenkit.io')
+      certificate: path.join(__dirname, '..', '..', '..', '..', 'keys', 'local.wolkenkit.io')
     }],
     PORT_EXTERNAL: 3000,
     PORT_INTERNAL: 4000
@@ -47,7 +49,7 @@ const { Application } = require('../../common/application'),
   });
 
   /* eslint-disable global-require */
-  const Eventstore = require(`../../stores/eventstore/${environmentVariables.EVENTSTORE_TYPE}`);
+  const Eventstore = require(`../../../../stores/eventstore/${environmentVariables.EVENTSTORE_TYPE}`);
   /* eslint-enable global-require */
 
   const eventstore = new Eventstore();
@@ -78,7 +80,8 @@ const { Application } = require('../../common/application'),
     identityProviders
   });
   await healthHttp.initialize({
-    corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN)
+    corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN),
+    processId
   });
 
   const apiInternal = express();

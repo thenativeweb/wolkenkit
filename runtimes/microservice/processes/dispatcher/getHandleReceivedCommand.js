@@ -2,7 +2,7 @@
 
 const flaschenpost = require('flaschenpost');
 
-const errors = require('../../common/errors');
+const errors = require('../../../../common/errors');
 
 const logger = flaschenpost.getLogger();
 

@@ -5,22 +5,23 @@ const assert = require('assertthat'),
       freeport = require('freeport-promise'),
       uuid = require('uuidv4');
 
-const asJsonStream = require('../../shared/http/asJsonStream'),
-      { EventInternal } = require('../../../common/elements'),
-      startServer = require('../../shared/servers/startServer');
+const asJsonStream = require('../../../../shared/http/asJsonStream'),
+      { EventInternal } = require('../../../../../common/elements'),
+      startProcess = require('../../../../shared/runtime/startProcess');
 
 suite('event', function () {
   this.timeout(5 * 1000);
 
   let portExternal,
       portInternal,
-      stopServer;
+      stopProcess;
 
   setup(async () => {
     portExternal = await freeport();
     portInternal = await freeport();
 
-    stopServer = await startServer({
+    stopProcess = await startProcess({
+      runtime: 'microservice',
       name: 'event',
       port: portExternal,
       env: {
@@ -31,35 +32,33 @@ suite('event', function () {
   });
 
   teardown(async () => {
-    if (stopServer) {
-      await stopServer();
+    if (stopProcess) {
+      await stopProcess();
     }
 
-    stopServer = undefined;
+    stopProcess = undefined;
   });
 
   suite('GET /health/v2', () => {
     suite('external', () => {
       test('is using the health API.', async () => {
-        const { status, data } = await axios({
+        const { status } = await axios({
           method: 'get',
           url: `http://localhost:${portExternal}/health/v2`
         });
 
         assert.that(status).is.equalTo(200);
-        assert.that(data).is.equalTo({});
       });
     });
 
     suite('internal', () => {
       test('is using the health API.', async () => {
-        const { status, data } = await axios({
+        const { status } = await axios({
           method: 'get',
           url: `http://localhost:${portInternal}/health/v2`
         });
 
         assert.that(status).is.equalTo(200);
-        assert.that(data).is.equalTo({});
       });
     });
   });

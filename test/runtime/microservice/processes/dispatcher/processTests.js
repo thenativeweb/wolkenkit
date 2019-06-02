@@ -6,16 +6,16 @@ const assert = require('assertthat'),
       until = require('async-wait-until'),
       uuid = require('uuidv4');
 
-const { CommandInternal } = require('../../../common/elements'),
-      startCatchAllServer = require('../../shared/servers/startCatchAllServer'),
-      startServer = require('../../shared/servers/startServer');
+const { CommandInternal } = require('../../../../../common/elements'),
+      startCatchAllServer = require('../../../../shared/runtime/startCatchAllServer'),
+      startProcess = require('../../../../shared/runtime/startProcess');
 
 suite('dispatcher', function () {
   this.timeout(5 * 1000);
 
   let commandsReceivedByDomainServer,
       port,
-      stopServer;
+      stopProcess;
 
   setup(async () => {
     commandsReceivedByDomainServer = [];
@@ -32,7 +32,8 @@ suite('dispatcher', function () {
 
     port = await freeport();
 
-    stopServer = await startServer({
+    stopProcess = await startProcess({
+      runtime: 'microservice',
       name: 'dispatcher',
       port,
       env: {
@@ -44,23 +45,22 @@ suite('dispatcher', function () {
   });
 
   teardown(async () => {
-    if (stopServer) {
-      await stopServer();
+    if (stopProcess) {
+      await stopProcess();
     }
 
-    stopServer = undefined;
+    stopProcess = undefined;
     commandsReceivedByDomainServer = undefined;
   });
 
   suite('GET /health/v2', () => {
     test('is using the health API.', async () => {
-      const { status, data } = await axios({
+      const { status } = await axios({
         method: 'get',
         url: `http://localhost:${port}/health/v2`
       });
 
       assert.that(status).is.equalTo(200);
-      assert.that(data).is.equalTo({});
     });
   });
 

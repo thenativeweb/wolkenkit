@@ -2,12 +2,11 @@
 
 const assert = require('assertthat');
 
-const getIpAddresses = require('../../../../../clis/wolkenkit/network/getIpAddresses');
+const getIpAddresses = require('../../../../../common/utils/network/getIpAddresses');
 
 suite('getIpAddresses', () => {
-  test('is a function.', done => {
+  test('is a function.', async () => {
     assert.that(getIpAddresses).is.ofType('function');
-    done();
   });
 
   test('throws an error if host or ip is missing.', async () => {

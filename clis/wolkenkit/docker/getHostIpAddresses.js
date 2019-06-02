@@ -3,7 +3,7 @@
 const url = require('url');
 
 const getEnvironmentVariables = require('./getEnvironmentVariables'),
-      getIpAddresses = require('../network/getIpAddresses');
+      getIpAddresses = require('../../../common/utils/network/getIpAddresses');
 
 const getHostIpAddresses = async function ({ configuration }) {
   if (!configuration) {

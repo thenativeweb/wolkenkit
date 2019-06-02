@@ -7,22 +7,24 @@ const http = require('http'),
 
 const express = require('express'),
       flaschenpost = require('flaschenpost'),
-      getCorsOrigin = require('get-cors-origin');
+      getCorsOrigin = require('get-cors-origin'),
+      uuid = require('uuidv4');
 
-const { Application } = require('../../common/application'),
-      getEnvironmentVariables = require('../../common/utils/process/getEnvironmentVariables'),
+const { Application } = require('../../../../common/application'),
+      getEnvironmentVariables = require('../../../../common/utils/process/getEnvironmentVariables'),
       getHandleReceivedCommand = require('./getHandleReceivedCommand'),
-      { Http: CommandHttp } = require('../../apis/command'),
-      { Http: HealthHttp } = require('../../apis/health'),
-      registerExceptionHandler = require('../../common/utils/process/registerExceptionHandler');
+      { Http: CommandHttp } = require('../../../../apis/command'),
+      { Http: HealthHttp } = require('../../../../apis/health'),
+      registerExceptionHandler = require('../../../../common/utils/process/registerExceptionHandler');
 
 (async () => {
   registerExceptionHandler();
 
-  const logger = flaschenpost.getLogger();
+  const logger = flaschenpost.getLogger(),
+        processId = uuid();
 
   const environmentVariables = getEnvironmentVariables({
-    APPLICATION_DIRECTORY: path.join(__dirname, '..', '..', 'test', 'shared', 'applications', 'base'),
+    APPLICATION_DIRECTORY: path.join(__dirname, '..', '..', '..', '..', 'test', 'shared', 'applications', 'base'),
     COMMAND_CORS_ORIGIN: '*',
     DISPATCHER_SERVER_DISABLE_RETRIES: false,
     DISPATCHER_SERVER_HOSTNAME: 'dispatcher',
@@ -30,7 +32,7 @@ const { Application } = require('../../common/application'),
     HEALTH_CORS_ORIGIN: '*',
     IDENTITY_PROVIDERS: [{
       issuer: 'https://token.invalid',
-      certificate: path.join(__dirname, '..', '..', 'keys', 'local.wolkenkit.io')
+      certificate: path.join(__dirname, '..', '..', '..', '..', 'keys', 'local.wolkenkit.io')
     }],
     PORT: 3000
   });
@@ -64,7 +66,8 @@ const { Application } = require('../../common/application'),
     identityProviders
   });
   await healthHttp.initialize({
-    corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN)
+    corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN),
+    processId
   });
 
   const api = express();
@@ -74,7 +77,9 @@ const { Application } = require('../../common/application'),
 
   const server = http.createServer(api);
 
-  server.listen(environmentVariables.PORT, () => {
-    logger.info('Command server started.', { port: environmentVariables.PORT });
+  await new Promise(resolve => {
+    server.listen(environmentVariables.PORT, resolve);
   });
+
+  logger.info('Command server started.', { port: environmentVariables.PORT });
 })();

@@ -9,12 +9,12 @@ const fs = require('fs-extra'),
 const buildImages = async function () {
   const entries = await fs.readdir(__dirname);
 
-  for (const entry of entries) {
+  await Promise.all(entries.map(async entry => {
     const imageDirectory = path.join(__dirname, entry);
     const stat = await fs.stat(imageDirectory);
 
     if (!stat.isDirectory()) {
-      continue;
+      return;
     }
 
     const dockerfile = path.join(imageDirectory, 'Dockerfile');
@@ -30,7 +30,7 @@ const buildImages = async function () {
     if (code !== 0) {
       throw new Error(`Failed to build ${entry}:latest.`);
     }
-  }
+  }));
 };
 
 module.exports = buildImages;

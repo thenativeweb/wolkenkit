@@ -5,16 +5,16 @@ const assert = require('assertthat'),
       freeport = require('freeport-promise'),
       uuid = require('uuidv4');
 
-const { CommandExternal } = require('../../../common/elements'),
-      startCatchAllServer = require('../../shared/servers/startCatchAllServer'),
-      startServer = require('../../shared/servers/startServer');
+const { CommandExternal } = require('../../../../../common/elements'),
+      startCatchAllServer = require('../../../../shared/runtime/startCatchAllServer'),
+      startProcess = require('../../../../shared/runtime/startProcess');
 
 suite('command', function () {
   this.timeout(5 * 1000);
 
   let commandReceivedByDispatcherServer,
       port,
-      stopServer;
+      stopProcess;
 
   setup(async () => {
     const portDispatcherServer = await freeport();
@@ -29,7 +29,8 @@ suite('command', function () {
 
     port = await freeport();
 
-    stopServer = await startServer({
+    stopProcess = await startProcess({
+      runtime: 'microservice',
       name: 'command',
       port,
       env: {
@@ -41,23 +42,22 @@ suite('command', function () {
   });
 
   teardown(async () => {
-    if (stopServer) {
-      await stopServer();
+    if (stopProcess) {
+      await stopProcess();
     }
 
-    stopServer = undefined;
+    stopProcess = undefined;
     commandReceivedByDispatcherServer = undefined;
   });
 
   suite('GET /health/v2', () => {
     test('is using the health API.', async () => {
-      const { status, data } = await axios({
+      const { status } = await axios({
         method: 'get',
         url: `http://localhost:${port}/health/v2`
       });
 
       assert.that(status).is.equalTo(200);
-      assert.that(data).is.equalTo({});
     });
   });
 
@@ -108,9 +108,10 @@ suite('command', function () {
     });
 
     test('returns 500 if forwarding the given command to the dispatcher server fails.', async () => {
-      stopServer();
+      stopProcess();
 
-      stopServer = await startServer({
+      stopProcess = await startProcess({
+        runtime: 'microservice',
         name: 'command',
         port,
         env: {

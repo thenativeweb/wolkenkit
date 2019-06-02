@@ -8,9 +8,12 @@ const cors = require('cors'),
 const V2 = require('./V2');
 
 class Http {
-  async initialize ({ corsOrigin }) {
+  async initialize ({ corsOrigin, processId }) {
     if (!corsOrigin) {
       throw new Error('CORS origin is missing.');
+    }
+    if (!processId) {
+      throw new Error('Process id is missing.');
     }
 
     let transformedCorsOrigin;
@@ -21,7 +24,7 @@ class Http {
       transformedCorsOrigin = flatten([ corsOrigin ]);
     }
 
-    this.v2 = new V2();
+    this.v2 = new V2({ processId });
 
     this.api = express();
 

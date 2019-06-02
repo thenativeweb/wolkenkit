@@ -6,7 +6,10 @@ const axios = require('axios'),
       retry = require('async-retry'),
       runfork = require('runfork');
 
-const startServer = async function ({ name, port, env = {}}) {
+const startProcess = async function ({ runtime, name, port, env = {}}) {
+  if (!runtime) {
+    throw new Error('Runtime is missing.');
+  }
   if (!name) {
     throw new Error('Name is missing.');
   }
@@ -14,8 +17,8 @@ const startServer = async function ({ name, port, env = {}}) {
     throw new Error('Port is missing.');
   }
 
-  const stopServer = runfork({
-    path: path.join(__dirname, '..', '..', '..', 'servers', name, 'app.js'),
+  const stopProcess = runfork({
+    path: path.join(__dirname, '..', '..', '..', 'runtimes', runtime, 'processes', name, 'app.js'),
     env,
     silent: false
   });
@@ -27,7 +30,7 @@ const startServer = async function ({ name, port, env = {}}) {
     });
   });
 
-  return stopServer;
+  return stopProcess;
 };
 
-module.exports = startServer;
+module.exports = startProcess;

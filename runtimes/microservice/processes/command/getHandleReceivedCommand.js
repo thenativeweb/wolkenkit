@@ -2,8 +2,8 @@
 
 const flaschenpost = require('flaschenpost');
 
-const errors = require('../../common/errors'),
-      { sendCommand } = require('../../communication/http');
+const errors = require('../../../../common/errors'),
+      { sendCommand } = require('../../../../communication/http');
 
 const logger = flaschenpost.getLogger();
 
