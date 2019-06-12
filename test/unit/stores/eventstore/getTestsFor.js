@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assertthat'),
+      getOptionTests = require('get-option-tests'),
       uuid = require('uuidv4');
 
 /* eslint-disable mocha/max-top-level-suites */
@@ -21,59 +22,17 @@ const getTestsFor = function ({ Eventstore, type }) {
     });
 
     if (type !== 'InMemory') {
-      test('throws an error if hostname is missing.', async () => {
-        await assert.that(async () => {
-          await eventstore.initialize({
-            port: 3000,
-            username: 'wolkenkit',
-            password: 'wolkenkit',
-            database: 'wolkenkit'
-          });
-        }).is.throwingAsync('Hostname is missing.');
-      });
-
-      test('throws an error if port is missing.', async () => {
-        await assert.that(async () => {
-          await eventstore.initialize({
-            hostname: 'localhost',
-            username: 'wolkenkit',
-            password: 'wolkenkit',
-            database: 'wolkenkit'
-          });
-        }).is.throwingAsync('Port is missing.');
-      });
-
-      test('throws an error if username is missing.', async () => {
-        await assert.that(async () => {
-          await eventstore.initialize({
-            hostname: 'localhost',
-            port: 3000,
-            password: 'wolkenkit',
-            database: 'wolkenkit'
-          });
-        }).is.throwingAsync('Username is missing.');
-      });
-
-      test('throws an error if password is missing.', async () => {
-        await assert.that(async () => {
-          await eventstore.initialize({
-            hostname: 'localhost',
-            port: 3000,
-            username: 'wolkenkit',
-            database: 'wolkenkit'
-          });
-        }).is.throwingAsync('Password is missing.');
-      });
-
-      test('throws an error if database is missing.', async () => {
-        await assert.that(async () => {
-          await eventstore.initialize({
-            hostname: 'localhost',
-            port: 3000,
-            username: 'wolkenkit',
-            password: 'wolkenkit'
-          });
-        }).is.throwingAsync('Database is missing.');
+      getOptionTests({
+        options: {
+          hostname: 'localhost',
+          port: 3000,
+          username: 'wolkenkit',
+          password: 'wolkenkit',
+          database: 'wolkenkit'
+        },
+        async run (options) {
+          await eventstore.initialize(options);
+        }
       });
     }
   });

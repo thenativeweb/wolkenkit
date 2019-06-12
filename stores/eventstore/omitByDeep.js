@@ -1,13 +1,15 @@
 'use strict';
 
-const _ = require('lodash');
+const _ = require('lodash'),
+      isArray = require('lodash/isArray'),
+      isObject = require('lodash/isObject');
 
 const omitByDeep = function (obj, predicate) {
   if (!predicate) {
     throw new Error('Predicate is missing.');
   }
 
-  if (!_.isObject(obj) || _.isArray(obj)) {
+  if (!isObject(obj) || isArray(obj)) {
     return obj;
   }
 

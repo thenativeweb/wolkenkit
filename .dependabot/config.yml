@@ -8,7 +8,6 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
-    - "grundhoeferj"
     default_labels:
     - "Dependencies"
     allowed_updates:
@@ -23,7 +22,6 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
-    - "grundhoeferj"
     default_labels:
     - "Dependencies"
 
@@ -34,7 +32,6 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
-    - "grundhoeferj"
     default_labels:
     - "Dependencies"
 
@@ -45,7 +42,6 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
-    - "grundhoeferj"
     default_labels:
     - "Dependencies"
 
@@ -56,7 +52,6 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
-    - "grundhoeferj"
     default_labels:
     - "Dependencies"
 
@@ -67,7 +62,6 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
-    - "grundhoeferj"
     default_labels:
     - "Dependencies"
 
@@ -78,7 +72,6 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
-    - "grundhoeferj"
     default_labels:
     - "Dependencies"
 
@@ -89,18 +82,6 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
-    - "grundhoeferj"
-    default_labels:
-    - "Dependencies"
-
-  - package_manager: "docker"
-    directory: "/docker/wolkenkit-rabbitmq"
-    update_schedule: "daily"
-    default_reviewers:
-    - "thenativeweb/wolkenkit-dev"
-    default_assignees:
-    - "goloroden"
-    - "grundhoeferj"
     default_labels:
     - "Dependencies"
 
@@ -111,6 +92,5 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
-    - "grundhoeferj"
     default_labels:
     - "Dependencies"

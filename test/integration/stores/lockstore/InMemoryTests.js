@@ -1,12 +1,11 @@
 'use strict';
 
 const getTestsFor = require('./getTestsFor'),
-      { InMemoryDispatcher, InMemoryWorker } = require('../../../../messaging/worker');
+      { InMemory } = require('../../../../stores/lockstore');
 
 suite('InMemory', () => {
   getTestsFor({
-    Dispatcher: InMemoryDispatcher,
-    Worker: InMemoryWorker,
+    Lockstore: InMemory,
 
     getOptions () {
       return {};

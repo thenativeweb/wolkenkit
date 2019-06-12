@@ -12,7 +12,6 @@ const pre = async function () {
     containers.mongoDb.start(),
     containers.mySql.start(),
     containers.postgres.start(),
-    containers.rabbitMq.start(),
     containers.sqlServer.start()
   ]);
 };

@@ -9,7 +9,6 @@ const post = async function () {
     containers.mongoDb.stop(),
     containers.mySql.stop(),
     containers.postgres.stop(),
-    containers.rabbitMq.stop(),
     containers.sqlServer.stop()
   ]);
 };
