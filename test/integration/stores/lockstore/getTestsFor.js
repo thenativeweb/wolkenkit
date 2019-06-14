@@ -136,6 +136,36 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
     });
   });
 
+  suite('isLocked', () => {
+    test('returns false if the given lock does not exist.', async () => {
+      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+
+      const isLocked = await lockstore.isLocked({ namespace, value });
+
+      assert.that(isLocked).is.false();
+    });
+
+    test('returns true if the given lock exists.', async () => {
+      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.acquireLock({ namespace, value });
+
+      const isLocked = await lockstore.isLocked({ namespace, value });
+
+      assert.that(isLocked).is.true();
+    });
+
+    test('returns false if the given lock exists, but has expired.', async () => {
+      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds });
+
+      await sleep({ ms: 100 });
+
+      const isLocked = await lockstore.isLocked({ namespace, value });
+
+      assert.that(isLocked).is.false();
+    });
+  });
+
   suite('renewLock', () => {
     test('throws an error if the given lock does not exist.', async () => {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });

@@ -62,6 +62,23 @@ class Lockstore {
     }
   }
 
+  async isLocked ({ namespace, value }) {
+    if (!namespace) {
+      throw new Error('Namespace is missing.');
+    }
+    if (!value) {
+      throw new Error('Value is missing.');
+    }
+
+    const name = Lockstore.getLockName({ namespace, value });
+
+    const isLocked = this.database.locks.some(
+      lock => lock.name === name && Date.now() < lock.expiresAt
+    );
+
+    return isLocked;
+  }
+
   async renewLock ({ namespace, value, expiresAt }) {
     if (!namespace) {
       throw new Error('Namespace is missing.');
@@ -94,7 +111,9 @@ class Lockstore {
     }
 
     const name = Lockstore.getLockName({ namespace, value });
-    const index = this.database.locks.findIndex(lock => lock.name === name);
+    const index = this.database.locks.findIndex(
+      lock => lock.name === name
+    );
 
     if (index === -1) {
       return;

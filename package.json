@@ -135,7 +135,7 @@
     "limit-alphanumeric": "1.0.0",
     "lodash": "4.17.11",
     "marble-run": "2.0.0",
-    "minio": "7.0.8",
+    "minio": "7.0.10",
     "mongodb": "3.2.7",
     "mysql2": "1.6.5",
     "newline-json": "0.1.1",
@@ -157,7 +157,7 @@
     "stringify-object": "3.3.0",
     "tar": "4.4.10",
     "tarn": "1.1.5",
-    "tedious": "6.1.2",
+    "tedious": "6.2.0",
     "update-notifier": "3.0.0",
     "uuidv4": "4.0.0",
     "validate-value": "5.0.2"

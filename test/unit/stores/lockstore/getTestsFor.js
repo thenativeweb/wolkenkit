@@ -54,6 +54,23 @@ const getTestsFor = function ({ Lockstore, type }) {
     });
   });
 
+  suite('isLocked', () => {
+    test('is a function.', async () => {
+      assert.that(lockstore.isLocked).is.ofType('function');
+    });
+
+    getOptionTests({
+      options: {
+        namespace: uuid(),
+        value: { foo: 'bar' }
+      },
+      excludes: [ 'value.*' ],
+      async run (options) {
+        await lockstore.isLocked(options);
+      }
+    });
+  });
+
   suite('renewLock', () => {
     test('is a function.', async () => {
       assert.that(lockstore.renewLock).is.ofType('function');
