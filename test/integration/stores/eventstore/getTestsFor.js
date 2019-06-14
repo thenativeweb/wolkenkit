@@ -22,7 +22,9 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     await eventstore.destroy();
   });
 
-  suite('initialize', () => {
+  suite('initialize', function () {
+    this.timeout(5 * 1000);
+
     test('does not throw an error if the database is reachable.', async () => {
       await assert.that(async () => {
         await eventstore.initialize({ ...getOptions(), namespace });
@@ -37,7 +39,9 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
   });
 
-  suite('getLastEvent', () => {
+  suite('getLastEvent', function () {
+    this.timeout(5 * 1000);
+
     test('returns undefined for an aggregate without events.', async () => {
       await eventstore.initialize({ ...getOptions(), namespace });
 
@@ -114,7 +118,9 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
   });
 
-  suite('getEventStream', () => {
+  suite('getEventStream', function () {
+    this.timeout(5 * 1000);
+
     test('returns an empty stream for a non-existent aggregate.', async () => {
       await eventstore.initialize({ ...getOptions(), namespace });
 
@@ -243,7 +249,9 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
   });
 
-  suite('getUnpublishedEventStream', () => {
+  suite('getUnpublishedEventStream', function () {
+    this.timeout(5 * 1000);
+
     test('returns an empty stream if there are no unpublished events.', async () => {
       await eventstore.initialize({ ...getOptions(), namespace });
 
@@ -293,7 +301,9 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
   });
 
-  suite('saveEvents', () => {
+  suite('saveEvents', function () {
+    this.timeout(5 * 1000);
+
     test('throws an error if events is an empty array.', async () => {
       await assert.that(async () => {
         await eventstore.saveEvents({ uncommittedEvents: []});
@@ -590,7 +600,9 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
       assert.that(snapshot).is.undefined();
     });
 
-    suite('event stream order', () => {
+    suite('event stream order', function () {
+      this.timeout(5 * 1000);
+
       test('assigns the global revision 1 to the first event.', async () => {
         const event = EventInternal.create({
           context: { name: 'planning' },
@@ -772,7 +784,9 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
   });
 
-  suite('markEventsAsPublished', () => {
+  suite('markEventsAsPublished', function () {
+    this.timeout(5 * 1000);
+
     test('marks the specified events as published.', async () => {
       const eventStarted = EventInternal.create({
         context: { name: 'planning' },
@@ -830,7 +844,9 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
   });
 
-  suite('getSnapshot', () => {
+  suite('getSnapshot', function () {
+    this.timeout(5 * 1000);
+
     test('returns undefined for an aggregate without a snapshot.', async () => {
       await eventstore.initialize({ ...getOptions(), namespace });
 
@@ -908,7 +924,9 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
   });
 
-  suite('saveSnapshot', () => {
+  suite('saveSnapshot', function () {
+    this.timeout(5 * 1000);
+
     test('saves a snapshot.', async () => {
       const aggregateId = uuid();
       const state = {
@@ -989,7 +1007,9 @@ const getTestsFor = function ({ Eventstore, getOptions }) {
     });
   });
 
-  suite('getReplay', () => {
+  suite('getReplay', function () {
+    this.timeout(5 * 1000);
+
     test('returns an empty stream.', async () => {
       await eventstore.initialize({ ...getOptions(), namespace });
 
