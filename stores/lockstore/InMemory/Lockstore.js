@@ -2,6 +2,8 @@
 
 const noop = require('lodash/noop');
 
+const sortObjectKeys = require('../sortObjectKeys');
+
 // This value represents the maximum possible date in JavaScript. For details
 // see: http://ecma-international.org/ecma-262/5.1/#sec-15.9.1.1
 const maxDate = 8640000000000000;
@@ -21,7 +23,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const name = `${namespace}#${JSON.stringify(value)}`;
+    const name = `${namespace}#${JSON.stringify(sortObjectKeys(value))}`;
 
     return name;
   }

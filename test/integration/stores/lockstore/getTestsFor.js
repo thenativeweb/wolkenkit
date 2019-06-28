@@ -24,7 +24,7 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
     lockstore = new Lockstore();
     databaseNamespace = uuid();
     namespace = uuid();
-    value = { foo: 'bar' };
+    value = { foo: 'bar', baz: 'bam' };
   });
 
   teardown(async function () {
@@ -79,6 +79,17 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
 
       await assert.that(async () => {
         await lockstore.acquireLock({ namespace, value });
+      }).is.throwingAsync('Failed to acquire lock.');
+    });
+
+    test('throws an error also if object keys have different order.', async () => {
+      const sortedValue = { baz: 'bam', foo: 'bar' };
+
+      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.acquireLock({ namespace, value });
+
+      await assert.that(async () => {
+        await lockstore.acquireLock({ namespace, value: sortedValue });
       }).is.throwingAsync('Failed to acquire lock.');
     });
 
