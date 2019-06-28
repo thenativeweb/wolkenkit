@@ -1,5 +1,9 @@
 'use strict';
 
-const InMemory = require('./InMemory');
+const InMemory = require('./InMemory'),
+      Postgres = require('./Postgres');
 
-module.exports = { InMemory };
+module.exports = {
+  InMemory,
+  Postgres
+};

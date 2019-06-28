@@ -167,7 +167,7 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
 
     test('returns false if the given lock exists, but has expired.', async () => {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
-      await lockstore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds });
+      await lockstore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
 
       await sleep({ ms: 100 });
 

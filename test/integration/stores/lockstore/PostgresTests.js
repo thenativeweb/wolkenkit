@@ -1,6 +1,7 @@
 'use strict';
 
-const getTestsFor = require('./getTestsFor'),
+const getConnectionOptions = require('../../../shared/containers/getConnectionOptions'),
+      getTestsFor = require('./getTestsFor'),
       { Postgres } = require('../../../../stores/lockstore');
 
 suite('Postgres', () => {
@@ -8,7 +9,9 @@ suite('Postgres', () => {
     Lockstore: Postgres,
 
     getOptions () {
-      return {};
+      const { postgres } = getConnectionOptions();
+
+      return postgres;
     }
   });
 });
