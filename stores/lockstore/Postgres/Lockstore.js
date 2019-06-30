@@ -3,8 +3,8 @@
 const noop = require('lodash/noop');
 
 const limitAlphanumeric = require('limit-alphanumeric'),
-  pg = require('pg'),
-  retry = require('async-retry');
+      pg = require('pg'),
+      retry = require('async-retry');
 
 // This value represents the maximum possible date in JavaScript. For details
 // see: http://ecma-international.org/ecma-262/5.1/#sec-15.9.1.1
@@ -133,7 +133,7 @@ class Lockstore {
           WHERE "namespace" = $1
             AND "value" = $2
       `,
-        values: [namespace, JSON.stringify(value)]
+        values: [ namespace, JSON.stringify(value) ]
       });
 
       let newEntry = true;
@@ -169,7 +169,7 @@ class Lockstore {
       await connection.query({
         name: `acquire ${newEntry ? 'new' : 'existing'} lock`,
         text: query,
-        values: [namespace, JSON.stringify(value), new Date(expiresAt)]
+        values: [ namespace, JSON.stringify(value), new Date(expiresAt) ]
       });
 
       try {
@@ -208,7 +208,7 @@ class Lockstore {
           WHERE "namespace" = $1
             AND "value" = $2
       `,
-        values: [namespace, JSON.stringify(value)]
+        values: [ namespace, JSON.stringify(value) ]
       });
 
       if (result.rows.length > 0) {
@@ -245,7 +245,7 @@ class Lockstore {
           WHERE "namespace" = $1
             AND "value" = $2
       `,
-        values: [namespace, JSON.stringify(value)]
+        values: [ namespace, JSON.stringify(value) ]
       });
 
       if (result.rows.length === 0) {
@@ -266,7 +266,7 @@ class Lockstore {
           WHERE "namespace" = $1
             AND "value" = $2
         `,
-        values: [namespace, JSON.stringify(value), new Date(expiresAt)]
+        values: [ namespace, JSON.stringify(value), new Date(expiresAt) ]
       });
     } finally {
       connection.release();
@@ -291,7 +291,7 @@ class Lockstore {
           WHERE "namespace" = $1
             AND "value" = $2
       `,
-        values: [namespace, JSON.stringify(value)]
+        values: [ namespace, JSON.stringify(value) ]
       });
     } finally {
       connection.release();
