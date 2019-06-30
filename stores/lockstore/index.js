@@ -5,6 +5,7 @@ const InMemory = require('./InMemory'),
       MongoDb = require('./MongoDb'),
       MySql = require('./MySql'),
       Postgres = require('./Postgres'),
+      Redis = require('./Redis'),
       SqlServer = require('./SqlServer');
 
 module.exports = {
@@ -13,5 +14,6 @@ module.exports = {
   MongoDb,
   MySql,
   Postgres,
+  Redis,
   SqlServer
 };
