@@ -94,7 +94,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
     const query = {
       namespace,
       value: sortedSerializedValue
@@ -135,7 +135,7 @@ class Lockstore {
     if (!value) {
       throw new Error('Value is missing.');
     }
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
     const query = {
       namespace,
       value: sortedSerializedValue
@@ -158,7 +158,7 @@ class Lockstore {
       throw new Error('Expires at is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
     const query = {
       namespace,
       value: sortedSerializedValue
@@ -183,7 +183,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
     const query = {
       namespace,
       value: sortedSerializedValue

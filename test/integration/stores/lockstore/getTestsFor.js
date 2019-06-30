@@ -83,13 +83,15 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
     });
 
     test('throws an error also if object keys have different order.', async () => {
+      const nestedValue = { ...value, nested: { ...value }};
       const sortedValue = { baz: 'bam', foo: 'bar' };
+      const nestedSortedValue = { ...sortedValue, nested: { ...sortedValue }};
 
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
-      await lockstore.acquireLock({ namespace, value });
+      await lockstore.acquireLock({ namespace, value: nestedValue });
 
       await assert.that(async () => {
-        await lockstore.acquireLock({ namespace, value: sortedValue });
+        await lockstore.acquireLock({ namespace, value: nestedSortedValue });
       }).is.throwingAsync('Failed to acquire lock.');
     });
 

@@ -30,7 +30,7 @@ class Lockstore {
       throw new Error('Store is missing.');
     }
 
-    const name = `${store}#${namespace}#${JSON.stringify(sortObjectKeys(value))}`;
+    const name = `${store}#${namespace}#${JSON.stringify(sortObjectKeys(value, true))}`;
 
     return name;
   }

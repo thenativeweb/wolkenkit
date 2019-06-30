@@ -95,7 +95,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
     const connection = await this.getDatabase();
 
     try {
@@ -159,7 +159,7 @@ class Lockstore {
     if (!value) {
       throw new Error('Value is missing.');
     }
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
     const connection = await this.getDatabase();
 
     let isLocked = false;
@@ -195,7 +195,7 @@ class Lockstore {
       throw new Error('Expires at is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
     const connection = await this.getDatabase();
 
     try {
@@ -235,7 +235,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
     const connection = await this.getDatabase();
 
     try {
