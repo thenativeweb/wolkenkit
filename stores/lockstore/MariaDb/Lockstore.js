@@ -8,7 +8,7 @@ const limitAlphanumeric = require('limit-alphanumeric'),
 
 const sortObjectKeys = require('../sortObjectKeys');
 
-// Max mysql date is 9999-12-31 23:59:59
+// Max mysql/mariadb timestamp is 9999-12-31 23:59:59
 const maxDate = 253402297199000;
 
 class Lockstore {
@@ -100,7 +100,7 @@ class Lockstore {
 
     try {
       const [ rows ] = await connection.query(`
-        SELECT namespace, value, expiresAt
+        SELECT expiresAt
           FROM ${this.namespace}_locks
           WHERE namespace = ?
             AND value = ?`,
@@ -166,7 +166,7 @@ class Lockstore {
 
     try {
       const [ rows ] = await connection.query(`
-        SELECT namespace, value, expiresAt
+        SELECT expiresAt
           FROM ${this.namespace}_locks
           WHERE namespace = ?
             AND value = ?`,
@@ -200,7 +200,7 @@ class Lockstore {
 
     try {
       const [ rows ] = await connection.query(`
-        SELECT namespace, value, expiresAt
+        SELECT expiresAt
           FROM ${this.namespace}_locks
           WHERE namespace = ?
             AND value = ?`,
