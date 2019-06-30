@@ -2,6 +2,7 @@
 
 const InMemory = require('./InMemory'),
       MariaDb = require('./MariaDb'),
+      MongoDb = require('./MongoDb'),
       MySql = require('./MySql'),
       Postgres = require('./Postgres'),
       SqlServer = require('./SqlServer');
@@ -9,6 +10,7 @@ const InMemory = require('./InMemory'),
 module.exports = {
   InMemory,
   MariaDb,
+  MongoDb,
   MySql,
   Postgres,
   SqlServer
