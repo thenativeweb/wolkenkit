@@ -58,7 +58,7 @@ class Lockstore {
     try {
       await onAcquired();
     } catch (ex) {
-      this.releaseLock({ namespace, value });
+      await this.releaseLock({ namespace, value });
 
       throw ex;
     }
