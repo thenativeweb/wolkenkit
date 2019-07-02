@@ -6,7 +6,7 @@ const sortObjectKeys = require('../../../../stores/lockstore/sortObjectKeys');
 
 suite('sortObjectKeys', () => {
   suite('default behavior', () => {
-    test('does not sort object keys', async () => {
+    test('does not sort object keys.', async () => {
       const value = {
         third: 'third field',
         second: 'second field',
@@ -24,7 +24,7 @@ suite('sortObjectKeys', () => {
     assert.that(sortObjectKeys).is.ofType('function');
   });
 
-  test('returns an array as it is', async () => {
+  test('returns an array as it is.', async () => {
     const value = sortObjectKeys([ 3, 2, 1 ]);
 
     const expected = '[3,2,1]';
@@ -33,7 +33,7 @@ suite('sortObjectKeys', () => {
     assert.that(actual).is.equalTo(expected);
   });
 
-  test('returns any other value as it is', async () => {
+  test('returns any other value as it is.', async () => {
     const value = sortObjectKeys('some non object value');
 
     const expected = '"some non object value"';
