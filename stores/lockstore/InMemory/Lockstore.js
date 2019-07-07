@@ -23,7 +23,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const name = `${namespace}#${JSON.stringify(sortObjectKeys(value, true))}`;
+    const name = `${namespace}#${JSON.stringify(sortObjectKeys({ object: value, recursive: true }))}`;
 
     return name;
   }
