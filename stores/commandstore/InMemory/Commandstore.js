@@ -1,19 +1,18 @@
 'use strict';
 
-const { InMemory: Lockstore } = require('../../lockstore');
-
 class Commandstore {
-  async initialize ({ expirationDuration }) {
+  async initialize ({ expirationDuration, lockstore }) {
     if (!expirationDuration) {
       throw new Error('Expiration duration is missing.');
+    }
+    if (!lockstore) {
+      throw new Error('Lockstore is missing.');
     }
 
     this.database = { commands: []};
 
     this.expirationDuration = expirationDuration;
-    this.lockstore = new Lockstore();
-
-    await this.lockstore.initialize();
+    this.lockstore = lockstore;
   }
 
   async saveCommand ({ command }) {
