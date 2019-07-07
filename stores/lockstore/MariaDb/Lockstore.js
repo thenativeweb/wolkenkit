@@ -108,7 +108,7 @@ class Lockstore {
         SELECT expiresAt
           FROM ${this.namespace}_locks
          WHERE namespace = ?
-           AND value = ?`,
+           AND value = ?;`,
       [ namespace, sortedSerializedValue ]);
 
       let newEntry = true;
@@ -129,15 +129,13 @@ class Lockstore {
       if (newEntry) {
         query = `
         INSERT INTO ${this.namespace}_locks (namespace, value, expiresAt) 
-        VALUES (?, ?, ?)
-        `;
+        VALUES (?, ?, ?);`;
       } else {
         query = `
         UPDATE ${this.namespace}_locks 
            SET expiresAt = ?
          WHERE namespace = ?
-           AND value = ?
-        `;
+           AND value = ?;`;
       }
 
       await connection.query(query, [ namespace, sortedSerializedValue, new Date(expiresAt) ]);
@@ -177,7 +175,7 @@ class Lockstore {
         SELECT expiresAt
           FROM ${this.namespace}_locks
          WHERE namespace = ?
-           AND value = ?`,
+           AND value = ?;`,
       [ namespace, sortedSerializedValue ]);
 
       if (rows.length > 0) {
@@ -216,7 +214,7 @@ class Lockstore {
         SELECT expiresAt
           FROM ${this.namespace}_locks
          WHERE namespace = ?
-           AND value = ?`,
+           AND value = ?;`,
       [ namespace, sortedSerializedValue ]);
 
       if (rows.length === 0) {
@@ -232,7 +230,7 @@ class Lockstore {
         UPDATE ${this.namespace}_locks 
            SET expiresAt = ?
          WHERE namespace = ?
-           AND value = ?`,
+           AND value = ?;`,
       [ new Date(expiresAt), namespace, sortedSerializedValue ]);
     } finally {
       connection.release();
@@ -259,7 +257,7 @@ class Lockstore {
       await connection.query(`
         DELETE FROM ${this.namespace}_locks
          WHERE namespace = ?
-           AND value = ?`,
+           AND value = ?;`,
       [ namespace, sortedSerializedValue ]);
     } finally {
       connection.release();
