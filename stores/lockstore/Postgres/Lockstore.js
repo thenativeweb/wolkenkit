@@ -53,7 +53,7 @@ class Lockstore {
       throw new Error('Namespace is missing.');
     }
 
-    this.namespace = `store_${limitAlphanumeric(namespace)}`;
+    this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     this.pool = new pg.Pool({
       host: hostname,
@@ -130,8 +130,8 @@ class Lockstore {
         text: `
         SELECT "expiresAt"
           FROM "${this.namespace}_locks"
-          WHERE "namespace" = $1
-            AND "value" = $2
+         WHERE "namespace" = $1
+           AND "value" = $2
       `,
         values: [ namespace, JSON.stringify(value) ]
       });
@@ -139,9 +139,9 @@ class Lockstore {
       let newEntry = true;
 
       if (result.rows.length > 0) {
-        const entry = result.rows[0];
+        const [ entry ] = result.rows;
 
-        const isLocked = entry.expiresAt.getTime() > Date.now();
+        const isLocked = Date.now() < entry.expiresAt.getTime();
 
         if (isLocked) {
           throw new Error('Failed to acquire lock.');
@@ -160,9 +160,9 @@ class Lockstore {
       } else {
         query = `
         UPDATE "${this.namespace}_locks" 
-          SET "expiresAt" = $3
-          WHERE "namespace" = $1
-            AND "value" = $2
+           SET "expiresAt" = $3
+         WHERE "namespace" = $1
+           AND "value" = $2
         `;
       }
 
@@ -175,10 +175,7 @@ class Lockstore {
       try {
         await onAcquired();
       } catch (ex) {
-        await this.releaseLock({
-          namespace,
-          value
-        });
+        await this.releaseLock({ namespace, value });
 
         throw ex;
       }
@@ -205,16 +202,16 @@ class Lockstore {
         text: `
         SELECT "expiresAt"
           FROM "${this.namespace}_locks"
-          WHERE "namespace" = $1
-            AND "value" = $2
+         WHERE "namespace" = $1
+           AND "value" = $2
       `,
         values: [ namespace, JSON.stringify(value) ]
       });
 
       if (result.rows.length > 0) {
-        const entry = result.rows[0];
+        const [ entry ] = result.rows;
 
-        isLocked = entry.expiresAt.getTime() > Date.now();
+        isLocked = Date.now() < entry.expiresAt.getTime();
       }
     } finally {
       connection.release();
@@ -242,29 +239,29 @@ class Lockstore {
         text: `
         SELECT "expiresAt"
           FROM "${this.namespace}_locks"
-          WHERE "namespace" = $1
-            AND "value" = $2
+         WHERE "namespace" = $1
+           AND "value" = $2
       `,
         values: [ namespace, JSON.stringify(value) ]
       });
 
       if (result.rows.length === 0) {
         throw new Error('Failed to renew lock.');
-      } else {
-        const entry = result.rows[0];
+      }
 
-        if (entry.expiresAt.getTime() < Date.now()) {
-          throw new Error('Failed to renew lock.');
-        }
+      const [ entry ] = result.rows;
+
+      if (entry.expiresAt.getTime() < Date.now()) {
+        throw new Error('Failed to renew lock.');
       }
 
       await connection.query({
         name: 'renew lock',
         text: `
         UPDATE "${this.namespace}_locks" 
-          SET "expiresAt" = $3
-          WHERE "namespace" = $1
-            AND "value" = $2
+           SET "expiresAt" = $3
+         WHERE "namespace" = $1
+           AND "value" = $2
         `,
         values: [ namespace, JSON.stringify(value), new Date(expiresAt) ]
       });
@@ -288,8 +285,8 @@ class Lockstore {
         name: 'remove lock',
         text: `
         DELETE FROM "${this.namespace}_locks"
-          WHERE "namespace" = $1
-            AND "value" = $2
+         WHERE "namespace" = $1
+           AND "value" = $2
       `,
         values: [ namespace, JSON.stringify(value) ]
       });
