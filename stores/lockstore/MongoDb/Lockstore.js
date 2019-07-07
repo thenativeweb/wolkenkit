@@ -1,11 +1,10 @@
 'use strict';
 
-const noop = require('lodash/noop');
-
 const { parse } = require('url');
 
 const limitAlphanumeric = require('limit-alphanumeric'),
       { MongoClient } = require('mongodb'),
+      noop = require('lodash/noop'),
       retry = require('async-retry');
 
 const sortObjectKeys = require('../sortObjectKeys');
@@ -45,7 +44,7 @@ class Lockstore {
       throw new Error('Namespace is missing.');
     }
 
-    this.namespace = `store_${limitAlphanumeric(namespace)}`;
+    this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     const url = `mongodb://${username}:${password}@${hostname}:${port}/${database}`;
 
@@ -94,7 +93,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
     const query = {
       namespace,
       value: sortedSerializedValue
@@ -102,7 +101,7 @@ class Lockstore {
     const entry = await this.collections.locks.findOne(query);
 
     if (entry) {
-      const isLocked = entry.expiresAt.getTime() > Date.now();
+      const isLocked = Date.now() < entry.expiresAt.getTime();
 
       if (isLocked) {
         throw new Error('Failed to acquire lock.');
@@ -119,10 +118,7 @@ class Lockstore {
     try {
       await onAcquired();
     } catch (ex) {
-      await this.releaseLock({
-        namespace,
-        value
-      });
+      await this.releaseLock({ namespace, value });
 
       throw ex;
     }
@@ -135,14 +131,14 @@ class Lockstore {
     if (!value) {
       throw new Error('Value is missing.');
     }
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
     const query = {
       namespace,
       value: sortedSerializedValue
     };
     const entry = await this.collections.locks.findOne(query);
 
-    const isLocked = Boolean(entry) && entry.expiresAt.getTime() > Date.now();
+    const isLocked = Boolean(entry) && Date.now() < entry.expiresAt.getTime();
 
     return isLocked;
   }
@@ -158,7 +154,7 @@ class Lockstore {
       throw new Error('Expires at is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
     const query = {
       namespace,
       value: sortedSerializedValue
@@ -183,7 +179,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
     const query = {
       namespace,
       value: sortedSerializedValue
