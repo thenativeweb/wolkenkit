@@ -30,7 +30,7 @@ class Lockstore {
       throw new Error('Store is missing.');
     }
 
-    const name = `${store}#${namespace}#${JSON.stringify(sortObjectKeys(value, true))}`;
+    const name = `${store}#${namespace}#${JSON.stringify(sortObjectKeys({ object: value, recursive: true }))}`;
 
     return name;
   }
@@ -70,7 +70,7 @@ class Lockstore {
     }
 
     this.username = username;
-    this.namespace = `store_${limitAlphanumeric(namespace)}`;
+    this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
     this.requireValidExpiration = requireValidExpiration;
 
     const url = `redis://:${password}@${hostname}:${port}/${database}`;
@@ -80,7 +80,7 @@ class Lockstore {
 
       client.ping(err => {
         if (err) {
-          reject(err);
+          return reject(err);
         }
 
         resolve(client);
@@ -118,7 +118,7 @@ class Lockstore {
       result = await new Promise((resolve, reject) => {
         this.client.set(key, this.username, 'NX', 'PX', expiration, (err, reply) => {
           if (err) {
-            reject(err);
+            return reject(err);
           }
 
           resolve(reply);
@@ -133,10 +133,7 @@ class Lockstore {
     try {
       await onAcquired();
     } catch (ex) {
-      await this.releaseLock({
-        namespace,
-        value
-      });
+      await this.releaseLock({ namespace, value });
 
       throw ex;
     }
@@ -154,7 +151,7 @@ class Lockstore {
     const existingLock = await new Promise((resolve, reject) => {
       this.client.get(key, (err, reply) => {
         if (err) {
-          reject(err);
+          return reject(err);
         }
 
         resolve(reply);
@@ -192,7 +189,7 @@ class Lockstore {
       const existingLock = await new Promise((resolve, reject) => {
         this.client.get(key, (err, reply) => {
           if (err) {
-            reject(err);
+            return reject(err);
           }
 
           resolve(reply);
@@ -203,7 +200,7 @@ class Lockstore {
         result = await new Promise((resolve, reject) => {
           this.client.pexpire(key, expiration, (err, reply) => {
             if (err) {
-              reject(err);
+              return reject(err);
             }
 
             resolve(reply);
@@ -232,7 +229,7 @@ class Lockstore {
     const existingLock = await new Promise((resolve, reject) => {
       this.client.get(key, (err, reply) => {
         if (err) {
-          reject(err);
+          return reject(err);
         }
 
         resolve(reply);
@@ -245,7 +242,7 @@ class Lockstore {
       result = await new Promise((resolve, reject) => {
         this.client.del(key, err => {
           if (err) {
-            reject(err);
+            return reject(err);
           }
 
           // At some point the entry may already have been removed by Redis
