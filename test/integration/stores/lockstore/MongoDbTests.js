@@ -11,7 +11,8 @@ suite('MongoDb', () => {
     getOptions () {
       const { mongoDb } = getConnectionOptions();
 
-      return mongoDb;
+      // This is MongoDb hard limit for an index entry.
+      return { ...mongoDb, maxLockSize: 968 };
     }
   });
 });

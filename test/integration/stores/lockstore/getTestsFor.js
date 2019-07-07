@@ -5,12 +5,16 @@ const assert = require('assertthat'),
 
 const sleep = require('../../../../common/utils/sleep');
 
+const inMilliseconds = function ({ ms }) {
+  return Date.now() + ms;
+};
+
 const inFiftyMilliseconds = function () {
-  return Date.now() + 50;
+  return inMilliseconds({ ms: 50 });
 };
 
 const oneSecondAgo = function () {
-  return Date.now() - 1000;
+  return inMilliseconds({ ms: -1000 });
 };
 
 /* eslint-disable mocha/max-top-level-suites */
@@ -49,10 +53,33 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
   });
 
   suite('acquireLock', () => {
+    test('throws an error if the value is too large.', async () => {
+      const options = { ...getOptions() };
+      const exceededValue = 'a'.repeat(options.maxLockSize);
+
+      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+
+      await assert.that(async () => {
+        await lockstore.acquireLock({ namespace, value: exceededValue, expiresAt: inFiftyMilliseconds() });
+      }).is.throwingAsync('Lock value is too large.');
+    });
+
     test('acquires a lock.', async () => {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
 
       await lockstore.acquireLock({ namespace, value });
+    });
+
+    test('acquires a lock with the maximum accepted size.', async () => {
+      const options = { ...getOptions() };
+
+      // A JSON serialized string will embed opening and closing quotes
+      // Those two characters are part of the lock name.
+      const maxValue = 'a'.repeat(options.maxLockSize - 2);
+
+      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+
+      await lockstore.acquireLock({ namespace, value: maxValue, expiresAt: inFiftyMilliseconds() });
     });
 
     test('supports locks with different values.', async () => {
@@ -150,6 +177,17 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
   });
 
   suite('isLocked', () => {
+    test('throws an error if the value is too large.', async () => {
+      const options = { ...getOptions() };
+      const exceededValue = 'a'.repeat(options.maxLockSize);
+
+      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+
+      await assert.that(async () => {
+        await lockstore.isLocked({ namespace, value: exceededValue });
+      }).is.throwingAsync('Lock value is too large.');
+    });
+
     test('returns false if the given lock does not exist.', async () => {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
 
@@ -180,6 +218,17 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
   });
 
   suite('renewLock', () => {
+    test('throws an error if the value is too large.', async () => {
+      const options = { ...getOptions() };
+      const exceededValue = 'a'.repeat(options.maxLockSize);
+
+      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+
+      await assert.that(async () => {
+        await lockstore.renewLock({ namespace, value: exceededValue, expiresAt: inFiftyMilliseconds() });
+      }).is.throwingAsync('Lock value is too large.');
+    });
+
     test('throws an error if the given lock does not exist.', async () => {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
 
@@ -205,7 +254,8 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
       await lockstore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
       await sleep({ ms: 35 });
 
-      await lockstore.renewLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
+      // Tests tend to be flaky on Sql engines. 100ms
+      await lockstore.renewLock({ namespace, value, expiresAt: inMilliseconds({ ms: 100 }) });
       await sleep({ ms: 35 });
 
       // If renewing didn't work, now 70ms have passed, and the original
@@ -219,6 +269,17 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
   });
 
   suite('releaseLock', () => {
+    test('throws an error if the value is too large.', async () => {
+      const options = { ...getOptions() };
+      const exceededValue = 'a'.repeat(options.maxLockSize);
+
+      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+
+      await assert.that(async () => {
+        await lockstore.releaseLock({ namespace, value: exceededValue });
+      }).is.throwingAsync('Lock value is too large.');
+    });
+
     test('release the lock.', async () => {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
 

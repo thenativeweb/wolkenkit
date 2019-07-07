@@ -11,7 +11,9 @@ suite('SqlServer', () => {
     getOptions () {
       const { sqlServer } = getConnectionOptions();
 
-      return sqlServer;
+      // This is SqlServer max size for a clustered index key.
+      // Limit is applied on the sum of namespace + value...
+      return { ...sqlServer, maxLockSize: 828 };
     }
   });
 });

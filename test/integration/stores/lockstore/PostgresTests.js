@@ -11,7 +11,7 @@ suite('Postgres', () => {
     getOptions () {
       const { postgres } = getConnectionOptions();
 
-      return postgres;
+      return { ...postgres, maxLockSize: 2048 };
     }
   });
 });

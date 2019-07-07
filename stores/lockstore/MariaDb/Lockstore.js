@@ -25,7 +25,7 @@ class Lockstore {
     return database;
   }
 
-  async initialize ({ hostname, port, username, password, database, namespace }) {
+  async initialize ({ hostname, port, username, password, database, namespace, maxLockSize }) {
     if (!hostname) {
       throw new Error('Hostname is missing.');
     }
@@ -41,10 +41,14 @@ class Lockstore {
     if (!database) {
       throw new Error('Database is missing.');
     }
+    if (!maxLockSize) {
+      throw new Error('Max lock size is missing.');
+    }
     if (!namespace) {
       throw new Error('Namespace is missing.');
     }
 
+    this.maxLockSize = maxLockSize;
     this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     this.pool = mysql.createPool({
@@ -69,7 +73,7 @@ class Lockstore {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS ${this.namespace}_locks (
         namespace VARCHAR(64) NOT NULL,
-        value VARCHAR(2048) NOT NULL, 
+        value VARCHAR(${this.maxLockSize}) NOT NULL, 
         expiresAt DATETIME(3) NOT NULL,
 
         PRIMARY KEY(namespace, value)
@@ -92,6 +96,11 @@ class Lockstore {
     }
 
     const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+
+    if (sortedSerializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
     const connection = await this.getDatabase();
 
     try {
@@ -154,6 +163,11 @@ class Lockstore {
     }
 
     const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+
+    if (sortedSerializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
     const connection = await this.getDatabase();
 
     let isLocked = false;
@@ -190,6 +204,11 @@ class Lockstore {
     }
 
     const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+
+    if (sortedSerializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
     const connection = await this.getDatabase();
 
     try {
@@ -229,6 +248,11 @@ class Lockstore {
     }
 
     const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+
+    if (sortedSerializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
     const connection = await this.getDatabase();
 
     try {

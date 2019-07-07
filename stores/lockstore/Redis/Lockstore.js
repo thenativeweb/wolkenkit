@@ -19,7 +19,7 @@ class Lockstore {
     this.collections = {};
   }
 
-  static getLockName ({ namespace, value, store }) {
+  getLockName ({ namespace, value, store }) {
     if (!namespace) {
       throw new Error('Namespace is missing.');
     }
@@ -30,7 +30,13 @@ class Lockstore {
       throw new Error('Store is missing.');
     }
 
-    const name = `${store}#${namespace}#${JSON.stringify(sortObjectKeys({ object: value, recursive: true }))}`;
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+
+    if (sortedSerializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
+    const name = `${store}#${namespace}#${sortedSerializedValue}`;
 
     return name;
   }
@@ -49,7 +55,16 @@ class Lockstore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  async initialize ({ hostname, port, username, password, database, namespace, requireValidExpiration = true }) {
+  async initialize ({
+    hostname,
+    port,
+    username,
+    password,
+    database,
+    namespace,
+    requireValidExpiration = true,
+    maxLockSize
+  }) {
     if (!hostname) {
       throw new Error('Hostname is missing.');
     }
@@ -65,10 +80,14 @@ class Lockstore {
     if (!database) {
       throw new Error('Database is missing.');
     }
+    if (!maxLockSize) {
+      throw new Error('Max lock size is missing.');
+    }
     if (!namespace) {
       throw new Error('Namespace is missing.');
     }
 
+    this.maxLockSize = maxLockSize;
     this.username = username;
     this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
     this.requireValidExpiration = requireValidExpiration;
@@ -103,7 +122,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const key = Lockstore.getLockName({ namespace, value, store: this.namespace });
+    const key = this.getLockName({ namespace, value, store: this.namespace });
     const expiration = Lockstore.getExpiration({ expiresAt });
 
     let result;
@@ -146,7 +165,7 @@ class Lockstore {
     if (!value) {
       throw new Error('Value is missing.');
     }
-    const key = Lockstore.getLockName({ namespace, value, store: this.namespace });
+    const key = this.getLockName({ namespace, value, store: this.namespace });
 
     const existingLock = await new Promise((resolve, reject) => {
       this.client.get(key, (err, reply) => {
@@ -174,7 +193,7 @@ class Lockstore {
       throw new Error('Expires at is missing.');
     }
 
-    const key = Lockstore.getLockName({ namespace, value, store: this.namespace });
+    const key = this.getLockName({ namespace, value, store: this.namespace });
     const expiration = Lockstore.getExpiration({ expiresAt });
 
     let result;
@@ -222,7 +241,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const key = Lockstore.getLockName({ namespace, value, store: this.namespace });
+    const key = this.getLockName({ namespace, value, store: this.namespace });
 
     let result;
 

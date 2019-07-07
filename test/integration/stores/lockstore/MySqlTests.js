@@ -11,7 +11,7 @@ suite('MySql', () => {
     getOptions () {
       const { mySql } = getConnectionOptions();
 
-      return mySql;
+      return { ...mySql, maxLockSize: 2048 };
     }
   });
 });

@@ -11,7 +11,7 @@ suite('MariaDb', () => {
     getOptions () {
       const { mariaDb } = getConnectionOptions();
 
-      return mariaDb;
+      return { ...mariaDb, maxLockSize: 2048 };
     }
   });
 });

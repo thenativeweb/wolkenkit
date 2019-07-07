@@ -24,7 +24,7 @@ class Lockstore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  async initialize ({ hostname, port, username, password, database, namespace }) {
+  async initialize ({ hostname, port, username, password, database, namespace, maxLockSize }) {
     if (!hostname) {
       throw new Error('Hostname is missing.');
     }
@@ -40,10 +40,14 @@ class Lockstore {
     if (!database) {
       throw new Error('Database is missing.');
     }
+    if (!maxLockSize) {
+      throw new Error('Max lock size is missing.');
+    }
     if (!namespace) {
       throw new Error('Namespace is missing.');
     }
 
+    this.maxLockSize = maxLockSize;
     this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     const url = `mongodb://${username}:${password}@${hostname}:${port}/${database}`;
@@ -94,6 +98,11 @@ class Lockstore {
     }
 
     const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+
+    if (sortedSerializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
     const query = {
       namespace,
       value: sortedSerializedValue
@@ -132,6 +141,11 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
     const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+
+    if (sortedSerializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
     const query = {
       namespace,
       value: sortedSerializedValue
@@ -155,6 +169,11 @@ class Lockstore {
     }
 
     const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+
+    if (sortedSerializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
     const query = {
       namespace,
       value: sortedSerializedValue
@@ -180,6 +199,11 @@ class Lockstore {
     }
 
     const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+
+    if (sortedSerializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
     const query = {
       namespace,
       value: sortedSerializedValue

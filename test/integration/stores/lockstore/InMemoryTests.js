@@ -8,7 +8,7 @@ suite('InMemory', () => {
     Lockstore: InMemory,
 
     getOptions () {
-      return {};
+      return { maxLockSize: 2048 };
     }
   });
 });

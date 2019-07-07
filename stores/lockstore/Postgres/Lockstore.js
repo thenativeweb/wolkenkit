@@ -32,7 +32,8 @@ class Lockstore {
     password,
     database,
     encryptConnection = false,
-    namespace
+    namespace,
+    maxLockSize
   }) {
     if (!hostname) {
       throw new Error('Hostname is missing.');
@@ -49,10 +50,14 @@ class Lockstore {
     if (!database) {
       throw new Error('Database is missing.');
     }
+    if (!maxLockSize) {
+      throw new Error('Max lock size is missing.');
+    }
     if (!namespace) {
       throw new Error('Namespace is missing.');
     }
 
+    this.maxLockSize = maxLockSize;
     this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     this.pool = new pg.Pool({
@@ -122,6 +127,12 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
+    const serializedValue = JSON.stringify(value);
+
+    if (serializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
     const connection = await this.getDatabase();
 
     try {
@@ -133,7 +144,7 @@ class Lockstore {
          WHERE "namespace" = $1
            AND "value" = $2
       `,
-        values: [ namespace, JSON.stringify(value) ]
+        values: [ namespace, serializedValue ]
       });
 
       let newEntry = true;
@@ -169,7 +180,7 @@ class Lockstore {
       await connection.query({
         name: `acquire ${newEntry ? 'new' : 'existing'} lock`,
         text: query,
-        values: [ namespace, JSON.stringify(value), new Date(expiresAt) ]
+        values: [ namespace, serializedValue, new Date(expiresAt) ]
       });
 
       try {
@@ -192,6 +203,12 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
+    const serializedValue = JSON.stringify(value);
+
+    if (serializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
     const connection = await this.getDatabase();
 
     let isLocked = false;
@@ -205,7 +222,7 @@ class Lockstore {
          WHERE "namespace" = $1
            AND "value" = $2
       `,
-        values: [ namespace, JSON.stringify(value) ]
+        values: [ namespace, serializedValue ]
       });
 
       if (result.rows.length > 0) {
@@ -231,6 +248,12 @@ class Lockstore {
       throw new Error('Expires at is missing.');
     }
 
+    const serializedValue = JSON.stringify(value);
+
+    if (serializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
     const connection = await this.getDatabase();
 
     try {
@@ -242,7 +265,7 @@ class Lockstore {
          WHERE "namespace" = $1
            AND "value" = $2
       `,
-        values: [ namespace, JSON.stringify(value) ]
+        values: [ namespace, serializedValue ]
       });
 
       if (result.rows.length === 0) {
@@ -263,7 +286,7 @@ class Lockstore {
          WHERE "namespace" = $1
            AND "value" = $2
         `,
-        values: [ namespace, JSON.stringify(value), new Date(expiresAt) ]
+        values: [ namespace, serializedValue, new Date(expiresAt) ]
       });
     } finally {
       connection.release();
@@ -278,6 +301,12 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
+    const serializedValue = JSON.stringify(value);
+
+    if (serializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
     const connection = await this.getDatabase();
 
     try {
@@ -288,7 +317,7 @@ class Lockstore {
          WHERE "namespace" = $1
            AND "value" = $2
       `,
-        values: [ namespace, JSON.stringify(value) ]
+        values: [ namespace, serializedValue ]
       });
     } finally {
       connection.release();

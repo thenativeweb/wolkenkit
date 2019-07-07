@@ -11,7 +11,7 @@ suite('Redis', () => {
     getOptions () {
       const { redis } = getConnectionOptions();
 
-      return redis;
+      return { ...redis, maxLockSize: 2048 };
     }
   });
 });
