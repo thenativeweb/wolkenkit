@@ -9,7 +9,7 @@ const limitAlphanumeric = require('limit-alphanumeric'),
 const createPool = require('./createPool'),
       sortObjectKeys = require('../sortObjectKeys');
 
-// Max sqlserver datetime2 is 9999-12-31 23:59:59
+// Max SqlServer datetime2 is 9999-12-31 23:59:59.
 const maxDate = 253402297199000;
 
 class Lockstore {
@@ -55,7 +55,7 @@ class Lockstore {
       throw new Error('Namespace is missing.');
     }
 
-    this.namespace = `store_${limitAlphanumeric(namespace)}`;
+    this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     this.pool = createPool({
       host: hostname,
@@ -128,7 +128,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
     const database = await this.getDatabase();
 
     try {
@@ -225,7 +225,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
     const database = await this.getDatabase();
 
     let isLocked = false;
@@ -281,7 +281,7 @@ class Lockstore {
       throw new Error('Expires at is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
     const database = await this.getDatabase();
 
     try {
@@ -354,7 +354,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys(value, true));
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
     const database = await this.getDatabase();
 
     try {
