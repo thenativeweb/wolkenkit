@@ -1,6 +1,6 @@
 'use strict';
 
-const sortObjectKeys = function (object, recursive = false) {
+const sortObjectKeys = function ({ object, recursive = false }) {
   if (typeof object !== 'object' || Array.isArray(object)) {
     return object;
   }
@@ -12,7 +12,10 @@ const sortObjectKeys = function (object, recursive = false) {
       let value = object[key];
 
       if (recursive && typeof value === 'object' && !Array.isArray(value)) {
-        value = sortObjectKeys(value, recursive);
+        value = sortObjectKeys({
+          object: value,
+          recursive
+        });
       }
 
       return { ...acc, [key]: value };
