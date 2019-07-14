@@ -7,6 +7,7 @@ const getConnectionOptions = require('../../../shared/containers/getConnectionOp
 suite('SqlServer', () => {
   getTestsFor({
     Lockstore: SqlServer,
+    type: 'SqlServer',
 
     getOptions () {
       const { sqlServer } = getConnectionOptions();

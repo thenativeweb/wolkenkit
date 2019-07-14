@@ -18,7 +18,7 @@ const oneSecondAgo = function () {
 };
 
 /* eslint-disable mocha/max-top-level-suites */
-const getTestsFor = function ({ Lockstore, getOptions }) {
+const getTestsFor = function ({ Lockstore, getOptions, type }) {
   let databaseNamespace,
       lockstore,
       namespace,
@@ -266,6 +266,29 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
         await lockstore.acquireLock({ namespace, value });
       }).is.throwingAsync();
     });
+
+    if (type !== 'InMemory') {
+      test('throws an error if the lock does not belong to the store.', async () => {
+        const otherLockstore = new Lockstore();
+
+        await lockstore.initialize({
+          ...getOptions(),
+          namespace: databaseNamespace,
+          nonce: 'nonce1'
+        });
+        await otherLockstore.initialize({
+          ...getOptions(),
+          namespace: databaseNamespace,
+          nonce: 'nonce2'
+        });
+
+        await lockstore.acquireLock({ namespace, value, expiresAt: inMilliseconds({ ms: 100 }) });
+
+        await assert.that(async () => {
+          await otherLockstore.renewLock({ namespace, value, expiresAt: inMilliseconds({ ms: 100 }) });
+        }).is.throwingAsync('Failed to renew lock.');
+      });
+    }
   });
 
   suite('releaseLock', () => {
@@ -296,6 +319,29 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
         await lockstore.releaseLock({ namespace, value });
       }).is.not.throwingAsync();
     });
+
+    if (type !== 'InMemory') {
+      test('throws an error if the lock does not belong to the store.', async () => {
+        const otherLockstore = new Lockstore();
+
+        await lockstore.initialize({
+          ...getOptions(),
+          namespace: databaseNamespace,
+          nonce: 'nonce1'
+        });
+        await otherLockstore.initialize({
+          ...getOptions(),
+          namespace: databaseNamespace,
+          nonce: 'nonce2'
+        });
+
+        await lockstore.acquireLock({ namespace, value });
+
+        await assert.that(async () => {
+          await otherLockstore.releaseLock({ namespace, value });
+        }).is.throwingAsync('Failed to release lock.');
+      });
+    }
   });
 };
 /* eslint-enable mocha/max-top-level-suites */

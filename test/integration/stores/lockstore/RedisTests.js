@@ -7,6 +7,7 @@ const getConnectionOptions = require('../../../shared/containers/getConnectionOp
 suite('Redis', () => {
   getTestsFor({
     Lockstore: Redis,
+    type: 'Redis',
 
     getOptions () {
       const { redis } = getConnectionOptions();

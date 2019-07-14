@@ -7,6 +7,7 @@ const getConnectionOptions = require('../../../shared/containers/getConnectionOp
 suite('MariaDb', () => {
   getTestsFor({
     Lockstore: MariaDb,
+    type: 'MariaDb',
 
     getOptions () {
       const { mariaDb } = getConnectionOptions();

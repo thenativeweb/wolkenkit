@@ -7,6 +7,7 @@ const getConnectionOptions = require('../../../shared/containers/getConnectionOp
 suite('MySql', () => {
   getTestsFor({
     Lockstore: MySql,
+    type: 'MySql',
 
     getOptions () {
       const { mySql } = getConnectionOptions();

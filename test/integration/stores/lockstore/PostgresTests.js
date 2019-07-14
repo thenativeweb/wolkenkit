@@ -7,6 +7,7 @@ const getConnectionOptions = require('../../../shared/containers/getConnectionOp
 suite('Postgres', () => {
   getTestsFor({
     Lockstore: Postgres,
+    type: 'Postgres',
 
     getOptions () {
       const { postgres } = getConnectionOptions();

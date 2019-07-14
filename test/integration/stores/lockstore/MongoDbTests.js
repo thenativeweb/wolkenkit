@@ -7,6 +7,7 @@ const getConnectionOptions = require('../../../shared/containers/getConnectionOp
 suite('MongoDb', () => {
   getTestsFor({
     Lockstore: MongoDb,
+    type: 'MongoDb',
 
     getOptions () {
       const { mongoDb } = getConnectionOptions();
