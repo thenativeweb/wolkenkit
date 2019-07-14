@@ -24,7 +24,16 @@ class Lockstore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  async initialize ({ hostname, port, username, password, database, namespace, maxLockSize }) {
+  async initialize ({
+    hostname,
+    port,
+    username,
+    password,
+    database,
+    namespace,
+    nonce = null,
+    maxLockSize = 968
+  }) {
     if (!hostname) {
       throw new Error('Hostname is missing.');
     }
@@ -40,13 +49,11 @@ class Lockstore {
     if (!database) {
       throw new Error('Database is missing.');
     }
-    if (!maxLockSize) {
-      throw new Error('Max lock size is missing.');
-    }
     if (!namespace) {
       throw new Error('Namespace is missing.');
     }
 
+    this.nonce = nonce;
     this.maxLockSize = maxLockSize;
     this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
@@ -119,6 +126,7 @@ class Lockstore {
 
     const $set = {
       ...query,
+      nonce: this.nonce,
       expiresAt: new Date(expiresAt)
     };
 
@@ -178,12 +186,18 @@ class Lockstore {
       namespace,
       value: sortedSerializedValue
     };
-    const entry = await this.collections.locks.findOne(query);
+    const entry = await this.collections.locks.findOne(query, {
+      projection: {
+        _id: 0,
+        expiresAt: 1,
+        nonce: 1
+      }
+    });
 
     if (!entry) {
       throw new Error('Failed to renew lock.');
     }
-    if (entry.expiresAt.getTime() < Date.now()) {
+    if (entry.expiresAt.getTime() < Date.now() || this.nonce !== entry.nonce) {
       throw new Error('Failed to renew lock.');
     }
 
@@ -204,12 +218,31 @@ class Lockstore {
       throw new Error('Lock value is too large.');
     }
 
-    const query = {
+    const queryGet = {
+      namespace,
+      value: sortedSerializedValue
+    };
+    const entry = await this.collections.locks.findOne(queryGet, {
+      projection: {
+        _id: 0,
+        expiresAt: 1,
+        nonce: 1
+      }
+    });
+
+    if (!entry) {
+      return;
+    }
+    if (this.nonce !== entry.nonce) {
+      throw new Error('Failed to release lock.');
+    }
+
+    const queryRemove = {
       namespace,
       value: sortedSerializedValue
     };
 
-    await this.collections.locks.deleteOne(query);
+    await this.collections.locks.deleteOne(queryRemove);
   }
 
   async destroy () {
