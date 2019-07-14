@@ -25,7 +25,16 @@ class Lockstore {
     return database;
   }
 
-  async initialize ({ hostname, port, username, password, database, namespace, maxLockSize }) {
+  async initialize ({
+    hostname,
+    port,
+    username,
+    password,
+    database,
+    namespace,
+    nonce = null,
+    maxLockSize = 968
+  }) {
     if (!hostname) {
       throw new Error('Hostname is missing.');
     }
@@ -41,13 +50,11 @@ class Lockstore {
     if (!database) {
       throw new Error('Database is missing.');
     }
-    if (!maxLockSize) {
-      throw new Error('Max lock size is missing.');
-    }
     if (!namespace) {
       throw new Error('Namespace is missing.');
     }
 
+    this.nonce = nonce;
     this.maxLockSize = maxLockSize;
     this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
@@ -75,6 +82,7 @@ class Lockstore {
         namespace VARCHAR(64) NOT NULL,
         value VARCHAR(${this.maxLockSize}) NOT NULL, 
         expiresAt DATETIME(3) NOT NULL,
+        nonce VARCHAR(64),
 
         PRIMARY KEY(namespace, value)
       );
@@ -128,17 +136,18 @@ class Lockstore {
 
       if (newEntry) {
         query = `
-        INSERT INTO ${this.namespace}_locks (namespace, value, expiresAt) 
-        VALUES (?, ?, ?);`;
+        INSERT INTO ${this.namespace}_locks (expiresAt, nonce, namespace, value) 
+        VALUES (?, ?, ?, ?);`;
       } else {
         query = `
         UPDATE ${this.namespace}_locks 
-           SET expiresAt = ?
+           SET expiresAt = ?,
+               nonce = ?
          WHERE namespace = ?
            AND value = ?;`;
       }
 
-      await connection.query(query, [ namespace, sortedSerializedValue, new Date(expiresAt) ]);
+      await connection.query(query, [ new Date(expiresAt), this.nonce, namespace, sortedSerializedValue ]);
 
       try {
         await onAcquired();
@@ -211,7 +220,7 @@ class Lockstore {
 
     try {
       const [ rows ] = await connection.query(`
-        SELECT expiresAt
+        SELECT expiresAt, nonce
           FROM ${this.namespace}_locks
          WHERE namespace = ?
            AND value = ?;`,
@@ -220,9 +229,10 @@ class Lockstore {
       if (rows.length === 0) {
         throw new Error('Failed to renew lock.');
       }
+
       const [ entry ] = rows;
 
-      if (entry.expiresAt.getTime() < Date.now()) {
+      if (entry.expiresAt.getTime() < Date.now() || this.nonce !== entry.nonce) {
         throw new Error('Failed to renew lock.');
       }
 
@@ -254,6 +264,23 @@ class Lockstore {
     const connection = await this.getDatabase();
 
     try {
+      const [ rows ] = await connection.query(`
+        SELECT expiresAt, nonce
+          FROM ${this.namespace}_locks
+         WHERE namespace = ?
+           AND value = ?;`,
+      [ namespace, sortedSerializedValue ]);
+
+      if (rows.length === 0) {
+        return;
+      }
+
+      const [ entry ] = rows;
+
+      if (Date.now() < entry.expiresAt.getTime() && this.nonce !== entry.nonce) {
+        throw new Error('Failed to release lock.');
+      }
+
       await connection.query(`
         DELETE FROM ${this.namespace}_locks
          WHERE namespace = ?
