@@ -233,7 +233,7 @@ class Lockstore {
     if (!entry) {
       return;
     }
-    if (this.nonce !== entry.nonce) {
+    if (Date.now() < entry.expiresAt.getTime() && this.nonce !== entry.nonce) {
       throw new Error('Failed to release lock.');
     }
 

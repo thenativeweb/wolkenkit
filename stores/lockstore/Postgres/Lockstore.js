@@ -328,7 +328,7 @@ class Lockstore {
 
       const [ entry ] = result.rows;
 
-      if (this.nonce !== entry.nonce) {
+      if (Date.now() < entry.expiresAt.getTime() && this.nonce !== entry.nonce) {
         throw new Error('Failed to release lock.');
       }
 
