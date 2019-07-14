@@ -35,7 +35,8 @@ class Lockstore {
     database,
     encryptConnection = false,
     namespace,
-    maxLockSize
+    nonce = null,
+    maxLockSize = 828
   }) {
     if (!hostname) {
       throw new Error('Hostname is missing.');
@@ -52,13 +53,11 @@ class Lockstore {
     if (!database) {
       throw new Error('Database is missing.');
     }
-    if (!maxLockSize) {
-      throw new Error('Max lock size is missing.');
-    }
     if (!namespace) {
       throw new Error('Namespace is missing.');
     }
 
+    this.nonce = nonce;
     this.maxLockSize = maxLockSize;
     this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
@@ -90,6 +89,7 @@ class Lockstore {
             [namespace] NVARCHAR(64) NOT NULL,
             [value] VARCHAR(${this.maxLockSize}) NOT NULL,
             [expiresAt] DATETIME2(3) NOT NULL,
+            [nonce] NVARCHAR(64),
 
             CONSTRAINT [${this.namespace}_locks_pk] PRIMARY KEY([namespace], [value])
           );
@@ -187,13 +187,14 @@ class Lockstore {
 
       if (newEntry) {
         query = `
-          INSERT INTO [${this.namespace}_locks] ([namespace], [value], [expiresAt])
-          VALUES (@namespace, @value, @expiresAt)
+          INSERT INTO [${this.namespace}_locks] ([namespace], [value], [expiresAt], [nonce])
+          VALUES (@namespace, @value, @expiresAt, @nonce)
           ;`;
       } else {
         query = `
         UPDATE [${this.namespace}_locks]
-           SET [expiresAt] = @expiresAt
+           SET [expiresAt] = @expiresAt,
+               [nonce] = @nonce
          WHERE [namespace] = @namespace
            AND [value] = @value
          ;`;
@@ -211,6 +212,7 @@ class Lockstore {
         request.addParameter('namespace', TYPES.NVarChar, namespace);
         request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
         request.addParameter('expiresAt', TYPES.DateTime2, new Date(expiresAt), { precision: 3 });
+        request.addParameter('nonce', TYPES.NVarChar, this.nonce);
 
         database.execSql(request);
       });
@@ -309,7 +311,7 @@ class Lockstore {
         let lockResult;
 
         const request = new Request(`
-          SELECT TOP(1) [expiresAt]
+          SELECT TOP(1) [expiresAt], [nonce]
             FROM ${this.namespace}_locks
             WHERE [namespace] = @namespace
               AND [value] = @value
@@ -327,7 +329,8 @@ class Lockstore {
 
         request.once('row', columns => {
           lockResult = {
-            expiresAt: columns[0].value
+            expiresAt: columns[0].value,
+            nonce: columns[1].value
           };
         });
 
@@ -337,7 +340,7 @@ class Lockstore {
       if (!result) {
         throw new Error('Failed to renew lock.');
       }
-      if (result.expiresAt.getTime() < Date.now()) {
+      if (result.expiresAt.getTime() < Date.now() || this.nonce !== result.nonce) {
         throw new Error('Failed to renew lock.');
       }
 
@@ -383,6 +386,44 @@ class Lockstore {
     const database = await this.getDatabase();
 
     try {
+      const result = await new Promise((resolve, reject) => {
+        let lockResult;
+
+        const request = new Request(`
+          SELECT TOP(1) [expiresAt], [nonce]
+            FROM ${this.namespace}_locks
+            WHERE [namespace] = @namespace
+              AND [value] = @value
+          ;
+        `, err => {
+          if (err) {
+            return reject(err);
+          }
+
+          resolve(lockResult);
+        });
+
+        request.addParameter('namespace', TYPES.NVarChar, namespace);
+        request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
+
+        request.once('row', columns => {
+          lockResult = {
+            expiresAt: columns[0].value,
+            nonce: columns[1].value
+          };
+        });
+
+        database.execSql(request);
+      });
+
+      if (!result) {
+        return;
+      }
+
+      if (this.nonce !== result.nonce) {
+        throw new Error('Failed to release lock.');
+      }
+
       await new Promise((resolve, reject) => {
         const request = new Request(`
           DELETE FROM [${this.namespace}_locks]
