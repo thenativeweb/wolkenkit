@@ -61,7 +61,7 @@ class Lockstore {
     password,
     database,
     namespace,
-    nonce = null,
+    nonce = 'null',
     requireValidExpiration = true,
     maxLockSize = 2048
   }) {
@@ -82,7 +82,7 @@ class Lockstore {
     }
 
     this.maxLockSize = maxLockSize;
-    this.nonce = nonce || 'null';
+    this.nonce = nonce;
     this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
     this.requireValidExpiration = requireValidExpiration;
 
