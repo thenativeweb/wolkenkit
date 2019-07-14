@@ -252,13 +252,13 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
 
       await lockstore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
-      await sleep({ ms: 35 });
+      await sleep({ ms: 25 });
 
       // Tests tend to be flaky on Sql engines. 100ms
-      await lockstore.renewLock({ namespace, value, expiresAt: inMilliseconds({ ms: 100 }) });
-      await sleep({ ms: 35 });
+      await lockstore.renewLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
+      await sleep({ ms: 25 });
 
-      // If renewing didn't work, now 70ms have passed, and the original
+      // If renewing didn't work, now 50ms + exchange have passed, and the original
       // expiration was set to 50ms. If we can not acquire the lock, it is still
       // active and renewing did work. In other words: If you change the times
       // above, make sure to keep the logic.
