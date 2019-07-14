@@ -314,7 +314,7 @@ class Lockstore {
       const result = await connection.query({
         name: 'get lock',
         text: `
-        SELECT "nonce"
+        SELECT "expiresAt", "nonce"
           FROM "${this.namespace}_locks"
          WHERE "namespace" = $1
            AND "value" = $2
