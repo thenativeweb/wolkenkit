@@ -64,21 +64,21 @@ const getTestsFor = function ({ Commandstore, getOptions }) {
   suite('initialize', () => {
     test('does not throw an error if the database is reachable.', async () => {
       await assert.that(async () => {
-        await commandstore.initialize({ ...await getOptions({ namespace }) });
+        await commandstore.initialize({ ...getOptions(), namespace });
       }).is.not.throwingAsync();
     });
 
     test('does not throw an error if tables, indexes & co. do already exist.', async () => {
       await assert.that(async () => {
-        await commandstore.initialize({ ...await getOptions({ namespace }) });
-        await commandstore.initialize({ ...await getOptions({ namespace }) });
+        await commandstore.initialize({ ...getOptions(), namespace });
+        await commandstore.initialize({ ...getOptions(), namespace });
       }).is.not.throwingAsync();
     });
   });
 
   suite('saveCommand', () => {
     test('saves a command.', async () => {
-      await commandstore.initialize({ ...await getOptions({ namespace }) });
+      await commandstore.initialize({ ...getOptions(), namespace });
 
       await commandstore.saveCommand({ command });
     });
@@ -86,7 +86,7 @@ const getTestsFor = function ({ Commandstore, getOptions }) {
 
   suite('getUnhandledCommand', () => {
     test('throws an error if no command was saved.', async () => {
-      await commandstore.initialize({ ...await getOptions({ namespace }) });
+      await commandstore.initialize({ ...getOptions(), namespace });
 
       await assert.that(async () => {
         await commandstore.getUnhandledCommand();
@@ -94,7 +94,7 @@ const getTestsFor = function ({ Commandstore, getOptions }) {
     });
 
     test('returns an unhandled command.', async () => {
-      await commandstore.initialize({ ...await getOptions({ namespace }) });
+      await commandstore.initialize({ ...getOptions(), namespace });
       await commandstore.saveCommand({ command });
 
       const unhandledCommand = await commandstore.getUnhandledCommand();
@@ -103,7 +103,7 @@ const getTestsFor = function ({ Commandstore, getOptions }) {
     });
 
     test('throws an error if all saved commands are already being handled.', async () => {
-      await commandstore.initialize({ ...await getOptions({ namespace }) });
+      await commandstore.initialize({ ...getOptions(), namespace });
       await commandstore.saveCommand({ command });
 
       await commandstore.getUnhandledCommand();
@@ -114,7 +114,7 @@ const getTestsFor = function ({ Commandstore, getOptions }) {
     });
 
     test('returns an unhandled command for another aggregate, if available.', async () => {
-      await commandstore.initialize({ ...await getOptions({ namespace }) });
+      await commandstore.initialize({ ...getOptions(), namespace });
       await commandstore.saveCommand({ command });
       await commandstore.saveCommand({ command: commandForOtherAggregate });
 
@@ -126,7 +126,7 @@ const getTestsFor = function ({ Commandstore, getOptions }) {
     });
 
     test('locks aggregates with expiration.', async () => {
-      await commandstore.initialize({ ...await getOptions({ namespace }) });
+      await commandstore.initialize({ ...getOptions(), namespace });
       await commandstore.saveCommand({ command });
 
       await commandstore.getUnhandledCommand();
@@ -141,7 +141,7 @@ const getTestsFor = function ({ Commandstore, getOptions }) {
 
   suite('progressCommand', () => {
     test('throws an error if an unknown command id is given.', async () => {
-      await commandstore.initialize({ ...await getOptions({ namespace }) });
+      await commandstore.initialize({ ...getOptions(), namespace });
 
       await assert.that(async () => {
         await commandstore.progressCommand({ commandId: uuid() });
@@ -149,7 +149,7 @@ const getTestsFor = function ({ Commandstore, getOptions }) {
     });
 
     test('throws an error if the given command is not locked.', async () => {
-      await commandstore.initialize({ ...await getOptions({ namespace }) });
+      await commandstore.initialize({ ...getOptions(), namespace });
       await commandstore.saveCommand({ command });
 
       await assert.that(async () => {
@@ -158,7 +158,7 @@ const getTestsFor = function ({ Commandstore, getOptions }) {
     });
 
     test('renews the lock for the given command.', async () => {
-      await commandstore.initialize({ ...await getOptions({ namespace }) });
+      await commandstore.initialize({ ...getOptions(), namespace });
       await commandstore.saveCommand({ command });
 
       await commandstore.getUnhandledCommand();
@@ -180,7 +180,7 @@ const getTestsFor = function ({ Commandstore, getOptions }) {
 
   suite('removeCommand', () => {
     test('throws an error if an unknown command id is given.', async () => {
-      await commandstore.initialize({ ...await getOptions({ namespace }) });
+      await commandstore.initialize({ ...getOptions(), namespace });
 
       await assert.that(async () => {
         await commandstore.removeCommand({ commandId: uuid() });
@@ -188,7 +188,7 @@ const getTestsFor = function ({ Commandstore, getOptions }) {
     });
 
     test('removes the command with the given id.', async () => {
-      await commandstore.initialize({ ...await getOptions({ namespace }) });
+      await commandstore.initialize({ ...getOptions(), namespace });
       await commandstore.saveCommand({ command });
 
       await assert.that(async () => {
@@ -197,7 +197,7 @@ const getTestsFor = function ({ Commandstore, getOptions }) {
     });
 
     test('releases the lock for the aggregate of the command.', async () => {
-      await commandstore.initialize({ ...await getOptions({ namespace }) });
+      await commandstore.initialize({ ...getOptions(), namespace });
       await commandstore.saveCommand({ command });
       await commandstore.saveCommand({ command: commandForSameAggregate });
 
