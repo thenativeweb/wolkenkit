@@ -53,10 +53,8 @@ const getConnectionOptions = function () {
     redis: {
       hostname: 'localhost',
       port: 6379,
-      username: 'wolkenkit',
       password: 'wolkenkit',
-      database: '0',
-      requireValidExpiration: false
+      database: '0'
     },
     sqlServer: {
       hostname: 'localhost',
