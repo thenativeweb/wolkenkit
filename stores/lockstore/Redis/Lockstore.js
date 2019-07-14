@@ -58,12 +58,12 @@ class Lockstore {
   async initialize ({
     hostname,
     port,
-    username,
     password,
     database,
     namespace,
+    nonce = null,
     requireValidExpiration = true,
-    maxLockSize
+    maxLockSize = 2048
   }) {
     if (!hostname) {
       throw new Error('Hostname is missing.');
@@ -71,24 +71,18 @@ class Lockstore {
     if (!port) {
       throw new Error('Port is missing.');
     }
-    if (!username) {
-      throw new Error('Username is missing.');
-    }
     if (!password) {
       throw new Error('Password is missing.');
     }
     if (!database) {
       throw new Error('Database is missing.');
     }
-    if (!maxLockSize) {
-      throw new Error('Max lock size is missing.');
-    }
     if (!namespace) {
       throw new Error('Namespace is missing.');
     }
 
     this.maxLockSize = maxLockSize;
-    this.username = username;
+    this.nonce = nonce || 'null';
     this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
     this.requireValidExpiration = requireValidExpiration;
 
@@ -135,7 +129,7 @@ class Lockstore {
       result = 'OK';
     } else {
       result = await new Promise((resolve, reject) => {
-        this.client.set(key, this.username, 'NX', 'PX', expiration, (err, reply) => {
+        this.client.set(key, this.nonce, 'NX', 'PX', expiration, (err, reply) => {
           if (err) {
             return reject(err);
           }
@@ -215,7 +209,7 @@ class Lockstore {
         });
       });
 
-      if (existingLock === this.username) {
+      if (existingLock === this.nonce) {
         result = await new Promise((resolve, reject) => {
           this.client.pexpire(key, expiration, (err, reply) => {
             if (err) {
@@ -257,7 +251,7 @@ class Lockstore {
 
     if (!existingLock) {
       result = 'OK';
-    } else if (existingLock === this.username) {
+    } else if (existingLock === this.nonce) {
       result = await new Promise((resolve, reject) => {
         this.client.del(key, err => {
           if (err) {

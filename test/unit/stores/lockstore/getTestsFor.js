@@ -20,25 +20,26 @@ const getTestsFor = function ({ Lockstore, type }) {
     test('is a function.', async () => {
       assert.that(lockstore.initialize).is.ofType('function');
     });
-    let options = { maxLockSize: 2048 };
 
     if (type !== 'InMemory') {
-      options = {
-        ...options,
+      const options = {
         hostname: 'localhost',
         port: 3000,
-        username: 'wolkenkit',
         password: 'wolkenkit',
         database: 'wolkenkit'
       };
-    }
 
-    getOptionTests({
-      options,
-      async run (runtimeOptions) {
-        await lockstore.initialize(runtimeOptions);
+      if (type !== 'Redis') {
+        options.username = 'wolkenkit';
       }
-    });
+
+      getOptionTests({
+        options,
+        async run (testOptions) {
+          await lockstore.initialize(testOptions);
+        }
+      });
+    }
   });
 
   suite('acquireLock', () => {
