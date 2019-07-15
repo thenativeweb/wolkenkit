@@ -9,7 +9,7 @@ const sortObjectKeys = require('../sortObjectKeys');
 const maxDate = 8640000000000000;
 
 class Lockstore {
-  async initialize ({ maxLockSize = 2048 } = { maxLockSize: 2048 }) {
+  async initialize ({ maxLockSize = 2048 } = {}) {
     this.maxLockSize = maxLockSize;
     this.database = {
       locks: []
