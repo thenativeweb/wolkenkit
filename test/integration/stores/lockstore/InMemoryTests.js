@@ -6,9 +6,10 @@ const getTestsFor = require('./getTestsFor'),
 suite('InMemory', () => {
   getTestsFor({
     Lockstore: InMemory,
+    type: 'InMemory',
 
     getOptions () {
-      return {};
+      return { maxLockSize: 2048 };
     }
   });
 });

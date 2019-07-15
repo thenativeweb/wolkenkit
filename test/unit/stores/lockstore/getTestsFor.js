@@ -22,16 +22,21 @@ const getTestsFor = function ({ Lockstore, type }) {
     });
 
     if (type !== 'InMemory') {
+      const options = {
+        hostname: 'localhost',
+        port: 3000,
+        password: 'wolkenkit',
+        database: 'wolkenkit'
+      };
+
+      if (type !== 'Redis') {
+        options.username = 'wolkenkit';
+      }
+
       getOptionTests({
-        options: {
-          hostname: 'localhost',
-          port: 3000,
-          username: 'wolkenkit',
-          password: 'wolkenkit',
-          database: 'wolkenkit'
-        },
-        async run (options) {
-          await lockstore.initialize(options);
+        options,
+        async run (testOptions) {
+          await lockstore.initialize(testOptions);
         }
       });
     }

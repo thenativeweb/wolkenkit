@@ -149,6 +149,7 @@
     "processenv": "1.1.0",
     "pump": "3.0.0",
     "recursive-readdir": "2.2.2",
+    "redis": "2.8.0",
     "require-dir": "1.2.0",
     "semver": "6.1.1",
     "sha1": "1.1.1",
