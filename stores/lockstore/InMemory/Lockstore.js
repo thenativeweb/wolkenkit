@@ -2,18 +2,21 @@
 
 const noop = require('lodash/noop');
 
+const sortObjectKeys = require('../sortObjectKeys');
+
 // This value represents the maximum possible date in JavaScript. For details
 // see: http://ecma-international.org/ecma-262/5.1/#sec-15.9.1.1
 const maxDate = 8640000000000000;
 
 class Lockstore {
-  async initialize () {
+  async initialize ({ maxLockSize = 2048 } = {}) {
+    this.maxLockSize = maxLockSize;
     this.database = {
       locks: []
     };
   }
 
-  static getLockName ({ namespace, value }) {
+  getLockName ({ namespace, value }) {
     if (!namespace) {
       throw new Error('Namespace is missing.');
     }
@@ -21,7 +24,13 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const name = `${namespace}#${JSON.stringify(value)}`;
+    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+
+    if (sortedSerializedValue.length > this.maxLockSize) {
+      throw new Error('Lock value is too large.');
+    }
+
+    const name = `${namespace}#${sortedSerializedValue}`;
 
     return name;
   }
@@ -39,7 +48,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const name = Lockstore.getLockName({ namespace, value });
+    const name = this.getLockName({ namespace, value });
 
     const isLocked = this.database.locks.some(
       lock => lock.name === name && Date.now() < lock.expiresAt
@@ -56,7 +65,7 @@ class Lockstore {
     try {
       await onAcquired();
     } catch (ex) {
-      this.releaseLock({ namespace, value });
+      await this.releaseLock({ namespace, value });
 
       throw ex;
     }
@@ -70,7 +79,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const name = Lockstore.getLockName({ namespace, value });
+    const name = this.getLockName({ namespace, value });
 
     const isLocked = this.database.locks.some(
       lock => lock.name === name && Date.now() < lock.expiresAt
@@ -90,7 +99,7 @@ class Lockstore {
       throw new Error('Expires at is missing.');
     }
 
-    const name = Lockstore.getLockName({ namespace, value });
+    const name = this.getLockName({ namespace, value });
     const existingLock = this.database.locks.find(
       lock => lock.name === name && Date.now() < lock.expiresAt
     );
@@ -110,7 +119,7 @@ class Lockstore {
       throw new Error('Value is missing.');
     }
 
-    const name = Lockstore.getLockName({ namespace, value });
+    const name = this.getLockName({ namespace, value });
     const index = this.database.locks.findIndex(
       lock => lock.name === name
     );

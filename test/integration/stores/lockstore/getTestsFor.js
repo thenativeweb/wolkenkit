@@ -5,16 +5,20 @@ const assert = require('assertthat'),
 
 const sleep = require('../../../../common/utils/sleep');
 
+const inMilliseconds = function ({ ms }) {
+  return Date.now() + ms;
+};
+
 const inFiftyMilliseconds = function () {
-  return Date.now() + 50;
+  return inMilliseconds({ ms: 50 });
 };
 
 const oneSecondAgo = function () {
-  return Date.now() - 1000;
+  return inMilliseconds({ ms: -1000 });
 };
 
 /* eslint-disable mocha/max-top-level-suites */
-const getTestsFor = function ({ Lockstore, getOptions }) {
+const getTestsFor = function ({ Lockstore, getOptions, type }) {
   let databaseNamespace,
       lockstore,
       namespace,
@@ -24,7 +28,7 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
     lockstore = new Lockstore();
     databaseNamespace = uuid();
     namespace = uuid();
-    value = { foo: 'bar' };
+    value = { foo: 'bar', baz: 'bam' };
   });
 
   teardown(async function () {
@@ -49,10 +53,33 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
   });
 
   suite('acquireLock', () => {
+    test('throws an error if the value is too large.', async () => {
+      const options = { ...getOptions() };
+      const exceededValue = 'a'.repeat(options.maxLockSize);
+
+      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+
+      await assert.that(async () => {
+        await lockstore.acquireLock({ namespace, value: exceededValue, expiresAt: inFiftyMilliseconds() });
+      }).is.throwingAsync('Lock value is too large.');
+    });
+
     test('acquires a lock.', async () => {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
 
       await lockstore.acquireLock({ namespace, value });
+    });
+
+    test('acquires a lock with the maximum accepted size.', async () => {
+      const options = { ...getOptions() };
+
+      // A JSON serialized string will embed opening and closing quotes
+      // Those two characters are part of the lock name.
+      const maxValue = 'a'.repeat(options.maxLockSize - 2);
+
+      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+
+      await lockstore.acquireLock({ namespace, value: maxValue, expiresAt: inFiftyMilliseconds() });
     });
 
     test('supports locks with different values.', async () => {
@@ -79,6 +106,19 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
 
       await assert.that(async () => {
         await lockstore.acquireLock({ namespace, value });
+      }).is.throwingAsync('Failed to acquire lock.');
+    });
+
+    test('throws an error also if object keys have different order.', async () => {
+      const nestedValue = { ...value, nested: { ...value }};
+      const sortedValue = { baz: 'bam', foo: 'bar' };
+      const nestedSortedValue = { ...sortedValue, nested: { ...sortedValue }};
+
+      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.acquireLock({ namespace, value: nestedValue });
+
+      await assert.that(async () => {
+        await lockstore.acquireLock({ namespace, value: nestedSortedValue });
       }).is.throwingAsync('Failed to acquire lock.');
     });
 
@@ -137,6 +177,17 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
   });
 
   suite('isLocked', () => {
+    test('throws an error if the value is too large.', async () => {
+      const options = { ...getOptions() };
+      const exceededValue = 'a'.repeat(options.maxLockSize);
+
+      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+
+      await assert.that(async () => {
+        await lockstore.isLocked({ namespace, value: exceededValue });
+      }).is.throwingAsync('Lock value is too large.');
+    });
+
     test('returns false if the given lock does not exist.', async () => {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
 
@@ -156,7 +207,7 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
 
     test('returns false if the given lock exists, but has expired.', async () => {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
-      await lockstore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds });
+      await lockstore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
 
       await sleep({ ms: 100 });
 
@@ -167,6 +218,17 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
   });
 
   suite('renewLock', () => {
+    test('throws an error if the value is too large.', async () => {
+      const options = { ...getOptions() };
+      const exceededValue = 'a'.repeat(options.maxLockSize);
+
+      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+
+      await assert.that(async () => {
+        await lockstore.renewLock({ namespace, value: exceededValue, expiresAt: inFiftyMilliseconds() });
+      }).is.throwingAsync('Lock value is too large.');
+    });
+
     test('throws an error if the given lock does not exist.', async () => {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
 
@@ -190,12 +252,13 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
 
       await lockstore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
-      await sleep({ ms: 35 });
+      await sleep({ ms: 25 });
 
+      // Tests tend to be flaky on Sql engines. 100ms
       await lockstore.renewLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
-      await sleep({ ms: 35 });
+      await sleep({ ms: 25 });
 
-      // If renewing didn't work, now 70ms have passed, and the original
+      // If renewing didn't work, now 50ms + exchange have passed, and the original
       // expiration was set to 50ms. If we can not acquire the lock, it is still
       // active and renewing did work. In other words: If you change the times
       // above, make sure to keep the logic.
@@ -203,9 +266,43 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
         await lockstore.acquireLock({ namespace, value });
       }).is.throwingAsync();
     });
+
+    if (type !== 'InMemory') {
+      test('throws an error if the lock does not belong to the store.', async () => {
+        const otherLockstore = new Lockstore();
+
+        await lockstore.initialize({
+          ...getOptions(),
+          namespace: databaseNamespace,
+          nonce: 'nonce1'
+        });
+        await otherLockstore.initialize({
+          ...getOptions(),
+          namespace: databaseNamespace,
+          nonce: 'nonce2'
+        });
+
+        await lockstore.acquireLock({ namespace, value, expiresAt: inMilliseconds({ ms: 100 }) });
+
+        await assert.that(async () => {
+          await otherLockstore.renewLock({ namespace, value, expiresAt: inMilliseconds({ ms: 100 }) });
+        }).is.throwingAsync('Failed to renew lock.');
+      });
+    }
   });
 
   suite('releaseLock', () => {
+    test('throws an error if the value is too large.', async () => {
+      const options = { ...getOptions() };
+      const exceededValue = 'a'.repeat(options.maxLockSize);
+
+      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+
+      await assert.that(async () => {
+        await lockstore.releaseLock({ namespace, value: exceededValue });
+      }).is.throwingAsync('Lock value is too large.');
+    });
+
     test('release the lock.', async () => {
       await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
 
@@ -222,6 +319,29 @@ const getTestsFor = function ({ Lockstore, getOptions }) {
         await lockstore.releaseLock({ namespace, value });
       }).is.not.throwingAsync();
     });
+
+    if (type !== 'InMemory') {
+      test('throws an error if the lock does not belong to the store.', async () => {
+        const otherLockstore = new Lockstore();
+
+        await lockstore.initialize({
+          ...getOptions(),
+          namespace: databaseNamespace,
+          nonce: 'nonce1'
+        });
+        await otherLockstore.initialize({
+          ...getOptions(),
+          namespace: databaseNamespace,
+          nonce: 'nonce2'
+        });
+
+        await lockstore.acquireLock({ namespace, value });
+
+        await assert.that(async () => {
+          await otherLockstore.releaseLock({ namespace, value });
+        }).is.throwingAsync('Failed to release lock.');
+      });
+    }
   });
 };
 /* eslint-enable mocha/max-top-level-suites */
