@@ -6,7 +6,7 @@ const limitAlphanumeric = require('limit-alphanumeric'),
       { Request, TYPES } = require('tedious'),
       retry = require('async-retry');
 
-const createPool = require('../../utils/SqlServer/createPool'),
+const createPool = require('../../utils/sqlServer/createPool'),
       { EventExternal, EventInternal } = require('../../../common/elements'),
       omitByDeep = require('../omitByDeep');
 

@@ -6,7 +6,7 @@ const limitAlphanumeric = require('limit-alphanumeric'),
       { Request, TYPES } = require('tedious'),
       retry = require('async-retry');
 
-const createPool = require('../../utils/SqlServer/createPool'),
+const createPool = require('../../utils/sqlServer/createPool'),
       sortObjectKeys = require('../sortObjectKeys');
 
 // Max SqlServer datetime2 is 9999-12-31 23:59:59.
