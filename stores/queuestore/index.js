@@ -1,7 +1,3 @@
-'use strict';
+import InMemory from './InMemory';
 
-const InMemory = require('./InMemory');
-
-module.exports = {
-  InMemory
-};
+export default { InMemory };

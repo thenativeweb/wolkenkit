@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "outDir": "build",
+    "resolveJsonModule": true,
+    "rootDir": ".",
+    "strict": true,
+    "target": "es2019"
+  },
+
+  "include": ["./**/*"],
+  "exclude": ["build", "node_modules", "test"]
+}

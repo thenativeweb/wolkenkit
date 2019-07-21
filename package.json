@@ -120,7 +120,7 @@
     "directory-tree": "2.2.3",
     "docker-compare": "0.2.0",
     "dotfile-json": "1.0.3",
-    "eslint": "6.0.1",
+    "eslint": "5.16.0",
     "express": "4.17.1",
     "findsuggestions": "1.0.0",
     "flaschenpost": "2.1.0",
@@ -164,10 +164,15 @@
     "validate-value": "5.0.2"
   },
   "devDependencies": {
+    "@types/lodash": "4.14.136",
+    "@types/node": "12.6.8",
+    "@typescript-eslint/eslint-plugin": "1.12.0",
+    "@typescript-eslint/parser": "1.12.0",
     "array-join-conjunction": "1.0.0",
     "assertthat": "3.1.0",
     "async-wait-until": "1.2.4",
     "dir-compare": "1.7.3",
+    "eslint-config-es": "3.0.0",
     "execa": "2.0.3",
     "get-option-tests": "1.1.1",
     "measure-time": "3.1.1",
@@ -176,14 +181,15 @@
     "p-queue": "6.1.0",
     "record-stdstreams": "1.0.0",
     "retry-ignore-abort": "1.0.1",
-    "roboter": "6.1.0",
     "run-script-os": "1.0.7",
     "runfork": "1.1.0",
     "streamtoarray": "1.1.0",
     "strip-ansi": "5.2.0",
     "supertest": "4.0.2",
     "terminal-img": "1.1.1",
-    "twitter": "1.7.1"
+    "ts-node": "8.3.0",
+    "twitter": "1.7.1",
+    "typescript": "3.5.3"
   },
   "scripts": {
     "build": "run-script-os",

@@ -1,21 +1,19 @@
-'use strict';
-
-const isIp = require('is-ip');
+import isIp from 'is-ip';
 
 const ip = {
-  is (text) {
+  is (text: string): boolean {
     return isIp(text);
   },
 
-  isV4 (text) {
+  isV4 (text: string): boolean {
     return isIp.v4(text);
   },
 
-  isV6 (text) {
+  isV6 (text: string): boolean {
     return isIp.v6(text);
   },
 
-  getFamily (text) {
+  getFamily (text: string): number {
     if (!isIp(text)) {
       throw new Error('Invalid IP address.');
     }
@@ -31,4 +29,4 @@ const ip = {
   }
 };
 
-module.exports = ip;
+export default ip;

@@ -1,6 +1,4 @@
-'use strict';
-
-const defekt = require('defekt');
+import defekt from 'defekt';
 
 const errors = defekt([
   'DispatchFailed',
@@ -10,4 +8,4 @@ const errors = defekt([
   'RequestFailed'
 ]);
 
-module.exports = errors;
+export default errors;
