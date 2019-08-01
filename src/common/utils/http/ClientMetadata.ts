@@ -1,16 +1,16 @@
 class ClientMetadata {
   public token: string;
 
-  public user: { id: string; claims: { [key: string]: any } };
+  public user: { id: string; claims: Dictionary<string, any> };
 
   public ip: string;
 
   public constructor ({ req }: {
     req: {
       token: string;
-      user: { id: string; claims: { [key: string]: any } };
+      user: { id: string; claims: Dictionary<string, any> };
       connection: { remoteAddress: string };
-      headers: { [key: string]: string };
+      headers: Dictionary<string, string>;
     };
   }) {
     this.token = req.token;

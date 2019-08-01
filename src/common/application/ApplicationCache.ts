@@ -1,9 +1,7 @@
 import Application from './Application';
 
 class ApplicationCache {
-  private applications: {
-    [key: string]: Application;
-  };
+  private applications: Dictionary<string, Application>;
 
   public constructor () {
     this.applications = {};
@@ -19,7 +17,13 @@ class ApplicationCache {
   public get ({ directory }: {
     directory: string;
   }): Application {
-    return this.applications[directory];
+    const application = this.applications[directory];
+
+    if (!application) {
+      throw new Error('Application not found.');
+    }
+
+    return application;
   }
 }
 

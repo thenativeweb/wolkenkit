@@ -99,8 +99,8 @@
   "bin": {
     "wolkenkit": "bin/wolkenkit.js"
   },
-  "engines" : {
-    "node" : "^12.7.0"
+  "engines": {
+    "node": "^12.7.0"
   },
   "dependencies": {
     "JSONStream": "1.3.5",
@@ -119,7 +119,6 @@
     "content-type": "1.0.4",
     "cors": "2.8.5",
     "deep-hash": "1.0.1",
-    "defekt": "2.0.1",
     "directory-tree": "2.2.3",
     "docker-compare": "0.2.0",
     "dotfile-json": "1.0.3",

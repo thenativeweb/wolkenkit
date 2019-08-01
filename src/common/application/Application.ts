@@ -8,7 +8,7 @@ import validateEntries from './validateEntries';
 const { stripIndent } = commonTags;
 
 class Application {
-  private static cache: ApplicationCache = new ApplicationCache();
+  private static cache = new ApplicationCache();
 
   private constructor ({ entries }) {
     if (!entries) {

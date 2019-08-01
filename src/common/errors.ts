@@ -1,11 +1,11 @@
-import defekt from 'defekt';
+import defekt from '@offspring/defekt';
 
-const errors = defekt([
-  'DispatchFailed',
-  'FileAlreadyExists',
-  'FileNotFound',
-  'ForwardFailed',
-  'RequestFailed'
-]);
+const errors = defekt({
+  DispatchFailed: { code: 'EFOO' },
+  FileAlreadyExists: {},
+  FileNotFound: {},
+  ForwardFailed: {},
+  RequestFailed: {}
+});
 
 export default errors;
