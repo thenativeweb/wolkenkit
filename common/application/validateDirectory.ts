@@ -1,20 +1,20 @@
-'use strict';
+import directoryTree from 'directory-tree';
+import fs from 'fs';
+import path from 'path';
+import Value from 'validate-value';
 
-const fs = require('fs'),
-      path = require('path'),
-      { promisify } = require('util');
+const { access } = fs.promises;
 
-const access = promisify(fs.access);
-
-const directoryTree = require('directory-tree'),
-      Value = require('validate-value');
-
-const transformTree = function (nodes) {
+const transformTree = function (nodes: directoryTree.DirectoryTree[]): {
+  [key: string]: {};
+} {
   if (!nodes) {
     throw new Error('Nodes are missing.');
   }
 
-  const result = {};
+  const result: {
+    [key: string]: {};
+  } = {};
 
   for (const node of nodes) {
     const name = path.basename(node.name, '.js');
@@ -29,11 +29,9 @@ const transformTree = function (nodes) {
   return result;
 };
 
-const validateDirectory = async function ({ directory }) {
-  if (!directory) {
-    throw new Error('Directory is missing.');
-  }
-
+const validateDirectory = async function ({ directory }: {
+  directory: string;
+}): Promise<void> {
   const serverDirectory = path.join(directory, 'server');
 
   await access(serverDirectory, fs.constants.R_OK);
@@ -111,4 +109,4 @@ const validateDirectory = async function ({ directory }) {
   value.validate(transformedTree, { valueName: '.', separator: '/' });
 };
 
-module.exports = validateDirectory;
+export default validateDirectory;

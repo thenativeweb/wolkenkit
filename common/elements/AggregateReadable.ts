@@ -1,9 +1,13 @@
-'use strict';
+import _ from 'lodash';
 
-const cloneDeep = require('lodash/cloneDeep');
+const { cloneDeep } = _;
 
 class AggregateReadable {
-  constructor ({ application, context, aggregate }) {
+  private instance;
+
+  private api;
+
+  public constructor ({ application, context, aggregate }) {
     if (!application) {
       throw new Error('Application is missing.');
     }
@@ -36,7 +40,7 @@ class AggregateReadable {
     this.instance.id = aggregate.id;
     this.instance.revision = 0;
     this.instance.uncommittedEvents = [];
-    this.instance.exists = () =>
+    this.instance.exists = (): boolean =>
       this.instance.revision > 0;
 
     this.api = {};
@@ -56,7 +60,7 @@ class AggregateReadable {
     };
   }
 
-  applySnapshot ({ snapshot }) {
+  public applySnapshot ({ snapshot }): void {
     if (!snapshot) {
       throw new Error('Snapshot is missing.');
     }
@@ -66,7 +70,7 @@ class AggregateReadable {
     this.api.forEvents.state = snapshot.state;
   }
 
-  async applyEventStream ({ application, eventStream }) {
+  public async applyEventStream ({ application, eventStream }): Promise<void> {
     if (!application) {
       throw new Error('Application is missing.');
     }
@@ -100,4 +104,4 @@ class AggregateReadable {
   }
 }
 
-module.exports = AggregateReadable;
+export default AggregateReadable;

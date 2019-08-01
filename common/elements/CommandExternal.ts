@@ -1,7 +1,5 @@
-'use strict';
-
-const uuid = require('uuidv4'),
-      Value = require('validate-value');
+import uuid from 'uuidv4';
+import Value from 'validate-value';
 
 const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
 
@@ -49,51 +47,37 @@ const value = new Value({
 });
 
 class CommandExternal {
-  constructor ({
+  public context: { name: string };
+
+  public aggregate: { name: string; id: string }
+
+  public name: string;
+
+  public id: string;
+
+  public data: {};
+
+  public metadata: {
+    timestamp: number;
+    causationId: string;
+    correlationId: string;
+  };
+
+  protected constructor ({
     context,
     aggregate,
     name,
     id,
     data,
     metadata
+  }: {
+    context: { name: string };
+    aggregate: { name: string; id: string };
+    name: string;
+    id: string;
+    data: {};
+    metadata: { timestamp: number; causationId: string; correlationId: string };
   }) {
-    if (!context) {
-      throw new Error('Context is missing.');
-    }
-    if (!context.name) {
-      throw new Error('Context name is missing.');
-    }
-    if (!aggregate) {
-      throw new Error('Aggregate is missing.');
-    }
-    if (!aggregate.name) {
-      throw new Error('Aggregate name is missing.');
-    }
-    if (!aggregate.id) {
-      throw new Error('Aggregate id is missing.');
-    }
-    if (!name) {
-      throw new Error('Name is missing.');
-    }
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-    if (!data) {
-      throw new Error('Data is missing.');
-    }
-    if (!metadata) {
-      throw new Error('Metadata is missing.');
-    }
-    if (!metadata.timestamp) {
-      throw new Error('Metadata timestamp is missing.');
-    }
-    if (!metadata.causationId) {
-      throw new Error('Metadata causation id is missing.');
-    }
-    if (!metadata.correlationId) {
-      throw new Error('Metadata correlation id is missing.');
-    }
-
     this.context = { name: context.name };
     this.aggregate = { name: aggregate.name, id: aggregate.id };
     this.name = name;
@@ -105,32 +89,19 @@ class CommandExternal {
     value.validate(this, { valueName: 'command' });
   }
 
-  static create ({
+  public static create ({
     context,
     aggregate,
     name,
     data = {},
     metadata = {}
-  }) {
-    if (!context) {
-      throw new Error('Context is missing.');
-    }
-    if (!context.name) {
-      throw new Error('Context name is missing.');
-    }
-    if (!aggregate) {
-      throw new Error('Aggregate is missing.');
-    }
-    if (!aggregate.name) {
-      throw new Error('Aggregate name is missing.');
-    }
-    if (!aggregate.id) {
-      throw new Error('Aggregate id is missing.');
-    }
-    if (!name) {
-      throw new Error('Name is missing.');
-    }
-
+  }: {
+    context: { name: string };
+    aggregate: { name: string; id: string };
+    name: string;
+    data: {};
+    metadata: { causationId?: string; correlationId?: string };
+  }): CommandExternal {
     if (
       (metadata.causationId && !metadata.correlationId) ||
       (!metadata.causationId && metadata.correlationId)
@@ -156,51 +127,21 @@ class CommandExternal {
     return command;
   }
 
-  static fromObject ({
+  public static fromObject ({
     context,
     aggregate,
     name,
     id,
     data,
     metadata
-  }) {
-    if (!context) {
-      throw new Error('Context is missing.');
-    }
-    if (!context.name) {
-      throw new Error('Context name is missing.');
-    }
-    if (!aggregate) {
-      throw new Error('Aggregate is missing.');
-    }
-    if (!aggregate.name) {
-      throw new Error('Aggregate name is missing.');
-    }
-    if (!aggregate.id) {
-      throw new Error('Aggregate id is missing.');
-    }
-    if (!name) {
-      throw new Error('Name is missing.');
-    }
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-    if (!data) {
-      throw new Error('Data is missing.');
-    }
-    if (!metadata) {
-      throw new Error('Metadata is missing.');
-    }
-    if (!metadata.timestamp) {
-      throw new Error('Metadata timestamp is missing.');
-    }
-    if (!metadata.causationId) {
-      throw new Error('Metadata causation id is missing.');
-    }
-    if (!metadata.correlationId) {
-      throw new Error('Metadata correlation id is missing.');
-    }
-
+  }: {
+    context: { name: string };
+    aggregate: { name: string; id: string };
+    name: string;
+    id: string;
+    data: {};
+    metadata: { timestamp: number; causationId: string; correlationId: string };
+  }): CommandExternal {
     const command = new CommandExternal({
       context,
       aggregate,
@@ -213,14 +154,10 @@ class CommandExternal {
     return command;
   }
 
-  static validate ({ command, application }) {
-    if (!command) {
-      throw new Error('Command is missing.');
-    }
-    if (!application) {
-      throw new Error('Application is missing.');
-    }
-
+  public static validate ({ command, application }: {
+    command: any;
+    application: any;
+  }): void {
     try {
       CommandExternal.fromObject(command);
     } catch {
@@ -255,4 +192,4 @@ class CommandExternal {
   }
 }
 
-module.exports = CommandExternal;
+export default CommandExternal;

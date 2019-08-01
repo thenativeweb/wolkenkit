@@ -1,10 +1,9 @@
-'use strict';
+import _ from 'lodash';
+import EventExternal from './EventExternal';
+import uuid from 'uuidv4';
+import Value from 'validate-value';
 
-const cloneDeep = require('lodash/cloneDeep'),
-      uuid = require('uuidv4'),
-      Value = require('validate-value');
-
-const EventExternal = require('./EventExternal');
+const { cloneDeep } = _;
 
 const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
 
@@ -113,7 +112,9 @@ const value = new Value({
 });
 
 class EventInternal extends EventExternal {
-  constructor ({
+  public annotations: { client: number; initiator: number };
+
+  protected constructor ({
     context,
     aggregate,
     name,
@@ -121,91 +122,37 @@ class EventInternal extends EventExternal {
     data,
     metadata,
     annotations
+  }: {
+    context: { name: string };
+    aggregate: { name: string; id: string };
+    name: string;
+    id: string;
+    data: {};
+    metadata: {
+      timestamp: number;
+      isPublished: boolean;
+      causationId: string;
+      correlationId: string;
+      revision: { aggregate: number; global: number | null };
+      initiator: { user: { id: string; claims: { sub: string }}};
+    };
+    annotations: { client: number; initiator: number };
   }) {
-    if (!context) {
-      throw new Error('Context is missing.');
-    }
-    if (!context.name) {
-      throw new Error('Context name is missing.');
-    }
-    if (!aggregate) {
-      throw new Error('Aggregate is missing.');
-    }
-    if (!aggregate.name) {
-      throw new Error('Aggregate name is missing.');
-    }
-    if (!aggregate.id) {
-      throw new Error('Aggregate id is missing.');
-    }
-    if (!name) {
-      throw new Error('Name is missing.');
-    }
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-    if (!data) {
-      throw new Error('Data is missing.');
-    }
-    if (!metadata) {
-      throw new Error('Metadata is missing.');
-    }
-    if (!metadata.timestamp) {
-      throw new Error('Timestamp is missing.');
-    }
-    if (metadata.isPublished === undefined) {
-      throw new Error('Is published is missing.');
-    }
-    if (!metadata.causationId) {
-      throw new Error('Causation id is missing.');
-    }
-    if (!metadata.correlationId) {
-      throw new Error('Correlation id is missing.');
-    }
-    if (!metadata.revision) {
-      throw new Error('Revision is missing.');
-    }
-    if (!metadata.revision.aggregate) {
-      throw new Error('Revision aggregate is missing.');
-    }
-    if (metadata.revision.global === undefined) {
-      throw new Error('Revision global is missing.');
-    }
-    if (!metadata.initiator) {
-      throw new Error('Initiator is missing.');
-    }
-    if (!metadata.initiator.user) {
-      throw new Error('Initiator user is missing.');
-    }
-    if (!metadata.initiator.user.id) {
-      throw new Error('Initiator user id is missing.');
-    }
-    if (!metadata.initiator.user.claims) {
-      throw new Error('Initiator user claims is missing.');
-    }
-    if (!metadata.initiator.user.claims.sub) {
-      throw new Error('Initiator user claims sub is missing.');
-    }
-    if (!annotations) {
-      throw new Error('Annotations is missing.');
-    }
-
     super({ context, aggregate, name, id, data, metadata });
     this.annotations = annotations;
 
     value.validate(this, { valueName: 'event' });
   }
 
-  clone () {
+  protected clone (): EventInternal {
     const clonedEvent = EventInternal.fromObject(cloneDeep(this));
 
     return clonedEvent;
   }
 
-  setData ({ data }) {
-    if (!data) {
-      throw new Error('Data is missing.');
-    }
-
+  public setData ({ data }: {
+    data: {};
+  }): EventInternal {
     const updatedEvent = this.clone();
 
     updatedEvent.data = data;
@@ -214,7 +161,9 @@ class EventInternal extends EventExternal {
     return updatedEvent;
   }
 
-  setRevisionGlobal ({ revisionGlobal }) {
+  public setRevisionGlobal ({ revisionGlobal }: {
+    revisionGlobal: number;
+  }): EventInternal {
     if (!revisionGlobal) {
       throw new Error('Revision global is missing.');
     }
@@ -227,7 +176,7 @@ class EventInternal extends EventExternal {
     return updatedEvent;
   }
 
-  markAsPublished () {
+  public markAsPublished (): EventInternal {
     const publishedEvent = this.clone();
 
     publishedEvent.metadata.isPublished = true;
@@ -236,7 +185,7 @@ class EventInternal extends EventExternal {
     return publishedEvent;
   }
 
-  asExternal () {
+  public asExternal (): EventExternal {
     const clonedEvent = this.clone();
     const externalEvent = EventExternal.fromObject({
       context: clonedEvent.context,
@@ -250,14 +199,16 @@ class EventInternal extends EventExternal {
     return externalEvent;
   }
 
-  static create ({
+  public static create ({
     context,
     aggregate,
     name,
     data = {},
     metadata,
     annotations
-  }) {
+  }: {
+
+  }): EventInternal {
     if (!context) {
       throw new Error('Context is missing.');
     }
@@ -341,7 +292,7 @@ class EventInternal extends EventExternal {
     return event;
   }
 
-  static fromObject ({
+  public static fromObject ({
     context,
     aggregate,
     name,
@@ -349,7 +300,7 @@ class EventInternal extends EventExternal {
     data,
     metadata,
     annotations
-  }) {
+  }: {}): EventInternal {
     if (!context) {
       throw new Error('Context is missing.');
     }
@@ -433,14 +384,10 @@ class EventInternal extends EventExternal {
     return event;
   }
 
-  static validate ({ event, application }) {
-    if (!event) {
-      throw new Error('Event is missing.');
-    }
-    if (!application) {
-      throw new Error('Application is missing.');
-    }
-
+  public static validate ({ event, application }: {
+    event: any;
+    application: any;
+  }): void {
     try {
       EventInternal.fromObject(event);
     } catch {
@@ -475,4 +422,4 @@ class EventInternal extends EventExternal {
   }
 }
 
-module.exports = EventInternal;
+export default EventInternal;

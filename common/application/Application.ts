@@ -1,15 +1,16 @@
-'use strict';
+import ApplicationCache from './ApplicationCache';
+import commonTags from 'common-tags';
+import extendEntries from './extendEntries';
+import getEntries from './getEntries';
+import validateDirectory from './validateDirectory';
+import validateEntries from './validateEntries';
 
-const stripIndent = require('common-tags/lib/stripIndent');
-
-const ApplicationCache = require('./ApplicationCache'),
-      extendEntries = require('./extendEntries'),
-      getEntries = require('./getEntries'),
-      validateDirectory = require('./validateDirectory'),
-      validateEntries = require('./validateEntries');
+const { stripIndent } = commonTags;
 
 class Application {
-  constructor ({ entries }) {
+  private static cache: ApplicationCache = new ApplicationCache();
+
+  private constructor ({ entries }) {
     if (!entries) {
       throw new Error('Entries are missing.');
     }
@@ -79,19 +80,15 @@ class Application {
     }
   }
 
-  static async validate ({ directory }) {
-    if (!directory) {
-      throw new Error('Directory is missing.');
-    }
-
+  public static async validate ({ directory }: {
+    directory: string;
+  }): Promise<void> {
     await validateDirectory({ directory });
   }
 
-  static async load ({ directory }) {
-    if (!directory) {
-      throw new Error('Directory is missing.');
-    }
-
+  public static async load ({ directory }: {
+    directory: string;
+  }): Promise<Application> {
     const cachedApplication = Application.cache.get({ directory });
 
     if (cachedApplication) {
@@ -113,6 +110,4 @@ class Application {
   }
 }
 
-Application.cache = new ApplicationCache();
-
-module.exports = Application;
+export default Application;

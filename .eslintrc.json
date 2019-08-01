@@ -2,13 +2,13 @@
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "project": "./tsconfig.json",
+    "sourceType": "module",
+    "ecmaVersion": 2019,
     "ecmaFeatures": {
       "globalReturn": false,
       "impliedStrict": false,
       "jsx": true
-    },
-    "ecmaVersion": 2019,
-    "sourceType": "module"
+    }
   },
   "plugins": [
     "@typescript-eslint",
@@ -21,7 +21,23 @@
     "plugin:@typescript-eslint/recommended"
   ],
   "rules": {
-    "@typescript-eslint/indent": "off",
-    "@typescript-eslint/no-explicit-any": "off"
+    "@typescript-eslint/indent": [ "error", 2, {
+      "SwitchCase": 1,
+      "VariableDeclarator": { "var": 2, "let": 2, "const": 3 },
+      "outerIIFEBody": 1,
+      "MemberExpression": 1,
+      "FunctionDeclaration": { "parameters": 1, "body": 1 },
+      "FunctionExpression": { "parameters": 1, "body": 1 },
+      "CallExpression": { "arguments": 1 },
+      "ArrayExpression": 1,
+      "ObjectExpression": 1,
+      "ImportDeclaration": 1,
+      "flatTernaryExpressions": false,
+      "ignoredNodes": [],
+      "ignoreComments": false
+    }],
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": [ "error", { "vars": "all" }],
+    "@typescript-eslint/prefer-namespace-keyword": "off"
   }
 }

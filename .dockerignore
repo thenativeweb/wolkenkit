@@ -3,5 +3,6 @@
 .git
 .github
 assets
+docker
 node_modules
 test

@@ -1,9 +1,13 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "declaration": true,
     "esModuleInterop": true,
     "module": "commonjs",
     "outDir": "build",
+    "paths": {
+      "*": [ "./types/*" ]
+    },
     "resolveJsonModule": true,
     "rootDir": ".",
     "strict": true,
