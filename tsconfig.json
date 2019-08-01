@@ -9,11 +9,8 @@
       "*": [ "./types/*" ]
     },
     "resolveJsonModule": true,
-    "rootDir": ".",
+    "rootDir": "./src",
     "strict": true,
     "target": "es2019"
-  },
-
-  "include": [ "./**/*" ],
-  "exclude": [ "build", "node_modules", "test" ]
+  }
 }
