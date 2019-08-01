@@ -1,5 +1,5 @@
 declare function defekt(
   errorDefinitions: string[]
-): { new(): Error }[];
+): { [ key: string ]: new() => Error };
 
 export default defekt;

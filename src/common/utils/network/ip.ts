@@ -13,7 +13,7 @@ const ip = {
     return isIp.v6(text);
   },
 
-  getFamily (text: string): number {
+  getFamily (text: string): 4 | 6 {
     if (!isIp(text)) {
       throw new Error('Invalid IP address.');
     }

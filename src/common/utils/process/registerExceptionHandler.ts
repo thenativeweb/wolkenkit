@@ -10,7 +10,7 @@ const handleUncaughtException = function (ex: Error): void {
   /* eslint-enable unicorn/no-process-exit */
 };
 
-const handleRejectedPromise = function (
+const handleUnhandledRejection = function (
   reason: any,
   promise: Promise<any>
 ): void {
@@ -23,7 +23,7 @@ const handleRejectedPromise = function (
 
 const registerExceptionHandler = function (): void {
   process.on('uncaughtException', handleUncaughtException);
-  process.on('unhandledRejection', handleRejectedPromise);
+  process.on('unhandledRejection', handleUnhandledRejection);
 };
 
 export default registerExceptionHandler;
