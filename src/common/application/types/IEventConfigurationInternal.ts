@@ -1,4 +1,4 @@
-import AggregateApiForEvents from '../../elements/AggregateApiForCommands';
+import AggregateApiForEvents from '../../elements/AggregateApiForEvents';
 import AggregateApiForReadOnly from '../../elements/AggregateApiForReadOnly';
 import EventExternal from '../../elements/EventExternal';
 import EventInternal from '../../elements/EventInternal';

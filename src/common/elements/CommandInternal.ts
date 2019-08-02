@@ -213,11 +213,13 @@ class CommandInternal extends CommandExternal {
       throw new Error('Invalid aggregate name.');
     }
 
-    if (!aggregate[deserializedCommand.name]) {
+    const aggregateCommand = aggregate[deserializedCommand.name];
+
+    if (!aggregateCommand) {
       throw new Error('Invalid command name.');
     }
 
-    const { schema } = aggregate[deserializedCommand.name];
+    const { schema } = aggregateCommand;
 
     if (!schema) {
       return;

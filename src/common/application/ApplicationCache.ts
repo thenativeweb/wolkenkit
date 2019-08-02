@@ -1,4 +1,5 @@
 import Application from './Application';
+import { Dictionary } from '../../types/Dictionary';
 
 class ApplicationCache {
   private applications: Dictionary<string, Application>;

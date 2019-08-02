@@ -11,6 +11,7 @@ import { IEventConfigurationInternal } from './types/IEventConfigurationInternal
 import { InitialStateConfiguration } from './types/InitialStateConfiguration';
 import validateApplicationConfiguration from './validateApplicationConfiguration';
 import validateDirectory from './validateDirectory';
+import { pick, set } from 'lodash';
 
 const { stripIndent } = commonTags;
 
@@ -68,32 +69,23 @@ class Application {
         }
 
         initialState.internal[aggregateName] = aggregateConfiguration.initialState;
-        commands.internal[aggregateName] = aggregateConfiguration.commands;
-        commands.external[aggregateName] = {};
-        events.internal[aggregateName] = aggregateConfiguration.events;
-        events.external[aggregateName] = {};
 
         for (const [ commandName, commandConfiguration ] of Object.entries(aggregateConfiguration.commands)) {
           if (!commandConfiguration) {
             continue;
           }
-          if (!commands.internal[aggregateName]) {
-            continue;
-          }
-          if (!commands.internal[aggregateName][commandName]) {
-            continue;
-          }
 
-          let documentation;
-
-          if (commandConfiguration.documentation) {
-            documentation = stripIndent(commandConfiguration.documentation).trim();
-          }
-
-          const { schema } = commandConfiguration;
-
-          commands.internal[aggregateName][commandName].documentation = documentation;
-          commands.external[aggregateName][commandName] = { documentation, schema };
+          set(commands, `internal.${aggregateName}.${commandName}`, {
+            ...commandConfiguration,
+            documentation: stripIndent(commandConfiguration.documentation || '').trim()
+          });
+          set(
+            commands, `external.${aggregateName}.${commandName}`,
+            pick(commands, [
+              `external.${aggregateName}.${commandName}.documentation`,
+              `external.${aggregateName}.${commandName}.schema`
+            ])
+          );
         }
 
         for (const [ eventName, eventConfiguration ] of Object.entries(aggregateConfiguration.events)) {
@@ -101,16 +93,17 @@ class Application {
             continue;
           }
 
-          let documentation;
-
-          if (eventConfiguration.documentation) {
-            documentation = stripIndent(eventConfiguration.documentation).trim();
-          }
-
-          const { schema } = eventConfiguration;
-
-          this.events.internal[contextName][aggregateName][eventName].documentation = documentation;
-          this.events.external[contextName][aggregateName][eventName] = { documentation, schema };
+          set(events, `internal.${aggregateName}.${eventName}`, {
+            ...eventConfiguration,
+            documentation: stripIndent(eventConfiguration.documentation || '').trim()
+          });
+          set(
+            events, `external.${aggregateName}.${eventName}`,
+            pick(events, [
+              `external.${aggregateName}.${eventName}.documentation`,
+              `external.${aggregateName}.${eventName}.schema`
+            ])
+          );
         }
       }
 
@@ -121,17 +114,34 @@ class Application {
       this.events.external[contextName] = events.external;
     }
 
-    for (const [ modelType, modelTypeDefinition ] of Object.entries(entries.server.views)) {
-      this.views.internal[modelType] = {};
-      this.views.external[modelType] = {};
+    for (const [ modelType, modelTypeDefinition ] of Object.entries(configuration.views)) {
+      if (!modelTypeDefinition) {
+        continue;
+      }
+
+      const views: {
+        internal: Dictionary<string, Dictionary<string, Todo>>;
+        external: Dictionary<string, Dictionary<string, Todo>>;
+      } = { internal: {}, external: {}};
 
       for (const [ modelName, modelDefinition ] of Object.entries(modelTypeDefinition)) {
-        this.views.internal[modelType][modelName] = modelDefinition;
-        this.views.external[modelType][modelName] = {};
+        if (!modelDefinition) {
+          continue;
+        }
+
+        views.internal[modelName] = modelDefinition;
+        views.external[modelName] = {};
       }
+
+      this.views.internal[modelType] = views.internal;
+      this.views.external[modelType] = views.external;
     }
 
-    for (const [ flowName, flowDefinition ] of Object.entries(entries.server.flows)) {
+    for (const [ flowName, flowDefinition ] of Object.entries(configuration.flows)) {
+      if (!flowDefinition) {
+        continue;
+      }
+
       this.flows.internal[flowName] = flowDefinition;
     }
   }

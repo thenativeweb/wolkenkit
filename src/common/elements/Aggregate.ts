@@ -1,5 +1,5 @@
+import AggregateApiForEvents from './AggregateApiForEvents';
 import Application from '../application';
-import { cloneDeep } from 'lodash';
 import errors from '../errors';
 import EventExternal from './EventExternal';
 import EventInternal from './EventInternal';
@@ -8,6 +8,7 @@ import { IContextIdentifier } from './types/IContextIdentifier';
 import { ISnapshot } from '../../stores/eventstore/types/ISnapshot';
 import { Readable } from 'stream';
 import { State } from './types/State';
+import { cloneDeep, get } from 'lodash';
 
 class Aggregate {
   public readonly contextIdentifier: IContextIdentifier;
@@ -67,15 +68,15 @@ class Aggregate {
       }
 
       if (
-        !application.events.internal[this.contextIdentifier.name][this.name][event.name]
+        !get(application, `events.internal.${this.contextIdentifier.name}.${this.name}.${event.name}`)
       ) {
         throw new errors.EventUnknown(`Failed to apply unknown event '${event.name}' in '${this.contextIdentifier.name}.${this.name}'.`);
       }
 
-      const { handle } =
-        application.events.internal[this.contextIdentifier.name][this.name][event.name];
+      const { handle } = get(application, `events.internal.${this.contextIdentifier.name}.${this.name}.${event.name}`);
+      const aggregateApiForEvents = new AggregateApiForEvents({ aggregate: this });
 
-      handle(this.api.forEvents, event);
+      handle(aggregateApiForEvents, event);
 
       this.revision = event.metadata.revision.aggregate;
     }

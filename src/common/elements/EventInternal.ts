@@ -281,11 +281,13 @@ class EventInternal extends EventExternal {
       throw new Error('Invalid aggregate name.');
     }
 
-    if (!aggregate[deserializedEvent.name]) {
+    const aggregateEvent = aggregate[deserializedEvent.name];
+
+    if (!aggregateEvent) {
       throw new Error('Invalid event name.');
     }
 
-    const { schema } = aggregate[deserializedEvent.name];
+    const { schema } = aggregateEvent;
 
     if (!schema) {
       return;

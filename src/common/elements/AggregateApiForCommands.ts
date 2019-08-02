@@ -31,8 +31,7 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
     const contextName = aggregate.contextIdentifier.name;
     const aggregateName = aggregate.name;
 
-    const eventConfiguration =
-      application.events.internal[contextName][aggregateName][eventName];
+    const eventConfiguration = this.eventConfigurations[eventName];
 
     if (!eventConfiguration) {
       throw new errors.EventUnknown(`Failed to publish unknown event '${eventName}' in '${contextName}.${aggregateName}'.`);
@@ -64,7 +63,7 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
     const previousState = cloneDeep(aggregate.state);
     const aggregateApiForEvents = new AggregateApiForEvents({ aggregate });
 
-    handle(aggregateApiForEvents, eventExternal);
+    handle(aggregateApiForEvents, eventExternal, ??); // TODO
 
     const state = cloneDeep(aggregate.state);
 
