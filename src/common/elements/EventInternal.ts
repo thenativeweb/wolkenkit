@@ -1,16 +1,19 @@
-import _ from 'lodash';
+import Application from '../application';
+import { cloneDeep } from 'lodash';
+import { Dictionary } from '../../types/Dictionary';
 import EventExternal from './EventExternal';
+import { IAggregateIdentifier } from './types/IAggregateIdentifier';
+import { IContextIdentifier } from './types/IContextIdentifier';
+import { State } from './types/State';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
-
-const { cloneDeep } = _;
 
 const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
 
 const value = new Value({
   type: 'object',
   properties: {
-    context: {
+    contextIdentifier: {
       type: 'object',
       properties: {
         name: { type: 'string', minLength: 1, format: 'alphanumeric' }
@@ -18,7 +21,7 @@ const value = new Value({
       required: [ 'name' ],
       additionalProperties: false
     },
-    aggregate: {
+    aggregateIdentifier: {
       type: 'object',
       properties: {
         name: { type: 'string', minLength: 1, format: 'alphanumeric' },
@@ -107,27 +110,27 @@ const value = new Value({
       additionalProperties: false
     }
   },
-  required: [ 'context', 'aggregate', 'name', 'id', 'data', 'metadata', 'annotations' ],
+  required: [ 'contextIdentifier', 'aggregateIdentifier', 'name', 'id', 'data', 'metadata', 'annotations' ],
   additionalProperties: false
 });
 
 class EventInternal extends EventExternal {
-  public annotations: { client: number; initiator: number };
+  public annotations: { state: State; previousState: State };
 
   protected constructor ({
-    context,
-    aggregate,
+    contextIdentifier,
+    aggregateIdentifier,
     name,
     id,
     data,
     metadata,
     annotations
   }: {
-    context: { name: string };
-    aggregate: { name: string; id: string };
+    contextIdentifier: IContextIdentifier;
+    aggregateIdentifier: IAggregateIdentifier;
     name: string;
     id: string;
-    data: {};
+    data: Dictionary<string, any>;
     metadata: {
       timestamp: number;
       isPublished: boolean;
@@ -136,22 +139,83 @@ class EventInternal extends EventExternal {
       revision: { aggregate: number; global: number | null };
       initiator: { user: { id: string; claims: { sub: string }}};
     };
-    annotations: { client: number; initiator: number };
+    annotations: { state: State; previousState: State };
   }) {
-    super({ context, aggregate, name, id, data, metadata });
+    super({ contextIdentifier, aggregateIdentifier, name, id, data, metadata });
     this.annotations = annotations;
 
     value.validate(this, { valueName: 'event' });
   }
 
+  public static create ({
+    contextIdentifier,
+    aggregateIdentifier,
+    name,
+    data = {},
+    metadata,
+    annotations
+  }: {
+    contextIdentifier: IContextIdentifier;
+    aggregateIdentifier: IAggregateIdentifier;
+    name: string;
+    data: Dictionary<string, any>;
+    metadata: {
+      causationId?: string;
+      correlationId?: string;
+      revision: { aggregate: number };
+      initiator: { user: { id: string; claims: { sub: string }}};
+    };
+    annotations: {
+      state: State;
+      previousState: State;
+    };
+  }): EventInternal {
+    if (
+      (metadata.causationId && !metadata.correlationId) ||
+      (!metadata.causationId && metadata.correlationId)
+    ) {
+      throw new Error('Causation id and correlation id must either be given both or none.');
+    }
+
+    const id = uuid();
+
+    const event = new EventInternal({
+      contextIdentifier,
+      aggregateIdentifier,
+      name,
+      id,
+      data,
+      metadata: {
+        ...metadata,
+        timestamp: Date.now(),
+        isPublished: false,
+        causationId: metadata.causationId || id,
+        correlationId: metadata.correlationId || id,
+        revision: {
+          aggregate: metadata.revision.aggregate,
+          global: null
+        }
+      },
+      annotations
+    });
+
+    return event;
+  }
+
+  public static deserialize (object: any): EventInternal {
+    const event = new EventInternal(object);
+
+    return event;
+  }
+
   protected clone (): EventInternal {
-    const clonedEvent = EventInternal.fromObject(cloneDeep(this));
+    const clonedEvent = EventInternal.deserialize(cloneDeep(this));
 
     return clonedEvent;
   }
 
   public setData ({ data }: {
-    data: {};
+    data: Dictionary<string, any>;
   }): EventInternal {
     const updatedEvent = this.clone();
 
@@ -187,9 +251,9 @@ class EventInternal extends EventExternal {
 
   public asExternal (): EventExternal {
     const clonedEvent = this.clone();
-    const externalEvent = EventExternal.fromObject({
-      context: clonedEvent.context,
-      aggregate: clonedEvent.aggregate,
+    const externalEvent = EventExternal.deserialize({
+      contextIdentifier: clonedEvent.contextIdentifier,
+      aggregateIdentifier: clonedEvent.aggregateIdentifier,
       name: clonedEvent.name,
       id: clonedEvent.id,
       data: clonedEvent.data,
@@ -199,218 +263,29 @@ class EventInternal extends EventExternal {
     return externalEvent;
   }
 
-  public static create ({
-    context,
-    aggregate,
-    name,
-    data = {},
-    metadata,
-    annotations
-  }: {
-
-  }): EventInternal {
-    if (!context) {
-      throw new Error('Context is missing.');
-    }
-    if (!context.name) {
-      throw new Error('Context name is missing.');
-    }
-    if (!aggregate) {
-      throw new Error('Aggregate is missing.');
-    }
-    if (!aggregate.name) {
-      throw new Error('Aggregate name is missing.');
-    }
-    if (!aggregate.id) {
-      throw new Error('Aggregate id is missing.');
-    }
-    if (!name) {
-      throw new Error('Name is missing.');
-    }
-    if (!metadata) {
-      throw new Error('Metadata is missing.');
-    }
-    if (
-      (metadata.causationId && !metadata.correlationId) ||
-      (!metadata.causationId && metadata.correlationId)
-    ) {
-      throw new Error('Causation id and correlation id must either be given both or none.');
-    }
-    if (!metadata.revision) {
-      throw new Error('Metadata revision is missing.');
-    }
-    if (!metadata.revision.aggregate) {
-      throw new Error('Metadata revision aggregate is missing.');
-    }
-    if (!metadata.initiator) {
-      throw new Error('Metadata initiator is missing.');
-    }
-    if (!metadata.initiator.user) {
-      throw new Error('Metadata initiator user is missing.');
-    }
-    if (!metadata.initiator.user.id) {
-      throw new Error('Metadata initiator user id is missing.');
-    }
-    if (!metadata.initiator.user.claims) {
-      throw new Error('Metadata initiator user claims is missing.');
-    }
-    if (!metadata.initiator.user.claims.sub) {
-      throw new Error('Metadata initiator user claims sub is missing.');
-    }
-    if (!annotations) {
-      throw new Error('Annotations is missing.');
-    }
-    if (!annotations.state) {
-      throw new Error('Annotations state is missing.');
-    }
-    if (!annotations.previousState) {
-      throw new Error('Annotations previous state is missing.');
-    }
-
-    const id = uuid();
-
-    const event = new EventInternal({
-      context,
-      aggregate,
-      name,
-      id,
-      data,
-      metadata: {
-        ...metadata,
-        timestamp: Date.now(),
-        isPublished: false,
-        causationId: metadata.causationId || id,
-        correlationId: metadata.correlationId || id,
-        revision: {
-          aggregate: metadata.revision.aggregate,
-          global: null
-        }
-      },
-      annotations
-    });
-
-    return event;
-  }
-
-  public static fromObject ({
-    context,
-    aggregate,
-    name,
-    id,
-    data,
-    metadata,
-    annotations
-  }: {}): EventInternal {
-    if (!context) {
-      throw new Error('Context is missing.');
-    }
-    if (!context.name) {
-      throw new Error('Context name is missing.');
-    }
-    if (!aggregate) {
-      throw new Error('Aggregate is missing.');
-    }
-    if (!aggregate.name) {
-      throw new Error('Aggregate name is missing.');
-    }
-    if (!aggregate.id) {
-      throw new Error('Aggregate id is missing.');
-    }
-    if (!name) {
-      throw new Error('Name is missing.');
-    }
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-    if (!data) {
-      throw new Error('Data is missing.');
-    }
-    if (!metadata) {
-      throw new Error('Metadata is missing.');
-    }
-    if (!metadata.timestamp) {
-      throw new Error('Metadata timestamp is missing.');
-    }
-    if (!metadata.causationId) {
-      throw new Error('Metadata causation id is missing.');
-    }
-    if (!metadata.correlationId) {
-      throw new Error('Metadata correlation id is missing.');
-    }
-    if (!metadata.revision) {
-      throw new Error('Metadata revision is missing.');
-    }
-    if (!metadata.revision.aggregate) {
-      throw new Error('Metadata revision aggregate is missing.');
-    }
-    if (metadata.revision.global === undefined) {
-      throw new Error('Metadata revision global is missing.');
-    }
-    if (!metadata.initiator) {
-      throw new Error('Metadata initiator is missing.');
-    }
-    if (!metadata.initiator.user) {
-      throw new Error('Metadata initiator user is missing.');
-    }
-    if (!metadata.initiator.user.id) {
-      throw new Error('Metadata initiator user id is missing.');
-    }
-    if (!metadata.initiator.user.claims) {
-      throw new Error('Metadata initiator user claims is missing.');
-    }
-    if (!metadata.initiator.user.claims.sub) {
-      throw new Error('Metadata initiator user claims sub is missing.');
-    }
-    if (!annotations) {
-      throw new Error('Annotations is missing.');
-    }
-    if (!annotations.state) {
-      throw new Error('Annotations state is missing.');
-    }
-    if (!annotations.previousState) {
-      throw new Error('Annotations previous state is missing.');
-    }
-
-    const event = new EventInternal({
-      context,
-      aggregate,
-      name,
-      id,
-      data,
-      metadata,
-      annotations
-    });
-
-    return event;
-  }
-
   public static validate ({ event, application }: {
     event: any;
-    application: any;
+    application: Application;
   }): void {
-    try {
-      EventInternal.fromObject(event);
-    } catch {
-      throw new Error('Malformed event.');
-    }
+    const deserializedEvent = EventInternal.deserialize(event);
 
-    const context = application.events.internal[event.context.name];
+    const context = application.events.internal[deserializedEvent.contextIdentifier.name];
 
     if (!context) {
       throw new Error('Invalid context name.');
     }
 
-    const aggregate = context[event.aggregate.name];
+    const aggregate = context[deserializedEvent.aggregateIdentifier.name];
 
     if (!aggregate) {
       throw new Error('Invalid aggregate name.');
     }
 
-    if (!aggregate[event.name]) {
+    if (!aggregate[deserializedEvent.name]) {
       throw new Error('Invalid event name.');
     }
 
-    const { schema } = aggregate[event.name];
+    const { schema } = aggregate[deserializedEvent.name];
 
     if (!schema) {
       return;
@@ -418,7 +293,7 @@ class EventInternal extends EventExternal {
 
     const valueData = new Value(schema);
 
-    valueData.validate(event.data, { valueName: 'event.data' });
+    valueData.validate(deserializedEvent.data, { valueName: 'event.data' });
   }
 }
 

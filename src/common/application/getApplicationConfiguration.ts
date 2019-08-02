@@ -1,22 +1,15 @@
 import path from 'path';
 import requireDir from 'require-dir';
 
-const getEntries = async function ({ directory }: {
+const getApplicationConfiguration = async function ({ directory }: {
   directory: string;
-}): Promise<{ server: {
-    domain: {[contextName: string]: {[aggregateName: string]: any }};
-    views: {[modelType: string]: {[modelName: string]: any }};
-    flows: {[flowName: string]: any };
-  };
-  }> {
+}): Promise<IApplicationConfigurationWeak> {
   const serverDirectory = path.join(directory, 'server');
   const entries = requireDir(serverDirectory, { recurse: true });
 
-  const { domain, views, flows }: {
-    domain: {[contextName: string]: {[aggregateName: string]: any }};
-    views: {[modelType: string]: {[modelName: string]: any }};
-    flows: {[flowName: string]: any};
-  } = entries as any;
+  const { domain, views, flows }: IApplicationConfigurationWeak = entries as any;
+
+  const transformedEntries: Partial<IApplicationConfigurationWeak> = {};
 
   // If an index.js file is given inside of an aggregate, list or flow, use it
   // instead of the individual files.
@@ -40,7 +33,7 @@ const getEntries = async function ({ directory }: {
     }
   }
 
-  return { server: entries } as any;
+  return transformedEntries as IApplicationConfigurationWeak;
 };
 
-export default getEntries;
+export default getApplicationConfiguration;

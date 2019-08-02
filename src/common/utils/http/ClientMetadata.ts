@@ -1,3 +1,5 @@
+import { Dictionary } from '../../../types/Dictionary';
+
 class ClientMetadata {
   public token: string;
 

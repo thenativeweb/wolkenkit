@@ -1,9 +1,9 @@
 import ApplicationCache from './ApplicationCache';
 import commonTags from 'common-tags';
 import extendEntries from './extendEntries';
-import getEntries from './getEntries';
+import getApplicationConfiguration from './getApplicationConfiguration';
+import validateApplicationConfiguration from './validateApplicationConfiguration';
 import validateDirectory from './validateDirectory';
-import validateEntries from './validateEntries';
 
 const { stripIndent } = commonTags;
 
@@ -89,24 +89,28 @@ class Application {
   public static async load ({ directory }: {
     directory: string;
   }): Promise<Application> {
-    const cachedApplication = Application.cache.get({ directory });
+    let cachedApplication: Application;
 
-    if (cachedApplication) {
+    try {
+      cachedApplication = Application.cache.get({ directory });
+
       return cachedApplication;
+    } catch {
+      await validateDirectory({ directory });
+
+      const applicationConfiguration =
+        await getApplicationConfiguration({ directory });
+      const validatedApplicationConfiguration =
+        validateApplicationConfiguration({ applicationConfiguration });
+      const extendedEntries =
+        extendEntries({ entries: validatedApplicationConfiguration });
+
+      const application = new Application({ entries: extendedEntries });
+
+      Application.cache.set({ directory, application });
+
+      return application;
     }
-
-    await validateDirectory({ directory });
-
-    const entries = await getEntries({ directory });
-
-    await validateEntries({ entries });
-
-    const extendedEntries = extendEntries({ entries });
-    const application = new Application({ entries: extendedEntries });
-
-    Application.cache.set({ directory, application });
-
-    return application;
   }
 }
 

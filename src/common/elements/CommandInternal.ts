@@ -1,4 +1,9 @@
+import Application from '../application';
 import CommandExternal from './CommandExternal';
+import { Dictionary } from '../../types/Dictionary';
+import { IAggregateIdentifier } from './types/IAggregateIdentifier';
+import { IContextIdentifier } from './types/IContextIdentifier';
+import { IUser } from './types/IUser';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
 
@@ -7,7 +12,7 @@ const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
 const value = new Value({
   type: 'object',
   properties: {
-    context: {
+    contextIdentifier: {
       type: 'object',
       properties: {
         name: { type: 'string', minLength: 1, format: 'alphanumeric' }
@@ -15,7 +20,7 @@ const value = new Value({
       required: [ 'name' ],
       additionalProperties: false
     },
-    aggregate: {
+    aggregateIdentifier: {
       type: 'object',
       properties: {
         name: { type: 'string', minLength: 1, format: 'alphanumeric' },
@@ -98,50 +103,65 @@ const value = new Value({
       additionalProperties: false
     }
   },
-  required: [ 'context', 'aggregate', 'name', 'id', 'data', 'metadata', 'annotations' ],
+  required: [ 'contextIdentifier', 'aggregateIdentifier', 'name', 'id', 'data', 'metadata', 'annotations' ],
   additionalProperties: false
 });
 
 class CommandInternal extends CommandExternal {
-  public annotations: { client: number; initiator: number };
+  public annotations: {
+    client: {
+      token: string;
+      user: IUser;
+      ip: string;
+    };
+    initiator: {
+      user: IUser;
+    };
+  };
 
   protected constructor ({
-    context,
-    aggregate,
+    contextIdentifier,
+    aggregateIdentifier,
     name,
     id,
     data,
     metadata,
     annotations
   }: {
-    context: { name: string };
-    aggregate: { name: string; id: string };
+    contextIdentifier: IContextIdentifier;
+    aggregateIdentifier: IAggregateIdentifier;
     name: string;
     id: string;
-    data: {};
+    data: Dictionary<string, any>;
     metadata: { timestamp: number; causationId: string; correlationId: string };
-    annotations: { client: number; initiator: number };
+    annotations: {
+      client: { token: string; user: IUser; ip: string };
+      initiator: { user: IUser };
+    };
   }) {
-    super({ context, aggregate, name, id, data, metadata });
+    super({ contextIdentifier, aggregateIdentifier, name, id, data, metadata });
     this.annotations = annotations;
 
     value.validate(this, { valueName: 'command' });
   }
 
   public static create ({
-    context,
-    aggregate,
+    contextIdentifier,
+    aggregateIdentifier,
     name,
     data = {},
     metadata = {},
     annotations
   }: {
-    context: { name: string };
-    aggregate: { name: string; id: string };
+    contextIdentifier: IContextIdentifier;
+    aggregateIdentifier: IAggregateIdentifier;
     name: string;
-    data: {};
-    metadata: { causationId?: string; correlationId?: string };
-    annotations: { client: number; initiator: number };
+    data?: Dictionary<string, any>;
+    metadata?: { causationId?: string; correlationId?: string };
+    annotations: {
+      client: { token: string; user: IUser; ip: string };
+      initiator: { user: IUser };
+    };
   }): CommandInternal {
     if (
       (metadata.causationId && !metadata.correlationId) ||
@@ -153,8 +173,8 @@ class CommandInternal extends CommandExternal {
     const id = uuid();
 
     const command = new CommandInternal({
-      context,
-      aggregate,
+      contextIdentifier,
+      aggregateIdentifier,
       name,
       id,
       data,
@@ -169,63 +189,35 @@ class CommandInternal extends CommandExternal {
     return command;
   }
 
-  public static fromObject ({
-    context,
-    aggregate,
-    name,
-    id,
-    data,
-    metadata,
-    annotations
-  }: {
-    context: { name: string };
-    aggregate: { name: string; id: string };
-    name: string;
-    id: string;
-    data: {};
-    metadata: { timestamp: number; causationId: string; correlationId: string };
-    annotations: { client: number; initiator: number };
-  }): CommandInternal {
-    const command = new CommandInternal({
-      context,
-      aggregate,
-      name,
-      id,
-      data,
-      metadata,
-      annotations
-    });
+  public static deserialize (object: any): CommandInternal {
+    const command = new CommandInternal(object);
 
     return command;
   }
 
   public static validate ({ command, application }: {
     command: any;
-    application: any;
+    application: Application;
   }): void {
-    try {
-      CommandInternal.fromObject(command);
-    } catch {
-      throw new Error('Malformed command.');
-    }
+    const deserializedCommand = CommandInternal.deserialize(command);
 
-    const context = application.commands.internal[command.context.name];
+    const context = application.commands.internal[deserializedCommand.contextIdentifier.name];
 
     if (!context) {
       throw new Error('Invalid context name.');
     }
 
-    const aggregate = context[command.aggregate.name];
+    const aggregate = context[deserializedCommand.aggregateIdentifier.name];
 
     if (!aggregate) {
       throw new Error('Invalid aggregate name.');
     }
 
-    if (!aggregate[command.name]) {
+    if (!aggregate[deserializedCommand.name]) {
       throw new Error('Invalid command name.');
     }
 
-    const { schema } = aggregate[command.name];
+    const { schema } = aggregate[deserializedCommand.name];
 
     if (!schema) {
       return;
@@ -233,7 +225,7 @@ class CommandInternal extends CommandExternal {
 
     const dataValue = new Value(schema);
 
-    dataValue.validate(command.data, { valueName: 'command.data' });
+    dataValue.validate(deserializedCommand.data, { valueName: 'command.data' });
   }
 }
 

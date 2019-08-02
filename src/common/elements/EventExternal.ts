@@ -1,15 +1,16 @@
-import _ from 'lodash';
+import { cloneDeep } from 'lodash';
+import { Dictionary } from '../../types/Dictionary';
+import { IAggregateIdentifier } from './types/IAggregateIdentifier';
+import { IContextIdentifier } from './types/IContextIdentifier';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
-
-const { cloneDeep } = _;
 
 const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
 
 const value = new Value({
   type: 'object',
   properties: {
-    context: {
+    contextIdentifier: {
       type: 'object',
       properties: {
         name: { type: 'string', minLength: 1, format: 'alphanumeric' }
@@ -17,7 +18,7 @@ const value = new Value({
       required: [ 'name' ],
       additionalProperties: false
     },
-    aggregate: {
+    aggregateIdentifier: {
       type: 'object',
       properties: {
         name: { type: 'string', minLength: 1, format: 'alphanumeric' },
@@ -87,20 +88,20 @@ const value = new Value({
       additionalProperties: false
     }
   },
-  required: [ 'context', 'aggregate', 'name', 'id', 'data', 'metadata' ],
+  required: [ 'contextIdentifier', 'aggregateIdentifier', 'name', 'id', 'data', 'metadata' ],
   additionalProperties: false
 });
 
 class EventExternal {
-  public context: { name: string };
+  public readonly contextIdentifier: IContextIdentifier;
 
-  public aggregate: { name: string; id: string };
+  public readonly aggregateIdentifier: IAggregateIdentifier;
 
-  public name: string;
+  public readonly name: string;
 
-  public id: string;
+  public readonly id: string;
 
-  public data: {};
+  public data: Dictionary<string, any>;
 
   public metadata: {
     timestamp: number;
@@ -112,18 +113,18 @@ class EventExternal {
   };
 
   protected constructor ({
-    context,
-    aggregate,
+    contextIdentifier,
+    aggregateIdentifier,
     name,
     id,
     data,
     metadata
   }: {
-    context: { name: string };
-    aggregate: { name: string; id: string };
+    contextIdentifier: IContextIdentifier;
+    aggregateIdentifier: IAggregateIdentifier;
     name: string;
     id: string;
-    data: {};
+    data: Dictionary<string, any>;
     metadata: {
       timestamp: number;
       isPublished: boolean;
@@ -133,8 +134,8 @@ class EventExternal {
       initiator: { user: { id: string; claims: { sub: string }}};
     };
   }) {
-    this.context = { name: context.name };
-    this.aggregate = { name: aggregate.name, id: aggregate.id };
+    this.contextIdentifier = contextIdentifier;
+    this.aggregateIdentifier = aggregateIdentifier;
     this.name = name;
     this.id = id;
 
@@ -144,19 +145,70 @@ class EventExternal {
     value.validate(this, { valueName: 'event' });
   }
 
+  public static create ({
+    contextIdentifier,
+    aggregateIdentifier,
+    name,
+    data = {},
+    metadata
+  }: {
+    contextIdentifier: IContextIdentifier;
+    aggregateIdentifier: IAggregateIdentifier;
+    name: string;
+    data: {};
+    metadata: {
+      causationId?: string;
+      correlationId?: string;
+      revision: { aggregate: number };
+      initiator: { user: { id: string; claims: { sub: string }}};
+    };
+  }): EventExternal {
+    if (
+      (metadata.causationId && !metadata.correlationId) ||
+      (!metadata.causationId && metadata.correlationId)
+    ) {
+      throw new Error('Causation id and correlation id must either be given both or none.');
+    }
+
+    const id = uuid();
+
+    const event = new EventExternal({
+      contextIdentifier,
+      aggregateIdentifier,
+      name,
+      id,
+      data,
+      metadata: {
+        ...metadata,
+        timestamp: Date.now(),
+        isPublished: false,
+        causationId: metadata.causationId || id,
+        correlationId: metadata.correlationId || id,
+        revision: {
+          aggregate: metadata.revision.aggregate,
+          global: null
+        }
+      }
+    });
+
+    return event;
+  }
+
+  public static deserialize (object: any): EventExternal {
+    const event = new EventExternal(object);
+
+    return event;
+  }
+
   protected clone (): EventExternal {
-    const clonedEvent = EventExternal.fromObject(cloneDeep(this));
+    const clonedEvent = EventExternal.deserialize(cloneDeep(this));
 
     return clonedEvent;
   }
 
   public setData ({ data }: {
-    data: {};
+    data: Dictionary<string, any>;
   }): EventExternal {
-    if (!data) {
-      throw new Error('Data is missing.');
-    }
-
     const updatedEvent = this.clone();
 
     updatedEvent.data = data;
@@ -183,89 +235,6 @@ class EventExternal {
     value.validate(publishedEvent, { valueName: 'event' });
 
     return publishedEvent;
-  }
-
-  public static create ({
-    context,
-    aggregate,
-    name,
-    data = {},
-    metadata
-  }: {
-    context: { name: string };
-    aggregate: { name: string; id: string };
-    name: string;
-    data: {};
-    metadata: {
-      causationId?: string;
-      correlationId?: string;
-      revision: { aggregate: number };
-      initiator: { user: { id: string; claims: { sub: string }}};
-    };
-  }): EventExternal {
-    if (
-      (metadata.causationId && !metadata.correlationId) ||
-      (!metadata.causationId && metadata.correlationId)
-    ) {
-      throw new Error('Causation id and correlation id must either be given both or none.');
-    }
-
-    const id = uuid();
-
-    const event = new EventExternal({
-      context,
-      aggregate,
-      name,
-      id,
-      data,
-      metadata: {
-        ...metadata,
-        timestamp: Date.now(),
-        isPublished: false,
-        causationId: metadata.causationId || id,
-        correlationId: metadata.correlationId || id,
-        revision: {
-          aggregate: metadata.revision.aggregate,
-          global: null
-        }
-      }
-    });
-
-    return event;
-  }
-
-  public static fromObject ({
-    context,
-    aggregate,
-    name,
-    id,
-    data,
-    metadata
-  }: {
-    context: { name: string };
-    aggregate: { name: string; id: string };
-    name: string;
-    id: string;
-    data: {};
-    metadata: {
-      timestamp: number;
-      isPublished: boolean;
-      causationId: string;
-      correlationId: string;
-      revision: { aggregate: number; global: number | null };
-      initiator: { user: { id: string; claims: { sub: string }}};
-    };
-  }): EventExternal {
-    const event = new EventExternal({
-      context,
-      aggregate,
-      name,
-      id,
-      data,
-      metadata
-    });
-
-    return event;
   }
 }
 

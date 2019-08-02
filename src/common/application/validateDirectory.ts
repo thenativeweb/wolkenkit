@@ -5,28 +5,26 @@ import Value from 'validate-value';
 
 const { access } = fs.promises;
 
-const transformTree = function (nodes: directoryTree.DirectoryTree[]): {
-  [key: string]: {};
-} {
-  if (!nodes) {
-    throw new Error('Nodes are missing.');
+interface ITransformedTree {
+  [key: string]: ITransformedTree;
+}
+
+const transformTree = function ({ tree }: {
+  tree: directoryTree.DirectoryTree;
+}): ITransformedTree {
+  const transformedTree: ITransformedTree = {};
+
+  if (!tree.children) {
+    return transformedTree;
   }
 
-  const result: {
-    [key: string]: {};
-  } = {};
+  for (const child of tree.children) {
+    const childName = path.basename(child.name, '.js');
 
-  for (const node of nodes) {
-    const name = path.basename(node.name, '.js');
-
-    if (!node.children) {
-      result[name] = {};
-      continue;
-    }
-    result[name] = transformTree(node.children);
+    transformedTree[childName] = transformTree({ tree: child });
   }
 
-  return result;
+  return transformedTree;
 };
 
 const validateDirectory = async function ({ directory }: {
@@ -40,7 +38,7 @@ const validateDirectory = async function ({ directory }: {
     extensions: /\.js$/u
   });
 
-  const transformedTree = transformTree([ tree ]);
+  const transformedTree = transformTree({ tree });
 
   const value = new Value({
     type: 'object',

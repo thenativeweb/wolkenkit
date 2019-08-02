@@ -1,11 +1,14 @@
 import defekt from '@offspring/defekt';
 
 const errors = defekt({
-  DispatchFailed: { code: 'EFOO' },
+  DispatchFailed: {},
+  EventUnknown: {},
   FileAlreadyExists: {},
   FileNotFound: {},
   ForwardFailed: {},
-  RequestFailed: {}
+  IdentifierMismatch: {},
+  RequestFailed: {},
+  TypeInvalid: {}
 });
 
 export default errors;

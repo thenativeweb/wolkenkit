@@ -1,3 +1,6 @@
+import { Dictionary } from '../../types/Dictionary';
+import { IAggregateIdentifier } from './types/IAggregateIdentifier';
+import { IContextIdentifier } from './types/IContextIdentifier';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
 
@@ -6,7 +9,7 @@ const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
 const value = new Value({
   type: 'object',
   properties: {
-    context: {
+    contextIdentifier: {
       type: 'object',
       properties: {
         name: { type: 'string', minLength: 1, format: 'alphanumeric' }
@@ -14,7 +17,7 @@ const value = new Value({
       required: [ 'name' ],
       additionalProperties: false
     },
-    aggregate: {
+    aggregateIdentifier: {
       type: 'object',
       properties: {
         name: { type: 'string', minLength: 1, format: 'alphanumeric' },
@@ -42,20 +45,20 @@ const value = new Value({
       additionalProperties: false
     }
   },
-  required: [ 'context', 'aggregate', 'name', 'id', 'data', 'metadata' ],
+  required: [ 'contextIdentifier', 'aggregateIdentifier', 'name', 'id', 'data', 'metadata' ],
   additionalProperties: false
 });
 
 class CommandExternal {
-  public context: { name: string };
+  public readonly contextIdentifier: IContextIdentifier;
 
-  public aggregate: { name: string; id: string }
+  public readonly aggregateIdentifier: IAggregateIdentifier;
 
-  public name: string;
+  public readonly name: string;
 
-  public id: string;
+  public readonly id: string;
 
-  public data: {};
+  public data: Dictionary<string, any>;
 
   public metadata: {
     timestamp: number;
@@ -64,22 +67,22 @@ class CommandExternal {
   };
 
   protected constructor ({
-    context,
-    aggregate,
+    contextIdentifier,
+    aggregateIdentifier,
     name,
     id,
     data,
     metadata
   }: {
-    context: { name: string };
-    aggregate: { name: string; id: string };
+    contextIdentifier: IContextIdentifier;
+    aggregateIdentifier: IAggregateIdentifier;
     name: string;
     id: string;
-    data: {};
+    data: Dictionary<string, any>;
     metadata: { timestamp: number; causationId: string; correlationId: string };
   }) {
-    this.context = { name: context.name };
-    this.aggregate = { name: aggregate.name, id: aggregate.id };
+    this.contextIdentifier = contextIdentifier;
+    this.aggregateIdentifier = aggregateIdentifier;
     this.name = name;
     this.id = id;
 
@@ -90,17 +93,17 @@ class CommandExternal {
   }
 
   public static create ({
-    context,
-    aggregate,
+    contextIdentifier,
+    aggregateIdentifier,
     name,
     data = {},
     metadata = {}
   }: {
-    context: { name: string };
-    aggregate: { name: string; id: string };
+    contextIdentifier: IContextIdentifier;
+    aggregateIdentifier: IAggregateIdentifier;
     name: string;
-    data: {};
-    metadata: { causationId?: string; correlationId?: string };
+    data?: Dictionary<string, any>;
+    metadata?: { causationId?: string; correlationId?: string };
   }): CommandExternal {
     if (
       (metadata.causationId && !metadata.correlationId) ||
@@ -112,8 +115,8 @@ class CommandExternal {
     const id = uuid();
 
     const command = new CommandExternal({
-      context,
-      aggregate,
+      contextIdentifier,
+      aggregateIdentifier,
       name,
       id,
       data,
@@ -127,29 +130,8 @@ class CommandExternal {
     return command;
   }
 
-  public static fromObject ({
-    context,
-    aggregate,
-    name,
-    id,
-    data,
-    metadata
-  }: {
-    context: { name: string };
-    aggregate: { name: string; id: string };
-    name: string;
-    id: string;
-    data: {};
-    metadata: { timestamp: number; causationId: string; correlationId: string };
-  }): CommandExternal {
-    const command = new CommandExternal({
-      context,
-      aggregate,
-      name,
-      id,
-      data,
-      metadata
-    });
+  public static deserialize (object: any): CommandExternal {
+    const command = new CommandExternal(object);
 
     return command;
   }
@@ -158,29 +140,25 @@ class CommandExternal {
     command: any;
     application: any;
   }): void {
-    try {
-      CommandExternal.fromObject(command);
-    } catch {
-      throw new Error('Malformed command.');
-    }
+    const deserializedCommand = CommandExternal.deserialize(command);
 
-    const context = application.commands.internal[command.context.name];
+    const context = application.commands.internal[deserializedCommand.contextIdentifier.name];
 
     if (!context) {
       throw new Error('Invalid context name.');
     }
 
-    const aggregate = context[command.aggregate.name];
+    const aggregate = context[deserializedCommand.aggregateIdentifier.name];
 
     if (!aggregate) {
       throw new Error('Invalid aggregate name.');
     }
 
-    if (!aggregate[command.name]) {
+    if (!aggregate[deserializedCommand.name]) {
       throw new Error('Invalid command name.');
     }
 
-    const { schema } = aggregate[command.name];
+    const { schema } = aggregate[deserializedCommand.name];
 
     if (!schema) {
       return;
@@ -188,7 +166,7 @@ class CommandExternal {
 
     const dataValue = new Value(schema);
 
-    dataValue.validate(command.data, { valueName: 'command.data' });
+    dataValue.validate(deserializedCommand.data, { valueName: 'command.data' });
   }
 }
 
