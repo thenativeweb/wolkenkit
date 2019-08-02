@@ -1,7 +1,14 @@
 import ApplicationCache from './ApplicationCache';
 import commonTags from 'common-tags';
-import extendEntries from './extendEntries';
+import { Dictionary } from '../../types/Dictionary';
+import extendApplicationConfiguration from './extendApplicationConfiguration';
 import getApplicationConfiguration from './getApplicationConfiguration';
+import { IApplicationConfiguration } from './types/IApplicationConfiguration';
+import { ICommandConfigurationExternal } from './types/ICommandConfigurationExternal';
+import { ICommandConfigurationInternal } from './types/ICommandConfigurationInternal';
+import { IEventConfigurationExternal } from './types/IEventConfigurationExternal';
+import { IEventConfigurationInternal } from './types/IEventConfigurationInternal';
+import { InitialStateConfiguration } from './types/InitialStateConfiguration';
 import validateApplicationConfiguration from './validateApplicationConfiguration';
 import validateDirectory from './validateDirectory';
 
@@ -10,59 +17,108 @@ const { stripIndent } = commonTags;
 class Application {
   private static cache = new ApplicationCache();
 
-  private constructor ({ entries }) {
-    if (!entries) {
-      throw new Error('Entries are missing.');
-    }
+  public readonly initialState: {
+    internal: Dictionary<string, Dictionary<string, InitialStateConfiguration>>;
+  }
 
+  public readonly commands: {
+    internal: Dictionary<string, Dictionary<string, Dictionary<string, ICommandConfigurationInternal>>>;
+    external: Dictionary<string, Dictionary<string, Dictionary<string, ICommandConfigurationExternal>>>;
+  }
+
+  public readonly events: {
+    internal: Dictionary<string, Dictionary<string, Dictionary<string, IEventConfigurationInternal>>>;
+    external: Dictionary<string, Dictionary<string, Dictionary<string, IEventConfigurationExternal>>>;
+  }
+
+  public readonly views: {
+    internal: Dictionary<string, Dictionary<string, Dictionary<string, Todo>>>;
+    external: Dictionary<string, Dictionary<string, Dictionary<string, Todo>>>;
+  }
+
+  public readonly flows: {
+    internal: Dictionary<string, Dictionary<string, Todo>>;
+  }
+
+  private constructor ({ configuration }: {
+    configuration: IApplicationConfiguration;
+  }) {
     this.initialState = { internal: {}};
     this.commands = { internal: {}, external: {}};
     this.events = { internal: {}, external: {}};
     this.views = { internal: {}, external: {}};
     this.flows = { internal: {}};
 
-    for (const [ contextName, contextDefinition ] of Object.entries(entries.server.domain)) {
-      this.initialState.internal[contextName] = {};
-      this.commands.internal[contextName] = {};
-      this.events.internal[contextName] = {};
+    for (const [ contextName, contextConfiguration ] of Object.entries(configuration.domain)) {
+      const initialState: {
+        internal: Dictionary<string, InitialStateConfiguration>;
+      } = { internal: {}};
+      const commands: {
+        internal: Dictionary<string, Dictionary<string, ICommandConfigurationInternal>>;
+        external: Dictionary<string, Dictionary<string, ICommandConfigurationExternal>>;
+      } = { internal: {}, external: {}};
+      const events: {
+        internal: Dictionary<string, Dictionary<string, IEventConfigurationInternal>>;
+        external: Dictionary<string, Dictionary<string, IEventConfigurationExternal>>;
+      } = { internal: {}, external: {}};
 
-      this.commands.external[contextName] = {};
-      this.events.external[contextName] = {};
-
-      for (const [ aggregateName, aggregateDefinition ] of Object.entries(contextDefinition)) {
-        this.initialState.internal[contextName][aggregateName] = aggregateDefinition.initialState;
-        this.commands.internal[contextName][aggregateName] = aggregateDefinition.commands;
-        this.events.internal[contextName][aggregateName] = aggregateDefinition.events;
-
-        this.commands.external[contextName][aggregateName] = {};
-        this.events.external[contextName][aggregateName] = {};
-
-        for (const [ commandName, commandDefinition ] of Object.entries(aggregateDefinition.commands)) {
-          let documentation;
-
-          if (commandDefinition.documentation) {
-            documentation = stripIndent(commandDefinition.documentation).trim();
-          }
-
-          const { schema } = commandDefinition;
-
-          this.commands.internal[contextName][aggregateName][commandName].documentation = documentation;
-          this.commands.external[contextName][aggregateName][commandName] = { documentation, schema };
+      for (const [ aggregateName, aggregateConfiguration ] of Object.entries(contextConfiguration)) {
+        if (!aggregateConfiguration) {
+          continue;
         }
 
-        for (const [ eventName, eventDefinition ] of Object.entries(aggregateDefinition.events)) {
-          let documentation;
+        initialState.internal[aggregateName] = aggregateConfiguration.initialState;
+        commands.internal[aggregateName] = aggregateConfiguration.commands;
+        commands.external[aggregateName] = {};
+        events.internal[aggregateName] = aggregateConfiguration.events;
+        events.external[aggregateName] = {};
 
-          if (eventDefinition.documentation) {
-            documentation = stripIndent(eventDefinition.documentation).trim();
+        for (const [ commandName, commandConfiguration ] of Object.entries(aggregateConfiguration.commands)) {
+          if (!commandConfiguration) {
+            continue;
+          }
+          if (!commands.internal[aggregateName]) {
+            continue;
+          }
+          if (!commands.internal[aggregateName][commandName]) {
+            continue;
           }
 
-          const { schema } = eventDefinition;
+          let documentation;
+
+          if (commandConfiguration.documentation) {
+            documentation = stripIndent(commandConfiguration.documentation).trim();
+          }
+
+          const { schema } = commandConfiguration;
+
+          commands.internal[aggregateName][commandName].documentation = documentation;
+          commands.external[aggregateName][commandName] = { documentation, schema };
+        }
+
+        for (const [ eventName, eventConfiguration ] of Object.entries(aggregateConfiguration.events)) {
+          if (!eventConfiguration) {
+            continue;
+          }
+
+          let documentation;
+
+          if (eventConfiguration.documentation) {
+            documentation = stripIndent(eventConfiguration.documentation).trim();
+          }
+
+          const { schema } = eventConfiguration;
 
           this.events.internal[contextName][aggregateName][eventName].documentation = documentation;
           this.events.external[contextName][aggregateName][eventName] = { documentation, schema };
         }
       }
+
+      this.initialState.internal[contextName] = initialState.internal;
+      this.commands.internal[contextName] = commands.internal;
+      this.commands.external[contextName] = commands.external;
+      this.events.internal[contextName] = events.internal;
+      this.events.external[contextName] = events.external;
     }
 
     for (const [ modelType, modelTypeDefinition ] of Object.entries(entries.server.views)) {
@@ -98,14 +154,11 @@ class Application {
     } catch {
       await validateDirectory({ directory });
 
-      const applicationConfiguration =
-        await getApplicationConfiguration({ directory });
-      const validatedApplicationConfiguration =
-        validateApplicationConfiguration({ applicationConfiguration });
-      const extendedEntries =
-        extendEntries({ entries: validatedApplicationConfiguration });
+      const applicationConfigurationWeak = await getApplicationConfiguration({ directory });
+      const applicationConfiguration = validateApplicationConfiguration({ applicationConfiguration: applicationConfigurationWeak });
+      const applicationConfigurationExtended = extendApplicationConfiguration({ applicationConfiguration });
 
-      const application = new Application({ entries: extendedEntries });
+      const application = new Application({ configuration: applicationConfigurationExtended });
 
       Application.cache.set({ directory, application });
 

@@ -1,3 +1,4 @@
+import { IApplicationConfigurationWeak } from './types/IApplicationConfigurationWeak';
 import path from 'path';
 import requireDir from 'require-dir';
 

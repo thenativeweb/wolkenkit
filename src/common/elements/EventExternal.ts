@@ -155,7 +155,7 @@ class EventExternal {
     contextIdentifier: IContextIdentifier;
     aggregateIdentifier: IAggregateIdentifier;
     name: string;
-    data: {};
+    data: Dictionary<string, any>;
     metadata: {
       causationId?: string;
       correlationId?: string;

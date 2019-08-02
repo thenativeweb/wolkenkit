@@ -7,17 +7,17 @@ import { Dictionary } from '../../types/Dictionary';
 import errors from '../errors';
 import EventExternal from './EventExternal';
 import EventInternal from './EventInternal';
-import { IEventConfiguration } from '../application/types/IEventConfiguration';
+import { IEventConfigurationInternal } from '../application/types/IEventConfigurationInternal';
 import Value from 'validate-value';
 
 class AggregateApiForCommands extends AggregateApiForReadOnly {
-  public readonly eventConfigurations: Dictionary<string, IEventConfiguration>;
+  public readonly eventConfigurations: Dictionary<string, IEventConfigurationInternal>;
 
   public readonly command: CommandInternal;
 
   public constructor ({ aggregate, eventConfigurations, command }: {
     aggregate: Aggregate;
-    eventConfigurations: Dictionary<string, IEventConfiguration>;
+    eventConfigurations: Dictionary<string, IEventConfigurationInternal>;
     command: CommandInternal;
   }) {
     super({ aggregate });
