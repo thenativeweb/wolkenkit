@@ -4,8 +4,8 @@ const getEnvironmentVariables = function <T extends {
   [ key: string ]: any;
 }> (
   requiredEnvironmentVariables: T
-): { [key in keyof T]: T[key] } {
-  const environmentVariables: Partial<{ [key in keyof T]: T[key] }> = {};
+): {[ key in keyof T ]: T[key] } {
+  const environmentVariables: Partial<{[ key in keyof T ]: T[key]}> = {};
 
   /* eslint-disable guard-for-in */
   for (const name in requiredEnvironmentVariables) {

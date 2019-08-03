@@ -1,8 +1,8 @@
 import Application from './Application';
-import { Dictionary } from '../../types/Dictionary';
+import { IDictionary } from '../../types/IDictionary';
 
 class ApplicationCache {
-  private applications: Dictionary<string, Application>;
+  private applications: IDictionary<Application>;
 
   public constructor () {
     this.applications = {};

@@ -1,9 +1,8 @@
-import _ from 'lodash';
 import ip from './ip';
-import * as dns from 'dns';
+import { promises as dns, LookupAddress } from 'dns';
+import { isEqual, uniqWith } from 'lodash';
 
-const { isEqual, uniqWith } = _;
-const { lookup } = dns.promises;
+const { lookup } = dns;
 
 const getIpAddresses = async function (
   hostOrIp: string
@@ -14,7 +13,7 @@ const getIpAddresses = async function (
 
   const addresses = await lookup(hostOrIp, { all: true });
 
-  const mappedAddresses = addresses.map((address): dns.LookupAddress => ({
+  const mappedAddresses = addresses.map((address): LookupAddress => ({
     address: address.address,
     family: address.family
   }));

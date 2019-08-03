@@ -1,6 +1,6 @@
-import { Dictionary } from '../../types/Dictionary';
 import { IAggregateIdentifier } from './types/IAggregateIdentifier';
 import { IContextIdentifier } from './types/IContextIdentifier';
+import { IDictionary } from '../../types/IDictionary';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
 
@@ -58,7 +58,7 @@ class CommandExternal {
 
   public readonly id: string;
 
-  public data: Dictionary<string, any>;
+  public data: IDictionary<any>;
 
   public metadata: {
     timestamp: number;
@@ -78,7 +78,7 @@ class CommandExternal {
     aggregateIdentifier: IAggregateIdentifier;
     name: string;
     id: string;
-    data: Dictionary<string, any>;
+    data: IDictionary<any>;
     metadata: { timestamp: number; causationId: string; correlationId: string };
   }) {
     this.contextIdentifier = contextIdentifier;
@@ -102,7 +102,7 @@ class CommandExternal {
     contextIdentifier: IContextIdentifier;
     aggregateIdentifier: IAggregateIdentifier;
     name: string;
-    data?: Dictionary<string, any>;
+    data?: IDictionary<any>;
     metadata?: { causationId?: string; correlationId?: string };
   }): CommandExternal {
     if (

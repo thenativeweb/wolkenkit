@@ -3,7 +3,7 @@ import AggregateApiForEvents from './AggregateApiForEvents';
 import AggregateApiForReadOnly from './AggregateApiForReadOnly';
 import { cloneDeep } from 'lodash';
 import CommandInternal from './CommandInternal';
-import { Dictionary } from '../../types/Dictionary';
+import { IDictionary } from '../../types/IDictionary';
 import errors from '../errors';
 import EventExternal from './EventExternal';
 import EventInternal from './EventInternal';
@@ -11,13 +11,13 @@ import { IEventConfigurationInternal } from '../application/types/IEventConfigur
 import Value from 'validate-value';
 
 class AggregateApiForCommands extends AggregateApiForReadOnly {
-  public readonly eventConfigurations: Dictionary<string, IEventConfigurationInternal>;
+  public readonly eventConfigurations: IDictionary<IEventConfigurationInternal>;
 
   public readonly command: CommandInternal;
 
   public constructor ({ aggregate, eventConfigurations, command }: {
     aggregate: Aggregate;
-    eventConfigurations: Dictionary<string, IEventConfigurationInternal>;
+    eventConfigurations: IDictionary<IEventConfigurationInternal>;
     command: CommandInternal;
   }) {
     super({ aggregate });
@@ -26,7 +26,7 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
     this.command = command;
   }
 
-  public publishEvent (eventName: string, data: Dictionary<string, any>): void {
+  public publishEvent (eventName: string, data: IDictionary<any>): void {
     const { aggregate } = this;
     const contextName = aggregate.contextIdentifier.name;
     const aggregateName = aggregate.name;

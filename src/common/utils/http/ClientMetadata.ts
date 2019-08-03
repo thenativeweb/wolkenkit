@@ -1,18 +1,18 @@
-import { Dictionary } from '../../../types/Dictionary';
+import { IDictionary } from '../../../types/IDictionary';
 
 class ClientMetadata {
   public token: string;
 
-  public user: { id: string; claims: Dictionary<string, any> };
+  public user: { id: string; claims: IDictionary<any> };
 
   public ip: string;
 
   public constructor ({ req }: {
     req: {
       token: string;
-      user: { id: string; claims: Dictionary<string, any> };
+      user: { id: string; claims: IDictionary<any> };
       connection: { remoteAddress: string };
-      headers: Dictionary<string, string>;
+      headers: IDictionary<string>;
     };
   }) {
     this.token = req.token;

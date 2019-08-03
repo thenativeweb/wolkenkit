@@ -1,11 +1,11 @@
 import ApplicationCache from './ApplicationCache';
 import commonTags from 'common-tags';
-import { Dictionary } from '../../types/Dictionary';
 import extendApplicationConfiguration from './extendApplicationConfiguration';
 import getApplicationConfiguration from './getApplicationConfiguration';
 import { IApplicationConfiguration } from './types/IApplicationConfiguration';
 import { ICommandConfigurationExternal } from './types/ICommandConfigurationExternal';
 import { ICommandConfigurationInternal } from './types/ICommandConfigurationInternal';
+import { IDictionary } from '../../types/IDictionary';
 import { IEventConfigurationExternal } from './types/IEventConfigurationExternal';
 import { IEventConfigurationInternal } from './types/IEventConfigurationInternal';
 import { InitialStateConfiguration } from './types/InitialStateConfiguration';
@@ -19,26 +19,26 @@ class Application {
   private static cache = new ApplicationCache();
 
   public readonly initialState: {
-    internal: Dictionary<string, Dictionary<string, InitialStateConfiguration>>;
+    internal: IDictionary<IDictionary<InitialStateConfiguration>>;
   }
 
   public readonly commands: {
-    internal: Dictionary<string, Dictionary<string, Dictionary<string, ICommandConfigurationInternal>>>;
-    external: Dictionary<string, Dictionary<string, Dictionary<string, ICommandConfigurationExternal>>>;
+    internal: IDictionary<IDictionary<IDictionary<ICommandConfigurationInternal>>>;
+    external: IDictionary<IDictionary<IDictionary<ICommandConfigurationExternal>>>;
   }
 
   public readonly events: {
-    internal: Dictionary<string, Dictionary<string, Dictionary<string, IEventConfigurationInternal>>>;
-    external: Dictionary<string, Dictionary<string, Dictionary<string, IEventConfigurationExternal>>>;
+    internal: IDictionary<IDictionary<IDictionary<IEventConfigurationInternal>>>;
+    external: IDictionary<IDictionary<IDictionary<IEventConfigurationExternal>>>;
   }
 
   public readonly views: {
-    internal: Dictionary<string, Dictionary<string, Dictionary<string, Todo>>>;
-    external: Dictionary<string, Dictionary<string, Dictionary<string, Todo>>>;
+    internal: IDictionary<IDictionary<IDictionary<Todo>>>;
+    external: IDictionary<IDictionary<IDictionary<Todo>>>;
   }
 
   public readonly flows: {
-    internal: Dictionary<string, Dictionary<string, Todo>>;
+    internal: IDictionary<IDictionary<Todo>>;
   }
 
   private constructor ({ configuration }: {
@@ -52,15 +52,15 @@ class Application {
 
     for (const [ contextName, contextConfiguration ] of Object.entries(configuration.domain)) {
       const initialState: {
-        internal: Dictionary<string, InitialStateConfiguration>;
+        internal: IDictionary<InitialStateConfiguration>;
       } = { internal: {}};
       const commands: {
-        internal: Dictionary<string, Dictionary<string, ICommandConfigurationInternal>>;
-        external: Dictionary<string, Dictionary<string, ICommandConfigurationExternal>>;
+        internal: IDictionary<IDictionary<ICommandConfigurationInternal>>;
+        external: IDictionary<IDictionary<ICommandConfigurationExternal>>;
       } = { internal: {}, external: {}};
       const events: {
-        internal: Dictionary<string, Dictionary<string, IEventConfigurationInternal>>;
-        external: Dictionary<string, Dictionary<string, IEventConfigurationExternal>>;
+        internal: IDictionary<IDictionary<IEventConfigurationInternal>>;
+        external: IDictionary<IDictionary<IEventConfigurationExternal>>;
       } = { internal: {}, external: {}};
 
       for (const [ aggregateName, aggregateConfiguration ] of Object.entries(contextConfiguration)) {
@@ -120,8 +120,8 @@ class Application {
       }
 
       const views: {
-        internal: Dictionary<string, Dictionary<string, Todo>>;
-        external: Dictionary<string, Dictionary<string, Todo>>;
+        internal: IDictionary<IDictionary<Todo>>;
+        external: IDictionary<IDictionary<Todo>>;
       } = { internal: {}, external: {}};
 
       for (const [ modelName, modelDefinition ] of Object.entries(modelTypeDefinition)) {

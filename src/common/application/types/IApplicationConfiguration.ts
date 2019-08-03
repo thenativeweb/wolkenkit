@@ -1,5 +1,5 @@
-import { Dictionary } from '../../../types/Dictionary';
 import { ICommandConfigurationInternal } from './ICommandConfigurationInternal';
+import { IDictionary } from '../../../types/IDictionary';
 import { IEventConfigurationInternal } from './IEventConfigurationInternal';
 import { InitialStateConfiguration } from './InitialStateConfiguration';
 
@@ -8,8 +8,8 @@ export interface IApplicationConfiguration {
     [contextName: string]: {
       [aggregateName: string]: {
         initialState: InitialStateConfiguration;
-        commands: Dictionary<string, ICommandConfigurationInternal>;
-        events: Dictionary<string, IEventConfigurationInternal>;
+        commands: IDictionary<ICommandConfigurationInternal>;
+        events: IDictionary<IEventConfigurationInternal>;
       };
     };
   };

@@ -1,9 +1,9 @@
 import directoryTree from 'directory-tree';
-import fs from 'fs';
 import path from 'path';
 import Value from 'validate-value';
+import { constants, promises as fs } from 'fs';
 
-const { access } = fs.promises;
+const { access } = fs;
 
 interface ITransformedTree {
   [key: string]: ITransformedTree;
@@ -32,7 +32,7 @@ const validateDirectory = async function ({ directory }: {
 }): Promise<void> {
   const serverDirectory = path.join(directory, 'server');
 
-  await access(serverDirectory, fs.constants.R_OK);
+  await access(serverDirectory, constants.R_OK);
 
   const tree = directoryTree(serverDirectory, {
     extensions: /\.js$/u

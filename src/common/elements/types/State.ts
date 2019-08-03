@@ -1,3 +1,3 @@
-import { Dictionary } from '../../../types/Dictionary';
+import { IDictionary } from '../../../types/IDictionary';
 
-export type State = Dictionary<string, any>;
+export type State = IDictionary<any>;

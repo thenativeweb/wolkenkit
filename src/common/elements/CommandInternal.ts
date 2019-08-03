@@ -1,8 +1,8 @@
 import Application from '../application';
 import CommandExternal from './CommandExternal';
-import { Dictionary } from '../../types/Dictionary';
 import { IAggregateIdentifier } from './types/IAggregateIdentifier';
 import { IContextIdentifier } from './types/IContextIdentifier';
+import { IDictionary } from '../../types/IDictionary';
 import { IUser } from './types/IUser';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
@@ -132,7 +132,7 @@ class CommandInternal extends CommandExternal {
     aggregateIdentifier: IAggregateIdentifier;
     name: string;
     id: string;
-    data: Dictionary<string, any>;
+    data: IDictionary<any>;
     metadata: { timestamp: number; causationId: string; correlationId: string };
     annotations: {
       client: { token: string; user: IUser; ip: string };
@@ -156,7 +156,7 @@ class CommandInternal extends CommandExternal {
     contextIdentifier: IContextIdentifier;
     aggregateIdentifier: IAggregateIdentifier;
     name: string;
-    data?: Dictionary<string, any>;
+    data?: IDictionary<any>;
     metadata?: { causationId?: string; correlationId?: string };
     annotations: {
       client: { token: string; user: IUser; ip: string };

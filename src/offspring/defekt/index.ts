@@ -8,7 +8,7 @@ export interface ICustomError extends Error {
 }
 
 type ErrorConstructors<T> = {
-  [key in keyof T]: new(message?: string, cause?: Error) => ICustomError
+  [ key in keyof T ]: new(message?: string, cause?: Error) => ICustomError
 };
 
 const defekt = function <T extends {
