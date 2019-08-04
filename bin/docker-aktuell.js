@@ -62,7 +62,8 @@ async function readDockerFile(file) {
     try {
       await fs.readFile(file, (err, data) => {
         const patternFrom = /(FROM\s)(.+?):(.+?)\n/;
-        buntstift.info(patternFrom.exec(data));
+        const baseImage = patternFrom.exec(data);
+        buntstift.info(baseImage[3]);
       });
     } catch (err) {
     }
