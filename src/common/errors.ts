@@ -7,6 +7,7 @@ const errors = defekt({
   FileNotFound: {},
   ForwardFailed: {},
   IdentifierMismatch: {},
+  InvalidOperation: {},
   RequestFailed: {},
   TypeInvalid: {}
 });
