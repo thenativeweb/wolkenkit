@@ -1,32 +1,22 @@
-import _ from 'lodash';
-import uuid from 'uuidv4';
+'use strict';
 
-const { minBy } = _;
+const minBy = require('lodash/minBy'),
+      uuid = require('uuidv4');
 
 class Queuestore {
-  private database: {
-    queues: string[];
-  } = { queues: []};
-
-  private processingDuration: number = 30 * 1000;
-
-  private getProcessingUntil (): number {
+  getProcessingUntil () {
     const processingUntil = Date.now() + this.processingDuration;
 
     return processingUntil;
   }
 
-  public async initialize ({ processingDuration }: {
-    processingDuration?: number;
-  } = {}): Promise<void> {
+  async initialize ({ processingDuration = 30 * 1000 } = {}) {
     this.database = { queues: []};
 
-    if (processingDuration) {
-      this.processingDuration = processingDuration;
-    }
+    this.processingDuration = processingDuration;
   }
 
-  public async enqueueItem ({ item }): Promise<void> {
+  async enqueueItem ({ item }) {
     if (!item) {
       throw new Error('Item is missing.');
     }
@@ -51,26 +41,24 @@ class Queuestore {
 
     queue.items.push(item);
 
-    const [oldestItem] = queue.items;
+    const [ oldestItem ] = queue.items;
 
     queue.waitingSince = oldestItem.metadata.timestamp;
   }
 
-  public async getNextUnprocessedItem (): Promise<void> {
+  async getNextUnprocessedItem () {
     const { queues } = this.database;
 
-    const unprocessedQueues = queues.filter(
-      queueCandidate =>
-        queueCandidate.processingUntil < Date.now() &&
-        queueCandidate.items.length > 0
-    );
+    const unprocessedQueues = queues.filter(queueCandidate =>
+      queueCandidate.processingUntil < Date.now() &&
+      queueCandidate.items.length > 0);
 
     if (unprocessedQueues.length === 0) {
       throw new Error('No unprocessed item found.');
     }
 
     const unprocessedQueue = minBy(unprocessedQueues, 'waitingSince');
-    const [unprocessedItem] = unprocessedQueue.items;
+    const [ unprocessedItem ] = unprocessedQueue.items;
 
     if (!unprocessedItem) {
       throw new Error('No unprocessed item found.');
@@ -84,7 +72,7 @@ class Queuestore {
     return { unprocessedItem, token };
   }
 
-  public async extendItemProcessingTime ({ item, token }): Promise<void> {
+  async extendItemProcessingTime ({ item, token }) {
     if (!item) {
       throw new Error('Item is missing.');
     }
@@ -95,9 +83,8 @@ class Queuestore {
     const { queues } = this.database;
     const aggregateId = item.aggregate.id;
 
-    const queue = queues.find(
-      queueCandidate => queueCandidate.aggregateId === aggregateId
-    );
+    const queue = queues.find(queueCandidate =>
+      queueCandidate.aggregateId === aggregateId);
 
     if (!queue) {
       throw new Error('Item not found.');
@@ -109,7 +96,7 @@ class Queuestore {
     queue.processingUntil = this.getProcessingUntil();
   }
 
-  public async dequeueItem ({ item, token }): Promise<void> {
+  async dequeueItem ({ item, token }) {
     if (!item) {
       throw new Error('Item is missing.');
     }
@@ -120,9 +107,8 @@ class Queuestore {
     const { queues } = this.database;
     const aggregateId = item.aggregate.id;
 
-    const queueIndex = queues.findIndex(
-      queueCandidate => queueCandidate.aggregateId === aggregateId
-    );
+    const queueIndex = queues.findIndex(queueCandidate =>
+      queueCandidate.aggregateId === aggregateId);
 
     if (queueIndex === -1) {
       throw new Error('Item not found.');
@@ -142,16 +128,16 @@ class Queuestore {
       return;
     }
 
-    const [oldestItem] = queue.items[0];
+    const [ oldestItem ] = queue.items[0];
 
     queue.waitingSince = oldestItem.metadata.timestamp;
     queue.processingUntil = 0;
     queue.token = uuid.empty();
   }
 
-  public async destroy (): Promise<void> {
+  async destroy () {
     this.database = { queues: []};
   }
 }
 
-export default Queuestore;
+module.exports = Queuestore;
