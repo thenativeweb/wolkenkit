@@ -1,12 +1,12 @@
 import AggregateApiForEvents from './AggregateApiForEvents';
+import { AggregateIdentifier } from './AggregateIdentifier';
 import Application from '../application';
+import { ContextIdentifier } from './ContextIdentifier';
 import errors from '../errors';
 import EventExternal from './EventExternal';
 import EventInternal from './EventInternal';
-import { AggregateIdentifier } from './AggregateIdentifier';
-import { ContextIdentifier } from './ContextIdentifier';
-import { Snapshot } from '../../stores/eventstore/Snapshot';
 import { Readable } from 'stream';
+import { Snapshot } from '../../stores/eventstore/Snapshot';
 import { State } from './State';
 import { cloneDeep, get } from 'lodash';
 
@@ -44,6 +44,10 @@ class Aggregate {
   public applySnapshot ({ snapshot }: {
     snapshot: Snapshot;
   }): void {
+    if (this.id !== snapshot.aggregateIdentifier.id) {
+      throw new errors.IdentifierMismatch(`Failed to apply snapshot '${snapshot.aggregateIdentifier.name}.${snapshot.aggregateIdentifier.id}' to aggregate '${this.contextIdentifier.name}.${this.name}'.`);
+    }
+
     this.state = snapshot.state;
     this.revision = snapshot.revision;
   }
