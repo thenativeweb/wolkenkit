@@ -29,12 +29,11 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
   public publishEvent (eventName: string, data: Dictionary<any>): void {
     const { aggregate } = this;
     const contextName = aggregate.contextIdentifier.name;
-    const aggregateName = aggregate.name;
 
     const eventConfiguration = this.eventConfigurations[eventName];
 
     if (!eventConfiguration) {
-      throw new errors.EventUnknown(`Failed to publish unknown event '${eventName}' in '${contextName}.${aggregateName}'.`);
+      throw new errors.EventUnknown(`Failed to publish unknown event '${eventName}' in '${contextName}.${aggregate.identifier.name}'.`);
     }
 
     const { handle, schema } = eventConfiguration;
@@ -47,7 +46,7 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
 
     const eventExternal = EventExternal.create({
       contextIdentifier: aggregate.contextIdentifier,
-      aggregateIdentifier: { name: aggregateName, id: aggregate.id },
+      aggregateIdentifier: aggregate.identifier,
       name: eventName,
       data,
       metadata: {

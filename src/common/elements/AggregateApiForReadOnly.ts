@@ -12,7 +12,7 @@ class AggregateApiForReadOnly {
     aggregate: Aggregate;
   }) {
     this.aggregate = aggregate;
-    this.id = aggregate.id;
+    this.id = aggregate.identifier.id;
     this.state = aggregate.state;
   }
 

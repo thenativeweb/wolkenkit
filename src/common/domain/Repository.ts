@@ -1,25 +1,32 @@
-const { AggregateReadable, AggregateWriteable } = require('../elements');
+import Aggregate from '../elements/Aggregate';
+import { AggregateIdentifier } from '../elements/AggregateIdentifier';
+import Application from '../application/Application';
+import { ContextIdentifier } from '../elements/ContextIdentifier';
+import errors from '../errors';
+import { Eventstore } from '../../stores/eventstore/Eventstore';
 
 class Repository {
-  constructor ({ application, eventstore }) {
-    if (!application) {
-      throw new Error('Application is missing.');
-    }
-    if (!eventstore) {
-      throw new Error('Event store is missing.');
-    }
+  protected application: Application;
 
+  protected eventstore: Eventstore;
+
+  public constructor ({ application, eventstore }: {
+    application: Application;
+    eventstore: Eventstore;
+  }) {
     this.application = application;
     this.eventstore = eventstore;
   }
 
-  async replayAggregate ({ aggregate }) {
+  public async replayAggregate ({ aggregate }: {
+    aggregate: Aggregate;
+  }): Promise<Aggregate> {
     if (!aggregate) {
       throw new Error('Aggregate is missing.');
     }
 
     const snapshot = await this.eventstore.getSnapshot({
-      aggregateId: aggregate.instance.id
+      aggregateIdentifier: aggregate.identifier
     });
 
     let fromRevision = 1;
@@ -30,7 +37,7 @@ class Repository {
     }
 
     const eventStream = await this.eventstore.getEventStream({
-      aggregateId: aggregate.instance.id,
+      aggregateIdentifier: aggregate.identifier,
       fromRevision
     });
 
@@ -42,21 +49,26 @@ class Repository {
     return aggregate;
   }
 
-  async loadAggregate ({ contextName, aggregateName, aggregateId }) {
-    if (!contextName) {
-      throw new Error('Context name is missing.');
-    }
-    if (!aggregateName) {
-      throw new Error('Aggregate name is missing.');
-    }
-    if (!aggregateId) {
-      throw new Error('Aggregate id is missing.');
+  public async loadAggregate ({ contextIdentifier, aggregateIdentifier }: {
+    contextIdentifier: ContextIdentifier;
+    aggregateIdentifier: AggregateIdentifier;
+  }): Promise<Aggregate> {
+    const contextState = this.application.initialState.internal[contextIdentifier.name];
+
+    if (!contextState) {
+      throw new errors.IdentifierMismatch();
     }
 
-    const aggregate = new AggregateReadable({
-      application: this.application,
-      context: { name: contextName },
-      aggregate: { name: aggregateName, id: aggregateId }
+    const initialState = contextState[aggregateIdentifier.name];
+
+    if (!initialState) {
+      throw new errors.IdentifierMismatch();
+    }
+
+    const aggregate = new Aggregate({
+      contextIdentifier,
+      aggregateIdentifier,
+      initialState
     });
 
     const replayedAggregate = await this.replayAggregate({ aggregate });
@@ -72,7 +84,7 @@ class Repository {
     const aggregate = new AggregateWriteable({
       application: this.application,
       context: { name: command.context.name },
-      aggregate: { name: command.aggregate.name, id: command.aggregate.id },
+      aggregate: command.aggregateIdentifier,
       command
     });
 
