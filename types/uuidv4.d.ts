@@ -4,10 +4,13 @@ declare function uuidv4(): string;
 declare module uuidv4 {
   function empty(): string;
 
+  function is(value: string): boolean;
+
+  function fromString(text: string): string;
+
   const regex: {
-    v4: {
-      toString(): string;
-    };
+    v4: RegExp;
+    v5: RegExp;
   };
 }
 /* eslint-enable no-redeclare */
