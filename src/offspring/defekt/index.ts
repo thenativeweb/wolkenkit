@@ -1,6 +1,6 @@
 import humanizeString from 'humanize-string';
 
-export interface ICustomError extends Error {
+export interface CustomError extends Error {
   name: string;
   code: string;
   message: string;
@@ -8,7 +8,7 @@ export interface ICustomError extends Error {
 }
 
 type ErrorConstructors<T> = {
-  [ key in keyof T ]: new(message?: string, cause?: Error) => ICustomError
+  [ key in keyof T ]: new(message?: string, cause?: Error) => CustomError
 };
 
 const defekt = function <T extends {
@@ -21,7 +21,7 @@ const defekt = function <T extends {
     const errorDefinition = errorDefinitions[errorName];
     const { code = `E${errorName.toUpperCase()}` } = errorDefinition;
 
-    errors[errorName] = class extends Error implements ICustomError {
+    errors[errorName] = class extends Error implements CustomError {
       public name: string;
 
       public code: string;
