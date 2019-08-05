@@ -11,8 +11,6 @@ const getApplicationConfiguration = async function ({ directory }: {
 
   const { domain, views, flows }: ApplicationConfigurationWeak = entries as any;
 
-  const transformedEntries: Partial<ApplicationConfigurationWeak> = {};
-
   // If an index.js file is given inside of an aggregate, list or flow, use it
   // instead of the individual files.
   for (const context of Object.values(domain)) {
@@ -45,7 +43,7 @@ const getApplicationConfiguration = async function ({ directory }: {
     }
   }
 
-  return transformedEntries as ApplicationConfigurationWeak;
+  return entries as ApplicationConfigurationWeak;
 };
 
 export default getApplicationConfiguration;
