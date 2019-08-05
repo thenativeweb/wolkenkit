@@ -5,7 +5,7 @@ import { PassThrough } from 'stream';
 import { Snapshot } from './Snapshot';
 
 // All PassThrough streams here emit objects of type EventExternal.
-export interface EventStore {
+export interface Eventstore {
   initialize: () => Promise<void>;
   destroy: () => Promise<void>;
 

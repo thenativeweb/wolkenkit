@@ -2,12 +2,12 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import errors from '../../../common/errors';
 import EventExternal from '../../../common/elements/EventExternal';
 import EventInternal from '../../../common/elements/EventInternal';
-import { EventStore } from '../EventStore';
+import { Eventstore } from '../Eventstore';
 import omitByDeep from '../../../common/utils/omitByDeep';
 import { PassThrough } from 'stream';
 import { Snapshot } from '../Snapshot';
 
-class InMemoryEventStore implements EventStore {
+class InMemoryEventstore implements Eventstore {
   protected database: {
     events: EventExternal[];
     snapshots: Snapshot[];
@@ -144,11 +144,11 @@ class InMemoryEventStore implements EventStore {
     );
 
     if (indexForSnapshot !== -1) {
-      const aggregateId = committedEvents[indexForSnapshot].aggregateIdentifier.id;
+      const { aggregateIdentifier } = committedEvents[indexForSnapshot];
       const { aggregate: revisionAggregate } = committedEvents[indexForSnapshot].metadata.revision;
       const { state } = committedEvents[indexForSnapshot].annotations;
 
-      await this.saveSnapshot({ aggregateId, revision: revisionAggregate, state });
+      await this.saveSnapshot({ snapshot: { aggregateIdentifier, revision: revisionAggregate, state }});
     }
 
     return committedEvents;
@@ -247,4 +247,4 @@ class InMemoryEventStore implements EventStore {
   }
 }
 
-export default InMemoryEventStore;
+export default InMemoryEventstore;
