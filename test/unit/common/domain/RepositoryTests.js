@@ -1,54 +1,53 @@
-'use strict';
+import Aggregate from '../../../../src/common/elements/Aggregate';
+import Application from '../../../../src/common/application/Application';
+import assert from 'assertthat';
+import cloneDeep from 'lodash/cloneDeep';
+import CommandInternal from '../../../../src/common/elements/CommandInternal';
+import EventInternal from '../../../../src/common/elements/EventInternal';
+import InMemoryEventstore from '../../../../src/stores/eventstore/InMemory';
+import Repository from '../../../../src/common/domain/Repository';
+import toArray from 'streamtoarray';
+import updateInitialState from '../../../shared/applications/valid/updateInitialState';
+import uuid from 'uuidv4';
 
-const assert = require('assertthat'),
-      cloneDeep = require('lodash/cloneDeep'),
-      toArray = require('streamtoarray'),
-      uuid = require('uuidv4');
-
-const { Application } = require('../../../../common/application'),
-      { AggregateReadable, AggregateWriteable, CommandInternal, EventInternal } = require('../../../../common/elements'),
-      { InMemory } = require('../../../../stores/eventstore'),
-      { Repository } = require('../../../../common/domain'),
-      updateInitialState = require('../../../shared/applications/valid/updateInitialState');
-
-suite('Repository', () => {
+suite('Repository', (): void => {
   let application,
       eventstore;
 
-  setup(async () => {
+  setup(async (): Promise<void> => {
     const directory = await updateInitialState();
 
     application = await Application.load({ directory });
 
-    eventstore = new InMemory();
+    eventstore = new InMemoryEventstore();
     await eventstore.initialize();
   });
 
-  teardown(async () => {
+  teardown(async (): Promise<void> => {
     await eventstore.destroy();
   });
 
-  test('is a function.', async () => {
+  test('is a function.', async (): Promise<void> => {
     assert.that(Repository).is.ofType('function');
   });
 
-  test('throws an error if application is missing.', async () => {
-    assert.that(() => {
+  test('throws an error if application is missing.', async (): Promise<void> => {
+    assert.that((): void => {
       /* eslint-disable no-new */
       new Repository({ eventstore });
       /* eslint-enable no-new */
     }).is.throwing('Application is missing.');
   });
 
-  test('throws an error if event store is missing.', async () => {
-    assert.that(() => {
+  test('throws an error if event store is missing.', async (): Promise<void> => {
+    assert.that((): void => {
       /* eslint-disable no-new */
       new Repository({ application });
       /* eslint-enable no-new */
     }).is.throwing('Event store is missing.');
   });
 
-  suite('instance', () => {
+  suite('instance', (): void => {
     let aggregate,
         command,
         repository;
@@ -75,18 +74,18 @@ suite('Repository', () => {
       });
     });
 
-    suite('saveAggregate', () => {
-      test('is a function.', async () => {
+    suite('saveAggregate', (): void => {
+      test('is a function.', async (): Promise<void> => {
         assert.that(repository.saveAggregate).is.ofType('function');
       });
 
-      test('throws an error if aggregate is missing.', async () => {
-        await assert.that(async () => {
+      test('throws an error if aggregate is missing.', async (): Promise<void> => {
+        await assert.that(async (): Promise<void> => {
           await repository.saveAggregate({});
         }).is.throwingAsync('Aggregate is missing.');
       });
 
-      test('does nothing when there are no uncommitted events.', async () => {
+      test('does nothing when there are no uncommitted events.', async (): Promise<void> => {
         await repository.saveAggregate({ aggregate });
 
         const eventStream = await eventstore.getEventStream({ aggregateId: aggregate.instance.id });
@@ -95,7 +94,7 @@ suite('Repository', () => {
         assert.that(events.length).is.equalTo(0);
       });
 
-      test('saves a single uncommitted event to the event store.', async () => {
+      test('saves a single uncommitted event to the event store.', async (): Promise<void> => {
         aggregate.api.forCommands.events.publish('executed', { strategy: 'succeed' });
 
         await repository.saveAggregate({ aggregate });
@@ -108,7 +107,7 @@ suite('Repository', () => {
         assert.that(events[0].data).is.equalTo({ strategy: 'succeed' });
       });
 
-      test('saves multiple uncommitted events to the event store.', async () => {
+      test('saves multiple uncommitted events to the event store.', async (): Promise<void> => {
         aggregate.api.forCommands.events.publish('succeeded');
         aggregate.api.forCommands.events.publish('executed', { strategy: 'succeed' });
 
@@ -124,7 +123,7 @@ suite('Repository', () => {
         assert.that(events[1].data).is.equalTo({ strategy: 'succeed' });
       });
 
-      test('returns the committed events from the event store.', async () => {
+      test('returns the committed events from the event store.', async (): Promise<void> => {
         aggregate.api.forCommands.events.publish('succeeded');
         aggregate.api.forCommands.events.publish('executed', { strategy: 'succeed' });
 
@@ -138,25 +137,25 @@ suite('Repository', () => {
         );
       });
 
-      test('returns an empty list of committed events when there were no uncommited events.', async () => {
+      test('returns an empty list of committed events when there were no uncommited events.', async (): Promise<void> => {
         const committedEvents = await repository.saveAggregate({ aggregate });
 
         assert.that(committedEvents).is.equalTo([]);
       });
     });
 
-    suite('replayAggregate', () => {
-      test('is a function.', async () => {
+    suite('replayAggregate', (): void => {
+      test('is a function.', async (): Promise<void> => {
         assert.that(repository.replayAggregate).is.ofType('function');
       });
 
-      test('throws an error if aggregate is missing.', async () => {
-        await assert.that(async () => {
+      test('throws an error if aggregate is missing.', async (): Promise<void> => {
+        await assert.that(async (): Promise<void> => {
           await repository.replayAggregate({});
         }).is.throwingAsync('Aggregate is missing.');
       });
 
-      test('returns the aggregate as-is if no events have been saved.', async () => {
+      test('returns the aggregate as-is if no events have been saved.', async (): Promise<void> => {
         const oldState = cloneDeep(aggregate.api.forReadOnly.state);
 
         const aggregateReplayed = await repository.replayAggregate({ aggregate });
@@ -164,7 +163,7 @@ suite('Repository', () => {
         assert.that(aggregateReplayed.api.forReadOnly.state).is.equalTo(oldState);
       });
 
-      test('throws an error if the aggregate type does not match the events.', async () => {
+      test('throws an error if the aggregate type does not match the events.', async (): Promise<void> => {
         const succeeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
@@ -194,12 +193,12 @@ suite('Repository', () => {
           uncommittedEvents: [ succeeded, nonExistent ]
         });
 
-        await assert.that(async () => {
+        await assert.that(async (): Promise<void> => {
           await repository.replayAggregate({ aggregate });
         }).is.throwingAsync('Unknown event.');
       });
 
-      test('applies previously saved events.', async () => {
+      test('applies previously saved events.', async (): Promise<void> => {
         const succeeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
@@ -237,7 +236,7 @@ suite('Repository', () => {
         });
       });
 
-      test('applies previously saved snapshots and events.', async () => {
+      test('applies previously saved snapshots and events.', async (): Promise<void> => {
         const succeeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
@@ -276,13 +275,13 @@ suite('Repository', () => {
       });
     });
 
-    suite('loadAggregate', () => {
-      test('is a function.', async () => {
+    suite('loadAggregate', (): void => {
+      test('is a function.', async (): Promise<void> => {
         assert.that(repository.loadAggregate).is.ofType('function');
       });
 
-      test('throws an error if context name is missing.', async () => {
-        await assert.that(async () => {
+      test('throws an error if context name is missing.', async (): Promise<void> => {
+        await assert.that(async (): Promise<void> => {
           await repository.loadAggregate({
             aggregateName: 'sampleAggregate',
             aggregateId: uuid()
@@ -290,8 +289,8 @@ suite('Repository', () => {
         }).is.throwingAsync('Context name is missing.');
       });
 
-      test('throws an error if aggregate name is missing.', async () => {
-        await assert.that(async () => {
+      test('throws an error if aggregate name is missing.', async (): Promise<void> => {
+        await assert.that(async (): Promise<void> => {
           await repository.loadAggregate({
             contextName: 'sampleContext',
             aggregateId: uuid()
@@ -299,8 +298,8 @@ suite('Repository', () => {
         }).is.throwingAsync('Aggregate name is missing.');
       });
 
-      test('throws an error if aggregate id is missing.', async () => {
-        await assert.that(async () => {
+      test('throws an error if aggregate id is missing.', async (): Promise<void> => {
+        await assert.that(async (): Promise<void> => {
           await repository.loadAggregate({
             contextName: 'sampleContext',
             aggregateName: 'sampleAggregate'
@@ -308,7 +307,7 @@ suite('Repository', () => {
         }).is.throwingAsync('Aggregate id is missing.');
       });
 
-      test('returns a replayed aggregate.', async () => {
+      test('returns a replayed aggregate.', async (): Promise<void> => {
         const succeeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
@@ -352,18 +351,18 @@ suite('Repository', () => {
       });
     });
 
-    suite('loadAggregateForCommand', () => {
-      test('is a function.', async () => {
+    suite('loadAggregateForCommand', (): void => {
+      test('is a function.', async (): Promise<void> => {
         assert.that(repository.loadAggregateForCommand).is.ofType('function');
       });
 
-      test('throws an error if command is missing.', async () => {
-        await assert.that(async () => {
+      test('throws an error if command is missing.', async (): Promise<void> => {
+        await assert.that(async (): Promise<void> => {
           await repository.loadAggregateForCommand({});
         }).is.throwingAsync('Command is missing.');
       });
 
-      test('returns a replayed aggregate.', async () => {
+      test('returns a replayed aggregate.', async (): Promise<void> => {
         const succeeded = EventInternal.create({
           context: { name: 'sampleContext' },
           aggregate: { name: 'sampleAggregate', id: aggregate.instance.id },
