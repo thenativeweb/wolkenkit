@@ -10,6 +10,7 @@ import { EventConfigurationInternal } from './EventConfigurationInternal';
 import extendApplicationConfiguration from './extendApplicationConfiguration';
 import getApplicationConfiguration from './getApplicationConfiguration';
 import { InitialStateConfiguration } from './InitialStateConfiguration';
+import { Todo } from '../../types/Todo';
 import validateApplicationConfiguration from './validateApplicationConfiguration';
 import validateDirectory from './validateDirectory';
 import { pick, set } from 'lodash';
