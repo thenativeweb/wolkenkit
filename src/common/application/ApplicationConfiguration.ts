@@ -10,14 +10,14 @@ export interface ApplicationConfiguration {
         initialState: InitialStateConfiguration;
         commands: Dictionary<CommandConfigurationInternal>;
         events: Dictionary<EventConfigurationInternal>;
-      };
-    };
+      } | undefined;
+    } | undefined;
   };
 
   views: {
     [modelType: string]: {
       [modelName: string]: any;
-    };
+    } | undefined;
   };
 
   flows: {
