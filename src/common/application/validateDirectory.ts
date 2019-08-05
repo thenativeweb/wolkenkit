@@ -5,14 +5,14 @@ import { constants, promises as fs } from 'fs';
 
 const { access } = fs;
 
-interface ITransformedTree {
-  [key: string]: ITransformedTree;
+interface TransformedTree {
+  [key: string]: TransformedTree;
 }
 
 const transformTree = function ({ tree }: {
   tree: directoryTree.DirectoryTree;
-}): ITransformedTree {
-  const transformedTree: ITransformedTree = {};
+}): TransformedTree {
+  const transformedTree: TransformedTree = {};
 
   if (!tree.children) {
     return transformedTree;
@@ -30,7 +30,7 @@ const transformTree = function ({ tree }: {
 const validateDirectory = async function ({ directory }: {
   directory: string;
 }): Promise<void> {
-  const serverDirectory = path.join(directory, 'server');
+  const serverDirectory = path.join(directory);
 
   await access(serverDirectory, constants.R_OK);
 
