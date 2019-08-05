@@ -2,7 +2,6 @@ import ApplicationCache from './ApplicationCache';
 import { ApplicationConfiguration } from './ApplicationConfiguration';
 import { CommandConfigurationExternal } from './CommandConfigurationExternal';
 import { CommandConfigurationInternal } from './CommandConfigurationInternal';
-import commonTags from 'common-tags';
 import { Dictionary } from '../../types/Dictionary';
 import errors from '../errors';
 import { EventConfigurationExternal } from './EventConfigurationExternal';
@@ -10,12 +9,11 @@ import { EventConfigurationInternal } from './EventConfigurationInternal';
 import extendApplicationConfiguration from './extendApplicationConfiguration';
 import getApplicationConfiguration from './getApplicationConfiguration';
 import { InitialStateConfiguration } from './InitialStateConfiguration';
+import { stripIndent } from 'common-tags';
 import { Todo } from '../../types/Todo';
 import validateApplicationConfiguration from './validateApplicationConfiguration';
 import validateDirectory from './validateDirectory';
 import { pick, set } from 'lodash';
-
-const { stripIndent } = commonTags;
 
 class Application {
   private static cache = new ApplicationCache();
