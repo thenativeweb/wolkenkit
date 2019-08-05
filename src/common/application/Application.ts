@@ -4,6 +4,7 @@ import { CommandConfigurationExternal } from './CommandConfigurationExternal';
 import { CommandConfigurationInternal } from './CommandConfigurationInternal';
 import commonTags from 'common-tags';
 import { Dictionary } from '../../types/Dictionary';
+import errors from '../errors';
 import { EventConfigurationExternal } from './EventConfigurationExternal';
 import { EventConfigurationInternal } from './EventConfigurationInternal';
 import extendApplicationConfiguration from './extendApplicationConfiguration';
@@ -51,6 +52,10 @@ class Application {
     this.flows = { internal: {}};
 
     for (const [ contextName, contextConfiguration ] of Object.entries(configuration.domain)) {
+      if (!contextConfiguration) {
+        throw new errors.InvalidOperation();
+      }
+
       const initialState: {
         internal: Dictionary<InitialStateConfiguration>;
       } = { internal: {}};
@@ -65,14 +70,14 @@ class Application {
 
       for (const [ aggregateName, aggregateConfiguration ] of Object.entries(contextConfiguration)) {
         if (!aggregateConfiguration) {
-          continue;
+          throw new errors.InvalidOperation();
         }
 
         initialState.internal[aggregateName] = aggregateConfiguration.initialState;
 
         for (const [ commandName, commandConfiguration ] of Object.entries(aggregateConfiguration.commands)) {
           if (!commandConfiguration) {
-            continue;
+            throw new errors.InvalidOperation();
           }
 
           set(commands, `internal.${aggregateName}.${commandName}`, {
@@ -90,7 +95,7 @@ class Application {
 
         for (const [ eventName, eventConfiguration ] of Object.entries(aggregateConfiguration.events)) {
           if (!eventConfiguration) {
-            continue;
+            throw new errors.InvalidOperation();
           }
 
           set(events, `internal.${aggregateName}.${eventName}`, {
@@ -116,7 +121,7 @@ class Application {
 
     for (const [ modelType, modelTypeDefinition ] of Object.entries(configuration.views)) {
       if (!modelTypeDefinition) {
-        continue;
+        throw new errors.InvalidOperation();
       }
 
       const views: {
@@ -126,7 +131,7 @@ class Application {
 
       for (const [ modelName, modelDefinition ] of Object.entries(modelTypeDefinition)) {
         if (!modelDefinition) {
-          continue;
+          throw new errors.InvalidOperation();
         }
 
         views.internal[modelName] = modelDefinition;
@@ -139,7 +144,7 @@ class Application {
 
     for (const [ flowName, flowDefinition ] of Object.entries(configuration.flows)) {
       if (!flowDefinition) {
-        continue;
+        throw new errors.InvalidOperation();
       }
 
       this.flows.internal[flowName] = flowDefinition;

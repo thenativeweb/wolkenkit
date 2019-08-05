@@ -1,28 +1,37 @@
 import Aggregate from './Aggregate';
 import AggregateApiForEvents from './AggregateApiForEvents';
 import AggregateApiForReadOnly from './AggregateApiForReadOnly';
-import { cloneDeep } from 'lodash';
+import Application from '../application';
 import CommandInternal from './CommandInternal';
 import { Dictionary } from '../../types/Dictionary';
 import errors from '../errors';
 import EventExternal from './EventExternal';
 import EventInternal from './EventInternal';
-import { EventConfigurationInternal } from '../application/EventConfigurationInternal';
+import getAggregateService from '../services/getAggregateService';
+import getClientService from '../services/getClientService';
+import getLoggerService from '../services/getLoggerService';
+import path from 'path';
+import Repository from '../domain/Repository';
 import Value from 'validate-value';
+import { cloneDeep, get } from 'lodash';
 
 class AggregateApiForCommands extends AggregateApiForReadOnly {
-  public readonly eventConfigurations: Dictionary<EventConfigurationInternal>;
+  public readonly application: Application;
+
+  public readonly repository: Repository;
 
   public readonly command: CommandInternal;
 
-  public constructor ({ aggregate, eventConfigurations, command }: {
+  public constructor ({ aggregate, application, repository, command }: {
     aggregate: Aggregate;
-    eventConfigurations: Dictionary<EventConfigurationInternal>;
+    application: Application;
+    repository: Repository;
     command: CommandInternal;
   }) {
     super({ aggregate });
 
-    this.eventConfigurations = eventConfigurations;
+    this.application = application;
+    this.repository = repository;
     this.command = command;
   }
 
@@ -30,7 +39,7 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
     const { aggregate } = this;
     const contextName = aggregate.contextIdentifier.name;
 
-    const eventConfiguration = this.eventConfigurations[eventName];
+    const eventConfiguration = get(this.application, `events.internal.${contextName}.${aggregate.identifier.name}.${eventName}`);
 
     if (!eventConfiguration) {
       throw new errors.EventUnknown(`Failed to publish unknown event '${eventName}' in '${contextName}.${aggregate.identifier.name}'.`);
@@ -62,7 +71,20 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
     const previousState = cloneDeep(aggregate.state);
     const aggregateApiForEvents = new AggregateApiForEvents({ aggregate });
 
-    handle(aggregateApiForEvents, eventExternal, ??); // TODO
+    const fileName = path.join('server', 'domain', contextName, `${aggregate.identifier.name}.js`);
+
+    const services = {
+      app: {
+        aggregates: getAggregateService({
+          application: this.application,
+          repository: this.repository
+        })
+      },
+      client: getClientService({ clientMetadata: this.command.annotations.client }),
+      logger: getLoggerService({ fileName })
+    };
+
+    handle(aggregateApiForEvents, eventExternal, services);
 
     const state = cloneDeep(aggregate.state);
 

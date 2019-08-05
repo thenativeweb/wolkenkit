@@ -1,18 +1,19 @@
 import AggregateApiForReadOnly from '../elements/AggregateApiForReadOnly';
+import { AggregateService } from './AggregateService';
 import Application from '../application';
 import { Dictionary } from '../../types/Dictionary';
-import { ReadAggregateService } from './ReadAggregateService';
+import errors from '../errors';
 import Repository from '../domain/Repository';
 
-const getReadAggregateService = function ({ application, repository }: {
+const getAggregateService = function ({ application, repository }: {
   application: Application;
   repository: Repository;
-}): ReadAggregateService {
-  const readAggregateService: Partial<ReadAggregateService> = {};
+}): AggregateService {
+  const aggregateService: Partial<AggregateService> = {};
 
   for (const [ contextName, contextConfiguration ] of Object.entries(application.initialState.internal)) {
     if (!contextConfiguration) {
-      continue;
+      throw new errors.InvalidOperation();
     }
 
     const aggregatesInContext: Dictionary<(aggregateId: string) => {
@@ -40,10 +41,10 @@ const getReadAggregateService = function ({ application, repository }: {
       }
     }
 
-    readAggregateService[contextName] = aggregatesInContext;
+    aggregateService[contextName] = aggregatesInContext;
   }
 
-  return readAggregateService as ReadAggregateService;
+  return aggregateService as AggregateService;
 };
 
-export default getReadAggregateService;
+export default getAggregateService;

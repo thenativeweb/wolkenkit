@@ -2,6 +2,7 @@ import AggregateApiForReadOnly from '../elements/AggregateApiForReadOnly';
 import { ApplicationConfiguration } from './ApplicationConfiguration';
 import { ClientService } from '../services/ClientService';
 import { cloneDeep } from 'lodash';
+import errors from '../errors';
 import EventInternal from '../elements/EventInternal';
 
 const extendApplicationConfiguration = function ({ applicationConfiguration }: {
@@ -10,7 +11,15 @@ const extendApplicationConfiguration = function ({ applicationConfiguration }: {
   const applicationConfigurationExtended = cloneDeep(applicationConfiguration);
 
   for (const [ contextName, contextConfiguration ] of Object.entries(applicationConfigurationExtended.domain)) {
+    if (!contextConfiguration) {
+      throw new errors.InvalidOperation();
+    }
+
     for (const [ aggregateName, aggregateConfiguration ] of Object.entries(contextConfiguration)) {
+      if (!aggregateConfiguration) {
+        throw new errors.InvalidOperation();
+      }
+
       for (const commandName of Object.keys(aggregateConfiguration.commands)) {
         const eventNameFailed = `${commandName}Failed`;
         const eventNameRejected = `${commandName}Rejected`;

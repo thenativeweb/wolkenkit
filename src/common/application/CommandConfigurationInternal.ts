@@ -1,5 +1,6 @@
 import AggregateApiForCommands from '../elements/AggregateApiForCommands';
 import AggregateApiForReadOnly from '../elements/AggregateApiForReadOnly';
+import { AggregateService } from '../services/AggregateService';
 import { ClientService } from '../services/ClientService';
 import { CommandConfigurationExternal } from './CommandConfigurationExternal';
 import CommandInternal from '../elements/CommandInternal';
@@ -11,7 +12,10 @@ export interface CommandConfigurationInternal extends CommandConfigurationExtern
     command: CommandInternal,
     services: {
       client: ClientService,
-      logger: LoggerService
+      logger: LoggerService,
+      app: {
+        aggregates: AggregateService
+      }
     }
   ): boolean | Promise<boolean>;
 
@@ -20,7 +24,10 @@ export interface CommandConfigurationInternal extends CommandConfigurationExtern
     command: CommandInternal,
     services: {
       client: ClientService,
-      logger: LoggerService
+      logger: LoggerService,
+      app: {
+        aggregates: AggregateService
+      }
     }
   ): void | Promise<void>;
 }
