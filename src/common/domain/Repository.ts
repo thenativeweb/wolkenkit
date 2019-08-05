@@ -3,6 +3,7 @@ import { AggregateIdentifier } from '../elements/AggregateIdentifier';
 import Application from '../application/Application';
 import { ContextIdentifier } from '../elements/ContextIdentifier';
 import errors from '../errors';
+import EventInternal from '../elements/EventInternal';
 import { Eventstore } from '../../stores/eventstore/Eventstore';
 
 class Repository {
@@ -18,13 +19,9 @@ class Repository {
     this.eventstore = eventstore;
   }
 
-  public async replayAggregate ({ aggregate }: {
+  protected async replayAggregate ({ aggregate }: {
     aggregate: Aggregate;
   }): Promise<Aggregate> {
-    if (!aggregate) {
-      throw new Error('Aggregate is missing.');
-    }
-
     const snapshot = await this.eventstore.getSnapshot({
       aggregateIdentifier: aggregate.identifier
     });
@@ -76,34 +73,15 @@ class Repository {
     return replayedAggregate;
   }
 
-  async loadAggregateForCommand ({ command }) {
-    if (!command) {
-      throw new Error('Command is missing.');
-    }
-
-    const aggregate = new AggregateWriteable({
-      application: this.application,
-      context: { name: command.context.name },
-      aggregate: command.aggregateIdentifier,
-      command
-    });
-
-    const replayedAggregate = await this.replayAggregate({ aggregate });
-
-    return replayedAggregate;
-  }
-
-  async saveAggregate ({ aggregate }) {
-    if (!aggregate) {
-      throw new Error('Aggregate is missing.');
-    }
-
-    if (aggregate.instance.uncommittedEvents.length === 0) {
+  async saveAggregate ({ aggregate }: {
+    aggregate: Aggregate;
+  }): Promise<EventInternal[]> {
+    if (aggregate.uncommittedEvents.length === 0) {
       return [];
     }
 
     const committedEvents = await this.eventstore.saveEvents({
-      uncommittedEvents: aggregate.instance.uncommittedEvents
+      uncommittedEvents: aggregate.uncommittedEvents
     });
 
     return committedEvents;
