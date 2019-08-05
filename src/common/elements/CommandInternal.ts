@@ -1,9 +1,9 @@
 import Application from '../application';
 import CommandExternal from './CommandExternal';
-import { IAggregateIdentifier } from './types/IAggregateIdentifier';
-import { IContextIdentifier } from './types/IContextIdentifier';
-import { IDictionary } from '../../types/IDictionary';
-import { IUser } from './types/IUser';
+import { AggregateIdentifier } from './AggregateIdentifier';
+import { ContextIdentifier } from './ContextIdentifier';
+import { Dictionary } from '../../types/Dictionary';
+import { User } from './User';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
 
@@ -111,11 +111,11 @@ class CommandInternal extends CommandExternal {
   public annotations: {
     client: {
       token: string;
-      user: IUser;
+      user: User;
       ip: string;
     };
     initiator: {
-      user: IUser;
+      user: User;
     };
   };
 
@@ -128,15 +128,15 @@ class CommandInternal extends CommandExternal {
     metadata,
     annotations
   }: {
-    contextIdentifier: IContextIdentifier;
-    aggregateIdentifier: IAggregateIdentifier;
+    contextIdentifier: ContextIdentifier;
+    aggregateIdentifier: AggregateIdentifier;
     name: string;
     id: string;
-    data: IDictionary<any>;
+    data: Dictionary<any>;
     metadata: { timestamp: number; causationId: string; correlationId: string };
     annotations: {
-      client: { token: string; user: IUser; ip: string };
-      initiator: { user: IUser };
+      client: { token: string; user: User; ip: string };
+      initiator: { user: User };
     };
   }) {
     super({ contextIdentifier, aggregateIdentifier, name, id, data, metadata });
@@ -153,14 +153,14 @@ class CommandInternal extends CommandExternal {
     metadata = {},
     annotations
   }: {
-    contextIdentifier: IContextIdentifier;
-    aggregateIdentifier: IAggregateIdentifier;
+    contextIdentifier: ContextIdentifier;
+    aggregateIdentifier: AggregateIdentifier;
     name: string;
-    data?: IDictionary<any>;
+    data?: Dictionary<any>;
     metadata?: { causationId?: string; correlationId?: string };
     annotations: {
-      client: { token: string; user: IUser; ip: string };
-      initiator: { user: IUser };
+      client: { token: string; user: User; ip: string };
+      initiator: { user: User };
     };
   }): CommandInternal {
     if (

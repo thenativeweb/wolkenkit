@@ -1,10 +1,10 @@
 import Application from '../application';
 import { cloneDeep } from 'lodash';
 import EventExternal from './EventExternal';
-import { IAggregateIdentifier } from './types/IAggregateIdentifier';
-import { IContextIdentifier } from './types/IContextIdentifier';
-import { IDictionary } from '../../types/IDictionary';
-import { State } from './types/State';
+import { AggregateIdentifier } from './AggregateIdentifier';
+import { ContextIdentifier } from './ContextIdentifier';
+import { Dictionary } from '../../types/Dictionary';
+import { State } from './State';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
 
@@ -126,11 +126,11 @@ class EventInternal extends EventExternal {
     metadata,
     annotations
   }: {
-    contextIdentifier: IContextIdentifier;
-    aggregateIdentifier: IAggregateIdentifier;
+    contextIdentifier: ContextIdentifier;
+    aggregateIdentifier: AggregateIdentifier;
     name: string;
     id: string;
-    data: IDictionary<any>;
+    data: Dictionary<any>;
     metadata: {
       timestamp: number;
       isPublished: boolean;
@@ -155,10 +155,10 @@ class EventInternal extends EventExternal {
     metadata,
     annotations
   }: {
-    contextIdentifier: IContextIdentifier;
-    aggregateIdentifier: IAggregateIdentifier;
+    contextIdentifier: ContextIdentifier;
+    aggregateIdentifier: AggregateIdentifier;
     name: string;
-    data: IDictionary<any>;
+    data: Dictionary<any>;
     metadata: {
       causationId?: string;
       correlationId?: string;
@@ -215,7 +215,7 @@ class EventInternal extends EventExternal {
   }
 
   public setData ({ data }: {
-    data: IDictionary<any>;
+    data: Dictionary<any>;
   }): EventInternal {
     const updatedEvent = this.clone();
 

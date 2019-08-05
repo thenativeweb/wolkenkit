@@ -1,12 +1,12 @@
 import AggregateApiForReadOnly from '../elements/AggregateApiForReadOnly';
+import { ApplicationConfiguration } from './ApplicationConfiguration';
 import { cloneDeep } from 'lodash';
 import EventInternal from '../elements/EventInternal';
-import { IApplicationConfiguration } from './types/IApplicationConfiguration';
-import { IServices } from '../services/types/IServices';
+import { Services } from '../services/Services';
 
 const extendApplicationConfiguration = function ({ applicationConfiguration }: {
-  applicationConfiguration: IApplicationConfiguration;
-}): IApplicationConfiguration {
+  applicationConfiguration: ApplicationConfiguration;
+}): ApplicationConfiguration {
   const applicationConfigurationExtended = cloneDeep(applicationConfiguration);
 
   for (const [ contextName, contextConfiguration ] of Object.entries(applicationConfigurationExtended.domain)) {
@@ -36,7 +36,7 @@ const extendApplicationConfiguration = function ({ applicationConfiguration }: {
             // Intentionally left blank.
           },
 
-          isAuthorized (_: AggregateApiForReadOnly, event: EventInternal, { client }: IServices): boolean {
+          isAuthorized (_: AggregateApiForReadOnly, event: EventInternal, { client }: Services): boolean {
             return event.metadata.initiator.user.id === client.user.id;
           }
         };
@@ -55,7 +55,7 @@ const extendApplicationConfiguration = function ({ applicationConfiguration }: {
             // Intentionally left blank.
           },
 
-          isAuthorized (_: AggregateApiForReadOnly, event: EventInternal, { client }: IServices): boolean {
+          isAuthorized (_: AggregateApiForReadOnly, event: EventInternal, { client }: Services): boolean {
             return event.metadata.initiator.user.id === client.user.id;
           }
         };

@@ -3,15 +3,15 @@ import Application from '../application';
 import errors from '../errors';
 import EventExternal from './EventExternal';
 import EventInternal from './EventInternal';
-import { IAggregateIdentifier } from './types/IAggregateIdentifier';
-import { IContextIdentifier } from './types/IContextIdentifier';
+import { AggregateIdentifier } from './AggregateIdentifier';
+import { ContextIdentifier } from './ContextIdentifier';
 import { ISnapshot } from '../../stores/eventstore/types/ISnapshot';
 import { Readable } from 'stream';
-import { State } from './types/State';
+import { State } from './State';
 import { cloneDeep, get } from 'lodash';
 
 class Aggregate {
-  public readonly contextIdentifier: IContextIdentifier;
+  public readonly contextIdentifier: ContextIdentifier;
 
   public readonly name: string;
 
@@ -24,8 +24,8 @@ class Aggregate {
   public uncommittedEvents: EventInternal[];
 
   public constructor ({ contextIdentifier, aggregateIdentifier, initialState }: {
-    contextIdentifier: IContextIdentifier;
-    aggregateIdentifier: IAggregateIdentifier;
+    contextIdentifier: ContextIdentifier;
+    aggregateIdentifier: AggregateIdentifier;
     initialState: State;
   }) {
     this.contextIdentifier = contextIdentifier;

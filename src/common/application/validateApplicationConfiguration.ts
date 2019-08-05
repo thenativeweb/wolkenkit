@@ -1,10 +1,10 @@
-import { IApplicationConfiguration } from './types/IApplicationConfiguration';
-import { IApplicationConfigurationWeak } from './types/IApplicationConfigurationWeak';
+import { ApplicationConfiguration } from './ApplicationConfiguration';
+import { ApplicationConfigurationWeak } from './ApplicationConfigurationWeak';
 import Value from 'validate-value';
 
 const validateApplicationConfiguration = function ({ applicationConfiguration }: {
-  applicationConfiguration: IApplicationConfigurationWeak;
-}): IApplicationConfiguration {
+  applicationConfiguration: ApplicationConfigurationWeak;
+}): ApplicationConfiguration {
   const value = new Value({
     type: 'object',
     properties: {
@@ -203,7 +203,7 @@ const validateApplicationConfiguration = function ({ applicationConfiguration }:
 
   value.validate(applicationConfiguration, { valueName: '.', separator: '/' });
 
-  return applicationConfiguration as IApplicationConfiguration;
+  return applicationConfiguration as ApplicationConfiguration;
 };
 
 export default validateApplicationConfiguration;

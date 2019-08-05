@@ -1,6 +1,6 @@
 import { JSONSchema4 } from 'json-schema';
 
-export interface ICommandConfigurationExternal {
+export interface EventConfigurationExternal {
   documentation?: string;
   schema?: JSONSchema4;
 }

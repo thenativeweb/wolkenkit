@@ -1,4 +1,4 @@
-export interface IApplicationConfigurationWeak {
+export interface ApplicationConfigurationWeak {
   domain: {
     [contextName: string]: {
       [aggregateName: string]: any;

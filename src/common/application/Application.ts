@@ -1,14 +1,14 @@
 import ApplicationCache from './ApplicationCache';
+import { ApplicationConfiguration } from './ApplicationConfiguration';
+import { CommandConfigurationExternal } from './CommandConfigurationExternal';
+import { CommandConfigurationInternal } from './CommandConfigurationInternal';
 import commonTags from 'common-tags';
+import { Dictionary } from '../../types/Dictionary';
+import { EventConfigurationExternal } from './EventConfigurationExternal';
+import { EventConfigurationInternal } from './EventConfigurationInternal';
 import extendApplicationConfiguration from './extendApplicationConfiguration';
 import getApplicationConfiguration from './getApplicationConfiguration';
-import { IApplicationConfiguration } from './types/IApplicationConfiguration';
-import { ICommandConfigurationExternal } from './types/ICommandConfigurationExternal';
-import { ICommandConfigurationInternal } from './types/ICommandConfigurationInternal';
-import { IDictionary } from '../../types/IDictionary';
-import { IEventConfigurationExternal } from './types/IEventConfigurationExternal';
-import { IEventConfigurationInternal } from './types/IEventConfigurationInternal';
-import { InitialStateConfiguration } from './types/InitialStateConfiguration';
+import { InitialStateConfiguration } from './InitialStateConfiguration';
 import validateApplicationConfiguration from './validateApplicationConfiguration';
 import validateDirectory from './validateDirectory';
 import { pick, set } from 'lodash';
@@ -19,30 +19,30 @@ class Application {
   private static cache = new ApplicationCache();
 
   public readonly initialState: {
-    internal: IDictionary<IDictionary<InitialStateConfiguration>>;
+    internal: Dictionary<Dictionary<InitialStateConfiguration>>;
   }
 
   public readonly commands: {
-    internal: IDictionary<IDictionary<IDictionary<ICommandConfigurationInternal>>>;
-    external: IDictionary<IDictionary<IDictionary<ICommandConfigurationExternal>>>;
+    internal: Dictionary<Dictionary<Dictionary<CommandConfigurationInternal>>>;
+    external: Dictionary<Dictionary<Dictionary<CommandConfigurationExternal>>>;
   }
 
   public readonly events: {
-    internal: IDictionary<IDictionary<IDictionary<IEventConfigurationInternal>>>;
-    external: IDictionary<IDictionary<IDictionary<IEventConfigurationExternal>>>;
+    internal: Dictionary<Dictionary<Dictionary<EventConfigurationInternal>>>;
+    external: Dictionary<Dictionary<Dictionary<EventConfigurationExternal>>>;
   }
 
   public readonly views: {
-    internal: IDictionary<IDictionary<IDictionary<Todo>>>;
-    external: IDictionary<IDictionary<IDictionary<Todo>>>;
+    internal: Dictionary<Dictionary<Dictionary<Todo>>>;
+    external: Dictionary<Dictionary<Dictionary<Todo>>>;
   }
 
   public readonly flows: {
-    internal: IDictionary<IDictionary<Todo>>;
+    internal: Dictionary<Dictionary<Todo>>;
   }
 
   private constructor ({ configuration }: {
-    configuration: IApplicationConfiguration;
+    configuration: ApplicationConfiguration;
   }) {
     this.initialState = { internal: {}};
     this.commands = { internal: {}, external: {}};
@@ -52,15 +52,15 @@ class Application {
 
     for (const [ contextName, contextConfiguration ] of Object.entries(configuration.domain)) {
       const initialState: {
-        internal: IDictionary<InitialStateConfiguration>;
+        internal: Dictionary<InitialStateConfiguration>;
       } = { internal: {}};
       const commands: {
-        internal: IDictionary<IDictionary<ICommandConfigurationInternal>>;
-        external: IDictionary<IDictionary<ICommandConfigurationExternal>>;
+        internal: Dictionary<Dictionary<CommandConfigurationInternal>>;
+        external: Dictionary<Dictionary<CommandConfigurationExternal>>;
       } = { internal: {}, external: {}};
       const events: {
-        internal: IDictionary<IDictionary<IEventConfigurationInternal>>;
-        external: IDictionary<IDictionary<IEventConfigurationExternal>>;
+        internal: Dictionary<Dictionary<EventConfigurationInternal>>;
+        external: Dictionary<Dictionary<EventConfigurationExternal>>;
       } = { internal: {}, external: {}};
 
       for (const [ aggregateName, aggregateConfiguration ] of Object.entries(contextConfiguration)) {
@@ -120,8 +120,8 @@ class Application {
       }
 
       const views: {
-        internal: IDictionary<IDictionary<Todo>>;
-        external: IDictionary<IDictionary<Todo>>;
+        internal: Dictionary<Dictionary<Todo>>;
+        external: Dictionary<Dictionary<Todo>>;
       } = { internal: {}, external: {}};
 
       for (const [ modelName, modelDefinition ] of Object.entries(modelTypeDefinition)) {

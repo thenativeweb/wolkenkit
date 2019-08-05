@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
-import { IAggregateIdentifier } from './types/IAggregateIdentifier';
-import { IContextIdentifier } from './types/IContextIdentifier';
-import { IDictionary } from '../../types/IDictionary';
+import { AggregateIdentifier } from './AggregateIdentifier';
+import { ContextIdentifier } from './ContextIdentifier';
+import { Dictionary } from '../../types/Dictionary';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
 
@@ -93,15 +93,15 @@ const value = new Value({
 });
 
 class EventExternal {
-  public readonly contextIdentifier: IContextIdentifier;
+  public readonly contextIdentifier: ContextIdentifier;
 
-  public readonly aggregateIdentifier: IAggregateIdentifier;
+  public readonly aggregateIdentifier: AggregateIdentifier;
 
   public readonly name: string;
 
   public readonly id: string;
 
-  public data: IDictionary<any>;
+  public data: Dictionary<any>;
 
   public metadata: {
     timestamp: number;
@@ -120,11 +120,11 @@ class EventExternal {
     data,
     metadata
   }: {
-    contextIdentifier: IContextIdentifier;
-    aggregateIdentifier: IAggregateIdentifier;
+    contextIdentifier: ContextIdentifier;
+    aggregateIdentifier: AggregateIdentifier;
     name: string;
     id: string;
-    data: IDictionary<any>;
+    data: Dictionary<any>;
     metadata: {
       timestamp: number;
       isPublished: boolean;
@@ -152,10 +152,10 @@ class EventExternal {
     data = {},
     metadata
   }: {
-    contextIdentifier: IContextIdentifier;
-    aggregateIdentifier: IAggregateIdentifier;
+    contextIdentifier: ContextIdentifier;
+    aggregateIdentifier: AggregateIdentifier;
     name: string;
-    data: IDictionary<any>;
+    data: Dictionary<any>;
     metadata: {
       causationId?: string;
       correlationId?: string;
@@ -207,7 +207,7 @@ class EventExternal {
   }
 
   public setData ({ data }: {
-    data: IDictionary<any>;
+    data: Dictionary<any>;
   }): EventExternal {
     const updatedEvent = this.clone();
 

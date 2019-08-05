@@ -1,5 +1,5 @@
 import AggregateApiForReadOnly from './AggregateApiForReadOnly';
-import { State } from './types/State';
+import { State } from './State';
 
 class AggregateApiForEvents extends AggregateApiForReadOnly {
   public setState (newState: State): void {

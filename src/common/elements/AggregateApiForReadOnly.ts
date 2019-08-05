@@ -1,5 +1,5 @@
 import Aggregate from './Aggregate';
-import { State } from './types/State';
+import { State } from './State';
 
 class AggregateApiForReadOnly {
   protected aggregate: Aggregate;

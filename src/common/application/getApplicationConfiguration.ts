@@ -1,16 +1,16 @@
-import { IApplicationConfigurationWeak } from './types/IApplicationConfigurationWeak';
+import { ApplicationConfigurationWeak } from './ApplicationConfigurationWeak';
 import path from 'path';
 import requireDir from 'require-dir';
 
 const getApplicationConfiguration = async function ({ directory }: {
   directory: string;
-}): Promise<IApplicationConfigurationWeak> {
+}): Promise<ApplicationConfigurationWeak> {
   const serverDirectory = path.join(directory, 'server');
   const entries = requireDir(serverDirectory, { recurse: true });
 
-  const { domain, views, flows }: IApplicationConfigurationWeak = entries as any;
+  const { domain, views, flows }: ApplicationConfigurationWeak = entries as any;
 
-  const transformedEntries: Partial<IApplicationConfigurationWeak> = {};
+  const transformedEntries: Partial<ApplicationConfigurationWeak> = {};
 
   // If an index.js file is given inside of an aggregate, list or flow, use it
   // instead of the individual files.
@@ -34,7 +34,7 @@ const getApplicationConfiguration = async function ({ directory }: {
     }
   }
 
-  return transformedEntries as IApplicationConfigurationWeak;
+  return transformedEntries as ApplicationConfigurationWeak;
 };
 
 export default getApplicationConfiguration;
