@@ -1,5 +1,3 @@
-'use strict';
-
 const { AggregateReadable, AggregateWriteable } = require('../elements');
 
 class Repository {
@@ -100,4 +98,4 @@ class Repository {
   }
 }
 
-module.exports = Repository;
+export default Repository;

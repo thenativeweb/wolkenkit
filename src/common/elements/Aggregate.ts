@@ -5,7 +5,7 @@ import EventExternal from './EventExternal';
 import EventInternal from './EventInternal';
 import { AggregateIdentifier } from './AggregateIdentifier';
 import { ContextIdentifier } from './ContextIdentifier';
-import { ISnapshot } from '../../stores/eventstore/types/ISnapshot';
+import { Snapshot } from '../../stores/eventstore/Snapshot';
 import { Readable } from 'stream';
 import { State } from './State';
 import { cloneDeep, get } from 'lodash';
@@ -42,7 +42,7 @@ class Aggregate {
   }
 
   public applySnapshot ({ snapshot }: {
-    snapshot: ISnapshot;
+    snapshot: Snapshot;
   }): void {
     this.state = snapshot.state;
     this.revision = snapshot.revision;
