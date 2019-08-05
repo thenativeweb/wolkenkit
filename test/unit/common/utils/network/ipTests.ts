@@ -1,19 +1,8 @@
-'use strict';
-
-const assert = require('assertthat');
-
-const ip = require('../../../../../common/utils/network/ip');
+import assert from 'assertthat';
+import ip from '../../../../../src/common/utils/network/ip';
 
 suite('ip', () => {
-  test('is an object.', async () => {
-    assert.that(ip).is.ofType('object');
-  });
-
   suite('is', () => {
-    test('is a function.', async () => {
-      assert.that(ip.is).is.ofType('function');
-    });
-
     test('returns false if an invalid ip address is given.', async () => {
       assert.that(ip.is('not-ip')).is.false();
     });
@@ -24,10 +13,6 @@ suite('ip', () => {
   });
 
   suite('isV4', () => {
-    test('is a function.', async () => {
-      assert.that(ip.isV4).is.ofType('function');
-    });
-
     test('returns false if an invalid ip address is given.', async () => {
       assert.that(ip.isV4('not-ip')).is.false();
     });
@@ -42,10 +27,6 @@ suite('ip', () => {
   });
 
   suite('isV6', () => {
-    test('is a function.', async () => {
-      assert.that(ip.isV6).is.ofType('function');
-    });
-
     test('returns false if an invalid ip address is given.', async () => {
       assert.that(ip.isV6('not-ip')).is.false();
     });
@@ -60,10 +41,6 @@ suite('ip', () => {
   });
 
   suite('getFamily', () => {
-    test('is a function.', async () => {
-      assert.that(ip.getFamily).is.ofType('function');
-    });
-
     test('throws an error if an invalid ip address is given.', async () => {
       assert.that(() => {
         ip.getFamily('not-ip');

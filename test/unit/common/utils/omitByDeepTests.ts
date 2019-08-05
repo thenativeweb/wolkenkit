@@ -1,20 +1,7 @@
-'use strict';
-
-const assert = require('assertthat');
-
-const omitByDeep = require('../../../../stores/eventstore/omitByDeep');
+import assert from 'assertthat';
+import omitByDeep from '../../../../src/common/utils/omitByDeep';
 
 suite('omitByDeep', () => {
-  test('is a function.', async () => {
-    assert.that(omitByDeep).is.ofType('function');
-  });
-
-  test('throws an error if predicate is missing.', async () => {
-    assert.that(() => {
-      omitByDeep(23);
-    }).is.throwing('Predicate is missing.');
-  });
-
   test('returns the value if it is not an object.', async () => {
     assert.that(omitByDeep(23, value => value)).is.equalTo(23);
   });

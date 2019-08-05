@@ -1,21 +1,8 @@
-'use strict';
-
-const assert = require('assertthat'),
-      nodeenv = require('nodeenv');
-
-const getEnvironmentVariables = require('../../../../../common/utils/process/getEnvironmentVariables');
+import assert from 'assertthat';
+import getEnvironmentVariables from '../../../../../src/common/utils/process/getEnvironmentVariables';
+import nodeenv from 'nodeenv';
 
 suite('getEnvironmentVariables', () => {
-  test('is a function.', async () => {
-    assert.that(getEnvironmentVariables).is.ofType('function');
-  });
-
-  test('throws an error if required environment variables is missing.', async () => {
-    assert.that(() => {
-      getEnvironmentVariables();
-    }).is.throwing('Required environment variables is missing.');
-  });
-
   test('returns the required environment variables if they are set.', async () => {
     const restore = nodeenv({ FOO: 'bar', BAZ: 'bas' });
 

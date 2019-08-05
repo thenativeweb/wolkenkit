@@ -1,20 +1,7 @@
-'use strict';
-
-const assert = require('assertthat');
-
-const getIpAddresses = require('../../../../../common/utils/network/getIpAddresses');
+import assert from 'assertthat';
+import getIpAddresses from '../../../../../src/common/utils/network/getIpAddresses';
 
 suite('getIpAddresses', () => {
-  test('is a function.', async () => {
-    assert.that(getIpAddresses).is.ofType('function');
-  });
-
-  test('throws an error if host or ip is missing.', async () => {
-    await assert.that(async () => {
-      await getIpAddresses();
-    }).is.throwingAsync('Host or IP is missing.');
-  });
-
   test('returns addresses if ip is given.', async () => {
     const addresses = await getIpAddresses('127.0.0.1');
 
