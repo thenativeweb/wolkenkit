@@ -86,8 +86,8 @@ class Application {
           set(
             commands, `external.${aggregateName}.${commandName}`,
             pick(commands, [
-              `external.${aggregateName}.${commandName}.documentation`,
-              `external.${aggregateName}.${commandName}.schema`
+              `internal.${aggregateName}.${commandName}.documentation`,
+              `internal.${aggregateName}.${commandName}.schema`
             ])
           );
         }
@@ -104,8 +104,8 @@ class Application {
           set(
             events, `external.${aggregateName}.${eventName}`,
             pick(events, [
-              `external.${aggregateName}.${eventName}.documentation`,
-              `external.${aggregateName}.${eventName}.schema`
+              `internal.${aggregateName}.${eventName}.documentation`,
+              `internal.${aggregateName}.${eventName}.schema`
             ])
           );
         }
