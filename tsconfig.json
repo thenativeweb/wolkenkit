@@ -10,7 +10,7 @@
       "@offspring/*": [ "./src/offspring/*" ]
     },
     "resolveJsonModule": true,
-    "rootDir": "./src",
+    "rootDir": ".",
     "strict": true,
     "target": "es2019"
   }
