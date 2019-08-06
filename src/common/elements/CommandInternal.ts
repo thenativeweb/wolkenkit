@@ -1,8 +1,9 @@
+import { AggregateIdentifier } from './AggregateIdentifier';
 import Application from '../application';
 import CommandExternal from './CommandExternal';
-import { AggregateIdentifier } from './AggregateIdentifier';
 import { ContextIdentifier } from './ContextIdentifier';
 import { Dictionary } from '../../types/Dictionary';
+import errors from '../errors';
 import { User } from './User';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
@@ -199,7 +200,13 @@ class CommandInternal extends CommandExternal {
     command: any;
     application: Application;
   }): void {
-    const deserializedCommand = CommandInternal.deserialize(command);
+    let deserializedCommand;
+
+    try {
+      deserializedCommand = CommandInternal.deserialize(command);
+    } catch {
+      throw new errors.CommandMalformed();
+    }
 
     const context = application.commands.internal[deserializedCommand.contextIdentifier.name];
 

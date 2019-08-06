@@ -1,52 +1,18 @@
-'use strict';
+import Application from '../../../../src/common/application';
+import assert from 'assertthat';
+import CommandInternal from '../../../../src/common/elements/CommandInternal';
+import path from 'path';
+import uuid from 'uuidv4';
 
-const path = require('path');
-
-const assert = require('assertthat'),
-      getOptionTests = require('get-option-tests'),
-      uuid = require('uuidv4');
-
-const { Application } = require('../../../../common/application'),
-      { CommandInternal } = require('../../../../common/elements');
-
-suite('CommandInternal', () => {
-  suite('create', () => {
-    test('is a function.', async () => {
-      assert.that(CommandInternal.create).is.ofType('function');
-    });
-
-    getOptionTests({
-      options: {
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'sampleCommand',
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: uuid(), claims: { sub: uuid() }},
-            ip: '127.0.0.1'
-          },
-          initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
-        }
-      },
-      excludes: [ 'annotations.client.*', 'annotations.initiator.*' ],
-      run (options) {
-        CommandInternal.create(options);
-      }
-    });
-
-    test('returns a command.', async () => {
+suite('CommandInternal', (): void => {
+  suite('create', (): void => {
+    test('returns a command.', async (): Promise<void> => {
       const aggregateId = uuid(),
             userId = uuid();
 
       const command = CommandInternal.create({
-        context: {
-          name: 'sampleContext'
-        },
-        aggregate: {
-          name: 'sampleAggregate',
-          id: aggregateId
-        },
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
         name: 'sampleCommand',
         data: {
           foo: 'bar'
@@ -61,10 +27,9 @@ suite('CommandInternal', () => {
         }
       });
 
-      assert.that(command).is.instanceOf(CommandInternal);
-      assert.that(command.context.name).is.equalTo('sampleContext');
-      assert.that(command.aggregate.name).is.equalTo('sampleAggregate');
-      assert.that(command.aggregate.id).is.equalTo(aggregateId);
+      assert.that(command.contextIdentifier.name).is.equalTo('sampleContext');
+      assert.that(command.aggregateIdentifier.name).is.equalTo('sampleAggregate');
+      assert.that(command.aggregateIdentifier.id).is.equalTo(aggregateId);
       assert.that(command.name).is.equalTo('sampleCommand');
       assert.that(command.id).is.ofType('string');
       assert.that(uuid.is(command.id)).is.true();
@@ -83,47 +48,11 @@ suite('CommandInternal', () => {
     });
   });
 
-  suite('fromObject', () => {
-    test('is a function.', async () => {
-      assert.that(CommandInternal.fromObject).is.ofType('function');
-    });
-
-    getOptionTests({
-      options: {
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'sampleCommand',
-        id: uuid(),
-        data: { foo: 'bar' },
-        metadata: {
-          timestamp: Date.now(),
-          causationId: uuid(),
-          correlationId: uuid()
-        },
-        annotations: {
-          client: {
-            token: '...',
-            user: { id: uuid(), claims: { sub: uuid() }},
-            ip: '127.0.0.1'
-          },
-          initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
-        }
-      },
-      excludes: [ 'data.*', 'annotations.*' ],
-      run (options) {
-        CommandInternal.fromObject(options);
-      }
-    });
-
-    test('returns a real command object.', async () => {
+  suite('deserialize', (): void => {
+    test('returns a real command object.', async (): Promise<void> => {
       const command = CommandInternal.create({
-        context: {
-          name: 'sampleContext'
-        },
-        aggregate: {
-          name: 'sampleAggregate',
-          id: uuid()
-        },
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleCommand',
         data: {
           foo: 'bar'
@@ -139,20 +68,15 @@ suite('CommandInternal', () => {
       });
 
       const deserializedCommand = JSON.parse(JSON.stringify(command));
-      const actual = CommandInternal.fromObject(deserializedCommand);
+      const actual = CommandInternal.deserialize(deserializedCommand);
 
-      assert.that(actual).is.instanceOf(CommandInternal);
+      assert.that(actual).is.equalTo(deserializedCommand);
     });
 
-    test('throws an error when the original metadata are malformed.', async () => {
+    test('throws an error when the original metadata are malformed.', async (): Promise<void> => {
       const command = CommandInternal.create({
-        context: {
-          name: 'sampleContext'
-        },
-        aggregate: {
-          name: 'sampleAggregate',
-          id: uuid()
-        },
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleCommand',
         data: {
           foo: 'bar'
@@ -171,20 +95,17 @@ suite('CommandInternal', () => {
 
       deserializedCommand.metadata.timestamp = 'malformed';
 
-      assert.that(() => {
-        CommandInternal.fromObject(deserializedCommand);
+      assert.that((): void => {
+        CommandInternal.deserialize(deserializedCommand);
       }).is.throwing('Invalid type: string should be number (at command.metadata.timestamp).');
     });
 
-    test('does not change original metadata.', async () => {
+    test('does not change original metadata.', async (): Promise<void> => {
       const command = CommandInternal.create({
-        context: {
+        contextIdentifier: {
           name: 'sampleContext'
         },
-        aggregate: {
-          name: 'sampleAggregate',
-          id: uuid()
-        },
+        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleCommand',
         data: {
           foo: 'bar'
@@ -201,7 +122,7 @@ suite('CommandInternal', () => {
 
       const deserializedCommand = JSON.parse(JSON.stringify(command));
 
-      const actual = CommandInternal.fromObject(deserializedCommand);
+      const actual = CommandInternal.deserialize(deserializedCommand);
 
       assert.that(actual.id).is.equalTo(command.id);
       assert.that(actual.metadata.correlationId).is.equalTo(command.metadata.correlationId);
@@ -209,15 +130,12 @@ suite('CommandInternal', () => {
       assert.that(actual.metadata.timestamp).is.equalTo(command.metadata.timestamp);
     });
 
-    test('do not change original annotations.', async () => {
+    test('do not change original annotations.', async (): Promise<void> => {
       const command = CommandInternal.create({
-        context: {
+        contextIdentifier: {
           name: 'sampleContext'
         },
-        aggregate: {
-          name: 'sampleAggregate',
-          id: uuid()
-        },
+        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleCommand',
         data: {
           foo: 'bar'
@@ -233,47 +151,33 @@ suite('CommandInternal', () => {
       });
 
       const deserializedCommand = JSON.parse(JSON.stringify(command));
-      const actual = CommandInternal.fromObject(deserializedCommand);
+      const actual = CommandInternal.deserialize(deserializedCommand);
 
       assert.that(actual.annotations).is.equalTo(command.annotations);
     });
   });
 
-  suite('validate', () => {
-    let application;
+  suite('validate', (): void => {
+    let application: Application;
 
-    setup(async () => {
+    setup(async (): Promise<void> => {
       const directory = path.join(__dirname, '..', '..', '..', 'shared', 'applications', 'base');
 
       application = await Application.load({ directory });
     });
 
-    test('is a function.', async () => {
-      assert.that(CommandInternal.validate).is.ofType('function');
-    });
-
-    getOptionTests({
-      options: {
-        command: {},
-        application: {}
-      },
-      run (options) {
-        CommandInternal.validate(options);
-      }
-    });
-
-    test('throws an error if command is malformed.', async () => {
-      assert.that(() => {
+    test('throws an error if command is malformed.', async (): Promise<void> => {
+      assert.that((): void => {
         CommandInternal.validate({ command: {}, application });
-      }).is.throwing('Malformed command.');
+      }).is.throwing('Command malformed.');
     });
 
-    test('throws an error if context name is invalid.', async () => {
-      assert.that(() => {
+    test('throws an error if context name is invalid.', async (): Promise<void> => {
+      assert.that((): void => {
         CommandInternal.validate({
           command: CommandInternal.create({
-            context: { name: 'nonExistent' },
-            aggregate: { name: 'sampleAggregate', id: uuid() },
+            contextIdentifier: { name: 'nonExistent' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
             name: 'execute',
             annotations: {
               client: { token: '...', user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}, ip: '127.0.0.1' },
@@ -285,12 +189,12 @@ suite('CommandInternal', () => {
       }).is.throwing('Invalid context name.');
     });
 
-    test('throws an error if aggregate name is invalid.', async () => {
-      assert.that(() => {
+    test('throws an error if aggregate name is invalid.', async (): Promise<void> => {
+      assert.that((): void => {
         CommandInternal.validate({
           command: CommandInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'nonExistent', id: uuid() },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'nonExistent', id: uuid() },
             name: 'execute',
             annotations: {
               client: { token: '...', user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}, ip: '127.0.0.1' },
@@ -302,12 +206,12 @@ suite('CommandInternal', () => {
       }).is.throwing('Invalid aggregate name.');
     });
 
-    test('throws an error if command name is invalid.', async () => {
-      assert.that(() => {
+    test('throws an error if command name is invalid.', async (): Promise<void> => {
+      assert.that((): void => {
         CommandInternal.validate({
           command: CommandInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
             name: 'nonExistent',
             annotations: {
               client: { token: '...', user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}, ip: '127.0.0.1' },
@@ -319,12 +223,12 @@ suite('CommandInternal', () => {
       }).is.throwing('Invalid command name.');
     });
 
-    test('throws an error if the schema does not match.', async () => {
-      assert.that(() => {
+    test('throws an error if the schema does not match.', async (): Promise<void> => {
+      assert.that((): void => {
         CommandInternal.validate({
           command: CommandInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
             name: 'execute',
             data: { strategy: 'nonExistent' },
             annotations: {
@@ -337,12 +241,12 @@ suite('CommandInternal', () => {
       }).is.throwing('No enum match (nonExistent), expects: succeed, fail, reject (at command.data.strategy).');
     });
 
-    test('does not throw an error if the schema matches.', async () => {
-      assert.that(() => {
+    test('does not throw an error if the schema matches.', async (): Promise<void> => {
+      assert.that((): void => {
         CommandInternal.validate({
           command: CommandInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
             name: 'execute',
             data: { strategy: 'succeed' },
             annotations: {

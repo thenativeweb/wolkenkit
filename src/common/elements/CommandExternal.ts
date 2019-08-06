@@ -1,9 +1,9 @@
 import { AggregateIdentifier } from './AggregateIdentifier';
 import { ContextIdentifier } from './ContextIdentifier';
 import { Dictionary } from '../../types/Dictionary';
+import errors from '../errors';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
-import errors from '../errors';
 
 const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
 
