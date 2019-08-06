@@ -6,4 +6,4 @@ export interface AggregateService {
       read: () => Promise<AggregateApiForReadOnly>;
     }) | undefined;
   } | undefined;
-};
+}
