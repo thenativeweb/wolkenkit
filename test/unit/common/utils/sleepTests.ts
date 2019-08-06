@@ -2,8 +2,8 @@ import assert from 'assertthat';
 
 import sleep from '../../../../src/common/utils/sleep';
 
-suite('sleep', () => {
-  test('waits for the given amount of milliseconds.', async () => {
+suite('sleep', (): void => {
+  test('waits for the given amount of milliseconds.', async (): Promise<void> => {
     const start = Date.now();
 
     await sleep({ ms: 50 });

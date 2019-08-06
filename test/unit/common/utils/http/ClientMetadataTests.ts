@@ -1,11 +1,10 @@
 import assert from 'assertthat';
+import ClientMetadata from '../../../../../src/common/utils/http/ClientMetadata';
 import uuid from 'uuidv4';
 
-import ClientMetadata from '../../../../../src/common/utils/http/ClientMetadata';
-
-suite('ClientMetadata', () => {
-  suite('token', () => {
-    test('contains the token.', async () => {
+suite('ClientMetadata', (): void => {
+  suite('token', (): void => {
+    test('contains the token.', async (): Promise<void> => {
       const clientMetadata = new ClientMetadata({
         req: {
           token: '...',
@@ -19,8 +18,8 @@ suite('ClientMetadata', () => {
     });
   });
 
-  suite('user', () => {
-    test('contains the user.', async () => {
+  suite('user', (): void => {
+    test('contains the user.', async (): Promise<void> => {
       const claims = {},
             id = uuid();
 
@@ -37,8 +36,8 @@ suite('ClientMetadata', () => {
     });
   });
 
-  suite('ip', () => {
-    test('contains the remote address.', async () => {
+  suite('ip', (): void => {
+    test('contains the remote address.', async (): Promise<void> => {
       const clientMetadata = new ClientMetadata({
         req: {
           token: '...',
@@ -51,7 +50,7 @@ suite('ClientMetadata', () => {
       assert.that(clientMetadata.ip).is.equalTo('127.0.0.1');
     });
 
-    test('prefers the x-forwarded-for header if set.', async () => {
+    test('prefers the x-forwarded-for header if set.', async (): Promise<void> => {
       const clientMetadata = new ClientMetadata({
         req: {
           token: '...',

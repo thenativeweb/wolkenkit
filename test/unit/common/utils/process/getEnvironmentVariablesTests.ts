@@ -2,8 +2,8 @@ import assert from 'assertthat';
 import getEnvironmentVariables from '../../../../../src/common/utils/process/getEnvironmentVariables';
 import nodeenv from 'nodeenv';
 
-suite('getEnvironmentVariables', () => {
-  test('returns the required environment variables if they are set.', async () => {
+suite('getEnvironmentVariables', (): void => {
+  test('returns the required environment variables if they are set.', async (): Promise<void> => {
     const restore = nodeenv({ FOO: 'bar', BAZ: 'bas' });
 
     const environmentVariables = getEnvironmentVariables({
@@ -16,7 +16,7 @@ suite('getEnvironmentVariables', () => {
     restore();
   });
 
-  test('returns the defaults for the required environment variables if they are not set.', async () => {
+  test('returns the defaults for the required environment variables if they are not set.', async (): Promise<void> => {
     const restore = nodeenv({ FOO: undefined, BAZ: undefined });
 
     const environmentVariables = getEnvironmentVariables({
@@ -32,10 +32,10 @@ suite('getEnvironmentVariables', () => {
     restore();
   });
 
-  test('throws an error if no default is given and a required environment variable is not set.', async () => {
+  test('throws an error if no default is given and a required environment variable is not set.', async (): Promise<void> => {
     const restore = nodeenv({ FOO: undefined });
 
-    assert.that(() => {
+    assert.that((): void => {
       getEnvironmentVariables({ FOO: undefined });
     }).is.throwing(`Required environment variable 'FOO' is not set.`);
 
