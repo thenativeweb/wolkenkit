@@ -3,6 +3,7 @@ import Application from '../application';
 import { cloneDeep } from 'lodash';
 import { ContextIdentifier } from './ContextIdentifier';
 import { Dictionary } from '../../types/Dictionary';
+import errors from '../errors';
 import EventExternal from './EventExternal';
 import { State } from './State';
 import uuid from 'uuidv4';
@@ -130,7 +131,7 @@ class EventInternal extends EventExternal {
     aggregateIdentifier: AggregateIdentifier;
     name: string;
     id: string;
-    data?: Dictionary<any>;
+    data: Dictionary<any>;
     metadata: {
       timestamp: number;
       isPublished: boolean;
@@ -267,7 +268,13 @@ class EventInternal extends EventExternal {
     event: any;
     application: Application;
   }): void {
-    const deserializedEvent = EventInternal.deserialize(event);
+    let deserializedEvent;
+
+    try {
+      deserializedEvent = EventInternal.deserialize(event);
+    } catch {
+      throw new errors.EventMalformed();
+    }
 
     const context = application.events.internal[deserializedEvent.contextIdentifier.name];
 

@@ -1,46 +1,17 @@
-'use strict';
+import Application from '../../../../src/common/application';
+import assert from 'assertthat';
+import EventInternal from '../../../../src/common/elements/EventInternal';
+import path from 'path';
+import uuid from 'uuidv4';
 
-const path = require('path');
-
-const assert = require('assertthat'),
-      getOptionTests = require('get-option-tests'),
-      uuid = require('uuidv4');
-
-const { Application } = require('../../../../common/application'),
-      { EventExternal, EventInternal } = require('../../../../common/elements');
-
-suite('EventInternal', () => {
-  suite('create', () => {
-    test('is a function.', async () => {
-      assert.that(EventInternal.create).is.ofType('function');
-    });
-
-    getOptionTests({
-      options: {
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'sampleEvent',
-        metadata: {
-          revision: { aggregate: 1 },
-          initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
-        },
-        annotations: {
-          state: {},
-          previousState: {}
-        }
-      },
-      excludes: [ 'metadata.initiator.*' ],
-      run (options) {
-        EventInternal.create(options);
-      }
-    });
-
-    test('returns an internal event.', async () => {
+suite('EventInternal', (): void => {
+  suite('create', (): void => {
+    test('returns an internal event.', async (): Promise<void> => {
       const aggregateId = uuid();
 
       const event = EventInternal.create({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: aggregateId },
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
         name: 'sampleEvent',
         data: { foo: 'bar' },
         metadata: {
@@ -53,10 +24,9 @@ suite('EventInternal', () => {
         }
       });
 
-      assert.that(event).is.instanceOf(EventInternal);
-      assert.that(event.context.name).is.equalTo('sampleContext');
-      assert.that(event.aggregate.name).is.equalTo('sampleAggregate');
-      assert.that(event.aggregate.id).is.equalTo(aggregateId);
+      assert.that(event.contextIdentifier.name).is.equalTo('sampleContext');
+      assert.that(event.aggregateIdentifier.name).is.equalTo('sampleAggregate');
+      assert.that(event.aggregateIdentifier.id).is.equalTo(aggregateId);
       assert.that(event.name).is.equalTo('sampleEvent');
       assert.that(event.id).is.ofType('string');
       assert.that(uuid.is(event.id)).is.true();
@@ -74,40 +44,11 @@ suite('EventInternal', () => {
     });
   });
 
-  suite('fromObject', () => {
-    test('is a function.', async () => {
-      assert.that(EventInternal.fromObject).is.ofType('function');
-    });
-
-    getOptionTests({
-      options: {
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
-        name: 'sampleEvent',
-        id: uuid(),
-        data: { foo: 'bar' },
-        metadata: {
-          timestamp: Date.now(),
-          causationId: uuid(),
-          correlationId: uuid(),
-          revision: { aggregate: 1, global: null },
-          initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
-        },
-        annotations: {
-          state: {},
-          previousState: {}
-        }
-      },
-      excludes: [ 'data.foo', 'metadata.initiator.*' ],
-      run (options) {
-        EventInternal.fromObject(options);
-      }
-    });
-
-    test('returns a real internal event object.', async () => {
+  suite('deserialize', (): void => {
+    test('returns a real internal event object.', async (): Promise<void> => {
       const event = EventInternal.create({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleEvent',
         metadata: {
           revision: { aggregate: 1 },
@@ -117,15 +58,15 @@ suite('EventInternal', () => {
       });
 
       const deserializedEvent = JSON.parse(JSON.stringify(event));
-      const actual = EventInternal.fromObject(deserializedEvent);
+      const actual = EventInternal.deserialize(deserializedEvent);
 
-      assert.that(actual).is.instanceOf(EventInternal);
+      assert.that(actual).is.equalTo(deserializedEvent);
     });
 
-    test('throws an error when the original metadata are malformed.', async () => {
+    test('throws an error when the original metadata are malformed.', async (): Promise<void> => {
       const event = EventInternal.create({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleEvent',
         metadata: {
           revision: { aggregate: 1 },
@@ -138,49 +79,33 @@ suite('EventInternal', () => {
 
       deserializedEvent.metadata.timestamp = 'malformed';
 
-      assert.that(() => {
-        EventInternal.fromObject(deserializedEvent);
+      assert.that((): void => {
+        EventInternal.deserialize(deserializedEvent);
       }).is.throwing('Invalid type: string should be number (at event.metadata.timestamp).');
     });
   });
 
-  suite('validate', () => {
-    let application;
+  suite('validate', (): void => {
+    let application: Application;
 
-    setup(async () => {
+    setup(async (): Promise<void> => {
       const directory = path.join(__dirname, '..', '..', '..', 'shared', 'applications', 'base');
 
       application = await Application.load({ directory });
     });
 
-    test('is a function.', async () => {
-      assert.that(EventInternal.validate).is.ofType('function');
-    });
-
-    test('throws an error if event is missing.', async () => {
-      assert.that(() => {
-        EventInternal.validate({ application });
-      }).is.throwing('Event is missing.');
-    });
-
-    test('throws an error if application is missing.', async () => {
-      assert.that(() => {
-        EventInternal.validate({ event: {}});
-      }).is.throwing('Application is missing.');
-    });
-
-    test('throws an error if event is malformed.', async () => {
-      assert.that(() => {
+    test('throws an error if event is malformed.', async (): Promise<void> => {
+      assert.that((): void => {
         EventInternal.validate({ event: {}, application });
-      }).is.throwing('Malformed event.');
+      }).is.throwing('Event malformed.');
     });
 
-    test('throws an error if context name is invalid.', async () => {
-      assert.that(() => {
+    test('throws an error if context name is invalid.', async (): Promise<void> => {
+      assert.that((): void => {
         EventInternal.validate({
           event: EventInternal.create({
-            context: { name: 'nonExistent' },
-            aggregate: { name: 'sampleAggregate', id: uuid() },
+            contextIdentifier: { name: 'nonExistent' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -199,12 +124,12 @@ suite('EventInternal', () => {
       }).is.throwing('Invalid context name.');
     });
 
-    test('throws an error if aggregate name is invalid.', async () => {
-      assert.that(() => {
+    test('throws an error if aggregate name is invalid.', async (): Promise<void> => {
+      assert.that((): void => {
         EventInternal.validate({
           event: EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'nonExistent', id: uuid() },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'nonExistent', id: uuid() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -223,12 +148,12 @@ suite('EventInternal', () => {
       }).is.throwing('Invalid aggregate name.');
     });
 
-    test('throws an error if event name is invalid.', async () => {
-      assert.that(() => {
+    test('throws an error if event name is invalid.', async (): Promise<void> => {
+      assert.that((): void => {
         EventInternal.validate({
           event: EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
             name: 'nonExistent',
             data: { strategy: 'succeed' },
             metadata: {
@@ -247,12 +172,12 @@ suite('EventInternal', () => {
       }).is.throwing('Invalid event name.');
     });
 
-    test('throws an error if the schema does not match.', async () => {
-      assert.that(() => {
+    test('throws an error if the schema does not match.', async (): Promise<void> => {
+      assert.that((): void => {
         EventInternal.validate({
           event: EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
             name: 'executed',
             data: { strategy: 'nonExistent' },
             metadata: {
@@ -271,12 +196,12 @@ suite('EventInternal', () => {
       }).is.throwing('No enum match (nonExistent), expects: succeed, fail, reject (at event.data.strategy).');
     });
 
-    test('does not throw an error if the schema matches.', async () => {
-      assert.that(() => {
+    test('does not throw an error if the schema matches.', async (): Promise<void> => {
+      assert.that((): void => {
         EventInternal.validate({
           event: EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -296,13 +221,13 @@ suite('EventInternal', () => {
     });
   });
 
-  suite('instance', () => {
-    let event;
+  suite('instance', (): void => {
+    let event: EventInternal;
 
-    setup(async () => {
+    setup(async (): Promise<void> => {
       event = EventInternal.create({
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'sampleAggregate', id: uuid() },
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
         name: 'sampleEvent',
         metadata: {
           revision: { aggregate: 1 },
@@ -315,35 +240,12 @@ suite('EventInternal', () => {
       });
     });
 
-    suite('clone', () => {
-      test('is a function.', async () => {
-        assert.that(event.clone).is.ofType('function');
-      });
-
-      test('returns a cloned event.', async () => {
-        const clonedEvent = event.clone();
-
-        assert.that(clonedEvent).is.equalTo(event);
-        assert.that(clonedEvent).is.not.sameAs(event);
-      });
-    });
-
-    suite('setData', () => {
-      test('is a function.', async () => {
-        assert.that(event.setData).is.ofType('function');
-      });
-
-      test('throws an error if data is missing.', async () => {
-        assert.that(() => {
-          event.setData({});
-        }).is.throwing('Data is missing.');
-      });
-
-      test('returns a new event with the given data.', async () => {
+    suite('setData', (): void => {
+      test('returns a new event with the given data.', async (): Promise<void> => {
         const updatedEvent = event.setData({ data: { foo: 'bar' }});
 
-        assert.that(updatedEvent.context).is.equalTo(event.context);
-        assert.that(updatedEvent.aggregate).is.equalTo(event.aggregate);
+        assert.that(updatedEvent.contextIdentifier).is.equalTo(event.contextIdentifier);
+        assert.that(updatedEvent.aggregateIdentifier).is.equalTo(event.aggregateIdentifier);
         assert.that(updatedEvent.name).is.equalTo(event.name);
         assert.that(updatedEvent.id).is.equalTo(event.id);
         assert.that(updatedEvent.data).is.equalTo({ foo: 'bar' });
@@ -353,22 +255,12 @@ suite('EventInternal', () => {
       });
     });
 
-    suite('setRevisionGlobal', () => {
-      test('is a function.', async () => {
-        assert.that(event.setRevisionGlobal).is.ofType('function');
-      });
-
-      test('throws an error if revision global is missing.', async () => {
-        assert.that(() => {
-          event.setRevisionGlobal({});
-        }).is.throwing('Revision global is missing.');
-      });
-
-      test('returns a new event with the given global revision.', async () => {
+    suite('setRevisionGlobal', (): void => {
+      test('returns a new event with the given global revision.', async (): Promise<void> => {
         const updatedEvent = event.setRevisionGlobal({ revisionGlobal: 1 });
 
-        assert.that(updatedEvent.context).is.equalTo(event.context);
-        assert.that(updatedEvent.aggregate).is.equalTo(event.aggregate);
+        assert.that(updatedEvent.contextIdentifier).is.equalTo(event.contextIdentifier);
+        assert.that(updatedEvent.aggregateIdentifier).is.equalTo(event.aggregateIdentifier);
         assert.that(updatedEvent.name).is.equalTo(event.name);
         assert.that(updatedEvent.id).is.equalTo(event.id);
         assert.that(updatedEvent.data).is.equalTo(event.data);
@@ -384,16 +276,12 @@ suite('EventInternal', () => {
       });
     });
 
-    suite('markAsPublished', () => {
-      test('is a function.', async () => {
-        assert.that(event.markAsPublished).is.ofType('function');
-      });
-
-      test('returns a new event that is marked as published.', async () => {
+    suite('markAsPublished', (): void => {
+      test('returns a new event that is marked as published.', async (): Promise<void> => {
         const publishedEvent = event.markAsPublished();
 
-        assert.that(publishedEvent.context).is.equalTo(event.context);
-        assert.that(publishedEvent.aggregate).is.equalTo(event.aggregate);
+        assert.that(publishedEvent.contextIdentifier).is.equalTo(event.contextIdentifier);
+        assert.that(publishedEvent.aggregateIdentifier).is.equalTo(event.aggregateIdentifier);
         assert.that(publishedEvent.name).is.equalTo(event.name);
         assert.that(publishedEvent.id).is.equalTo(event.id);
         assert.that(publishedEvent.data).is.equalTo(event.data);
@@ -406,17 +294,12 @@ suite('EventInternal', () => {
       });
     });
 
-    suite('asExternal', () => {
-      test('is a function.', async () => {
-        assert.that(event.asExternal).is.ofType('function');
-      });
-
-      test('returns an external event.', async () => {
+    suite('asExternal', (): void => {
+      test('returns an external event.', async (): Promise<void> => {
         const externalEvent = event.asExternal();
 
-        assert.that(externalEvent).is.instanceOf(EventExternal);
-        assert.that(externalEvent.context).is.equalTo(event.context);
-        assert.that(externalEvent.aggregate).is.equalTo(event.aggregate);
+        assert.that(externalEvent.contextIdentifier).is.equalTo(event.contextIdentifier);
+        assert.that(externalEvent.aggregateIdentifier).is.equalTo(event.aggregateIdentifier);
         assert.that(externalEvent.name).is.equalTo(event.name);
         assert.that(externalEvent.id).is.equalTo(event.id);
         assert.that(externalEvent.data).is.equalTo(event.data);
