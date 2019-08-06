@@ -1,4 +1,4 @@
-'use strict';
+
 
 const assert = require('assertthat'),
       getOptionTests = require('get-option-tests'),
