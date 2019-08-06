@@ -1,5 +1,5 @@
-import { cloneDeep } from 'lodash';
 import { AggregateIdentifier } from './AggregateIdentifier';
+import { cloneDeep } from 'lodash';
 import { ContextIdentifier } from './ContextIdentifier';
 import { Dictionary } from '../../types/Dictionary';
 import uuid from 'uuidv4';
@@ -155,7 +155,7 @@ class EventExternal {
     contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
     name: string;
-    data: Dictionary<any>;
+    data?: Dictionary<any>;
     metadata: {
       causationId?: string;
       correlationId?: string;

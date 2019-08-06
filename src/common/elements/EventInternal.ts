@@ -1,9 +1,9 @@
+import { AggregateIdentifier } from './AggregateIdentifier';
 import Application from '../application';
 import { cloneDeep } from 'lodash';
-import EventExternal from './EventExternal';
-import { AggregateIdentifier } from './AggregateIdentifier';
 import { ContextIdentifier } from './ContextIdentifier';
 import { Dictionary } from '../../types/Dictionary';
+import EventExternal from './EventExternal';
 import { State } from './State';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
@@ -130,7 +130,7 @@ class EventInternal extends EventExternal {
     aggregateIdentifier: AggregateIdentifier;
     name: string;
     id: string;
-    data: Dictionary<any>;
+    data?: Dictionary<any>;
     metadata: {
       timestamp: number;
       isPublished: boolean;
@@ -158,7 +158,7 @@ class EventInternal extends EventExternal {
     contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
     name: string;
-    data: Dictionary<any>;
+    data?: Dictionary<any>;
     metadata: {
       causationId?: string;
       correlationId?: string;
