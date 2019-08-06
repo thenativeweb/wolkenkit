@@ -30,7 +30,7 @@ const transformTree = function ({ tree }: {
 const validateDirectory = async function ({ directory }: {
   directory: string;
 }): Promise<void> {
-  const serverDirectory = path.join(directory);
+  const serverDirectory = path.join(directory, 'server');
 
   await access(serverDirectory, constants.R_OK);
 
@@ -43,47 +43,28 @@ const validateDirectory = async function ({ directory }: {
   const value = new Value({
     type: 'object',
     properties: {
-      server: {
+      domain: {
         type: 'object',
-        properties: {
-          domain: {
+        patternProperties: {
+          '.*': {
             type: 'object',
             patternProperties: {
               '.*': {
                 type: 'object',
-                patternProperties: {
-                  '.*': {
-                    type: 'object',
-                    properties: {},
-                    required: [],
-                    additionalProperties: true
-                  }
-                },
-                minProperties: 1
+                properties: {},
+                required: [],
+                additionalProperties: true
               }
             },
             minProperties: 1
-          },
-          views: {
-            type: 'object',
-            properties: {
-              lists: {
-                type: 'object',
-                patternProperties: {
-                  '.*': {
-                    type: 'object',
-                    properties: {},
-                    required: [],
-                    additionalProperties: true
-                  }
-                },
-                minProperties: 0
-              }
-            },
-            required: [ 'lists' ],
-            additionalProperties: false
-          },
-          flows: {
+          }
+        },
+        minProperties: 1
+      },
+      views: {
+        type: 'object',
+        properties: {
+          lists: {
             type: 'object',
             patternProperties: {
               '.*': {
@@ -96,15 +77,27 @@ const validateDirectory = async function ({ directory }: {
             minProperties: 0
           }
         },
-        required: [ 'domain', 'views', 'flows' ],
-        additionalProperties: true
+        required: [ 'lists' ],
+        additionalProperties: false
+      },
+      flows: {
+        type: 'object',
+        patternProperties: {
+          '.*': {
+            type: 'object',
+            properties: {},
+            required: [],
+            additionalProperties: true
+          }
+        },
+        minProperties: 0
       }
     },
-    required: [ 'server' ],
+    required: [ 'domain', 'views', 'flows' ],
     additionalProperties: true
   });
 
-  value.validate(transformedTree, { valueName: '.', separator: '/' });
+  value.validate(transformedTree, { valueName: './server', separator: '/' });
 };
 
 export default validateDirectory;

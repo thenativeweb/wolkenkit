@@ -3,6 +3,7 @@ import { ContextIdentifier } from './ContextIdentifier';
 import { Dictionary } from '../../types/Dictionary';
 import uuid from 'uuidv4';
 import Value from 'validate-value';
+import errors from '../errors';
 
 const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
 
@@ -140,7 +141,13 @@ class CommandExternal {
     command: any;
     application: any;
   }): void {
-    const deserializedCommand = CommandExternal.deserialize(command);
+    let deserializedCommand;
+
+    try {
+      deserializedCommand = CommandExternal.deserialize(command);
+    } catch {
+      throw new errors.CommandMalformed();
+    }
 
     const context = application.commands.internal[deserializedCommand.contextIdentifier.name];
 

@@ -1,23 +1,23 @@
 import Application from '../../../../src/common/application';
 import assert from 'assertthat';
 import { CustomError } from '@offspring/defekt';
-// import invalidAggregatesAreMissing from '../../../shared/applications/invalid/aggregatesAreMissing';
-// import invalidContextsAreMissing from '../../../shared/applications/invalid/contextsAreMissing';
-// import invalidDomainIsMissing from '../../../shared/applications/invalid/domainIsMissing';
-// import invalidFlowsAreMissing from '../../../shared/applications/invalid/flowsAreMissing';
-// import invalidListsAreMissing from '../../../shared/applications/invalid/listsAreMissing';
-// import invalidViewsAreMissing from '../../../shared/applications/invalid/viewsAreMissing';
-// import invalidWithDirectoriesAndWrongFileName from '../../../shared/applications/invalid/withDirectoriesAndWrongFileName';
-// import invalidWithWrongRequire from '../../../shared/applications/invalid/withWrongRequire';
+import invalidAggregatesAreMissing from '../../../shared/applications/invalid/aggregatesAreMissing';
+import invalidContextsAreMissing from '../../../shared/applications/invalid/contextsAreMissing';
+import invalidDomainIsMissing from '../../../shared/applications/invalid/domainIsMissing';
+import invalidFlowsAreMissing from '../../../shared/applications/invalid/flowsAreMissing';
+import invalidListsAreMissing from '../../../shared/applications/invalid/listsAreMissing';
+import invalidViewsAreMissing from '../../../shared/applications/invalid/viewsAreMissing';
+import invalidWithDirectoriesAndWrongFileName from '../../../shared/applications/invalid/withDirectoriesAndWrongFileName';
+import invalidWithWrongRequire from '../../../shared/applications/invalid/withWrongRequire';
 import path from 'path';
-// import validWithDirectories from '../../../shared/applications/valid/withDirectories';
-// import validWithDirectoriesWithoutIndex from '../../../shared/applications/valid/withDirectoriesWithoutIndex';
-// import validWithDocumentation from '../../../shared/applications/valid/withDocumentation';
-// import validWithFilter from '../../../shared/applications/valid/withFilter';
-// import validWithFlows from '../../../shared/applications/valid/withFlows';
-// import validWithMap from '../../../shared/applications/valid/withMap';
-// import validWithoutFlows from '../../../shared/applications/valid/withoutFlows';
-// import validWithoutLists from '../../../shared/applications/valid/withoutLists';
+import validWithDirectories from '../../../shared/applications/valid/withDirectories';
+import validWithDirectoriesWithoutIndex from '../../../shared/applications/valid/withDirectoriesWithoutIndex';
+import validWithDocumentation from '../../../shared/applications/valid/withDocumentation';
+import validWithFilter from '../../../shared/applications/valid/withFilter';
+import validWithFlows from '../../../shared/applications/valid/withFlows';
+import validWithMap from '../../../shared/applications/valid/withMap';
+import validWithoutFlows from '../../../shared/applications/valid/withoutFlows';
+import validWithoutLists from '../../../shared/applications/valid/withoutLists';
 
 suite('Application', (): void => {
   suite('load', (): void => {
@@ -37,13 +37,11 @@ suite('Application', (): void => {
 
       assert.that(application1).is.sameAs(application2);
     });
-/*
+
     suite('valid', (): void => {
       test('loads applications without flows.', async (): Promise<void> => {
         const directory = await validWithoutFlows();
         const application = await Application.load({ directory });
-
-        assert.that(application.initialState.external).is.undefined();
 
         assert.that(application.commands.external).is.equalTo({
           sampleContext: {
@@ -113,8 +111,6 @@ suite('Application', (): void => {
           }
         });
 
-        assert.that(application.flows.external).is.undefined();
-
         assert.that(application.initialState.internal).is.equalTo({
           sampleContext: {
             sampleAggregate: {}
@@ -158,28 +154,26 @@ suite('Application', (): void => {
 
         assert.that(application.flows.internal).is.equalTo({});
 
-        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.isAuthorized).is.ofType('function');
-        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.handle).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.handle).is.ofType('function');
 
-        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.succeeded!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.succeeded!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.isAuthorized).is.ofType('function');
 
-        assert.that(application.views.internal.lists.sampleList.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.views.internal.lists.sampleList.queries.readItem.isAuthorized).is.ofType('function');
+        assert.that(application.views.internal.lists!.sampleList!.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.views.internal.lists!.sampleList!.queries.readItem.isAuthorized).is.ofType('function');
       });
 
       test('loads applications without lists.', async (): Promise<void> => {
         const directory = await validWithoutLists();
         const application = await Application.load({ directory });
 
-        assert.that(application.initialState.external).is.undefined();
-
         assert.that(application.commands.external).is.equalTo({
           sampleContext: {
             sampleAggregate: {
@@ -245,8 +239,6 @@ suite('Application', (): void => {
         assert.that(application.views.external).is.equalTo({
           lists: {}
         });
-
-        assert.that(application.flows.external).is.undefined();
 
         assert.that(application.initialState.internal).is.equalTo({
           sampleContext: {
@@ -279,25 +271,23 @@ suite('Application', (): void => {
 
         assert.that(application.flows.internal).is.equalTo({});
 
-        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.isAuthorized).is.ofType('function');
-        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.handle).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.handle).is.ofType('function');
 
-        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.succeeded!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.succeeded!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.isAuthorized).is.ofType('function');
       });
 
       test('loads applications with flows.', async (): Promise<void> => {
         const directory = await validWithFlows();
         const application = await Application.load({ directory });
 
-        assert.that(application.initialState.external).is.undefined();
-
         assert.that(application.commands.external).is.equalTo({
           sampleContext: {
             sampleAggregate: {
@@ -366,8 +356,6 @@ suite('Application', (): void => {
           }
         });
 
-        assert.that(application.flows.external).is.undefined();
-
         assert.that(application.initialState.internal).is.equalTo({
           sampleContext: {
             sampleAggregate: {}
@@ -421,36 +409,34 @@ suite('Application', (): void => {
           }
         });
 
-        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.isAuthorized).is.ofType('function');
-        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.handle).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.handle).is.ofType('function');
 
-        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.succeeded!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.succeeded!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.isAuthorized).is.ofType('function');
 
-        assert.that(application.views.internal.lists.sampleList.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.views.internal.lists.sampleList.queries.readItem.isAuthorized).is.ofType('function');
+        assert.that(application.views.internal.lists!.sampleList!.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.views.internal.lists!.sampleList!.queries.readItem.isAuthorized).is.ofType('function');
 
-        assert.that(application.flows.internal.stateless.reactions['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.internal.stateless.reactions['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.identity['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.identity['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.transitions.pristine['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.transitions.pristine['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.reactions.pristine['another-state']).is.ofType('function');
+        assert.that(application.flows.internal.stateless!.reactions['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateless!.reactions['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.identity['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.identity['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.transitions.pristine['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.transitions.pristine['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.reactions.pristine['another-state']).is.ofType('function');
       });
 
       test('loads applications with directories.', async (): Promise<void> => {
         const directory = await validWithDirectories();
         const application = await Application.load({ directory });
 
-        assert.that(application.initialState.external).is.undefined();
-
         assert.that(application.commands.external).is.equalTo({
           sampleContext: {
             sampleAggregate: {
@@ -519,8 +505,6 @@ suite('Application', (): void => {
           }
         });
 
-        assert.that(application.flows.external).is.undefined();
-
         assert.that(application.initialState.internal).is.equalTo({
           sampleContext: {
             sampleAggregate: {}
@@ -574,36 +558,35 @@ suite('Application', (): void => {
           }
         });
 
-        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.isAuthorized).is.ofType('function');
-        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.handle).is.ofType('function');
 
-        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.handle).is.ofType('function');
 
-        assert.that(application.views.internal.lists.sampleList.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.views.internal.lists.sampleList.queries.readItem.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.succeeded!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.succeeded!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.isAuthorized).is.ofType('function');
 
-        assert.that(application.flows.internal.stateless.reactions['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.internal.stateless.reactions['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.identity['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.identity['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.transitions.pristine['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.transitions.pristine['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.reactions.pristine['another-state']).is.ofType('function');
+        assert.that(application.views.internal.lists!.sampleList!.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.views.internal.lists!.sampleList!.queries.readItem.isAuthorized).is.ofType('function');
+
+        assert.that(application.flows.internal.stateless!.reactions['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateless!.reactions['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.identity['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.identity['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.transitions.pristine['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.transitions.pristine['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.reactions.pristine['another-state']).is.ofType('function');
       });
 
       test('loads applications with directories, without index.js files.', async (): Promise<void> => {
         const directory = await validWithDirectoriesWithoutIndex();
         const application = await Application.load({ directory });
 
-        assert.that(application.initialState.external).is.undefined();
-
         assert.that(application.commands.external).is.equalTo({
           sampleContext: {
             sampleAggregate: {
@@ -672,8 +655,6 @@ suite('Application', (): void => {
           }
         });
 
-        assert.that(application.flows.external).is.undefined();
-
         assert.that(application.initialState.internal).is.equalTo({
           sampleContext: {
             sampleAggregate: {}
@@ -727,42 +708,43 @@ suite('Application', (): void => {
           }
         });
 
-        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.isAuthorized).is.ofType('function');
-        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.handle).is.ofType('function');
 
-        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.succeeded.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeFailed.isAuthorized).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.handle).is.ofType('function');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executeRejected.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.isAuthorized).is.ofType('function');
+        assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.handle).is.ofType('function');
 
-        assert.that(application.views.internal.lists.sampleList.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.views.internal.lists.sampleList.queries.readItem.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.succeeded!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.succeeded!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.isAuthorized).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.handle).is.ofType('function');
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.isAuthorized).is.ofType('function');
 
-        assert.that(application.flows.internal.stateless.reactions['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.internal.stateless.reactions['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.identity['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.identity['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.transitions.pristine['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.transitions.pristine['sampleContext.sampleAggregate.executed']).is.ofType('function');
-        assert.that(application.flows.internal.stateful.reactions.pristine['another-state']).is.ofType('function');
+        assert.that(application.views.internal.lists!.sampleList!.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.views.internal.lists!.sampleList!.queries.readItem.isAuthorized).is.ofType('function');
+
+        assert.that(application.flows.internal.stateless!.reactions['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateless!.reactions['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.identity['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.identity['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.transitions.pristine['sampleContext.sampleAggregate.succeeded']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.transitions.pristine['sampleContext.sampleAggregate.executed']).is.ofType('function');
+        assert.that(application.flows.internal.stateful!.reactions.pristine['another-state']).is.ofType('function');
       });
 
       test('loads applications with documentation.', async (): Promise<void> => {
         const directory = await validWithDocumentation();
         const application = await Application.load({ directory });
 
-        assert.that(application.commands.internal.sampleContext.sampleAggregate.execute.documentation).
+        assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.documentation).
           is.equalTo('# Sample aggregate\n\n## Execute');
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.documentation).
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.documentation).
           is.equalTo('# Sample aggregate\n\n## Executed');
 
-        assert.that(application.commands.external.sampleContext.sampleAggregate.execute.documentation).
+        assert.that(application.commands.external.sampleContext!.sampleAggregate!.execute!.documentation).
           is.equalTo('# Sample aggregate\n\n## Execute');
-        assert.that(application.events.external.sampleContext.sampleAggregate.executed.documentation).
+        assert.that(application.events.external.sampleContext!.sampleAggregate!.executed!.documentation).
           is.equalTo('# Sample aggregate\n\n## Executed');
       });
 
@@ -770,9 +752,9 @@ suite('Application', (): void => {
         const directory = await validWithFilter();
         const application = await Application.load({ directory });
 
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.filter).
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.filter).
           is.ofType('function');
-        assert.that(application.views.internal.lists.sampleList.queries.readItem.filter).
+        assert.that(application.views.internal.lists!.sampleList!.queries.readItem.filter).
           is.ofType('function');
       });
 
@@ -780,9 +762,9 @@ suite('Application', (): void => {
         const directory = await validWithMap();
         const application = await Application.load({ directory });
 
-        assert.that(application.events.internal.sampleContext.sampleAggregate.executed.map).
+        assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.map).
           is.ofType('function');
-        assert.that(application.views.internal.lists.sampleList.queries.readItem.map).
+        assert.that(application.views.internal.lists!.sampleList!.queries.readItem.map).
           is.ofType('function');
       });
     });
@@ -825,7 +807,7 @@ suite('Application', (): void => {
 
         await assert.that(async (): Promise<void> => {
           await Application.load({ directory });
-        }).is.throwingAsync(`Cannot find module 'non-existent'`);
+        }).is.throwingAsync((ex: any): boolean => ex.code === 'MODULE_NOT_FOUND');
       });
 
       test('throws an error if views are missing.', async (): Promise<void> => {
@@ -852,6 +834,5 @@ suite('Application', (): void => {
         }).is.throwingAsync('Missing required property: flows (at ./server/flows).');
       });
     });
-*/
   });
 });

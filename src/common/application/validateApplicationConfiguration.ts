@@ -201,7 +201,7 @@ const validateApplicationConfiguration = function ({ applicationConfiguration }:
     additionalProperties: true
   });
 
-  value.validate(applicationConfiguration, { valueName: '.', separator: '/' });
+  value.validate(applicationConfiguration, { valueName: './server', separator: '/' });
 
   return applicationConfiguration as ApplicationConfiguration;
 };

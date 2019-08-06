@@ -1,7 +1,9 @@
 import defekt from '@offspring/defekt';
 
 const errors = defekt({
+  CommandMalformed: {},
   DispatchFailed: {},
+  EventMalformed: {},
   EventUnknown: {},
   FileAlreadyExists: {},
   FileNotFound: {},

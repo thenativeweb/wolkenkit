@@ -23,7 +23,6 @@ suite('CommandExternal', (): void => {
         }
       });
 
-      // assert.that(command).is.instanceOf(CommandExternal); // TODO
       assert.that(command.contextIdentifier.name).is.equalTo('sampleContext');
       assert.that(command.aggregateIdentifier.name).is.equalTo('sampleAggregate');
       assert.that(command.aggregateIdentifier.id).is.equalTo(aggregateId);
@@ -120,7 +119,7 @@ suite('CommandExternal', (): void => {
     test('throws an error if command is malformed.', async (): Promise<void> => {
       assert.that((): void => {
         CommandExternal.validate({ command: {}, application });
-      }).is.throwing('Malformed command.');
+      }).is.throwing('Command malformed.');
     });
 
     test('throws an error if context name is invalid.', async (): Promise<void> => {
