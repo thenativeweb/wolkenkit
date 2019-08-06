@@ -1,9 +1,9 @@
 declare const assert: {
   that: (actual: any) => {
     is: {
-      atLeast: (expected: number) => void;
-      atMost: (expected: number) => void;
-      between: (expectedLower: number, expectedUpper: number) => void;
+      atLeast: (expected: number | string | [] | {}) => void;
+      atMost: (expected: number | string | [] | {}) => void;
+      between: (expectedLower: number | string | [] | {}, expectedUpper: number | string | [] | {}) => void;
       containing: (expected: any) => void;
       containingAnyOf: (expected: any[]) => void;
       containingAllOf: (expected: any[]) => void;
