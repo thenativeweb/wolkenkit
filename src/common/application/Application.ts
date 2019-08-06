@@ -13,7 +13,7 @@ import { stripIndent } from 'common-tags';
 import { Todo } from '../../types/Todo';
 import validateApplicationConfiguration from './validateApplicationConfiguration';
 import validateDirectory from './validateDirectory';
-import { pick, set } from 'lodash';
+import { get, set } from 'lodash';
 
 class Application {
   private static cache = new ApplicationCache();
@@ -81,14 +81,14 @@ class Application {
 
           set(commands, `internal.${aggregateName}.${commandName}`, {
             ...commandConfiguration,
-            documentation: stripIndent(commandConfiguration.documentation || '').trim()
+            documentation: commandConfiguration.documentation ? stripIndent(commandConfiguration.documentation).trim() : undefined
           });
           set(
             commands, `external.${aggregateName}.${commandName}`,
-            pick(commands, [
-              `internal.${aggregateName}.${commandName}.documentation`,
-              `internal.${aggregateName}.${commandName}.schema`
-            ])
+            {
+              documentation: get(commands, `internal.${aggregateName}.${commandName}.documentation`),
+              schema: get(commands, `internal.${aggregateName}.${commandName}.schema`)
+            }
           );
         }
 
@@ -99,14 +99,14 @@ class Application {
 
           set(events, `internal.${aggregateName}.${eventName}`, {
             ...eventConfiguration,
-            documentation: stripIndent(eventConfiguration.documentation || '').trim()
+            documentation: eventConfiguration.documentation ? stripIndent(eventConfiguration.documentation).trim() : undefined
           });
           set(
             events, `external.${aggregateName}.${eventName}`,
-            pick(events, [
-              `internal.${aggregateName}.${eventName}.documentation`,
-              `internal.${aggregateName}.${eventName}.schema`
-            ])
+            {
+              documentation: get(events, `internal.${aggregateName}.${eventName}.documentation`),
+              schema: get(events, `internal.${aggregateName}.${eventName}.schema`)
+            }
           );
         }
       }
