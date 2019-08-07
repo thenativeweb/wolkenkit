@@ -94,7 +94,7 @@ async function requestTags(library, scheme, pageSize) {
     res.on('end', () => {
       try {
         const parsedData = JSON.parse(rawData);
-        buntstift.info(parsedData.results.[]);
+        buntstift.info(parsedData.results);
       } catch (e) {
         buntstift.error(e);
       }
