@@ -4,7 +4,8 @@
 
 const buntstift = require('buntstift'),
   fs = require('fs'),
-  path = require('path');
+  path = require('path'),
+  https = require('https');
 
 const dockerDir = path.join(__dirname, '../docker');
 
@@ -61,17 +62,52 @@ async function readDockerFile(file) {
   if (fs.existsSync(file) && fs.lstatSync(file).isFile()) {
     try {
       await fs.readFile(file, (err, data) => {
-        const patternFrom = /(FROM\s)(.+?):(.+?)\n/;
+        const patternFrom = /FROM\s(.+?):(.+?)\n/;
         const baseImage = patternFrom.exec(data);
-        buntstift.info(baseImage[3]);
+        requestTags(baseImage[1], baseImage[2], 100);
       });
     } catch (err) {
     }
   }
 }
 
+async function requestTags(library, scheme, pageSize) {
+  await https.get(`https://hub.docker.com/v2/repositories/library/${library}/tags/?page_size=${pageSize}`, (res) => {
+    const { statusCode } = res;
+    const contentType = res.headers['content-type'];
+
+    let error;
+    if (statusCode !== 200) {
+      error = new Error(`Request Failed for ${library}.\n` + `Status Code: ${statusCode}`);
+    } else if (!/^application\/json/.test(contentType)){
+      error = new Error('Invalid content-type.\n' + `Expected application/json but recieved ${contentType}`);
+    }
+    if (error) {
+      buntstift.error(error.message);
+      res.resume();
+      return;
+    }
+
+    res.setEncoding('utf8');
+    let rawData = '';
+    res.on('data', (chunk) => {rawData += chunk; });
+    res.on('end', () => {
+      try {
+        const parsedData = JSON.parse(rawData);
+        buntstift.info(parsedData.results.[]);
+      } catch (e) {
+        buntstift.error(e);
+      }
+    });
+  }).on('error', (e) => {
+    buntstift.error(`Got error: ${e.message}`);
+  }); 
+}
+
 (async () => {
+  const stop = buntstift.wait();
     const found = scanDirectory(dockerDir);
     await found;
+  stop();
     return found;
 })();
