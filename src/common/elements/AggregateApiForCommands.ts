@@ -35,7 +35,7 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
     this.command = command;
   }
 
-  public publishEvent (eventName: string, data: Dictionary<any>): void {
+  public publishEvent (eventName: string, data: Dictionary<any> = {}): void {
     const { aggregate } = this;
     const contextName = aggregate.contextIdentifier.name;
 

@@ -12,7 +12,7 @@ declare const assert: {
       false: () => void;
       falsy: () => void;
       greaterThan: (expected: number) => void;
-      instanceOf: (expected: new() => {}) => void;
+      instanceOf: (expected: new(...args: any[]) => {}) => void;
       lessThan: (expected: number) => void;
       matching: (expected: RegExp) => void;
       NaN: () => void;
@@ -38,7 +38,7 @@ declare const assert: {
         false: () => void;
         falsy: () => void;
         greaterThan: (expected: number) => void;
-        instanceOf: (expected: new() => {}) => void;
+        instanceOf: (expected: new(...args: any[]) => {}) => void;
         lessThan: (expected: number) => void;
         matching: (expected: RegExp) => void;
         NaN: () => void;

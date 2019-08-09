@@ -1,14 +1,3 @@
-
-
-const assert = require('assertthat'),
-      getOptionTests = require('get-option-tests'),
-      uuid = require('uuidv4');
-
-const { AggregateReadable, EventInternal } = require('../../../../common/elements'),
-      { Application } = require('../../../../common/application'),
-      { InMemory } = require('../../../../stores/eventstore'),
-      validUpdateInitialState = require('../../../shared/applications/valid/updateInitialState');
-
 suite('AggregateReadable', () => {
   let application;
 
@@ -20,45 +9,6 @@ suite('AggregateReadable', () => {
 
   test('is a function.', async () => {
     assert.that(AggregateReadable).is.ofType('function');
-  });
-
-  getOptionTests({
-    options: {
-      // We can not use the actual application here, because it gets created
-      // in the setup function which is run after getOptionTests.
-      application: {},
-      context: { name: 'sampleContext' },
-      aggregate: { name: 'sampleAggregate', id: uuid() }
-    },
-    run (options) {
-      /* eslint-disable no-new */
-      new AggregateReadable(options);
-      /* eslint-enable no-new */
-    }
-  });
-
-  test('throws an error if context does not exist.', async () => {
-    assert.that(() => {
-      /* eslint-disable no-new */
-      new AggregateReadable({
-        application,
-        context: { name: 'non-existent' },
-        aggregate: { name: 'sampleAggregate', id: uuid() }
-      });
-      /* eslint-enable no-new */
-    }).is.throwing('Context does not exist.');
-  });
-
-  test('throws an error if aggregate does not exist.', async () => {
-    assert.that(() => {
-      /* eslint-disable no-new */
-      new AggregateReadable({
-        application,
-        context: { name: 'sampleContext' },
-        aggregate: { name: 'non-existent', id: uuid() }
-      });
-      /* eslint-enable no-new */
-    }).is.throwing('Aggregate does not exist.');
   });
 
   suite('instance', () => {
@@ -176,29 +126,7 @@ suite('AggregateReadable', () => {
 
   suite('api', () => {
     suite('forReadOnly', () => {
-      test('contains the aggregate id.', async () => {
-        const id = uuid();
-
-        const aggregate = new AggregateReadable({
-          application,
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id }
-        });
-
-        assert.that(aggregate.api.forReadOnly.id).is.equalTo(id);
-      });
-
       suite('state', () => {
-        test('contains the initial state.', async () => {
-          const aggregate = new AggregateReadable({
-            application,
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() }
-          });
-
-          assert.that(aggregate.api.forReadOnly.state).is.equalTo(application.initialState.internal.sampleContext.sampleAggregate);
-        });
-
         test('is a deep copy.', async () => {
           const aggregate = new AggregateReadable({
             application,
@@ -207,92 +135,6 @@ suite('AggregateReadable', () => {
           });
 
           assert.that(aggregate.api.forReadOnly.state).is.not.sameAs(application.initialState.internal.sampleContext.sampleAggregate);
-        });
-      });
-
-      suite('exists', () => {
-        test('references the instance exists function.', async () => {
-          const aggregateId = uuid();
-
-          const aggregate = new AggregateReadable({
-            application,
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId }
-          });
-
-          assert.that(aggregate.api.forReadOnly.exists).is.sameAs(aggregate.instance.exists);
-        });
-      });
-    });
-
-    suite('forEvents', () => {
-      test('contains the aggregate id.', async () => {
-        const id = uuid();
-
-        const aggregate = new AggregateReadable({
-          application,
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id }
-        });
-
-        assert.that(aggregate.api.forEvents.id).is.equalTo(id);
-      });
-
-      suite('state', () => {
-        test('references the read-only api state.', async () => {
-          const aggregate = new AggregateReadable({
-            application,
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() }
-          });
-
-          assert.that(aggregate.api.forEvents.state).is.sameAs(aggregate.api.forReadOnly.state);
-        });
-      });
-
-      suite('setState', () => {
-        test('is a function.', async () => {
-          const aggregate = new AggregateReadable({
-            application,
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() }
-          });
-
-          assert.that(aggregate.api.forEvents.setState).is.ofType('function');
-        });
-
-        test('updates the state.', async () => {
-          const aggregate = new AggregateReadable({
-            application,
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() }
-          });
-
-          assert.that(aggregate.api.forEvents.state.events).is.equalTo([]);
-
-          aggregate.api.forEvents.setState({
-            events: [ 'succeeded' ]
-          });
-
-          assert.that(aggregate.api.forEvents.state.events).is.equalTo([ 'succeeded' ]);
-        });
-
-        test('correctly resets arrays.', async () => {
-          const aggregate = new AggregateReadable({
-            application,
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() }
-          });
-
-          aggregate.api.forEvents.setState({
-            events: [ 'succeeded' ]
-          });
-
-          aggregate.api.forEvents.setState({
-            events: []
-          });
-
-          assert.that(aggregate.api.forEvents.state.events).is.equalTo([]);
         });
       });
     });
@@ -409,26 +251,6 @@ suite('AggregateReadable', () => {
 
     teardown(async () => {
       await eventstore.destroy();
-    });
-
-    test('is a function.', async () => {
-      assert.that(aggregate.applyEventStream).is.ofType('function');
-    });
-
-    test('throws an error if application is missing.', async () => {
-      await assert.that(async () => {
-        await aggregate.applyEventStream({
-          eventStream
-        });
-      }).is.throwingAsync('Application is missing.');
-    });
-
-    test('throws an error if event stream is missing.', async () => {
-      await assert.that(async () => {
-        await aggregate.applyEventStream({
-          application
-        });
-      }).is.throwingAsync('Event stream is missing.');
     });
 
     test('throws an error if the context name does not match.', async () => {

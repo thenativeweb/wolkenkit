@@ -1,41 +1,44 @@
 import Aggregate from '../../../../src/common/elements/Aggregate';
 import AggregateApiForEvents from '../../../../src/common/elements/AggregateApiForEvents';
 import assert from 'assertthat';
-import uuidv4 from 'uuidv4';
+import uuid from 'uuidv4';
 
 suite('AggregateApiForEvents', (): void => {
-  suite('instance', (): void => {
-    let aggregate: Aggregate;
+  let aggregate: Aggregate;
 
-    setup((): void => {
-      aggregate = new Aggregate({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: uuidv4() },
-        initialState: {
-          foo: 'bar',
-          bas: [ 'bax' ],
-          bay: { baz: 'bat' },
-          bap: 'bao'
-        }
+  setup(async (): Promise<void> => {
+    aggregate = new Aggregate({
+      contextIdentifier: { name: 'sampleContext' },
+      aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+      initialState: {}
+    });
+  });
+
+  suite('setState', (): void => {
+    test(`merges the given state into the aggregate's current state.`, async (): Promise<void> => {
+      const aggregateApiForEvents = new AggregateApiForEvents({ aggregate });
+
+      aggregateApiForEvents.setState({
+        events: [ 'succeeded' ]
+      });
+
+      assert.that(aggregate.state).is.equalTo({
+        events: [ 'succeeded' ]
       });
     });
 
-    suite('setState', (): void => {
-      test(`merges the given state into the aggregate's current state.`, async (): Promise<void> => {
-        const aggregateApiForEvents = new AggregateApiForEvents({ aggregate });
+    test('correctly resets arrays.', async (): Promise<void> => {
+      const aggregateApiForEvents = new AggregateApiForEvents({ aggregate });
 
-        aggregateApiForEvents.setState({
-          foo: 'baz',
-          bas: [ 'baxx' ],
-          bay: { baq: 'bal' }
-        });
+      aggregateApiForEvents.setState({
+        events: [ 'succeeded' ]
+      });
+      aggregateApiForEvents.setState({
+        events: []
+      });
 
-        assert.that(aggregate.state).is.equalTo({
-          foo: 'baz',
-          bas: [ 'baxx' ],
-          bay: { baq: 'bal' },
-          bap: 'bao'
-        });
+      assert.that(aggregate.state).is.equalTo({
+        events: []
       });
     });
   });

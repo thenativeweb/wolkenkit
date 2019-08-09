@@ -1,42 +1,49 @@
 import Aggregate from '../../../../src/common/elements/Aggregate';
 import AggregateApiForReadOnly from '../../../../src/common/elements/AggregateApiForReadOnly';
 import assert from 'assertthat';
-import uuidv4 from 'uuidv4';
+import uuid from 'uuidv4';
 
 suite('AggregateApiForReadOnly', (): void => {
-  suite('instance', (): void => {
-    let aggregate: Aggregate;
+  let aggregate: Aggregate;
 
-    setup((): void => {
-      aggregate = new Aggregate({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: uuidv4() },
-        initialState: {
-          foo: 'bar'
-        }
-      });
+  setup(async (): Promise<void> => {
+    aggregate = new Aggregate({
+      contextIdentifier: { name: 'sampleContext' },
+      aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+      initialState: {
+        foo: 'bar'
+      }
     });
+  });
 
-    test('contains the aggregate\'s id and state.', async (): Promise<void> => {
+  suite('id', (): void => {
+    test('contains the aggregate id.', async (): Promise<void> => {
       const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate });
 
       assert.that(aggregateApiForReadOnly.id).is.equalTo(aggregate.identifier.id);
+    });
+  });
+
+  suite('state', (): void => {
+    test('contains the aggregate state.', async (): Promise<void> => {
+      const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate });
+
       assert.that(aggregateApiForReadOnly.state).is.equalTo(aggregate.state);
     });
+  });
 
-    suite('exists', (): void => {
-      test('returns false for a recently initialized aggregate.', async (): Promise<void> => {
-        const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate });
+  suite('exists', (): void => {
+    test('returns false for a recently initialized aggregate.', async (): Promise<void> => {
+      const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate });
 
-        assert.that(aggregateApiForReadOnly.exists()).is.false();
-      });
+      assert.that(aggregateApiForReadOnly.exists()).is.false();
+    });
 
-      test('returns true for an aggregate with revision > 0.', async (): Promise<void> => {
-        aggregate.revision += 1;
-        const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate });
+    test('returns true for an aggregate with revision > 0.', async (): Promise<void> => {
+      aggregate.revision += 1;
+      const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate });
 
-        assert.that(aggregateApiForReadOnly.exists()).is.true();
-      });
+      assert.that(aggregateApiForReadOnly.exists()).is.true();
     });
   });
 });
