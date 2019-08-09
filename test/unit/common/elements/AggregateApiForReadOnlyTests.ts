@@ -24,17 +24,19 @@ suite('AggregateApiForReadOnly', (): void => {
       assert.that(aggregateApiForReadOnly.state).is.equalTo(aggregate.state);
     });
 
-    test('exists returns false for a recently initialized aggregate.', async (): Promise<void> => {
-      const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate });
+    suite('exists', (): void => {
+      test('returns false for a recently initialized aggregate.', async (): Promise<void> => {
+        const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate });
 
-      assert.that(aggregateApiForReadOnly.exists()).is.false();
-    });
+        assert.that(aggregateApiForReadOnly.exists()).is.false();
+      });
 
-    test('exists returns true for an aggregate with revision > 0.', async (): Promise<void> => {
-      aggregate.revision += 1;
-      const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate });
+      test('returns true for an aggregate with revision > 0.', async (): Promise<void> => {
+        aggregate.revision += 1;
+        const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate });
 
-      assert.that(aggregateApiForReadOnly.exists()).is.true();
+        assert.that(aggregateApiForReadOnly.exists()).is.true();
+      });
     });
   });
 });
