@@ -191,7 +191,7 @@
     "retry-ignore-abort": "1.0.1",
     "run-script-os": "1.0.7",
     "runfork": "1.1.0",
-    "sinon": "^7.4.1",
+    "sinon": "7.4.1",
     "streamtoarray": "1.1.0",
     "strip-ansi": "5.2.0",
     "supertest": "4.0.2",
