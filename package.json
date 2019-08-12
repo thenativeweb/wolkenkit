@@ -205,7 +205,7 @@
   },
   "scripts": {
     "ts-build": "npx tsc",
-    "ts-test": "FLASCHENPOST_FORMATTER=json npx mocha --async-only --bail --recursive --require ts-node/register --require tsconfig-paths/register --reporter spec --ui tdd $(find test -name '*.ts' ! -path '*shared*')",
+    "ts-test": "FLASCHENPOST_FORMATTER=json npx mocha --async-only --bail --recursive --require ts-node/register --require tsconfig-paths/register --reporter spec --ui tdd $(find test -name '*Tests.ts' ! -path '*shared*')",
     "build": "run-script-os",
     "build:darwin:linux": "node bin/build.js --color",
     "build:win32": "node bin\\build.js --color",
