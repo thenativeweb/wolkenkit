@@ -10,6 +10,7 @@ const errors = defekt({
   ForwardFailed: {},
   IdentifierMismatch: {},
   InvalidOperation: {},
+  NotAuthenticatedError: {},
   RequestFailed: {},
   TypeInvalid: {}
 });

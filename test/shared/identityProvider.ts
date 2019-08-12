@@ -1,9 +1,6 @@
-'use strict';
-
-const fs = require('fs'),
-      path = require('path');
-
-const Limes = require('limes');
+import fs from 'fs';
+import Limes from 'limes';
+import path from 'path';
 
 /* eslint-disable no-sync */
 const identityProvider = new Limes.IdentityProvider({
@@ -13,4 +10,4 @@ const identityProvider = new Limes.IdentityProvider({
 });
 /* eslint-enable no-sync */
 
-module.exports = identityProvider;
+export default identityProvider;

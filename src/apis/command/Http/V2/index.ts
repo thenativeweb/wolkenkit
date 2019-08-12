@@ -1,35 +1,29 @@
-'use strict';
+import Application from '../../../../common/application/Application';
+import express from 'express';
+import { Express } from 'express-serve-static-core';
+import getConfiguration from './getConfiguration';
+import { IdentityProvider } from '../../../../../types/limes';
+import Limes from 'limes';
+import postCommand, { OnReceiveCommand } from './postCommand';
 
-const express = require('express'),
-      Limes = require('limes');
-
-const getConfiguration = require('./getConfiguration'),
-      postCommand = require('./postCommand');
+export type Purpose = 'internal' | 'external';
 
 class V2 {
-  constructor ({
+  protected application: Application;
+
+  public api: Express;
+
+  public constructor ({
     purpose,
     onReceiveCommand,
     application,
     identityProviders
+  }: {
+    purpose: Purpose;
+    onReceiveCommand: OnReceiveCommand;
+    application: Application;
+    identityProviders: IdentityProvider[];
   }) {
-    if (!purpose) {
-      throw new Error('Purpose is missing.');
-    }
-    if (!onReceiveCommand) {
-      throw new Error('On receive command is missing.');
-    }
-    if (!application) {
-      throw new Error('Application is missing.');
-    }
-    if (!identityProviders) {
-      throw new Error('Identity providers is missing.');
-    }
-
-    if (![ 'internal', 'external' ].includes(purpose)) {
-      throw new Error(`Purpose must either be 'internal' or 'external'.`);
-    }
-
     this.application = application;
 
     const limes = new Limes({ identityProviders });
@@ -54,4 +48,4 @@ class V2 {
   }
 }
 
-module.exports = V2;
+export default V2;

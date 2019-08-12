@@ -1,35 +1,34 @@
-'use strict';
-
-const flaschenpost = require('flaschenpost'),
-      typer = require('content-type');
-
-const ClientMetadata = require('../../../../common/utils/http/ClientMetadata'),
-      { CommandExternal, CommandInternal } = require('../../../../common/elements');
+import Application from '../../../../common/application/Application';
+import ClientMetadata from '../../../../common/utils/http/ClientMetadata';
+import CommandExternal from '../../../../common/elements/CommandExternal';
+import CommandInternal from '../../../../common/elements/CommandInternal';
+import errors from '../../../../common/errors';
+import flaschenpost from 'flaschenpost';
+import { Purpose } from '.';
+import typer from 'content-type';
+import { Request, RequestHandler, Response } from 'express-serve-static-core';
 
 const logger = flaschenpost.getLogger();
+
+export type OnReceiveCommand = ({ command }: { command: CommandInternal }) => Promise<void>;
 
 const postCommand = function ({
   purpose,
   onReceiveCommand,
   application
-}) {
-  if (!purpose) {
-    throw new Error('Purpose is missing.');
-  }
-  if (!onReceiveCommand) {
-    throw new Error('On receive command is missing.');
-  }
-  if (!application) {
-    throw new Error('Application is missing.');
-  }
+}: {
+  purpose: Purpose;
+  onReceiveCommand: OnReceiveCommand;
+  application: Application;
+}): RequestHandler {
+  return async function (req: Request, res: Response): Promise<any> {
+    if (!req.token || !req.user) {
+      res.status(401).end();
+      throw new errors.NotAuthenticatedError('Client information missing in request.');
+    }
 
-  if (![ 'internal', 'external' ].includes(purpose)) {
-    throw new Error(`Purpose must either be 'internal' or 'external'.`);
-  }
-
-  return async function (req, res) {
     let command = req.body,
-        contentType;
+        contentType: typer.ParsedMediaType;
 
     try {
       contentType = typer.parse(req);
@@ -49,7 +48,7 @@ const postCommand = function ({
           return res.status(400).send(ex.message);
         }
 
-        command = CommandInternal.fromObject(command);
+        command = CommandInternal.deserialize(command);
         break;
       case 'external':
         try {
@@ -58,7 +57,7 @@ const postCommand = function ({
           return res.status(400).send(ex.message);
         }
 
-        command = CommandInternal.fromObject({
+        command = CommandInternal.deserialize({
           ...command,
           annotations: {
             client: new ClientMetadata({ req }),
@@ -67,7 +66,7 @@ const postCommand = function ({
         });
         break;
       default:
-        throw new Error('Invalid operation.');
+        throw new errors.InvalidOperation(`Purpose should have been 'internal' or 'external'.`);
     }
 
     logger.info('Command received.', { command });
@@ -84,4 +83,4 @@ const postCommand = function ({
   };
 };
 
-module.exports = postCommand;
+export default postCommand;

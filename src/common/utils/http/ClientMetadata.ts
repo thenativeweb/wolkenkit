@@ -1,23 +1,33 @@
-import { Dictionary } from '../../../types/Dictionary';
+import errors from '../../errors';
+import { isArray } from 'lodash';
+import { Request } from 'express-serve-static-core';
 
 class ClientMetadata {
   public token: string;
 
-  public user: { id: string; claims: Dictionary<any> };
+  public user: { id: string; claims: string | { [key: string]: any } };
 
   public ip: string;
 
   public constructor ({ req }: {
-    req: {
-      token: string;
-      user: { id: string; claims: Dictionary<any> };
-      connection: { remoteAddress: string };
-      headers: Dictionary<string>;
-    };
+    req: Request;
   }) {
+    if (!req.token || !req.user) {
+      throw new errors.NotAuthenticatedError('Client information missing in request.');
+    }
     this.token = req.token;
     this.user = { id: req.user.id, claims: req.user.claims };
-    this.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const headers = req.headers['x-forwarded-for'];
+
+    let header;
+
+    if (isArray(headers)) {
+      header = headers[0];
+    } else {
+      header = headers;
+    }
+
+    this.ip = header || req.connection.remoteAddress || '';
   }
 }
 
