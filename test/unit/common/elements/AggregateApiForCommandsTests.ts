@@ -7,6 +7,7 @@ import CommandInternal from '../../../../src/common/elements/CommandInternal';
 import Eventstore from '../../../../src/stores/eventstore/InMemory';
 import path from 'path';
 import Repository from '../../../../src/common/domain/Repository';
+import sinon from 'sinon';
 import uuid from 'uuidv4';
 import validUpdateInitialState from '../../../shared/applications/valid/updateInitialState';
 
@@ -140,6 +141,29 @@ suite('AggregateApiForCommands', (): void => {
         state: {
           events: [ 'executed' ]
         }
+      });
+    });
+
+    test('calls event handle function with all services.', async (): Promise<void> => {
+      const fake = sinon.fake();
+
+      application.events.internal.sampleContext!.sampleAggregate!.succeeded!.handle = fake;
+
+      const aggregateApiForCommands = new AggregateApiForCommands({
+        aggregate, application, repository, command
+      });
+
+      aggregateApiForCommands.publishEvent('succeeded');
+
+      assert.that(fake.called).is.true();
+      assert.that(fake.callCount).is.equalTo(1);
+      assert.that(fake.getCall(0).args.length).is.equalTo(3);
+      assert.that(fake.getCall(0).args[2]).is.atLeast({
+        app: {
+          aggregates: {}
+        },
+        client: {},
+        logger: {}
       });
     });
 
