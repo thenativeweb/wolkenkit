@@ -22,7 +22,7 @@ async function scanDirectory(dir) {
     });
 
     await contents;
-debugger;
+
     if (contents !== undefined) {
       let fullPath = contents.map((file) => {
         return path.join(dir, file);
@@ -35,7 +35,7 @@ debugger;
 }
 
 async function findDockerFiles(dirname, files) {
-  debugger;
+  
   return await files.map(async (file) => {
     let currentPath = path.join(dirname, file);
     if (fs.existsSync(currentPath) && 
@@ -48,7 +48,7 @@ async function findDockerFiles(dirname, files) {
       }
       
     } else if (fs.existsSync(currentPath) && fs.lstatSync(currentPath).isFile()) {
-      debugger;
+      
       if (file == "Dockerfile") {
         //buntstift.info(currentPath);
         return readDockerFile(currentPath);
@@ -62,17 +62,30 @@ async function readDockerFile(file) {
   if (fs.existsSync(file) && fs.lstatSync(file).isFile()) {
     try {
       await fs.readFile(file, (err, data) => {
+debugger;
         const patternFrom = /FROM\s(.+?):(.+?)\n/;
+        const patternUsername = /^([\w\.-]+?)\/(.+)$/;
         const baseImage = patternFrom.exec(data);
-        requestTags(baseImage[1], baseImage[2], 100);
+
+        if (patternUsername.test(baseImage[1])) {
+          const lib = patternUsername.exec(baseImage[1]);
+          //buntstift.info(baseImage[1]);
+          //buntstift.info(lib[1]+" "+lib[2]+" "+baseImage[2]+" "+baseImage[0]);
+          requestTags(lib[1], lib[2],baseImage[2]);
+        } else {
+          //buntstift.info("library"+" "+baseImage[1]+" "+baseImage[2]+" "+baseImage[0])
+          requestTags("library", baseImage[1], baseImage[2]);
+        }
+        //buntstift.info(baseImage[1], baseImage[2], baseImage[3]);
+        //requestTags(baseImage[1], baseImage[2], 100);
       });
     } catch (err) {
     }
   }
 }
 
-async function requestTags(library, scheme, pageSize) {
-  await https.get(`https://hub.docker.com/v2/repositories/library/${library}/tags/?page_size=${pageSize}`, (res) => {
+async function requestTags(username, library, scheme, pageSize) {
+  await https.get(`https://hub.docker.com/v2/repositories/${username}/${library}/tags/?page_size=${pageSize}`, (res) => {
     const { statusCode } = res;
     const contentType = res.headers['content-type'];
 
