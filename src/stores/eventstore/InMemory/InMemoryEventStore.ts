@@ -26,6 +26,10 @@ class InMemoryEventstore implements Eventstore {
   }
   /* eslint-enable class-methods-use-this */
 
+  public async destroy (): Promise<void> {
+    this.database = { events: [], snapshots: []};
+  }
+
   protected getStoredEvents (): EventExternal[] {
     return this.database.events;
   }
@@ -240,10 +244,6 @@ class InMemoryEventstore implements Eventstore {
     passThrough.end();
 
     return passThrough;
-  }
-
-  public async destroy (): Promise<void> {
-    this.database = { events: [], snapshots: []};
   }
 }
 
