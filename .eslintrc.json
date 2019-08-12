@@ -20,6 +20,7 @@
     "plugin:@typescript-eslint/recommended"
   ],
   "rules": {
+    "no-useless-constructor": "off",
     "@typescript-eslint/indent": [ "error", 2, {
       "SwitchCase": 1,
       "VariableDeclarator": { "var": 2, "let": 2, "const": 3 },
@@ -38,6 +39,7 @@
     "@typescript-eslint/interface-name-prefix": [ "error", "never" ],
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-useless-constructor": "error",
     "@typescript-eslint/no-unused-vars": [ "error", { "vars": "all" }],
     "@typescript-eslint/prefer-namespace-keyword": "off"
   }
