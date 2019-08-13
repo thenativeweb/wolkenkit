@@ -45,45 +45,38 @@ function () {
             throw new Error('Directory is missing.');
 
           case 5:
-            certificateDirectory = configuration.api.host.certificate;
-
-            if (certificateDirectory === defaults.commands.shared.api.host.certificate) {
-              certificateDirectory = path.join(__dirname, '..', '..', '..', certificateDirectory);
-            } else {
-              certificateDirectory = path.join(directory, certificateDirectory);
-            }
-
-            _context.prev = 7;
-            _context.next = 10;
+            certificateDirectory = path.join(directory, configuration.api.host.certificate);
+            _context.prev = 6;
+            _context.next = 9;
             return access(certificateDirectory, fs.constants.R_OK);
 
-          case 10:
-            _context.next = 17;
+          case 9:
+            _context.next = 16;
             break;
 
-          case 12:
-            _context.prev = 12;
-            _context.t0 = _context["catch"](7);
+          case 11:
+            _context.prev = 11;
+            _context.t0 = _context["catch"](6);
 
             if (!(_context.t0.code === 'ENOENT')) {
-              _context.next = 16;
+              _context.next = 15;
               break;
             }
 
             throw new errors.DirectoryNotFound();
 
-          case 16:
+          case 15:
             throw _context.t0;
 
-          case 17:
+          case 16:
             return _context.abrupt("return", certificateDirectory);
 
-          case 18:
+          case 17:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[7, 12]]);
+    }, _callee, null, [[6, 11]]);
   }));
 
   return function getCertificateDirectory(_x) {

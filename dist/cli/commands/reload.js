@@ -122,30 +122,46 @@ var reload = {
               }, showProgress(verbose, stopWaiting));
 
             case 27:
-              _context2.next = 35;
+              _context2.next = 46;
               break;
 
             case 29:
               _context2.prev = 29;
               _context2.t13 = _context2["catch"](24);
               stopWaiting();
+              _context2.t14 = _context2.t13.code;
+              _context2.next = _context2.t14 === 'ECONFIGURATIONMALFORMED' ? 35 : _context2.t14 === 'ECODEMALFORMED' ? 37 : 43;
+              break;
 
-              if (_context2.t13.code === 'ECODEMALFORMED') {
-                formatter = eslint.CLIEngine.getFormatter();
-                formattedResult = formatter(_context2.t13.cause.results);
-                output = formattedResult.split('\n').slice(0, -2).join('\n');
-                buntstift.info(output);
-                buntstift.info(_context2.t13.message);
+            case 35:
+              if (_context2.t13.message === 'Missing required property: certificate (at wolkenkit.environments.default.api.certificate).') {
+                buntstift.error('Certificate is missing.');
+                buntstift.warn('Due to a security issue in wolkenkit, the built-in certificate for local.wolkenkit.ui is no longer supported. Please provide a custom certificate.');
+                buntstift.warn('For details see https://docs.wolkenkit.io/3.1.0/reference/configuring-an-application/using-custom-certificates/');
               }
 
+              throw _context2.t13;
+
+            case 37:
+              formatter = eslint.CLIEngine.getFormatter();
+              formattedResult = formatter(_context2.t13.cause.results);
+              output = formattedResult.split('\n').slice(0, -2).join('\n');
+              buntstift.info(output);
+              buntstift.info(_context2.t13.message);
+              return _context2.abrupt("break", 44);
+
+            case 43:
+              return _context2.abrupt("break", 44);
+
+            case 44:
               buntstift.error('Failed to reload the application.');
               throw _context2.t13;
 
-            case 35:
+            case 46:
               stopWaiting();
               buntstift.success('Reloaded the application.');
 
-            case 37:
+            case 48:
             case "end":
               return _context2.stop();
           }

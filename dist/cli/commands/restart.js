@@ -143,30 +143,46 @@ var restart = {
               }, showProgress(verbose, stopWaiting));
 
             case 28:
-              _context2.next = 36;
+              _context2.next = 47;
               break;
 
             case 30:
               _context2.prev = 30;
               _context2.t13 = _context2["catch"](25);
               stopWaiting();
+              _context2.t14 = _context2.t13.code;
+              _context2.next = _context2.t14 === 'ECONFIGURATIONMALFORMED' ? 36 : _context2.t14 === 'ECODEMALFORMED' ? 38 : 44;
+              break;
 
-              if (_context2.t13.code === 'ECODEMALFORMED') {
-                formatter = eslint.CLIEngine.getFormatter();
-                formattedResult = formatter(_context2.t13.cause.results);
-                output = formattedResult.split('\n').slice(0, -2).join('\n');
-                buntstift.info(output);
-                buntstift.info(_context2.t13.message);
+            case 36:
+              if (_context2.t13.message === 'Missing required property: certificate (at wolkenkit.environments.default.api.certificate).') {
+                buntstift.error('Certificate is missing.');
+                buntstift.warn('Due to a security issue in wolkenkit, the built-in certificate for local.wolkenkit.ui is no longer supported. Please provide a custom certificate.');
+                buntstift.warn('For details see https://docs.wolkenkit.io/3.1.0/reference/configuring-an-application/using-custom-certificates/');
               }
 
+              throw _context2.t13;
+
+            case 38:
+              formatter = eslint.CLIEngine.getFormatter();
+              formattedResult = formatter(_context2.t13.cause.results);
+              output = formattedResult.split('\n').slice(0, -2).join('\n');
+              buntstift.info(output);
+              buntstift.info(_context2.t13.message);
+              return _context2.abrupt("break", 45);
+
+            case 44:
+              return _context2.abrupt("break", 45);
+
+            case 45:
               buntstift.error('Failed to restart the application.');
               throw _context2.t13;
 
-            case 36:
+            case 47:
               stopWaiting();
               buntstift.success('Restarted the application.');
 
-            case 38:
+            case 49:
             case "end":
               return _context2.stop();
           }

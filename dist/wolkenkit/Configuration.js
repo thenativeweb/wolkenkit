@@ -63,7 +63,7 @@ function () {
     this.api = {
       host: {
         name: apiHostname || defaults.commands.shared.api.host.name,
-        certificate: apiCertificate || defaults.commands.shared.api.host.certificate
+        certificate: apiCertificate
       },
       port: apiPort || defaults.commands.shared.api.port
     };

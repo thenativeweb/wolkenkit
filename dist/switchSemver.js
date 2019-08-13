@@ -16,7 +16,7 @@ function () {
   var _ref = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
   _regenerator.default.mark(function _callee(version, handlers) {
-    var _arr, _i, _arr$_i, range, handler;
+    var _i, _Object$entries, _Object$entries$_i, range, handler;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -58,38 +58,37 @@ function () {
             return _context.abrupt("return", _context.sent);
 
           case 10:
-            _arr = Object.entries(handlers);
-            _i = 0;
+            _i = 0, _Object$entries = Object.entries(handlers);
 
-          case 12:
-            if (!(_i < _arr.length)) {
-              _context.next = 21;
+          case 11:
+            if (!(_i < _Object$entries.length)) {
+              _context.next = 20;
               break;
             }
 
-            _arr$_i = (0, _slicedToArray2.default)(_arr[_i], 2), range = _arr$_i[0], handler = _arr$_i[1];
+            _Object$entries$_i = (0, _slicedToArray2.default)(_Object$entries[_i], 2), range = _Object$entries$_i[0], handler = _Object$entries$_i[1];
 
             if (!semver.satisfies(version, range)) {
-              _context.next = 18;
+              _context.next = 17;
               break;
             }
 
-            _context.next = 17;
+            _context.next = 16;
             return handler();
 
-          case 17:
+          case 16:
             return _context.abrupt("return", _context.sent);
 
-          case 18:
+          case 17:
             _i++;
-            _context.next = 12;
+            _context.next = 11;
             break;
 
-          case 21:
-            _context.next = 23;
+          case 20:
+            _context.next = 22;
             return handlers.default();
 
-          case 23:
+          case 22:
           case "end":
             return _context.stop();
         }

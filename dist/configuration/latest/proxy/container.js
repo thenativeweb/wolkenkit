@@ -52,14 +52,14 @@ var container = function container(_ref) {
     env: {
       API_EXTERNAL_HOST: api.external.https.hostname,
       API_EXTERNAL_PORT: api.external.https.port,
-      API_CERTIFICATE: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ? path.posix.join(configuration.api.host.certificate, 'certificate.pem') : path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'certificate.pem'),
-      API_PRIVATE_KEY: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ? path.posix.join(configuration.api.host.certificate, 'privateKey.pem') : path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'privateKey.pem'),
+      API_CERTIFICATE: path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'certificate.pem'),
+      API_PRIVATE_KEY: path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'privateKey.pem'),
       API_CONTAINER_HOST: api.container.http.hostname,
       API_CONTAINER_PORT: api.container.http.port,
       DEPOT_EXTERNAL_HOST: fileStorage.external.https.hostname,
       DEPOT_EXTERNAL_PORT: fileStorage.external.https.port,
-      DEPOT_CERTIFICATE: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ? path.posix.join(configuration.api.host.certificate, 'certificate.pem') : path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'certificate.pem'),
-      DEPOT_PRIVATE_KEY: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ? path.posix.join(configuration.api.host.certificate, 'privateKey.pem') : path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'privateKey.pem'),
+      DEPOT_CERTIFICATE: path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'certificate.pem'),
+      DEPOT_PRIVATE_KEY: path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate, 'privateKey.pem'),
       DEPOT_CONTAINER_HOST: fileStorage.container.http.hostname,
       DEPOT_CONTAINER_PORT: fileStorage.container.http.port
     },

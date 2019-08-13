@@ -68,7 +68,7 @@ var schema = function schema() {
                     }
                   },
                   additionalProperties: false,
-                  required: ['address', 'allowAccessFrom']
+                  required: ['address', 'allowAccessFrom', 'certificate']
                 },
                 fileStorage: {
                   type: 'object',
@@ -337,7 +337,7 @@ var schema = function schema() {
                     }
                   },
                   additionalProperties: false,
-                  required: ['allowAccessFrom']
+                  required: ['certificate', 'allowAccessFrom']
                 },
                 identityProvider: {
                   type: 'object',

@@ -24,7 +24,7 @@ function () {
   var _ref2 = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
   _regenerator.default.mark(function _callee(_ref) {
-    var configuration, directory, secrets, identifier, flattenedConfiguration, _arr, _i, _arr$_i, key, value, secretSelector, secret, unflattenedConfiguration;
+    var configuration, directory, secrets, identifier, flattenedConfiguration, _i, _Object$entries, _Object$entries$_i, key, value, secretSelector, secret, unflattenedConfiguration;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -71,64 +71,63 @@ function () {
           case 15:
             identifier = 'secret://';
             flattenedConfiguration = flatten(configuration);
-            _arr = Object.entries(flattenedConfiguration);
-            _i = 0;
+            _i = 0, _Object$entries = Object.entries(flattenedConfiguration);
 
-          case 19:
-            if (!(_i < _arr.length)) {
-              _context.next = 35;
+          case 18:
+            if (!(_i < _Object$entries.length)) {
+              _context.next = 34;
               break;
             }
 
-            _arr$_i = (0, _slicedToArray2.default)(_arr[_i], 2), key = _arr$_i[0], value = _arr$_i[1];
+            _Object$entries$_i = (0, _slicedToArray2.default)(_Object$entries[_i], 2), key = _Object$entries$_i[0], value = _Object$entries$_i[1];
 
             if (!(typeof value !== 'string')) {
-              _context.next = 23;
+              _context.next = 22;
               break;
             }
 
-            return _context.abrupt("continue", 32);
+            return _context.abrupt("continue", 31);
 
-          case 23:
+          case 22:
             if (value.startsWith(identifier)) {
-              _context.next = 25;
+              _context.next = 24;
               break;
             }
 
-            return _context.abrupt("continue", 32);
+            return _context.abrupt("continue", 31);
 
-          case 25:
+          case 24:
             if (secrets) {
-              _context.next = 27;
+              _context.next = 26;
               break;
             }
 
             throw new errors.SecretFileNotFound('wolkenkit-secrets.json is missing.');
 
-          case 27:
+          case 26:
             secretSelector = value.replace(identifier, '');
             secret = get(secrets, secretSelector);
 
             if (!(secret === undefined)) {
-              _context.next = 31;
+              _context.next = 30;
               break;
             }
 
             throw new errors.SecretNotFound("Could not find a secret named '".concat(secretSelector, "'."));
 
-          case 31:
+          case 30:
             flattenedConfiguration[key] = secret;
 
-          case 32:
+          case 31:
             _i++;
-            _context.next = 19;
+            _context.next = 18;
             break;
 
-          case 35:
+          case 34:
             unflattenedConfiguration = unflatten(flattenedConfiguration);
             return _context.abrupt("return", unflattenedConfiguration);
 
-          case 37:
+          case 36:
           case "end":
             return _context.stop();
         }

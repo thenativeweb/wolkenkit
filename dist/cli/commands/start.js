@@ -218,7 +218,7 @@ var init = {
               }, showProgress(verbose, stopWaiting));
 
             case 36:
-              _context2.next = 56;
+              _context2.next = 58;
               break;
 
             case 38:
@@ -226,18 +226,27 @@ var init = {
               _context2.t13 = _context2["catch"](33);
               stopWaiting();
               _context2.t14 = _context2.t13.code;
-              _context2.next = _context2.t14 === 'ECODEMALFORMED' ? 44 : _context2.t14 === 'ERUNTIMEERROR' ? 50 : 53;
+              _context2.next = _context2.t14 === 'ECONFIGURATIONMALFORMED' ? 44 : _context2.t14 === 'ECODEMALFORMED' ? 46 : _context2.t14 === 'ERUNTIMEERROR' ? 52 : 55;
               break;
 
             case 44:
+              if (_context2.t13.message === 'Missing required property: certificate (at wolkenkit.environments.default.api.certificate).') {
+                buntstift.error('Certificate is missing.');
+                buntstift.warn('Due to a security issue in wolkenkit, the built-in certificate for local.wolkenkit.ui is no longer supported. Please provide a custom certificate.');
+                buntstift.warn('For details see https://docs.wolkenkit.io/3.1.0/reference/configuring-an-application/using-custom-certificates/');
+              }
+
+              throw _context2.t13;
+
+            case 46:
               formatter = eslint.CLIEngine.getFormatter();
               formattedResult = formatter(_context2.t13.cause.results);
               output = formattedResult.split('\n').slice(0, -2).join('\n');
               buntstift.info(output);
               buntstift.info(_context2.t13.message);
-              return _context2.abrupt("break", 54);
+              return _context2.abrupt("break", 56);
 
-            case 50:
+            case 52:
               if (_context2.t13.orginalError) {
                 buntstift.newLine();
                 buntstift.info(_context2.t13.orginalError.stack);
@@ -245,20 +254,20 @@ var init = {
               }
 
               buntstift.info('Application code caused runtime error.');
-              return _context2.abrupt("break", 54);
+              return _context2.abrupt("break", 56);
 
-            case 53:
-              return _context2.abrupt("break", 54);
+            case 55:
+              return _context2.abrupt("break", 56);
 
-            case 54:
+            case 56:
               buntstift.error('Failed to start the application.');
               throw _context2.t13;
 
-            case 56:
+            case 58:
               stopWaiting();
               buntstift.success('Started the application.');
 
-            case 58:
+            case 60:
             case "end":
               return _context2.stop();
           }

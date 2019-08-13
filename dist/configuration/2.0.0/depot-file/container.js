@@ -53,7 +53,7 @@ var container = function container(_ref) {
     env: {
       IDENTITYPROVIDER_CERTIFICATE: get(selectedEnvironment, 'identityProvider.certificate', '/keys/wildcard.wolkenkit.io'),
       IDENTITYPROVIDER_NAME: get(selectedEnvironment, 'identityProvider.name', 'auth.wolkenkit.io'),
-      KEYS: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ? configuration.api.host.certificate : path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate),
+      KEYS: path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate),
       NODE_ENV: get(selectedEnvironment, 'node.environment', 'development'),
       STATUS_PORT: 3333,
       STATUS_CORS_ORIGIN: '*'
