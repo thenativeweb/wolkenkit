@@ -178,6 +178,7 @@
     "@types/mocha": "5.2.7",
     "@types/nock": "10.0.3",
     "@types/node": "12.7.1",
+    "@types/p-queue": "3.2.1",
     "@types/require-dir": "1.0.0",
     "@types/shelljs": "0.8.5",
     "@types/sinon": "7.0.13",
