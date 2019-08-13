@@ -1,18 +1,26 @@
-'use strict';
-
-const fs = require('fs'),
-      { promisify } = require('util');
-
-const compression = require('compression'),
-      cors = require('cors'),
-      express = require('express'),
-      flatten = require('lodash/flatten'),
-      nocache = require('nocache');
+import compression from 'compression';
+import cors from 'cors';
+import express from 'express';
+import { Express } from 'express-serve-static-core';
+import fs from 'fs';
+import nocache from 'nocache';
+import { promisify } from 'util';
 
 const stat = promisify(fs.stat);
 
 class Http {
-  async initialize ({ corsOrigin, serveStatic }) {
+  public api: Express;
+
+  protected constructor ({ api }: {
+    api: Express;
+  }) {
+    this.api = api;
+  }
+
+  public static async initialize ({ corsOrigin, serveStatic }: {
+    corsOrigin: string | RegExp | string[];
+    serveStatic: string;
+  }): Promise<Http> {
     if (!corsOrigin) {
       throw new Error('CORS origin is missing.');
     }
@@ -25,23 +33,23 @@ class Http {
     if (corsOrigin === '*') {
       transformedCorsOrigin = corsOrigin;
     } else {
-      transformedCorsOrigin = flatten([ corsOrigin ]);
+      transformedCorsOrigin = [ corsOrigin ].flat();
     }
 
-    this.api = express();
+    const api = express();
 
-    this.api.options('*', cors({
+    api.options('*', cors({
       methods: [ 'GET', 'POST' ],
       origin: transformedCorsOrigin,
       optionsSuccessStatus: 200
     }));
-    this.api.use(cors({
+    api.use(cors({
       methods: [ 'GET', 'POST' ],
       origin: transformedCorsOrigin,
       optionsSuccessStatus: 200
     }));
 
-    this.api.use(nocache());
+    api.use(nocache());
 
     let staticPath;
 
@@ -57,9 +65,11 @@ class Http {
       throw new Error('Serve static is not a directory.');
     }
 
-    this.api.use(compression());
-    this.api.use('/', express.static(serveStatic));
+    api.use(compression());
+    api.use('/', express.static(serveStatic));
+
+    return new Http({ api });
   }
 }
 
-module.exports = Http;
+export default Http;
