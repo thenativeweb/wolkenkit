@@ -19,7 +19,7 @@ class Repository {
     this.eventstore = eventstore;
   }
 
-  protected async replayAggregate ({ aggregate }: {
+  public async replayAggregate ({ aggregate }: {
     aggregate: Aggregate;
   }): Promise<Aggregate> {
     const snapshot = await this.eventstore.getSnapshot({
@@ -73,7 +73,7 @@ class Repository {
     return replayedAggregate;
   }
 
-  async saveAggregate ({ aggregate }: {
+  public async saveAggregate ({ aggregate }: {
     aggregate: Aggregate;
   }): Promise<EventInternal[]> {
     if (aggregate.uncommittedEvents.length === 0) {
