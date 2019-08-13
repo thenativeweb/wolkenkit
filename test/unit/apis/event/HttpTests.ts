@@ -1,115 +1,53 @@
-'use strict';
+import Application from '../../../../src/common/application';
+import asJsonStream from '../../../shared/http/asJsonStream';
+import assert from 'assertthat';
+import eventFilter from '../../../shared/applications/valid/eventFilter';
+import EventInternal from '../../../../src/common/elements/EventInternal';
+import eventIsAuthorized from '../../../shared/applications/valid/eventIsAuthorized';
+import eventMap from '../../../shared/applications/valid/eventMap';
+import { Eventstore } from '../../../../src/stores/eventstore/Eventstore';
+import Http from '../../../../src/apis/event/Http';
+import identityProvider from '../../../shared/identityProvider';
+import InMemoryEventstore from '../../../../src/stores/eventstore/InMemory/InMemoryEventStore';
+import path from 'path';
+import record from 'record-stdstreams';
+import Repository from '../../../../src/common/domain/Repository';
+import sleep from '../../../../src/common/utils/sleep';
+import uuid from 'uuidv4';
+import supertest, { Response } from 'supertest';
 
-const path = require('path');
-
-const assert = require('assertthat'),
-      record = require('record-stdstreams'),
-      supertest = require('supertest'),
-      uuid = require('uuidv4');
-
-const { Application } = require('../../../../common/application'),
-      asJsonStream = require('../../../shared/http/asJsonStream'),
-      { EventExternal, EventInternal } = require('../../../../common/elements'),
-      eventFilter = require('../../../shared/applications/valid/eventFilter'),
-      eventIsAuthorized = require('../../../shared/applications/valid/eventIsAuthorized'),
-      eventMap = require('../../../shared/applications/valid/eventMap'),
-      { Http } = require('../../../../apis/event'),
-      identityProvider = require('../../../shared/identityProvider'),
-      { InMemory } = require('../../../../stores/eventstore'),
-      { Repository } = require('../../../../common/domain'),
-      sleep = require('../../../../common/utils/sleep');
-
-suite('event/Http', () => {
+suite('event/Http', (): void => {
   const identityProviders = [ identityProvider ];
-  let application,
-      eventstore,
-      repository;
+  let application: Application,
+      eventstore: Eventstore,
+      repository: Repository;
 
-  setup(async () => {
+  setup(async (): Promise<void> => {
     const directory = path.join(__dirname, '..', '..', '..', 'shared', 'applications', 'base');
 
-    eventstore = new InMemory();
+    eventstore = new InMemoryEventstore();
     await eventstore.initialize();
 
     application = await Application.load({ directory });
     repository = new Repository({ application, eventstore });
   });
 
-  teardown(async () => {
+  teardown(async (): Promise<void> => {
     await eventstore.destroy();
   });
 
-  test('is a function.', async () => {
+  test('is a function.', async (): Promise<void> => {
     assert.that(Http).is.ofType('function');
   });
 
-  suite('initialize', () => {
-    test('is a function.', async () => {
-      const http = new Http();
-
-      assert.that(http.initialize).is.ofType('function');
-    });
-
-    test('throws an error if CORS origin is missing.', async () => {
-      const http = new Http();
-
-      await assert.that(async () => {
-        await http.initialize({
-          purpose: 'external',
-          application,
-          repository,
-          identityProviders
-        });
-      }).is.throwingAsync('CORS origin is missing.');
-    });
-
-    test('throws an error if application is missing.', async () => {
-      const http = new Http();
-
-      await assert.that(async () => {
-        await http.initialize({
-          corsOrigin: '*',
-          purpose: 'external',
-          repository,
-          identityProviders
-        });
-      }).is.throwingAsync('Application is missing.');
-    });
-
-    test('throws an error if repository is missing.', async () => {
-      const http = new Http();
-
-      await assert.that(async () => {
-        await http.initialize({
-          corsOrigin: '*',
-          purpose: 'external',
-          application,
-          identityProviders
-        });
-      }).is.throwingAsync('Repository is missing.');
-    });
-
-    test('throws an error if identity providers are missing.', async () => {
-      const http = new Http();
-
-      await assert.that(async () => {
-        await http.initialize({
-          corsOrigin: '*',
-          purpose: 'external',
-          application,
-          repository
-        });
-      }).is.throwingAsync('Identity providers are missing.');
-    });
-
-    test('sets api to an Express application.', async () => {
-      const http = new Http();
-
-      assert.that(http.api).is.undefined();
-
-      await http.initialize({
+  suite('initialize', (): void => {
+    test('sets api to an Express application.', async (): Promise<void> => {
+      const http = await Http.initialize({
         corsOrigin: '*',
         purpose: 'external',
+        async onReceiveEvent (): Promise<void> {
+          // Intentionally left blank.
+        },
         application,
         repository,
         identityProviders
@@ -119,7 +57,7 @@ suite('event/Http', () => {
     });
   });
 
-  suite('CORS', () => {
+  suite('CORS', (): void => {
     const corsOrigins = [
       {
         title: 'returns * if anything is allowed.',
@@ -161,111 +99,104 @@ suite('event/Http', () => {
 
     for (const corsOrigin of corsOrigins) {
       /* eslint-disable no-loop-func */
-      test(corsOrigin.title, async () => {
-        const http = new Http();
-
-        await http.initialize({
+      test(corsOrigin.title, async (): Promise<void> => {
+        const http = await Http.initialize({
           corsOrigin: corsOrigin.allow,
           purpose: 'external',
+          async onReceiveEvent (): Promise<void> {
+            // Intentionally left blank.
+          },
           application,
           repository,
           identityProviders
         });
 
-        const res = await supertest(http.api).
+        await supertest(http.api).
           options('/').
           set({
             origin: corsOrigin.origin,
             'access-control-request-method': 'POST',
             'access-control-request-headers': 'X-Requested-With'
+          }).
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(200);
+            assert.that(res.header['access-control-allow-origin']).is.equalTo(corsOrigin.expected);
+            assert.that(res.header['access-control-allow-methods']).is.equalTo('GET,POST');
           });
-
-        assert.that(res.statusCode).is.equalTo(200);
-        assert.that(res.headers['access-control-allow-origin']).is.equalTo(corsOrigin.expected);
-        assert.that(res.headers['access-control-allow-methods']).is.equalTo('GET,POST');
       });
       /* eslint-enable no-loop-func */
     }
   });
 
-  suite('external', () => {
-    suite('GET /v2/configuration', () => {
-      let http;
+  suite('external', (): void => {
+    suite('GET /v2/configuration', (): void => {
+      let http: Http;
 
-      setup(async () => {
-        http = new Http();
-
-        await http.initialize({
+      setup(async (): Promise<void> => {
+        http = await Http.initialize({
           corsOrigin: '*',
           purpose: 'external',
+          async onReceiveEvent (): Promise<void> {
+            // Intentionally left blank.
+          },
           application,
           repository,
           identityProviders
         });
       });
 
-      test('returns 200.', async () => {
-        const res = await supertest(http.api).get('/v2/configuration');
-
-        assert.that(res.statusCode).is.equalTo(200);
+      test('returns 200.', async (): Promise<void> => {
+        await supertest(http.api).
+          get('/v2/configuration').
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(200);
+          });
       });
 
-      test('returns application/json.', async () => {
-        const res = await supertest(http.api).get('/v2/configuration');
-
-        assert.that(res.headers['content-type']).is.equalTo('application/json; charset=utf-8');
+      test('returns application/json.', async (): Promise<void> => {
+        await supertest(http.api).
+          get('/v2/configuration').
+          expect((res: Response): void => {
+            assert.that(res.header['content-type']).is.equalTo('application/json; charset=utf-8');
+          });
       });
 
-      test('serves the event configuration.', async () => {
-        const res = await supertest(http.api).get('/v2/configuration');
+      test('serves the event configuration.', async (): Promise<void> => {
+        await supertest(http.api).
+          get('/v2/configuration').
+          expect((res: Response): void => {
+            const events = application.events.external;
 
-        const events = application.events.external;
+            // Convert and parse as JSON, to get rid of any values that are undefined.
+            // This is what the HTTP API does internally, and here we need to simulate
+            // this to make things work.
+            const expectedConfiguration = JSON.parse(JSON.stringify(events));
 
-        // Convert and parse as JSON, to get rid of any values that are undefined.
-        // This is what the HTTP API does internally, and here we need to simulate
-        // this to make things work.
-        const expectedConfiguration = JSON.parse(JSON.stringify(events));
-
-        assert.that(res.body).is.equalTo(expectedConfiguration);
+            assert.that(res.body).is.equalTo(expectedConfiguration);
+          });
       });
     });
 
-    suite('GET /v2/', () => {
-      let http;
+    suite('GET /v2/', (): void => {
+      let http: Http;
 
-      setup(async () => {
-        http = new Http();
-
-        await http.initialize({
+      setup(async (): Promise<void> => {
+        http = await Http.initialize({
           corsOrigin: '*',
           purpose: 'external',
+          async onReceiveEvent (): Promise<void> {
+            // Intentionally left blank.
+          },
           application,
           repository,
           identityProviders
         });
       });
 
-      test('throws an error on external events.', async () => {
-        const executed = EventExternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
-          name: 'executed',
-          data: { strategy: 'succeed' },
-          metadata: {
-            revision: { aggregate: 1 },
-            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-          }
-        });
-
-        await assert.that(async () => {
-          await http.sendEvent({ event: executed });
-        }).is.throwingAsync('Event must be internal.');
-      });
-
-      test('delivers a single event.', async () => {
+      test('delivers a single event.', async (): Promise<void> => {
         const executed = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
@@ -275,17 +206,17 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
 
-        setTimeout(async () => {
+        setTimeout(async (): Promise<void> => {
           await http.sendEvent({ event: executed });
         }, 50);
 
-        await new Promise((resolve, reject) => {
+        await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
           try {
             supertest(http.api).get('/v2/').pipe(asJsonStream(
-              event => {
+              (event: EventInternal): void => {
                 assert.that(event).is.equalTo({ name: 'heartbeat' });
               },
-              event => {
+              (event: EventInternal): void => {
                 assert.that(event.data).is.equalTo({ strategy: 'succeed' });
                 resolve();
               }
@@ -296,10 +227,10 @@ suite('event/Http', () => {
         });
       });
 
-      test('delivers multiple events.', async () => {
+      test('delivers multiple events.', async (): Promise<void> => {
         const succeeded = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'succeeded',
           data: {},
           metadata: {
@@ -309,8 +240,8 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
         const executed = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
@@ -320,22 +251,22 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
 
-        setTimeout(async () => {
+        setTimeout(async (): Promise<void> => {
           await http.sendEvent({ event: succeeded });
           await http.sendEvent({ event: executed });
         }, 50);
 
-        await new Promise((resolve, reject) => {
+        await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
           try {
             supertest(http.api).get('/v2/').pipe(asJsonStream(
-              event => {
+              (event: EventInternal): void => {
                 assert.that(event).is.equalTo({ name: 'heartbeat' });
               },
-              event => {
+              (event: EventInternal): void => {
                 assert.that(event.name).is.equalTo('succeeded');
                 assert.that(event.data).is.equalTo({});
               },
-              event => {
+              (event: EventInternal): void => {
                 assert.that(event.name).is.equalTo('executed');
                 assert.that(event.data).is.equalTo({ strategy: 'succeed' });
                 resolve();
@@ -347,10 +278,10 @@ suite('event/Http', () => {
         });
       });
 
-      test('delivers filtered events.', async () => {
+      test('delivers filtered events.', async (): Promise<void> => {
         const succeeded = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'succeeded',
           data: {},
           metadata: {
@@ -360,8 +291,8 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
         const executed = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
@@ -371,21 +302,21 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
 
-        setTimeout(async () => {
+        setTimeout(async (): Promise<void> => {
           await http.sendEvent({ event: succeeded });
           await http.sendEvent({ event: executed });
         }, 50);
 
-        await new Promise((resolve, reject) => {
+        await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
           try {
             supertest(http.api).
               get('/v2/').
               query({ name: 'executed' }).
               pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('executed');
                   assert.that(event.data).is.equalTo({ strategy: 'succeed' });
                   resolve();
@@ -397,10 +328,10 @@ suite('event/Http', () => {
         });
       });
 
-      test('delivers filtered events with a nested filter.', async () => {
+      test('delivers filtered events with a nested filter.', async (): Promise<void> => {
         const succeeded = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'succeeded',
           data: {},
           metadata: {
@@ -410,8 +341,8 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
         const executed = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
@@ -421,24 +352,24 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
 
-        setTimeout(async () => {
+        setTimeout(async (): Promise<void> => {
           await http.sendEvent({ event: succeeded });
           await http.sendEvent({ event: executed });
         }, 50);
 
-        await new Promise((resolve, reject) => {
+        await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
           try {
             supertest(http.api).
               get('/v2/').
               query({
-                context: { name: 'sampleContext' },
+                contextIdentifier: { name: 'sampleContext' },
                 name: 'executed'
               }).
               pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('executed');
                   assert.that(event.data).is.equalTo({ strategy: 'succeed' });
                   resolve();
@@ -450,10 +381,10 @@ suite('event/Http', () => {
         });
       });
 
-      test('removes annotations before delivery.', async () => {
+      test('removes annotations before delivery.', async (): Promise<void> => {
         const executed = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
@@ -463,17 +394,17 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
 
-        setTimeout(async () => {
+        setTimeout(async (): Promise<void> => {
           await http.sendEvent({ event: executed });
         }, 50);
 
-        await new Promise((resolve, reject) => {
+        await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
           try {
             supertest(http.api).get('/v2/').pipe(asJsonStream(
-              event => {
+              (event: EventInternal): void => {
                 assert.that(event).is.equalTo({ name: 'heartbeat' });
               },
-              event => {
+              (event: EventInternal): void => {
                 assert.that(event.annotations).is.undefined();
                 resolve();
               }
@@ -484,10 +415,10 @@ suite('event/Http', () => {
         });
       });
 
-      test('gracefully handles connections that get closed by the client.', async () => {
+      test('gracefully handles connections that get closed by the client.', async (): Promise<void> => {
         const executed = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
@@ -512,23 +443,24 @@ suite('event/Http', () => {
 
         await sleep({ ms: 50 });
 
-        await assert.that(async () => {
+        await assert.that(async (): Promise<void> => {
           await http.sendEvent({ event: executed });
         }).is.not.throwingAsync();
       });
 
-      suite('isAuthorized', () => {
-        test('skips an event if the event is not authorized.', async () => {
+      suite('isAuthorized', (): void => {
+        test('skips an event if the event is not authorized.', async (): Promise<void> => {
           const directory = await eventIsAuthorized();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -537,8 +469,8 @@ suite('event/Http', () => {
           const aggregateId = uuid();
 
           const authorizationDenied = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'authorizationDenied',
             metadata: {
               revision: { aggregate: 1 },
@@ -547,8 +479,8 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
           const executed = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -558,18 +490,18 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: authorizationDenied });
             await http.sendEvent({ event: executed });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('executed');
                   resolve();
                 }
@@ -580,17 +512,18 @@ suite('event/Http', () => {
           });
         });
 
-        test('skips an event if an error is thrown.', async () => {
+        test('skips an event if an error is thrown.', async (): Promise<void> => {
           const directory = await eventIsAuthorized();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -599,8 +532,8 @@ suite('event/Http', () => {
           const aggregateId = uuid();
 
           const authorizationFailed = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'authorizationFailed',
             metadata: {
               revision: { aggregate: 1 },
@@ -609,8 +542,8 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
           const executed = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -620,18 +553,18 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: authorizationFailed });
             await http.sendEvent({ event: executed });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('executed');
                   resolve();
                 }
@@ -642,17 +575,18 @@ suite('event/Http', () => {
           });
         });
 
-        test('does not mutate the event.', async () => {
+        test('does not mutate the event.', async (): Promise<void> => {
           const directory = await eventIsAuthorized();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -661,8 +595,8 @@ suite('event/Http', () => {
           const aggregateId = uuid();
 
           const authorizedWithMutation = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'authorizedWithMutation',
             metadata: {
               revision: { aggregate: 1 },
@@ -671,17 +605,17 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: authorizedWithMutation });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('authorizedWithMutation');
                   resolve();
                 }
@@ -694,17 +628,17 @@ suite('event/Http', () => {
           assert.that(authorizedWithMutation.data.isMutated).is.undefined();
         });
 
-        test('uses the app service.', async () => {
+        test('uses the app service.', async (): Promise<void> => {
           const directory = await eventIsAuthorized();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
-
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -714,8 +648,8 @@ suite('event/Http', () => {
                 otherAggregateId = uuid();
 
           const otherSucceeded = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: otherAggregateId },
             name: 'succeeded',
             metadata: {
               revision: { aggregate: 1 },
@@ -724,8 +658,8 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
           const otherExecuted = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: otherAggregateId },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -740,8 +674,8 @@ suite('event/Http', () => {
           });
 
           const useApp = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'useApp',
             data: { otherAggregateId },
             metadata: {
@@ -753,17 +687,17 @@ suite('event/Http', () => {
 
           const stop = record();
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: useApp });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('useApp');
                   resolve();
                 }
@@ -776,31 +710,32 @@ suite('event/Http', () => {
           const { stdout } = stop();
           const message = JSON.parse(stdout);
 
-          assert.that(message).is.equalTo({
+          assert.that(message).is.atLeast({
             id: otherAggregateId,
             state: {}
           });
         });
 
-        test('uses the client service.', async () => {
+        test('uses the client service.', async (): Promise<void> => {
           const directory = await eventIsAuthorized();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
           });
 
           const useClient = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
             name: 'useClient',
             metadata: {
               revision: { aggregate: 1 },
@@ -811,17 +746,17 @@ suite('event/Http', () => {
 
           const stop = record();
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: useClient });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('useClient');
                   resolve();
                 }
@@ -849,25 +784,26 @@ suite('event/Http', () => {
 
         for (const logLevel of [ 'fatal', 'error', 'warn', 'info', 'debug' ]) {
           /* eslint-disable no-loop-func */
-          test(`uses the logger service with log level '${logLevel}'.`, async () => {
+          test(`uses the logger service with log level '${logLevel}'.`, async (): Promise<void> => {
             const directory = await eventIsAuthorized();
 
             application = await Application.load({ directory });
             repository = new Repository({ application, eventstore });
 
-            http = new Http();
-
-            await http.initialize({
+            http = await Http.initialize({
               corsOrigin: '*',
               purpose: 'external',
+              async onReceiveEvent (): Promise<void> {
+                // Intentionally left blank.
+              },
               application,
               repository,
               identityProviders
             });
 
             const useLogger = EventInternal.create({
-              context: { name: 'sampleContext' },
-              aggregate: { name: 'sampleAggregate', id: uuid() },
+              contextIdentifier: { name: 'sampleContext' },
+              aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
               name: 'useLogger',
               data: { logLevel },
               metadata: {
@@ -879,17 +815,17 @@ suite('event/Http', () => {
 
             const stop = record();
 
-            setTimeout(async () => {
+            setTimeout(async (): Promise<void> => {
               await http.sendEvent({ event: useLogger });
             }, 50);
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
               try {
                 supertest(http.api).get('/v2/').pipe(asJsonStream(
-                  event => {
+                  (event: EventInternal): void => {
                     assert.that(event).is.equalTo({ name: 'heartbeat' });
                   },
-                  event => {
+                  (event: EventInternal): void => {
                     assert.that(event.name).is.equalTo('useLogger');
                     resolve();
                   }
@@ -912,18 +848,19 @@ suite('event/Http', () => {
         }
       });
 
-      suite('filter', () => {
-        test('skips an event if the event gets filtered out.', async () => {
+      suite('filter', (): void => {
+        test('skips an event if the event gets filtered out.', async (): Promise<void> => {
           const directory = await eventFilter();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -932,8 +869,8 @@ suite('event/Http', () => {
           const aggregateId = uuid();
 
           const filterDenied = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'filterDenied',
             metadata: {
               revision: { aggregate: 1 },
@@ -942,8 +879,8 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
           const executed = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -953,18 +890,18 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: filterDenied });
             await http.sendEvent({ event: executed });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('executed');
                   resolve();
                 }
@@ -975,17 +912,18 @@ suite('event/Http', () => {
           });
         });
 
-        test('skips an event if an error is thrown.', async () => {
+        test('skips an event if an error is thrown.', async (): Promise<void> => {
           const directory = await eventFilter();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -994,8 +932,8 @@ suite('event/Http', () => {
           const aggregateId = uuid();
 
           const filterFailed = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'filterFailed',
             metadata: {
               revision: { aggregate: 1 },
@@ -1004,8 +942,8 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
           const executed = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -1015,18 +953,18 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: filterFailed });
             await http.sendEvent({ event: executed });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('executed');
                   resolve();
                 }
@@ -1037,17 +975,18 @@ suite('event/Http', () => {
           });
         });
 
-        test('does not mutate the event.', async () => {
+        test('does not mutate the event.', async (): Promise<void> => {
           const directory = await eventFilter();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -1056,8 +995,8 @@ suite('event/Http', () => {
           const aggregateId = uuid();
 
           const filteredWithMutation = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'filteredWithMutation',
             metadata: {
               revision: { aggregate: 1 },
@@ -1066,17 +1005,17 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: filteredWithMutation });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('filteredWithMutation');
                   resolve();
                 }
@@ -1089,17 +1028,18 @@ suite('event/Http', () => {
           assert.that(filteredWithMutation.data.isMutated).is.undefined();
         });
 
-        test('uses the app service.', async () => {
+        test('uses the app service.', async (): Promise<void> => {
           const directory = await eventFilter();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -1109,8 +1049,8 @@ suite('event/Http', () => {
                 otherAggregateId = uuid();
 
           const otherSucceeded = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: otherAggregateId },
             name: 'succeeded',
             metadata: {
               revision: { aggregate: 1 },
@@ -1119,8 +1059,8 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
           const otherExecuted = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: otherAggregateId },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -1135,8 +1075,8 @@ suite('event/Http', () => {
           });
 
           const useApp = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'useApp',
             data: { otherAggregateId },
             metadata: {
@@ -1148,17 +1088,17 @@ suite('event/Http', () => {
 
           const stop = record();
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: useApp });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('useApp');
                   resolve();
                 }
@@ -1171,31 +1111,32 @@ suite('event/Http', () => {
           const { stdout } = stop();
           const message = JSON.parse(stdout);
 
-          assert.that(message).is.equalTo({
+          assert.that(message).is.atLeast({
             id: otherAggregateId,
             state: {}
           });
         });
 
-        test('uses the client service.', async () => {
+        test('uses the client service.', async (): Promise<void> => {
           const directory = await eventFilter();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
           });
 
           const useClient = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
             name: 'useClient',
             metadata: {
               revision: { aggregate: 1 },
@@ -1206,17 +1147,17 @@ suite('event/Http', () => {
 
           const stop = record();
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: useClient });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('useClient');
                   resolve();
                 }
@@ -1244,25 +1185,26 @@ suite('event/Http', () => {
 
         for (const logLevel of [ 'fatal', 'error', 'warn', 'info', 'debug' ]) {
           /* eslint-disable no-loop-func */
-          test(`uses the logger service with log level '${logLevel}'.`, async () => {
+          test(`uses the logger service with log level '${logLevel}'.`, async (): Promise<void> => {
             const directory = await eventFilter();
 
             application = await Application.load({ directory });
             repository = new Repository({ application, eventstore });
 
-            http = new Http();
-
-            await http.initialize({
+            http = await Http.initialize({
               corsOrigin: '*',
               purpose: 'external',
+              async onReceiveEvent (): Promise<void> {
+                // Intentionally left blank.
+              },
               application,
               repository,
               identityProviders
             });
 
             const useLogger = EventInternal.create({
-              context: { name: 'sampleContext' },
-              aggregate: { name: 'sampleAggregate', id: uuid() },
+              contextIdentifier: { name: 'sampleContext' },
+              aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
               name: 'useLogger',
               data: { logLevel },
               metadata: {
@@ -1274,17 +1216,17 @@ suite('event/Http', () => {
 
             const stop = record();
 
-            setTimeout(async () => {
+            setTimeout(async (): Promise<void> => {
               await http.sendEvent({ event: useLogger });
             }, 50);
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
               try {
                 supertest(http.api).get('/v2/').pipe(asJsonStream(
-                  event => {
+                  (event: EventInternal): void => {
                     assert.that(event).is.equalTo({ name: 'heartbeat' });
                   },
-                  event => {
+                  (event: EventInternal): void => {
                     assert.that(event.name).is.equalTo('useLogger');
                     resolve();
                   }
@@ -1307,18 +1249,19 @@ suite('event/Http', () => {
         }
       });
 
-      suite('map', () => {
-        test('maps the event.', async () => {
+      suite('map', (): void => {
+        test('maps the event.', async (): Promise<void> => {
           const directory = await eventMap();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -1327,8 +1270,8 @@ suite('event/Http', () => {
           const aggregateId = uuid();
 
           const mapApplied = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'mapApplied',
             metadata: {
               revision: { aggregate: 1 },
@@ -1337,17 +1280,17 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: mapApplied });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('mapApplied');
                   assert.that(event.data).is.equalTo({ isMapped: true });
                   resolve();
@@ -1359,17 +1302,18 @@ suite('event/Http', () => {
           });
         });
 
-        test('skips an event if the event gets filtered out.', async () => {
+        test('skips an event if the event gets filtered out.', async (): Promise<void> => {
           const directory = await eventMap();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -1378,8 +1322,8 @@ suite('event/Http', () => {
           const aggregateId = uuid();
 
           const mapDenied = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'mapDenied',
             metadata: {
               revision: { aggregate: 1 },
@@ -1388,8 +1332,8 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
           const executed = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -1399,18 +1343,18 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: mapDenied });
             await http.sendEvent({ event: executed });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('executed');
                   resolve();
                 }
@@ -1421,17 +1365,18 @@ suite('event/Http', () => {
           });
         });
 
-        test('skips an event if an error is thrown.', async () => {
+        test('skips an event if an error is thrown.', async (): Promise<void> => {
           const directory = await eventMap();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -1440,8 +1385,8 @@ suite('event/Http', () => {
           const aggregateId = uuid();
 
           const mapFailed = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'mapFailed',
             metadata: {
               revision: { aggregate: 1 },
@@ -1450,8 +1395,8 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
           const executed = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -1461,18 +1406,18 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: mapFailed });
             await http.sendEvent({ event: executed });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('executed');
                   resolve();
                 }
@@ -1483,17 +1428,18 @@ suite('event/Http', () => {
           });
         });
 
-        test('does not mutate the event.', async () => {
+        test('does not mutate the event.', async (): Promise<void> => {
           const directory = await eventMap();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -1502,8 +1448,8 @@ suite('event/Http', () => {
           const aggregateId = uuid();
 
           const mapAppliedWithMutation = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'mapAppliedWithMutation',
             metadata: {
               revision: { aggregate: 1 },
@@ -1512,17 +1458,17 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: mapAppliedWithMutation });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('mapAppliedWithMutation');
                   resolve();
                 }
@@ -1535,17 +1481,18 @@ suite('event/Http', () => {
           assert.that(mapAppliedWithMutation.data.isMutated).is.undefined();
         });
 
-        test('uses the app service.', async () => {
+        test('uses the app service.', async (): Promise<void> => {
           const directory = await eventMap();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
@@ -1555,8 +1502,8 @@ suite('event/Http', () => {
                 otherAggregateId = uuid();
 
           const otherSucceeded = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: otherAggregateId },
             name: 'succeeded',
             metadata: {
               revision: { aggregate: 1 },
@@ -1565,8 +1512,8 @@ suite('event/Http', () => {
             annotations: { state: {}, previousState: {}}
           });
           const otherExecuted = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: otherAggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: otherAggregateId },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -1581,8 +1528,8 @@ suite('event/Http', () => {
           });
 
           const useApp = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: aggregateId },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             name: 'useApp',
             data: { otherAggregateId },
             metadata: {
@@ -1594,17 +1541,17 @@ suite('event/Http', () => {
 
           const stop = record();
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: useApp });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('useApp');
                   resolve();
                 }
@@ -1617,31 +1564,32 @@ suite('event/Http', () => {
           const { stdout } = stop();
           const message = JSON.parse(stdout);
 
-          assert.that(message).is.equalTo({
+          assert.that(message).is.atLeast({
             id: otherAggregateId,
             state: {}
           });
         });
 
-        test('uses the client service.', async () => {
+        test('uses the client service.', async (): Promise<void> => {
           const directory = await eventMap();
 
           application = await Application.load({ directory });
           repository = new Repository({ application, eventstore });
 
-          http = new Http();
-
-          await http.initialize({
+          http = await Http.initialize({
             corsOrigin: '*',
             purpose: 'external',
+            async onReceiveEvent (): Promise<void> {
+              // Intentionally left blank.
+            },
             application,
             repository,
             identityProviders
           });
 
           const useClient = EventInternal.create({
-            context: { name: 'sampleContext' },
-            aggregate: { name: 'sampleAggregate', id: uuid() },
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
             name: 'useClient',
             metadata: {
               revision: { aggregate: 1 },
@@ -1652,17 +1600,17 @@ suite('event/Http', () => {
 
           const stop = record();
 
-          setTimeout(async () => {
+          setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: useClient });
           }, 50);
 
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
             try {
               supertest(http.api).get('/v2/').pipe(asJsonStream(
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event).is.equalTo({ name: 'heartbeat' });
                 },
-                event => {
+                (event: EventInternal): void => {
                   assert.that(event.name).is.equalTo('useClient');
                   resolve();
                 }
@@ -1690,25 +1638,26 @@ suite('event/Http', () => {
 
         for (const logLevel of [ 'fatal', 'error', 'warn', 'info', 'debug' ]) {
           /* eslint-disable no-loop-func */
-          test(`uses the logger service with log level '${logLevel}'.`, async () => {
+          test(`uses the logger service with log level '${logLevel}'.`, async (): Promise<void> => {
             const directory = await eventMap();
 
             application = await Application.load({ directory });
             repository = new Repository({ application, eventstore });
 
-            http = new Http();
-
-            await http.initialize({
+            http = await Http.initialize({
               corsOrigin: '*',
               purpose: 'external',
+              async onReceiveEvent (): Promise<void> {
+                // Intentionally left blank.
+              },
               application,
               repository,
               identityProviders
             });
 
             const useLogger = EventInternal.create({
-              context: { name: 'sampleContext' },
-              aggregate: { name: 'sampleAggregate', id: uuid() },
+              contextIdentifier: { name: 'sampleContext' },
+              aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
               name: 'useLogger',
               data: { logLevel },
               metadata: {
@@ -1720,17 +1669,17 @@ suite('event/Http', () => {
 
             const stop = record();
 
-            setTimeout(async () => {
+            setTimeout(async (): Promise<void> => {
               await http.sendEvent({ event: useLogger });
             }, 50);
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve: (value?: unknown) => void, reject: (reason?: any) => void): void => {
               try {
                 supertest(http.api).get('/v2/').pipe(asJsonStream(
-                  event => {
+                  (event: EventInternal): void => {
                     assert.that(event).is.equalTo({ name: 'heartbeat' });
                   },
-                  event => {
+                  (event: EventInternal): void => {
                     assert.that(event.name).is.equalTo('useLogger');
                     resolve();
                   }
@@ -1754,22 +1703,23 @@ suite('event/Http', () => {
       });
     });
 
-    suite('POST /v2/', () => {
-      let http;
+    suite('POST /v2/', (): void => {
+      let http: Http;
 
-      setup(async () => {
-        http = new Http();
-
-        await http.initialize({
+      setup(async (): Promise<void> => {
+        http = await Http.initialize({
           corsOrigin: '*',
           purpose: 'external',
+          async onReceiveEvent (): Promise<void> {
+            // Intentionally left blank.
+          },
           application,
           repository,
           identityProviders
         });
       });
 
-      test('returns a 404.', async () => {
+      test('returns a 404.', async (): Promise<void> => {
         const { status } = await supertest(http.api).post('/v2/');
 
         assert.that(status).is.equalTo(404);
@@ -1777,17 +1727,15 @@ suite('event/Http', () => {
     });
   });
 
-  suite('internal', () => {
-    suite('GET /v2/configuration', () => {
-      let http;
+  suite('internal', (): void => {
+    suite('GET /v2/configuration', (): void => {
+      let http: Http;
 
-      setup(async () => {
-        http = new Http();
-
-        await http.initialize({
+      setup(async (): Promise<void> => {
+        http = await Http.initialize({
           corsOrigin: '*',
           purpose: 'internal',
-          onReceiveEvent () {
+          onReceiveEvent (): void {
             // Intentionally left blank.
           },
           application,
@@ -1796,23 +1744,23 @@ suite('event/Http', () => {
         });
       });
 
-      test('returns 404.', async () => {
-        const { status } = await supertest(http.api).get('/v2/configuration');
-
-        assert.that(status).is.equalTo(404);
+      test('returns 404.', async (): Promise<void> => {
+        await supertest(http.api).
+          get('/v2/configuration').
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(404);
+          });
       });
     });
 
-    suite('GET /v2/', () => {
-      let http;
+    suite('GET /v2/', (): void => {
+      let http: Http;
 
-      setup(async () => {
-        http = new Http();
-
-        await http.initialize({
+      setup(async (): Promise<void> => {
+        http = await Http.initialize({
           corsOrigin: '*',
           purpose: 'internal',
-          onReceiveEvent () {
+          onReceiveEvent (): void {
             // Intentionally left blank.
           },
           application,
@@ -1821,25 +1769,27 @@ suite('event/Http', () => {
         });
       });
 
-      test('returns 404.', async () => {
-        const { status } = await supertest(http.api).get('/v2/');
-
-        assert.that(status).is.equalTo(404);
+      test('returns 404.', async (): Promise<void> => {
+        await supertest(http.api).
+          get('/v2/').
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(404);
+          });
       });
     });
 
-    suite('POST /v2/', () => {
-      let http,
-          receivedEvents;
+    suite('POST /v2/', (): void => {
+      let http: Http,
+          receivedEvents: EventInternal[];
 
-      setup(async () => {
+      setup(async (): Promise<void> => {
         receivedEvents = [];
-        http = new Http();
-
-        await http.initialize({
+        http = await Http.initialize({
           corsOrigin: '*',
           purpose: 'internal',
-          onReceiveEvent ({ event }) {
+          onReceiveEvent ({ event }: {
+            event: EventInternal;
+          }): void {
             receivedEvents.push(event);
           },
           application,
@@ -1848,38 +1798,42 @@ suite('event/Http', () => {
         });
       });
 
-      test('returns 415 if the content-type header is missing.', async () => {
-        const { status, text } = await supertest(http.api).post('/v2/');
-
-        assert.that(status).is.equalTo(415);
-        assert.that(text).is.equalTo('Header content-type must be application/json.');
+      test('returns 415 if the content-type header is missing.', async (): Promise<void> => {
+        await supertest(http.api).
+          post('/v2/').
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(415);
+            assert.that(res.text).is.equalTo('Header content-type must be application/json.');
+          });
       });
 
-      test('returns 415 if content-type is not set to application/json.', async () => {
-        const { status, text } = await supertest(http.api).
+      test('returns 415 if content-type is not set to application/json.', async (): Promise<void> => {
+        await supertest(http.api).
           post('/v2/').
           set({
             'content-type': 'text/plain'
           }).
-          send('foobar');
-
-        assert.that(status).is.equalTo(415);
-        assert.that(text).is.equalTo('Header content-type must be application/json.');
+          send('foobar').
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(415);
+            assert.that(res.text).is.equalTo('Header content-type must be application/json.');
+          });
       });
 
-      test('returns 400 if a malformed event is sent.', async () => {
-        const { status, text } = await supertest(http.api).
+      test('returns 400 if a malformed event is sent.', async (): Promise<void> => {
+        await supertest(http.api).
           post('/v2/').
-          send({ foo: 'bar' });
-
-        assert.that(status).is.equalTo(400);
-        assert.that(text).is.equalTo('Malformed event.');
+          send({ foo: 'bar' }).
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(400);
+            assert.that(res.text).is.equalTo('Event malformed.');
+          });
       });
 
-      test('returns 400 if a wellformed event is sent with a non-existent context name.', async () => {
+      test('returns 400 if a wellformed event is sent with a non-existent context name.', async (): Promise<void> => {
         const event = EventInternal.create({
-          context: { name: 'nonExistent' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'nonExistent' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
@@ -1889,18 +1843,19 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
 
-        const { status, text } = await supertest(http.api).
+        await supertest(http.api).
           post('/v2/').
-          send(event);
-
-        assert.that(status).is.equalTo(400);
-        assert.that(text).is.equalTo('Invalid context name.');
+          send(event).
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(400);
+            assert.that(res.text).is.equalTo('Invalid context name.');
+          });
       });
 
-      test('returns 400 if a wellformed event is sent with a non-existent aggregate name.', async () => {
+      test('returns 400 if a wellformed event is sent with a non-existent aggregate name.', async (): Promise<void> => {
         const event = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'nonExistent', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'nonExistent', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
@@ -1910,18 +1865,19 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
 
-        const { status, text } = await supertest(http.api).
+        await supertest(http.api).
           post('/v2/').
-          send(event);
-
-        assert.that(status).is.equalTo(400);
-        assert.that(text).is.equalTo('Invalid aggregate name.');
+          send(event).
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(400);
+            assert.that(res.text).is.equalTo('Invalid aggregate name.');
+          });
       });
 
-      test('returns 400 if a wellformed event is sent with a non-existent event name.', async () => {
+      test('returns 400 if a wellformed event is sent with a non-existent event name.', async (): Promise<void> => {
         const event = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'nonExistent',
           data: { strategy: 'succeed' },
           metadata: {
@@ -1931,18 +1887,19 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
 
-        const { status, text } = await supertest(http.api).
+        await supertest(http.api).
           post('/v2/').
-          send(event);
-
-        assert.that(status).is.equalTo(400);
-        assert.that(text).is.equalTo('Invalid event name.');
+          send(event).
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(400);
+            assert.that(res.text).is.equalTo('Invalid event name.');
+          });
       });
 
-      test('returns 400 if an event is sent with a payload that does not match the schema.', async () => {
+      test('returns 400 if an event is sent with a payload that does not match the schema.', async (): Promise<void> => {
         const event = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'invalid-value' },
           metadata: {
@@ -1952,18 +1909,19 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
 
-        const { status, text } = await supertest(http.api).
+        await supertest(http.api).
           post('/v2/').
-          send(event);
-
-        assert.that(status).is.equalTo(400);
-        assert.that(text).is.equalTo('No enum match (invalid-value), expects: succeed, fail, reject (at event.data.strategy).');
+          send(event).
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(400);
+            assert.that(res.text).is.equalTo('No enum match (invalid-value), expects: succeed, fail, reject (at event.data.strategy).');
+          });
       });
 
-      test('returns 200 if a wellformed and existing event is sent.', async () => {
+      test('returns 200 if a wellformed and existing event is sent.', async (): Promise<void> => {
         const event = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
@@ -1973,17 +1931,18 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
 
-        const { status } = await supertest(http.api).
+        await supertest(http.api).
           post('/v2/').
-          send(event);
-
-        assert.that(status).is.equalTo(200);
+          send(event).
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(200);
+          });
       });
 
-      test('receives events.', async () => {
+      test('receives events.', async (): Promise<void> => {
         const event = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
@@ -2001,13 +1960,11 @@ suite('event/Http', () => {
         assert.that(receivedEvents[0]).is.equalTo(event);
       });
 
-      test('returns 500 if on received event throws an error.', async () => {
-        http = new Http();
-
-        await http.initialize({
+      test('returns 500 if on received event throws an error.', async (): Promise<void> => {
+        http = await Http.initialize({
           corsOrigin: '*',
           purpose: 'internal',
-          async onReceiveEvent () {
+          async onReceiveEvent (): Promise<void> {
             throw new Error('Failed to handle received event.');
           },
           application,
@@ -2016,8 +1973,8 @@ suite('event/Http', () => {
         });
 
         const event = EventInternal.create({
-          context: { name: 'sampleContext' },
-          aggregate: { name: 'sampleAggregate', id: uuid() },
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
@@ -2027,11 +1984,12 @@ suite('event/Http', () => {
           annotations: { state: {}, previousState: {}}
         });
 
-        const { status } = await supertest(http.api).
+        await supertest(http.api).
           post('/v2/').
-          send(event);
-
-        assert.that(status).is.equalTo(500);
+          send(event).
+          expect((res: Response): void => {
+            assert.that(res.status).is.equalTo(500);
+          });
       });
     });
   });

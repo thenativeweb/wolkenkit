@@ -1,51 +1,56 @@
-'use strict';
-
-const cloneDeep = require('lodash/cloneDeep'),
-      express = require('express'),
-      Limes = require('limes'),
-      partOf = require('partof');
-
-const { AggregateReadable, EventInternal } = require('../../../../common/elements'),
-      { AppService, ClientService, LoggerService } = require('../../../../common/services'),
-      ClientMetadata = require('../../../../common/utils/http/ClientMetadata'),
-      getConfiguration = require('./getConfiguration'),
-      getEvents = require('./getEvents'),
-      postEvent = require('./postEvent');
+import Aggregate from '../../../../common/elements/Aggregate';
+import AggregateApiForReadOnly from '../../../../common/elements/AggregateApiForReadOnly';
+import Application from '../../../../common/application/Application';
+import ClientMetadata from '../../../../common/utils/http/ClientMetadata';
+import cloneDeep from 'lodash/cloneDeep';
+import { Dictionary } from '../../../../types/Dictionary';
+import errors from '../../../../common/errors';
+import EventInternal from '../../../../common/elements/EventInternal';
+import express from 'express';
+import getAggregateService from '../../../../common/services/getAggregateService';
+import getClientService from '../../../../common/services/getClientService';
+import getConfiguration from './getConfiguration';
+import getEvents from './getEvents';
+import getLoggerService from '../../../../common/services/getLoggerService';
+import partOf from 'partof';
+import { Purpose } from '../../../shared/Purpose';
+import Repository from '../../../../common/domain/Repository';
+import { Express, Request, Response } from 'express-serve-static-core';
+import Limes, { IdentityProvider } from 'limes';
+import postEvent, { OnReceiveEvent } from './postEvent';
 
 class V2 {
-  constructor ({
+  protected purpose: Purpose;
+
+  protected application: Application;
+
+  protected repository: Repository;
+
+  public api: Express;
+
+  public connectionsForGetEvents: Dictionary<{ req: Request; res: Response }>;
+
+  public constructor ({
     purpose,
     onReceiveEvent,
     application,
     repository,
     identityProviders,
     heartbeatInterval
+  }: {
+    purpose: Purpose;
+    onReceiveEvent: OnReceiveEvent;
+    application: Application;
+    repository: Repository;
+    identityProviders: IdentityProvider[];
+    heartbeatInterval: number;
   }) {
-    if (!purpose) {
-      throw new Error('Purpose is missing.');
-    }
-    if (!application) {
-      throw new Error('Application is missing.');
-    }
-    if (!repository) {
-      throw new Error('Repository is missing.');
-    }
-    if (!identityProviders) {
-      throw new Error('Identity providers are missing.');
-    }
-    if (!heartbeatInterval) {
-      throw new Error('Heartbeat interval is missing.');
-    }
-
-    if (![ 'internal', 'external' ].includes(purpose)) {
-      throw new Error(`Purpose must either be 'internal' or 'external'.`);
-    }
-
     this.writeLine = this.writeLine.bind(this);
 
     this.purpose = purpose;
     this.application = application;
     this.repository = repository;
+    this.connectionsForGetEvents = {};
 
     const limes = new Limes({ identityProviders });
     const verifyTokenMiddleware = limes.verifyTokenMiddleware({
@@ -74,7 +79,6 @@ class V2 {
       case 'external':
         this.api.get('/configuration', getConfiguration({ application }));
 
-        this.connectionsForGetEvents = {};
         this.api.get('/', verifyTokenMiddleware, getEvents({
           connections: this.connectionsForGetEvents,
           writeLine: this.writeLine,
@@ -83,18 +87,14 @@ class V2 {
 
         break;
       default:
-        throw new Error('Invalid operation.');
+        throw new errors.InvalidOperation(`Purpose should have been 'internal' or 'external'.`);
     }
   }
 
-  writeLine ({ connectionId, data }) {
-    if (!connectionId) {
-      throw new Error('Connection id is missing.');
-    }
-    if (!data) {
-      throw new Error('Data is missing.');
-    }
-
+  public writeLine ({ connectionId, data }: {
+    connectionId: string;
+    data: object;
+  }): void {
     if (this.purpose !== 'external') {
       throw new Error('Invalid operation.');
     }
@@ -118,7 +118,7 @@ class V2 {
         // was closed concurrently, and we can't do anything about it anyway.
         // Hence, remove the connection from the list of connections, and
         // return.
-        Reflect.removeProperty(this.connectionsForGetEvents, connectionId);
+        delete this.connectionsForGetEvents[connectionId];
 
         return;
       }
@@ -127,17 +127,10 @@ class V2 {
     }
   }
 
-  async prepareEvent ({ connectionId, event }) {
-    if (!connectionId) {
-      throw new Error('Connection id is missing.');
-    }
-    if (!event) {
-      throw new Error('Event is missing.');
-    }
-    if (!(event instanceof EventInternal)) {
-      throw new Error('Event must be internal.');
-    }
-
+  public async prepareEvent ({ connectionId, event }: {
+    connectionId: string;
+    event: EventInternal;
+  }): Promise<EventInternal | undefined> {
     if (this.purpose !== 'external') {
       throw new Error('Invalid operation.');
     }
@@ -181,36 +174,36 @@ class V2 {
     }
 
     const services = {
-      app: new AppService({ application, repository, capabilities: { readAggregates: true }}),
-      client: new ClientService({ clientMetadata }),
-      logger: new LoggerService({ fileName: `/server/domain/${event.context.name}/${event.aggregate.name}.js` })
+      app: {
+        aggregates: getAggregateService({ application, repository })
+      },
+      client: getClientService({ clientMetadata }),
+      logger: getLoggerService({ fileName: `/server/domain/${event.contextIdentifier.name}/${event.aggregateIdentifier.name}.js` })
     };
 
-    const aggregateInstance = new AggregateReadable({
-      application,
-      context: { name: event.context.name },
-      aggregate: { name: event.aggregate.name, id: event.aggregate.id }
+    const aggregateInstance = new Aggregate({
+      contextIdentifier: event.contextIdentifier,
+      aggregateIdentifier: event.aggregateIdentifier,
+      initialState: this.application.initialState.internal[event.contextIdentifier.name]![event.aggregateIdentifier.name]!
     });
 
     aggregateInstance.applySnapshot({
       snapshot: {
-        revision: event.metadata.revision,
+        aggregateIdentifier: event.aggregateIdentifier,
+        revision: event.metadata.revision.aggregate,
         state: event.annotations.state
       }
     });
 
-    // Additionally, attach the previous state, and do this in the same way as
-    // applySnapshot works.
-    aggregateInstance.api.forReadOnly.previousState = event.annotations.previousState;
-    aggregateInstance.api.forEvents.previousState = event.annotations.previousState;
+    const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate: aggregateInstance });
 
     const { isAuthorized, filter, map } =
-      application.events.internal[event.context.name][event.aggregate.name][event.name];
+      application.events.internal[event.contextIdentifier.name]![event.aggregateIdentifier.name]![event.name]!;
 
     try {
       const clonedEvent = cloneDeep(event);
       const isEventAuthorized =
-        await isAuthorized(aggregateInstance.api.forReadOnly, clonedEvent, services);
+        await isAuthorized(aggregateApiForReadOnly, clonedEvent, services);
 
       if (!isEventAuthorized) {
         return;
@@ -225,7 +218,7 @@ class V2 {
       try {
         const clonedEvent = cloneDeep(event);
         const keepEvent =
-          await filter(aggregateInstance.api.forReadOnly, clonedEvent, services);
+          await filter(aggregateApiForReadOnly, clonedEvent, services);
 
         if (!keepEvent) {
           return;
@@ -244,9 +237,9 @@ class V2 {
         const clonedEvent = cloneDeep(event);
 
         mappedEvent =
-          await map(aggregateInstance.api.forReadOnly, clonedEvent, services);
+          await map(aggregateApiForReadOnly, clonedEvent, services);
 
-        mappedEvent = EventInternal.fromObject(mappedEvent);
+        mappedEvent = EventInternal.deserialize(mappedEvent);
       } catch (ex) {
         services.logger.error('Map failed.', { event, clientMetadata, ex });
 
@@ -257,14 +250,9 @@ class V2 {
     return mappedEvent;
   }
 
-  async sendEvent ({ event }) {
-    if (!event) {
-      throw new Error('Event is missing.');
-    }
-    if (!(event instanceof EventInternal)) {
-      throw new Error('Event must be internal.');
-    }
-
+  public async sendEvent ({ event }: {
+    event: EventInternal;
+  }): Promise<void> {
     if (this.purpose !== 'external') {
       throw new Error('Invalid operation.');
     }
@@ -283,4 +271,4 @@ class V2 {
   }
 }
 
-module.exports = V2;
+export default V2;

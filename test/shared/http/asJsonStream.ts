@@ -1,12 +1,10 @@
-'use strict';
+import { Writable } from 'stream';
 
-const { Writable } = require('stream');
-
-const asJsonStream = function (...handleJson) {
+const asJsonStream = function (...handleJson: ((...args: any[]) => void)[]): Writable {
   let counter = 0;
 
   return new Writable({
-    write (chunk, encoding, callback) {
+    write (chunk: object, _, callback: (error?: any) => void): void {
       const data = JSON.parse(chunk.toString());
 
       if (!handleJson[counter]) {
@@ -21,4 +19,4 @@ const asJsonStream = function (...handleJson) {
   });
 };
 
-module.exports = asJsonStream;
+export default asJsonStream;

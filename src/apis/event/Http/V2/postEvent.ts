@@ -1,22 +1,19 @@
-'use strict';
-
-const flaschenpost = require('flaschenpost'),
-      typer = require('content-type');
-
-const { EventInternal } = require('../../../../common/elements');
+import Application from '../../../../common/application/Application';
+import EventInternal from '../../../../common/elements/EventInternal';
+import flaschenpost from 'flaschenpost';
+import typer from 'content-type';
+import { Request, RequestHandler, Response } from 'express-serve-static-core';
 
 const logger = flaschenpost.getLogger();
 
-const postEvent = function ({ onReceiveEvent, application }) {
-  if (!onReceiveEvent) {
-    throw new Error('On receive event is missing.');
-  }
-  if (!application) {
-    throw new Error('Application is missing.');
-  }
+export type OnReceiveEvent = any;
 
-  return async function (req, res) {
-    let contentType,
+const postEvent = function ({ onReceiveEvent, application }: {
+  onReceiveEvent: OnReceiveEvent;
+  application: Application;
+}): RequestHandler {
+  return async function (req: Request, res: Response): Promise<any> {
+    let contentType: typer.ParsedMediaType,
         event = req.body;
 
     try {
@@ -35,7 +32,7 @@ const postEvent = function ({ onReceiveEvent, application }) {
       return res.status(400).send(ex.message);
     }
 
-    event = EventInternal.fromObject(event);
+    event = EventInternal.deserialize(event);
 
     logger.info('Event received.', { event });
 
@@ -51,4 +48,4 @@ const postEvent = function ({ onReceiveEvent, application }) {
   };
 };
 
-module.exports = postEvent;
+export default postEvent;

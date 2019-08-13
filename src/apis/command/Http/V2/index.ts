@@ -4,9 +4,8 @@ import { Express } from 'express-serve-static-core';
 import getConfiguration from './getConfiguration';
 import { IdentityProvider } from '../../../../../types/limes';
 import Limes from 'limes';
+import { Purpose } from '../../../shared/Purpose';
 import postCommand, { OnReceiveCommand } from './postCommand';
-
-export type Purpose = 'internal' | 'external';
 
 class V2 {
   protected application: Application;

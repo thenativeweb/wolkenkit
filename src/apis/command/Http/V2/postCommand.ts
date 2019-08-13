@@ -4,7 +4,7 @@ import CommandExternal from '../../../../common/elements/CommandExternal';
 import CommandInternal from '../../../../common/elements/CommandInternal';
 import errors from '../../../../common/errors';
 import flaschenpost from 'flaschenpost';
-import { Purpose } from '.';
+import { Purpose } from '../../../shared/Purpose';
 import typer from 'content-type';
 import { Request, RequestHandler, Response } from 'express-serve-static-core';
 

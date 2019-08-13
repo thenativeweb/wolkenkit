@@ -1,41 +1,51 @@
-import Application from '../../../common/application/Application';
+import Application from '../../../common/application';
 import bodyParser from 'body-parser';
-import CommandInternal from '../../../common/elements/CommandInternal';
 import cors from 'cors';
+import EventInternal from '../../../common/elements/EventInternal';
 import express from 'express';
 import { Express } from 'express-serve-static-core';
 import { IdentityProvider } from '../../../../types/limes';
 import nocache from 'nocache';
+import { OnReceiveEvent } from './V2/postEvent';
 import { Purpose } from '../../shared/Purpose';
+import Repository from '../../../common/domain/Repository';
 import V2 from './V2';
 
 class Http {
   public v2: V2;
 
+  public purpose: Purpose;
+
   public api: Express;
 
-  protected constructor ({ v2, api }: {
+  protected constructor ({ v2, api, purpose }: {
     v2: V2;
     api: Express;
+    purpose: Purpose;
   }) {
     this.v2 = v2;
+    this.purpose = purpose;
     this.api = api;
   }
 
   public static async initialize ({
     corsOrigin,
     purpose,
-    onReceiveCommand,
+    onReceiveEvent,
     application,
-    identityProviders
+    repository,
+    identityProviders,
+    heartbeatInterval = 90 * 1000
   }: {
-    corsOrigin: string | string[] | RegExp;
+    corsOrigin: string | RegExp | string[];
     purpose: Purpose;
-    onReceiveCommand: ({ command }: {command: CommandInternal}) => Promise<void>;
+    onReceiveEvent: OnReceiveEvent;
     application: Application;
+    repository: Repository;
     identityProviders: IdentityProvider[];
+    heartbeatInterval?: number;
   }): Promise<Http> {
-    let transformedCorsOrigin: string | (string | RegExp)[];
+    let transformedCorsOrigin;
 
     if (corsOrigin === '*') {
       transformedCorsOrigin = corsOrigin;
@@ -45,9 +55,11 @@ class Http {
 
     const v2 = new V2({
       purpose,
-      onReceiveCommand,
+      onReceiveEvent,
       application,
-      identityProviders
+      repository,
+      identityProviders,
+      heartbeatInterval
     });
 
     const api = express();
@@ -68,7 +80,17 @@ class Http {
 
     api.use('/v2', v2.api);
 
-    return new Http({ v2, api });
+    return new Http({ v2, purpose, api });
+  }
+
+  public async sendEvent ({ event }: {
+    event: EventInternal;
+  }): Promise<void> {
+    if (this.purpose !== 'external') {
+      throw new Error('Invalid operation.');
+    }
+
+    await this.v2.sendEvent({ event });
   }
 }
 
