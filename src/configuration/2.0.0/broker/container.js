@@ -54,9 +54,7 @@ const container = function ({
     env: {
       API_CORS_ORIGIN: selectedEnvironment.api.allowAccessFrom,
       API_HOST: api.container.https.hostname,
-      API_KEYS: configuration.api.host.certificate === defaults.commands.shared.api.host.certificate ?
-        configuration.api.host.certificate :
-        path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate),
+      API_KEYS: path.posix.join('/', 'wolkenkit', 'app', configuration.api.host.certificate),
       API_PORT: api.container.https.port,
       APPLICATION: configuration.application.name,
       COMMANDBUS_URL: `${commandBus.container.amqp.protocol}://${commandBus.container.amqp.user}:${commandBus.container.amqp.password}@${commandBus.container.amqp.hostname}:${commandBus.container.amqp.port}`,

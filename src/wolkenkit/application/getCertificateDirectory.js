@@ -18,13 +18,8 @@ const getCertificateDirectory = async function ({ configuration, directory }) {
     throw new Error('Directory is missing.');
   }
 
-  let certificateDirectory = configuration.api.host.certificate;
-
-  if (certificateDirectory === defaults.commands.shared.api.host.certificate) {
-    certificateDirectory = path.join(__dirname, '..', '..', '..', certificateDirectory);
-  } else {
-    certificateDirectory = path.join(directory, certificateDirectory);
-  }
+  const certificateDirectory =
+    path.join(directory, configuration.api.host.certificate);
 
   try {
     await access(certificateDirectory, fs.constants.R_OK);

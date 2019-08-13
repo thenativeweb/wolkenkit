@@ -135,6 +135,14 @@ const init = {
       stopWaiting();
 
       switch (ex.code) {
+        case 'ECONFIGURATIONMALFORMED':
+          if (ex.message === 'Missing required property: certificate (at wolkenkit.environments.default.api.certificate).') {
+            buntstift.error('Certificate is missing.');
+            buntstift.warn('Due to a security issue in wolkenkit, the built-in certificate for local.wolkenkit.ui is no longer supported. Please provide a custom certificate.');
+            buntstift.warn('For details see https://docs.wolkenkit.io/3.1.0/reference/configuring-an-application/using-custom-certificates/');
+          }
+
+          throw ex;
         case 'ECODEMALFORMED': {
           const formatter = eslint.CLIEngine.getFormatter();
 

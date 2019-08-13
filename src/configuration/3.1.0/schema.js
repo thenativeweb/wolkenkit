@@ -71,7 +71,7 @@ const schema = function () {
                       }
                     },
                     additionalProperties: false,
-                    required: [ 'address', 'allowAccessFrom' ]
+                    required: [ 'address', 'allowAccessFrom', 'certificate' ]
                   },
                   fileStorage: {
                     type: 'object',
@@ -344,7 +344,7 @@ const schema = function () {
                       }
                     },
                     additionalProperties: false,
-                    required: [ 'allowAccessFrom' ]
+                    required: [ 'certificate', 'allowAccessFrom' ]
                   },
                   identityProvider: {
                     type: 'object',
