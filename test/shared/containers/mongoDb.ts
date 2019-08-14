@@ -1,18 +1,13 @@
-'use strict';
-
-const buntstift = require('buntstift'),
-      { MongoClient } = require('mongodb'),
-      oneLine = require('common-tags/lib/oneLine'),
-      retry = require('async-retry'),
-      shell = require('shelljs');
-
-const getConnectionOptions = require('./getConnectionOptions'),
-      getRetryOptions = require('./getRetryOptions');
+import buntstift from 'buntstift';
+import connectionOptions from './connectionOptions';
+import { MongoClient } from 'mongodb';
+import { oneLine } from 'common-tags';
+import retry from 'async-retry';
+import retryOptions from './retryOptions';
+import shell from 'shelljs';
 
 const mongoDb = {
-  async start () {
-    const connectionOptions = getConnectionOptions();
-
+  async start (): Promise<void> {
     const {
       hostname,
       port,
@@ -35,13 +30,13 @@ const mongoDb = {
     const url = `mongodb://${username}:${password}@${hostname}:${port}/${database}`;
 
     try {
-      await retry(async () => {
+      await retry(async (): Promise<void> => {
         /* eslint-disable id-length */
         const client = await MongoClient.connect(url, { w: 1, useNewUrlParser: true });
         /* eslint-enable id-length */
 
         await client.close();
-      }, getRetryOptions());
+      }, retryOptions);
     } catch (ex) {
       buntstift.info(ex.message);
       buntstift.error('Failed to connect to MongoDB.');
@@ -49,7 +44,7 @@ const mongoDb = {
     }
   },
 
-  async stop () {
+  async stop (): Promise<void> {
     shell.exec([
       'docker kill test-mongodb',
       'docker rm -v test-mongodb'
@@ -57,4 +52,4 @@ const mongoDb = {
   }
 };
 
-module.exports = mongoDb;
+export default mongoDb;

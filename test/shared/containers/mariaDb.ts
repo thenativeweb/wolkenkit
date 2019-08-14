@@ -1,25 +1,20 @@
-'use strict';
+import buntstift from 'buntstift';
+import { connectionOptions } from './connectionOptions';
+import mysql from 'mysql2/promise';
+import { oneLine } from 'common-tags';
+import retry from 'async-retry';
+import { retryOptions } from './retryOptions';
+import shell from 'shelljs';
 
-const buntstift = require('buntstift'),
-      mysql = require('mysql2/promise'),
-      oneLine = require('common-tags/lib/oneLine'),
-      retry = require('async-retry'),
-      shell = require('shelljs');
-
-const getConnectionOptions = require('./getConnectionOptions'),
-      getRetryOptions = require('./getRetryOptions');
-
-const mySql = {
-  async start () {
-    const connectionOptions = getConnectionOptions();
-
+const mariaDb = {
+  async start (): Promise<void> {
     const {
       hostname,
       port,
       username,
       password,
       database
-    } = connectionOptions.mySql;
+    } = connectionOptions.mariaDb;
 
     shell.exec(oneLine`
       docker run
@@ -29,8 +24,8 @@ const mySql = {
         -e MYSQL_USER=${username}
         -e MYSQL_PASSWORD=${password}
         -e MYSQL_DATABASE=${database}
-        --name test-mysql
-        thenativeweb/wolkenkit-mysql:latest
+        --name test-mariadb
+        thenativeweb/wolkenkit-mariadb:latest
         --bind-address=0.0.0.0
     `);
 
@@ -44,26 +39,26 @@ const mySql = {
     });
 
     try {
-      await retry(async () => {
+      await retry(async (): Promise<void> => {
         const connection = await pool.getConnection();
 
         await connection.release();
-      }, getRetryOptions());
+      }, retryOptions);
     } catch (ex) {
       buntstift.info(ex.message);
-      buntstift.error('Failed to connect to MySQL.');
+      buntstift.error('Failed to connect to MariaDB.');
       throw ex;
     }
 
     await pool.end();
   },
 
-  async stop () {
+  async stop (): Promise<void> {
     shell.exec([
-      'docker kill test-mysql',
-      'docker rm -v test-mysql'
+      'docker kill test-mariadb',
+      'docker rm -v test-mariadb'
     ].join(';'));
   }
 };
 
-module.exports = mySql;
+export default mariaDb;
