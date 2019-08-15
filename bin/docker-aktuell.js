@@ -62,26 +62,92 @@ async function readDockerFile(file) {
   if (fs.existsSync(file) && fs.lstatSync(file).isFile()) {
     try {
       await fs.readFile(file, (err, data) => {
-debugger;
         const patternFrom = /FROM\s(.+?):(.+?)\n/;
         const patternUsername = /^([\w\.-]+?)\/(.+)$/;
         const baseImage = patternFrom.exec(data);
-
         if (patternUsername.test(baseImage[1])) {
           const lib = patternUsername.exec(baseImage[1]);
-          //buntstift.info(baseImage[1]);
-          //buntstift.info(lib[1]+" "+lib[2]+" "+baseImage[2]+" "+baseImage[0]);
-          requestTags(lib[1], lib[2],baseImage[2]);
+          requestTags(lib[1], lib[2], baseImage[2], 100);
         } else {
-          //buntstift.info("library"+" "+baseImage[1]+" "+baseImage[2]+" "+baseImage[0])
-          requestTags("library", baseImage[1], baseImage[2]);
+          requestTags("library", baseImage[1], baseImage[2], 100);
         }
-        //buntstift.info(baseImage[1], baseImage[2], baseImage[3]);
-        //requestTags(baseImage[1], baseImage[2], 100);
       });
     } catch (err) {
     }
   }
+}
+
+async function extractNameAndUpDate(data) {
+  return data.map((result) => {
+    return {'name': result.name, 'lastUpdated': result.last_updated};
+  });
+}
+
+async function parseScheme(scheme) {
+  const toParse = scheme.split("");
+  let char;
+  let previousChar;
+  let accumulator = [];
+  let letter = /[a-zA-Z]/;
+  let number = /[0-9]/;
+  let symbol = /[\-\.]/;
+  for (char of toParse) {
+    if (letter.test(char)) {
+        if (previousChar && previousChar.type == 'Letter') {
+          accumulator[0].data.push(char);
+        } else {
+          accumulator.push({ 'type':'Letter', 'data':[char] });
+        }
+        previousChar = 'Letter';
+    } else if (number.test(char)) {
+        if (previousChar && previousChar.type == 'Number') {
+          accumulator[0].data.push(char);
+        } else {
+           accumulator.push({ 'type':'Number', 'data':[char] });
+        }
+        previousChar = char;
+    } else if (symbol.test(char)) {
+        if (previousChar && previousChar.type == 'Symbol') {
+          accumulator[0].data.push(char);
+        } else {
+           accumulator.push({ 'type':'Symbol', 'data':[char] });
+        }
+        previousChar = char;
+    } else {
+      throw `Unrecognized character ${char}`;
+    }
+  }
+  return accumulator;
+}
+
+async function buildRegex(structuredScheme) {
+  debugger;
+  let regex = '/^';
+  for (let i=0; i<structuredScheme.length; i++) {
+    switch (structuredScheme[i].type) {
+      case 'Letter':
+        for (let j=0; j<structuredScheme[i].data.length; j++) {
+          regex += `${structuredScheme[i].data[j]}`;
+        }
+        break;
+      case 'Number':
+        if (i > 0 && structuredScheme[i-1].type !== 'Number') {
+          regex += '\\d+?';
+        } else if (i == 0) {
+          regex += '\\d+?';
+        }
+        break;
+      case 'Symbol':
+        for (let j=0; j<structuredScheme[i].data.length; j++) {
+          regex += `\\${structuredScheme[i].data[j]}`;
+        }
+        break;
+      default:
+        throw `Unrecognized structured scheme data type ${structuredScheme[i].type}`;
+    }
+  }
+  regex += '$/';
+  return regex;
 }
 
 async function requestTags(username, library, scheme, pageSize) {
@@ -103,11 +169,15 @@ async function requestTags(username, library, scheme, pageSize) {
 
     res.setEncoding('utf8');
     let rawData = '';
-    res.on('data', (chunk) => {rawData += chunk; });
-    res.on('end', () => {
+    res.on('data', (chunk) => { rawData += chunk; });
+    res.on('end', async () => {
       try {
         const parsedData = JSON.parse(rawData);
-        buntstift.info(parsedData.results);
+        debugger;
+        const results = await extractNameAndUpDate(parsedData.results);
+        const structuredScheme = await parseScheme(scheme);
+        const generatedRegex = await buildRegex(structuredScheme);
+        buntstift.info(generatedRegex);
       } catch (e) {
         buntstift.error(e);
       }
