@@ -67,9 +67,9 @@ async function readDockerFile(file) {
         const baseImage = patternFrom.exec(data);
         if (patternUsername.test(baseImage[1])) {
           const lib = patternUsername.exec(baseImage[1]);
-          requestTags(lib[1], lib[2], baseImage[2], 100);
+          requestTags(lib[1], lib[2], baseImage[2], 200);
         } else {
-          requestTags("library", baseImage[1], baseImage[2], 100);
+          requestTags("library", baseImage[1], baseImage[2], 200);
         }
       });
     } catch (err) {
@@ -122,7 +122,7 @@ async function parseScheme(scheme) {
 
 async function buildRegex(structuredScheme) {
   debugger;
-  let regex = '/^';
+  let regex = '^';
   for (let i=0; i<structuredScheme.length; i++) {
     switch (structuredScheme[i].type) {
       case 'Letter':
@@ -146,8 +146,42 @@ async function buildRegex(structuredScheme) {
         throw `Unrecognized structured scheme data type ${structuredScheme[i].type}`;
     }
   }
-  regex += '$/';
+  regex += '$';
+  regex = new RegExp(regex);
   return regex;
+}
+
+async function sortImages(images, regex) {
+  const matches = await images.map( (image) => {
+    if (regex.test(image.name)) {
+      return image;
+    }
+  });
+
+  const filteredMatches = await matches.filter( (m) => {
+    return m != null;
+  });
+
+  return filteredMatches;
+}
+
+function filterMajorRelease(imageInQuestion) {
+  const majorRelease = /(^\d{1,2}\.\d{1,2})/.exec(imageInQuestion.name);
+  return majorRelease[1];
+}
+
+async function findLatest(images, imageInUse) {
+  if (imageInUse[0] != null) {
+    if (/^\d{1,2}?\.\d{1,2}?/.test(images[0].name)) { // image is using semver
+      buntstift.info(images[0].name);
+      const releaseInQuestion = filterMajorRelease(imageInUse[0]);
+      const namesDescending = images.map(filterMajorRelease).sort((a,b) => {return b - a});
+      buntstift.info(namesDescending);
+    }
+  } else {
+    // warn the user that the image in use could not be found and 
+    // is either outdated or malformed
+  }
 }
 
 async function requestTags(username, library, scheme, pageSize) {
@@ -173,11 +207,12 @@ async function requestTags(username, library, scheme, pageSize) {
     res.on('end', async () => {
       try {
         const parsedData = JSON.parse(rawData);
-        debugger;
         const results = await extractNameAndUpDate(parsedData.results);
         const structuredScheme = await parseScheme(scheme);
         const generatedRegex = await buildRegex(structuredScheme);
-        buntstift.info(generatedRegex);
+        const matches = await sortImages(results, generatedRegex);
+        const imageInUse = await sortImages(results, new RegExp(`^${scheme}$`));
+        findLatest(matches, imageInUse);
       } catch (e) {
         buntstift.error(e);
       }
