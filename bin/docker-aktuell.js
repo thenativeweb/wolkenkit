@@ -121,7 +121,6 @@ async function parseScheme(scheme) {
 }
 
 async function buildRegex(structuredScheme) {
-  debugger;
   let regex = '^';
   for (let i=0; i<structuredScheme.length; i++) {
     switch (structuredScheme[i].type) {
@@ -165,23 +164,43 @@ async function sortImages(images, regex) {
   return filteredMatches;
 }
 
-function filterMajorRelease(imageInQuestion) {
-  const majorRelease = /(^\d{1,2}\.\d{1,2})/.exec(imageInQuestion.name);
-  return majorRelease[1];
+function extractNumbers(scheme) {
+  const numbers = scheme.split(/\D/);
+  const filteredNumbers = numbers.filter( (n) => {
+    return n != '';
+  });
+  return filteredNumbers;
+}
+
+function compairVersions(A, B) {
+  const versionA = extractNumbers(A.name); 
+  const versionB = extractNumbers(B.name);
+  for (let i=0; i<versionA.length; i++) {
+    if (parseInt(versionA[i]) === parseInt(versionB[i])) {
+      if (i < versionA.length -1) {
+      continue;
+      }
+      return 0;
+    } else if (parseInt(versionA[i]) > parseInt(versionB[i])) {
+      return -1;
+    } else {
+      return 1;
+    }
+  }
 }
 
 async function findLatest(images, imageInUse) {
   if (imageInUse[0] != null) {
-    if (/^\d{1,2}?\.\d{1,2}?/.test(images[0].name)) { // image is using semver
-      buntstift.info(images[0].name);
-      const releaseInQuestion = filterMajorRelease(imageInUse[0]);
-      const namesDescending = images.map(filterMajorRelease).sort((a,b) => {return b - a});
-      buntstift.info(namesDescending);
-    }
+    const latestFirst = images.sort(compairVersions); 
+    let l;
+      for (l of latestFirst) {
+        buntstift.info(l.name);
+      }
   } else {
     // warn the user that the image in use could not be found and 
     // is either outdated or malformed
   }
+  buntstift.info('_________');
 }
 
 async function requestTags(username, library, scheme, pageSize) {
