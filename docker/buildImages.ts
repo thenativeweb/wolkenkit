@@ -1,15 +1,12 @@
-'use strict';
+import fs from 'fs-extra';
+import { oneLine } from 'common-tags';
+import path from 'path';
+import shell from 'shelljs';
 
-const path = require('path');
-
-const fs = require('fs-extra'),
-      { oneLine } = require('common-tags'),
-      shell = require('shelljs');
-
-const buildImages = async function () {
+const buildImages = async function (): Promise<void> {
   const entries = await fs.readdir(__dirname);
 
-  await Promise.all(entries.map(async entry => {
+  await Promise.all(entries.map(async (entry: string): Promise<void> => {
     const imageDirectory = path.join(__dirname, entry);
     const stat = await fs.stat(imageDirectory);
 
@@ -33,4 +30,4 @@ const buildImages = async function () {
   }));
 };
 
-module.exports = buildImages;
+export default buildImages;

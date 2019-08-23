@@ -1,19 +1,14 @@
-'use strict';
-
-const buntstift = require('buntstift'),
-      Minio = require('minio'),
-      oneLine = require('common-tags/lib/oneLine'),
-      retry = require('async-retry'),
-      shell = require('shelljs'),
-      uuid = require('uuidv4');
-
-const getConnectionOptions = require('./getConnectionOptions'),
-      getRetryOptions = require('./getRetryOptions');
+import buntstift from 'buntstift';
+import connectionOptions from './connectionOptions';
+import Minio from 'minio';
+import { oneLine } from 'common-tags';
+import retry from 'async-retry';
+import retryOptions from './retryOptions';
+import shell from 'shelljs';
+import uuid from 'uuidv4';
 
 const minio = {
-  async start () {
-    const connectionOptions = getConnectionOptions();
-
+  async start (): Promise<void> {
     const {
       hostname,
       port,
@@ -35,7 +30,7 @@ const minio = {
     `);
 
     try {
-      await retry(async () => {
+      await retry(async (): Promise<void> => {
         const client = new Minio.Client({
           endPoint: hostname,
           port,
@@ -45,7 +40,7 @@ const minio = {
         });
 
         await client.bucketExists(uuid());
-      }, getRetryOptions());
+      }, retryOptions);
     } catch (ex) {
       buntstift.info(ex.message);
       buntstift.error('Failed to connect to Minio.');
@@ -53,7 +48,7 @@ const minio = {
     }
   },
 
-  async stop () {
+  async stop (): Promise<void> {
     shell.exec([
       'docker kill test-minio',
       'docker rm -v test-minio'
@@ -61,4 +56,4 @@ const minio = {
   }
 };
 
-module.exports = minio;
+export default minio;

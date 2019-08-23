@@ -1,18 +1,13 @@
-'use strict';
-
-const buntstift = require('buntstift'),
-      oneLine = require('common-tags/lib/oneLine'),
-      pg = require('pg'),
-      retry = require('async-retry'),
-      shell = require('shelljs');
-
-const getConnectionOptions = require('./getConnectionOptions'),
-      getRetryOptions = require('./getRetryOptions');
+import buntstift from 'buntstift';
+import connectionOptions from './connectionOptions';
+import { oneLine } from 'common-tags';
+import pg from 'pg';
+import retry from 'async-retry';
+import retryOptions from './retryOptions';
+import shell from 'shelljs';
 
 const postgres = {
-  async start () {
-    const connectionOptions = getConnectionOptions();
-
+  async start (): Promise<void> {
     const {
       hostname,
       port,
@@ -41,11 +36,11 @@ const postgres = {
     });
 
     try {
-      await retry(async () => {
+      await retry(async (): Promise<void> => {
         const connection = await pool.connect();
 
         connection.release();
-      }, getRetryOptions());
+      }, retryOptions);
     } catch (ex) {
       buntstift.info(ex.message);
       buntstift.error('Failed to connect to Postgres.');
@@ -55,7 +50,7 @@ const postgres = {
     await pool.end();
   },
 
-  async stop () {
+  async stop (): Promise<void> {
     shell.exec([
       'docker kill test-postgres',
       'docker rm -v test-postgres'
@@ -63,4 +58,4 @@ const postgres = {
   }
 };
 
-module.exports = postgres;
+export default postgres;

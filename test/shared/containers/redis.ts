@@ -1,18 +1,13 @@
-'use strict';
-
-const buntstift = require('buntstift'),
-      oneLine = require('common-tags/lib/oneLine'),
-      redisClient = require('redis'),
-      retry = require('async-retry'),
-      shell = require('shelljs');
-
-const getConnectionOptions = require('./getConnectionOptions'),
-      getRetryOptions = require('./getRetryOptions');
+import buntstift from 'buntstift';
+import connectionOptions from './connectionOptions';
+import { oneLine } from 'common-tags';
+import redisClient from 'redis';
+import retry from 'async-retry';
+import retryOptions from './retryOptions';
+import shell from 'shelljs';
 
 const redis = {
-  async start () {
-    const connectionOptions = getConnectionOptions();
-
+  async start (): Promise<void> {
     const {
       hostname,
       port,
@@ -31,10 +26,10 @@ const redis = {
     const url = `redis://:${password}@${hostname}:${port}/0`;
 
     try {
-      await retry(() => new Promise((resolve, reject) => {
+      await retry((): Promise<void> => new Promise((resolve: (value?: void) => void, reject: (reason?: any) => void): any => {
         const client = redisClient.createClient({ url });
 
-        client.ping(err => {
+        client.ping((err: Error | null): void => {
           if (err) {
             reject(err);
           }
@@ -42,7 +37,7 @@ const redis = {
           client.quit();
           resolve();
         });
-      }), getRetryOptions());
+      }), retryOptions);
     } catch (ex) {
       buntstift.info(ex.message);
       buntstift.error('Failed to connect to Redis.');
@@ -50,7 +45,7 @@ const redis = {
     }
   },
 
-  async stop () {
+  async stop (): Promise<void> {
     shell.exec([
       'docker kill test-redis',
       'docker rm -v test-redis'
@@ -58,4 +53,4 @@ const redis = {
   }
 };
 
-module.exports = redis;
+export default redis;

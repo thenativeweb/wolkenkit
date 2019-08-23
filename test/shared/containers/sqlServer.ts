@@ -1,30 +1,23 @@
-'use strict';
+import buntstift from 'buntstift';
+import connectionOptions from './connectionOptions';
+import { oneLine } from 'common-tags';
+import retry from 'async-retry';
+import retryOptions from './retryOptions';
+import shell from 'shelljs';
+import { Connection, Request } from 'tedious';
 
-const buntstift = require('buntstift'),
-      { Connection, Request } = require('tedious'),
-      oneLine = require('common-tags/lib/oneLine'),
-      retry = require('async-retry'),
-      shell = require('shelljs');
-
-const getConnectionOptions = require('./getConnectionOptions'),
-      getRetryOptions = require('./getRetryOptions');
-
-const createDatabase = async function ({ connection, database }) {
-  if (!connection) {
-    throw new Error('Connection is missing.');
-  }
-  if (!database) {
-    throw new Error('Database is missing.');
-  }
-
+const createDatabase = async function ({ connection, database }: {
+  connection: Connection;
+  database: string;
+}): Promise<void> {
   const createDatabaseQuery = `
     IF NOT EXISTS(SELECT * from sys.databases WHERE name='${database}')
       BEGIN
         CREATE DATABASE ${database};
       END`;
 
-  await new Promise((resolve, reject) => {
-    const createDatabaseRequest = new Request(createDatabaseQuery, err => {
+  await new Promise((resolve: (value?: void) => void, reject: (reason?: any) => void): any => {
+    const createDatabaseRequest = new Request(createDatabaseQuery, (err?: Error): void => {
       if (err) {
         return reject(err);
       }
@@ -37,9 +30,7 @@ const createDatabase = async function ({ connection, database }) {
 };
 
 const sqlServer = {
-  async start () {
-    const connectionOptions = getConnectionOptions();
-
+  async start (): Promise<void> {
     const {
       hostname,
       port,
@@ -70,20 +61,20 @@ const sqlServer = {
       }
     };
 
-    let connection;
+    let connection: Connection;
 
     try {
-      await retry(async () => {
-        await new Promise((resolve, reject) => {
+      await retry(async (): Promise<void> => {
+        await new Promise((resolve: (value?: void) => void, reject: (reason?: any) => void): any => {
           connection = new Connection(configuration);
 
-          const removeListeners = () => {
+          const removeListeners = (): void => {
             connection.removeAllListeners('connect');
             connection.removeAllListeners('error');
             connection.removeAllListeners('end');
           };
 
-          const handleConnect = err => {
+          const handleConnect = (err?: Error): void => {
             removeListeners();
 
             if (err) {
@@ -93,13 +84,13 @@ const sqlServer = {
             resolve();
           };
 
-          const handleError = err => {
+          const handleError = (err?: Error): void => {
             removeListeners();
 
             reject(err);
           };
 
-          const handleEnd = () => {
+          const handleEnd = (): void => {
             removeListeners();
 
             reject(new Error('Could not connect.'));
@@ -109,23 +100,23 @@ const sqlServer = {
           connection.on('error', handleError);
           connection.on('end', handleEnd);
         });
-      }, getRetryOptions());
+
+        await createDatabase({ connection, database });
+
+        await new Promise((resolve: (value?: void) => void): any => {
+          connection.once('end', resolve);
+
+          connection.close();
+        });
+      }, retryOptions);
     } catch (ex) {
       buntstift.info(ex.message);
       buntstift.error('Failed to connect to SQL Server.');
       throw ex;
     }
-
-    await createDatabase({ connection, database });
-
-    await new Promise(resolve => {
-      connection.once('end', resolve);
-
-      connection.close();
-    });
   },
 
-  async stop () {
+  async stop (): Promise<void> {
     shell.exec([
       'docker kill test-sqlserver',
       'docker rm -v test-sqlserver'
@@ -133,4 +124,4 @@ const sqlServer = {
   }
 };
 
-module.exports = sqlServer;
+export default sqlServer;
