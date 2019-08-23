@@ -12,7 +12,8 @@ update_configs:
     - "Dependencies"
     allowed_updates:
     - match:
-        update_type: "security"
+        dependency_type: "direct"
+        update_type: "all"
     version_requirement_updates: "increase_versions"
 
   - package_manager: "docker"
@@ -77,6 +78,16 @@ update_configs:
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-proxy"
+    update_schedule: "daily"
+    default_reviewers:
+    - "thenativeweb/wolkenkit-dev"
+    default_assignees:
+    - "goloroden"
+    default_labels:
+    - "Dependencies"
+
+  - package_manager: "docker"
+    directory: "/docker/wolkenkit-redis"
     update_schedule: "daily"
     default_reviewers:
     - "thenativeweb/wolkenkit-dev"
