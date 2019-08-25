@@ -9,6 +9,11 @@ const buntstift = require('buntstift'),
 
 const dockerDir = path.join(__dirname, '../docker');
 
+/*
+ * Recursivly scans a directory and all sub-directories for Dockerfile(s).
+ * @param dir {String} - the directory to scan.
+ * @returns {Promise}
+ */
 async function scanDirectory(dir) {
   if (fs.existsSync(dir)){
     let contents = fs.readdir(dir, async (err, files) => {
@@ -22,7 +27,7 @@ async function scanDirectory(dir) {
     });
 
     await contents;
-
+debugger;
     if (contents !== undefined) {
       let fullPath = contents.map((file) => {
         return path.join(dir, file);
@@ -34,6 +39,12 @@ async function scanDirectory(dir) {
   }
 }
 
+/*
+ * Find Dockerfile(s) in a given directory.
+ * @param dirname {String} - the directory to start looking in.
+ * @param files {[String]} - the files contained in the directory.
+ * @returns {Promise}
+ */
 async function findDockerFiles(dirname, files) {
   
   return await files.map(async (file) => {
@@ -50,14 +61,18 @@ async function findDockerFiles(dirname, files) {
     } else if (fs.existsSync(currentPath) && fs.lstatSync(currentPath).isFile()) {
       
       if (file == "Dockerfile") {
-        //buntstift.info(currentPath);
         return readDockerFile(currentPath);
-        //return currentPath;
       }
     }
   });
 }
 
+/*
+ * Reads a docker file and requests the tags associated with the base image from
+ * docker hub.
+ * @param {path} - the file to read.
+ * @returns {Promise}
+ */
 async function readDockerFile(file) {
   if (fs.existsSync(file) && fs.lstatSync(file).isFile()) {
     try {
@@ -77,12 +92,22 @@ async function readDockerFile(file) {
   }
 }
 
+/*
+ * Extracts the image name (version number) and date from raw tag data.
+ * @param data {{Object}} - The raw tag data from docker hub.
+ * @returns {{name: String, lastUpdated: String}}
+ */
 async function extractNameAndUpDate(data) {
   return data.map((result) => {
     return {'name': result.name, 'lastUpdated': result.last_updated};
   });
 }
 
+/*
+ * Parses a version scheme from which we can build a regex to match other schemes against.
+ * @param scheme {String} - the scheme to parse.
+ * @returns {[{type:String, data:[String]}]} - the scheme parsed into a consumable structure.
+ */
 async function parseScheme(scheme) {
   const toParse = scheme.split("");
   let char;
@@ -120,6 +145,11 @@ async function parseScheme(scheme) {
   return accumulator;
 }
 
+/*
+ * Builds a regular expression to match image version names.
+ * @param structuredScheme {[{type:String, data:[String]}]} - the scheme.
+ * @returns {RegExp} - the regular expression generated based on the scheme.
+ */
 async function buildRegex(structuredScheme) {
   let regex = '^';
   for (let i=0; i<structuredScheme.length; i++) {
@@ -150,6 +180,12 @@ async function buildRegex(structuredScheme) {
   return regex;
 }
 
+/*
+ * Sorts images against a regular expression based on their name.
+ * @param images {[{name:String, lastUpdated:String}]} - the images to sort.
+ * @param regex {RegExp} - the regular expression to match.
+ * @returns {[{name:String, lastUpdated:String}]} - the images that match the regex.
+ */
 async function sortImages(images, regex) {
   const matches = await images.map( (image) => {
     if (regex.test(image.name)) {
@@ -164,6 +200,11 @@ async function sortImages(images, regex) {
   return filteredMatches;
 }
 
+/*
+ * Extracts the number parts of a version scheme and leaves the rest behind.
+ * @param scheme {String} - the scheme to extract numbers from.
+ * @returns {[Number]} - an array of numbers making up the version.
+ */
 function extractNumbers(scheme) {
   const numbers = scheme.split(/\D/);
   const filteredNumbers = numbers.filter( (n) => {
@@ -172,6 +213,12 @@ function extractNumbers(scheme) {
   return filteredNumbers;
 }
 
+/*
+ * Compairs two version numbers of the same scheme.
+ * @param A {String} - the first version number
+ * @param B {String} - the second version number
+ * @returns {Number} - 0=AB, -1=Ab, 1=aB
+ */
 function compairVersions(A, B) {
   const versionA = extractNumbers(A.name); 
   const versionB = extractNumbers(B.name);
@@ -189,20 +236,32 @@ function compairVersions(A, B) {
   }
 }
 
+/*
+ * Given an array of images, finds the latest image based on their version number.
+ * @param images {[{name:String, lastUpdated:String}]}
+ * @param imageInUse {name:String, lastUpdated:String}
+ * @returns {Promise}
+ */
 async function findLatest(images, imageInUse) {
-  if (imageInUse[0] != null) {
-    const latestFirst = images.sort(compairVersions); 
-    let l;
-      for (l of latestFirst) {
-        buntstift.info(l.name);
-      }
+  const latestFirst = images.sort(compairVersions); 
+  if (imageInUse != null) {
+    buntstift.table([
+      [imageInUse.name, latestFirst[0].name, latestFirst[0].lastUpdated],
+    ]);
   } else {
     // warn the user that the image in use could not be found and 
     // is either outdated or malformed
   }
-  buntstift.info('_________');
 }
 
+/*
+ * GET tags from docker hub.
+ * @param {String} username - the username of the repository to get tags for.
+ * @param {String} library - the library to get tags for.
+ * @param {String} scheme - the version scheme used by the image we use.
+ * @param {Int} pageSize - the size of page to request (how many tags).
+ * @returns {Promise}
+ */
 async function requestTags(username, library, scheme, pageSize) {
   await https.get(`https://hub.docker.com/v2/repositories/${username}/${library}/tags/?page_size=${pageSize}`, (res) => {
     const { statusCode } = res;
@@ -231,7 +290,11 @@ async function requestTags(username, library, scheme, pageSize) {
         const generatedRegex = await buildRegex(structuredScheme);
         const matches = await sortImages(results, generatedRegex);
         const imageInUse = await sortImages(results, new RegExp(`^${scheme}$`));
-        findLatest(matches, imageInUse);
+        buntstift.table([
+          ['Current','Latest','Last Updated'],
+          []
+        ]);
+        findLatest(matches, imageInUse[0]);
       } catch (e) {
         buntstift.error(e);
       }
