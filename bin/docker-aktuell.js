@@ -4,6 +4,7 @@
 
 const buntstift = require('buntstift'),
   fs = require('fs'),
+  fsPromises = require('fs').promises,
   path = require('path'),
   https = require('https');
 
@@ -16,25 +17,12 @@ const dockerDir = path.join(__dirname, '../docker');
  */
 async function scanDirectory(dir) {
   if (fs.existsSync(dir)){
-    let contents = fs.readdir(dir, async (err, files) => {
-      if (err) {
-        throw Error(err);
-      }
-
-      let found = findDockerFiles(dir, files);
-      await found;
+    try {
+      let contents = await fsPromises.readdir(dir);
+      let found = await findDockerFiles(dir, contents);
       return found;
-    });
-
-    await contents;
-debugger;
-    if (contents !== undefined) {
-      let fullPath = contents.map((file) => {
-        return path.join(dir, file);
-      });
-      await fullPath;
-      buntstift.info(fullPath);
-      return fullPath;
+    } catch (err) {
+      throw Error(err);
     }
   }
 }
@@ -60,7 +48,7 @@ async function findDockerFiles(dirname, files) {
       
     } else if (fs.existsSync(currentPath) && fs.lstatSync(currentPath).isFile()) {
       
-      if (file == "Dockerfile") {
+      if (file === "Dockerfile") {
         return readDockerFile(currentPath);
       }
     }
