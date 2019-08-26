@@ -294,8 +294,7 @@ async function requestTags(username, library, scheme, pageSize) {
 
 (async () => {
   const stop = buntstift.wait();
-    const found = scanDirectory(dockerDir);
-    await found;
+  const found = await scanDirectory(dockerDir); 
   stop();
-    return found;
+  return found;
 })();
