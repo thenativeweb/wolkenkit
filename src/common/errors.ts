@@ -1,4 +1,4 @@
-import defekt from '@offspring/defekt';
+import defekt from '../offspring/defekt';
 
 const errors = defekt({
   CommandMalformed: {},

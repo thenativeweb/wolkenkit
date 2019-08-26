@@ -4,7 +4,7 @@ const path = require('path');
 
 const assert = require('assertthat');
 
-const getCertificate = require('../../../../../clis/wolkenkit/application/getCertificate');
+const getCertificate = require('../../../../../src/clis/wolkenkit/application/getCertificate');
 
 suite('getCertificate', () => {
   test('is a function.', done => {
