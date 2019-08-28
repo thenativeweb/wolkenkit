@@ -133,7 +133,7 @@
     "get-cors-origin": "1.0.0",
     "humanize-string": "2.1.0",
     "is-ip": "3.1.0",
-    "isolated": "1.0.1",
+    "isolated": "2.0.0",
     "limes": "3.0.0",
     "limit-alphanumeric": "1.0.0",
     "lodash": "4.17.15",
