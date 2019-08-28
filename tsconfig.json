@@ -7,8 +7,7 @@
     "module": "commonjs",
     "outDir": "build",
     "paths": {
-      "*": [ "./types/*" ],
-      "@offspring/*": [ "./src/offspring/*" ]
+      "*": [ "./types/*" ]
     },
     "resolveJsonModule": true,
     "strict": true,

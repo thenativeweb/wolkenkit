@@ -1,6 +1,6 @@
 import Application from '../../../../src/common/application';
 import assert from 'assertthat';
-import { CustomError } from '@offspring/defekt';
+import { CustomError } from 'defekt';
 import invalidAggregatesAreMissing from '../../../shared/applications/invalid/aggregatesAreMissing';
 import invalidContextsAreMissing from '../../../shared/applications/invalid/contextsAreMissing';
 import invalidDomainIsMissing from '../../../shared/applications/invalid/domainIsMissing';
