@@ -49,7 +49,8 @@ async function findDockerFiles(dirname, files) {
     } else if (fs.existsSync(currentPath) && fs.lstatSync(currentPath).isFile()) {
       
       if (file === "Dockerfile") {
-        return readDockerFile(currentPath);
+        const scheme = await readDockerFile(currentPath);
+        return scheme;
       }
     }
   });
@@ -64,18 +65,34 @@ async function findDockerFiles(dirname, files) {
 async function readDockerFile(file) {
   if (fs.existsSync(file) && fs.lstatSync(file).isFile()) {
     try {
-      await fs.readFile(file, (err, data) => {
+      const image = await fsPromises.readFile(file).then( data => {
         const patternFrom = /FROM\s(.+?):(.+?)\n/;
         const patternUsername = /^([\w\.-]+?)\/(.+)$/;
         const baseImage = patternFrom.exec(data);
         if (patternUsername.test(baseImage[1])) {
           const lib = patternUsername.exec(baseImage[1]);
-          requestTags(lib[1], lib[2], baseImage[2], 200);
+          //requestTags(lib[1], lib[2], baseImage[2], 200);
+          return { 
+            username: lib[1], 
+            library: lib[2], 
+            scheme: baseImage[2], 
+            pageSize: 200
+          };
         } else {
-          requestTags("library", baseImage[1], baseImage[2], 200);
+          //requestTags("library", baseImage[1], baseImage[2], 200);
+          return { 
+            username: 'library', 
+            library: baseImage[1], 
+            scheme: baseImage[2], 
+            pageSize: 200
+          };
         }
+      }).catch(err => {
+        buntstift.error(err);
       });
+      return image;
     } catch (err) {
+      buntstift.error(err);
     }
   }
 }
@@ -230,15 +247,14 @@ function compairVersions(A, B) {
  * @param imageInUse {name:String, lastUpdated:String}
  * @returns {Promise}
  */
-async function findLatest(images, imageInUse) {
+async function findLatest(images) {
   const latestFirst = images.sort(compairVersions); 
   if (imageInUse != null) {
-    buntstift.table([
-      [imageInUse.name, latestFirst[0].name, latestFirst[0].lastUpdated],
-    ]);
+    return {current: imageInUse, latest: latestFirst[0]};
   } else {
     // warn the user that the image in use could not be found and 
     // is either outdated or malformed
+    return {current: null, latest: latestFirst[0]};
   }
 }
 
@@ -251,7 +267,7 @@ async function findLatest(images, imageInUse) {
  * @returns {Promise}
  */
 async function requestTags(username, library, scheme, pageSize) {
-  await https.get(`https://hub.docker.com/v2/repositories/${username}/${library}/tags/?page_size=${pageSize}`, (res) => {
+  await https.get(`https://hub.docker.com/v2/repositories/${username}/${library}/tags/?page_size=${pageSize}`, async (res) => {
     const { statusCode } = res;
     const contentType = res.headers['content-type'];
 
@@ -270,19 +286,52 @@ async function requestTags(username, library, scheme, pageSize) {
     res.setEncoding('utf8');
     let rawData = '';
     res.on('data', (chunk) => { rawData += chunk; });
-    res.on('end', async () => {
+    return  await res.on('end', async () => {
       try {
         const parsedData = JSON.parse(rawData);
         const results = await extractNameAndUpDate(parsedData.results);
         const structuredScheme = await parseScheme(scheme);
         const generatedRegex = await buildRegex(structuredScheme);
         const matches = await sortImages(results, generatedRegex);
-        const imageInUse = await sortImages(results, new RegExp(`^${scheme}$`));
-        buntstift.table([
-          ['Current','Latest','Last Updated'],
-          []
-        ]);
-        findLatest(matches, imageInUse[0]);
+        //const imageInUse = await sortImages(results, new RegExp(`^${scheme}$`));
+        //const latest = await findLatest(matches, imageInUse[0]);
+        const latest = matches.sort(compairVersions);
+        return {current: scheme, latest: latest[0]};
+        /*
+        if (latest.current !== null) {
+          if (latest.current.name === latest.latest.name) {
+            buntstift.success(`${library} is up to date.`);
+          } else {
+            buntstift.info(`${library} is out of date.`);
+            //buntstift.info(`Currently Using: ${latest.current.name}`);
+            //buntstift.info(`Latest Version: ${latest.latest.name}`);
+            //buntstift.info(`Last Updated: ${latest.latest.lastUpdated}`);
+
+          buntstift.table([
+            ['Image', 'Current','Latest','Last Updated'],
+            [],
+            [library, latest.current.name, latest.latest.name, latest.latest.lastUpdated]
+          ]); 
+          }
+        } else {
+          buntstift.info(`Unable to locate the specified version for ${library}.`);
+          buntstift.info(`Either you're using a very old (>1yr in most cases) image or the name is malformed.`);
+          //buntstift.info(`Currently Using: ${scheme}`);
+          //buntstift.info(`Latest Version: ${latest.latest.name}`);
+          //buntstift.info(`Last Updated: ${latest.latest.lastUpdated}`);
+
+          buntstift.table([
+            ['Image', 'Current','Latest','Last Updated'],
+            [],
+            [library, scheme, latest.latest.name, latest.latest.lastUpdated]
+          ]); 
+        }
+        */
+/*        buntstift.table([
+          ['Image', 'Current','Latest','Last Updated'],
+          [],
+          [library, latest.current.name, latest.latest.name, latest.latest.lastUpdated]
+        ]); */
       } catch (e) {
         buntstift.error(e);
       }
@@ -296,5 +345,8 @@ async function requestTags(username, library, scheme, pageSize) {
   const stop = buntstift.wait();
   const found = await scanDirectory(dockerDir); 
   stop();
+  buntstift.info(found);
+  const scheme = await readDockerFile(`${dockerDir}/wolkenkit/Dockerfile`);
+  buntstift.info(`${dockerDir}/wolkenkit/Dockerfile`);
   return found;
 })();
