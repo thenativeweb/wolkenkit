@@ -35,12 +35,13 @@ async function scanDirectory(dir) {
  */
 async function findDockerFiles(dirname, files) {
   
-  return await files.map(async (file) => {
-    let currentPath = path.join(dirname, file);
+  const found = await Promise.all(files.map(async file => {
+    const currentPath = path.join(dirname, file);
     if (fs.existsSync(currentPath) && 
         fs.lstatSync(currentPath).isDirectory()) {
       try {
-       await scanDirectory(currentPath);
+        const contents = await scanDirectory(currentPath);
+        return contents;
       } catch (err) {
         buntstift.error('oops! '+err);
         buntstift.error('currentPath: '+currentPath);
@@ -49,11 +50,16 @@ async function findDockerFiles(dirname, files) {
     } else if (fs.existsSync(currentPath) && fs.lstatSync(currentPath).isFile()) {
       
       if (file === "Dockerfile") {
-        const scheme = await readDockerFile(currentPath);
-        return scheme;
+        try {
+          const scheme = await readDockerFile(currentPath);
+          return scheme;
+        } catch (err) {
+          buntstift.error(err);
+        }
       }
     }
-  });
+  }));
+  return found;
 }
 
 /*
@@ -345,8 +351,9 @@ async function requestTags(username, library, scheme, pageSize) {
   const stop = buntstift.wait();
   const found = await scanDirectory(dockerDir); 
   stop();
+  debugger;
   buntstift.info(found);
   const scheme = await readDockerFile(`${dockerDir}/wolkenkit/Dockerfile`);
-  buntstift.info(`${dockerDir}/wolkenkit/Dockerfile`);
+  buntstift.info(scheme);
   return found;
 })();
