@@ -303,41 +303,6 @@ async function requestTags(username, library, scheme, pageSize) {
         //const latest = await findLatest(matches, imageInUse[0]);
         const latest = matches.sort(compairVersions);
         return {current: scheme, latest: latest[0]};
-        /*
-        if (latest.current !== null) {
-          if (latest.current.name === latest.latest.name) {
-            buntstift.success(`${library} is up to date.`);
-          } else {
-            buntstift.info(`${library} is out of date.`);
-            //buntstift.info(`Currently Using: ${latest.current.name}`);
-            //buntstift.info(`Latest Version: ${latest.latest.name}`);
-            //buntstift.info(`Last Updated: ${latest.latest.lastUpdated}`);
-
-          buntstift.table([
-            ['Image', 'Current','Latest','Last Updated'],
-            [],
-            [library, latest.current.name, latest.latest.name, latest.latest.lastUpdated]
-          ]); 
-          }
-        } else {
-          buntstift.info(`Unable to locate the specified version for ${library}.`);
-          buntstift.info(`Either you're using a very old (>1yr in most cases) image or the name is malformed.`);
-          //buntstift.info(`Currently Using: ${scheme}`);
-          //buntstift.info(`Latest Version: ${latest.latest.name}`);
-          //buntstift.info(`Last Updated: ${latest.latest.lastUpdated}`);
-
-          buntstift.table([
-            ['Image', 'Current','Latest','Last Updated'],
-            [],
-            [library, scheme, latest.latest.name, latest.latest.lastUpdated]
-          ]); 
-        }
-        */
-/*        buntstift.table([
-          ['Image', 'Current','Latest','Last Updated'],
-          [],
-          [library, latest.current.name, latest.latest.name, latest.latest.lastUpdated]
-        ]); */
       } catch (e) {
         buntstift.error(e);
       }
