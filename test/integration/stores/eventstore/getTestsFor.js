@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assertthat'),
-      toArray = require('streamtoarray'),
+      toArray = require('streamtoarray').default,
       uuid = require('uuidv4');
 
 const { EventExternal, EventInternal } = require('../../../../common/elements');
