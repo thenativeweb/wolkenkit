@@ -108,7 +108,7 @@
     "async-retry": "1.2.3",
     "axios": "0.19.0",
     "body-parser": "1.19.0",
-    "buntstift": "1.6.0",
+    "buntstift": "2.0.0",
     "certificate-details": "0.3.1",
     "combined-stream": "1.0.8",
     "command-line-args": "5.1.1",
@@ -134,7 +134,7 @@
     "humanize-string": "2.1.0",
     "is-ip": "3.1.0",
     "isolated": "2.0.0",
-    "limes": "3.0.0",
+    "limes": "4.0.0",
     "limit-alphanumeric": "1.0.0",
     "lodash": "4.17.15",
     "marble-run": "2.0.0",
@@ -164,7 +164,7 @@
     "tedious": "6.3.0",
     "update-notifier": "3.0.1",
     "uuidv4": "5.0.0",
-    "validate-value": "5.0.2"
+    "validate-value": "6.0.0"
   },
   "devDependencies": {
     "@types/async-retry": "1.4.1",
