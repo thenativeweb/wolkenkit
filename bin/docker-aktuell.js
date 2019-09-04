@@ -6,9 +6,11 @@ const buntstift = require('buntstift'),
   fs = require('fs'),
   fsPromises = require('fs').promises,
   path = require('path'),
+  util = require('util'),
   https = require('https');
 
 const dockerDir = path.join(__dirname, '../docker');
+const GET = ustil.promisify(https.get);
 
 /*
  * Recursivly scans a directory and all sub-directories for Dockerfile(s).
@@ -273,52 +275,65 @@ async function findLatest(images) {
  * @returns {Promise}
  */
 async function requestTags(username, library, scheme, pageSize) {
-  await https.get(`https://hub.docker.com/v2/repositories/${username}/${library}/tags/?page_size=${pageSize}`, async (res) => {
-    const { statusCode } = res;
-    const contentType = res.headers['content-type'];
+  try {
+    return await https.get(`https://hub.docker.com/v2/repositories/${username}/${library}/tags/?page_size=${pageSize}`, async (res) => {
+      const { statusCode } = res;
+      const contentType = res.headers['content-type'];
 
-    let error;
-    if (statusCode !== 200) {
-      error = new Error(`Request Failed for ${library}.\n` + `Status Code: ${statusCode}`);
-    } else if (!/^application\/json/.test(contentType)){
-      error = new Error('Invalid content-type.\n' + `Expected application/json but recieved ${contentType}`);
-    }
-    if (error) {
-      buntstift.error(error.message);
-      res.resume();
-      return;
-    }
-
-    res.setEncoding('utf8');
-    let rawData = '';
-    res.on('data', (chunk) => { rawData += chunk; });
-    return  await res.on('end', async () => {
-      try {
-        const parsedData = JSON.parse(rawData);
-        const results = await extractNameAndUpDate(parsedData.results);
-        const structuredScheme = await parseScheme(scheme);
-        const generatedRegex = await buildRegex(structuredScheme);
-        const matches = await sortImages(results, generatedRegex);
-        //const imageInUse = await sortImages(results, new RegExp(`^${scheme}$`));
-        //const latest = await findLatest(matches, imageInUse[0]);
-        const latest = matches.sort(compairVersions);
-        return {current: scheme, latest: latest[0]};
-      } catch (e) {
-        buntstift.error(e);
+      let error;
+      if (statusCode !== 200) {
+        error = new Error(`Request Failed for ${library}.\n` + `Status Code: ${statusCode}`);
+      } else if (!/^application\/json/.test(contentType)){
+        error = new Error('Invalid content-type.\n' + `Expected application/json but recieved ${contentType}`);
       }
+      if (error) {
+        buntstift.error(error.message);
+        res.resume();
+        return;
+      }
+
+      res.setEncoding('utf8');
+      let rawData = '';
+      res.on('data', (chunk) => { rawData += chunk; });
+      const relevantVersions = await res.on('end', async () => {
+        try {
+          const parsedData = JSON.parse(rawData);
+          const results = await extractNameAndUpDate(parsedData.results);
+          const structuredScheme = await parseScheme(scheme);
+          const generatedRegex = await buildRegex(structuredScheme);
+          const matches = await sortImages(results, generatedRegex);
+          //const imageInUse = await sortImages(results, new RegExp(`^${scheme}$`));
+          //const latest = await findLatest(matches, imageInUse[0]);
+          const latest = matches.sort(compairVersions);
+          return {current: scheme, latest: latest[0]};
+        } catch (e) {
+          buntstift.error(e);
+        }
+      });
+      debugger;
+      return releveantVersions;
+    }).on('error', (e) => {
+      buntstift.error(`Got error: ${e.message}`);
     });
-  }).on('error', (e) => {
-    buntstift.error(`Got error: ${e.message}`);
-  }); 
+  } catch (e) {
+  }
 }
 
 (async () => {
   const stop = buntstift.wait();
   const found = await scanDirectory(dockerDir); 
+  const images = await Promise.all(found.map(async (tag) => {
+    if (tag != null) {
+      buntstift.info(`Requesting tags for ${tag[0].library}`);
+      const tags = await requestTags(
+        tag[0].username, 
+        tag[0].library, 
+        tag[0].scheme, 
+        tag[0].pageSize);
+      return tags;
+    }
+  }));
   stop();
   debugger;
-  buntstift.info(found);
-  const scheme = await readDockerFile(`${dockerDir}/wolkenkit/Dockerfile`);
-  buntstift.info(scheme);
-  return found;
+  //buntstift.info(found);
 })();
