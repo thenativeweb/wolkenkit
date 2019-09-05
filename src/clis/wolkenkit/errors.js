@@ -1,6 +1,6 @@
 'use strict';
 
-const defekt = require('defekt');
+const defekt = require('defekt').default;
 
 const errors = defekt([
   'AddressMismatch',

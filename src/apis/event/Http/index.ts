@@ -4,7 +4,7 @@ import cors from 'cors';
 import EventInternal from '../../../common/elements/EventInternal';
 import express from 'express';
 import { Express } from 'express-serve-static-core';
-import { IdentityProvider } from '../../../../types/limes';
+import { IdentityProvider } from 'limes';
 import nocache from 'nocache';
 import { OnReceiveEvent } from './V2/postEvent';
 import { Purpose } from '../../shared/Purpose';
