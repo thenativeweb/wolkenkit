@@ -126,7 +126,7 @@
     "eslint": "6.2.2",
     "express": "4.17.1",
     "findsuggestions": "1.0.0",
-    "flaschenpost": "2.1.0",
+    "flaschenpost": "3.0.0",
     "flat": "4.1.0",
     "freeport-promise": "1.1.0",
     "fs-extra": "8.1.0",
