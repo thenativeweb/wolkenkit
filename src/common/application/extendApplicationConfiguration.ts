@@ -74,7 +74,7 @@ const extendApplicationConfiguration = function ({ applicationConfiguration }: {
             _: AggregateApiForReadOnly,
             event: EventInternal,
             { client }: {
-              client: ClientService
+              client: ClientService;
             }
           ): boolean {
             return event.metadata.initiator.user.id === client.user.id;

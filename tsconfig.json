@@ -15,6 +15,7 @@
   },
   "include": [
     "./src/**/*.ts",
+    "./docker/**/*.ts",
     "./test/**/*.ts",
     "./types"
   ]

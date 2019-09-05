@@ -2,11 +2,11 @@ import Aggregate from './Aggregate';
 import { State } from './State';
 
 class AggregateApiForReadOnly {
-  protected aggregate: Aggregate;
-
   public readonly id: string;
 
   public state: State;
+
+  protected aggregate: Aggregate;
 
   public constructor ({ aggregate }: {
     aggregate: Aggregate;

@@ -147,7 +147,9 @@ suite('AggregateApiForCommands', (): void => {
     test('calls event handle function with all services.', async (): Promise<void> => {
       const fake = sinon.fake();
 
+      /* eslint-disable @typescript-eslint/unbound-method */
       application.events.internal.sampleContext!.sampleAggregate!.succeeded!.handle = fake;
+      /* eslint-enable @typescript-eslint/unbound-method */
 
       const aggregateApiForCommands = new AggregateApiForCommands({
         aggregate, application, repository, command

@@ -154,6 +154,7 @@ suite('Application', (): void => {
 
         assert.that(application.flows.internal).is.equalTo({});
 
+        /* eslint-disable @typescript-eslint/unbound-method */
         assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.isAuthorized).is.ofType('function');
         assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.handle).is.ofType('function');
 
@@ -168,6 +169,7 @@ suite('Application', (): void => {
 
         assert.that(application.views.internal.lists!.sampleList!.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
         assert.that(application.views.internal.lists!.sampleList!.queries.readItem.isAuthorized).is.ofType('function');
+        /* eslint-enable @typescript-eslint/unbound-method */
       });
 
       test('loads applications without lists.', async (): Promise<void> => {
@@ -271,6 +273,7 @@ suite('Application', (): void => {
 
         assert.that(application.flows.internal).is.equalTo({});
 
+        /* eslint-disable @typescript-eslint/unbound-method */
         assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.isAuthorized).is.ofType('function');
         assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.handle).is.ofType('function');
 
@@ -282,6 +285,7 @@ suite('Application', (): void => {
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.isAuthorized).is.ofType('function');
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.handle).is.ofType('function');
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.isAuthorized).is.ofType('function');
+        /* eslint-enable @typescript-eslint/unbound-method */
       });
 
       test('loads applications with flows.', async (): Promise<void> => {
@@ -409,6 +413,7 @@ suite('Application', (): void => {
           }
         });
 
+        /* eslint-disable @typescript-eslint/unbound-method */
         assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.isAuthorized).is.ofType('function');
         assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.handle).is.ofType('function');
 
@@ -420,6 +425,7 @@ suite('Application', (): void => {
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.isAuthorized).is.ofType('function');
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.handle).is.ofType('function');
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.isAuthorized).is.ofType('function');
+        /* eslint-enable @typescript-eslint/unbound-method */
 
         assert.that(application.views.internal.lists!.sampleList!.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
         assert.that(application.views.internal.lists!.sampleList!.queries.readItem.isAuthorized).is.ofType('function');
@@ -558,7 +564,7 @@ suite('Application', (): void => {
           }
         });
 
-
+        /* eslint-disable @typescript-eslint/unbound-method */
         assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.isAuthorized).is.ofType('function');
         assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.handle).is.ofType('function');
 
@@ -570,6 +576,7 @@ suite('Application', (): void => {
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.isAuthorized).is.ofType('function');
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.handle).is.ofType('function');
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.isAuthorized).is.ofType('function');
+        /* eslint-enable @typescript-eslint/unbound-method */
 
         assert.that(application.views.internal.lists!.sampleList!.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
         assert.that(application.views.internal.lists!.sampleList!.queries.readItem.isAuthorized).is.ofType('function');
@@ -708,7 +715,7 @@ suite('Application', (): void => {
           }
         });
 
-
+        /* eslint-disable @typescript-eslint/unbound-method */
         assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.isAuthorized).is.ofType('function');
         assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.handle).is.ofType('function');
 
@@ -720,6 +727,7 @@ suite('Application', (): void => {
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeFailed!.isAuthorized).is.ofType('function');
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.handle).is.ofType('function');
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executeRejected!.isAuthorized).is.ofType('function');
+        /* eslint-enable @typescript-eslint/unbound-method */
 
         assert.that(application.views.internal.lists!.sampleList!.projections['sampleContext.sampleAggregate.executed']).is.ofType('function');
         assert.that(application.views.internal.lists!.sampleList!.queries.readItem.isAuthorized).is.ofType('function');
@@ -752,8 +760,10 @@ suite('Application', (): void => {
         const directory = await validWithFilter();
         const application = await Application.load({ directory });
 
+        /* eslint-disable @typescript-eslint/unbound-method */
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.filter).
           is.ofType('function');
+        /* eslint-enable @typescript-eslint/unbound-method */
         assert.that(application.views.internal.lists!.sampleList!.queries.readItem.filter).
           is.ofType('function');
       });
@@ -762,8 +772,10 @@ suite('Application', (): void => {
         const directory = await validWithMap();
         const application = await Application.load({ directory });
 
+        /* eslint-disable @typescript-eslint/unbound-method */
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.map).
           is.ofType('function');
+        /* eslint-enable @typescript-eslint/unbound-method */
         assert.that(application.views.internal.lists!.sampleList!.queries.readItem.map).
           is.ofType('function');
       });

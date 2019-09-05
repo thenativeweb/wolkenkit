@@ -2,7 +2,7 @@ import Application from './Application';
 import { Dictionary } from '../../types/Dictionary';
 
 class ApplicationCache {
-  private applications: Dictionary<Application>;
+  private readonly applications: Dictionary<Application>;
 
   public constructor () {
     this.applications = {};

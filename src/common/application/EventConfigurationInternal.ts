@@ -11,8 +11,8 @@ export interface EventConfigurationInternal extends EventConfigurationExternal {
     aggregate: AggregateApiForEvents,
     event: EventExternal,
     services: {
-      client: ClientService,
-      logger: LoggerService
+      client: ClientService;
+      logger: LoggerService;
     }
   ): void | Promise<void>;
 
@@ -20,8 +20,8 @@ export interface EventConfigurationInternal extends EventConfigurationExternal {
     aggregate: AggregateApiForReadOnly,
     event: EventInternal,
     services: {
-      client: ClientService,
-      logger: LoggerService
+      client: ClientService;
+      logger: LoggerService;
     }
   ): boolean | Promise<boolean>;
 
@@ -29,8 +29,8 @@ export interface EventConfigurationInternal extends EventConfigurationExternal {
     aggregate: AggregateApiForReadOnly,
     event: EventInternal,
     services: {
-      client: ClientService,
-      logger: LoggerService
+      client: ClientService;
+      logger: LoggerService;
     }
   ): boolean | Promise<boolean>;
 
@@ -38,8 +38,8 @@ export interface EventConfigurationInternal extends EventConfigurationExternal {
     aggregate: AggregateApiForReadOnly,
     event: EventInternal,
     services: {
-      client: ClientService,
-      logger: LoggerService
+      client: ClientService;
+      logger: LoggerService;
     }
   ): EventInternal | Promise<EventInternal>;
 }

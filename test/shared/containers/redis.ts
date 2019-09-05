@@ -26,7 +26,7 @@ const redis = {
     const url = `redis://:${password}@${hostname}:${port}/0`;
 
     try {
-      await retry((): Promise<void> => new Promise((resolve: (value?: void) => void, reject: (reason?: any) => void): any => {
+      await retry(async (): Promise<void> => new Promise((resolve: (value?: void) => void, reject: (reason?: any) => void): any => {
         const client = redisClient.createClient({ url });
 
         client.ping((err: Error | null): void => {

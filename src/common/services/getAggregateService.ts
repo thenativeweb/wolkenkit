@@ -17,15 +17,15 @@ const getAggregateService = function ({ application, repository }: {
     }
 
     const aggregatesInContext: Dictionary<(aggregateId: string) => {
-      read: () => Promise<AggregateApiForReadOnly>
+      read: () => Promise<AggregateApiForReadOnly>;
     }> = {};
 
     for (const aggregateName of Object.keys(contextConfiguration)) {
       aggregatesInContext[aggregateName] = function (aggregateId: string): {
-        read: () => Promise<AggregateApiForReadOnly>
+        read: () => Promise<AggregateApiForReadOnly>;
       } {
         return {
-          async read () {
+          async read (): Promise<AggregateApiForReadOnly> {
             const aggregate = await repository.loadAggregate({
               contextIdentifier: { name: contextName },
               aggregateIdentifier: { name: aggregateName, id: aggregateId }
@@ -38,7 +38,7 @@ const getAggregateService = function ({ application, repository }: {
             return new AggregateApiForReadOnly({ aggregate });
           }
         };
-      }
+      };
     }
 
     aggregateService[contextName] = aggregatesInContext;

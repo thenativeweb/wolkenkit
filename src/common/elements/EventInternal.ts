@@ -209,10 +209,45 @@ class EventInternal extends EventExternal {
     return event;
   }
 
-  protected clone (): EventInternal {
-    const clonedEvent = EventInternal.deserialize(cloneDeep(this));
+  public static validate ({ event, application }: {
+    event: any;
+    application: Application;
+  }): void {
+    let deserializedEvent;
 
-    return clonedEvent;
+    try {
+      deserializedEvent = EventInternal.deserialize(event);
+    } catch {
+      throw new errors.EventMalformed();
+    }
+
+    const context = application.events.internal[deserializedEvent.contextIdentifier.name];
+
+    if (!context) {
+      throw new Error('Invalid context name.');
+    }
+
+    const aggregate = context[deserializedEvent.aggregateIdentifier.name];
+
+    if (!aggregate) {
+      throw new Error('Invalid aggregate name.');
+    }
+
+    const aggregateEvent = aggregate[deserializedEvent.name];
+
+    if (!aggregateEvent) {
+      throw new Error('Invalid event name.');
+    }
+
+    const { schema } = aggregateEvent;
+
+    if (!schema) {
+      return;
+    }
+
+    const valueData = new Value(schema);
+
+    valueData.validate(deserializedEvent.data, { valueName: 'event.data' });
   }
 
   public setData ({ data }: {
@@ -264,45 +299,10 @@ class EventInternal extends EventExternal {
     return externalEvent;
   }
 
-  public static validate ({ event, application }: {
-    event: any;
-    application: Application;
-  }): void {
-    let deserializedEvent;
+  protected clone (): EventInternal {
+    const clonedEvent = EventInternal.deserialize(cloneDeep(this));
 
-    try {
-      deserializedEvent = EventInternal.deserialize(event);
-    } catch {
-      throw new errors.EventMalformed();
-    }
-
-    const context = application.events.internal[deserializedEvent.contextIdentifier.name];
-
-    if (!context) {
-      throw new Error('Invalid context name.');
-    }
-
-    const aggregate = context[deserializedEvent.aggregateIdentifier.name];
-
-    if (!aggregate) {
-      throw new Error('Invalid aggregate name.');
-    }
-
-    const aggregateEvent = aggregate[deserializedEvent.name];
-
-    if (!aggregateEvent) {
-      throw new Error('Invalid event name.');
-    }
-
-    const { schema } = aggregateEvent;
-
-    if (!schema) {
-      return;
-    }
-
-    const valueData = new Value(schema);
-
-    valueData.validate(deserializedEvent.data, { valueName: 'event.data' });
+    return clonedEvent;
   }
 }
 

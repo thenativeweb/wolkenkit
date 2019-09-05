@@ -3,7 +3,7 @@ import Course from 'marble-run';
 import Dispatcher from '../Dispatcher';
 
 declare type OnDispatchHandler = (args: { command: CommandExternal }) => Promise<void>;
-
+// TODO: replace marble-run
 class InMemoryDispatcher extends Dispatcher {
   protected course: Course;
 
@@ -31,17 +31,17 @@ class InMemoryDispatcher extends Dispatcher {
   public async schedule ({ command }: {
     command: CommandExternal;
   }): Promise<void> {
-    const { course, onDispatch } = this;
-
     // We don't use await here because we are only interested in the fact that
     // the command was stored, not that it was actually handled.
-    course.add({
+    /* eslint-disable @typescript-eslint/no-floating-promises */
+    this.course.add({
       routingKey: command.aggregateIdentifier.id,
       id: command.id,
       async task (): Promise<void> {
-        await onDispatch({ command });
+        await this.onDispatch({ command });
       }
     });
+    /* eslint-enable @typescript-eslint/no-floating-promises */
   }
 }
 

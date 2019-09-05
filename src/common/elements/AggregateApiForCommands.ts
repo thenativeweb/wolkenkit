@@ -36,13 +36,12 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
   }
 
   public publishEvent (eventName: string, data: Dictionary<any> = {}): void {
-    const { aggregate } = this;
-    const contextName = aggregate.contextIdentifier.name;
+    const contextName = this.aggregate.contextIdentifier.name;
 
-    const eventConfiguration = get(this.application, `events.internal.${contextName}.${aggregate.identifier.name}.${eventName}`);
+    const eventConfiguration = get(this.application, `events.internal.${contextName}.${this.aggregate.identifier.name}.${eventName}`);
 
     if (!eventConfiguration) {
-      throw new errors.EventUnknown(`Failed to publish unknown event '${eventName}' in '${contextName}.${aggregate.identifier.name}'.`);
+      throw new errors.EventUnknown(`Failed to publish unknown event '${eventName}' in '${contextName}.${this.aggregate.identifier.name}'.`);
     }
 
     const { handle, schema } = eventConfiguration;
@@ -54,8 +53,8 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
     }
 
     const eventExternal = EventExternal.create({
-      contextIdentifier: aggregate.contextIdentifier,
-      aggregateIdentifier: aggregate.identifier,
+      contextIdentifier: this.aggregate.contextIdentifier,
+      aggregateIdentifier: this.aggregate.identifier,
       name: eventName,
       data,
       metadata: {
@@ -63,15 +62,15 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
         correlationId: this.command.metadata.correlationId,
         causationId: this.command.id,
         revision: {
-          aggregate: aggregate.revision + aggregate.uncommittedEvents.length + 1
+          aggregate: this.aggregate.revision + this.aggregate.uncommittedEvents.length + 1
         }
       }
     });
 
-    const previousState = cloneDeep(aggregate.state);
-    const aggregateApiForEvents = new AggregateApiForEvents({ aggregate });
+    const previousState = cloneDeep(this.aggregate.state);
+    const aggregateApiForEvents = new AggregateApiForEvents({ aggregate: this.aggregate });
 
-    const fileName = path.join('server', 'domain', contextName, `${aggregate.identifier.name}.js`);
+    const fileName = path.join('server', 'domain', contextName, `${this.aggregate.identifier.name}.js`);
 
     const services = {
       app: {
@@ -86,7 +85,7 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
 
     handle(aggregateApiForEvents, eventExternal, services);
 
-    const state = cloneDeep(aggregate.state);
+    const state = cloneDeep(this.aggregate.state);
 
     const eventInternal = EventInternal.deserialize({
       ...eventExternal,
@@ -96,7 +95,7 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
       }
     });
 
-    aggregate.uncommittedEvents.push(eventInternal);
+    this.aggregate.uncommittedEvents.push(eventInternal);
   }
 }
 

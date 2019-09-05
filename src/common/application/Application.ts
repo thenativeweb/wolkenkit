@@ -16,30 +16,30 @@ import validateDirectory from './validateDirectory';
 import { get, set } from 'lodash';
 
 class Application {
-  private static cache = new ApplicationCache();
+  private static readonly cache = new ApplicationCache();
 
   public readonly initialState: {
     internal: Dictionary<Dictionary<InitialStateConfiguration>>;
-  }
+  };
 
   public readonly commands: {
     internal: Dictionary<Dictionary<Dictionary<CommandConfigurationInternal>>>;
     external: Dictionary<Dictionary<Dictionary<CommandConfigurationExternal>>>;
-  }
+  };
 
   public readonly events: {
     internal: Dictionary<Dictionary<Dictionary<EventConfigurationInternal>>>;
     external: Dictionary<Dictionary<Dictionary<EventConfigurationExternal>>>;
-  }
+  };
 
   public readonly views: {
     internal: Dictionary<Dictionary<Dictionary<Todo>>>;
     external: Dictionary<Dictionary<Dictionary<Todo>>>;
-  }
+  };
 
   public readonly flows: {
     internal: Dictionary<Dictionary<Todo>>;
-  }
+  };
 
   private constructor ({ configuration }: {
     configuration: ApplicationConfiguration;
@@ -84,8 +84,7 @@ class Application {
             documentation: commandConfiguration.documentation ? stripIndent(commandConfiguration.documentation).trim() : undefined
           });
           set(
-            commands, `external.${aggregateName}.${commandName}`,
-            {
+            commands, `external.${aggregateName}.${commandName}`, {
               documentation: get(commands, `internal.${aggregateName}.${commandName}.documentation`),
               schema: get(commands, `internal.${aggregateName}.${commandName}.schema`)
             }
@@ -102,8 +101,7 @@ class Application {
             documentation: eventConfiguration.documentation ? stripIndent(eventConfiguration.documentation).trim() : undefined
           });
           set(
-            events, `external.${aggregateName}.${eventName}`,
-            {
+            events, `external.${aggregateName}.${eventName}`, {
               documentation: get(events, `internal.${aggregateName}.${eventName}.documentation`),
               schema: get(events, `internal.${aggregateName}.${eventName}.schema`)
             }

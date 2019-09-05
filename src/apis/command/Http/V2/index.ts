@@ -2,15 +2,14 @@ import Application from '../../../../common/application/Application';
 import express from 'express';
 import { Express } from 'express-serve-static-core';
 import getConfiguration from './getConfiguration';
-import { IdentityProvider } from '../../../../../types/limes';
-import Limes from 'limes';
 import { Purpose } from '../../../shared/Purpose';
+import Limes, { IdentityProvider } from 'limes';
 import postCommand, { OnReceiveCommand } from './postCommand';
 
 class V2 {
-  protected application: Application;
-
   public api: Express;
+
+  protected application: Application;
 
   public constructor ({
     purpose,

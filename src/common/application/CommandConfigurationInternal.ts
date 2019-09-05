@@ -11,11 +11,11 @@ export interface CommandConfigurationInternal extends CommandConfigurationExtern
     aggregate: AggregateApiForReadOnly,
     command: CommandInternal,
     services: {
-      client: ClientService,
-      logger: LoggerService,
+      client: ClientService;
+      logger: LoggerService;
       app: {
-        aggregates: AggregateService
-      }
+        aggregates: AggregateService;
+      };
     }
   ): boolean | Promise<boolean>;
 
@@ -23,11 +23,11 @@ export interface CommandConfigurationInternal extends CommandConfigurationExtern
     aggregate: AggregateApiForCommands,
     command: CommandInternal,
     services: {
-      client: ClientService,
-      logger: LoggerService,
+      client: ClientService;
+      logger: LoggerService;
       app: {
-        aggregates: AggregateService
-      }
+        aggregates: AggregateService;
+      };
     }
   ): void | Promise<void>;
 }

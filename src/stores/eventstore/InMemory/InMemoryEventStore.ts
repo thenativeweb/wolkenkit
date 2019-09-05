@@ -30,26 +30,6 @@ class InMemoryEventstore implements Eventstore {
     this.database = { events: [], snapshots: []};
   }
 
-  protected getStoredEvents (): EventExternal[] {
-    return this.database.events;
-  }
-
-  protected getStoredSnapshots (): Snapshot[] {
-    return this.database.snapshots;
-  }
-
-  protected storeEventAtDatabase (event: EventExternal): void {
-    this.database.events.push(event);
-  }
-
-  protected storeSnapshotAtDatabase (snapshot: Snapshot): void {
-    this.database.snapshots.push(snapshot);
-  }
-
-  protected updateEventInDatabaseAtIndex (index: number, newEventData: EventExternal): void {
-    this.database.events[index] = newEventData;
-  }
-
   public async getLastEvent ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<EventExternal | undefined> {
@@ -244,6 +224,26 @@ class InMemoryEventstore implements Eventstore {
     passThrough.end();
 
     return passThrough;
+  }
+
+  protected getStoredEvents (): EventExternal[] {
+    return this.database.events;
+  }
+
+  protected getStoredSnapshots (): Snapshot[] {
+    return this.database.snapshots;
+  }
+
+  protected storeEventAtDatabase (event: EventExternal): void {
+    this.database.events.push(event);
+  }
+
+  protected storeSnapshotAtDatabase (snapshot: Snapshot): void {
+    this.database.snapshots.push(snapshot);
+  }
+
+  protected updateEventInDatabaseAtIndex (index: number, newEventData: EventExternal): void {
+    this.database.events[index] = newEventData;
   }
 }
 

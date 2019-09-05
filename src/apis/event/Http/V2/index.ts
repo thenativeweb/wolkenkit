@@ -20,15 +20,15 @@ import Limes, { IdentityProvider } from 'limes';
 import postEvent, { OnReceiveEvent } from './postEvent';
 
 class V2 {
+  public api: Express;
+
+  public connectionsForGetEvents: Dictionary<{ req: Request; res: Response }>;
+
   protected purpose: Purpose;
 
   protected application: Application;
 
   protected repository: Repository;
-
-  public api: Express;
-
-  public connectionsForGetEvents: Dictionary<{ req: Request; res: Response }>;
 
   public constructor ({
     purpose,
@@ -45,8 +45,6 @@ class V2 {
     identityProviders: IdentityProvider[];
     heartbeatInterval: number;
   }) {
-    this.writeLine = this.writeLine.bind(this);
-
     this.purpose = purpose;
     this.application = application;
     this.repository = repository;
@@ -81,7 +79,7 @@ class V2 {
 
         this.api.get('/', verifyTokenMiddleware, getEvents({
           connections: this.connectionsForGetEvents,
-          writeLine: this.writeLine,
+          writeLine: this.writeLine.bind(this),
           heartbeatInterval
         }));
 
@@ -144,7 +142,6 @@ class V2 {
       return;
     }
 
-    const { application, repository } = this;
     const { req } = connection;
 
     let clientMetadata;
@@ -167,7 +164,7 @@ class V2 {
 
     const queryFilter = req.query || {};
 
-    EventInternal.validate({ event, application });
+    EventInternal.validate({ event, application: this.application });
 
     if (!partOf(queryFilter, event)) {
       return;
@@ -175,7 +172,7 @@ class V2 {
 
     const services = {
       app: {
-        aggregates: getAggregateService({ application, repository })
+        aggregates: getAggregateService({ application: this.application, repository: this.repository })
       },
       client: getClientService({ clientMetadata }),
       logger: getLoggerService({ fileName: `/server/domain/${event.contextIdentifier.name}/${event.aggregateIdentifier.name}.js` })
@@ -198,7 +195,7 @@ class V2 {
     const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate: aggregateInstance });
 
     const { isAuthorized, filter, map } =
-      application.events.internal[event.contextIdentifier.name]![event.aggregateIdentifier.name]![event.name]!;
+      this.application.events.internal[event.contextIdentifier.name]![event.aggregateIdentifier.name]![event.name]!;
 
     try {
       const clonedEvent = cloneDeep(event);

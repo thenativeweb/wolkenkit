@@ -200,12 +200,6 @@ class EventExternal {
     return event;
   }
 
-  protected clone (): EventExternal {
-    const clonedEvent = EventExternal.deserialize(cloneDeep(this));
-
-    return clonedEvent;
-  }
-
   public setData ({ data }: {
     data: Dictionary<any>;
   }): EventExternal {
@@ -235,6 +229,12 @@ class EventExternal {
     value.validate(publishedEvent, { valueName: 'event' });
 
     return publishedEvent;
+  }
+
+  protected clone (): EventExternal {
+    const clonedEvent = EventExternal.deserialize(cloneDeep(this));
+
+    return clonedEvent;
   }
 }
 

@@ -5,6 +5,6 @@ const getClientService = function ({ clientMetadata }: {
   clientMetadata: ClientMetadata;
 }): ClientService {
   return clientMetadata;
-}
+};
 
 export default getClientService;

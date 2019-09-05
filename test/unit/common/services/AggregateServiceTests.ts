@@ -96,7 +96,9 @@ suite('aggregateService', (): void => {
           assert.that(aggregate.state).is.equalTo({
             events: [ 'succeeded', 'executed' ]
           });
+          /* eslint-disable @typescript-eslint/unbound-method */
           assert.that(aggregate.exists).is.ofType('function');
+          /* eslint-enable @typescript-eslint/unbound-method */
           assert.that(aggregate.exists()).is.true();
         });
       });

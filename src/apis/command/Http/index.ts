@@ -4,7 +4,7 @@ import CommandInternal from '../../../common/elements/CommandInternal';
 import cors from 'cors';
 import express from 'express';
 import { Express } from 'express-serve-static-core';
-import { IdentityProvider } from '../../../../types/limes';
+import { IdentityProvider } from 'limes';
 import nocache from 'nocache';
 import { Purpose } from '../../shared/Purpose';
 import V2 from './V2';
