@@ -48,7 +48,6 @@ async function findDockerFiles(dirname, files) {
       }
       
     } else if (fs.existsSync(currentPath) && fs.lstatSync(currentPath).isFile()) {
-      
       if (file === "Dockerfile") {
         try {
           const scheme = await readDockerFile(currentPath);
@@ -277,6 +276,7 @@ function getPromise(option) {
       }
 
       let data = "";
+      debugger;
       res.on('data', (chunk) => data += chunk);
       res.on('end', () => { 
         try { 
@@ -302,7 +302,6 @@ function getPromise(option) {
  */
 async function requestTags(username, library, scheme, pageSize) {
   try {
-    debugger;
     const data = await getPromise(`https://hub.docker.com/v2/repositories/${username}/${library}/tags/?page_size=${pageSize}`);
     const results = await extractNameAndUpDate(data.results);
     const structuredScheme = await parseScheme(scheme);
@@ -311,16 +310,19 @@ async function requestTags(username, library, scheme, pageSize) {
     const latest = matches.sort(compairVersions);
     return {username: username, library: library, current: scheme, latest: latest[0]};
   } catch (e) {
-    return {username: username, library: library, ccurrent: scheme, latest: e.message};
+    return {username: username, library: library, current: scheme, latest: e.message};
   }
 }
 
 (async () => {
   const stop = buntstift.wait();
-  const found = await scanDirectory(dockerDir); 
-  const images = await Promise.all(found.map(async (tag) => {
+  const rawFiles = await scanDirectory(dockerDir); 
+  const dockerfiles = await rawFiles.filter( (f) => {
+    return f != null;
+  });
+  const images = await Promise.all(dockerfiles.map(async (tag) => {
     if (tag != null) {
-      buntstift.info(`Requesting tags for ${tag[0].library}`);
+      buntstift.info(`Found ${tag[0].library}`);
       const tags = await requestTags(
         tag[0].username, 
         tag[0].library, 
@@ -330,10 +332,26 @@ async function requestTags(username, library, scheme, pageSize) {
     }
   }));
   stop();
-  debugger;
+  buntstift.info(`Username    Library    Current     Latest     Last Updated`);
+  images.map((img) => {
+    if (img && img.latest.name != null) {
+      if (img.current == img.latest.name) {
+        buntstift.success(`${img.library}  ${img.current}  ${img.latest.name}  ${img.latest.lastUpdated}`);
+      } else {
+        buntstift.warn(`${img.library}  ${img.current}  ${img.latest.name}  ${img.latest.lastUpdated}`);
+      }
+      
+    } else if (img != null) {
+      buntstift.error(`${img.library}  ${img.current}  ${img.latest}`);
+    } else {
+      buntstift.error(`Encountered a Fatal Error. Good Bye Cruel World.`);
+      //buntstift.exit();
+    }
+  });
+  /*
   buntstift.table([
     ['Username', 'Library', 'Current', 'Latest', 'Last Updated'],
     [],
-  ]);
+  ]); */
   //buntstift.info(found);
 })();
