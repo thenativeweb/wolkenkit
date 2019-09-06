@@ -35,7 +35,7 @@ async function scanDirectory(dir) {
  */
 async function findDockerFiles(dirname, files) {
   
-  const found = await Promise.all(files.map(async file => {
+  const found = await Promise.all(files.map(async (file) => {
     const currentPath = path.join(dirname, file);
     if (fs.existsSync(currentPath) && 
         fs.lstatSync(currentPath).isDirectory()) {
@@ -206,7 +206,6 @@ async function sortImages(images, regex) {
   const filteredMatches = await matches.filter( (m) => {
     return m != null;
   });
-
   return filteredMatches;
 }
 
@@ -276,14 +275,12 @@ function getPromise(option) {
       }
 
       let data = "";
-      debugger;
       res.on('data', (chunk) => data += chunk);
       res.on('end', () => { 
         try { 
           const parsedData = JSON.parse(data);
           resolve(parsedData);
         } catch(e){
-          debugger;
          resolve(undefined);
         }
       });
@@ -345,13 +342,7 @@ async function requestTags(username, library, scheme, pageSize) {
       buntstift.error(`${img.library}  ${img.current}  ${img.latest}`);
     } else {
       buntstift.error(`Encountered a Fatal Error. Good Bye Cruel World.`);
-      //buntstift.exit();
+      buntstift.exit();
     }
   });
-  /*
-  buntstift.table([
-    ['Username', 'Library', 'Current', 'Latest', 'Last Updated'],
-    [],
-  ]); */
-  //buntstift.info(found);
 })();
