@@ -6,11 +6,9 @@ const buntstift = require('buntstift'),
   fs = require('fs'),
   fsPromises = require('fs').promises,
   path = require('path'),
-  util = require('util'),
   https = require('https');
 
 const dockerDir = path.join(__dirname, '../docker');
-const GET = ustil.promisify(https.get);
 
 /*
  * Recursivly scans a directory and all sub-directories for Dockerfile(s).
@@ -267,6 +265,34 @@ async function findLatest(images) {
 }
 
 /*
+ * https.get that returns a Promise.
+ * @param option - options to pass to https.get
+ * @returns {Promise}
+ */
+function getPromise(option) {
+  return new Promise((resolve, reject) => {
+    let req = https.get(option, (res) => {
+      if (res.statusCode < 200 || res.statusCode > 299) {
+        reject( new Error(`Failed to load page ${res.statusCode}`));
+      }
+
+      let data = "";
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => { 
+        try { 
+          const parsedData = JSON.parse(data);
+          resolve(parsedData);
+        } catch(e){
+          debugger;
+         resolve(undefined);
+        }
+      });
+    });
+    req.on('error', (err) => reject(err));
+  });
+}
+
+/*
  * GET tags from docker hub.
  * @param {String} username - the username of the repository to get tags for.
  * @param {String} library - the library to get tags for.
@@ -276,46 +302,16 @@ async function findLatest(images) {
  */
 async function requestTags(username, library, scheme, pageSize) {
   try {
-    return await https.get(`https://hub.docker.com/v2/repositories/${username}/${library}/tags/?page_size=${pageSize}`, async (res) => {
-      const { statusCode } = res;
-      const contentType = res.headers['content-type'];
-
-      let error;
-      if (statusCode !== 200) {
-        error = new Error(`Request Failed for ${library}.\n` + `Status Code: ${statusCode}`);
-      } else if (!/^application\/json/.test(contentType)){
-        error = new Error('Invalid content-type.\n' + `Expected application/json but recieved ${contentType}`);
-      }
-      if (error) {
-        buntstift.error(error.message);
-        res.resume();
-        return;
-      }
-
-      res.setEncoding('utf8');
-      let rawData = '';
-      res.on('data', (chunk) => { rawData += chunk; });
-      const relevantVersions = await res.on('end', async () => {
-        try {
-          const parsedData = JSON.parse(rawData);
-          const results = await extractNameAndUpDate(parsedData.results);
-          const structuredScheme = await parseScheme(scheme);
-          const generatedRegex = await buildRegex(structuredScheme);
-          const matches = await sortImages(results, generatedRegex);
-          //const imageInUse = await sortImages(results, new RegExp(`^${scheme}$`));
-          //const latest = await findLatest(matches, imageInUse[0]);
-          const latest = matches.sort(compairVersions);
-          return {current: scheme, latest: latest[0]};
-        } catch (e) {
-          buntstift.error(e);
-        }
-      });
-      debugger;
-      return releveantVersions;
-    }).on('error', (e) => {
-      buntstift.error(`Got error: ${e.message}`);
-    });
+    debugger;
+    const data = await getPromise(`https://hub.docker.com/v2/repositories/${username}/${library}/tags/?page_size=${pageSize}`);
+    const results = await extractNameAndUpDate(data.results);
+    const structuredScheme = await parseScheme(scheme);
+    const generatedRegex = await buildRegex(structuredScheme);
+    const matches = await sortImages(results, generatedRegex);
+    const latest = matches.sort(compairVersions);
+    return {username: username, library: library, current: scheme, latest: latest[0]};
   } catch (e) {
+    return {username: username, library: library, ccurrent: scheme, latest: e.message};
   }
 }
 
@@ -335,5 +331,9 @@ async function requestTags(username, library, scheme, pageSize) {
   }));
   stop();
   debugger;
+  buntstift.table([
+    ['Username', 'Library', 'Current', 'Latest', 'Last Updated'],
+    [],
+  ]);
   //buntstift.info(found);
 })();
