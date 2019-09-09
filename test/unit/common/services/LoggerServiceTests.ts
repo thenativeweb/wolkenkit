@@ -4,7 +4,7 @@ import record from 'record-stdstreams';
 
 suite('LoggerService', (): void => {
   test('provides logger functions.', async (): Promise<void> => {
-    const loggerService = getLoggerService({ fileName: '/foo/bar.js' });
+    const loggerService = getLoggerService({ fileName: __filename });
 
     assert.that(loggerService.fatal).is.ofType('function');
     assert.that(loggerService.error).is.ofType('function');
@@ -14,7 +14,7 @@ suite('LoggerService', (): void => {
   });
 
   test('logs with the provided file name.', async (): Promise<void> => {
-    const loggerService = getLoggerService({ fileName: '/foo/bar.js' });
+    const loggerService = getLoggerService({ fileName: __filename });
     const stop = record();
 
     loggerService.info('Some log message...');

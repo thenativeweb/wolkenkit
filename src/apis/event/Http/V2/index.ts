@@ -12,6 +12,7 @@ import getClientService from '../../../../common/services/getClientService';
 import getConfiguration from './getConfiguration';
 import getEvents from './getEvents';
 import getLoggerService from '../../../../common/services/getLoggerService';
+import { join } from 'path';
 import partOf from 'partof';
 import { Purpose } from '../../../shared/Purpose';
 import Repository from '../../../../common/domain/Repository';
@@ -175,7 +176,7 @@ class V2 {
         aggregates: getAggregateService({ application: this.application, repository: this.repository })
       },
       client: getClientService({ clientMetadata }),
-      logger: getLoggerService({ fileName: `/server/domain/${event.contextIdentifier.name}/${event.aggregateIdentifier.name}.js` })
+      logger: getLoggerService({ fileName: join(this.application.rootDirectory, `server/domain/${event.contextIdentifier.name}/${event.aggregateIdentifier.name}.js`) })
     };
 
     const aggregateInstance = new Aggregate({

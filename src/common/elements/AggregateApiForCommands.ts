@@ -70,7 +70,7 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
     const previousState = cloneDeep(this.aggregate.state);
     const aggregateApiForEvents = new AggregateApiForEvents({ aggregate: this.aggregate });
 
-    const fileName = path.join('server', 'domain', contextName, `${this.aggregate.identifier.name}.js`);
+    const fileName = path.join(this.application.rootDirectory, 'server', 'domain', contextName, `${this.aggregate.identifier.name}.js`);
 
     const services = {
       app: {
