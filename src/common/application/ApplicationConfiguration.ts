@@ -4,6 +4,8 @@ import { EventConfigurationInternal } from './EventConfigurationInternal';
 import { InitialStateConfiguration } from './InitialStateConfiguration';
 
 export interface ApplicationConfiguration {
+  rootDirectory: string;
+
   domain: {
     [contextName: string]: {
       [aggregateName: string]: {

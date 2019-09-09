@@ -18,6 +18,8 @@ import { get, set } from 'lodash';
 class Application {
   private static readonly cache = new ApplicationCache();
 
+  public readonly rootDirectory: string;
+
   public readonly initialState: {
     internal: Dictionary<Dictionary<InitialStateConfiguration>>;
   };
@@ -44,6 +46,7 @@ class Application {
   private constructor ({ configuration }: {
     configuration: ApplicationConfiguration;
   }) {
+    this.rootDirectory = configuration.rootDirectory;
     this.initialState = { internal: {}};
     this.commands = { internal: {}, external: {}};
     this.events = { internal: {}, external: {}};

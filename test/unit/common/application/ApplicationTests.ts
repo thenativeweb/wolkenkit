@@ -43,6 +43,8 @@ suite('Application', (): void => {
         const directory = await validWithoutFlows();
         const application = await Application.load({ directory });
 
+        assert.that(application.rootDirectory).is.equalTo(directory);
+
         assert.that(application.commands.external).is.equalTo({
           sampleContext: {
             sampleAggregate: {
@@ -176,6 +178,8 @@ suite('Application', (): void => {
         const directory = await validWithoutLists();
         const application = await Application.load({ directory });
 
+        assert.that(application.rootDirectory).is.equalTo(directory);
+
         assert.that(application.commands.external).is.equalTo({
           sampleContext: {
             sampleAggregate: {
@@ -291,6 +295,8 @@ suite('Application', (): void => {
       test('loads applications with flows.', async (): Promise<void> => {
         const directory = await validWithFlows();
         const application = await Application.load({ directory });
+
+        assert.that(application.rootDirectory).is.equalTo(directory);
 
         assert.that(application.commands.external).is.equalTo({
           sampleContext: {
@@ -443,6 +449,8 @@ suite('Application', (): void => {
         const directory = await validWithDirectories();
         const application = await Application.load({ directory });
 
+        assert.that(application.rootDirectory).is.equalTo(directory);
+
         assert.that(application.commands.external).is.equalTo({
           sampleContext: {
             sampleAggregate: {
@@ -593,6 +601,8 @@ suite('Application', (): void => {
       test('loads applications with directories, without index.js files.', async (): Promise<void> => {
         const directory = await validWithDirectoriesWithoutIndex();
         const application = await Application.load({ directory });
+
+        assert.that(application.rootDirectory).is.equalTo(directory);
 
         assert.that(application.commands.external).is.equalTo({
           sampleContext: {
@@ -745,6 +755,8 @@ suite('Application', (): void => {
         const directory = await validWithDocumentation();
         const application = await Application.load({ directory });
 
+        assert.that(application.rootDirectory).is.equalTo(directory);
+
         assert.that(application.commands.internal.sampleContext!.sampleAggregate!.execute!.documentation).
           is.equalTo('# Sample aggregate\n\n## Execute');
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.documentation).
@@ -760,6 +772,8 @@ suite('Application', (): void => {
         const directory = await validWithFilter();
         const application = await Application.load({ directory });
 
+        assert.that(application.rootDirectory).is.equalTo(directory);
+
         /* eslint-disable @typescript-eslint/unbound-method */
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.filter).
           is.ofType('function');
@@ -771,6 +785,8 @@ suite('Application', (): void => {
       test('loads applications with map.', async (): Promise<void> => {
         const directory = await validWithMap();
         const application = await Application.load({ directory });
+
+        assert.that(application.rootDirectory).is.equalTo(directory);
 
         /* eslint-disable @typescript-eslint/unbound-method */
         assert.that(application.events.internal.sampleContext!.sampleAggregate!.executed!.map).

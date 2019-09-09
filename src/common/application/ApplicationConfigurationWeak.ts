@@ -1,4 +1,6 @@
 export interface ApplicationConfigurationWeak {
+  rootDirectory: string;
+
   domain: {
     [contextName: string]: {
       [aggregateName: string]: any;

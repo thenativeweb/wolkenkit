@@ -7,9 +7,10 @@ const getApplicationConfiguration = async function ({ directory }: {
   directory: string;
 }): Promise<ApplicationConfigurationWeak> {
   const serverDirectory = path.join(directory, 'server');
-  const entries = requireDir(serverDirectory, { recurse: true });
+  const entries: ApplicationConfigurationWeak = requireDir(serverDirectory, { recurse: true }) as any;
 
-  const { domain, views, flows }: ApplicationConfigurationWeak = entries as any;
+  entries.rootDirectory = directory;
+  const { domain, views, flows } = entries;
 
   // If an index.js file is given inside of an aggregate, list or flow, use it
   // instead of the individual files.
@@ -43,7 +44,7 @@ const getApplicationConfiguration = async function ({ directory }: {
     }
   }
 
-  return entries as ApplicationConfigurationWeak;
+  return entries;
 };
 
 export default getApplicationConfiguration;

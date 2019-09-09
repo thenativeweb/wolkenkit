@@ -8,6 +8,9 @@ const validateApplicationConfiguration = function ({ applicationConfiguration }:
   const value = new Value({
     type: 'object',
     properties: {
+      rootDirectory: {
+        type: 'string'
+      },
       domain: {
         type: 'object',
         patternProperties: {
