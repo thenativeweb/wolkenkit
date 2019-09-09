@@ -1,6 +1,6 @@
 'use strict';
 
-const assert = require('assertthat');
+const assert = require('assertthat').default;
 
 const runtimes = require('../../../../clis/wolkenkit/runtimes'),
       suiteAws = require('./helpers/suiteAws');

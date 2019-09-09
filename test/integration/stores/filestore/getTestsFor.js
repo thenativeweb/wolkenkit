@@ -2,7 +2,7 @@
 
 const path = require('path');
 
-const assert = require('assertthat'),
+const assert = require('assertthat').default,
       { createReadStream } = require('fs-extra'),
       streamToString = require('stream-to-string'),
       uuid = require('uuidv4');

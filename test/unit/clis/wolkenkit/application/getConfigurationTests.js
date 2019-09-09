@@ -1,6 +1,6 @@
 'use strict';
 
-const assert = require('assertthat');
+const assert = require('assertthat').default;
 
 const getConfiguration = require('../../../../../src/clis/wolkenkit/application/getConfiguration'),
       invalidPackageJsonIsInvalid = require('../../../../shared/applications/invalid/packageJsonIsInvalid'),

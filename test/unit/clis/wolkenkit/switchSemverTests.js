@@ -1,6 +1,6 @@
 'use strict';
 
-const assert = require('assertthat');
+const assert = require('assertthat').default;
 
 const switchSemver = require('../../../../src/clis/wolkenkit/switchSemver');
 

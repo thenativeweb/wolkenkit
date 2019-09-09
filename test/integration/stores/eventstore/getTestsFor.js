@@ -1,6 +1,6 @@
 'use strict';
 
-const assert = require('assertthat'),
+const assert = require('assertthat').default,
       toArray = require('streamtoarray').default,
       uuid = require('uuidv4');
 

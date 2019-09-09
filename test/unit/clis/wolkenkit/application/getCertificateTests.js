@@ -2,7 +2,7 @@
 
 const path = require('path');
 
-const assert = require('assertthat');
+const assert = require('assertthat').default;
 
 const getCertificate = require('../../../../../src/clis/wolkenkit/application/getCertificate');
 
