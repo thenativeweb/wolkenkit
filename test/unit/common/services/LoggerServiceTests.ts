@@ -22,6 +22,6 @@ suite('LoggerService', (): void => {
     const { stdout } = stop();
     const logMessage = JSON.parse(stdout);
 
-    assert.that(logMessage.source.endsWith('/foo/bar.js')).is.true();
+    assert.that(logMessage.source.endsWith('/LoggerServiceTests.ts')).is.true();
   });
 });
