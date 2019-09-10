@@ -840,7 +840,8 @@ suite('event/Http', (): void => {
 
             assert.that(message).is.atLeast({
               level: logLevel,
-              message: 'Some log message.'
+              message: 'Some log message.',
+              source: path.join(directory, '/server/domain/sampleContext/sampleAggregate.js')
             });
           });
           /* eslint-enable no-loop-func */
@@ -1240,7 +1241,8 @@ suite('event/Http', (): void => {
 
             assert.that(message).is.atLeast({
               level: logLevel,
-              message: 'Some log message.'
+              message: 'Some log message.',
+              source: path.join(directory, '/server/domain/sampleContext/sampleAggregate.js')
             });
           });
           /* eslint-enable no-loop-func */
@@ -1692,7 +1694,8 @@ suite('event/Http', (): void => {
 
             assert.that(message).is.atLeast({
               level: logLevel,
-              message: 'Some log message.'
+              message: 'Some log message.',
+              source: path.join(directory, '/server/domain/sampleContext/sampleAggregate.js')
             });
           });
           /* eslint-enable no-loop-func */
