@@ -17,4 +17,6 @@ export interface Filestore {
   removeFile (args: { id: string }): Promise<void>;
 
   transferOwnership (args: { id: string; to: string }): Promise<void>;
+
+  authorize (args: { id: string; isAuthorized: OwnedAuthorizationOptions }): Promise<void>;
 }
