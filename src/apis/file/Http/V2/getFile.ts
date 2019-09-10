@@ -1,22 +1,19 @@
-'use strict';
+import { Filestore } from '../../../../stores/filestore/Filestore';
+import flaschenpost from 'flaschenpost';
+import { hasAccess } from './isAuthorized';
+import { pipeline as pipelineCallback } from 'stream';
+import { promisify } from 'util';
+import { RequestHandler } from 'express';
 
-const { promisify } = require('util');
-
-const flaschenpost = require('flaschenpost'),
-      pumpCallback = require('pump');
-
-const { hasAccess } = require('./isAuthorized');
-
-const pump = promisify(pumpCallback);
-
+const pipeline = promisify(pipelineCallback);
 const logger = flaschenpost.getLogger();
 
-const getFile = function ({ provider }) {
+const getFile = function ({ provider }: { provider: Filestore }): RequestHandler {
   if (!provider) {
     throw new Error('Provider is missing.');
   }
 
-  return async function (req, res) {
+  return async function (req, res): Promise<any> {
     const { id } = req.params;
     const { user } = req;
 
@@ -30,11 +27,11 @@ const getFile = function ({ provider }) {
       const stream = await provider.getFile({ id });
 
       res.set('content-type', contentType);
-      res.set('content-length', contentLength);
+      res.set('content-length', String(contentLength));
       res.set('content-disposition', `inline; filename=${fileName}`);
       res.set('x-metadata', JSON.stringify({ id, fileName, contentType, contentLength }));
 
-      await pump(stream, res);
+      await pipeline(stream, res);
     } catch (ex) {
       logger.error('Failed to get file.', { id, err: ex });
 
@@ -47,4 +44,4 @@ const getFile = function ({ provider }) {
   };
 };
 
-module.exports = getFile;
+export default getFile;
