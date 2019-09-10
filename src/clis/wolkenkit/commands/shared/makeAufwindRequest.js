@@ -1,13 +1,15 @@
 'use strict';
 
-const { PassThrough } = require('stream'),
+const { PassThrough, pipeline: pipelineCallback } = require('stream'),
+      { promisify } = require('util'),
       url = require('url');
 
 const axios = require('axios'),
-      NewlineJsonParser = require('newline-json').Parser,
-      pump = require('pump');
+      NewlineJsonParser = require('newline-json').Parser;
 
 const errors = require('../../errors');
+
+const pipeline = promisify(pipelineCallback);
 
 const makeAufwindRequest = async function ({
   endpoint,
@@ -41,7 +43,9 @@ const makeAufwindRequest = async function ({
     const newlineJsonParser = new NewlineJsonParser();
     const passThrough = new PassThrough({ objectMode: true });
 
-    pump(response.data, newlineJsonParser, passThrough);
+    // We intentionally do not use await here, because we want to process the
+    // stream in an asynchronous way further down below.
+    pipeline(response.data, newlineJsonParser, passThrough);
 
     let hasError = false;
 

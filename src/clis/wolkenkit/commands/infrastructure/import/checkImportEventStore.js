@@ -1,19 +1,19 @@
 'use strict';
 
 const fs = require('fs'),
-      { PassThrough } = require('stream'),
+      { PassThrough, pipeline: pipelineCallback } = require('stream'),
       path = require('path'),
       { promisify } = require('util');
 
 const jsonStream = require('JSONStream'),
-      noop = require('lodash/noop'),
-      pump = require('pump');
+      noop = require('lodash/noop');
 
 const errors = require('../../../errors'),
       { Event } = require('../../../../../common/elements'),
       shared = require('../../shared');
 
-const readdir = promisify(fs.readdir);
+const pipeline = promisify(pipelineCallback),
+      readdir = promisify(fs.readdir);
 
 const checkImportEventStore = async function ({
   importDirectory
@@ -62,7 +62,7 @@ const checkImportEventStore = async function ({
 
     // We intentionally do not use await here, because we want to process the
     // stream in an asynchronous way further down below.
-    pump(eventStream, parseStream, passThrough);
+    pipeline(eventStream, parseStream, passThrough);
 
     for await (const data of passThrough) {
       let event;

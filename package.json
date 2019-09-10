@@ -150,7 +150,6 @@
     "pg-query-stream": "2.0.0",
     "portscanner": "2.2.0",
     "processenv": "2.0.1",
-    "pump": "3.0.0",
     "recursive-readdir": "2.2.2",
     "redis": "2.8.0",
     "require-dir": "1.2.0",

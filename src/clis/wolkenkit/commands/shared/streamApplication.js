@@ -1,13 +1,15 @@
 'use strict';
 
 const path = require('path'),
-      { PassThrough } = require('stream');
+      { PassThrough, pipeline: pipelineCallback } = require('stream'),
+      { promisify } = require('util');
 
-const pump = require('pump'),
-      tar = require('tar');
+const tar = require('tar');
 
 const file = require('../../file'),
       makeAufwindRequest = require('./makeAufwindRequest');
+
+const pipeline = promisify(pipelineCallback);
 
 const streamApplication = async function ({
   directory,
@@ -53,11 +55,10 @@ const streamApplication = async function ({
 
     const uploadStream = new PassThrough();
 
-    // Pump tar stream into a pass through stream, since tar stream is not a
+    // Pipeline tar stream into a pass through stream, since tar stream is not a
     // real stream and the upload doesn't work otherwise.
-    pump(tarStream, uploadStream, () => {
-      progress({ message: `Uploaded .tar.gz file.` });
-    });
+    await pipeline(tarStream, uploadStream);
+    progress({ message: `Uploaded .tar.gz file.` });
 
     let receivedData;
 
