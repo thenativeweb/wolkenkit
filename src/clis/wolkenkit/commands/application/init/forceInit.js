@@ -26,9 +26,8 @@ const forceInit = async function ({ directory, template }, progress) {
   const clonedFiles = await recursiveReaddir(tempDirectory, [ '.git' ]),
         files = await recursiveReaddir(directory, [ '.git' ]);
 
-  for (let i = 0; i < clonedFiles.length; i++) {
-    const clonedFile = clonedFiles[i],
-          clonedFileName = clonedFile.replace(`${tempDirectory}${path.sep}`, '');
+  for (const clonedFile of clonedFiles) {
+    const clonedFileName = clonedFile.replace(`${tempDirectory}${path.sep}`, '');
 
     const file = files.find(filePath => {
       const fileName = filePath.replace(`${directory}${path.sep}`, '');

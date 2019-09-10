@@ -3,7 +3,7 @@ import Course from 'marble-run';
 import Dispatcher from '../Dispatcher';
 
 declare type OnDispatchHandler = (args: { command: CommandExternal }) => Promise<void>;
-// TODO: replace marble-run
+
 class InMemoryDispatcher extends Dispatcher {
   protected course: Course;
 

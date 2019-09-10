@@ -101,9 +101,11 @@ class Eventstore {
       throw new Error('Name is missing.');
     }
 
-    const counter = await this.collections.counters.findOneAndUpdate({ _id: name }, {
-      $inc: { seq: 1 }
-    }, { returnOriginal: false });
+    const counter = await this.collections.counters.findOneAndUpdate(
+      { _id: name },
+      { $inc: { seq: 1 }},
+      { returnOriginal: false }
+    );
 
     return counter.value.seq;
   }

@@ -1,3 +1,5 @@
-import InMemory from './InMemory';
+'use strict';
 
-export default { InMemory };
+const InMemory = require('./InMemory');
+
+module.exports = { InMemory };

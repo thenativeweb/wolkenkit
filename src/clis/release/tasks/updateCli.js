@@ -51,9 +51,9 @@ const updateCli = async function ({ versions, cwd }) {
 
     const entries = await readdir(destination);
 
-    for (let j = 0; j < entries.length; j++) {
-      const entry = path.join(destination, entries[j]);
-      const stats = await stat(entry);
+    for (const entry of entries) {
+      const entryFullQualified = path.join(destination, entry);
+      const stats = await stat(entryFullQualified);
 
       if (!stats.isDirectory()) {
         continue;
