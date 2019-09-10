@@ -211,15 +211,9 @@
     "twitter": "1.7.1"
   },
   "scripts": {
-    "ts-build": "npx tsc",
-    "ts-test": "FLASCHENPOST_FORMATTER=json LOG_LEVELS=* npx mocha --exit --async-only --bail --recursive --require ts-node/register --require tsconfig-paths/register --reporter spec --ui tdd $(find test -name '*Tests.ts' ! -path '*shared*')",
-    "ts-test:debug": "FLASCHENPOST_FORMATTER=json LOG_LEVELS=* npx mocha --exit --inspect-brk --async-only --bail --recursive --require ts-node/register --require tsconfig-paths/register --reporter spec --ui tdd $(find test -name '*Tests.ts' ! -path '*shared*')",
     "build": "run-script-os",
     "build:darwin:linux": "node bin/build.js --color",
-    "build:win32": "node bin\\build.js --color",
-    "test-stories": "run-script-os",
-    "test-stories:darwin:linux": "node test/story/clis/wolkenkit/index.js",
-    "test-stories:win32": "node test\\story\\clis\\wolkenkit\\index.js"
+    "build:win32": "node bin\\build.js --color"
   },
   "repository": {
     "type": "git",
