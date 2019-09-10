@@ -685,7 +685,7 @@ suite('event/Http', (): void => {
             annotations: { state: {}, previousState: {}}
           });
 
-          const stop = record();
+          const stop = record(false);
 
           setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: useApp });
@@ -744,7 +744,7 @@ suite('event/Http', (): void => {
             annotations: { state: {}, previousState: {}}
           });
 
-          const stop = record();
+          const stop = record(false);
 
           setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: useClient });
@@ -813,7 +813,7 @@ suite('event/Http', (): void => {
               annotations: { state: {}, previousState: {}}
             });
 
-            const stop = record();
+            const stop = record(false);
 
             setTimeout(async (): Promise<void> => {
               await http.sendEvent({ event: useLogger });
@@ -1085,7 +1085,7 @@ suite('event/Http', (): void => {
             annotations: { state: {}, previousState: {}}
           });
 
-          const stop = record();
+          const stop = record(false);
 
           setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: useApp });
@@ -1144,7 +1144,7 @@ suite('event/Http', (): void => {
             annotations: { state: {}, previousState: {}}
           });
 
-          const stop = record();
+          const stop = record(false);
 
           setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: useClient });
@@ -1213,7 +1213,7 @@ suite('event/Http', (): void => {
               annotations: { state: {}, previousState: {}}
             });
 
-            const stop = record();
+            const stop = record(false);
 
             setTimeout(async (): Promise<void> => {
               await http.sendEvent({ event: useLogger });
@@ -1537,7 +1537,7 @@ suite('event/Http', (): void => {
             annotations: { state: {}, previousState: {}}
           });
 
-          const stop = record();
+          const stop = record(false);
 
           setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: useApp });
@@ -1596,7 +1596,7 @@ suite('event/Http', (): void => {
             annotations: { state: {}, previousState: {}}
           });
 
-          const stop = record();
+          const stop = record(false);
 
           setTimeout(async (): Promise<void> => {
             await http.sendEvent({ event: useClient });
@@ -1665,7 +1665,7 @@ suite('event/Http', (): void => {
               annotations: { state: {}, previousState: {}}
             });
 
-            const stop = record();
+            const stop = record(false);
 
             setTimeout(async (): Promise<void> => {
               await http.sendEvent({ event: useLogger });

@@ -15,7 +15,7 @@ suite('LoggerService', (): void => {
 
   test('logs with the provided file name.', async (): Promise<void> => {
     const loggerService = getLoggerService({ fileName: __filename });
-    const stop = record();
+    const stop = record(false);
 
     loggerService.info('Some log message...');
 
