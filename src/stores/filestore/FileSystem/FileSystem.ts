@@ -1,51 +1,44 @@
-'use strict';
-
-const path = require('path'),
-      { pipeline: pipelineCallback } = require('stream'),
-      { promisify } = require('util');
-
-const isolated = require('isolated'),
-      shell = require('shelljs'),
-      {
-        createReadStream,
-        createWriteStream,
-        pathExists,
-        readFile,
-        writeFile
-      } = require('fs-extra');
-
-const errors = require('../../../common/errors');
+import errors from '../../../common/errors';
+import { Filestore } from '../Filestore';
+import isolated from 'isolated';
+import { Metadata } from '../Metadata';
+import { OwnedAuthorizationOptions } from '../../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
+import path from 'path';
+import { pipeline as pipelineCallback } from 'stream';
+import { promisify } from 'util';
+import shell from 'shelljs';
+import { createReadStream, createWriteStream, pathExists, readFile, writeFile } from 'fs-extra';
 
 const pipeline = promisify(pipelineCallback);
 
-class FileSystem {
-  async initialize ({ directory }) {
-    if (!directory) {
-      this.directory = await isolated();
+class FileSystem implements Filestore {
+  protected directory: string;
 
-      return;
-    }
-
+  protected constructor ({ directory }: {
+    directory: string;
+  }) {
     this.directory = directory;
   }
 
-  async addFile ({ id, fileName, contentType, isAuthorized, stream }) {
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-    if (!fileName) {
-      throw new Error('File name is missing.');
-    }
-    if (!contentType) {
-      throw new Error('Content type is missing.');
-    }
-    if (!isAuthorized) {
-      throw new Error('Is authorized is missing.');
-    }
-    if (!stream) {
-      throw new Error('Stream is missing.');
+  public static async initialize ({ optionalDirectory }: {
+    optionalDirectory?: string;
+  }): Promise<FileSystem> {
+    let directory = optionalDirectory;
+
+    if (!directory) {
+      directory = await isolated();
     }
 
+    return new FileSystem({ directory });
+  }
+
+  public async addFile ({ id, fileName, contentType, isAuthorized, stream }: {
+    id: string;
+    fileName: string;
+    contentType: string;
+    isAuthorized: OwnedAuthorizationOptions;
+    stream: NodeJS.ReadableStream;
+  }): Promise<void> {
     const fileDirectory = path.join(this.directory, id);
     const fileFileData = path.join(fileDirectory, 'data');
     const fileFileMetadata = path.join(fileDirectory, 'metadata.json');
@@ -60,7 +53,7 @@ class FileSystem {
 
     let contentLength = 0;
 
-    stream.on('data', data => {
+    stream.on('data', (data): void => {
       contentLength += data.length;
     });
 
@@ -77,11 +70,7 @@ class FileSystem {
     await writeFile(fileFileMetadata, JSON.stringify(metadata), { encoding: 'utf8' });
   }
 
-  async getMetadata ({ id }) {
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-
+  public async getMetadata ({ id }: { id: string }): Promise<Metadata> {
     const fileDirectory = path.join(this.directory, id);
     const fileFileMetadata = path.join(fileDirectory, 'metadata.json');
 
@@ -101,11 +90,7 @@ class FileSystem {
     };
   }
 
-  async getFile ({ id }) {
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-
+  public async getFile ({ id }: { id: string }): Promise<NodeJS.ReadableStream> {
     const fileDirectory = path.join(this.directory, id);
     const fileFileData = path.join(fileDirectory, 'data');
 
@@ -118,28 +103,20 @@ class FileSystem {
     return stream;
   }
 
-  async removeFile ({ id }) {
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-
+  public async removeFile ({ id }: { id: string }): Promise<void> {
     const fileDirectory = path.join(this.directory, id);
 
     if (!await pathExists(fileDirectory)) {
       throw new errors.FileNotFound();
     }
 
-    await shell.rm('-rf', fileDirectory);
+    shell.rm('-rf', fileDirectory);
   }
 
-  async transferOwnership ({ id, to }) {
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-    if (!to) {
-      throw new Error('To is missing.');
-    }
-
+  public async transferOwnership ({ id, to }: {
+    id: string;
+    to: string;
+  }): Promise<void> {
     const fileDirectory = path.join(this.directory, id);
     const fileFileMetadata = path.join(fileDirectory, 'metadata.json');
 
@@ -155,14 +132,10 @@ class FileSystem {
     await writeFile(fileFileMetadata, JSON.stringify(metadata), { encoding: 'utf8' });
   }
 
-  async authorize ({ id, isAuthorized }) {
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-    if (!isAuthorized) {
-      throw new Error('Is authorized is missing.');
-    }
-
+  public async authorize ({ id, isAuthorized }: {
+    id: string;
+    isAuthorized: OwnedAuthorizationOptions;
+  }): Promise<void> {
     const fileDirectory = path.join(this.directory, id);
     const fileFileMetadata = path.join(fileDirectory, 'metadata.json');
 
@@ -179,4 +152,4 @@ class FileSystem {
   }
 }
 
-module.exports = FileSystem;
+export default FileSystem;
