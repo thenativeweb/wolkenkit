@@ -5,6 +5,7 @@ export interface SpecificAuthorizationOption {
 
 export interface AuthorizationOptions {
   commands: {
+    addFile?: SpecificAuthorizationOption;
     removeFile: SpecificAuthorizationOption;
     transferOwnership: SpecificAuthorizationOption;
     authorize: SpecificAuthorizationOption;

@@ -1,6 +1,6 @@
-'use strict';
+import { AuthorizationOptions } from './AuthorizationOptions';
 
-const getDefaults = function () {
+const getDefaults = (): AuthorizationOptions => {
   const result = {
     commands: {
       removeFile: {
@@ -27,4 +27,4 @@ const getDefaults = function () {
   return result;
 };
 
-module.exports = getDefaults;
+export default getDefaults;

@@ -1,21 +1,22 @@
-'use strict';
-
-const flaschenpost = require('flaschenpost');
-
-const { hasAccess } = require('./isAuthorized');
+import { Filestore } from '../../../../stores/filestore/Filestore';
+import flaschenpost from 'flaschenpost';
+import { hasAccess } from './isAuthorized';
+import { RequestHandler } from 'express-serve-static-core';
 
 const logger = flaschenpost.getLogger();
 
-const postRemoveFile = function ({ provider }) {
-  if (!provider) {
+const postRemoveFile = ({ fileProvider }: {
+  fileProvider: Filestore;
+}): RequestHandler => {
+  if (!fileProvider) {
     throw new Error('Provider is missing.');
   }
 
-  return async function (req, res) {
+  return async function (req, res): Promise<any> {
     let metadata;
 
     try {
-      metadata = JSON.parse(req.headers['x-metadata']);
+      metadata = JSON.parse(req.headers['x-metadata'] as string);
     } catch {
       return res.status(400).send('Header x-metadata is malformed.');
     }
@@ -29,13 +30,13 @@ const postRemoveFile = function ({ provider }) {
     const { user } = req;
 
     try {
-      const { isAuthorized } = await provider.getMetadata({ id });
+      const { isAuthorized } = await fileProvider.getMetadata({ id });
 
       if (!hasAccess({ user, to: 'commands.removeFile', authorizationOptions: isAuthorized })) {
         return res.status(401).end();
       }
 
-      await provider.removeFile({ id });
+      await fileProvider.removeFile({ id });
 
       res.status(200).end();
     } catch (ex) {
@@ -50,4 +51,4 @@ const postRemoveFile = function ({ provider }) {
   };
 };
 
-module.exports = postRemoveFile;
+export default postRemoveFile;

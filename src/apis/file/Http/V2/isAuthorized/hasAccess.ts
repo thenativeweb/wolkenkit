@@ -1,21 +1,13 @@
-'use strict';
+import { get } from 'lodash';
+import { OwnedAuthorizationOptions } from './AuthorizationOptions';
+import { Todo } from '../../../../../types/Todo';
 
-const get = require('lodash/get');
-
-const hasAccess = function ({ user, to, authorizationOptions, isConstructor = false }) {
-  if (!user) {
-    throw new Error('User is missing.');
-  }
-  if (!to) {
-    throw new Error('To is missing.');
-  }
-  if (!authorizationOptions) {
-    throw new Error('Authorization options are missing.');
-  }
-  if (isConstructor === undefined) {
-    throw new Error('Is constructor is missing.');
-  }
-
+const hasAccess = function ({ user, to, authorizationOptions, isConstructor = false }: {
+  user: Todo;
+  to: string;
+  authorizationOptions: OwnedAuthorizationOptions;
+  isConstructor?: boolean;
+}): boolean {
   const authorizationOptionsForResource = get(authorizationOptions, to);
 
   if (!authorizationOptionsForResource) {
@@ -38,4 +30,4 @@ const hasAccess = function ({ user, to, authorizationOptions, isConstructor = fa
   return false;
 };
 
-module.exports = hasAccess;
+export default hasAccess;

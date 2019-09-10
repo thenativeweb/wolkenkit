@@ -1,16 +1,22 @@
-'use strict';
-
-const express = require('express'),
-      Limes = require('limes');
-
-const getFile = require('./getFile'),
-      postAddFile = require('./postAddFile'),
-      postAuthorize = require('./postAuthorize'),
-      postRemoveFile = require('./postRemoveFile'),
-      postTransferOwnership = require('./postTransferOwnership');
+import express from 'express';
+import { Express } from 'express-serve-static-core';
+import { Filestore } from '../../../../stores/filestore/Filestore';
+import getFile from './getFile';
+import postAddFile from './postAddFile';
+import postAuthorize from './postAuthorize';
+import postRemoveFile from './postRemoveFile';
+import postTransferOwnership from './postTransferOwnership';
+import { SpecificAuthorizationOption } from './isAuthorized/AuthorizationOptions';
+import Limes, { IdentityProvider } from 'limes';
 
 class V2 {
-  constructor ({ addFileAuthorizationOptions, identityProviders, provider }) {
+  public api: Express;
+
+  public constructor ({ addFileAuthorizationOptions, identityProviders, provider }: {
+    addFileAuthorizationOptions: SpecificAuthorizationOption;
+    identityProviders: IdentityProvider[];
+    provider: Filestore;
+  }) {
     if (!addFileAuthorizationOptions) {
       throw new Error('Add file authorization options are missing.');
     }
@@ -42,4 +48,4 @@ class V2 {
   }
 }
 
-module.exports = V2;
+export default V2;

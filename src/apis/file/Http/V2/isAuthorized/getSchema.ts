@@ -1,6 +1,4 @@
-'use strict';
-
-const getAuthorizationSchema = function () {
+const getAuthorizationSchema = (): object => {
   const result = {
     type: 'object',
     properties: {
@@ -81,4 +79,4 @@ const getAuthorizationSchema = function () {
   return result;
 };
 
-module.exports = getAuthorizationSchema;
+export default getAuthorizationSchema;
