@@ -2,7 +2,7 @@
 
 const path = require('path');
 
-const assert = require('assertthat'),
+const assert = require('assertthat').default,
       directoryCompare = require('dir-compare'),
       isolated = require('isolated');
 
@@ -152,10 +152,11 @@ const applicationLifecycleTests = async function (runtime) {
     });
 
     await test('[wolkenkit start --port --shared-key] starts the application with a custom port and shared key.', async () => {
-      const { code, stderr, stdout } = await wolkenkit('start', {
-        port: 4000,
-        'shared-key': 'wolkenkit'
-      }, { cwd: applicationDirectory });
+      const { code, stderr, stdout } = await wolkenkit(
+        'start',
+        { port: 4000, 'shared-key': 'wolkenkit' },
+        { cwd: applicationDirectory }
+      );
 
       assert.that(stderr).is.matching(/Application certificate is self-signed/u);
       assert.that(stdout).is.matching(/Using wolkenkit as shared key/u);
@@ -179,9 +180,11 @@ const applicationLifecycleTests = async function (runtime) {
       assert.that(startCommand.stdout).is.matching(/Started the application/u);
       assert.that(startCommand.code).is.equalTo(0);
 
-      const { code, stderr, stdout } = await wolkenkit('import', {
-        from: importDirectory.chatWith200000Events
-      }, { cwd: applicationDirectory });
+      const { code, stderr, stdout } = await wolkenkit(
+        'import',
+        { from: importDirectory.chatWith200000Events },
+        { cwd: applicationDirectory }
+      );
 
       assert.that(stderr).is.matching(/Application certificate is self-signed/u);
       assert.that(stdout).is.matching(/Processed 200000 events/u);
@@ -192,9 +195,11 @@ const applicationLifecycleTests = async function (runtime) {
     await test('[wolkenkit export --to] exports application data.', async () => {
       const exportDirectory = await isolated();
 
-      const { code, stderr, stdout } = await wolkenkit('export', {
-        to: exportDirectory
-      }, { cwd: applicationDirectory });
+      const { code, stderr, stdout } = await wolkenkit(
+        'export',
+        { to: exportDirectory },
+        { cwd: applicationDirectory }
+      );
 
       assert.that(stderr).is.matching(/Application certificate is self-signed/u);
       assert.that(stdout).is.matching(/Processed 200000 events/u);
@@ -225,9 +230,11 @@ const applicationLifecycleTests = async function (runtime) {
     });
 
     await test('[wolkenkit start --persist] fails if shared key is missing.', async () => {
-      const { code, stdout, stderr } = await wolkenkit('start', {
-        persist: true
-      }, { cwd: applicationDirectory });
+      const { code, stdout, stderr } = await wolkenkit(
+        'start',
+        { persist: true },
+        { cwd: applicationDirectory }
+      );
 
       assert.that(stderr).is.equalTo('✗ Failed to start the application.\n');
       assert.that(stdout).is.matching(/Shared key must be set when enabling persistence/u);
@@ -237,18 +244,21 @@ const applicationLifecycleTests = async function (runtime) {
     await test('[wolkenkit start --persist] persists application data.', async () => {
       const exportDirectory = await isolated();
 
-      const startCommand = await wolkenkit('start', {
-        persist: true,
-        'shared-key': 'wolkenkit'
-      }, { cwd: applicationDirectory });
+      const startCommand = await wolkenkit(
+        'start',
+        { persist: true, 'shared-key': 'wolkenkit' },
+        { cwd: applicationDirectory }
+      );
 
       assert.that(startCommand.stderr).is.matching(/Application certificate is self-signed/u);
       assert.that(startCommand.stdout).is.matching(/Started the application/u);
       assert.that(startCommand.code).is.equalTo(0);
 
-      const importCommand = await wolkenkit('import', {
-        from: importDirectory.chatWith200Events
-      }, { cwd: applicationDirectory });
+      const importCommand = await wolkenkit(
+        'import',
+        { from: importDirectory.chatWith200Events },
+        { cwd: applicationDirectory }
+      );
 
       assert.that(importCommand.stderr).is.matching(/Application certificate is self-signed/u);
       assert.that(importCommand.stdout).is.matching(/Processed 200 events/u);
@@ -267,18 +277,21 @@ const applicationLifecycleTests = async function (runtime) {
       assert.that(stopCommand.stdout).is.matching(/Stopped the application/u);
       assert.that(stopCommand.code).is.equalTo(0);
 
-      const startWithPreviousDataCommand = await wolkenkit('start', {
-        persist: true,
-        'shared-key': 'wolkenkit'
-      }, { cwd: applicationDirectory });
+      const startWithPreviousDataCommand = await wolkenkit(
+        'start',
+        { persist: true, 'shared-key': 'wolkenkit' },
+        { cwd: applicationDirectory }
+      );
 
       assert.that(startWithPreviousDataCommand.stderr).is.matching(/Application certificate is self-signed/u);
       assert.that(startWithPreviousDataCommand.stdout).is.matching(/Started the application/u);
       assert.that(startWithPreviousDataCommand.code).is.equalTo(0);
 
-      const exportCommand = await wolkenkit('export', {
-        to: exportDirectory
-      }, { cwd: applicationDirectory });
+      const exportCommand = await wolkenkit(
+        'export',
+        { to: exportDirectory },
+        { cwd: applicationDirectory }
+      );
 
       assert.that(exportCommand.stderr).is.matching(/Application certificate is self-signed/u);
       assert.that(exportCommand.stdout).is.matching(/Processed 200 events/u);
@@ -301,9 +314,11 @@ const applicationLifecycleTests = async function (runtime) {
 
       assert.that(same).is.true();
 
-      const stopAndDestroyDataCommand = await wolkenkit('stop', {
-        'dangerously-destroy-data': true
-      }, { cwd: applicationDirectory });
+      const stopAndDestroyDataCommand = await wolkenkit(
+        'stop',
+        { 'dangerously-destroy-data': true },
+        { cwd: applicationDirectory }
+      );
 
       assert.that(stopAndDestroyDataCommand.stderr).is.matching(/Application certificate is self-signed/u);
       assert.that(stopAndDestroyDataCommand.stdout).is.matching(/Destroying previous data/u);
@@ -312,9 +327,11 @@ const applicationLifecycleTests = async function (runtime) {
     });
 
     await test('[wolkenkit start --dangerously-expose-http-ports] starts the application with exposed http ports.', async () => {
-      const { code, stderr, stdout } = await wolkenkit('start', {
-        'dangerously-expose-http-ports': true
-      }, { cwd: applicationDirectory });
+      const { code, stderr, stdout } = await wolkenkit(
+        'start',
+        { 'dangerously-expose-http-ports': true },
+        { cwd: applicationDirectory }
+      );
 
       assert.that(stderr).is.matching(/Application certificate is self-signed/u);
       assert.that(stderr).is.matching(/Exposed HTTP ports 3010 and 3011/u);

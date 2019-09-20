@@ -1,6 +1,6 @@
 'use strict';
 
-const assert = require('assertthat'),
+const assert = require('assertthat').default,
       until = require('async-wait-until'),
       uuid = require('uuidv4');
 

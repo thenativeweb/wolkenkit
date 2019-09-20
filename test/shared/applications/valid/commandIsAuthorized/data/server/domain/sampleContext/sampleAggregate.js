@@ -41,7 +41,7 @@ commands.useApp = {
     const { otherAggregateId } = command.data;
 
     const aggregate =
-      await app.sampleContext.sampleAggregate(otherAggregateId).read();
+      await app.aggregates.sampleContext.sampleAggregate(otherAggregateId).read();
 
     /* eslint-disable no-console */
     console.log(JSON.stringify(aggregate));

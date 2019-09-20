@@ -1,8 +1,8 @@
 'use strict';
 
-const assert = require('assertthat');
+const assert = require('assertthat').default;
 
-const switchSemver = require('../../../../clis/wolkenkit/switchSemver');
+const switchSemver = require('../../../../src/clis/wolkenkit/switchSemver');
 
 suite('switchSemver', () => {
   test('is a function.', async () => {

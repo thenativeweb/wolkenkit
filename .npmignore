@@ -1,2 +1,7 @@
+.circleci
+.dependabot
+.github
 assets
+docker
+src
 test

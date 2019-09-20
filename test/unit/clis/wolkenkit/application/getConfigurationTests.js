@@ -1,8 +1,8 @@
 'use strict';
 
-const assert = require('assertthat');
+const assert = require('assertthat').default;
 
-const getConfiguration = require('../../../../../clis/wolkenkit/application/getConfiguration'),
+const getConfiguration = require('../../../../../src/clis/wolkenkit/application/getConfiguration'),
       invalidPackageJsonIsInvalid = require('../../../../shared/applications/invalid/packageJsonIsInvalid'),
       invalidPackageJsonIsMissing = require('../../../../shared/applications/invalid/packageJsonIsMissing'),
       invalidPackageJsonWithMissingRuntime = require('../../../../shared/applications/invalid/packageJsonWithMissingRuntime'),

@@ -1,6 +1,6 @@
 'use strict';
 
-const assert = require('assertthat'),
+const assert = require('assertthat').default,
       axios = require('axios'),
       freeport = require('freeport-promise'),
       until = require('async-wait-until'),

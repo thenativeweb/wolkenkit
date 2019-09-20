@@ -2,10 +2,10 @@
 
 const path = require('path');
 
-const assert = require('assertthat');
+const assert = require('assertthat').default;
 
-const defaults = require('../../../../../clis/wolkenkit/application/defaults.json'),
-      getCertificateDirectory = require('../../../../../clis/wolkenkit/application/getCertificateDirectory');
+const defaults = require('../../../../../src/clis/wolkenkit/application/defaults.json'),
+      getCertificateDirectory = require('../../../../../src/clis/wolkenkit/application/getCertificateDirectory');
 
 suite('getCertificateDirectory', () => {
   test('is a function.', done => {

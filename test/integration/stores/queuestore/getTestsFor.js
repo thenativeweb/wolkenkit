@@ -1,6 +1,6 @@
 'use strict';
 
-const assert = require('assertthat'),
+const assert = require('assertthat').default,
       uuid = require('uuidv4');
 
 const { CommandInternal } = require('../../../../common/elements'),
