@@ -21,7 +21,7 @@ class InMemoryEventstore implements Eventstore {
   }
 
   /* eslint-disable class-methods-use-this */
-  public async initialize (): Promise<void> {
+  public async create (): Promise<void> {
     // Intentionally left blank.
   }
   /* eslint-enable class-methods-use-this */

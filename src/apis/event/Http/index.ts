@@ -28,7 +28,7 @@ class Http {
     this.api = api;
   }
 
-  public static async initialize ({
+  public static async create ({
     corsOrigin,
     purpose,
     onReceiveEvent,

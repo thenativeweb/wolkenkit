@@ -6,7 +6,7 @@ import { Snapshot } from './Snapshot';
 
 // All PassThrough streams here emit objects of type EventExternal.
 export interface Eventstore {
-  initialize: () => Promise<void>;
+  create: () => Promise<void>;
   destroy: () => Promise<void>;
 
   getEventStream: ({ aggregateIdentifier, fromRevision, toRevision }: {

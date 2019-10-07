@@ -38,7 +38,7 @@ const exportEventStore = async function ({
   const eventStore = require(`wolkenkit-eventstore/${type}`);
   /* eslint-enable global-require */
 
-  await eventStore.initialize({
+  await eventStore.create({
     url: `${protocol}://${user}:${password}@${hostname}:${port}/${database}`,
     namespace: `${configuration.application.name}domain`
   });

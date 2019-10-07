@@ -21,7 +21,7 @@ class Eventstore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  async initialize ({ hostname, port, username, password, database, namespace }) {
+  async create ({ hostname, port, username, password, database, namespace }) {
     if (!hostname) {
       throw new Error('Hostname is missing.');
     }

@@ -18,7 +18,7 @@ suite('aggregateService', (): void => {
     const directory = await updateInitialState();
 
     eventstore = new InMemoryEventstore();
-    await eventstore.initialize();
+    await eventstore.create();
 
     application = await Application.load({ directory });
     repository = new Repository({ application, eventstore });

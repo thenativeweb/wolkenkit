@@ -55,7 +55,7 @@ class Lockstore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  async initialize ({
+  async create ({
     hostname,
     port,
     password,

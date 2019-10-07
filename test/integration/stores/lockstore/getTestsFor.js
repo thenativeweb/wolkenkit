@@ -40,14 +40,14 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
   suite('initialize', () => {
     test('does not throw an error if the database is reachable.', async () => {
       await assert.that(async () => {
-        await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+        await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
       }).is.not.throwingAsync();
     });
 
     test('does not throw an error if tables, indexes & co. do already exist.', async () => {
       await assert.that(async () => {
-        await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
-        await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+        await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
+        await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
       }).is.not.throwingAsync();
     });
   });
@@ -57,7 +57,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
       const options = { ...getOptions() };
       const exceededValue = 'a'.repeat(options.maxLockSize);
 
-      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+      await lockstore.create({ ...options, namespace: databaseNamespace });
 
       await assert.that(async () => {
         await lockstore.acquireLock({ namespace, value: exceededValue, expiresAt: inFiftyMilliseconds() });
@@ -65,7 +65,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('acquires a lock.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       await lockstore.acquireLock({ namespace, value });
     });
@@ -77,13 +77,13 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
       // Those two characters are part of the lock name.
       const maxValue = 'a'.repeat(options.maxLockSize - 2);
 
-      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+      await lockstore.create({ ...options, namespace: databaseNamespace });
 
       await lockstore.acquireLock({ namespace, value: maxValue, expiresAt: inFiftyMilliseconds() });
     });
 
     test('supports locks with different values.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       const otherValue = { foo: 'baz' };
 
@@ -92,7 +92,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('supports locks with different namespaces.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       const otherNamespace = uuid();
 
@@ -101,7 +101,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('throws an error if the lock is already in place.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
       await lockstore.acquireLock({ namespace, value });
 
       await assert.that(async () => {
@@ -114,7 +114,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
       const sortedValue = { baz: 'bam', foo: 'bar' };
       const nestedSortedValue = { ...sortedValue, nested: { ...sortedValue }};
 
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
       await lockstore.acquireLock({ namespace, value: nestedValue });
 
       await assert.that(async () => {
@@ -123,7 +123,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('acquires a lock if the lock is already in place, but has expired.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       await lockstore.acquireLock({ namespace, value, expiresAt: oneSecondAgo() });
 
@@ -133,7 +133,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('releases the lock after the given expiration.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       await lockstore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
       await sleep({ ms: 100 });
@@ -144,7 +144,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('throws an error if the on acquired handler throws an error.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       await assert.that(async () => {
         await lockstore.acquireLock({
@@ -158,7 +158,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('releases the lock if the on acquired handler throws an error.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       await assert.that(async () => {
         await lockstore.acquireLock({
@@ -181,7 +181,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
       const options = { ...getOptions() };
       const exceededValue = 'a'.repeat(options.maxLockSize);
 
-      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+      await lockstore.create({ ...options, namespace: databaseNamespace });
 
       await assert.that(async () => {
         await lockstore.isLocked({ namespace, value: exceededValue });
@@ -189,7 +189,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('returns false if the given lock does not exist.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       const isLocked = await lockstore.isLocked({ namespace, value });
 
@@ -197,7 +197,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('returns true if the given lock exists.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
       await lockstore.acquireLock({ namespace, value });
 
       const isLocked = await lockstore.isLocked({ namespace, value });
@@ -206,7 +206,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('returns false if the given lock exists, but has expired.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
       await lockstore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
 
       await sleep({ ms: 100 });
@@ -222,7 +222,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
       const options = { ...getOptions() };
       const exceededValue = 'a'.repeat(options.maxLockSize);
 
-      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+      await lockstore.create({ ...options, namespace: databaseNamespace });
 
       await assert.that(async () => {
         await lockstore.renewLock({ namespace, value: exceededValue, expiresAt: inFiftyMilliseconds() });
@@ -230,7 +230,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('throws an error if the given lock does not exist.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       await assert.that(async () => {
         await lockstore.renewLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
@@ -238,7 +238,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('throws an error if the given lock exists, but has expired.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       await lockstore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
       await sleep({ ms: 100 });
@@ -249,7 +249,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('renews the lock.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       await lockstore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
       await sleep({ ms: 25 });
@@ -271,12 +271,12 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
       test('throws an error if the lock does not belong to the store.', async () => {
         const otherLockstore = new Lockstore();
 
-        await lockstore.initialize({
+        await lockstore.create({
           ...getOptions(),
           namespace: databaseNamespace,
           nonce: 'nonce1'
         });
-        await otherLockstore.initialize({
+        await otherLockstore.create({
           ...getOptions(),
           namespace: databaseNamespace,
           nonce: 'nonce2'
@@ -296,7 +296,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
       const options = { ...getOptions() };
       const exceededValue = 'a'.repeat(options.maxLockSize);
 
-      await lockstore.initialize({ ...options, namespace: databaseNamespace });
+      await lockstore.create({ ...options, namespace: databaseNamespace });
 
       await assert.that(async () => {
         await lockstore.releaseLock({ namespace, value: exceededValue });
@@ -304,7 +304,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('release the lock.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       await lockstore.acquireLock({ namespace, value });
       await lockstore.releaseLock({ namespace, value });
@@ -313,7 +313,7 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
     });
 
     test('does not throw an error if the lock does not exist.', async () => {
-      await lockstore.initialize({ ...getOptions(), namespace: databaseNamespace });
+      await lockstore.create({ ...getOptions(), namespace: databaseNamespace });
 
       await assert.that(async () => {
         await lockstore.releaseLock({ namespace, value });
@@ -324,12 +324,12 @@ const getTestsFor = function ({ Lockstore, getOptions, type }) {
       test('throws an error if the lock does not belong to the store.', async () => {
         const otherLockstore = new Lockstore();
 
-        await lockstore.initialize({
+        await lockstore.create({
           ...getOptions(),
           namespace: databaseNamespace,
           nonce: 'nonce1'
         });
-        await otherLockstore.initialize({
+        await otherLockstore.create({
           ...getOptions(),
           namespace: databaseNamespace,
           nonce: 'nonce2'

@@ -20,7 +20,7 @@ class FileSystemFilestore implements Filestore {
     this.directory = directory;
   }
 
-  public static async initialize ({ optionalDirectory }: {
+  public static async create ({ optionalDirectory }: {
     optionalDirectory?: string;
   }): Promise<FileSystem> {
     let directory = optionalDirectory;

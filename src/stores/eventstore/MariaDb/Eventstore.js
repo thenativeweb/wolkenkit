@@ -24,7 +24,7 @@ class Eventstore {
     return database;
   }
 
-  async initialize ({ hostname, port, username, password, database, namespace }) {
+  async create ({ hostname, port, username, password, database, namespace }) {
     if (!hostname) {
       throw new Error('Hostname is missing.');
     }

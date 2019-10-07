@@ -54,7 +54,7 @@ const { Application } = require('../../../../common/application'),
 
   const eventstore = new Eventstore();
 
-  await eventstore.initialize(environmentVariables.EVENTSTORE_OPTIONS);
+  await eventstore.create(environmentVariables.EVENTSTORE_OPTIONS);
 
   const repository = new Repository({ application, eventstore });
 
@@ -64,7 +64,7 @@ const { Application } = require('../../../../common/application'),
 
   const handleReceivedEvent = getHandleReceivedEvent({ eventHttpExternal });
 
-  await eventHttpInternal.initialize({
+  await eventHttpInternal.create({
     corsOrigin: '*',
     purpose: 'internal',
     onReceiveEvent: handleReceivedEvent,
@@ -72,14 +72,14 @@ const { Application } = require('../../../../common/application'),
     repository,
     identityProviders
   });
-  await eventHttpExternal.initialize({
+  await eventHttpExternal.create({
     corsOrigin: getCorsOrigin(environmentVariables.EVENT_CORS_ORIGIN),
     purpose: 'external',
     application,
     repository,
     identityProviders
   });
-  await healthHttp.initialize({
+  await healthHttp.create({
     corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN),
     processId
   });

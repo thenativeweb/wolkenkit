@@ -59,7 +59,7 @@ const { Application } = require('../../../../common/application'),
   const handleDispatchCommand = getHandleDispatchCommand({ domainServer });
   const dispatcher = new DispatcherCore();
 
-  await dispatcher.initialize({
+  await dispatcher.create({
     concurrency: environmentVariables.CONCURRENCY,
     onDispatch: handleDispatchCommand
   });
@@ -69,14 +69,14 @@ const { Application } = require('../../../../common/application'),
   const commandHttp = new CommandHttp();
   const healthHttp = new HealthHttp();
 
-  await commandHttp.initialize({
+  await commandHttp.create({
     corsOrigin: getCorsOrigin(environmentVariables.COMMAND_CORS_ORIGIN),
     purpose: 'internal',
     onReceiveCommand: handleReceivedCommand,
     application,
     identityProviders
   });
-  await healthHttp.initialize({
+  await healthHttp.create({
     corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN),
     processId
   });

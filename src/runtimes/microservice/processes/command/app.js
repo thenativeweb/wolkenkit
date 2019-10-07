@@ -58,14 +58,14 @@ const { Application } = require('../../../../common/application'),
   const commandHttp = new CommandHttp();
   const healthHttp = new HealthHttp();
 
-  await commandHttp.initialize({
+  await commandHttp.create({
     corsOrigin: getCorsOrigin(environmentVariables.COMMAND_CORS_ORIGIN),
     purpose: 'external',
     onReceiveCommand: handleReceivedCommand,
     application,
     identityProviders
   });
-  await healthHttp.initialize({
+  await healthHttp.create({
     corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN),
     processId
   });

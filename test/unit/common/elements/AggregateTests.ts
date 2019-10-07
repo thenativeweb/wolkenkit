@@ -175,7 +175,7 @@ suite('Aggregate', (): void => {
       };
 
       eventstore = new InMemoryEventstore();
-      await eventstore.initialize();
+      await eventstore.create();
 
       const succeeded = EventInternal.create({
         contextIdentifier: { name: 'sampleContext' },

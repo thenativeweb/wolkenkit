@@ -45,7 +45,7 @@ const getTestsFor = function ({ Filestore, getOptions }) {
       const options = getOptions();
 
       await assert.that(async () => {
-        await filestore.initialize(options);
+        await filestore.create(options);
       }).is.not.throwingAsync();
     });
   });
@@ -54,7 +54,7 @@ const getTestsFor = function ({ Filestore, getOptions }) {
     setup(async () => {
       const options = getOptions();
 
-      await filestore.initialize(options);
+      await filestore.create(options);
     });
 
     test('does not throw an error.', async () => {
@@ -76,7 +76,7 @@ const getTestsFor = function ({ Filestore, getOptions }) {
     setup(async () => {
       const options = getOptions();
 
-      await filestore.initialize(options);
+      await filestore.create(options);
     });
 
     test('throws an error if the id does not exist.', async () => {
@@ -98,7 +98,7 @@ const getTestsFor = function ({ Filestore, getOptions }) {
     setup(async () => {
       const options = getOptions();
 
-      await filestore.initialize(options);
+      await filestore.create(options);
     });
 
     test('throws an error if the id does not exist.', async () => {
@@ -121,7 +121,7 @@ const getTestsFor = function ({ Filestore, getOptions }) {
     setup(async () => {
       const options = getOptions();
 
-      await filestore.initialize(options);
+      await filestore.create(options);
     });
 
     test('throws an error if the id does not exist.', async () => {

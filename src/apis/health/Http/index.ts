@@ -17,7 +17,7 @@ class Http {
     this.api = api;
   }
 
-  public static async initialize ({ corsOrigin, processId }: {
+  public static async create ({ corsOrigin, processId }: {
     corsOrigin: string | RegExp | string[];
     processId: string;
   }): Promise<Http> {

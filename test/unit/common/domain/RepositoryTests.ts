@@ -22,7 +22,7 @@ suite('Repository', (): void => {
     application = await Application.load({ directory });
 
     eventstore = new InMemoryEventstore();
-    await eventstore.initialize();
+    await eventstore.create();
   });
 
   teardown(async (): Promise<void> => {

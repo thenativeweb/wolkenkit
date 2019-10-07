@@ -27,14 +27,14 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
 
     test('does not throw an error if the database is reachable.', async () => {
       await assert.that(async () => {
-        await queuestore.initialize({ ...getOptions(), namespace });
+        await queuestore.create({ ...getOptions(), namespace });
       }).is.not.throwingAsync();
     });
 
     test('does not throw an error if tables, indexes & co. do already exist.', async () => {
       await assert.that(async () => {
-        await queuestore.initialize({ ...getOptions(), namespace });
-        await queuestore.initialize({ ...getOptions(), namespace });
+        await queuestore.create({ ...getOptions(), namespace });
+        await queuestore.create({ ...getOptions(), namespace });
       }).is.not.throwingAsync();
     });
   });
@@ -43,7 +43,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     this.timeout(5 * 1000);
 
     test('enqueues the given item.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -79,7 +79,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     this.timeout(5 * 1000);
 
     test('throws an error if there are no queues.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       await assert.that(async () => {
         await queuestore.getNextUnprocessedItem();
@@ -87,7 +87,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('returns an item of an unprocessed queue.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -115,7 +115,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('returns the oldest item of an unprocessed queue.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const aggregateId = uuid();
 
@@ -163,7 +163,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('locks the queue of the item that is returned.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const aggregateId = uuid();
 
@@ -211,7 +211,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('returns an item from the queue with the oldest unprocessed item.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const firstCommand = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -259,7 +259,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('re-returns an item from an expired queue.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -296,7 +296,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     this.timeout(5 * 1000);
 
     test('extends the item processing time.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -330,7 +330,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('throws an error if the item does not exist.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -357,7 +357,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('throws an error if the item is not being processed.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -386,7 +386,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('does not throw an error if the item has expired, but the token is still valid.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -418,7 +418,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('throws an error if the token is invalid.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -452,7 +452,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     this.timeout(5 * 1000);
 
     test('dequeues the item.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -483,7 +483,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('throws an error if the item does not exist.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -510,7 +510,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('throws an error if the item is not being processed.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -539,7 +539,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('does not throw an error if the item has expired, but the token is still valid.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },
@@ -571,7 +571,7 @@ const getTestsFor = function ({ Queuestore, getOptions }) {
     });
 
     test('throws an error if the token is invalid.', async () => {
-      await queuestore.initialize({ ...getOptions(), namespace });
+      await queuestore.create({ ...getOptions(), namespace });
 
       const command = CommandInternal.create({
         context: { name: 'sampleContext' },

@@ -25,7 +25,7 @@ class Lockstore {
     return database;
   }
 
-  async initialize ({
+  async create ({
     hostname,
     port,
     username,

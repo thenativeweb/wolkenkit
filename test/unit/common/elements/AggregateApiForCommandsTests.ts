@@ -46,7 +46,7 @@ suite('AggregateApiForCommands', (): void => {
 
     eventstore = new Eventstore();
 
-    await eventstore.initialize();
+    await eventstore.create();
 
     repository = new Repository({ application, eventstore });
   });

@@ -12,7 +12,7 @@ suite('static/Http', (): void => {
 
   suite('initialize', (): void => {
     test('sets api to an Express application.', async (): Promise<void> => {
-      const http = await Http.initialize({
+      const http = await Http.create({
         corsOrigin: '*',
         serveStatic
       });
@@ -64,7 +64,7 @@ suite('static/Http', (): void => {
     for (const corsOrigin of corsOrigins) {
       /* eslint-disable no-loop-func */
       test(corsOrigin.title, async (): Promise<void> => {
-        const http = await Http.initialize({
+        const http = await Http.create({
           corsOrigin: corsOrigin.allow,
           serveStatic
         });
@@ -90,7 +90,7 @@ suite('static/Http', (): void => {
     let http: Http;
 
     setup(async (): Promise<void> => {
-      http = await Http.initialize({
+      http = await Http.create({
         corsOrigin: '*',
         serveStatic
       });

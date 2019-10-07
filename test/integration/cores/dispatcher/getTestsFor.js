@@ -22,7 +22,7 @@ const getTestsFor = function ({ Dispatcher }) {
   suite('initialize', () => {
     test('does not throw an error.', async () => {
       await assert.that(async () => {
-        await dispatcher.initialize({
+        await dispatcher.create({
           concurrency: 256,
           async onDispatch () {
             // ...
@@ -38,7 +38,7 @@ const getTestsFor = function ({ Dispatcher }) {
     setup(async () => {
       dispatchedCommands = [];
 
-      await dispatcher.initialize({
+      await dispatcher.create({
         concurrency: 256,
         async onDispatch ({ command }) {
           dispatchedCommands.push(command);
@@ -68,7 +68,7 @@ const getTestsFor = function ({ Dispatcher }) {
     test('dispatches commands for the same aggregate one after the other.', async () => {
       dispatcher = new Dispatcher();
 
-      await dispatcher.initialize({
+      await dispatcher.create({
         concurrency: 256,
         async onDispatch ({ command }) {
           await sleep({ ms: command.data.delay });
@@ -115,7 +115,7 @@ const getTestsFor = function ({ Dispatcher }) {
     test('dispatches commands for different aggregates in parallel.', async () => {
       dispatcher = new Dispatcher();
 
-      await dispatcher.initialize({
+      await dispatcher.create({
         concurrency: 256,
         async onDispatch ({ command }) {
           await sleep({ ms: command.data.delay });
