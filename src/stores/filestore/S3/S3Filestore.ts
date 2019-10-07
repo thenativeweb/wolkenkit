@@ -6,7 +6,7 @@ import { OwnedAuthorizationOptions } from '../../../apis/file/Http/V2/isAuthoriz
 import { Readable } from 'stream';
 import streamToString from 'stream-to-string';
 
-class S3 implements Filestore {
+class S3Filestore implements Filestore {
   protected client: Minio.Client;
 
   protected bucketName: string;
@@ -59,8 +59,8 @@ class S3 implements Filestore {
     secretKey: string;
     region: string;
     bucketName: string;
-  }): Promise<S3> {
-    const s3 = new S3({
+  }): Promise<S3Filestore> {
+    const s3 = new S3Filestore({
       hostname,
       port,
       encryptConnection,
@@ -252,4 +252,4 @@ class S3 implements Filestore {
   }
 }
 
-export default S3;
+export default S3Filestore;

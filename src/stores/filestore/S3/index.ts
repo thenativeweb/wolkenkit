@@ -1,3 +1,3 @@
-import S3 from './S3';
+import S3Filestore from './S3Filestore';
 
-export default S3;
+export default S3Filestore;

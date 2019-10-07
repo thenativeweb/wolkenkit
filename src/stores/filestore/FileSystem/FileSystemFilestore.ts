@@ -11,7 +11,7 @@ import { pipeline as pipelineCallback, Readable } from 'stream';
 
 const pipeline = promisify(pipelineCallback);
 
-class FileSystem implements Filestore {
+class FileSystemFilestore implements Filestore {
   protected directory: string;
 
   protected constructor ({ directory }: {
@@ -152,4 +152,4 @@ class FileSystem implements Filestore {
   }
 }
 
-export default FileSystem;
+export default FileSystemFilestore;

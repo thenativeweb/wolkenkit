@@ -1,3 +1,3 @@
-import FileSystem from './FileSystem';
+import FileSystemFilestore from './FileSystemFilestore';
 
-export default FileSystem;
+export default FileSystemFilestore;

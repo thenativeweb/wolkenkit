@@ -1,8 +1,6 @@
-'use strict';
-
-const { Connection } = require('tedious'),
-      noop = require('lodash/noop'),
-      { Pool } = require('tarn');
+import { Connection } from 'tedious';
+import { noop } from 'lodash';
+import { Pool } from 'tarn';
 
 const createPool = function ({
   host,
@@ -13,27 +11,17 @@ const createPool = function ({
   encrypt,
   onError = noop,
   onDisconnect = noop
-}) {
-  if (!host) {
-    throw new Error('Host is missing.');
-  }
-  if (!port) {
-    throw new Error('Port is missing.');
-  }
-  if (!user) {
-    throw new Error('User is missing.');
-  }
-  if (!password) {
-    throw new Error('Password is missing.');
-  }
-  if (!database) {
-    throw new Error('Database is missing.');
-  }
-  if (encrypt === undefined) {
-    throw new Error('Encrypt is missing.');
-  }
-
-  const pool = new Pool({
+}: {
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+  encrypt: boolean;
+  onError: (err: Error) => void;
+  onDisconnect: () => void;
+}): Pool<Connection> {
+  const pool = new Pool<Connection>({
     min: 2,
     max: 10,
     acquireTimeoutMillis: 1000,
@@ -41,12 +29,8 @@ const createPool = function ({
     idleTimeoutMillis: 1000,
     propagateCreateError: true,
 
-    validate (connection) {
-      return !connection.closed;
-    },
-
-    create () {
-      return new Promise((resolve, reject) => {
+    async create (): Promise<Connection> {
+      return new Promise((resolve, reject): void => {
         const connection = new Connection({
           server: host,
           options: { port, database, encrypt },
@@ -56,22 +40,22 @@ const createPool = function ({
           }
         });
 
-        let handleConnect,
-            handleEnd,
-            handleError,
+        let handleConnect: (err: Error | null) => void,
+            handleEnd: () => void,
+            handleError: (err: Error) => void,
             hasBeenConnected = false;
 
-        const unsubscribe = () => {
+        const unsubscribe = (): void => {
           connection.removeListener('connect', handleConnect);
           connection.removeListener('error', handleError);
           connection.removeListener('end', handleEnd);
         };
 
-        const unsubscribeSetup = () => {
+        const unsubscribeSetup = (): void => {
           connection.removeListener('connect', handleConnect);
         };
 
-        handleConnect = err => {
+        handleConnect = (err: Error | null): void => {
           if (err) {
             unsubscribe();
 
@@ -83,13 +67,13 @@ const createPool = function ({
           resolve(connection);
         };
 
-        handleError = err => {
+        handleError = (err: Error): void => {
           unsubscribe();
 
           onError(err);
         };
 
-        handleEnd = () => {
+        handleEnd = (): void => {
           unsubscribe();
 
           if (!hasBeenConnected) {
@@ -105,11 +89,7 @@ const createPool = function ({
       });
     },
 
-    destroy (connection) {
-      if (connection.closed) {
-        return;
-      }
-
+    destroy (connection): void {
       connection.removeAllListeners('end');
       connection.removeAllListeners('error');
 
@@ -120,4 +100,4 @@ const createPool = function ({
   return pool;
 };
 
-module.exports = createPool;
+export default createPool;
