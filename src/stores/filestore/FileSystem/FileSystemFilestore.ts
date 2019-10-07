@@ -22,14 +22,14 @@ class FileSystemFilestore implements Filestore {
 
   public static async create ({ optionalDirectory }: {
     optionalDirectory?: string;
-  }): Promise<FileSystem> {
+  }): Promise<FileSystemFilestore> {
     let directory = optionalDirectory;
 
     if (!directory) {
       directory = await isolated();
     }
 
-    return new FileSystem({ directory });
+    return new FileSystemFilestore({ directory });
   }
 
   public async addFile ({ id, fileName, contentType, isAuthorized, stream }: {
