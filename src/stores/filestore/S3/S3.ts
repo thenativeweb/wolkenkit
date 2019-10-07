@@ -1,44 +1,81 @@
-'use strict';
+import errors from '../../../common/errors';
+import { Filestore } from '../Filestore';
+import { Metadata } from '../Metadata';
+import Minio from 'minio';
+import { OwnedAuthorizationOptions } from '../../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
+import { Readable } from 'stream';
+import streamToString from 'stream-to-string';
 
-const Minio = require('minio'),
-      streamToString = require('stream-to-string');
+class S3 implements Filestore {
+  protected client: Minio.Client;
 
-const errors = require('../../../common/errors');
+  protected bucketName: string;
 
-class S3 {
-  async initialize ({
+  protected region: string;
+
+  protected constructor ({
     hostname,
     port,
-    encryptConnection = false,
+    encryptConnection,
     accessKey,
     secretKey,
     region,
     bucketName
+  }: {
+    hostname: string;
+    port: number;
+    encryptConnection: boolean;
+    accessKey: string;
+    secretKey: string;
+    region: string;
+    bucketName: string;
   }) {
-    if (!accessKey) {
-      throw new Error('Access key is missing.');
-    }
-    if (!secretKey) {
-      throw new Error('Secret key is missing.');
-    }
-
-    const options = {
-      endPoint: hostname || 's3.amazonaws.com',
+    this.client = new Minio.Client({
+      endPoint: hostname,
+      port,
       accessKey,
       secretKey,
-      region: region || 'eu-central-1a',
+      region,
       useSSL: encryptConnection
-    };
-
-    if (port) {
-      options.port = port;
-    }
-
-    this.client = new Minio.Client(options);
+    });
 
     this.bucketName = bucketName;
-    this.region = options.region;
+    this.region = region;
+  }
 
+  public static async create ({
+    hostname = 's3.amazonaws.com',
+    port = 443,
+    encryptConnection = false,
+    accessKey,
+    secretKey,
+    region = 'eu-central-1a',
+    bucketName
+  }: {
+    hostname: string;
+    port: number;
+    encryptConnection: boolean;
+    accessKey: string;
+    secretKey: string;
+    region: string;
+    bucketName: string;
+  }): Promise<S3> {
+    const s3 = new S3({
+      hostname,
+      port,
+      encryptConnection,
+      accessKey,
+      secretKey,
+      region,
+      bucketName
+    });
+
+    await s3.ensureBucket();
+
+    return s3;
+  }
+
+  protected async ensureBucket (): Promise<void> {
     try {
       await this.client.makeBucket(this.bucketName, this.region);
     } catch (ex) {
@@ -54,23 +91,13 @@ class S3 {
     }
   }
 
-  async addFile ({ id, fileName, contentType, isAuthorized, stream }) {
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-    if (!fileName) {
-      throw new Error('File name is missing.');
-    }
-    if (!contentType) {
-      throw new Error('Content type is missing.');
-    }
-    if (!isAuthorized) {
-      throw new Error('Is authorized is missing.');
-    }
-    if (!stream) {
-      throw new Error('Stream is missing.');
-    }
-
+  public async addFile ({ id, fileName, contentType, isAuthorized, stream }: {
+    id: string;
+    fileName: string;
+    contentType: string;
+    isAuthorized: OwnedAuthorizationOptions;
+    stream: Readable;
+  }): Promise<void> {
     let statsData,
         statsMetadata;
 
@@ -91,7 +118,7 @@ class S3 {
 
     let contentLength = 0;
 
-    stream.on('data', data => {
+    stream.on('data', (data): void => {
       contentLength += data.length;
     });
 
@@ -108,11 +135,7 @@ class S3 {
     await this.client.putObject(this.bucketName, `${id}/metadata.json`, JSON.stringify(metadata));
   }
 
-  async getMetadata ({ id }) {
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-
+  public async getMetadata ({ id }: { id: string }): Promise<Metadata> {
     try {
       await this.client.statObject(this.bucketName, `${id}/data`);
       await this.client.statObject(this.bucketName, `${id}/metadata.json`);
@@ -124,7 +147,7 @@ class S3 {
       throw ex;
     }
 
-    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`);
+    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`) as Readable;
     const rawMetadata = await streamToString(metadataStream);
 
     const metadata = JSON.parse(rawMetadata);
@@ -138,11 +161,7 @@ class S3 {
     };
   }
 
-  async getFile ({ id }) {
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-
+  public async getFile ({ id }: { id: string }): Promise<Readable> {
     try {
       await this.client.statObject(this.bucketName, `${id}/data`);
       await this.client.statObject(this.bucketName, `${id}/metadata.json`);
@@ -154,16 +173,12 @@ class S3 {
       throw ex;
     }
 
-    const stream = await this.client.getObject(this.bucketName, `${id}/data`);
+    const stream = await this.client.getObject(this.bucketName, `${id}/data`) as Readable;
 
     return stream;
   }
 
-  async removeFile ({ id }) {
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-
+  public async removeFile ({ id }: { id: string }): Promise<void> {
     const files = [ `${id}/data`, `${id}/metadata.json` ];
 
     let notFoundErrors = 0;
@@ -186,14 +201,10 @@ class S3 {
     }
   }
 
-  async transferOwnership ({ id, to }) {
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-    if (!to) {
-      throw new Error('To is missing.');
-    }
-
+  public async transferOwnership ({ id, to }: {
+    id: string;
+    to: string;
+  }): Promise<void> {
     try {
       await this.client.statObject(this.bucketName, `${id}/data`);
       await this.client.statObject(this.bucketName, `${id}/metadata.json`);
@@ -205,7 +216,7 @@ class S3 {
       throw ex;
     }
 
-    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`);
+    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`) as Readable;
     const rawMetadata = await streamToString(metadataStream);
 
     const metadata = JSON.parse(rawMetadata);
@@ -215,14 +226,10 @@ class S3 {
     await this.client.putObject(this.bucketName, `${id}/metadata.json`, JSON.stringify(metadata));
   }
 
-  async authorize ({ id, isAuthorized }) {
-    if (!id) {
-      throw new Error('Id is missing.');
-    }
-    if (!isAuthorized) {
-      throw new Error('Is authorized is missing.');
-    }
-
+  public async authorize ({ id, isAuthorized }: {
+    id: string;
+    isAuthorized: OwnedAuthorizationOptions;
+  }): Promise<void> {
     try {
       await this.client.statObject(this.bucketName, `${id}/data`);
       await this.client.statObject(this.bucketName, `${id}/metadata.json`);
@@ -234,7 +241,7 @@ class S3 {
       throw ex;
     }
 
-    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`);
+    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`) as Readable;
     const rawMetadata = await streamToString(metadataStream);
 
     const metadata = JSON.parse(rawMetadata);
@@ -245,4 +252,4 @@ class S3 {
   }
 }
 
-module.exports = S3;
+export default S3;

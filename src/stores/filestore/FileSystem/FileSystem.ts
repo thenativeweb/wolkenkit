@@ -4,10 +4,10 @@ import isolated from 'isolated';
 import { Metadata } from '../Metadata';
 import { OwnedAuthorizationOptions } from '../../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
 import path from 'path';
-import { pipeline as pipelineCallback } from 'stream';
 import { promisify } from 'util';
 import shell from 'shelljs';
 import { createReadStream, createWriteStream, pathExists, readFile, writeFile } from 'fs-extra';
+import { pipeline as pipelineCallback, Readable } from 'stream';
 
 const pipeline = promisify(pipelineCallback);
 
@@ -37,7 +37,7 @@ class FileSystem implements Filestore {
     fileName: string;
     contentType: string;
     isAuthorized: OwnedAuthorizationOptions;
-    stream: NodeJS.ReadableStream;
+    stream: Readable;
   }): Promise<void> {
     const fileDirectory = path.join(this.directory, id);
     const fileFileData = path.join(fileDirectory, 'data');
@@ -90,7 +90,7 @@ class FileSystem implements Filestore {
     };
   }
 
-  public async getFile ({ id }: { id: string }): Promise<NodeJS.ReadableStream> {
+  public async getFile ({ id }: { id: string }): Promise<Readable> {
     const fileDirectory = path.join(this.directory, id);
     const fileFileData = path.join(fileDirectory, 'data');
 
