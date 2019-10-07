@@ -53,7 +53,7 @@ class Eventstore {
     });
     /* eslint-enable id-length */
 
-    const databaseName = parse(url).pathname.substring(1);
+    const databaseName = parse(url).pathname.slice(1);
 
     this.db = this.client.db(databaseName);
     this.db.on('close', Eventstore.onUnexpectedClose);

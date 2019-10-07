@@ -72,7 +72,7 @@ class Lockstore {
 
     const databaseName = parse(url).
       pathname.
-      substring(1);
+      slice(1);
 
     this.db = this.client.db(databaseName);
     this.db.on('close', Lockstore.onUnexpectedClose);

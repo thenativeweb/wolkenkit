@@ -41,4 +41,4 @@ jobs:
             export NVM_DIR="/opt/circleci/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-            npx roboter
+            LOG_LEVEL=debug npx roboter

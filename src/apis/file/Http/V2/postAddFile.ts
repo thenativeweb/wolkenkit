@@ -1,4 +1,4 @@
-import errors from '../../../../../build/src/common/errors';
+import errors from '../../../../common/errors';
 import { Filestore } from '../../../../stores/filestore/Filestore';
 import flaschenpost from 'flaschenpost';
 import merge from 'lodash/merge';
@@ -9,9 +9,9 @@ import { getDefaults, hasAccess, isValid } from './isAuthorized';
 
 const logger = flaschenpost.getLogger();
 
-const postAddFile = function ({ addFileAuthorizationOptions, filestore }: {
+const postAddFile = function ({ addFileAuthorizationOptions, fileProvider }: {
   addFileAuthorizationOptions: SpecificAuthorizationOption;
-  filestore: Filestore;
+  fileProvider: Filestore;
 }): RequestHandler {
   const rawAuthorizationOptions = merge({}, getDefaults(), {
     commands: {
@@ -66,7 +66,7 @@ const postAddFile = function ({ addFileAuthorizationOptions, filestore }: {
     }
 
     try {
-      await filestore.addFile({ id, fileName, contentType, isAuthorized, stream: req });
+      await fileProvider.addFile({ id, fileName, contentType, isAuthorized, stream: req });
 
       res.status(200).end();
     } catch (ex) {

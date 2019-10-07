@@ -9,10 +9,6 @@ const pipeline = promisify(pipelineCallback);
 const logger = flaschenpost.getLogger();
 
 const getFile = function ({ provider }: { provider: Filestore }): RequestHandler {
-  if (!provider) {
-    throw new Error('Provider is missing.');
-  }
-
   return async function (req, res): Promise<any> {
     const { id } = req.params;
     const { user } = req;

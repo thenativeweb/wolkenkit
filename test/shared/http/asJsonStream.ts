@@ -7,7 +7,7 @@ const asJsonStream = function (...handleJson: ((...args: any[]) => void)[]): Wri
     write (chunk: object, _, callback: (error?: any) => void): void {
       const data = JSON.parse(chunk.toString());
 
-      if (!handleJson[counter]) {
+      if (counter > handleJson.length) {
         return callback(new Error(`Received ${counter + 1} items (${JSON.stringify(data)}), but only expected ${handleJson.length}.`));
       }
 

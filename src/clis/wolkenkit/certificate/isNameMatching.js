@@ -13,8 +13,8 @@ const isMatching = function (left, right) {
       return false;
     }
 
-    const fixedPartOfLeft = left.substring(2),
-          fixedPartOfRight = right.substring(right.indexOf('.') + 1);
+    const fixedPartOfLeft = left.slice(2),
+          fixedPartOfRight = right.slice(right.indexOf('.') + 1);
 
     if (fixedPartOfLeft === fixedPartOfRight) {
       return true;
