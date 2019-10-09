@@ -5,10 +5,10 @@ import noop from 'lodash/noop';
 import retry from 'async-retry';
 import sortKeys from 'sort-keys';
 
-// Max MariaDB timestamp is 9999-12-31 23:59:59.
+// Max MySQL timestamp is 9999-12-31 23:59:59.
 const maxDate = 253402297199000;
 
-class MariaDbLockstore implements Lockstore {
+class MySqlLockstore implements Lockstore {
   protected namespace: string;
 
   protected pool: mysql.Pool;
@@ -29,7 +29,7 @@ class MariaDbLockstore implements Lockstore {
     this.maxLockSize = maxLockSize;
   }
 
-  protected static onUnexpectedClose (): never {
+  public static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
   }
 
@@ -56,7 +56,7 @@ class MariaDbLockstore implements Lockstore {
     database,
     namespace,
     nonce = null,
-    maxLockSize = 968
+    maxLockSize = 2048
   }: {
     hostname: string;
     port: number;
@@ -66,7 +66,7 @@ class MariaDbLockstore implements Lockstore {
     namespace: string;
     nonce: null | number;
     maxLockSize: number;
-  }): Promise<MariaDbLockstore> {
+  }): Promise<MySqlLockstore> {
     const prefixedNamespace = `lockstore_${namespace.replace(/[\W_]/ug, '')}`;
 
     const pool = mysql.createPool({
@@ -83,10 +83,10 @@ class MariaDbLockstore implements Lockstore {
       connection.on('error', (err: Error): never => {
         throw err;
       });
-      connection.on('end', MariaDbLockstore.onUnexpectedClose);
+      connection.on('end', MySqlLockstore.onUnexpectedClose);
     });
 
-    const eventstore = new MariaDbLockstore({
+    const eventstore = new MySqlLockstore({
       namespace: prefixedNamespace,
       pool,
       nonce,
@@ -120,7 +120,7 @@ class MariaDbLockstore implements Lockstore {
   }: {
     namespace: string;
     value: any;
-    expiresAt?: number;
+    expiresAt: number;
     onAcquired (): void | Promise<void>;
   }): Promise<void> {
     const sortedSerializedValue = JSON.stringify(sortKeys(value, { deep: true }));
@@ -320,4 +320,4 @@ class MariaDbLockstore implements Lockstore {
   }
 }
 
-export default MariaDbLockstore;
+export default MySqlLockstore;
