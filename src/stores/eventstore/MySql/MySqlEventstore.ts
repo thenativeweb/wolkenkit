@@ -22,7 +22,7 @@ class MySqlEventstore implements Eventstore {
     this.pool = pool;
   }
 
-  public static onUnexpectedClose (): never {
+  protected static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
   }
 
@@ -182,32 +182,33 @@ class MySqlEventstore implements Eventstore {
     [ aggregateIdentifier, fromRevision, toRevision ]);
 
     const unsubscribe = function (): void {
-      // Listeners should be removed here, but the mysql typing don't allow that.
+      // The listeners on eventStream should be removed here, but the mysql
+      // typings unfortunately don't allow that.
       connection.release();
     };
 
     const onEnd = function (): void {
-            unsubscribe();
-            passThrough.end();
-          },
-          onError = function (err: mysql.MysqlError): void {
-            unsubscribe();
-            passThrough.emit('error', err);
-            passThrough.end();
-          },
-          onResult = function (row: any): void {
-            let event = EventExternal.deserialize(row.event);
+      unsubscribe();
+      passThrough.end();
+    };
+    const onError = function (err: mysql.MysqlError): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+    const onResult = function (row: any): void {
+      let event = EventExternal.deserialize(row.event);
 
-            event = event.setRevisionGlobal({
-              revisionGlobal: Number(row.revisionGlobal)
-            });
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(row.revisionGlobal)
+      });
 
-            if (row.isPublished) {
-              event = event.markAsPublished();
-            }
+      if (row.isPublished) {
+        event = event.markAsPublished();
+      }
 
-            passThrough.write(event);
-          };
+      passThrough.write(event);
+    };
 
     eventStream.on('end', onEnd);
     eventStream.on('error', onError);

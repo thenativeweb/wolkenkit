@@ -157,27 +157,27 @@ class MariaDbEventstore implements Eventstore {
     };
 
     const onEnd = function (): void {
-            unsubscribe();
-            passThrough.end();
-          },
-          onError = function (err: mysql.MysqlError): void {
-            unsubscribe();
-            passThrough.emit('error', err);
-            passThrough.end();
-          },
-          onResult = function (row: any): void {
-            let event = EventExternal.deserialize(JSON.parse(row.event));
+      unsubscribe();
+      passThrough.end();
+    };
+    const onError = function (err: mysql.MysqlError): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+    const onResult = function (row: any): void {
+      let event = EventExternal.deserialize(JSON.parse(row.event));
 
-            event = event.setRevisionGlobal({
-              revisionGlobal: Number(row.revisionGlobal)
-            });
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(row.revisionGlobal)
+      });
 
-            if (row.isPublished) {
-              event = event.markAsPublished();
-            }
+      if (row.isPublished) {
+        event = event.markAsPublished();
+      }
 
-            passThrough.write(event);
-          };
+      passThrough.write(event);
+    };
 
     eventStream.on('end', onEnd);
     eventStream.on('error', onError);
