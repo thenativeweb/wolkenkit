@@ -80,7 +80,7 @@ class Lockstore {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS ${this.namespace}_locks (
         namespace VARCHAR(64) NOT NULL,
-        value VARCHAR(${this.maxLockSize}) NOT NULL, 
+        value VARCHAR(${this.maxLockSize}) NOT NULL,
         expiresAt DATETIME(3) NOT NULL,
         nonce VARCHAR(64),
 
@@ -136,11 +136,11 @@ class Lockstore {
 
       if (newEntry) {
         query = `
-        INSERT INTO ${this.namespace}_locks (expiresAt, nonce, namespace, value) 
+        INSERT INTO ${this.namespace}_locks (expiresAt, nonce, namespace, value)
         VALUES (?, ?, ?, ?);`;
       } else {
         query = `
-        UPDATE ${this.namespace}_locks 
+        UPDATE ${this.namespace}_locks
            SET expiresAt = ?,
                nonce = ?
          WHERE namespace = ?
@@ -237,7 +237,7 @@ class Lockstore {
       }
 
       await connection.query(`
-        UPDATE ${this.namespace}_locks 
+        UPDATE ${this.namespace}_locks
            SET expiresAt = ?
          WHERE namespace = ?
            AND value = ?;`,

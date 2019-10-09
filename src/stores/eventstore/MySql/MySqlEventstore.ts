@@ -1,13 +1,15 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
 import EventExternal from '../../../common/elements/EventExternal';
 import EventInternal from '../../../common/elements/EventInternal';
+import { Eventstore } from '../Eventstore';
 import mysql from 'mysql';
+import { query as mysqlQuery } from '../../utils/mysql/query';
 import omitByDeep from '../../../common/utils/omitByDeep';
 import { PassThrough } from 'stream';
 import retry from 'async-retry';
 import { Snapshot } from '../Snapshot';
 
-class MySqlEventstore {
+class MySqlEventstore implements Eventstore {
   protected namespace: string;
 
   protected pool: mysql.Pool;
@@ -37,32 +39,6 @@ class MySqlEventstore {
     }));
 
     return database;
-  }
-
-  protected static async query (connection: mysql.PoolConnection, sql: string, args?: any): Promise<any> {
-    if (args) {
-      return new Promise((resolve, reject): void => {
-        connection.query(sql, args, (err: null | mysql.MysqlError): void => {
-          if (err) {
-            reject(err);
-
-            return;
-          }
-          resolve();
-        });
-      });
-    }
-
-    return new Promise((resolve, reject): void => {
-      connection.query(sql, (err: null | mysql.MysqlError): void => {
-        if (err) {
-          reject(err);
-
-          return;
-        }
-        resolve();
-      });
-    });
   }
 
   public async create ({ hostname, port, username, password, database, namespace }: {
@@ -109,7 +85,7 @@ class MySqlEventstore {
     `;
 
     try {
-      await MySqlEventstore.query(connection, createUuidToBinFunction);
+      await mysqlQuery(connection, createUuidToBinFunction);
     } catch (ex) {
       // If the function already exists, we can ignore this error; otherwise
       // rethrow it. Generally speaking, this should be done using a SQL clause
@@ -134,7 +110,7 @@ class MySqlEventstore {
     `;
 
     try {
-      await MySqlEventstore.query(connection, createUuidFromBinFunction);
+      await mysqlQuery(connection, createUuidFromBinFunction);
     } catch (ex) {
       // If the function already exists, we can ignore this error; otherwise
       // rethrow it. Generally speaking, this should be done using a SQL clause
@@ -167,7 +143,7 @@ class MySqlEventstore {
       ) ENGINE=InnoDB;
     `;
 
-    await MySqlEventstore.query(connection, query);
+    await mysqlQuery(connection, query);
 
     connection.release();
 
@@ -246,7 +222,7 @@ class MySqlEventstore {
     const connection = await this.getDatabase();
 
     try {
-      const [ rows ] = await MySqlEventstore.query(
+      const [ rows ] = await mysqlQuery(
         connection,
         `SELECT event, revisionGlobal
           FROM ${this.namespace}_events
@@ -331,7 +307,7 @@ class MySqlEventstore {
     const connection = await this.getDatabase();
 
     try {
-      const [ rows ] = await MySqlEventstore.query(
+      const [ rows ] = await mysqlQuery(
         connection,
         `SELECT state, revisionAggregate
           FROM ${this.namespace}_snapshots
@@ -413,7 +389,7 @@ class MySqlEventstore {
     const connection = await this.getDatabase();
 
     try {
-      await MySqlEventstore.query(
+      await mysqlQuery(
         connection,
         `UPDATE ${this.namespace}_events
           SET isPublished = true
@@ -463,9 +439,9 @@ class MySqlEventstore {
     const committedEvents = [];
 
     try {
-      await MySqlEventstore.query(connection, text, values);
+      await mysqlQuery(connection, text, values);
 
-      const rows = await MySqlEventstore.query(connection, 'SELECT LAST_INSERT_ID() AS revisionGlobal;');
+      const rows = await mysqlQuery(connection, 'SELECT LAST_INSERT_ID() AS revisionGlobal;');
 
       // We only get the ID of the first inserted row, but since it's all in a
       // single INSERT statement, the database guarantees that the global
@@ -510,7 +486,7 @@ class MySqlEventstore {
     const connection = await this.getDatabase();
 
     try {
-      await MySqlEventstore.query(
+      await mysqlQuery(
         connection,
         `INSERT IGNORE INTO ${this.namespace}_snapshots
           (aggregateId, revisionAggregate, state)

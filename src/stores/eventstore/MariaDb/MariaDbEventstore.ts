@@ -3,6 +3,7 @@ import EventExternal from '../../../common/elements/EventExternal';
 import EventInternal from '../../../common/elements/EventInternal';
 import { Eventstore } from '../Eventstore';
 import mysql from 'mysql';
+import { query as mysqlQuery } from '../../utils/mysql/query';
 import omitByDeep from '../../../common/utils/omitByDeep';
 import { PassThrough } from 'stream';
 import retry from 'async-retry';
@@ -112,16 +113,7 @@ class MariaDbEventstore implements Eventstore {
       ) ENGINE=InnoDB;
     `;
 
-    await new Promise((resolve, reject): void => {
-      connection.query(query, (err: null | mysql.MysqlError): void => {
-        if (err) {
-          reject(err);
-
-          return;
-        }
-        resolve();
-      });
-    });
+    await mysqlQuery(connection, query);
 
     connection.release();
 
@@ -200,24 +192,15 @@ class MariaDbEventstore implements Eventstore {
     const connection = await this.getDatabase();
 
     try {
-      const rows: any[] = await new Promise((resolve, reject): void => {
-        connection.query(`
-        SELECT event, revisionGlobal
+      const rows: any[] = await mysqlQuery(
+        connection,
+        `SELECT event, revisionGlobal
           FROM ${this.namespace}_events
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revisionAggregate DESC
-          LIMIT 1
-        `,
-        [ aggregateIdentifier ],
-        (err: null | mysql.MysqlError, results: any): void => {
-          if (err) {
-            reject(err);
-
-            return;
-          }
-          resolve(results);
-        });
-      });
+          LIMIT 1`,
+        [ aggregateIdentifier ]
+      );
 
       if (rows.length === 0) {
         return;
@@ -294,24 +277,15 @@ class MariaDbEventstore implements Eventstore {
     const connection = await this.getDatabase();
 
     try {
-      const rows: any[] = await new Promise((resolve, reject): void => {
-        connection.query(`
-        SELECT state, revisionAggregate
+      const rows: any[] = await mysqlQuery(
+        connection,
+        `SELECT state, revisionAggregate
           FROM ${this.namespace}_snapshots
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revisionAggregate DESC
-          LIMIT 1
-        `,
-        [ aggregateIdentifier ],
-        (err: null | mysql.MysqlError, results: any): void => {
-          if (err) {
-            reject(err);
-
-            return;
-          }
-          resolve(results);
-        });
-      });
+          LIMIT 1`,
+        [ aggregateIdentifier ]
+      );
 
       if (rows.length === 0) {
         return;
@@ -385,24 +359,15 @@ class MariaDbEventstore implements Eventstore {
     const connection = await this.getDatabase();
 
     try {
-      await new Promise((resolve, reject): void => {
-        connection.query(`
-        UPDATE ${this.namespace}_events
+      await mysqlQuery(
+        connection,
+        `UPDATE ${this.namespace}_events
           SET isPublished = true
           WHERE aggregateId = UuidToBin(?)
             AND revisionAggregate >= ?
-            AND revisionAggregate <= ?
-        `,
-        [ aggregateIdentifier, fromRevision, toRevision ],
-        (err: null | mysql.MysqlError): void => {
-          if (err) {
-            reject(err);
-
-            return;
-          }
-          resolve();
-        });
-      });
+            AND revisionAggregate <= ?`,
+        [ aggregateIdentifier, fromRevision, toRevision ]
+      );
     } finally {
       connection.release();
     }
@@ -444,34 +409,12 @@ class MariaDbEventstore implements Eventstore {
     const committedEvents = [];
 
     try {
-      await new Promise((resolve, reject): void => {
-        connection.query(
-          text,
-          values,
-          (err: null | mysql.MysqlError): void => {
-            if (err) {
-              reject(err);
+      await mysqlQuery(connection, text, values);
 
-              return;
-            }
-            resolve();
-          }
-        );
-      });
-
-      const rows: any[] = await new Promise((resolve, reject): void => {
-        connection.query(
-          'SELECT LAST_INSERT_ID() AS revisionGlobal;',
-          (err: null | mysql.MysqlError, results: any): void => {
-            if (err) {
-              reject(err);
-
-              return;
-            }
-            resolve(results);
-          }
-        );
-      });
+      const rows: any[] = await mysqlQuery(
+        connection,
+        'SELECT LAST_INSERT_ID() AS revisionGlobal;'
+      );
 
       // We only get the ID of the first inserted row, but since it's all in a
       // single INSERT statement, the database guarantees that the global
@@ -516,21 +459,13 @@ class MariaDbEventstore implements Eventstore {
     const connection = await this.getDatabase();
 
     try {
-      await new Promise((resolve, reject): void => {
-        connection.query(`
-        INSERT IGNORE INTO ${this.namespace}_snapshots
+      await mysqlQuery(
+        connection,
+        `INSERT IGNORE INTO ${this.namespace}_snapshots
           (aggregateId, revisionAggregate, state)
-          VALUES (UuidToBin(?), ?, ?);
-      `, [ snapshot.aggregateIdentifier, snapshot.revision, JSON.stringify(filteredState) ],
-        (err: null | mysql.MysqlError): void => {
-          if (err) {
-            reject(err);
-
-            return;
-          }
-          resolve();
-        });
-      });
+          VALUES (UuidToBin(?), ?, ?);`,
+        [ snapshot.aggregateIdentifier, snapshot.revision, JSON.stringify(filteredState) ]
+      );
     } finally {
       connection.release();
     }
