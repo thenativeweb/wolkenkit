@@ -18,7 +18,7 @@ export interface Eventstore {
     aggregateIdentifier: AggregateIdentifier;
   }) => Promise<EventExternal | undefined>;
 
-  getReplay: ({ fromRevisionGlobal, toRevisionGlobal }?: {
+  getReplay: ({ fromRevisionGlobal, toRevisionGlobal }: {
     fromRevisionGlobal?: number;
     toRevisionGlobal?: number;
   }) => Promise<PassThrough>;
