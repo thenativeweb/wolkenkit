@@ -8,7 +8,7 @@ import eventMap from '../../../shared/applications/valid/eventMap';
 import { Eventstore } from '../../../../src/stores/eventstore/Eventstore';
 import Http from '../../../../src/apis/event/Http';
 import identityProvider from '../../../shared/identityProvider';
-import InMemoryEventstore from '../../../../src/stores/eventstore/InMemory/InMemoryEventStore';
+import InMemoryEventstore from '../../../../src/stores/eventstore/InMemory/InMemoryEventstore';
 import path from 'path';
 import record from 'record-stdstreams';
 import Repository from '../../../../src/common/domain/Repository';
@@ -25,8 +25,7 @@ suite('event/Http', (): void => {
   setup(async (): Promise<void> => {
     const directory = path.join(__dirname, '..', '..', '..', 'shared', 'applications', 'base');
 
-    eventstore = new InMemoryEventstore();
-    await eventstore.create();
+    eventstore = await InMemoryEventstore.create();
 
     application = await Application.load({ directory });
     repository = new Repository({ application, eventstore });

@@ -1,3 +1,3 @@
-import InMemoryEventstore from './InMemoryEventStore';
+import InMemoryEventstore from './InMemoryEventstore';
 
 export default InMemoryEventstore;

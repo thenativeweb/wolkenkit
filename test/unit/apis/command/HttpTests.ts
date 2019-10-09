@@ -20,8 +20,7 @@ suite('command/Http', (): void => {
 
     application = await Application.load({ directory });
 
-    eventstore = new InMemoryEventstore();
-    await eventstore.create();
+    eventstore = await InMemoryEventstore.create();
   });
 
   teardown(async (): Promise<void> => {

@@ -4,7 +4,7 @@ import AggregateApiForReadOnly from '../../../../src/common/elements/AggregateAp
 import Application from '../../../../src/common/application';
 import assert from 'assertthat';
 import CommandInternal from '../../../../src/common/elements/CommandInternal';
-import Eventstore from '../../../../src/stores/eventstore/InMemory';
+import InMemoryEventstore from '../../../../src/stores/eventstore/InMemory';
 import path from 'path';
 import Repository from '../../../../src/common/domain/Repository';
 import sinon from 'sinon';
@@ -15,7 +15,7 @@ suite('AggregateApiForCommands', (): void => {
   let aggregate: Aggregate,
       application: Application,
       command: CommandInternal,
-      eventstore: Eventstore,
+      eventstore: InMemoryEventstore,
       repository: Repository;
 
   setup(async (): Promise<void> => {
@@ -44,9 +44,7 @@ suite('AggregateApiForCommands', (): void => {
       }
     });
 
-    eventstore = new Eventstore();
-
-    await eventstore.create();
+    eventstore = await InMemoryEventstore.create();
 
     repository = new Repository({ application, eventstore });
   });
