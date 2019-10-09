@@ -135,7 +135,6 @@
     "is-ip": "3.1.0",
     "isolated": "2.0.1",
     "limes": "5.0.1",
-    "limit-alphanumeric": "1.0.0",
     "lodash": "4.17.15",
     "marble-run": "2.0.0",
     "minio": "7.0.12",

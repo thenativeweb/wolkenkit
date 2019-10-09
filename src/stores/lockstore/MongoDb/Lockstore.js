@@ -2,7 +2,7 @@
 
 const { parse } = require('url');
 
-const limitAlphanumeric = require('limit-alphanumeric'),
+const limitAlphanumeric = require('../../../common/utils/limitAlphanumeric'),
       { MongoClient } = require('mongodb'),
       noop = require('lodash/noop'),
       retry = require('async-retry');

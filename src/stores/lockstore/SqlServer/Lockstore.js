@@ -2,7 +2,7 @@
 
 const noop = require('lodash/noop');
 
-const limitAlphanumeric = require('limit-alphanumeric'),
+const limitAlphanumeric = require('../../../common/utils/limitAlphanumeric'),
       { Request, TYPES } = require('tedious'),
       retry = require('async-retry');
 

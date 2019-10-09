@@ -3,7 +3,7 @@
 const { parse } = require('url'),
       { PassThrough } = require('stream');
 
-const limitAlphanumeric = require('limit-alphanumeric'),
+const limitAlphanumeric = require('../../../common/utils/limitAlphanumeric'),
       { MongoClient } = require('mongodb'),
       retry = require('async-retry');
 

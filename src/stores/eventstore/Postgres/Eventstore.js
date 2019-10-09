@@ -2,7 +2,7 @@
 
 const { PassThrough } = require('stream');
 
-const limitAlphanumeric = require('limit-alphanumeric'),
+const limitAlphanumeric = require('../../../common/utils/limitAlphanumeric'),
       pg = require('pg'),
       QueryStream = require('pg-query-stream'),
       retry = require('async-retry');
