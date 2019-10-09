@@ -1,6 +1,6 @@
 import buntstift from 'buntstift';
 import { connectionOptions } from './connectionOptions';
-import mysql from 'mysql2/promise';
+import mysql from 'mysql';
 import { oneLine } from 'common-tags';
 import retry from 'async-retry';
 import { retryOptions } from './retryOptions';
@@ -40,9 +40,18 @@ const mariaDb = {
 
     try {
       await retry(async (): Promise<void> => {
-        const connection = await pool.getConnection();
+        const connection: mysql.PoolConnection = await new Promise((resolve, reject): void => {
+          pool.getConnection((err: null | mysql.MysqlError, poolConnection: mysql.PoolConnection): void => {
+            if (err) {
+              reject(err);
 
-        await connection.release();
+              return;
+            }
+            resolve(poolConnection);
+          });
+        });
+
+        connection.release();
       }, retryOptions);
     } catch (ex) {
       buntstift.info(ex.message);
@@ -50,7 +59,9 @@ const mariaDb = {
       throw ex;
     }
 
-    await pool.end();
+    await new Promise((resolve): void => {
+      pool.end(resolve);
+    });
   },
 
   async stop (): Promise<void> {

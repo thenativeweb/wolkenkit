@@ -20,11 +20,9 @@ class InMemoryEventstore implements Eventstore {
     };
   }
 
-  /* eslint-disable class-methods-use-this */
-  public async create (): Promise<void> {
-    // Intentionally left blank.
+  public static async create (): Promise<InMemoryEventstore> {
+    return new InMemoryEventstore();
   }
-  /* eslint-enable class-methods-use-this */
 
   public async destroy (): Promise<void> {
     this.database = { events: [], snapshots: []};
@@ -186,7 +184,7 @@ class InMemoryEventstore implements Eventstore {
   public async saveSnapshot ({ snapshot }: {
     snapshot: Snapshot;
   }): Promise<void> {
-    const filteredState = omitByDeep(snapshot.state, (value: any): boolean => value === undefined);
+    const filteredState = omitByDeep(snapshot.state, (value): boolean => value === undefined);
     const filteredSnapshot = { ...snapshot, astate: filteredState };
 
     this.storeSnapshotAtDatabase(filteredSnapshot);
