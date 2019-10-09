@@ -68,7 +68,7 @@ class MariaDbEventstore implements Eventstore {
       connection.on('end', MariaDbEventstore.onUnexpectedClose);
     });
 
-    const eventstore = new MariaDbEventstore({ namespace, pool });
+    const eventstore = new MariaDbEventstore({ namespace: prefixedNamespace, pool });
 
     const connection = await eventstore.getDatabase();
 

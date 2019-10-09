@@ -41,7 +41,7 @@ class MySqlEventstore implements Eventstore {
     return database;
   }
 
-  public async create ({ hostname, port, username, password, database, namespace }: {
+  public static async create ({ hostname, port, username, password, database, namespace }: {
     hostname: string;
     port: number;
     username: string;
@@ -49,7 +49,7 @@ class MySqlEventstore implements Eventstore {
     database: string;
     namespace: string;
   }): Promise<MySqlEventstore> {
-    this.namespace = `store_${namespace.replace(/[\W_]/ug, '')}`;
+    const prefixedNamespace = `store_${namespace.replace(/[\W_]/ug, '')}`;
 
     const pool = mysql.createPool({
       host: hostname,
@@ -68,7 +68,7 @@ class MySqlEventstore implements Eventstore {
       connection.on('end', MySqlEventstore.onUnexpectedClose);
     });
 
-    const eventstore = new MySqlEventstore({ namespace, pool });
+    const eventstore = new MySqlEventstore({ namespace: prefixedNamespace, pool });
 
     const connection = await eventstore.getDatabase();
 
@@ -123,7 +123,7 @@ class MySqlEventstore implements Eventstore {
     }
 
     const query = `
-      CREATE TABLE IF NOT EXISTS ${this.namespace}_events (
+      CREATE TABLE IF NOT EXISTS ${prefixedNamespace}_events (
         revisionGlobal SERIAL,
         aggregateId BINARY(16) NOT NULL,
         revisionAggregate INT NOT NULL,
@@ -134,7 +134,7 @@ class MySqlEventstore implements Eventstore {
         UNIQUE (aggregateId, revisionAggregate)
       ) ENGINE=InnoDB;
 
-      CREATE TABLE IF NOT EXISTS ${this.namespace}_snapshots (
+      CREATE TABLE IF NOT EXISTS ${prefixedNamespace}_snapshots (
         aggregateId BINARY(16) NOT NULL,
         revisionAggregate INT NOT NULL,
         state JSON NOT NULL,
