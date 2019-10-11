@@ -155,7 +155,6 @@
     "semver": "6.3.0",
     "sha1": "1.1.1",
     "shelljs": "0.8.3",
-    "sort-keys": "4.0.0",
     "stream-to-string": "1.2.0",
     "stringify-object": "3.3.0",
     "tar": "5.0.5",
