@@ -8,8 +8,7 @@ suite('Postgres', (): void => {
     async eventstoreFactory (namespace: string): Promise<Eventstore> {
       return await PostgresEventstore.create({
         ...connectionOptions.postgres,
-        namespace,
-        encryptConnection: false
+        namespace
       });
     }
   });

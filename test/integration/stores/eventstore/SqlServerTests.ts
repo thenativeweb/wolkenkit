@@ -8,8 +8,7 @@ suite('SqlServer', (): void => {
     async eventstoreFactory (namespace: string): Promise<Eventstore> {
       return await SqlServerEventstore.create({
         ...connectionOptions.sqlServer,
-        namespace,
-        encryptConnection: false
+        namespace
       });
     }
   });

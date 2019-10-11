@@ -55,7 +55,7 @@ class PostgresEventstore implements Eventstore {
     username: string;
     password: string;
     database: string;
-    encryptConnection: boolean;
+    encryptConnection?: boolean;
     namespace: string;
   }): Promise<PostgresEventstore> {
     const prefixedNamespace = `store_${limitAlphanumeric(namespace)}`;
