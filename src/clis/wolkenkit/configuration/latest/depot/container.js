@@ -4,7 +4,8 @@ const path = require('path');
 
 const get = require('lodash/get');
 
-const image = require('./image');
+const errors = require('../../../../../common/errors'),
+      image = require('./image');
 
 const container = function ({
   configuration,
