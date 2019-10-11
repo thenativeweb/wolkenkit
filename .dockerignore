@@ -4,7 +4,5 @@
 .github
 assets
 build
-docker
-keys
 node_modules
 test

@@ -1,9 +1,8 @@
-'use strict';
+import buildImages from '../../docker/buildImages';
+import containers from '../shared/containers';
 
-const buildImages = require('../../docker/buildImages'),
-      containers = require('../shared/containers');
-
-const pre = async function () {
+/* eslint-disable @typescript-eslint/no-floating-promises */
+(async function (): Promise<void> {
   await buildImages();
 
   await Promise.all([
@@ -15,6 +14,5 @@ const pre = async function () {
     containers.redis.start(),
     containers.sqlServer.start()
   ]);
-};
-
-module.exports = pre;
+})();
+/* eslint-enable @typescript-eslint/no-floating-promises */
