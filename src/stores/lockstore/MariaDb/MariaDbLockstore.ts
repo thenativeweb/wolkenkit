@@ -2,7 +2,7 @@ import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
 import { Lockstore } from '../Lockstore';
 import { mariaDb as maxDate } from '../../../common/utils/maxDate';
 import mysql from 'mysql';
-import { query as mysqlQuery } from '../../utils/mysql/query';
+import { query as mysqlQuery } from '../../utils/mySql/query';
 import noop from 'lodash/noop';
 import retry from 'async-retry';
 import sortKeys from '../../../common/utils/sortKeys';
