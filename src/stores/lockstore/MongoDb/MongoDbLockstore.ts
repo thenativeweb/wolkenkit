@@ -1,27 +1,45 @@
-'use strict';
-
-const { parse } = require('url');
-
-const limitAlphanumeric = require('../../../common/utils/limitAlphanumeric'),
-      { MongoClient } = require('mongodb'),
-      noop = require('lodash/noop'),
-      retry = require('async-retry');
-
-const sortObjectKeys = require('../sortObjectKeys');
+import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
 import maxDate from '../../../common/utils/maxDate';
+import { noop } from 'lodash';
+import { parse } from 'url';
+import retry from 'async-retry';
+import sortObjectKeys from '../sortObjectKeys';
+import { Collection, Db, MongoClient } from 'mongodb';
 
-class Lockstore {
-  constructor () {
-    this.client = undefined;
-    this.db = undefined;
-    this.collections = {};
+class MongoDbLockstore {
+  protected client: MongoClient;
+
+  protected db: Db;
+
+  protected nonce: string | null;
+
+  protected maxLockSize: number;
+
+  protected collections: {
+    locks: Collection<any>;
+  };
+
+  protected constructor ({ client, db, nonce, maxLockSize, collections }: {
+    client: MongoClient;
+    db: Db;
+    nonce: string | null;
+    maxLockSize: number;
+    collections: {
+      locks: Collection<any>;
+    };
+  }) {
+    this.client = client;
+    this.db = db;
+    this.nonce = nonce;
+    this.maxLockSize = maxLockSize;
+    this.collections = collections;
   }
 
-  static onUnexpectedClose () {
+  protected static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  async create ({
+  public static async create ({
     hostname,
     port,
     username,
@@ -30,34 +48,22 @@ class Lockstore {
     namespace,
     nonce = null,
     maxLockSize = 968
-  }) {
-    if (!hostname) {
-      throw new Error('Hostname is missing.');
-    }
-    if (!port) {
-      throw new Error('Port is missing.');
-    }
-    if (!username) {
-      throw new Error('Username is missing.');
-    }
-    if (!password) {
-      throw new Error('Password is missing.');
-    }
-    if (!database) {
-      throw new Error('Database is missing.');
-    }
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-
-    this.nonce = nonce;
-    this.maxLockSize = maxLockSize;
-    this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
+  }: {
+    hostname: string;
+    port: number;
+    username: string;
+    password: string;
+    database: string;
+    namespace: string;
+    nonce: string | null;
+    maxLockSize: number;
+  }): Promise<MongoDbLockstore> {
+    const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     const url = `mongodb://${username}:${password}@${hostname}:${port}/${database}`;
 
     /* eslint-disable id-length */
-    this.client = await retry(async () => {
+    const client = await retry(async (): Promise<MongoClient> => {
       const connection = await MongoClient.connect(url, {
         w: 1,
         useNewUrlParser: true
@@ -67,40 +73,51 @@ class Lockstore {
     });
     /* eslint-enable id-length */
 
-    const databaseName = parse(url).
-      pathname.
-      slice(1);
+    const { pathname } = parse(url);
 
-    this.db = this.client.db(databaseName);
-    this.db.on('close', Lockstore.onUnexpectedClose);
+    if (!pathname) {
+      throw new Error('Pathname is missing.');
+    }
 
-    this.collections.locks = this.db.collection(`${namespace}_locks`);
+    const databaseName = pathname.slice(1);
+    const db = client.db(databaseName);
 
-    await this.collections.locks.createIndexes([
+    db.on('close', MongoDbLockstore.onUnexpectedClose);
+
+    const collections = {
+      locks: db.collection(`${prefixedNamespace}_locks`)
+    };
+
+    const lockstore = new MongoDbLockstore({
+      client,
+      db,
+      nonce,
+      maxLockSize,
+      collections
+    });
+
+    await collections.locks.createIndexes([
       {
-        key: {
-          namespace: 1,
-          value: 1
-        },
-        name: `${this.namespace}_namespace_value`,
+        key: { namespace: 1, value: 1 },
+        name: `${prefixedNamespace}_namespace_value`,
         unique: true
       }
     ]);
+
+    return lockstore;
   }
 
-  async acquireLock ({
+  public async acquireLock ({
     namespace,
     value,
     expiresAt = maxDate,
     onAcquired = noop
-  }) {
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-    if (!value) {
-      throw new Error('Value is missing.');
-    }
-
+  }: {
+    namespace: string;
+    value: any;
+    expiresAt: number;
+    onAcquired (): void | Promise<void>;
+  }): Promise<void> {
     const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
@@ -138,13 +155,10 @@ class Lockstore {
     }
   }
 
-  async isLocked ({ namespace, value }) {
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-    if (!value) {
-      throw new Error('Value is missing.');
-    }
+  public async isLocked ({ namespace, value }: {
+    namespace: string;
+    value: any;
+  }): Promise<boolean> {
     const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
@@ -162,17 +176,11 @@ class Lockstore {
     return isLocked;
   }
 
-  async renewLock ({ namespace, value, expiresAt }) {
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-    if (!value) {
-      throw new Error('Value is missing.');
-    }
-    if (!expiresAt) {
-      throw new Error('Expires at is missing.');
-    }
-
+  public async renewLock ({ namespace, value, expiresAt }: {
+    namespace: string;
+    value: any;
+    expiresAt: number;
+  }): Promise<void> {
     const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
@@ -201,14 +209,10 @@ class Lockstore {
     await this.collections.locks.updateOne(query, { $set: { expiresAt: new Date(expiresAt) }});
   }
 
-  async releaseLock ({ namespace, value }) {
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-    if (!value) {
-      throw new Error('Value is missing.');
-    }
-
+  public async releaseLock ({ namespace, value }: {
+    namespace: string;
+    value: any;
+  }): Promise<void> {
     const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
@@ -242,14 +246,10 @@ class Lockstore {
     await this.collections.locks.deleteOne(queryRemove);
   }
 
-  async destroy () {
-    if (this.db) {
-      this.db.removeListener('close', Lockstore.onUnexpectedClose);
-    }
-    if (this.client) {
-      await this.client.close(true);
-    }
+  public async destroy (): Promise<void> {
+    this.db.removeListener('close', MongoDbLockstore.onUnexpectedClose);
+    await this.client.close(true);
   }
 }
 
-module.exports = Lockstore;
+export default MongoDbLockstore;
