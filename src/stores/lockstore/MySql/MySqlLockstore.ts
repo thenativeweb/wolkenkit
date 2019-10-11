@@ -1,24 +1,25 @@
+import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
 import { Lockstore } from '../Lockstore';
 import { mySql as maxDate } from '../../../common/utils/maxDate';
 import mysql from 'mysql';
 import { query as mysqlQuery } from '../../utils/mySql/query';
 import noop from 'lodash/noop';
 import retry from 'async-retry';
-import sortKeys from 'sort-keys';
+import sortKeys from '../../../common/utils/sortKeys';
 
 class MySqlLockstore implements Lockstore {
   protected namespace: string;
 
   protected pool: mysql.Pool;
 
-  protected nonce: null | number;
+  protected nonce: null | string;
 
   protected maxLockSize: number;
 
   protected constructor ({ namespace, pool, nonce, maxLockSize }: {
     namespace: string;
     pool: mysql.Pool;
-    nonce: null | number;
+    nonce: null | string;
     maxLockSize: number;
   }) {
     this.namespace = namespace;
@@ -27,8 +28,13 @@ class MySqlLockstore implements Lockstore {
     this.maxLockSize = maxLockSize;
   }
 
-  public static onUnexpectedClose (): never {
+  protected static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
+  }
+
+  protected static releaseConnection (connection: mysql.PoolConnection): void {
+    (connection as any).removeListener('end', MySqlLockstore.onUnexpectedClose);
+    connection.release();
   }
 
   protected async getDatabase (): Promise<mysql.PoolConnection> {
@@ -62,10 +68,10 @@ class MySqlLockstore implements Lockstore {
     password: string;
     database: string;
     namespace: string;
-    nonce: null | number;
-    maxLockSize: number;
+    nonce?: null | string;
+    maxLockSize?: number;
   }): Promise<MySqlLockstore> {
-    const prefixedNamespace = `lockstore_${namespace.replace(/[\W_]/ug, '')}`;
+    const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     const pool = mysql.createPool({
       host: hostname,
@@ -105,7 +111,7 @@ class MySqlLockstore implements Lockstore {
       );`
     );
 
-    connection.release();
+    MySqlLockstore.releaseConnection(connection);
 
     return eventstore;
   }
@@ -118,10 +124,10 @@ class MySqlLockstore implements Lockstore {
   }: {
     namespace: string;
     value: any;
-    expiresAt: number;
-    onAcquired (): void | Promise<void>;
+    expiresAt?: number;
+    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys(value, { deep: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -130,7 +136,7 @@ class MySqlLockstore implements Lockstore {
     const connection = await this.getDatabase();
 
     try {
-      const rows = await mysqlQuery(
+      const [ rows ] = await mysqlQuery(
         connection,
         `SELECT expiresAt
           FROM ${this.namespace}_locks
@@ -181,7 +187,7 @@ class MySqlLockstore implements Lockstore {
         throw ex;
       }
     } finally {
-      connection.release();
+      MySqlLockstore.releaseConnection(connection);
     }
   }
 
@@ -189,7 +195,7 @@ class MySqlLockstore implements Lockstore {
     namespace: string;
     value: any;
   }): Promise<boolean> {
-    const sortedSerializedValue = JSON.stringify(sortKeys(value, { deep: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -200,7 +206,7 @@ class MySqlLockstore implements Lockstore {
     let isLocked = false;
 
     try {
-      const rows = await mysqlQuery(
+      const [ rows ] = await mysqlQuery(
         connection,
         `SELECT expiresAt
           FROM ${this.namespace}_locks
@@ -215,7 +221,7 @@ class MySqlLockstore implements Lockstore {
         isLocked = Date.now() < entry.expiresAt.getTime();
       }
     } finally {
-      connection.release();
+      MySqlLockstore.releaseConnection(connection);
     }
 
     return isLocked;
@@ -226,7 +232,7 @@ class MySqlLockstore implements Lockstore {
     value: any;
     expiresAt: number;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys(value, { deep: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -235,7 +241,7 @@ class MySqlLockstore implements Lockstore {
     const connection = await this.getDatabase();
 
     try {
-      const rows = await mysqlQuery(
+      const [ rows ] = await mysqlQuery(
         connection,
         `SELECT expiresAt, nonce
           FROM ${this.namespace}_locks
@@ -263,7 +269,7 @@ class MySqlLockstore implements Lockstore {
         [ new Date(expiresAt), namespace, sortedSerializedValue ]
       );
     } finally {
-      connection.release();
+      MySqlLockstore.releaseConnection(connection);
     }
   }
 
@@ -271,7 +277,7 @@ class MySqlLockstore implements Lockstore {
     namespace: string;
     value: any;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys(value, { deep: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -280,7 +286,7 @@ class MySqlLockstore implements Lockstore {
     const connection = await this.getDatabase();
 
     try {
-      const rows = await mysqlQuery(
+      const [ rows ] = await mysqlQuery(
         connection,
         `SELECT expiresAt, nonce
           FROM ${this.namespace}_locks
@@ -307,7 +313,7 @@ class MySqlLockstore implements Lockstore {
         [ namespace, sortedSerializedValue ]
       );
     } finally {
-      connection.release();
+      MySqlLockstore.releaseConnection(connection);
     }
   }
 

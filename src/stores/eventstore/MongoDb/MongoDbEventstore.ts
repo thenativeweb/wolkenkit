@@ -80,11 +80,11 @@ class MongoDbEventstore implements Eventstore {
 
     await collections.events.createIndexes([
       {
-        key: { 'aggregate.id': 1 },
+        key: { 'aggregateIdentifier.id': 1 },
         name: `${prefixedNamespace}_aggregateId`
       },
       {
-        key: { 'aggregate.id': 1, 'metadata.revision.aggregate': 1 },
+        key: { 'aggregateIdentifier.id': 1, 'metadata.revision.aggregate': 1 },
         name: `${prefixedNamespace}_aggregateId_revisionAggregate`,
         unique: true
       },
@@ -96,7 +96,7 @@ class MongoDbEventstore implements Eventstore {
     ]);
     await collections.snapshots.createIndexes([
       {
-        key: { aggregateId: 1 },
+        key: { 'aggregateIdentifier.id': 1 },
         unique: true
       }
     ]);
@@ -130,7 +130,7 @@ class MongoDbEventstore implements Eventstore {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<EventExternal | undefined> {
     const events = await this.collections.events.find({
-      'aggregate.id': aggregateIdentifier.id
+      'aggregateIdentifier.id': aggregateIdentifier.id
     }, {
       projection: { _id: 0 },
       sort: { 'metadata.revision.aggregate': -1 },
@@ -160,7 +160,7 @@ class MongoDbEventstore implements Eventstore {
     const passThrough = new PassThrough({ objectMode: true });
     const eventStream = this.collections.events.find({
       $and: [
-        { 'aggregate.id': aggregateIdentifier.id },
+        { 'aggregateIdentifier.id': aggregateIdentifier.id },
         { 'metadata.revision.aggregate': { $gte: fromRevision }},
         { 'metadata.revision.aggregate': { $lte: toRevision }}
       ]
@@ -329,7 +329,7 @@ class MongoDbEventstore implements Eventstore {
     }
 
     await this.collections.events.updateMany({
-      'aggregate.id': aggregateIdentifier.id,
+      'aggregateIdentifier.id': aggregateIdentifier.id,
       'metadata.revision.aggregate': {
         $gte: fromRevision,
         $lte: toRevision
@@ -345,7 +345,7 @@ class MongoDbEventstore implements Eventstore {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<Snapshot | undefined> {
     const snapshot = await this.collections.snapshots.findOne(
-      { aggregateId: aggregateIdentifier.id },
+      { aggregateIdentifier },
       { projection: { _id: false, revisionAggregate: true, state: true }}
     );
 
@@ -371,9 +371,9 @@ class MongoDbEventstore implements Eventstore {
     );
 
     await this.collections.snapshots.updateOne(
-      { aggregateId: snapshot.aggregateIdentifier.id },
+      { aggregateIdentifier: snapshot.aggregateIdentifier },
       { $set: {
-        aggregateId: snapshot.aggregateIdentifier.id,
+        aggregateIdentifier: snapshot.aggregateIdentifier,
         state: filteredState,
         revisionAggregate: snapshot.revision
       }},

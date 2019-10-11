@@ -2,8 +2,9 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import EventExternal from '../../../common/elements/EventExternal';
 import EventInternal from '../../../common/elements/EventInternal';
 import { Eventstore } from '../Eventstore';
+import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
 import mysql from 'mysql';
-import { query as mysqlQuery } from '../../utils/mysql/query';
+import { query as mysqlQuery } from '../../utils/mySql/query';
 import omitByDeep from '../../../common/utils/omitByDeep';
 import { PassThrough } from 'stream';
 import retry from 'async-retry';
@@ -24,6 +25,11 @@ class MariaDbEventstore implements Eventstore {
 
   protected static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
+  }
+
+  protected static releaseConnection (connection: mysql.PoolConnection): void {
+    (connection as any).removeListener('end', MariaDbEventstore.onUnexpectedClose);
+    connection.release();
   }
 
   protected async getDatabase (): Promise<mysql.PoolConnection> {
@@ -49,7 +55,7 @@ class MariaDbEventstore implements Eventstore {
     database: string;
     namespace: string;
   }): Promise<MariaDbEventstore> {
-    const prefixedNamespace = `store_${namespace.replace(/[\W_]/ug, '')}`;
+    const prefixedNamespace = `store_${limitAlphanumeric(namespace)}`;
 
     const pool = mysql.createPool({
       host: hostname,
@@ -115,7 +121,7 @@ class MariaDbEventstore implements Eventstore {
 
     await mysqlQuery(connection, query);
 
-    connection.release();
+    MariaDbEventstore.releaseConnection(connection);
 
     return eventstore;
   }
@@ -149,11 +155,11 @@ class MariaDbEventstore implements Eventstore {
           AND revisionAggregate >= ?
           AND revisionAggregate <= ?
         ORDER BY revisionAggregate`,
-    [ aggregateIdentifier, fromRevision, toRevision ]);
+    [ aggregateIdentifier.id, fromRevision, toRevision ]);
 
     const unsubscribe = function (): void {
       // Listeners should be removed here, but the mysql typing don't allow that.
-      connection.release();
+      MariaDbEventstore.releaseConnection(connection);
     };
 
     const onEnd = function (): void {
@@ -192,14 +198,14 @@ class MariaDbEventstore implements Eventstore {
     const connection = await this.getDatabase();
 
     try {
-      const rows: any[] = await mysqlQuery(
+      const [ rows ]: any[] = await mysqlQuery(
         connection,
         `SELECT event, revisionGlobal
           FROM ${this.namespace}_events
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revisionAggregate DESC
           LIMIT 1`,
-        [ aggregateIdentifier ]
+        [ aggregateIdentifier.id ]
       );
 
       if (rows.length === 0) {
@@ -214,7 +220,7 @@ class MariaDbEventstore implements Eventstore {
 
       return event;
     } finally {
-      connection.release();
+      MariaDbEventstore.releaseConnection(connection);
     }
   }
 
@@ -242,7 +248,7 @@ class MariaDbEventstore implements Eventstore {
 
     const unsubscribe = function (): void {
       // Listeners should be removed here, but the mysql typing don't allow that.
-      connection.release();
+      MariaDbEventstore.releaseConnection(connection);
     };
 
     const onEnd = function (): void {
@@ -277,14 +283,14 @@ class MariaDbEventstore implements Eventstore {
     const connection = await this.getDatabase();
 
     try {
-      const rows: any[] = await mysqlQuery(
+      const [ rows ]: any[] = await mysqlQuery(
         connection,
         `SELECT state, revisionAggregate
           FROM ${this.namespace}_snapshots
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revisionAggregate DESC
           LIMIT 1`,
-        [ aggregateIdentifier ]
+        [ aggregateIdentifier.id ]
       );
 
       if (rows.length === 0) {
@@ -297,7 +303,7 @@ class MariaDbEventstore implements Eventstore {
         state: JSON.parse(rows[0].state)
       };
     } finally {
-      connection.release();
+      MariaDbEventstore.releaseConnection(connection);
     }
   }
 
@@ -314,7 +320,7 @@ class MariaDbEventstore implements Eventstore {
 
     const unsubscribe = function (): void {
       // Listeners should be removed here, but the mysql typing don't allow that.
-      connection.release();
+      MariaDbEventstore.releaseConnection(connection);
     };
 
     const onEnd = function (): void {
@@ -366,10 +372,10 @@ class MariaDbEventstore implements Eventstore {
           WHERE aggregateId = UuidToBin(?)
             AND revisionAggregate >= ?
             AND revisionAggregate <= ?`,
-        [ aggregateIdentifier, fromRevision, toRevision ]
+        [ aggregateIdentifier.id, fromRevision, toRevision ]
       );
     } finally {
-      connection.release();
+      MariaDbEventstore.releaseConnection(connection);
     }
   }
 
@@ -392,7 +398,7 @@ class MariaDbEventstore implements Eventstore {
 
       placeholders.push('(UuidToBin(?), ?, ?, ?)');
       values.push(
-        uncommittedEvent.aggregateIdentifier,
+        uncommittedEvent.aggregateIdentifier.id,
         uncommittedEvent.metadata.revision.aggregate,
         JSON.stringify(uncommittedEvent.asExternal()),
         uncommittedEvent.metadata.isPublished
@@ -411,7 +417,7 @@ class MariaDbEventstore implements Eventstore {
     try {
       await mysqlQuery(connection, text, values);
 
-      const rows: any[] = await mysqlQuery(
+      const [ rows ]: any[] = await mysqlQuery(
         connection,
         'SELECT LAST_INSERT_ID() AS revisionGlobal;'
       );
@@ -433,7 +439,7 @@ class MariaDbEventstore implements Eventstore {
 
       throw ex;
     } finally {
-      connection.release();
+      MariaDbEventstore.releaseConnection(connection);
     }
 
     const indexForSnapshot = committedEvents.findIndex(
@@ -464,10 +470,10 @@ class MariaDbEventstore implements Eventstore {
         `INSERT IGNORE INTO ${this.namespace}_snapshots
           (aggregateId, revisionAggregate, state)
           VALUES (UuidToBin(?), ?, ?);`,
-        [ snapshot.aggregateIdentifier, snapshot.revision, JSON.stringify(filteredState) ]
+        [ snapshot.aggregateIdentifier.id, snapshot.revision, JSON.stringify(filteredState) ]
       );
     } finally {
-      connection.release();
+      MariaDbEventstore.releaseConnection(connection);
     }
   }
 }

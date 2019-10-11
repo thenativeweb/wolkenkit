@@ -1,8 +1,7 @@
-'use strict';
+import containers from '../shared/containers';
 
-const containers = require('../shared/containers');
-
-const post = async function () {
+/* eslint-disable @typescript-eslint/no-floating-promises */
+(async function (): Promise<void> {
   await Promise.all([
     containers.mariaDb.stop(),
     containers.minio.stop(),
@@ -12,6 +11,5 @@ const post = async function () {
     containers.redis.stop(),
     containers.sqlServer.stop()
   ]);
-};
-
-module.exports = post;
+})();
+/* eslint-enable @typescript-eslint/no-floating-promises */

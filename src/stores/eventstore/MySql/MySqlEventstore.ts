@@ -2,6 +2,7 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import EventExternal from '../../../common/elements/EventExternal';
 import EventInternal from '../../../common/elements/EventInternal';
 import { Eventstore } from '../Eventstore';
+import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
 import mysql from 'mysql';
 import { query as mysqlQuery } from '../../utils/mySql/query';
 import omitByDeep from '../../../common/utils/omitByDeep';
@@ -24,6 +25,11 @@ class MySqlEventstore implements Eventstore {
 
   protected static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
+  }
+
+  protected static releaseConnection (connection: mysql.PoolConnection): void {
+    (connection as any).removeListener('end', MySqlEventstore.onUnexpectedClose);
+    connection.release();
   }
 
   protected async getDatabase (): Promise<mysql.PoolConnection> {
@@ -49,7 +55,7 @@ class MySqlEventstore implements Eventstore {
     database: string;
     namespace: string;
   }): Promise<MySqlEventstore> {
-    const prefixedNamespace = `store_${namespace.replace(/[\W_]/ug, '')}`;
+    const prefixedNamespace = `store_${limitAlphanumeric(namespace)}`;
 
     const pool = mysql.createPool({
       host: hostname,
@@ -145,7 +151,7 @@ class MySqlEventstore implements Eventstore {
 
     await mysqlQuery(connection, query);
 
-    connection.release();
+    MySqlEventstore.releaseConnection(connection);
 
     return eventstore;
   }
@@ -179,12 +185,12 @@ class MySqlEventstore implements Eventstore {
           AND revisionAggregate >= ?
           AND revisionAggregate <= ?
         ORDER BY revisionAggregate`,
-    [ aggregateIdentifier, fromRevision, toRevision ]);
+    [ aggregateIdentifier.id, fromRevision, toRevision ]);
 
     const unsubscribe = function (): void {
       // The listeners on eventStream should be removed here, but the mysql
       // typings unfortunately don't allow that.
-      connection.release();
+      MySqlEventstore.releaseConnection(connection);
     };
 
     const onEnd = function (): void {
@@ -197,7 +203,7 @@ class MySqlEventstore implements Eventstore {
       passThrough.end();
     };
     const onResult = function (row: any): void {
-      let event = EventExternal.deserialize(row.event);
+      let event = EventExternal.deserialize(JSON.parse(row.event));
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(row.revisionGlobal)
@@ -230,14 +236,14 @@ class MySqlEventstore implements Eventstore {
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revisionAggregate DESC
           LIMIT 1`,
-        [ aggregateIdentifier ]
+        [ aggregateIdentifier.id ]
       );
 
       if (rows.length === 0) {
         return;
       }
 
-      let event = EventExternal.deserialize(rows[0].event);
+      let event = EventExternal.deserialize(JSON.parse(rows[0].event));
 
       event = event.setRevisionGlobal({
         revisionGlobal: Number(rows[0].revisionGlobal)
@@ -245,7 +251,7 @@ class MySqlEventstore implements Eventstore {
 
       return event;
     } finally {
-      connection.release();
+      MySqlEventstore.releaseConnection(connection);
     }
   }
 
@@ -273,27 +279,27 @@ class MySqlEventstore implements Eventstore {
 
     const unsubscribe = function (): void {
       // Listeners should be removed here, but the mysql typing don't allow that.
-      connection.release();
+      MySqlEventstore.releaseConnection(connection);
     };
 
     const onEnd = function (): void {
-            unsubscribe();
-            passThrough.end();
-          },
-          onError = function (err: mysql.MysqlError): void {
-            unsubscribe();
-            passThrough.emit('error', err);
-            passThrough.end();
-          },
-          onResult = function (row: any): void {
-            let event = EventExternal.deserialize(row.event);
+      unsubscribe();
+      passThrough.end();
+    };
+    const onError = function (err: mysql.MysqlError): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+    const onResult = function (row: any): void {
+      let event = EventExternal.deserialize(JSON.parse(row.event));
 
-            event = event.setRevisionGlobal({
-              revisionGlobal: Number(row.revisionGlobal)
-            });
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(row.revisionGlobal)
+      });
 
-            passThrough.write(event);
-          };
+      passThrough.write(event);
+    };
 
     eventStream.on('end', onEnd);
     eventStream.on('error', onError);
@@ -315,7 +321,7 @@ class MySqlEventstore implements Eventstore {
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revisionAggregate DESC
           LIMIT 1`,
-        [ aggregateIdentifier ]
+        [ aggregateIdentifier.id ]
       );
 
       if (rows.length === 0) {
@@ -325,10 +331,10 @@ class MySqlEventstore implements Eventstore {
       return {
         aggregateIdentifier,
         revision: rows[0].revisionAggregate,
-        state: rows[0].state
+        state: JSON.parse(rows[0].state)
       };
     } finally {
-      connection.release();
+      MySqlEventstore.releaseConnection(connection);
     }
   }
 
@@ -345,31 +351,31 @@ class MySqlEventstore implements Eventstore {
 
     const unsubscribe = function (): void {
       // Listeners should be removed here, but the mysql typing don't allow that.
-      connection.release();
+      MySqlEventstore.releaseConnection(connection);
     };
 
     const onEnd = function (): void {
-            unsubscribe();
-            passThrough.end();
-          },
-          onError = function (err: mysql.MysqlError): void {
-            unsubscribe();
-            passThrough.emit('error', err);
-            passThrough.end();
-          },
-          onResult = function (row: any): void {
-            let event = EventExternal.deserialize(row.event);
+      unsubscribe();
+      passThrough.end();
+    };
+    const onError = function (err: mysql.MysqlError): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+    const onResult = function (row: any): void {
+      let event = EventExternal.deserialize(JSON.parse(row.event));
 
-            event = event.setRevisionGlobal({
-              revisionGlobal: Number(row.revisionGlobal)
-            });
+      event = event.setRevisionGlobal({
+        revisionGlobal: Number(row.revisionGlobal)
+      });
 
-            if (row.isPublished) {
-              event = event.markAsPublished();
-            }
+      if (row.isPublished) {
+        event = event.markAsPublished();
+      }
 
-            passThrough.write(event);
-          };
+      passThrough.write(event);
+    };
 
     eventStream.on('end', onEnd);
     eventStream.on('error', onError);
@@ -397,10 +403,10 @@ class MySqlEventstore implements Eventstore {
           WHERE aggregateId = UuidToBin(?)
             AND revisionAggregate >= ?
             AND revisionAggregate <= ?`,
-        [ aggregateIdentifier, fromRevision, toRevision ]
+        [ aggregateIdentifier.id, fromRevision, toRevision ]
       );
     } finally {
-      connection.release();
+      MySqlEventstore.releaseConnection(connection);
     }
   }
 
@@ -423,7 +429,7 @@ class MySqlEventstore implements Eventstore {
 
       placeholders.push('(UuidToBin(?), ?, ?, ?)');
       values.push(
-        uncommittedEvent.aggregateIdentifier,
+        uncommittedEvent.aggregateIdentifier.id,
         uncommittedEvent.metadata.revision.aggregate,
         JSON.stringify(uncommittedEvent.asExternal()),
         uncommittedEvent.metadata.isPublished
@@ -442,7 +448,7 @@ class MySqlEventstore implements Eventstore {
     try {
       await mysqlQuery(connection, text, values);
 
-      const rows = await mysqlQuery(connection, 'SELECT LAST_INSERT_ID() AS revisionGlobal;');
+      const [ rows ] = await mysqlQuery(connection, 'SELECT LAST_INSERT_ID() AS revisionGlobal;');
 
       // We only get the ID of the first inserted row, but since it's all in a
       // single INSERT statement, the database guarantees that the global
@@ -461,7 +467,7 @@ class MySqlEventstore implements Eventstore {
 
       throw ex;
     } finally {
-      connection.release();
+      MySqlEventstore.releaseConnection(connection);
     }
 
     const indexForSnapshot = committedEvents.findIndex(
@@ -492,12 +498,12 @@ class MySqlEventstore implements Eventstore {
         `INSERT IGNORE INTO ${this.namespace}_snapshots
           (aggregateId, revisionAggregate, state)
           VALUES (UuidToBin(?), ?, ?);`,
-        [ snapshot.aggregateIdentifier, snapshot.revision, JSON.stringify(filteredState) ]
+        [ snapshot.aggregateIdentifier.id, snapshot.revision, JSON.stringify(filteredState) ]
       );
     } finally {
-      connection.release();
+      MySqlEventstore.releaseConnection(connection);
     }
   }
 }
 
-module.exports = MySqlEventstore;
+export default MySqlEventstore;

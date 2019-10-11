@@ -1,6 +1,6 @@
 import buntstift from 'buntstift';
+import { Client } from 'minio';
 import connectionOptions from './connectionOptions';
-import Minio from 'minio';
 import { oneLine } from 'common-tags';
 import retry from 'async-retry';
 import retryOptions from './retryOptions';
@@ -31,7 +31,7 @@ const minio = {
 
     try {
       await retry(async (): Promise<void> => {
-        const client = new Minio.Client({
+        const client = new Client({
           endPoint: hostname,
           port,
           useSSL: encryptConnection,

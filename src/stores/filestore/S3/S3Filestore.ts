@@ -1,13 +1,13 @@
+import { Client } from 'minio';
 import errors from '../../../common/errors';
 import { Filestore } from '../Filestore';
 import { Metadata } from '../Metadata';
-import Minio from 'minio';
 import { OwnedAuthorizationOptions } from '../../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
 import { Readable } from 'stream';
 import streamToString from 'stream-to-string';
 
 class S3Filestore implements Filestore {
-  protected client: Minio.Client;
+  protected client: Client;
 
   protected bucketName: string;
 
@@ -30,7 +30,7 @@ class S3Filestore implements Filestore {
     region: string;
     bucketName: string;
   }) {
-    this.client = new Minio.Client({
+    this.client = new Client({
       endPoint: hostname,
       port,
       accessKey,
@@ -52,12 +52,12 @@ class S3Filestore implements Filestore {
     region = 'eu-central-1a',
     bucketName
   }: {
-    hostname: string;
-    port: number;
-    encryptConnection: boolean;
+    hostname?: string;
+    port?: number;
+    encryptConnection?: boolean;
     accessKey: string;
     secretKey: string;
-    region: string;
+    region?: string;
     bucketName: string;
   }): Promise<S3Filestore> {
     const s3 = new S3Filestore({

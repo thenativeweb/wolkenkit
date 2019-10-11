@@ -55,7 +55,7 @@ class PostgresEventstore implements Eventstore {
     username: string;
     password: string;
     database: string;
-    encryptConnection: boolean;
+    encryptConnection?: boolean;
     namespace: string;
   }): Promise<PostgresEventstore> {
     const prefixedNamespace = `store_${limitAlphanumeric(namespace)}`;
@@ -95,7 +95,11 @@ class PostgresEventstore implements Eventstore {
       }
     });
 
-    const eventstore = new PostgresEventstore({ pool, namespace, disconnectWatcher });
+    const eventstore = new PostgresEventstore({
+      pool,
+      namespace: prefixedNamespace,
+      disconnectWatcher
+    });
 
     const connection = await PostgresEventstore.getDatabase(pool);
 
@@ -130,6 +134,12 @@ class PostgresEventstore implements Eventstore {
     }
 
     return eventstore;
+  }
+
+  public async destroy (): Promise<void> {
+    this.disconnectWatcher.removeListener('end', PostgresEventstore.onUnexpectedClose);
+    await this.disconnectWatcher.end();
+    await this.pool.end();
   }
 
   public async getLastEvent ({ aggregateIdentifier }: {
@@ -513,12 +523,6 @@ class PostgresEventstore implements Eventstore {
     eventStream.on('error', onError);
 
     return passThrough;
-  }
-
-  public async destroy (): Promise<void> {
-    this.disconnectWatcher.removeListener('end', PostgresEventstore.onUnexpectedClose);
-    await this.disconnectWatcher.end();
-    await this.pool.end();
   }
 }
 

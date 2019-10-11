@@ -2,7 +2,7 @@ import { Lock } from '../Lock';
 import { Lockstore } from '../Lockstore';
 import maxDate from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
-import sortKeys from 'sort-keys';
+import sortKeys from '../../../common/utils/sortKeys';
 
 class InMemoryLockstore implements Lockstore {
   protected maxLockSize: number;
@@ -28,7 +28,7 @@ class InMemoryLockstore implements Lockstore {
     namespace: string;
     value: any;
   }): string {
-    const serializedValue = JSON.stringify(sortKeys(value, { deep: true }));
+    const serializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (serializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -47,8 +47,8 @@ class InMemoryLockstore implements Lockstore {
   }: {
     namespace: string;
     value: any;
-    expiresAt: number;
-    onAcquired (): void | Promise<void>;
+    expiresAt?: number;
+    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
     const name = this.getLockName({ namespace, value });
 
