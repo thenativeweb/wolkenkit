@@ -3,7 +3,7 @@ import EventExternal from '../../../common/elements/EventExternal';
 import EventInternal from '../../../common/elements/EventInternal';
 import { Eventstore } from '../Eventstore';
 import mysql from 'mysql';
-import { query as mysqlQuery } from '../../utils/mysql/query';
+import { query as mysqlQuery } from '../../utils/mySql/query';
 import omitByDeep from '../../../common/utils/omitByDeep';
 import { PassThrough } from 'stream';
 import retry from 'async-retry';
