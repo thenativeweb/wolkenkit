@@ -1,12 +1,10 @@
 import { Lockstore } from '../Lockstore';
+import { mySql as maxDate } from '../../../common/utils/maxDate';
 import mysql from 'mysql';
 import { query as mysqlQuery } from '../../utils/mysql/query';
 import noop from 'lodash/noop';
 import retry from 'async-retry';
 import sortKeys from 'sort-keys';
-
-// Max MySQL timestamp is 9999-12-31 23:59:59.
-const maxDate = 253402297199000;
 
 class MySqlLockstore implements Lockstore {
   protected namespace: string;

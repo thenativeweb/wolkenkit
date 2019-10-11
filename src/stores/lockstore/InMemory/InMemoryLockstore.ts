@@ -1,11 +1,8 @@
 import { Lock } from '../Lock';
 import { Lockstore } from '../Lockstore';
+import maxDate from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
 import sortKeys from 'sort-keys';
-
-// This value represents the maximum possible date in JavaScript. For details
-// see: http://ecma-international.org/ecma-262/5.1/#sec-15.9.1.1
-const maxDate = 8_640_000_000_000_000;
 
 class InMemoryLockstore implements Lockstore {
   protected maxLockSize: number;

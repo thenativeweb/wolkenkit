@@ -9,8 +9,7 @@ const limitAlphanumeric = require('../../../common/utils/limitAlphanumeric'),
 const createPool = require('../../utils/sqlServer/createPool'),
       sortObjectKeys = require('../sortObjectKeys');
 
-// Max SqlServer datetime2 is 9999-12-31 23:59:59.
-const maxDate = 253402297199000;
+import { sqlServer as maxDate } from '../../../common/utils/maxDate';
 
 class Lockstore {
   static onUnexpectedClose () {

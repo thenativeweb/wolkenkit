@@ -1,12 +1,10 @@
 import { Lockstore } from '../Lockstore';
+import { mariaDb as maxDate } from '../../../common/utils/maxDate';
 import mysql from 'mysql';
 import { query as mysqlQuery } from '../../utils/mysql/query';
 import noop from 'lodash/noop';
 import retry from 'async-retry';
 import sortKeys from 'sort-keys';
-
-// Max MariaDB timestamp is 9999-12-31 23:59:59.
-const maxDate = 253402297199000;
 
 class MariaDbLockstore implements Lockstore {
   protected namespace: string;

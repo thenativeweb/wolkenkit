@@ -8,10 +8,7 @@ const limitAlphanumeric = require('../../../common/utils/limitAlphanumeric'),
       retry = require('async-retry');
 
 const sortObjectKeys = require('../sortObjectKeys');
-
-// This value represents the maximum possible date in JavaScript. For details
-// see: http://ecma-international.org/ecma-262/5.1/#sec-15.9.1.1
-const maxDate = 8640000000000000;
+import maxDate from '../../../common/utils/maxDate';
 
 class Lockstore {
   constructor () {
