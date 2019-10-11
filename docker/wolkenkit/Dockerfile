@@ -1,4 +1,4 @@
-FROM node:12.7.0-alpine
+FROM node:12.10.0-alpine
 LABEL maintainer="the native web <hello@thenativeweb.io>"
 
 RUN apk update && \
