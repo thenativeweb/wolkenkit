@@ -1,27 +1,24 @@
 #!/usr/bin/env node
 
-'use strict';
+import Application from '../../../../common/application/Application';
+import CommandHttp from '../../../../apis/command/Http';
+import express from 'express';
+import flaschenpost from 'flaschenpost';
+import getCorsOrigin from 'get-cors-origin';
+import getEnvironmentVariables from '../../../../common/utils/process/getEnvironmentVariables';
+import getHandleReceivedCommand from './getHandleReceivedCommand';
+import HealthHttp from '../../../../apis/health/Http';
+import http from 'http';
+import path from 'path';
+import registerExceptionHandler from '../../../../common/utils/process/registerExceptionHandler';
+import uuid from 'uuidv4';
 
-const http = require('http'),
-      path = require('path');
+const logger = flaschenpost.getLogger();
 
-const express = require('express'),
-      flaschenpost = require('flaschenpost'),
-      getCorsOrigin = require('get-cors-origin'),
-      uuid = require('uuidv4');
-
-const { Application } = require('../../../../common/application'),
-      getEnvironmentVariables = require('../../../../common/utils/process/getEnvironmentVariables'),
-      getHandleReceivedCommand = require('./getHandleReceivedCommand'),
-      { Http: CommandHttp } = require('../../../../apis/command'),
-      { Http: HealthHttp } = require('../../../../apis/health'),
-      registerExceptionHandler = require('../../../../common/utils/process/registerExceptionHandler');
-
-(async () => {
+try {
   registerExceptionHandler();
 
-  const logger = flaschenpost.getLogger(),
-        processId = uuid();
+  const processId = uuid();
 
   const environmentVariables = getEnvironmentVariables({
     APPLICATION_DIRECTORY: path.join(__dirname, '..', '..', '..', '..', 'test', 'shared', 'applications', 'base'),
@@ -55,17 +52,15 @@ const { Application } = require('../../../../common/application'),
 
   const handleReceivedCommand = getHandleReceivedCommand({ dispatcherServer });
 
-  const commandHttp = new CommandHttp();
-  const healthHttp = new HealthHttp();
-
-  await commandHttp.create({
+  const commandHttp = await CommandHttp.create({
     corsOrigin: getCorsOrigin(environmentVariables.COMMAND_CORS_ORIGIN),
     purpose: 'external',
     onReceiveCommand: handleReceivedCommand,
     application,
     identityProviders
   });
-  await healthHttp.create({
+
+  const healthHttp = await HealthHttp.create({
     corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN),
     processId
   });
@@ -77,9 +72,16 @@ const { Application } = require('../../../../common/application'),
 
   const server = http.createServer(api);
 
-  await new Promise(resolve => {
-    server.listen(environmentVariables.PORT, resolve);
+  await new Promise((resolve, reject): void => {
+    try {
+      server.listen(environmentVariables.PORT, resolve);
+    } catch (ex) {
+      reject(ex);
+    }
   });
 
   logger.info('Command server started.', { port: environmentVariables.PORT });
-})();
+} catch (ex) {
+  logger.fatal('An unexpected error occured.', { ex });
+  process.exit(1);
+}

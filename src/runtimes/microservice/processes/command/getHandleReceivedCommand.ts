@@ -1,9 +1,6 @@
-'use strict';
-
-const flaschenpost = require('flaschenpost');
-
-const errors = require('../../../../common/errors'),
-      { sendCommand } = require('../../../../communication/http');
+import errors from '../../../../common/errors';
+import flaschenpost from 'flaschenpost';
+import sendCommand from '../../../../communication/http/sendCommand';
 
 const logger = flaschenpost.getLogger();
 
@@ -30,10 +27,6 @@ const getHandleReceivedCommand = function ({ dispatcherServer }) {
   }
 
   return async function ({ command }) {
-    if (!command) {
-      throw new Error('Command is missing.');
-    }
-
     try {
       await sendCommand({
         command,
@@ -53,4 +46,4 @@ const getHandleReceivedCommand = function ({ dispatcherServer }) {
   };
 };
 
-module.exports = getHandleReceivedCommand;
+export default getHandleReceivedCommand;

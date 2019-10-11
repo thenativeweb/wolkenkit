@@ -130,7 +130,7 @@
     "flat": "4.1.0",
     "freeport-promise": "1.1.0",
     "fs-extra": "8.1.0",
-    "get-cors-origin": "1.0.0",
+    "get-cors-origin": "2.0.0",
     "humanize-string": "2.1.0",
     "is-ip": "3.1.0",
     "isolated": "2.0.1",
