@@ -47,8 +47,8 @@ class InMemoryLockstore implements Lockstore {
   }: {
     namespace: string;
     value: any;
-    expiresAt: number;
-    onAcquired (): void | Promise<void>;
+    expiresAt?: number;
+    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
     const name = this.getLockName({ namespace, value });
 

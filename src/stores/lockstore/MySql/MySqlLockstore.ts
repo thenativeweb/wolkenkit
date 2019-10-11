@@ -12,14 +12,14 @@ class MySqlLockstore implements Lockstore {
 
   protected pool: mysql.Pool;
 
-  protected nonce: null | number;
+  protected nonce: null | string;
 
   protected maxLockSize: number;
 
   protected constructor ({ namespace, pool, nonce, maxLockSize }: {
     namespace: string;
     pool: mysql.Pool;
-    nonce: null | number;
+    nonce: null | string;
     maxLockSize: number;
   }) {
     this.namespace = namespace;
@@ -63,8 +63,8 @@ class MySqlLockstore implements Lockstore {
     password: string;
     database: string;
     namespace: string;
-    nonce: null | number;
-    maxLockSize: number;
+    nonce?: null | string;
+    maxLockSize?: number;
   }): Promise<MySqlLockstore> {
     const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
@@ -119,8 +119,8 @@ class MySqlLockstore implements Lockstore {
   }: {
     namespace: string;
     value: any;
-    expiresAt: number;
-    onAcquired (): void | Promise<void>;
+    expiresAt?: number;
+    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
     const sortedSerializedValue = JSON.stringify(sortKeys(value, { deep: true }));
 
@@ -131,7 +131,7 @@ class MySqlLockstore implements Lockstore {
     const connection = await this.getDatabase();
 
     try {
-      const rows = await mysqlQuery(
+      const [ rows ] = await mysqlQuery(
         connection,
         `SELECT expiresAt
           FROM ${this.namespace}_locks
@@ -201,7 +201,7 @@ class MySqlLockstore implements Lockstore {
     let isLocked = false;
 
     try {
-      const rows = await mysqlQuery(
+      const [ rows ] = await mysqlQuery(
         connection,
         `SELECT expiresAt
           FROM ${this.namespace}_locks
@@ -236,7 +236,7 @@ class MySqlLockstore implements Lockstore {
     const connection = await this.getDatabase();
 
     try {
-      const rows = await mysqlQuery(
+      const [ rows ] = await mysqlQuery(
         connection,
         `SELECT expiresAt, nonce
           FROM ${this.namespace}_locks
@@ -281,7 +281,7 @@ class MySqlLockstore implements Lockstore {
     const connection = await this.getDatabase();
 
     try {
-      const rows = await mysqlQuery(
+      const [ rows ] = await mysqlQuery(
         connection,
         `SELECT expiresAt, nonce
           FROM ${this.namespace}_locks
