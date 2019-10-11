@@ -6,7 +6,7 @@ import uuid from 'uuidv4';
 
 suite('S3', (): void => {
   getTestsFor({
-    async filestoreFactory (): Promise<Filestore> {
+    async createFilestore (): Promise<Filestore> {
       return await S3Filestore.create({
         ...connectionOptions.minio,
         bucketName: uuid()

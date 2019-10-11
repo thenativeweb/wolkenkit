@@ -7,7 +7,7 @@ const maxLockSize = 2048;
 
 suite('MySql', (): void => {
   getTestsFor({
-    async lockstoreFactory ({ databaseNamespace, nonce }: {
+    async createLockstore ({ databaseNamespace, nonce }: {
       databaseNamespace: string;
       nonce?: string;
     }): Promise<Lockstore> {

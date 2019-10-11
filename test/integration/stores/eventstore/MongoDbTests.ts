@@ -5,7 +5,7 @@ import MongoDbEventstore from '../../../../src/stores/eventstore/MongoDb';
 
 suite('MongoDb', (): void => {
   getTestsFor({
-    async eventstoreFactory (namespace: string): Promise<Eventstore> {
+    async createEventstore (namespace: string): Promise<Eventstore> {
       return await MongoDbEventstore.create({
         ...connectionOptions.mongoDb,
         namespace

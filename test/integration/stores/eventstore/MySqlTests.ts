@@ -5,7 +5,7 @@ import MySqlEventstore from '../../../../src/stores/eventstore/MySql';
 
 suite('MySql', (): void => {
   getTestsFor({
-    async eventstoreFactory (namespace: string): Promise<Eventstore> {
+    async createEventstore (namespace: string): Promise<Eventstore> {
       return await MySqlEventstore.create({
         ...connectionOptions.mySql,
         namespace

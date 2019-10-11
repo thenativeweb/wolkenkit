@@ -5,7 +5,7 @@ import SqlServerEventstore from '../../../../src/stores/eventstore/SqlServer';
 
 suite('SqlServer', (): void => {
   getTestsFor({
-    async eventstoreFactory (namespace: string): Promise<Eventstore> {
+    async createEventstore (namespace: string): Promise<Eventstore> {
       return await SqlServerEventstore.create({
         ...connectionOptions.sqlServer,
         namespace

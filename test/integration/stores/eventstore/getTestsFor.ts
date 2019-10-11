@@ -5,8 +5,8 @@ import toArray from 'streamtoarray';
 import uuid from 'uuidv4';
 
 /* eslint-disable mocha/max-top-level-suites */
-const getTestsFor = function ({ eventstoreFactory }: {
-  eventstoreFactory (namespace: string): Promise<Eventstore>;
+const getTestsFor = function ({ createEventstore }: {
+  createEventstore (namespace: string): Promise<Eventstore>;
 }): void {
   let eventstore: Eventstore,
       namespace: string;
@@ -16,7 +16,7 @@ const getTestsFor = function ({ eventstoreFactory }: {
 
     setup(async (): Promise<void> => {
       namespace = uuid();
-      eventstore = await eventstoreFactory(namespace);
+      eventstore = await createEventstore(namespace);
     });
 
     teardown(async function (): Promise<void> {
@@ -113,7 +113,7 @@ const getTestsFor = function ({ eventstoreFactory }: {
 
     setup(async (): Promise<void> => {
       namespace = uuid();
-      eventstore = await eventstoreFactory(namespace);
+      eventstore = await createEventstore(namespace);
     });
 
     teardown(async function (): Promise<void> {
@@ -270,7 +270,7 @@ const getTestsFor = function ({ eventstoreFactory }: {
 
     setup(async (): Promise<void> => {
       namespace = uuid();
-      eventstore = await eventstoreFactory(namespace);
+      eventstore = await createEventstore(namespace);
     });
 
     teardown(async function (): Promise<void> {
@@ -335,7 +335,7 @@ const getTestsFor = function ({ eventstoreFactory }: {
 
     setup(async (): Promise<void> => {
       namespace = uuid();
-      eventstore = await eventstoreFactory(namespace);
+      eventstore = await createEventstore(namespace);
     });
 
     teardown(async function (): Promise<void> {
@@ -867,7 +867,7 @@ const getTestsFor = function ({ eventstoreFactory }: {
 
     setup(async (): Promise<void> => {
       namespace = uuid();
-      eventstore = await eventstoreFactory(namespace);
+      eventstore = await createEventstore(namespace);
     });
 
     teardown(async function (): Promise<void> {
@@ -942,7 +942,7 @@ const getTestsFor = function ({ eventstoreFactory }: {
 
     setup(async (): Promise<void> => {
       namespace = uuid();
-      eventstore = await eventstoreFactory(namespace);
+      eventstore = await createEventstore(namespace);
     });
 
     teardown(async function (): Promise<void> {
@@ -1046,7 +1046,7 @@ const getTestsFor = function ({ eventstoreFactory }: {
 
     setup(async (): Promise<void> => {
       namespace = uuid();
-      eventstore = await eventstoreFactory(namespace);
+      eventstore = await createEventstore(namespace);
     });
 
     teardown(async function (): Promise<void> {
@@ -1161,7 +1161,7 @@ const getTestsFor = function ({ eventstoreFactory }: {
 
     setup(async (): Promise<void> => {
       namespace = uuid();
-      eventstore = await eventstoreFactory(namespace);
+      eventstore = await createEventstore(namespace);
     });
 
     teardown(async function (): Promise<void> {

@@ -4,7 +4,7 @@ import InMemoryEventstore from '../../../../src/stores/eventstore/InMemory';
 
 suite('InMemory', (): void => {
   getTestsFor({
-    async eventstoreFactory (): Promise<Eventstore> {
+    async createEventstore (): Promise<Eventstore> {
       return await InMemoryEventstore.create();
     }
   });

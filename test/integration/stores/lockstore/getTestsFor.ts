@@ -18,8 +18,8 @@ const oneSecondAgo = function (): number {
 };
 
 /* eslint-disable mocha/max-top-level-suites */
-const getTestsFor = function ({ lockstoreFactory, inMemory = false, maxLockSize }: {
-  lockstoreFactory (args: { databaseNamespace: string; nonce?: string }): Promise<Lockstore>;
+const getTestsFor = function ({ createLockstore, inMemory = false, maxLockSize }: {
+  createLockstore (args: { databaseNamespace: string; nonce?: string }): Promise<Lockstore>;
   inMemory?: boolean;
   maxLockSize: number;
 }): void {
@@ -31,7 +31,7 @@ const getTestsFor = function ({ lockstoreFactory, inMemory = false, maxLockSize 
   setup(async (): Promise<void> => {
     databaseNamespace = uuid();
     namespace = uuid();
-    lockstore = await lockstoreFactory({ databaseNamespace });
+    lockstore = await createLockstore({ databaseNamespace });
     value = { foo: 'bar', baz: 'bam' };
   });
 
@@ -219,8 +219,8 @@ const getTestsFor = function ({ lockstoreFactory, inMemory = false, maxLockSize 
 
     if (!inMemory) {
       test('throws an error if the lock does not belong to the store.', async (): Promise<void> => {
-        lockstore = await lockstoreFactory({ databaseNamespace, nonce: 'nonce1' });
-        const otherLockstore = await lockstoreFactory({ databaseNamespace, nonce: 'nonce2' });
+        lockstore = await createLockstore({ databaseNamespace, nonce: 'nonce1' });
+        const otherLockstore = await createLockstore({ databaseNamespace, nonce: 'nonce2' });
 
         await lockstore.acquireLock({ namespace, value, expiresAt: inMilliseconds({ ms: 100 }) });
 
@@ -255,8 +255,8 @@ const getTestsFor = function ({ lockstoreFactory, inMemory = false, maxLockSize 
 
     if (!inMemory) {
       test('throws an error if the lock does not belong to the store.', async (): Promise<void> => {
-        lockstore = await lockstoreFactory({ databaseNamespace, nonce: 'nonce1' });
-        const otherLockstore = await lockstoreFactory({ databaseNamespace, nonce: 'nonce2' });
+        lockstore = await createLockstore({ databaseNamespace, nonce: 'nonce1' });
+        const otherLockstore = await createLockstore({ databaseNamespace, nonce: 'nonce2' });
 
         await lockstore.acquireLock({ namespace, value });
 

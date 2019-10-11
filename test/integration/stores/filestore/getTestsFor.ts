@@ -9,8 +9,8 @@ import streamToString from 'stream-to-string';
 import uuid from 'uuidv4';
 
 /* eslint-disable mocha/max-top-level-suites */
-const getTestsFor = function ({ filestoreFactory }: {
-  filestoreFactory (): Promise<Filestore>;
+const getTestsFor = function ({ createFilestore }: {
+  createFilestore (): Promise<Filestore>;
 }): void {
   const isAuthorized: OwnedAuthorizationOptions = {
     commands: {
@@ -44,7 +44,7 @@ const getTestsFor = function ({ filestoreFactory }: {
 
   suite('addFile', (): void => {
     setup(async (): Promise<void> => {
-      filestore = await filestoreFactory();
+      filestore = await createFilestore();
     });
 
     test('does not throw an error.', async (): Promise<void> => {
@@ -64,7 +64,7 @@ const getTestsFor = function ({ filestoreFactory }: {
 
   suite('getMetadata', (): void => {
     setup(async (): Promise<void> => {
-      filestore = await filestoreFactory();
+      filestore = await createFilestore();
     });
 
     test('throws an error if the id does not exist.', async (): Promise<void> => {
@@ -84,7 +84,7 @@ const getTestsFor = function ({ filestoreFactory }: {
 
   suite('getFile', (): void => {
     setup(async (): Promise<void> => {
-      filestore = await filestoreFactory();
+      filestore = await createFilestore();
     });
 
     test('throws an error if the id does not exist.', async (): Promise<void> => {
@@ -105,7 +105,7 @@ const getTestsFor = function ({ filestoreFactory }: {
 
   suite('removeFile', (): void => {
     setup(async (): Promise<void> => {
-      filestore = await filestoreFactory();
+      filestore = await createFilestore();
     });
 
     test('throws an error if the id does not exist.', async (): Promise<void> => {
