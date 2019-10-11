@@ -1,23 +1,31 @@
-'use strict';
-
-const noop = require('lodash/noop');
-
-const limitAlphanumeric = require('../../../common/utils/limitAlphanumeric'),
-      pg = require('pg'),
-      retry = require('async-retry');
+import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
+import { Lockstore } from '../Lockstore';
+import { noop } from 'lodash';
+import pg from 'pg';
+import retry from 'async-retry';
 
 // This value represents the maximum possible date in JavaScript. For details
 // see: http://ecma-international.org/ecma-262/5.1/#sec-15.9.1.1
-const maxDate = 8640000000000000;
+const maxDate = 8_640_000_000_000_000;
 
-class Lockstore {
-  static onUnexpectedClose () {
+class PostgresLockstore implements Lockstore {
+  protected namespace: string;
+
+  protected pool: pg.Pool;
+
+  protected nonce: string | null;
+
+  protected maxLockSize: number;
+
+  protected disconnectWatcher: pg.Client;
+
+  protected static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  async getDatabase () {
-    const database = await retry(async () => {
-      const connection = await this.pool.connect();
+  protected static async getDatabase (pool: pg.Pool): Promise<pg.PoolClient> {
+    const database = await retry(async (): Promise<pg.PoolClient> => {
+      const connection = await pool.connect();
 
       return connection;
     });
@@ -25,7 +33,21 @@ class Lockstore {
     return database;
   }
 
-  async create ({
+  protected constructor ({ namespace, pool, nonce, maxLockSize, disconnectWatcher }: {
+    namespace: string;
+    pool: pg.Pool;
+    nonce: string | null;
+    maxLockSize: number;
+    disconnectWatcher: pg.Client;
+  }) {
+    this.namespace = namespace;
+    this.pool = pool;
+    this.nonce = nonce;
+    this.maxLockSize = maxLockSize;
+    this.disconnectWatcher = disconnectWatcher;
+  }
+
+  public static async create ({
     hostname,
     port,
     username,
@@ -35,31 +57,20 @@ class Lockstore {
     namespace,
     nonce = null,
     maxLockSize = 2048
-  }) {
-    if (!hostname) {
-      throw new Error('Hostname is missing.');
-    }
-    if (!port) {
-      throw new Error('Port is missing.');
-    }
-    if (!username) {
-      throw new Error('Username is missing.');
-    }
-    if (!password) {
-      throw new Error('Password is missing.');
-    }
-    if (!database) {
-      throw new Error('Database is missing.');
-    }
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
+  }: {
+    hostname: string;
+    port: number;
+    username: string;
+    password: string;
+    database: string;
+    encryptConnection: boolean;
+    namespace: string;
+    nonce: string | null;
+    maxLockSize: number;
+  }): Promise<PostgresLockstore> {
+    const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
-    this.nonce = nonce;
-    this.maxLockSize = maxLockSize;
-    this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
-
-    this.pool = new pg.Pool({
+    const pool = new pg.Pool({
       host: hostname,
       port,
       user: username,
@@ -68,13 +79,11 @@ class Lockstore {
       ssl: encryptConnection
     });
 
-    this.pool.on('error', err => {
+    pool.on('error', (err: Error): never => {
       throw err;
     });
 
-    const connection = await this.getDatabase();
-
-    this.disconnectWatcher = new pg.Client({
+    const disconnectWatcher = new pg.Client({
       host: hostname,
       port,
       user: username,
@@ -83,25 +92,39 @@ class Lockstore {
       ssl: encryptConnection
     });
 
-    this.disconnectWatcher.on('end', Lockstore.onUnexpectedClose);
-    this.disconnectWatcher.on('error', err => {
+    disconnectWatcher.on('end', PostgresLockstore.onUnexpectedClose);
+    disconnectWatcher.on('error', (err: Error): never => {
       throw err;
     });
 
-    await new Promise(resolve => {
-      this.disconnectWatcher.connect(resolve);
+    await new Promise((resolve, reject): void => {
+      try {
+        disconnectWatcher.connect(resolve);
+      } catch (ex) {
+        reject(ex);
+      }
     });
+
+    const lockstore = new PostgresLockstore({
+      namespace: prefixedNamespace,
+      pool,
+      nonce,
+      maxLockSize,
+      disconnectWatcher
+    });
+
+    const connection = await PostgresLockstore.getDatabase(pool);
 
     try {
-      await retry(async () => {
+      await retry(async (): Promise<void> => {
         await connection.query(`
-          CREATE TABLE IF NOT EXISTS "${this.namespace}_locks" (
+          CREATE TABLE IF NOT EXISTS "${prefixedNamespace}_locks" (
             "namespace" VARCHAR(64) NOT NULL,
             "value" jsonb NOT NULL,
             "expiresAt" timestamp NOT NULL,
             "nonce" VARCHAR(64),
 
-            CONSTRAINT "${this.namespace}_locks_pk" PRIMARY KEY("namespace", "value")
+            CONSTRAINT "${prefixedNamespace}_locks_pk" PRIMARY KEY("namespace", "value")
           );
         `);
       }, {
@@ -112,28 +135,28 @@ class Lockstore {
     } finally {
       connection.release();
     }
+
+    return lockstore;
   }
 
-  async acquireLock ({
+  public async acquireLock ({
     namespace,
     value,
     expiresAt = maxDate,
     onAcquired = noop
-  }) {
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-    if (!value) {
-      throw new Error('Value is missing.');
-    }
-
+  }: {
+    namespace: string;
+    value: any;
+    expiresAt: number;
+    onAcquired (): void | Promise<void>;
+  }): Promise<void> {
     const serializedValue = JSON.stringify(value);
 
     if (serializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
     }
 
-    const connection = await this.getDatabase();
+    const connection = await PostgresLockstore.getDatabase(this.pool);
 
     try {
       const result = await connection.query({
@@ -165,12 +188,12 @@ class Lockstore {
 
       if (newEntry) {
         query = `
-        INSERT INTO "${this.namespace}_locks" ("namespace", "value", "expiresAt", "nonce") 
+        INSERT INTO "${this.namespace}_locks" ("namespace", "value", "expiresAt", "nonce")
         VALUES ($1, $2, $3, $4)
         `;
       } else {
         query = `
-        UPDATE "${this.namespace}_locks" 
+        UPDATE "${this.namespace}_locks"
            SET "expiresAt" = $3,
                "nonce" = $4
          WHERE "namespace" = $1
@@ -196,21 +219,17 @@ class Lockstore {
     }
   }
 
-  async isLocked ({ namespace, value }) {
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-    if (!value) {
-      throw new Error('Value is missing.');
-    }
-
+  public async isLocked ({ namespace, value }: {
+    namespace: string;
+    value: any;
+  }): Promise<boolean> {
     const serializedValue = JSON.stringify(value);
 
     if (serializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
     }
 
-    const connection = await this.getDatabase();
+    const connection = await PostgresLockstore.getDatabase(this.pool);
 
     let isLocked = false;
 
@@ -238,24 +257,18 @@ class Lockstore {
     return isLocked;
   }
 
-  async renewLock ({ namespace, value, expiresAt }) {
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-    if (!value) {
-      throw new Error('Value is missing.');
-    }
-    if (!expiresAt) {
-      throw new Error('Expires at is missing.');
-    }
-
+  public async renewLock ({ namespace, value, expiresAt }: {
+    namespace: string;
+    value: any;
+    expiresAt: number;
+  }): Promise<void> {
     const serializedValue = JSON.stringify(value);
 
     if (serializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
     }
 
-    const connection = await this.getDatabase();
+    const connection = await PostgresLockstore.getDatabase(this.pool);
 
     try {
       const result = await connection.query({
@@ -282,7 +295,7 @@ class Lockstore {
       await connection.query({
         name: 'renew lock',
         text: `
-        UPDATE "${this.namespace}_locks" 
+        UPDATE "${this.namespace}_locks"
            SET "expiresAt" = $3
          WHERE "namespace" = $1
            AND "value" = $2
@@ -294,21 +307,17 @@ class Lockstore {
     }
   }
 
-  async releaseLock ({ namespace, value }) {
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-    if (!value) {
-      throw new Error('Value is missing.');
-    }
-
+  public async releaseLock ({ namespace, value }: {
+    namespace: string;
+    value: any;
+  }): Promise<void> {
     const serializedValue = JSON.stringify(value);
 
     if (serializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
     }
 
-    const connection = await this.getDatabase();
+    const connection = await PostgresLockstore.getDatabase(this.pool);
 
     try {
       const result = await connection.query({
@@ -346,15 +355,11 @@ class Lockstore {
     }
   }
 
-  async destroy () {
-    if (this.disconnectWatcher) {
-      this.disconnectWatcher.removeListener('end', Lockstore.onUnexpectedClose);
-      await this.disconnectWatcher.end();
-    }
-    if (this.pool) {
-      await this.pool.end();
-    }
+  public async destroy (): Promise<void> {
+    this.disconnectWatcher.removeListener('end', PostgresLockstore.onUnexpectedClose);
+    await this.disconnectWatcher.end();
+    await this.pool.end();
   }
 }
 
-module.exports = Lockstore;
+export default PostgresLockstore;

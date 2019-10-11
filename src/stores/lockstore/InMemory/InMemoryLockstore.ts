@@ -129,4 +129,4 @@ class InMemoryLockstore implements Lockstore {
   }
 }
 
-module.exports = InMemoryLockstore;
+export default InMemoryLockstore;

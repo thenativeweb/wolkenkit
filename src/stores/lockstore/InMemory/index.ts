@@ -1,3 +1,3 @@
 import InMemoryLockstore from './InMemoryLockstore';
 
-module.exports = InMemoryLockstore;
+export default InMemoryLockstore;
