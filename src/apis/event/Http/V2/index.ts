@@ -95,7 +95,7 @@ class V2 {
     data: object;
   }): void {
     if (this.purpose !== 'external') {
-      throw new Error('Invalid operation.');
+      throw new errors.InvalidOperation();
     }
 
     const connection = this.connectionsForGetEvents[connectionId];
@@ -131,7 +131,7 @@ class V2 {
     event: EventInternal;
   }): Promise<EventInternal | undefined> {
     if (this.purpose !== 'external') {
-      throw new Error('Invalid operation.');
+      throw new errors.InvalidOperation();
     }
 
     const connection = this.connectionsForGetEvents[connectionId];
@@ -252,7 +252,7 @@ class V2 {
     event: EventInternal;
   }): Promise<void> {
     if (this.purpose !== 'external') {
-      throw new Error('Invalid operation.');
+      throw new errors.InvalidOperation();
     }
 
     for (const connectionId of Object.keys(this.connectionsForGetEvents)) {

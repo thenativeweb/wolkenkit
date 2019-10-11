@@ -102,7 +102,7 @@ const container = function ({
       break;
     }
     default: {
-      throw new Error('Invalid operation.');
+      throw new errors.InvalidOperation();
     }
   }
 
