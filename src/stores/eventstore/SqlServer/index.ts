@@ -1,3 +1,3 @@
 import SqlServerEventstore from './SqlServerEventstore';
 
-module.exports = SqlServerEventstore;
+export default SqlServerEventstore;

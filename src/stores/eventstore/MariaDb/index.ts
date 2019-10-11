@@ -1,3 +1,3 @@
-import MariaDbEventstore from './MariaDbEventStore';
+import MariaDbEventstore from './MariaDbEventstore';
 
 export default MariaDbEventstore;

@@ -185,7 +185,7 @@ class InMemoryEventstore implements Eventstore {
     snapshot: Snapshot;
   }): Promise<void> {
     const filteredState = omitByDeep(snapshot.state, (value): boolean => value === undefined);
-    const filteredSnapshot = { ...snapshot, astate: filteredState };
+    const filteredSnapshot = { ...snapshot, state: filteredState };
 
     this.storeSnapshotAtDatabase(filteredSnapshot);
   }
@@ -196,7 +196,7 @@ class InMemoryEventstore implements Eventstore {
   }: {
     fromRevisionGlobal?: number;
     toRevisionGlobal?: number;
-  } = {}): Promise<PassThrough> {
+  }): Promise<PassThrough> {
     if (fromRevisionGlobal > toRevisionGlobal) {
       throw new Error('From revision global is greater than to revision global.');
     }
