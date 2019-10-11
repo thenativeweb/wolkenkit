@@ -180,7 +180,7 @@ class MySqlEventstore implements Eventstore {
           AND revisionAggregate >= ?
           AND revisionAggregate <= ?
         ORDER BY revisionAggregate`,
-    [ aggregateIdentifier, fromRevision, toRevision ]);
+    [ aggregateIdentifier.id, fromRevision, toRevision ]);
 
     const unsubscribe = function (): void {
       // The listeners on eventStream should be removed here, but the mysql
@@ -398,7 +398,7 @@ class MySqlEventstore implements Eventstore {
           WHERE aggregateId = UuidToBin(?)
             AND revisionAggregate >= ?
             AND revisionAggregate <= ?`,
-        [ aggregateIdentifier, fromRevision, toRevision ]
+        [ aggregateIdentifier.id, fromRevision, toRevision ]
       );
     } finally {
       connection.release();

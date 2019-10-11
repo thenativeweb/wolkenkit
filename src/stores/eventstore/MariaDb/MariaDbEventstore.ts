@@ -200,7 +200,7 @@ class MariaDbEventstore implements Eventstore {
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revisionAggregate DESC
           LIMIT 1`,
-        [ aggregateIdentifier ]
+        [ aggregateIdentifier.id ]
       );
 
       if (rows.length === 0) {
@@ -285,7 +285,7 @@ class MariaDbEventstore implements Eventstore {
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revisionAggregate DESC
           LIMIT 1`,
-        [ aggregateIdentifier ]
+        [ aggregateIdentifier.id ]
       );
 
       if (rows.length === 0) {
@@ -367,7 +367,7 @@ class MariaDbEventstore implements Eventstore {
           WHERE aggregateId = UuidToBin(?)
             AND revisionAggregate >= ?
             AND revisionAggregate <= ?`,
-        [ aggregateIdentifier, fromRevision, toRevision ]
+        [ aggregateIdentifier.id, fromRevision, toRevision ]
       );
     } finally {
       connection.release();
@@ -465,7 +465,7 @@ class MariaDbEventstore implements Eventstore {
         `INSERT IGNORE INTO ${this.namespace}_snapshots
           (aggregateId, revisionAggregate, state)
           VALUES (UuidToBin(?), ?, ?);`,
-        [ snapshot.aggregateIdentifier, snapshot.revision, JSON.stringify(filteredState) ]
+        [ snapshot.aggregateIdentifier.id, snapshot.revision, JSON.stringify(filteredState) ]
       );
     } finally {
       connection.release();
