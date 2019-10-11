@@ -1,3 +1,4 @@
+import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
 import { Lockstore } from '../Lockstore';
 import { mariaDb as maxDate } from '../../../common/utils/maxDate';
 import mysql from 'mysql';
@@ -65,7 +66,7 @@ class MariaDbLockstore implements Lockstore {
     nonce: null | number;
     maxLockSize: number;
   }): Promise<MariaDbLockstore> {
-    const prefixedNamespace = `lockstore_${namespace.replace(/[\W_]/ug, '')}`;
+    const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     const pool = mysql.createPool({
       host: hostname,

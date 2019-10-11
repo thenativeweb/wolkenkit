@@ -1,3 +1,4 @@
+import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
 import { Lockstore } from '../Lockstore';
 import { mySql as maxDate } from '../../../common/utils/maxDate';
 import mysql from 'mysql';
@@ -27,7 +28,7 @@ class MySqlLockstore implements Lockstore {
     this.maxLockSize = maxLockSize;
   }
 
-  public static onUnexpectedClose (): never {
+  protected static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
   }
 
@@ -65,7 +66,7 @@ class MySqlLockstore implements Lockstore {
     nonce: null | number;
     maxLockSize: number;
   }): Promise<MySqlLockstore> {
-    const prefixedNamespace = `lockstore_${namespace.replace(/[\W_]/ug, '')}`;
+    const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     const pool = mysql.createPool({
       host: hostname,

@@ -2,6 +2,7 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import EventExternal from '../../../common/elements/EventExternal';
 import EventInternal from '../../../common/elements/EventInternal';
 import { Eventstore } from '../Eventstore';
+import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
 import mysql from 'mysql';
 import { query as mysqlQuery } from '../../utils/mySql/query';
 import omitByDeep from '../../../common/utils/omitByDeep';
@@ -49,7 +50,7 @@ class MySqlEventstore implements Eventstore {
     database: string;
     namespace: string;
   }): Promise<MySqlEventstore> {
-    const prefixedNamespace = `store_${namespace.replace(/[\W_]/ug, '')}`;
+    const prefixedNamespace = `store_${limitAlphanumeric(namespace)}`;
 
     const pool = mysql.createPool({
       host: hostname,
