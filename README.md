@@ -6,7 +6,15 @@ wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and
 
 > wolkenkit is a CQRS and event-sourcing framework for JavaScript and Node.js. wolkenkit uses an event-driven model based on DDD to setup an API for your business in no time. This way, wolkenkit bridges the language gap between your domain and technology.
 
-[![CircleCI](https://circleci.com/gh/thenativeweb/wolkenkit.svg?style=svg)](https://circleci.com/gh/thenativeweb/wolkenkit)
+## Status
+
+| Category         | Status                                                                                                                                         |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Version          | [![npm](https://img.shields.io/npm/v/wolkenkit)](https://www.npmjs.com/package/wolkenkit)                                                      |
+| Dependencies     | ![David](https://img.shields.io/david/thenativeweb/wolkenkit)                                                                                  |
+| Dev dependencies | ![David](https://img.shields.io/david/dev/thenativeweb/wolkenkit)                                                                              |
+| Build            | [![CircleCI](https://img.shields.io/circleci/build/github/thenativeweb/wolkenkit)](https://circleci.com/gh/thenativeweb/wolkenkit/tree/master) |
+| License          | ![GitHub](https://img.shields.io/github/license/thenativeweb/wolkenkit)                                                                        |
 
 ## Table of contents
 
@@ -103,13 +111,3 @@ If you get the error _Error loading extension section V3_ca_ when running the st
 
     [ v3_ca ]
     basicConstraints = critical,CA:TRUE
-
-## License
-
-Copyright (c) 2014-2019 the native web.
-
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License along with this program. If not, see [GNU Licenses](http://www.gnu.org/licenses/).
