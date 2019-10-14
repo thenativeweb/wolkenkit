@@ -1,11 +1,4 @@
 export const connectionOptions = {
-  consul: {
-    hostname: 'localhost',
-    portApi: 8500,
-    portDns: 8600,
-    encryptConnection: false,
-    externalDns: '8.8.8.8'
-  },
   mariaDb: {
     hostname: 'localhost',
     port: 3306,
