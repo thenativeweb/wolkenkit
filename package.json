@@ -186,7 +186,6 @@
     "@types/sinon": "7.5.0",
     "@types/supertest": "2.0.8",
     "@types/tedious": "4.0.0",
-    "array-join-conjunction": "1.0.0",
     "assertthat": "4.0.2",
     "async-wait-until": "1.2.4",
     "dir-compare": "1.7.3",

@@ -1,6 +1,6 @@
 'use strict';
 
-const arrayJoinConjunction = require('array-join-conjunction'),
+const arrayToSentence = require('array-to-sentence'),
       buntstift = require('buntstift'),
       Twitter = require('twitter');
 
@@ -57,7 +57,7 @@ const announceOnTwitter = async function ({ mode, versions, twitterHandles, twit
   await twitter.post('statuses/update', { status: `Yay, version ${versions.wolkenkit} of #wolkenkit, our #cqrs and #eventsourcing framework for #javascript and #nodejs, has been released 🦄! https://docs.wolkenkit.io/${versions.wolkenkit}/getting-started/updating-wolkenkit/changelog/` });
 
   if (twitterHandles.length > 0) {
-    const community = arrayJoinConjunction(twitterHandles);
+    const community = arrayToSentence(twitterHandles);
 
     await twitter.post('statuses/update', { status: `Special thanks to ${community} for your help to make #wolkenkit ${versions.wolkenkit} happen ❤️🎉🎊🦄🌈` });
   }
