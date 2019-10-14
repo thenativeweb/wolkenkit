@@ -12,7 +12,7 @@ const getTestsFor = function ({ createEventstore }: {
       namespace: string;
 
   suite('getLastEvent', function (): void {
-    this.timeout(5 * 1000);
+    this.timeout(20 * 1000);
 
     setup(async (): Promise<void> => {
       namespace = uuid();
