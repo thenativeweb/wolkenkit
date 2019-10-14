@@ -2,11 +2,11 @@
 
 const assert = require('assertthat').default,
       axios = require('axios'),
-      freeport = require('freeport-promise'),
       until = require('async-wait-until'),
       uuid = require('uuidv4');
 
 const { CommandInternal } = require('../../../../../common/elements'),
+      getAvailablePort = require('../../../../../common/utils/network/getAvailablePort'),
       startCatchAllServer = require('../../../../shared/runtime/startCatchAllServer'),
       startProcess = require('../../../../shared/runtime/startProcess');
 
@@ -20,7 +20,7 @@ suite('dispatcher', function () {
   setup(async () => {
     commandsReceivedByDomainServer = [];
 
-    const portDomainServer = await freeport();
+    const portDomainServer = await getAvailablePort();
 
     await startCatchAllServer({
       port: portDomainServer,
@@ -30,7 +30,7 @@ suite('dispatcher', function () {
       }
     });
 
-    port = await freeport();
+    port = await getAvailablePort();
 
     stopProcess = await startProcess({
       runtime: 'microservice',

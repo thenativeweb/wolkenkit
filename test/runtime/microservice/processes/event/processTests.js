@@ -2,11 +2,11 @@
 
 const assert = require('assertthat').default,
       axios = require('axios'),
-      freeport = require('freeport-promise'),
       uuid = require('uuidv4');
 
 const asJsonStream = require('../../../../shared/http/asJsonStream'),
       { EventInternal } = require('../../../../../common/elements'),
+      getAvailablePort = require('../../../../../common/utils/network/getAvailablePort'),
       startProcess = require('../../../../shared/runtime/startProcess');
 
 suite('event', function () {
@@ -17,8 +17,8 @@ suite('event', function () {
       stopProcess;
 
   setup(async () => {
-    portExternal = await freeport();
-    portInternal = await freeport();
+    portExternal = await getAvailablePort();
+    portInternal = await getAvailablePort();
 
     stopProcess = await startProcess({
       runtime: 'microservice',

@@ -2,10 +2,10 @@
 
 const assert = require('assertthat').default,
       axios = require('axios'),
-      freeport = require('freeport-promise'),
       uuid = require('uuidv4');
 
 const { CommandExternal } = require('../../../../../common/elements'),
+      getAvailablePort = require('../../../../../common/utils/network/getAvailablePort'),
       startCatchAllServer = require('../../../../shared/runtime/startCatchAllServer'),
       startProcess = require('../../../../shared/runtime/startProcess');
 
@@ -17,7 +17,7 @@ suite('command', function () {
       stopProcess;
 
   setup(async () => {
-    const portDispatcherServer = await freeport();
+    const portDispatcherServer = await getAvailablePort();
 
     await startCatchAllServer({
       port: portDispatcherServer,
@@ -27,7 +27,7 @@ suite('command', function () {
       }
     });
 
-    port = await freeport();
+    port = await getAvailablePort();
 
     stopProcess = await startProcess({
       runtime: 'microservice',
