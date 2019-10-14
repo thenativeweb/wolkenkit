@@ -1,12 +1,13 @@
 import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
+import { Lockstore } from '../Lockstore';
 import maxDate from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
 import { parse } from 'url';
 import retry from 'async-retry';
-import sortObjectKeys from '../sortObjectKeys';
+import sortKeys from '../../../common/utils/sortKeys';
 import { Collection, Db, MongoClient } from 'mongodb';
 
-class MongoDbLockstore {
+class MongoDbLockstore implements Lockstore {
   protected client: MongoClient;
 
   protected db: Db;
@@ -118,7 +119,7 @@ class MongoDbLockstore {
     expiresAt: number;
     onAcquired (): void | Promise<void>;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -159,7 +160,7 @@ class MongoDbLockstore {
     namespace: string;
     value: any;
   }): Promise<boolean> {
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -181,7 +182,7 @@ class MongoDbLockstore {
     value: any;
     expiresAt: number;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -213,7 +214,7 @@ class MongoDbLockstore {
     namespace: string;
     value: any;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');

@@ -64,7 +64,7 @@ suite('command/Http', (): void => {
       {
         title: 'returns origin if origin is allowed by a regular expression.',
         origin: 'http://www.thenativeweb.io',
-        allow: /\.thenativeweb\.io$/u,
+        allow: [ /\.thenativeweb\.io$/u ],
         expected: 'http://www.thenativeweb.io'
       },
       {
@@ -82,7 +82,7 @@ suite('command/Http', (): void => {
       {
         title: 'returns undefined if origin is not allowed by a regular expression.',
         origin: 'http://www.example.com',
-        allow: /\.thenativeweb\.io$/u,
+        allow: [ /\.thenativeweb\.io$/u ],
         expected: undefined
       }
     ];

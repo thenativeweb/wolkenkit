@@ -1,23 +1,21 @@
+import CommandInternal from '../../../../common/elements/CommandInternal';
 import errors from '../../../../common/errors';
 import flaschenpost from 'flaschenpost';
 import sendCommand from '../../../../communication/http/sendCommand';
 
 const logger = flaschenpost.getLogger();
 
-const getHandleReceivedCommand = function ({ dispatcherServer }) {
-  if (!dispatcherServer) {
-    throw new Error('Dispatcher server is missing.');
-  }
-  if (!dispatcherServer.hostname) {
-    throw new Error('Dispatcher server hostname is missing.');
-  }
-  if (!dispatcherServer.port) {
-    throw new Error('Dispatcher server port is missing.');
-  }
-  if (dispatcherServer.disableRetries === undefined) {
-    throw new Error('Dispatcher server disable retries is missing.');
-  }
+type HandleReceivedCommand = ({ command }: {
+  command: CommandInternal;
+}) => Promise<void>;
 
+const getHandleReceivedCommand = function ({ dispatcherServer }: {
+  dispatcherServer: {
+    hostname: string;
+    port: number;
+    disableRetries: boolean;
+  };
+}): HandleReceivedCommand {
   const { hostname, port, disableRetries } = dispatcherServer;
 
   let retries = 4;
@@ -26,7 +24,7 @@ const getHandleReceivedCommand = function ({ dispatcherServer }) {
     retries = 0;
   }
 
-  return async function ({ command }) {
+  return async function ({ command }): Promise<void> {
     try {
       await sendCommand({
         command,

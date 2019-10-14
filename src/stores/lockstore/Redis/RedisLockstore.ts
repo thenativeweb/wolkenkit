@@ -1,11 +1,12 @@
 import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
+import { Lockstore } from '../Lockstore';
 import maxDate from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
 import retry from 'async-retry';
-import sortObjectKeys from '../sortObjectKeys';
+import sortKeys from '../../../common/utils/sortKeys';
 import redis, { RedisClient } from 'redis';
 
-class RedisLockstore {
+class RedisLockstore implements Lockstore {
   protected client: RedisClient;
 
   protected namespace: string;
@@ -41,7 +42,7 @@ class RedisLockstore {
     value: any;
     store: string;
   }): string {
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');

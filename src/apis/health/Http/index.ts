@@ -18,7 +18,7 @@ class Http {
   }
 
   public static async create ({ corsOrigin, processId }: {
-    corsOrigin: string | RegExp | string[];
+    corsOrigin: string | (RegExp | string)[];
     processId: string;
   }): Promise<Http> {
     let transformedCorsOrigin;

@@ -1,24 +1,29 @@
-'use strict';
-
-const noop = require('lodash/noop');
-
-const limitAlphanumeric = require('../../../common/utils/limitAlphanumeric'),
-      { Request, TYPES } = require('tedious'),
-      retry = require('async-retry');
-
-const createPool = require('../../utils/sqlServer/createPool'),
-      sortObjectKeys = require('../sortObjectKeys');
-
+import createPool from '../../utils/sqlServer/createPool';
+import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
+import { Lockstore } from '../Lockstore';
 import { sqlServer as maxDate } from '../../../common/utils/maxDate';
+import { noop } from 'lodash';
+import { Pool } from 'tarn';
+import retry from 'async-retry';
+import sortKeys from '../../../common/utils/sortKeys';
+import { Connection, Request, TYPES } from 'tedious';
 
-class Lockstore {
-  static onUnexpectedClose () {
+class SqlServerLockstore implements Lockstore {
+  protected pool: Pool<Connection>;
+
+  protected namespace: string;
+
+  protected nonce: string | null;
+
+  protected maxLockSize: number;
+
+  protected static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  async getDatabase () {
-    const database = await retry(async () => {
-      const connection = await this.pool.acquire().promise;
+  protected static async getDatabase (pool: Pool<Connection>): Promise<Connection> {
+    const database = await retry(async (): Promise<Connection> => {
+      const connection = await pool.acquire().promise;
 
       return connection;
     });
@@ -26,7 +31,19 @@ class Lockstore {
     return database;
   }
 
-  async create ({
+  protected constructor ({ pool, namespace, nonce, maxLockSize }: {
+    pool: Pool<Connection>;
+    namespace: string;
+    nonce: string | null;
+    maxLockSize: number;
+  }) {
+    this.pool = pool;
+    this.namespace = namespace;
+    this.nonce = nonce;
+    this.maxLockSize = maxLockSize;
+  }
+
+  public static async create ({
     hostname,
     port,
     username,
@@ -36,31 +53,20 @@ class Lockstore {
     namespace,
     nonce = null,
     maxLockSize = 828
-  }) {
-    if (!hostname) {
-      throw new Error('Hostname is missing.');
-    }
-    if (!port) {
-      throw new Error('Port is missing.');
-    }
-    if (!username) {
-      throw new Error('Username is missing.');
-    }
-    if (!password) {
-      throw new Error('Password is missing.');
-    }
-    if (!database) {
-      throw new Error('Database is missing.');
-    }
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
+  }: {
+    hostname: string;
+    port: number;
+    username: string;
+    password: string;
+    database: string;
+    encryptConnection?: boolean;
+    namespace: string;
+    nonce: string | null;
+    maxLockSize: number;
+  }): Promise<SqlServerLockstore> {
+    const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
-    this.nonce = nonce;
-    this.maxLockSize = maxLockSize;
-    this.namespace = `lockstore_${limitAlphanumeric(namespace)}`;
-
-    this.pool = createPool({
+    const pool = createPool({
       host: hostname,
       port,
       user: username,
@@ -68,42 +74,49 @@ class Lockstore {
       database,
       encrypt: encryptConnection,
 
-      onError (err) {
+      onError (err): never {
         throw err;
       },
 
-      onDisconnect () {
-        Lockstore.onUnexpectedClose();
+      onDisconnect (): void {
+        SqlServerLockstore.onUnexpectedClose();
       }
     });
 
-    const connection = await this.getDatabase();
+    const lockstore = new SqlServerLockstore({
+      pool,
+      namespace: prefixedNamespace,
+      nonce,
+      maxLockSize
+    });
+
+    const connection = await SqlServerLockstore.getDatabase(pool);
 
     const query = `
       BEGIN TRANSACTION setupTable;
 
-      IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${this.namespace}_locks')
+      IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${prefixedNamespace}_locks')
         BEGIN
-          CREATE TABLE [${this.namespace}_locks] (
+          CREATE TABLE [${prefixedNamespace}_locks] (
             [namespace] NVARCHAR(64) NOT NULL,
-            [value] VARCHAR(${this.maxLockSize}) NOT NULL,
+            [value] VARCHAR(${maxLockSize}) NOT NULL,
             [expiresAt] DATETIME2(3) NOT NULL,
             [nonce] NVARCHAR(64),
 
-            CONSTRAINT [${this.namespace}_locks_pk] PRIMARY KEY([namespace], [value])
+            CONSTRAINT [${prefixedNamespace}_locks_pk] PRIMARY KEY([namespace], [value])
           );
         END
 
       COMMIT TRANSACTION setupTable;
     `;
 
-    await new Promise((resolve, reject) => {
-      const request = new Request(query, err => {
+    await new Promise((resolve, reject): void => {
+      const request = new Request(query, (err?: Error): void => {
         if (err) {
           // When multiple clients initialize at the same time, e.g. during
           // integration tests, SQL Server might throw an error. In this case
           // we simply ignore it.
-          if (err.message.match(/There is already an object named.*_locks/u)) {
+          if (/There is already an object named.*_locks/u.exec(err.message)) {
             return resolve();
           }
 
@@ -116,33 +129,33 @@ class Lockstore {
       connection.execSql(request);
     });
 
-    await this.pool.release(connection);
+    pool.release(connection);
+
+    return lockstore;
   }
 
-  async acquireLock ({
+  public async acquireLock ({
     namespace,
     value,
     expiresAt = maxDate,
     onAcquired = noop
-  }) {
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-    if (!value) {
-      throw new Error('Value is missing.');
-    }
-
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+  }: {
+    namespace: string;
+    value: any;
+    expiresAt?: number;
+    onAcquired? (): void | Promise<void>;
+  }): Promise<void> {
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
     }
 
-    const database = await this.getDatabase();
+    const database = await SqlServerLockstore.getDatabase(this.pool);
 
     try {
-      const result = await new Promise((resolve, reject) => {
-        let lockResult;
+      const result: { expiresAt: Date } | undefined = await new Promise((resolve, reject): void => {
+        let lockResult: { expiresAt: Date };
 
         const request = new Request(`
           SELECT TOP(1) [expiresAt]
@@ -150,7 +163,7 @@ class Lockstore {
             WHERE [namespace] = @namespace
               AND [value] = @value
           ;
-        `, err => {
+        `, (err?: Error): void => {
           if (err) {
             return reject(err);
           }
@@ -161,7 +174,7 @@ class Lockstore {
         request.addParameter('namespace', TYPES.NVarChar, namespace);
         request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
 
-        request.once('row', columns => {
+        request.once('row', (columns): void => {
           lockResult = {
             expiresAt: columns[0].value
           };
@@ -182,7 +195,7 @@ class Lockstore {
         newEntry = false;
       }
 
-      let query;
+      let query: string;
 
       if (newEntry) {
         query = `
@@ -199,8 +212,8 @@ class Lockstore {
          ;`;
       }
 
-      await new Promise((resolve, reject) => {
-        const request = new Request(query, err => {
+      await new Promise((resolve, reject): void => {
+        const request = new Request(query, (err?: Error): void => {
           if (err) {
             return reject(err);
           }
@@ -224,31 +237,27 @@ class Lockstore {
         throw ex;
       }
     } finally {
-      await this.pool.release(database);
+      this.pool.release(database);
     }
   }
 
-  async isLocked ({ namespace, value }) {
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-    if (!value) {
-      throw new Error('Value is missing.');
-    }
-
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+  public async isLocked ({ namespace, value }: {
+    namespace: string;
+    value: any;
+  }): Promise<boolean> {
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
     }
 
-    const database = await this.getDatabase();
+    const database = await SqlServerLockstore.getDatabase(this.pool);
 
     let isLocked = false;
 
     try {
-      const result = await new Promise((resolve, reject) => {
-        let lockResult;
+      const result: { expiresAt: Date } | undefined = await new Promise((resolve, reject): void => {
+        let lockResult: { expiresAt: Date };
 
         const request = new Request(`
           SELECT TOP(1) [expiresAt]
@@ -256,7 +265,7 @@ class Lockstore {
             WHERE [namespace] = @namespace
               AND [value] = @value
           ;
-        `, err => {
+        `, (err?: Error): void => {
           if (err) {
             return reject(err);
           }
@@ -267,7 +276,7 @@ class Lockstore {
         request.addParameter('namespace', TYPES.NVarChar, namespace);
         request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
 
-        request.once('row', columns => {
+        request.once('row', (columns): void => {
           lockResult = {
             expiresAt: columns[0].value
           };
@@ -280,34 +289,28 @@ class Lockstore {
         isLocked = result.expiresAt.getTime() > Date.now();
       }
     } finally {
-      await this.pool.release(database);
+      this.pool.release(database);
     }
 
     return isLocked;
   }
 
-  async renewLock ({ namespace, value, expiresAt }) {
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-    if (!value) {
-      throw new Error('Value is missing.');
-    }
-    if (!expiresAt) {
-      throw new Error('Expires at is missing.');
-    }
-
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+  public async renewLock ({ namespace, value, expiresAt }: {
+    namespace: string;
+    value: any;
+    expiresAt: number;
+  }): Promise<void> {
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
     }
 
-    const database = await this.getDatabase();
+    const database = await SqlServerLockstore.getDatabase(this.pool);
 
     try {
-      const result = await new Promise((resolve, reject) => {
-        let lockResult;
+      const result: { expiresAt: Date; nonce: string | null } | undefined = await new Promise((resolve, reject): void => {
+        let lockResult: { expiresAt: Date; nonce: string | null };
 
         const request = new Request(`
           SELECT TOP(1) [expiresAt], [nonce]
@@ -315,7 +318,7 @@ class Lockstore {
             WHERE [namespace] = @namespace
               AND [value] = @value
           ;
-        `, err => {
+        `, (err?: Error): void => {
           if (err) {
             return reject(err);
           }
@@ -326,7 +329,7 @@ class Lockstore {
         request.addParameter('namespace', TYPES.NVarChar, namespace);
         request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
 
-        request.once('row', columns => {
+        request.once('row', (columns): void => {
           lockResult = {
             expiresAt: columns[0].value,
             nonce: columns[1].value
@@ -343,13 +346,13 @@ class Lockstore {
         throw new Error('Failed to renew lock.');
       }
 
-      await new Promise((resolve, reject) => {
+      await new Promise((resolve, reject): void => {
         const request = new Request(`
         UPDATE [${this.namespace}_locks]
            SET [expiresAt] = @expiresAt
          WHERE [namespace] = @namespace
            AND [value] = @value
-         ;`, err => {
+         ;`, (err?: Error): void => {
           if (err) {
             return reject(err);
           }
@@ -364,29 +367,25 @@ class Lockstore {
         database.execSql(request);
       });
     } finally {
-      await this.pool.release(database);
+      this.pool.release(database);
     }
   }
 
-  async releaseLock ({ namespace, value }) {
-    if (!namespace) {
-      throw new Error('Namespace is missing.');
-    }
-    if (!value) {
-      throw new Error('Value is missing.');
-    }
-
-    const sortedSerializedValue = JSON.stringify(sortObjectKeys({ object: value, recursive: true }));
+  public async releaseLock ({ namespace, value }: {
+    namespace: string;
+    value: any;
+  }): Promise<void> {
+    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
     }
 
-    const database = await this.getDatabase();
+    const database = await SqlServerLockstore.getDatabase(this.pool);
 
     try {
-      const result = await new Promise((resolve, reject) => {
-        let lockResult;
+      const result: { expiresAt: Date; nonce: string | null } | undefined = await new Promise((resolve, reject): void => {
+        let lockResult: { expiresAt: Date; nonce: string | null };
 
         const request = new Request(`
           SELECT TOP(1) [expiresAt], [nonce]
@@ -394,7 +393,7 @@ class Lockstore {
             WHERE [namespace] = @namespace
               AND [value] = @value
           ;
-        `, err => {
+        `, (err?: Error): void => {
           if (err) {
             return reject(err);
           }
@@ -405,7 +404,7 @@ class Lockstore {
         request.addParameter('namespace', TYPES.NVarChar, namespace);
         request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
 
-        request.once('row', columns => {
+        request.once('row', (columns): void => {
           lockResult = {
             expiresAt: columns[0].value,
             nonce: columns[1].value
@@ -423,12 +422,12 @@ class Lockstore {
         throw new Error('Failed to release lock.');
       }
 
-      await new Promise((resolve, reject) => {
+      await new Promise((resolve, reject): void => {
         const request = new Request(`
           DELETE FROM [${this.namespace}_locks]
            WHERE [namespace] = @namespace
              AND [value] = @value
-        `, err => {
+        `, (err?: Error): void => {
           if (err) {
             return reject(err);
           }
@@ -442,15 +441,13 @@ class Lockstore {
         database.execSql(request);
       });
     } finally {
-      await this.pool.release(database);
+      this.pool.release(database);
     }
   }
 
-  async destroy () {
-    if (this.pool) {
-      await this.pool.destroy();
-    }
+  public async destroy (): Promise<void> {
+    await this.pool.destroy();
   }
 }
 
-module.exports = Lockstore;
+export default SqlServerLockstore;

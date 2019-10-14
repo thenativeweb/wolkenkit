@@ -66,7 +66,7 @@ class SqlServerEventstore implements Eventstore {
       database,
       encrypt: encryptConnection,
 
-      onError (err: Error): void {
+      onError (err): never {
         throw err;
       },
 

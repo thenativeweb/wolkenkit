@@ -144,8 +144,8 @@ class PostgresLockstore implements Lockstore {
   }: {
     namespace: string;
     value: any;
-    expiresAt: number;
-    onAcquired (): void | Promise<void>;
+    expiresAt?: number;
+    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
     const serializedValue = JSON.stringify(value);
 

@@ -29,7 +29,7 @@ class Http {
     application,
     identityProviders
   }: {
-    corsOrigin: string | string[] | RegExp;
+    corsOrigin: string | (string | RegExp)[];
     purpose: Purpose;
     onReceiveCommand: ({ command }: {command: CommandInternal}) => Promise<void>;
     application: Application;
