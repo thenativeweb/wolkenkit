@@ -65,10 +65,14 @@ class MongoDbLockstore implements Lockstore {
 
     /* eslint-disable id-length */
     const client = await retry(async (): Promise<MongoClient> => {
-      const connection = await MongoClient.connect(url, {
-        w: 1,
-        useNewUrlParser: true
-      });
+      const connection = await MongoClient.connect(
+        url,
+        {
+          w: 1,
+          useNewUrlParser: true,
+          useUnifiedTopology: true
+        }
+      );
 
       return connection;
     });

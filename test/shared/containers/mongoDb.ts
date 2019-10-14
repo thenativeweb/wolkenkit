@@ -32,7 +32,14 @@ const mongoDb = {
     try {
       await retry(async (): Promise<void> => {
         /* eslint-disable id-length */
-        const client = await MongoClient.connect(url, { w: 1, useNewUrlParser: true });
+        const client = await MongoClient.connect(
+          url,
+          {
+            w: 1,
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+          }
+        );
         /* eslint-enable id-length */
 
         await client.close();
