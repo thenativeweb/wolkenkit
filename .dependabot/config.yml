@@ -8,6 +8,8 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
+    - "mattwagl"
+    - "yeldiRium"
     default_labels:
     - "Dependencies"
     allowed_updates:
@@ -23,6 +25,8 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
+    - "mattwagl"
+    - "yeldiRium"
     default_labels:
     - "Dependencies"
 
@@ -33,6 +37,8 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
+    - "mattwagl"
+    - "yeldiRium"
     default_labels:
     - "Dependencies"
 
@@ -43,6 +49,8 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
+    - "mattwagl"
+    - "yeldiRium"
     default_labels:
     - "Dependencies"
 
@@ -53,6 +61,8 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
+    - "mattwagl"
+    - "yeldiRium"
     default_labels:
     - "Dependencies"
 
@@ -63,6 +73,8 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
+    - "mattwagl"
+    - "yeldiRium"
     default_labels:
     - "Dependencies"
 
@@ -73,6 +85,8 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
+    - "mattwagl"
+    - "yeldiRium"
     default_labels:
     - "Dependencies"
 
@@ -83,6 +97,8 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
+    - "mattwagl"
+    - "yeldiRium"
     default_labels:
     - "Dependencies"
 
@@ -93,6 +109,8 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
+    - "mattwagl"
+    - "yeldiRium"
     default_labels:
     - "Dependencies"
 
@@ -103,5 +121,7 @@ update_configs:
     - "thenativeweb/wolkenkit-dev"
     default_assignees:
     - "goloroden"
+    - "mattwagl"
+    - "yeldiRium"
     default_labels:
     - "Dependencies"
