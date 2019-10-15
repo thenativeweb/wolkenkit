@@ -1,4 +1,4 @@
-FROM mongo:3.5.6
+FROM mongo:4.2.0
 LABEL maintainer="the native web <hello@thenativeweb.io>"
 
 ADD ./docker/wolkenkit-mongodb/scripts /scripts
