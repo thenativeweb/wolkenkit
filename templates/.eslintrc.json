@@ -1,0 +1,7 @@
+{
+  "extends": "es/node",
+
+  "rules": {
+    "no-unused-vars": "off"
+  }
+}

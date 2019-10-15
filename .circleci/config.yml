@@ -1,24 +1,69 @@
-version: 2.1
+version: 2
+
+defaults: &defaults
+  working_directory: ~/workspace
+  machine: true
+
+only-publish-tags: &only-publish-tags
+  filters:
+    tags:
+      only: /^v?\d+\.\d+\.\d+$/
+    branches:
+      ignore: /.*/
+
 jobs:
   build:
-    docker:
-      - image: node:10.15.3-alpine
-
+    <<: *defaults
     steps:
-      - setup_remote_docker
-
       - checkout
+      - run: |
+            set +e
+            export NVM_DIR="/opt/circleci/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
+            nvm install v12.10.0
+            nvm alias default v12.10.0
       - restore_cache:
           keys:
             - node-modules-{{ checksum "package.json" }}
             - node-modules-
+      - run: |
+            export NVM_DIR="/opt/circleci/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-      - run: npm install
-
+            npm install
       - save_cache:
           paths:
             - node_modules
           key: node-modules-{{ checksum "package.json" }}
+      - run: |
+            export NVM_DIR="/opt/circleci/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-      - run: npx roboter
+            npx roboter
+      - persist_to_workspace:
+          root: ~/workspace
+          paths:
+            - .
+  publish:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/workspace
+      - run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/workspace/.npmrc
+      - run: npx roboter build
+      - run: npm publish
+
+workflows:
+  version: 2
+  untagged-build:
+    jobs:
+      - build
+  tagged-build:
+    jobs:
+      - build: *only-publish-tags
+      - publish:
+          <<: *only-publish-tags
+          requires:
+            - build
+          context: Default

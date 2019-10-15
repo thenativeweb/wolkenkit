@@ -12,115 +12,204 @@
       "email": "matthias.wagler@thenativeweb.io"
     },
     {
-      "name": "Christian Nolte",
-      "email": "christian.nolte@thenativeweb.io"
+      "name": "Susanna Roden",
+      "email": "susanna.roden@thenativeweb.io"
     },
     {
       "name": "Jan-Hendrik Grundhöfer",
       "email": "jan-hendrik.grundhoefer@thenativeweb.io"
     },
     {
-      "name": "Michael Scherer",
-      "email": "mail@michael-scherer.net"
+      "name": "Christian Nolte",
+      "email": "christian.nolte@thenativeweb.io"
     },
     {
-      "name": "René Viering",
-      "email": "rene.viering@gmail.com"
-    },
-    {
-      "name": "Radu Märza",
-      "email": "radu.2010@gmx.de"
+      "name": "Hannes Leutloff",
+      "email": "hannes.leutloff@thenativeweb.io"
     },
     {
       "name": "Adam Koleszar",
       "email": "madfist@gmail.com"
     },
     {
+      "name": "Christian Zosel",
+      "email": "chrzosel@gmail.com"
+    },
+    {
+      "name": "Damien Benon",
+      "email": "damien.benon@myprysm.fr"
+    },
+    {
+      "name": "Henning Storck",
+      "email": "henning.storck@outlook.de"
+    },
+    {
       "name": "Jimmy Beaudoin",
       "email": "jbeaudoin11@gmail.com"
+    },
+    {
+      "name": "Jonathan Weiß",
+      "email": "info@jonathanweiss.net"
+    },
+    {
+      "name": "Lorenz Leutgeb",
+      "email": "lorenz.leutgeb@sclable.com"
     },
     {
       "name": "Manfred Mjka",
       "email": "manfred.mjka@sclable.com"
     },
     {
-      "name": "Lorenz Leutgeb",
-      "email": "lorenz.leutgeb@sclable.com"
+      "name": "Marcus Stenbeck",
+      "email": "marcus.stenbeck@gmail.com"
+    },
+    {
+      "name": "Max Tilford",
+      "email": "maxtilford@gmail.com"
+    },
+    {
+      "name": "Michael Scherer",
+      "email": "mail@michael-scherer.net"
+    },
+    {
+      "name": "Nelson Reina",
+      "email": "nelreina@icloud.com"
+    },
+    {
+      "name": "Nicolai Süper",
+      "email": "nico@k40s.net"
+    },
+    {
+      "name": "Radu Märza",
+      "email": "radu.2010@gmx.de"
+    },
+    {
+      "name": "René Viering",
+      "email": "rene.viering@gmail.com"
+    },
+    {
+      "name": "Tobias Schmücker",
+      "email": "schmuecker.tobias@gmail.com"
+    },
+    {
+      "name": "Tom Ceuppens",
+      "email": "t-c@live.be"
     }
   ],
   "bin": {
     "wolkenkit": "bin/wolkenkit.js"
   },
+  "engines": {
+    "node": "12.10.0"
+  },
   "dependencies": {
     "JSONStream": "1.3.5",
     "array-to-sentence": "2.0.0",
     "async-retry": "1.2.3",
-    "axios": "0.18.0",
-    "boolean": "1.0.0",
-    "buntstift": "1.5.1",
+    "axios": "0.19.0",
+    "body-parser": "1.19.0",
+    "buntstift": "2.0.1",
     "certificate-details": "0.3.1",
-    "combined-stream": "1.0.7",
+    "combined-stream": "1.0.8",
     "command-line-args": "5.1.1",
-    "command-line-commands": "2.0.1",
-    "command-line-usage": "5.0.5",
+    "command-line-commands": "3.0.1",
+    "command-line-usage": "6.0.2",
     "common-tags": "1.8.0",
+    "compression": "1.7.4",
+    "content-type": "1.0.4",
+    "cors": "2.8.5",
     "deep-hash": "1.0.1",
-    "defekt": "2.0.1",
-    "directory-tree": "2.2.1",
+    "defekt": "3.0.1",
+    "directory-tree": "2.2.4",
     "docker-compare": "0.2.0",
     "dotfile-json": "1.0.3",
-    "dsn-parser": "1.0.1",
-    "eslint": "5.16.0",
+    "eslint": "6.5.1",
+    "express": "4.17.1",
     "findsuggestions": "1.0.0",
+    "flaschenpost": "3.1.0",
     "flat": "4.1.0",
-    "freeport-promise": "1.1.0",
+    "fs-extra": "8.1.0",
+    "get-cors-origin": "2.0.0",
     "humanize-string": "2.1.0",
-    "is-ip": "3.0.0",
-    "isolated": "1.0.1",
-    "limit-alphanumeric": "1.0.0",
-    "lodash": "4.17.11",
-    "minio": "7.0.6",
-    "mongodb": "3.2.3",
-    "mysql2": "1.5.3",
+    "is-ip": "3.1.0",
+    "isolated": "2.0.1",
+    "limes": "5.0.3",
+    "lodash": "4.17.15",
+    "marble-run": "2.0.0",
+    "minio": "7.0.12",
+    "mongodb": "3.3.2",
+    "mysql": "2.17.1",
     "newline-json": "0.1.1",
-    "nodeenv": "1.0.0",
-    "object-hash": "1.3.1",
-    "open": "6.2.0",
-    "pg": "7.10.0",
+    "nocache": "2.1.0",
+    "object-hash": "2.0.0",
+    "open": "6.4.0",
+    "partof": "2.0.1",
+    "pg": "7.12.1",
     "pg-query-stream": "2.0.0",
     "portscanner": "2.2.0",
-    "processenv": "1.1.0",
-    "pump": "3.0.0",
+    "processenv": "2.0.1",
     "recursive-readdir": "2.2.2",
+    "redis": "2.8.0",
     "require-dir": "1.2.0",
-    "semver": "6.0.0",
+    "semver": "6.3.0",
     "sha1": "1.1.1",
     "shelljs": "0.8.3",
+    "stream-to-string": "1.2.0",
     "stringify-object": "3.3.0",
-    "tar": "4.4.8",
-    "tarn": "1.1.5",
-    "tedious": "2.6.3",
-    "update-notifier": "2.5.0",
-    "uuidv4": "4.0.0",
-    "validate-value": "5.0.2"
+    "tar": "5.0.5",
+    "tarn": "2.0.0",
+    "tedious": "6.4.0",
+    "update-notifier": "3.0.1",
+    "uuidv4": "5.0.1",
+    "validate-value": "6.0.1"
   },
   "devDependencies": {
-    "array-join-conjunction": "1.0.0",
-    "assertthat": "2.0.3",
-    "dir-compare": "1.7.2",
-    "execa": "1.0.0",
-    "measure-time": "3.1.1",
-    "p-queue": "5.0.0",
+    "@types/async-retry": "1.4.1",
+    "@types/body-parser": "1.17.1",
+    "@types/common-tags": "1.8.0",
+    "@types/compression": "1.0.1",
+    "@types/content-type": "1.1.3",
+    "@types/cors": "2.8.6",
+    "@types/express": "4.17.1",
+    "@types/fs-extra": "8.0.0",
+    "@types/json-schema": "7.0.3",
+    "@types/lodash": "4.14.144",
+    "@types/minio": "7.0.3",
+    "@types/mongodb": "3.3.6",
+    "@types/mysql": "2.15.7",
+    "@types/node": "12.7.12",
+    "@types/pg": "7.11.2",
+    "@types/pg-query-stream": "1.0.3",
+    "@types/redis": "2.8.14",
+    "@types/require-dir": "1.0.0",
+    "@types/shelljs": "0.8.5",
+    "@types/sinon": "7.5.0",
+    "@types/supertest": "2.0.8",
+    "@types/tedious": "4.0.0",
+    "assertthat": "4.0.2",
+    "async-wait-until": "1.2.4",
+    "dir-compare": "1.7.3",
+    "execa": "3.0.0",
+    "measure-time": "4.0.0",
+    "nock": "11.4.0",
+    "nodeenv": "2.0.1",
+    "p-queue": "6.2.0",
+    "record-stdstreams": "2.1.0",
     "retry-ignore-abort": "1.0.1",
-    "roboter": "4.0.4",
-    "streamtoarray": "1.1.0",
+    "roboter": "8.2.0",
+    "run-script-os": "1.0.7",
+    "runfork": "2.0.0",
+    "sinon": "7.5.0",
+    "streamtoarray": "2.0.1",
     "strip-ansi": "5.2.0",
+    "supertest": "4.0.2",
     "terminal-img": "1.1.1",
-    "twitter": "1.7.1",
-    "wolkenkit-client": "3.1.0"
+    "twitter": "1.7.1"
   },
   "scripts": {
-    "test-stories": "node test/stories/clis/wolkenkit/index.js"
+    "build": "run-script-os",
+    "build:darwin:linux": "node bin/build.js --color",
+    "build:win32": "node bin\\build.js --color"
   },
   "repository": {
     "type": "git",

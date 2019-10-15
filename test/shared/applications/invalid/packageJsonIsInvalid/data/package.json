@@ -1,0 +1,5 @@
+{
+  // This is an invalid comment.
+  "name": "package-json-is-invalid",
+  "version": "0.0.0"
+}

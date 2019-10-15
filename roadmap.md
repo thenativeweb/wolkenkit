@@ -9,12 +9,8 @@ The items on this list are what we have in mind for the next versions of wolkenk
 
 ## Backend
 
-- Group-based authorization
 - Self-describing APIs
-- Unique aggregates
 - Event store as a service
-- Multi-database support
-- Scalability
 - Domain testing
 - Merge-conflicts
 - Versioning
