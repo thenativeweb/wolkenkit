@@ -11,6 +11,9 @@ suite('sleep', (): void => {
     const stop = Date.now();
     const duration = stop - start;
 
-    assert.that(duration).is.atLeast(50);
+    // Actually, we should check for 50 milliseconds here, but due to the way
+    // setTimeout is implemented, this can slightly be less than50 milliseconds.
+    // Hence we decided to use 45 milliseconds (i.e. with 10% variance).
+    assert.that(duration).is.atLeast(45);
   });
 });
