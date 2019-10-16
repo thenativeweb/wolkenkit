@@ -142,7 +142,7 @@
     "newline-json": "0.1.1",
     "nocache": "2.1.0",
     "object-hash": "2.0.0",
-    "open": "6.4.0",
+    "open": "7.0.0",
     "partof": "2.0.1",
     "pg": "7.12.1",
     "pg-query-stream": "2.0.0",
