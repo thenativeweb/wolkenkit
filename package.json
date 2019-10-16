@@ -151,6 +151,7 @@
     "recursive-readdir": "2.2.2",
     "redis": "2.8.0",
     "require-dir": "1.2.0",
+    "saslprep": "1.0.3",
     "semver": "6.3.0",
     "sha1": "1.1.1",
     "shelljs": "0.8.3",

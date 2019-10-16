@@ -20,9 +20,9 @@ const mongoDb = {
       docker run
         -d
         -p 27017:27017
-        -e MONGODB_DATABASE=${database}
-        -e MONGODB_USER=${username}
-        -e MONGODB_PASS=${password}
+        -e MONGO_INITDB_ROOT_USERNAME=${username}
+        -e MONGO_INITDB_ROOT_PASSWORD=${password}
+        -e MONGO_INITDB_DATABASE=${database}
         --name test-mongodb
         thenativeweb/wolkenkit-mongodb:latest
     `);
