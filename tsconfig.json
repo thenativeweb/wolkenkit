@@ -14,8 +14,9 @@
     "target": "es2019"
   },
   "include": [
-    "./src/**/*.ts",
+    "./__temp__/**/*.ts",
     "./docker/**/*.ts",
+    "./src/**/*.ts",
     "./test/**/*.ts",
     "./types"
   ]
