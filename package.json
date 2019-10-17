@@ -100,7 +100,7 @@
     "wolkenkit": "bin/wolkenkit.js"
   },
   "engines": {
-    "node": "12.10.0"
+    "node": ">=12.10.0"
   },
   "dependencies": {
     "JSONStream": "1.3.5",
@@ -197,7 +197,7 @@
     "p-queue": "6.2.0",
     "record-stdstreams": "2.1.0",
     "retry-ignore-abort": "1.0.1",
-    "roboter": "8.2.1",
+    "roboter": "8.2.2",
     "run-script-os": "1.0.7",
     "runfork": "2.0.0",
     "sinon": "7.5.0",
