@@ -1,6 +1,6 @@
-import { OpenedHandler } from './events/Opened';
-import { OpenHandler } from './commands/Open';
+import * as Open from './commands/Open';
+import * as Opened from './events/Opened';
 
 export { State } from './State';
-export const commandHandlers = { OpenHandler };
-export const eventHandlers = { OpenedHandler };
+export const commands = { Open };
+export const events = { Opened };

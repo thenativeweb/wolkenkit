@@ -1,4 +1,7 @@
+import { JSONSchema4 as Schema } from 'json-schema';
 import { Readable } from 'stream';
+
+export { Schema };
 
 /* eslint-disable class-methods-use-this, no-console */
 export class Event<TEventData> {
@@ -9,9 +12,17 @@ export class Event<TEventData> {
 }
 
 export abstract class EventHandler<TState, TEventData> {
+  public abstract getDocumentation (): string;
+
+  public abstract getSchema (): Schema;
+
   public abstract handle (aggregate: Aggregate<TState>, event: Event<TEventData>, service: Services): Partial<TState>;
 
   public abstract isAuthorized (game: Aggregate<TState>, event: Event<TEventData>, service: Services): boolean | Promise<boolean>;
+
+  public abstract filter (game: Aggregate<TState>, event: Event<TEventData>, service: Services): boolean | Promise<boolean>;
+
+  public abstract map (game: Aggregate<TState>, event: Event<TEventData>, service: Services): Event<TEventData> | Promise<Event<TEventData>>;
 }
 
 export class Aggregate<TState> {
@@ -25,9 +36,8 @@ export class Aggregate<TState> {
     return true;
   }
 
-  public publishEvent<TEventData extends {}> (data: TEventData): void {
-    const eventName = data.constructor.name;
-    const event = new Event<TEventData>(eventName, data);
+  public publishEvent<TEventData extends {}> (eventName: string, eventData: TEventData): void {
+    const event = new Event<TEventData>(eventName, eventData);
 
     this.uncommittedEvents.push(event);
   }
@@ -40,6 +50,10 @@ export class Command<TCommandData> {
 }
 
 export abstract class CommandHandler<TState, TCommandData> {
+  public abstract getDocumentation (): string;
+
+  public abstract getSchema (): Schema;
+
   public abstract isAuthorized (game: Aggregate<TState>, command: Command<TCommandData>, service: Services): boolean | Promise<boolean>;
 
   public abstract handle (aggregate: Aggregate<TState>, command: Command<TCommandData>, service: Services): void | Promise<void>;
@@ -65,7 +79,13 @@ export class Services {
   };
 }
 
-export abstract class Projection<TEventData> {
+export abstract class ProjectionHandler<TEventData> {
+  public eventIdentifier: string;
+
+  public constructor (eventIdentifier: string) {
+    this.eventIdentifier = eventIdentifier;
+  }
+
   public abstract handle (table: any, event: Event<TEventData>): void | Promise<void>;
 }
 
@@ -74,6 +94,12 @@ export abstract class ViewStore<TDatabaseView> {
 }
 
 export abstract class QueryHandler<TDatabaseView, TQueryOptions, TResult> {
+  public abstract getDocumentation (): string;
+
+  public abstract getOptionsSchema (): Schema;
+
+  public abstract getItemSchema (): Schema;
+
   public abstract handle (databaseView: TDatabaseView, queryOptions: TQueryOptions, services: Services): Readable | Promise<Readable>;
 
   public abstract isAuthorized (databaseViewItem: TResult, services: Services): boolean | Promise<boolean>;

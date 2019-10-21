@@ -1,11 +1,9 @@
 import { Collection } from 'mongodb';
 import { Readable } from 'stream';
-import { QueryHandler, Services } from '../../../../elements';
+import { QueryHandler, Schema, Services } from '../../../../elements';
 
-export class Options {
-  public constructor (
-    public orderBy: string = 'id'
-  ) {}
+export interface Options {
+  orderBy?: string;
 }
 
 interface Item {
@@ -14,20 +12,62 @@ interface Item {
 }
 
 /* eslint-disable class-methods-use-this */
-export class Query extends QueryHandler<Collection, Options, Item> {
+export class Handler extends QueryHandler<Collection, Options, Item> {
+  public getDocumentation (): string {
+    return `
+      # All games
+
+      A list of all games.
+    `;
+  }
+
+  public getOptionsSchema (): Schema {
+    return {
+      type: 'object',
+      properties: {
+        orderBy: {
+          title: 'Order by.',
+          description: 'The order by criterion.',
+          type: 'string',
+          default: 'id'
+        }
+      },
+      required: [ 'orderBy' ],
+      additionalProperties: false
+    };
+  }
+
+  public getItemSchema (): Schema {
+    return {
+      type: 'object',
+      properties: {
+        level: {
+          title: 'The current level',
+          description: 'The current level of the game.',
+          type: 'number'
+        },
+        riddle: {
+          title: 'The current riddle',
+          description: 'The current riddle of the game.',
+          type: 'string'
+        }
+      },
+      required: [ 'level', 'riddle' ],
+      additionalProperties: false
+    };
+  }
+
   public async handle (games: Collection, queryOptions: Options): Promise<Readable> {
     return games.
-      find({}, { sort: { [queryOptions.orderBy]: 1 }}).
+      find({}, { sort: { [queryOptions.orderBy || 'id']: 1 }}).
       map((item): Item => ({ level: item.level, riddle: item.riddle })).
       stream();
   }
-  /* eslint-enable class-methods-use-this */
 
-  /* eslint-disable class-methods-use-this */
   public isAuthorized (_game: Item, services: Services): boolean {
     services.logger.info('Access granted.');
 
     return true;
   }
-  /* eslint-enable class-methods-use-this */
 }
+/* eslint-enable class-methods-use-this */

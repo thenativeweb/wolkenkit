@@ -1,12 +1,10 @@
 import { Collection } from 'mongodb';
 import { Opened } from '../../../domain/playing/game/events/Opened';
-import { Event, Projection } from '../../../../elements';
+import { Event, ProjectionHandler } from '../../../../elements';
 
-export class PlayingGameOpened extends Projection<Opened> {
-  public constructor (
-    public eventIdentifier: string = Opened.identifier
-  ) {
-    super();
+export class Handler extends ProjectionHandler<Opened> {
+  public constructor () {
+    super('playing.game.Opened');
   }
 
   /* eslint-disable class-methods-use-this */
