@@ -1,7 +1,7 @@
 import connectionOptions from '../../../shared/containers/connectionOptions';
-import { Eventstore } from '../../../../src/stores/eventstore/Eventstore';
+import { Eventstore } from '../../../../lib/stores/eventstore/Eventstore';
 import getTestsFor from './getTestsFor';
-import MariaDbEventstore from '../../../../src/stores/eventstore/MariaDb';
+import MariaDbEventstore from '../../../../lib/stores/eventstore/MariaDb';
 
 suite('MariaDb', (): void => {
   getTestsFor({

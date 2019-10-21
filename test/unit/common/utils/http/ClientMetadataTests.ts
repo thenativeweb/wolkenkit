@@ -1,5 +1,5 @@
 import assert from 'assertthat';
-import ClientMetadata from '../../../../../src/common/utils/http/ClientMetadata';
+import ClientMetadata from '../../../../../lib/common/utils/http/ClientMetadata';
 import uuid from 'uuidv4';
 
 suite('ClientMetadata', (): void => {

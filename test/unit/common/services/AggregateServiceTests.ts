@@ -1,11 +1,11 @@
-import { AggregateService } from '../../../../src/common/services/AggregateService';
-import Application from '../../../../src/common/application';
+import { AggregateService } from '../../../../lib/common/services/AggregateService';
+import Application from '../../../../lib/common/application';
 import assert from 'assertthat';
-import EventInternal from '../../../../src/common/elements/EventInternal';
-import { Eventstore } from '../../../../src/stores/eventstore/Eventstore';
-import getAggregateService from '../../../../src/common/services/getAggregateService';
-import InMemoryEventstore from '../../../../src/stores/eventstore/InMemory';
-import Repository from '../../../../src/common/domain/Repository';
+import EventInternal from '../../../../lib/common/elements/EventInternal';
+import { Eventstore } from '../../../../lib/stores/eventstore/Eventstore';
+import getAggregateService from '../../../../lib/common/services/getAggregateService';
+import InMemoryEventstore from '../../../../lib/stores/eventstore/InMemory';
+import Repository from '../../../../lib/common/domain/Repository';
 import updateInitialState from '../../../shared/applications/valid/updateInitialState';
 import uuid from 'uuidv4';
 

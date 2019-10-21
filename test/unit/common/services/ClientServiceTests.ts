@@ -1,5 +1,5 @@
 import assert from 'assertthat';
-import getClientService from '../../../../src/common/services/getClientService';
+import getClientService from '../../../../lib/common/services/getClientService';
 import uuid from 'uuidv4';
 
 suite('ClientService', (): void => {

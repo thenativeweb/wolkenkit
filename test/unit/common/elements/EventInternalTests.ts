@@ -1,6 +1,6 @@
-import Application from '../../../../src/common/application';
+import Application from '../../../../lib/common/application';
 import assert from 'assertthat';
-import EventInternal from '../../../../src/common/elements/EventInternal';
+import EventInternal from '../../../../lib/common/elements/EventInternal';
 import path from 'path';
 import uuid from 'uuidv4';
 

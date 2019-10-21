@@ -1,5 +1,5 @@
-import Aggregate from '../../../../src/common/elements/Aggregate';
-import AggregateApiForEvents from '../../../../src/common/elements/AggregateApiForEvents';
+import Aggregate from '../../../../lib/common/elements/Aggregate';
+import AggregateApiForEvents from '../../../../lib/common/elements/AggregateApiForEvents';
 import assert from 'assertthat';
 import uuid from 'uuidv4';
 

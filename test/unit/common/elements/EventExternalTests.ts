@@ -1,5 +1,5 @@
 import assert from 'assertthat';
-import EventExternal from '../../../../src/common/elements/EventExternal';
+import EventExternal from '../../../../lib/common/elements/EventExternal';
 import uuid from 'uuidv4';
 
 suite('EventExternal', (): void => {

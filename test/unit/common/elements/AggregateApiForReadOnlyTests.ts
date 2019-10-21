@@ -1,5 +1,5 @@
-import Aggregate from '../../../../src/common/elements/Aggregate';
-import AggregateApiForReadOnly from '../../../../src/common/elements/AggregateApiForReadOnly';
+import Aggregate from '../../../../lib/common/elements/Aggregate';
+import AggregateApiForReadOnly from '../../../../lib/common/elements/AggregateApiForReadOnly';
 import assert from 'assertthat';
 import uuid from 'uuidv4';
 

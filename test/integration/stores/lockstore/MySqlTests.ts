@@ -1,7 +1,7 @@
 import connectionOptions from '../../../shared/containers/connectionOptions';
 import getTestsFor from './getTestsFor';
-import { Lockstore } from '../../../../src/stores/lockstore/Lockstore';
-import MySqlLockstore from '../../../../src/stores/lockstore/MySql';
+import { Lockstore } from '../../../../lib/stores/lockstore/Lockstore';
+import MySqlLockstore from '../../../../lib/stores/lockstore/MySql';
 
 const maxLockSize = 2048;
 

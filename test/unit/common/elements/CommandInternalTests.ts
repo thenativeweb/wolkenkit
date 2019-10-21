@@ -1,6 +1,6 @@
-import Application from '../../../../src/common/application';
+import Application from '../../../../lib/common/application';
 import assert from 'assertthat';
-import CommandInternal from '../../../../src/common/elements/CommandInternal';
+import CommandInternal from '../../../../lib/common/elements/CommandInternal';
 import path from 'path';
 import uuid from 'uuidv4';
 

@@ -1,6 +1,6 @@
 import assert from 'assertthat';
-import EventInternal from '../../../../src/common/elements/EventInternal';
-import { Eventstore } from '../../../../src/stores/eventstore/Eventstore';
+import EventInternal from '../../../../lib/common/elements/EventInternal';
+import { Eventstore } from '../../../../lib/stores/eventstore/Eventstore';
 import toArray from 'streamtoarray';
 import uuid from 'uuidv4';
 

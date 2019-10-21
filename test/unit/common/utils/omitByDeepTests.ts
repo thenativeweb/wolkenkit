@@ -1,5 +1,5 @@
 import assert from 'assertthat';
-import omitByDeep from '../../../../src/common/utils/omitByDeep';
+import omitByDeep from '../../../../lib/common/utils/omitByDeep';
 
 suite('omitByDeep', (): void => {
   test('returns the value if it is not an object.', async (): Promise<void> => {

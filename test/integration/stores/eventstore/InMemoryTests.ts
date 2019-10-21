@@ -1,6 +1,6 @@
-import { Eventstore } from '../../../../src/stores/eventstore/Eventstore';
+import { Eventstore } from '../../../../lib/stores/eventstore/Eventstore';
 import getTestsFor from './getTestsFor';
-import InMemoryEventstore from '../../../../src/stores/eventstore/InMemory';
+import InMemoryEventstore from '../../../../lib/stores/eventstore/InMemory';
 
 suite('InMemory', (): void => {
   getTestsFor({

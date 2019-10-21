@@ -16,7 +16,7 @@
   "include": [
     "./__temp__/**/*.ts",
     "./docker/**/*.ts",
-    "./src/**/*.ts",
+    "./lib/**/*.ts",
     "./test/**/*.ts",
     "./types"
   ]

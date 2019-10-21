@@ -1,8 +1,8 @@
 import assert from 'assertthat';
 import { createReadStream } from 'fs-extra';
 import { CustomError } from 'defekt';
-import { Filestore } from '../../../../src/stores/filestore/Filestore';
-import { OwnedAuthorizationOptions } from '../../../../src/apis/file/Http/V2/isAuthorized/AuthorizationOptions';
+import { Filestore } from '../../../../lib/stores/filestore/Filestore';
+import { OwnedAuthorizationOptions } from '../../../../lib/apis/file/Http/V2/isAuthorized/AuthorizationOptions';
 import path from 'path';
 import { ReadStream } from 'fs';
 import streamToString from 'stream-to-string';

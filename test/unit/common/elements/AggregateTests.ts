@@ -1,10 +1,10 @@
-import Aggregate from '../../../../src/common/elements/Aggregate';
-import { AggregateIdentifier } from '../../../../src/common/elements/AggregateIdentifier';
-import Application from '../../../../src/common/application/Application';
+import Aggregate from '../../../../lib/common/elements/Aggregate';
+import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateIdentifier';
+import Application from '../../../../lib/common/application/Application';
 import assert from 'assertthat';
-import EventInternal from '../../../../src/common/elements/EventInternal';
-import { Eventstore } from '../../../../src/stores/eventstore/Eventstore';
-import InMemoryEventstore from '../../../../src/stores/eventstore/InMemory';
+import EventInternal from '../../../../lib/common/elements/EventInternal';
+import { Eventstore } from '../../../../lib/stores/eventstore/Eventstore';
+import InMemoryEventstore from '../../../../lib/stores/eventstore/InMemory';
 import { PassThrough } from 'stream';
 import uuid from 'uuidv4';
 import validUpdateInitialState from '../../../shared/applications/valid/updateInitialState';

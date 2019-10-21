@@ -1,7 +1,7 @@
 import connectionOptions from '../../../shared/containers/connectionOptions';
-import { Eventstore } from '../../../../src/stores/eventstore/Eventstore';
+import { Eventstore } from '../../../../lib/stores/eventstore/Eventstore';
 import getTestsFor from './getTestsFor';
-import PostgresEventstore from '../../../../src/stores/eventstore/Postgres';
+import PostgresEventstore from '../../../../lib/stores/eventstore/Postgres';
 
 suite('Postgres', (): void => {
   getTestsFor({

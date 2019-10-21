@@ -1,5 +1,5 @@
 import assert from 'assertthat';
-import Http from '../../../../src/apis/health/Http';
+import Http from '../../../../lib/apis/health/Http';
 import uuid from 'uuidv4';
 import supertest, { Response } from 'supertest';
 

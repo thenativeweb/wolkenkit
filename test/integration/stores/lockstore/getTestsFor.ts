@@ -1,6 +1,6 @@
 import assert from 'assertthat';
-import { Lockstore } from '../../../../src/stores/lockstore/Lockstore';
-import sleep from '../../../../src/common/utils/sleep';
+import { Lockstore } from '../../../../lib/stores/lockstore/Lockstore';
+import sleep from '../../../../lib/common/utils/sleep';
 import uuid from 'uuidv4';
 
 const inMilliseconds = function ({ ms }: {

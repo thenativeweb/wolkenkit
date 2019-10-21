@@ -1,4 +1,4 @@
-import Application from '../../../../src/common/application';
+import Application from '../../../../lib/common/application';
 import assert from 'assertthat';
 import { CustomError } from 'defekt';
 import invalidAggregatesAreMissing from '../../../shared/applications/invalid/aggregatesAreMissing';

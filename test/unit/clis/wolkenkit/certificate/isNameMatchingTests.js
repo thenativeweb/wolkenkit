@@ -2,7 +2,7 @@
 
 const assert = require('assertthat').default;
 
-const isNameMatching = require('../../../../../src/clis/wolkenkit/certificate/isNameMatching');
+const isNameMatching = require('../../../../../lib/clis/wolkenkit/certificate/isNameMatching');
 
 suite('isNameMatching', () => {
   test('is a function.', done => {

@@ -1,7 +1,7 @@
 import connectionOptions from '../../../shared/containers/connectionOptions';
-import { Eventstore } from '../../../../src/stores/eventstore/Eventstore';
+import { Eventstore } from '../../../../lib/stores/eventstore/Eventstore';
 import getTestsFor from './getTestsFor';
-import MySqlEventstore from '../../../../src/stores/eventstore/MySql';
+import MySqlEventstore from '../../../../lib/stores/eventstore/MySql';
 
 suite('MySql', (): void => {
   getTestsFor({

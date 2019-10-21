@@ -1,8 +1,8 @@
 import assert from 'assertthat';
-import CommandExternal from '../../../../src/common/elements/CommandExternal';
-import CommandInternal from '../../../../src/common/elements/CommandInternal';
+import CommandExternal from '../../../../lib/common/elements/CommandExternal';
+import CommandInternal from '../../../../lib/common/elements/CommandInternal';
 import nock from 'nock';
-import sendCommand from '../../../../src/communication/http/sendCommand';
+import sendCommand from '../../../../lib/communication/http/sendCommand';
 import uuid from 'uuidv4';
 
 suite('sendCommand', (): void => {

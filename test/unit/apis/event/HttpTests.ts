@@ -1,18 +1,18 @@
-import Application from '../../../../src/common/application';
+import Application from '../../../../lib/common/application';
 import asJsonStream from '../../../shared/http/asJsonStream';
 import assert from 'assertthat';
 import eventFilter from '../../../shared/applications/valid/eventFilter';
-import EventInternal from '../../../../src/common/elements/EventInternal';
+import EventInternal from '../../../../lib/common/elements/EventInternal';
 import eventIsAuthorized from '../../../shared/applications/valid/eventIsAuthorized';
 import eventMap from '../../../shared/applications/valid/eventMap';
-import { Eventstore } from '../../../../src/stores/eventstore/Eventstore';
-import Http from '../../../../src/apis/event/Http';
+import { Eventstore } from '../../../../lib/stores/eventstore/Eventstore';
+import Http from '../../../../lib/apis/event/Http';
 import identityProvider from '../../../shared/identityProvider';
-import InMemoryEventstore from '../../../../src/stores/eventstore/InMemory/InMemoryEventstore';
+import InMemoryEventstore from '../../../../lib/stores/eventstore/InMemory/InMemoryEventstore';
 import path from 'path';
 import record from 'record-stdstreams';
-import Repository from '../../../../src/common/domain/Repository';
-import sleep from '../../../../src/common/utils/sleep';
+import Repository from '../../../../lib/common/domain/Repository';
+import sleep from '../../../../lib/common/utils/sleep';
 import uuid from 'uuidv4';
 import supertest, { Response } from 'supertest';
 

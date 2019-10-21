@@ -1,11 +1,11 @@
-import Application from '../../../../src/common/application';
+import Application from '../../../../lib/common/application';
 import assert from 'assertthat';
-import CommandExternal from '../../../../src/common/elements/CommandExternal';
-import CommandInternal from '../../../../src/common/elements/CommandInternal';
-import { Eventstore } from '../../../../src/stores/eventstore/Eventstore';
-import Http from '../../../../src/apis/command/Http';
+import CommandExternal from '../../../../lib/common/elements/CommandExternal';
+import CommandInternal from '../../../../lib/common/elements/CommandInternal';
+import { Eventstore } from '../../../../lib/stores/eventstore/Eventstore';
+import Http from '../../../../lib/apis/command/Http';
 import identityProvider from '../../../shared/identityProvider';
-import InMemoryEventstore from '../../../../src/stores/eventstore/InMemory';
+import InMemoryEventstore from '../../../../lib/stores/eventstore/InMemory';
 import path from 'path';
 import uuid from 'uuidv4';
 import supertest, { Response } from 'supertest';

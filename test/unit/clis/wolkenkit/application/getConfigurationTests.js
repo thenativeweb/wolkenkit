@@ -2,7 +2,7 @@
 
 const assert = require('assertthat').default;
 
-const getConfiguration = require('../../../../../src/clis/wolkenkit/application/getConfiguration'),
+const getConfiguration = require('../../../../../lib/clis/wolkenkit/application/getConfiguration'),
       invalidPackageJsonIsInvalid = require('../../../../shared/applications/invalid/packageJsonIsInvalid'),
       invalidPackageJsonIsMissing = require('../../../../shared/applications/invalid/packageJsonIsMissing'),
       invalidPackageJsonWithMissingRuntime = require('../../../../shared/applications/invalid/packageJsonWithMissingRuntime'),

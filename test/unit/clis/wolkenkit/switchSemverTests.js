@@ -2,7 +2,7 @@
 
 const assert = require('assertthat').default;
 
-const switchSemver = require('../../../../src/clis/wolkenkit/switchSemver');
+const switchSemver = require('../../../../lib/clis/wolkenkit/switchSemver');
 
 suite('switchSemver', () => {
   test('is a function.', async () => {
