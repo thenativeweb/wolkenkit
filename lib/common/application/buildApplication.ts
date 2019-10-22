@@ -23,6 +23,7 @@ const buildApplication = async function ({ directory }: {
     return;
   }
 
+  shell.mkdir('-p', buildDirectory);
   shell.cp('-r', serverDirectory, buildDirectory);
 };
 
