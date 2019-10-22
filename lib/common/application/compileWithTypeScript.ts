@@ -1,6 +1,14 @@
+import CompilerErrorData from './CompilerErrorData';
+import errors from '../errors';
 import getFiles from '../utils/fs/getFiles';
 import path from 'path';
-import { CompilerOptions, createProgram } from 'typescript';
+import {
+  CompilerOptions,
+  createProgram,
+  flattenDiagnosticMessageText,
+  getPreEmitDiagnostics,
+  ModuleKind
+} from 'typescript';
 
 const compileWithTypeScript = async function ({
   sourceDirectory,
@@ -18,22 +26,43 @@ const compileWithTypeScript = async function ({
 
   const program = createProgram(sourceFiles, {
     ...compilerOptions,
+    module: ModuleKind.CommonJS,
+    noEmitOnError: true,
     outDir: targetDirectory
   });
+
   const emitResult = program.emit();
+  const diagnostics = getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+  const compilerErrors = [];
+
+  for (const diagnostic of diagnostics) {
+    if (!diagnostic.file) {
+      const compilerErrorData = new CompilerErrorData({
+        message: flattenDiagnosticMessageText(diagnostic.messageText, '\n')
+      });
+
+      compilerErrors.push(compilerErrorData);
+      continue;
+    }
+
+    const {
+      line,
+      character
+    } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
+
+    const compilerErrorData = new CompilerErrorData({
+      message: flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
+      line,
+      column: character,
+      fileName: diagnostic.file.fileName
+    });
+
+    compilerErrors.push(compilerErrorData);
+  }
 
   if (emitResult.emitSkipped) {
-    throw new Error('Compilation failed.');
+    throw new errors.CompilationFailed('Compilation failed.', { data: compilerErrors });
   }
 };
 
 export default compileWithTypeScript;
-
-
-(async () => {
-  await compileWithTypeScript({
-    sourceDirectory: __dirname,
-    targetDirectory: '/Users/golo/Projekte/thenativeweb/wolkenkit/foo',
-    require('../../../../tsconfig.json').compilerOptions
-  });
-})();

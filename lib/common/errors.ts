@@ -1,7 +1,9 @@
 import defekt from 'defekt';
 
 const errors = defekt({
+  ApplicationNotFound: {},
   CommandMalformed: {},
+  CompilationFailed: {},
   DispatchFailed: {},
   EventMalformed: {},
   EventUnknown: {},
