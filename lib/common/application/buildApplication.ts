@@ -1,4 +1,5 @@
 import compileWithTypeScript from './compileWithTypeScript';
+import { promises as fs } from 'fs';
 import isTypeScript from 'is-typescript';
 import path from 'path';
 import shell from 'shelljs';
@@ -12,7 +13,8 @@ const buildApplication = async function ({ directory }: {
   shell.rm('-rf', buildDirectory);
 
   if (await isTypeScript({ directory })) {
-    const { compilerOptions } = await import(path.join(directory, 'tsconfig.json'));
+    const tsconfig = await fs.readFile(path.join(directory, 'tsconfig.json'), 'utf-8');
+    const { compilerOptions } = JSON.parse(tsconfig);
 
     await compileWithTypeScript({
       sourceDirectory: serverDirectory,
@@ -24,7 +26,7 @@ const buildApplication = async function ({ directory }: {
   }
 
   shell.mkdir('-p', buildDirectory);
-  shell.cp('-r', serverDirectory, buildDirectory);
+  shell.cp('-r', `${serverDirectory}/*`, buildDirectory);
 };
 
 export default buildApplication;
