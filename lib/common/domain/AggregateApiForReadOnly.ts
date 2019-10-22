@@ -1,15 +1,14 @@
 import Aggregate from './Aggregate';
-import { State } from './State';
 
-class AggregateApiForReadOnly {
+class AggregateApiForReadOnly<TState> {
   public readonly id: string;
 
-  public state: State;
+  public readonly state: TState;
 
-  protected aggregate: Aggregate;
+  protected aggregate: Aggregate<TState>;
 
   public constructor ({ aggregate }: {
-    aggregate: Aggregate;
+    aggregate: Aggregate<TState>;
   }) {
     this.aggregate = aggregate;
     this.id = aggregate.identifier.id;

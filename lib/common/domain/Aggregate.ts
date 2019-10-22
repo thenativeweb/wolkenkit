@@ -1,30 +1,30 @@
-import AggregateApiForEvents from './AggregateApiForEvents';
-import { AggregateIdentifier } from './AggregateIdentifier';
+import AggregateApiForReadOnly from './AggregateApiForReadOnly';
+import { AggregateIdentifier } from '../elements/AggregateIdentifier';
 import Application from '../application';
-import { ContextIdentifier } from './ContextIdentifier';
+import { ContextIdentifier } from '../elements/ContextIdentifier';
+import DomainEvent from '../elements/DomainEvent';
+import { DomainEventData } from '../elements/DomainEventData';
+import DomainEventWithState from '../elements/DomainEventWithState';
 import errors from '../errors';
-import EventExternal from './EventExternal';
-import EventInternal from './EventInternal';
 import { Readable } from 'stream';
 import { Snapshot } from '../../stores/eventstore/Snapshot';
-import { State } from './State';
 import { cloneDeep, get } from 'lodash';
 
-class Aggregate {
+class Aggregate<TState> {
   public readonly contextIdentifier: ContextIdentifier;
 
   public readonly identifier: AggregateIdentifier;
 
-  public state: State;
+  public state: TState;
 
   public revision: number;
 
-  public uncommittedEvents: EventInternal[];
+  public uncommittedEvents: DomainEventWithState<DomainEventData, TState>[];
 
   public constructor ({ contextIdentifier, aggregateIdentifier, initialState }: {
     contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
-    initialState: State;
+    initialState: TState;
   }) {
     this.contextIdentifier = contextIdentifier;
     this.identifier = aggregateIdentifier;
@@ -54,7 +54,7 @@ class Aggregate {
     eventStream: Readable;
   }): Promise<void> {
     for await (const event of eventStream) {
-      if (!(event instanceof EventExternal)) {
+      if (!(event instanceof DomainEvent)) {
         throw new errors.TypeInvalid('Entity in event stream has an invalid type.');
       }
 
@@ -75,7 +75,7 @@ class Aggregate {
       }
 
       const { handle } = get(application, `events.internal.${this.contextIdentifier.name}.${this.identifier.name}.${event.name}`);
-      const aggregateApiForEvents = new AggregateApiForEvents({ aggregate: this });
+      const aggregateApiForEvents = new AggregateApiForReadOnly({ aggregate: this });
 
       handle(aggregateApiForEvents, event);
 

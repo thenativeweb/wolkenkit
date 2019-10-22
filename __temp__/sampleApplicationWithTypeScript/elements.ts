@@ -1,65 +1,53 @@
+import Aggregate from '../../lib/common/domain/Aggregate';
+import AggregateApiForCommands from '../../lib/common/domain/AggregateApiForCommands';
+import AggregateApiForReadOnly from '../../lib/common/domain/AggregateApiForReadOnly';
+import Command from '../../lib/common/elements/Command';
+import { CommandData } from '../../lib/common/elements/CommandData';
+import { DomainEventData } from '../../lib/common/elements/DomainEventData';
+import Event from '../../lib/common/elements/DomainEvent';
 import { Readable } from 'stream';
 import { JSONSchema4 as Schema } from 'json-schema';
 
-export { Schema };
+export { Aggregate, AggregateApiForCommands, AggregateApiForReadOnly, Command, Event, Schema };
 
 /* eslint-disable class-methods-use-this, no-console */
-export class Event<TEventData> {
-  public constructor (
-    public eventName: string,
-    public data: TEventData
-  ) {}
-}
-
-export abstract class EventHandler<TState, TEventData> {
+export abstract class EventHandler<TState, TEventData extends DomainEventData> {
   public abstract getDocumentation (): string;
 
   public abstract getSchema (): Schema;
 
-  public abstract handle (aggregate: Aggregate<TState>, event: Event<TEventData>, service: Services): Partial<TState>;
+  public abstract handle (state: TState, event: Event<TEventData>, service: Services): Partial<TState>;
 
-  public abstract isAuthorized (game: Aggregate<TState>, event: Event<TEventData>, service: Services): boolean | Promise<boolean>;
+  public abstract isAuthorized (state: TState, event: Event<TEventData>, service: Services): boolean | Promise<boolean>;
 
-  public abstract filter (game: Aggregate<TState>, event: Event<TEventData>, service: Services): boolean | Promise<boolean>;
+  public abstract filter (state: TState, event: Event<TEventData>, service: Services): boolean | Promise<boolean>;
 
-  public abstract map (game: Aggregate<TState>, event: Event<TEventData>, service: Services): Event<TEventData> | Promise<Event<TEventData>>;
+  public abstract map (state: TState, event: Event<TEventData>, service: Services): Event<TEventData> | Promise<Event<TEventData>>;
 }
 
-export class Aggregate<TState> {
-  public constructor (
-    public id: string,
-    public state: TState,
-    public uncommittedEvents: Event<any>[]
-  ) {}
-
-  public exists (): boolean {
-    return true;
-  }
-
-  public publishEvent<TEventData extends {}> (eventName: string, eventData: TEventData): void {
-    const event = new Event<TEventData>(eventName, eventData);
-
-    this.uncommittedEvents.push(event);
-  }
-}
-
-export class Command<TCommandData> {
-  public constructor (
-    public data: TCommandData
-  ) {}
-}
-
-export abstract class CommandHandler<TState, TCommandData> {
+export abstract class CommandHandler<TState, TCommandData extends CommandData> {
   public abstract getDocumentation (): string;
 
   public abstract getSchema (): Schema;
 
-  public abstract isAuthorized (game: Aggregate<TState>, command: Command<TCommandData>, service: Services): boolean | Promise<boolean>;
+  public abstract isAuthorized (state: TState, command: Command<TCommandData>, service: Services): boolean | Promise<boolean>;
 
-  public abstract handle (aggregate: Aggregate<TState>, command: Command<TCommandData>, service: Services): void | Promise<void>;
+  public abstract handle (state: TState, command: Command<TCommandData>, service: Services): void | Promise<void>;
 }
 
 export class Services {
+  public aggregate = {
+    id: '3ddbaa27-e72f-4912-a273-77a177935b67',
+
+    exists (): boolean {
+      return true;
+    },
+
+    publishEvent <TEventData extends DomainEventData> (eventName: string, data: TEventData): void {
+      // ...
+    }
+  };
+
   public logger = {
     debug (message: string): void {
       console.log(message);
@@ -79,7 +67,7 @@ export class Services {
   };
 }
 
-export abstract class ProjectionHandler<TEventData> {
+export abstract class ProjectionHandler<TEventData extends DomainEventData> {
   public eventIdentifier: string;
 
   public constructor (eventIdentifier: string) {

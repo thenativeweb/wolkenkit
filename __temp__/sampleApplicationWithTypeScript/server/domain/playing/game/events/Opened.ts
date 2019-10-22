@@ -1,5 +1,5 @@
 import { State } from '../State';
-import { Aggregate, Event, EventHandler, Schema } from '../../../../../elements';
+import { Event, EventHandler, Schema } from '../../../../../elements';
 
 export interface Opened {
   level: number;
@@ -44,7 +44,7 @@ export class Handler extends EventHandler<State, Opened> {
   /* eslint-enable class-methods-use-this */
 
   /* eslint-disable class-methods-use-this */
-  public handle (game: Aggregate<State>, event: Event<Opened>): Partial<State> {
+  public handle (state: State, event: Event<Opened>): Partial<State> {
     return {
       level: event.data.level
     };
@@ -64,7 +64,7 @@ export class Handler extends EventHandler<State, Opened> {
   /* eslint-enable class-methods-use-this */
 
   /* eslint-disable class-methods-use-this */
-  public map (game: Aggregate<State>, event: Event<Opened>): Event<Opened> {
+  public map (state: State, event: Event<Opened>): Event<Opened> {
     return event;
   }
   /* eslint-enable class-methods-use-this */

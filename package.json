@@ -160,6 +160,7 @@
     "tar": "5.0.5",
     "tarn": "2.0.0",
     "tedious": "6.4.0",
+    "typescript": "3.6.4",
     "update-notifier": "3.0.1",
     "uuidv4": "5.0.1",
     "validate-value": "6.0.1"

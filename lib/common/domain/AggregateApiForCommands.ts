@@ -1,32 +1,32 @@
 import Aggregate from './Aggregate';
-import AggregateApiForEvents from './AggregateApiForEvents';
 import AggregateApiForReadOnly from './AggregateApiForReadOnly';
 import Application from '../application';
-import CommandInternal from './CommandInternal';
-import { Dictionary } from '../../types/Dictionary';
+import CommandWithMetadata from '../elements/CommandWithMetadata';
+import DomainEvent from '../elements/DomainEvent';
+import { DomainEventData } from '../elements/DomainEventData';
+import DomainEventWithState from '../elements/DomainEventWithState';
 import errors from '../errors';
-import EventExternal from './EventExternal';
-import EventInternal from './EventInternal';
 import getAggregateService from '../services/getAggregateService';
 import getClientService from '../services/getClientService';
 import getLoggerService from '../services/getLoggerService';
 import path from 'path';
 import Repository from '../domain/Repository';
+import uuid from 'uuidv4';
 import Value from 'validate-value';
 import { cloneDeep, get } from 'lodash';
 
-class AggregateApiForCommands extends AggregateApiForReadOnly {
-  public readonly application: Application;
+class AggregateApiForCommands<TState> extends AggregateApiForReadOnly<TState> {
+  protected readonly application: Application;
 
-  public readonly repository: Repository;
+  protected readonly repository: Repository;
 
-  public readonly command: CommandInternal;
+  protected readonly command: CommandWithMetadata<any>;
 
   public constructor ({ aggregate, application, repository, command }: {
-    aggregate: Aggregate;
+    aggregate: Aggregate<TState>;
     application: Application;
     repository: Repository;
-    command: CommandInternal;
+    command: CommandWithMetadata<any>;
   }) {
     super({ aggregate });
 
@@ -35,7 +35,10 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
     this.command = command;
   }
 
-  public publishEvent (eventName: string, data: Dictionary<any> = {}): void {
+  public publishEvent <TDomainEventData extends DomainEventData> (
+    eventName: string,
+    data: TDomainEventData
+  ): void {
     const contextName = this.aggregate.contextIdentifier.name;
 
     const eventConfiguration = get(this.application, `events.internal.${contextName}.${this.aggregate.identifier.name}.${eventName}`);
@@ -52,23 +55,27 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
       value.validate(data, { valueName: 'data', separator: '.' });
     }
 
-    const eventExternal = EventExternal.create({
+    const domainEvent = new DomainEvent({
       contextIdentifier: this.aggregate.contextIdentifier,
       aggregateIdentifier: this.aggregate.identifier,
       name: eventName,
       data,
+      id: uuid(),
       metadata: {
-        initiator: this.command.annotations.initiator,
-        correlationId: this.command.metadata.correlationId,
         causationId: this.command.id,
+        correlationId: this.command.metadata.correlationId,
+        timestamp: Date.now(),
+        isPublished: false,
+        initiator: this.command.metadata.initiator,
         revision: {
-          aggregate: this.aggregate.revision + this.aggregate.uncommittedEvents.length + 1
+          aggregate: this.aggregate.revision + this.aggregate.uncommittedEvents.length + 1,
+          global: null
         }
       }
     });
 
     const previousState = cloneDeep(this.aggregate.state);
-    const aggregateApiForEvents = new AggregateApiForEvents({ aggregate: this.aggregate });
+    const aggregateApiForReadOnly = new AggregateApiForReadOnly({ aggregate: this.aggregate });
 
     const fileName = path.join(this.application.rootDirectory, 'server', 'domain', contextName, `${this.aggregate.identifier.name}.js`);
 
@@ -79,19 +86,19 @@ class AggregateApiForCommands extends AggregateApiForReadOnly {
           repository: this.repository
         })
       },
-      client: getClientService({ clientMetadata: this.command.annotations.client }),
+      client: getClientService({ clientMetadata: this.command.metadata.client }),
       logger: getLoggerService({ fileName })
     };
 
-    handle(aggregateApiForEvents, eventExternal, services);
+    handle(aggregateApiForReadOnly, domainEvent, services);
 
-    const state = cloneDeep(this.aggregate.state);
+    const nextState = cloneDeep(this.aggregate.state);
 
-    const eventInternal = EventInternal.deserialize({
-      ...eventExternal,
-      annotations: {
-        previousState,
-        state
+    const eventInternal = new DomainEventWithState({
+      ...domainEvent,
+      state: {
+        previous: previousState,
+        next: nextState
       }
     });
 

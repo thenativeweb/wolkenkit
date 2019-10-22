@@ -64,8 +64,8 @@ export class Handler extends QueryHandler<Collection, Options, Item> {
       stream();
   }
 
-  public isAuthorized (_game: Item, services: Services): boolean {
-    services.logger.info('Access granted.');
+  public isAuthorized (_game: Item, { logger }: Services): boolean {
+    logger.info('Access granted.');
 
     return true;
   }
