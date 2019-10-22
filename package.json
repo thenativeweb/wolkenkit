@@ -119,7 +119,7 @@
     "content-type": "1.0.4",
     "cors": "2.8.5",
     "deep-hash": "1.0.1",
-    "defekt": "3.0.1",
+    "defekt": "4.0.0",
     "directory-tree": "2.2.4",
     "docker-compare": "0.2.0",
     "dotfile-json": "1.0.3",
