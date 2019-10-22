@@ -1,5 +1,5 @@
-import { JSONSchema4 as Schema } from 'json-schema';
 import { Readable } from 'stream';
+import { JSONSchema4 as Schema } from 'json-schema';
 
 export { Schema };
 
