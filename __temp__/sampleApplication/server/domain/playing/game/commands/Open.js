@@ -1,13 +1,7 @@
-import { Opened } from '../domainEvents/Opened';
-import { State } from '../State';
-import { CommandHandler, Schema } from '../../../../../elements';
+'use strict';
 
-export interface Open {
-  level?: number;
-}
-
-export const handler: CommandHandler<State, Open> = {
-  getDocumentation (): string {
+const handler = {
+  getDocumentation () {
     return `
       # Open a game
 
@@ -23,7 +17,7 @@ export const handler: CommandHandler<State, Open> = {
     `;
   },
 
-  getSchema (): Schema {
+  getSchema () {
     return {
       type: 'object',
       properties: {
@@ -38,13 +32,11 @@ export const handler: CommandHandler<State, Open> = {
     };
   },
 
-  isAuthorized (): boolean {
+  isAuthorized () {
     return true;
   },
 
-  handle (state, command, { aggregate, logger }): void {
-    aggregate.read()
-
+  handle (state, command, { aggregate, logger }) {
     if (aggregate.exists()) {
       rejectCommand('Game was already opened.');
     }
@@ -54,6 +46,8 @@ export const handler: CommandHandler<State, Open> = {
 
     logger.info('Game opened.');
 
-    aggregate.publishEvent<Opened>('Opened', { level, riddle });
+    aggregate.publishEvent('Opened', { level, riddle });
   }
 };
+
+module.exports = { handler };

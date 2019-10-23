@@ -1,19 +1,7 @@
-import { Collection } from 'mongodb';
-import { QueryHandler } from '../../../../../../lib/common/elements/QueryHandler';
-import { Readable } from 'stream';
-import { Schema } from '../../../../../../lib/common/elements/Schema';
+'use strict';
 
-export interface Options {
-  orderBy?: string;
-}
-
-interface Item {
-  level: number;
-  riddle: string;
-}
-
-export const handler: QueryHandler<Collection, Options, Item> = {
-  getDocumentation (): string {
+const handler = {
+  getDocumentation () {
     return `
       # All games
 
@@ -21,7 +9,7 @@ export const handler: QueryHandler<Collection, Options, Item> = {
     `;
   },
 
-  getOptionsSchema (): Schema {
+  getOptionsSchema () {
     return {
       type: 'object',
       properties: {
@@ -37,7 +25,7 @@ export const handler: QueryHandler<Collection, Options, Item> = {
     };
   },
 
-  getItemSchema (): Schema {
+  getItemSchema () {
     return {
       type: 'object',
       properties: {
@@ -57,16 +45,18 @@ export const handler: QueryHandler<Collection, Options, Item> = {
     };
   },
 
-  async handle (games, queryOptions): Promise<Readable> {
+  async handle (games, queryOptions) {
     return games.
       find({}, { sort: { [queryOptions.orderBy || 'id']: 1 }}).
-      map((item): Item => ({ level: item.level, riddle: item.riddle })).
+      map(item => ({ level: item.level, riddle: item.riddle })).
       stream();
   },
 
-  isAuthorized (_game, { logger }): boolean {
+  isAuthorized (_game, { logger }) {
     logger.info('Access granted.');
 
     return true;
   }
 };
+
+module.exports = { handler };

@@ -14,16 +14,16 @@ const validateDomainEventWithState = function <TDomainEventData extends DomainEv
   const schema = getDomainEventWithStateSchema();
 
   try {
-    schema.validate(domainEvent, { valueName: 'event' });
+    schema.validate(domainEvent, { valueName: 'domainEvent' });
   } catch (ex) {
-    throw new errors.EventMalformed(ex.message);
+    throw new errors.DomainEventMalformed(ex.message);
   }
 
   if (
     (domainEvent.metadata.causationId && !domainEvent.metadata.correlationId) ||
     (!domainEvent.metadata.causationId && domainEvent.metadata.correlationId)
   ) {
-    throw new errors.EventMalformed('Causation id and correlation id must either be given both or none.');
+    throw new errors.DomainEventMalformed('Causation id and correlation id must either be given both or none.');
   }
 
   // TODO: Validate event against application

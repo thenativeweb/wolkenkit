@@ -14,9 +14,9 @@ const validateDomainEvent = function <TDomainEventData extends DomainEventData> 
   const schema = getDomainEventSchema();
 
   try {
-    schema.validate(domainEvent, { valueName: 'event' });
+    schema.validate(domainEvent, { valueName: 'domainEvent' });
   } catch (ex) {
-    throw new errors.EventMalformed(ex.message);
+    throw new errors.DomainEventMalformed(ex.message);
   }
 
   // TODO: Validate event against application

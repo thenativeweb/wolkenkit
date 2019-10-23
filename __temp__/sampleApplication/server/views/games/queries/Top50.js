@@ -1,19 +1,7 @@
-import { Collection } from 'mongodb';
-import { QueryHandler } from '../../../../../../lib/common/elements/QueryHandler';
-import { Readable } from 'stream';
-import { Schema } from '../../../../../../lib/common/elements/Schema';
+'use strict';
 
-/* eslint-disable @typescript-eslint/no-empty-interface */
-export interface Options {}
-/* eslint-enable @typescript-eslint/no-empty-interface */
-
-interface Item {
-  level: number;
-  riddle: string;
-}
-
-export const handler: QueryHandler<Collection, Options, Item> = {
-  getDocumentation (): string {
+const handler = {
+  getDocumentation () {
     return `
       # The top 50 games
 
@@ -21,7 +9,7 @@ export const handler: QueryHandler<Collection, Options, Item> = {
     `;
   },
 
-  getOptionsSchema (): Schema {
+  getOptionsSchema () {
     return {
       type: 'object',
       properties: {},
@@ -30,7 +18,7 @@ export const handler: QueryHandler<Collection, Options, Item> = {
     };
   },
 
-  getItemSchema (): Schema {
+  getItemSchema () {
     return {
       type: 'object',
       properties: {
@@ -50,14 +38,16 @@ export const handler: QueryHandler<Collection, Options, Item> = {
     };
   },
 
-  async handle (games): Promise<Readable> {
+  async handle (games) {
     return games.
       find({}, { sort: { level: -1 }, limit: 50 }).
-      map((item): Item => ({ level: item.level, riddle: item.riddle })).
+      map(item => ({ level: item.level, riddle: item.riddle })).
       stream();
   },
 
-  isAuthorized (): boolean {
+  isAuthorized () {
     return true;
   }
 };
+
+module.exports = { handler };
