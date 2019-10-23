@@ -1,24 +1,23 @@
-import { AggregateDefinition } from '../elements/AggregateDefinition';
+import { CommandData } from '../elements/CommandData';
+import { CommandHandler } from '../elements/CommandHandler';
+import { DomainEventData } from '../elements/DomainEventData';
+import { DomainEventHandler } from '../elements/DomainEventHandler';
 import errors from '../errors';
 import exists from '../utils/fs/exists';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { stripIndent } from 'common-tags';
+import { Schema } from '../elements/Schema';
+import { State } from '../elements/State';
 import validateAggregateDefinition from '../validators/validateAggregateDefinition';
-import { DomainEventDescription, DomainEventsDomainDescription } from '../elements/Descriptions';
 
-const getDomainEventsDescription = async function ({ domainDirectory }: {
+const getDomainEventDefinitions = async function ({ domainDirectory }: {
   domainDirectory: string;
-}): Promise<DomainEventsDomainDescription> {
+}): Promise<Record<string, Record<string, Record<string, DomainEventHandler<State, DomainEventData>>>>> {
   if (!await exists({ path: domainDirectory })) {
     throw new errors.DirectoryNotFound(`Directory '<app>/server/domain' not found.`);
   }
 
-  const domainEventsDescription: DomainEventsDomainDescription = {
-    domain: {
-      contexts: {}
-    }
-  };
+  const domainEventDefinitions: Record<string, Record<string, Record<string, DomainEventHandler<State, DomainEventData>>>> = {};
 
   for (const contextDirectory of await fs.readdir(domainDirectory, { withFileTypes: true })) {
     if (!contextDirectory.isDirectory()) {
@@ -28,9 +27,7 @@ const getDomainEventsDescription = async function ({ domainDirectory }: {
     const contextPath = path.join(domainDirectory, contextDirectory.name);
     const contextName = contextDirectory.name;
 
-    domainEventsDescription.domain.contexts[contextName] = {
-      aggregates: {}
-    };
+    domainEventDefinitions[contextName] = {};
 
     for (const aggregateEntry of await fs.readdir(contextPath, { withFileTypes: true })) {
       let aggregateName,
@@ -60,85 +57,57 @@ const getDomainEventsDescription = async function ({ domainDirectory }: {
         throw new errors.AggregateDefinitionMalformed(`Aggregate definition '<app>/server/domain/${contextName}/${aggregateName}' is malformed: ${ex.message}`);
       }
 
-      const aggregateDefinition = importedAggregateDefinition as AggregateDefinition;
+      const aggregateDefinition = importedAggregateDefinition as {
+        commands: Record<string, CommandHandler<State, CommandData>>;
+        domainEvents: Record<string, DomainEventHandler<State, DomainEventData>>;
+      };
 
-      domainEventsDescription.
-        domain.
-        contexts[contextName].
-        aggregates[aggregateName] = {
-          domainEvents: {}
-        };
+      domainEventDefinitions[contextName][aggregateName] = {};
 
       for (const [ domainEventName, domainEventHandler ] of Object.entries(aggregateDefinition.domainEvents)) {
-        const documentation = domainEventHandler.getDocumentation ?
-          stripIndent(domainEventHandler.getDocumentation().trim()) :
-          undefined;
-
-        const schema = domainEventHandler.getSchema ?
-          domainEventHandler.getSchema() :
-          undefined;
-
-        domainEventsDescription.
-          domain.
-          contexts[contextName].
-          aggregates[aggregateName].
-          domainEvents[domainEventName] = {
-            documentation,
-            schema
-          };
+        domainEventDefinitions[contextName][aggregateName][domainEventName] = domainEventHandler;
       }
 
       for (const commandName of Object.keys(aggregateDefinition.commands)) {
         const domainEventNameFailed = `${commandName}Failed`;
         const domainEventNameRejected = `${commandName}Rejected`;
 
-        if (
-          domainEventNameFailed in domainEventsDescription.
-            domain.
-            contexts[contextName].
-            aggregates[aggregateName].
-            domainEvents
-        ) {
+        if (domainEventNameFailed in domainEventDefinitions[contextName][aggregateName]) {
           throw new errors.DomainEventDefinitionInvalid(`Reserved event name '${domainEventNameFailed}' used in '<app>/server/domain/${contextName}/${aggregateName}'.`);
         }
 
-        if (
-          domainEventNameRejected in domainEventsDescription.
-            domain.
-            contexts[contextName].
-            aggregates[aggregateName].
-            domainEvents
-        ) {
+        if (domainEventNameRejected in domainEventDefinitions[contextName][aggregateName]) {
           throw new errors.DomainEventDefinitionInvalid(`Reserved event name '${domainEventNameRejected}' used in '<app>/server/domain/${contextName}/${aggregateName}'.`);
         }
 
-        const domainEventDefinition: DomainEventDescription = {
-          schema: {
-            type: 'object',
-            properties: {
-              reason: { type: 'string' }
-            },
-            required: [ 'reason' ],
-            additionalProperties: false
+        const domainEventDefinition: DomainEventHandler<State, any> = {
+          getSchema (): Schema {
+            return {
+              type: 'object',
+              properties: {
+                reason: { type: 'string' }
+              },
+              required: [ 'reason' ],
+              additionalProperties: false
+            };
+          },
+
+          handle (state): Partial<State> {
+            return state;
+          },
+
+          isAuthorized (_state, domainEvent, { client }): boolean {
+            return domainEvent.metadata.initiator.user.id === client.user.id;
           }
         };
 
-        domainEventsDescription.
-          domain.
-          contexts[contextName].
-          aggregates[aggregateName].
-          domainEvents[domainEventNameFailed] = domainEventDefinition;
-
-        domainEventsDescription.
-          domain.
-          contexts[contextName].
-          aggregates[aggregateName].
-          domainEvents[domainEventNameRejected] = domainEventDefinition;
+        domainEventDefinitions[contextName][aggregateName][domainEventNameFailed] = domainEventDefinition;
+        domainEventDefinitions[contextName][aggregateName][domainEventNameRejected] = domainEventDefinition;
       }
     }
   }
 
-  return domainEventsDescription;
+  return domainEventDefinitions;
 };
 
-export default getDomainEventsDescription;
+export default getDomainEventDefinitions;

@@ -1,24 +1,20 @@
-import { AggregateDefinition } from '../elements/AggregateDefinition';
-import { CommandsDomainDescription } from '../elements/Descriptions';
+import { CommandData } from '../elements/CommandData';
+import { CommandHandler } from '../elements/CommandHandler';
 import errors from '../errors';
 import exists from '../utils/fs/exists';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { stripIndent } from 'common-tags';
+import { State } from '../elements/State';
 import validateAggregateDefinition from '../validators/validateAggregateDefinition';
 
-const getCommandsDescription = async function ({ domainDirectory }: {
+const getCommandDefinitions = async function ({ domainDirectory }: {
   domainDirectory: string;
-}): Promise<CommandsDomainDescription> {
+}): Promise<Record<string, Record<string, Record<string, CommandHandler<State, CommandData>>>>> {
   if (!await exists({ path: domainDirectory })) {
     throw new errors.DirectoryNotFound(`Directory '<app>/server/domain' not found.`);
   }
 
-  const commandsDescription: CommandsDomainDescription = {
-    domain: {
-      contexts: {}
-    }
-  };
+  const commandDefinitions: Record<string, Record<string, Record<string, CommandHandler<State, CommandData>>>> = {};
 
   for (const contextDirectory of await fs.readdir(domainDirectory, { withFileTypes: true })) {
     if (!contextDirectory.isDirectory()) {
@@ -28,9 +24,7 @@ const getCommandsDescription = async function ({ domainDirectory }: {
     const contextPath = path.join(domainDirectory, contextDirectory.name);
     const contextName = contextDirectory.name;
 
-    commandsDescription.domain.contexts[contextName] = {
-      aggregates: {}
-    };
+    commandDefinitions[contextName] = {};
 
     for (const aggregateEntry of await fs.readdir(contextPath, { withFileTypes: true })) {
       let aggregateName,
@@ -60,37 +54,19 @@ const getCommandsDescription = async function ({ domainDirectory }: {
         throw new errors.AggregateDefinitionMalformed(`Aggregate definition '<app>/server/domain/${contextName}/${aggregateName}' is malformed: ${ex.message}`);
       }
 
-      const aggregateDefinition = importedAggregateDefinition as AggregateDefinition;
+      const aggregateDefinition = importedAggregateDefinition as {
+        commands: Record<string, CommandHandler<State, CommandData>>;
+      };
 
-      commandsDescription.
-        domain.
-        contexts[contextName].
-        aggregates[aggregateName] = {
-          commands: {}
-        };
+      commandDefinitions[contextName][aggregateName] = {};
 
       for (const [ commandName, commandHandler ] of Object.entries(aggregateDefinition.commands)) {
-        const documentation = commandHandler.getDocumentation ?
-          stripIndent(commandHandler.getDocumentation().trim()) :
-          undefined;
-
-        const schema = commandHandler.getSchema ?
-          commandHandler.getSchema() :
-          undefined;
-
-        commandsDescription.
-          domain.
-          contexts[contextName].
-          aggregates[aggregateName].
-          commands[commandName] = {
-            documentation,
-            schema
-          };
+        commandDefinitions[contextName][aggregateName][commandName] = commandHandler;
       }
     }
   }
 
-  return commandsDescription;
+  return commandDefinitions;
 };
 
-export default getCommandsDescription;
+export default getCommandDefinitions;

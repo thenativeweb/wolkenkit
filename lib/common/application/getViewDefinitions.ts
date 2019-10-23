@@ -2,21 +2,17 @@ import errors from '../errors';
 import exists from '../utils/fs/exists';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { stripIndent } from 'common-tags';
 import validateViewDefinition from '../validators/validateViewDefinition';
-import { ViewDefinition } from '../elements/ViewDefinition';
-import { ViewsDescription } from '../elements/Descriptions';
+import { ViewDefinition } from './ViewDefinition';
 
-const getViewsDescription = async function ({ viewsDirectory }: {
+const getViewDefinitions = async function ({ viewsDirectory }: {
   viewsDirectory: string;
-}): Promise<ViewsDescription> {
+}): Promise<Record<string, ViewDefinition>> {
   if (!await exists({ path: viewsDirectory })) {
     throw new errors.DirectoryNotFound(`Directory '<app>/server/views' not found.`);
   }
 
-  const viewsDescription: ViewsDescription = {
-    views: {}
-  };
+  const viewDefinitions: Record<string, ViewDefinition> = {};
 
   for (const viewEntry of await fs.readdir(viewsDirectory, { withFileTypes: true })) {
     let viewName,
@@ -48,35 +44,10 @@ const getViewsDescription = async function ({ viewsDirectory }: {
 
     const viewDefinition = importedViewDefinition as ViewDefinition;
 
-    viewsDescription.
-      views[viewName] = {
-        queries: {}
-      };
-
-    for (const [ queryName, queryHandler ] of Object.entries(viewDefinition.queries)) {
-      const documentation = queryHandler.getDocumentation ?
-        stripIndent(queryHandler.getDocumentation().trim()) :
-        undefined;
-
-      const optionsSchema = queryHandler.getOptionsSchema ?
-        queryHandler.getOptionsSchema() :
-        undefined;
-
-      const itemSchema = queryHandler.getItemSchema ?
-        queryHandler.getItemSchema() :
-        undefined;
-
-      viewsDescription.
-        views[viewName].
-        queries[queryName] = {
-          documentation,
-          optionsSchema,
-          itemSchema
-        };
-    }
+    viewDefinitions[viewName] = viewDefinition;
   }
 
-  return viewsDescription;
+  return viewDefinitions;
 };
 
-export default getViewsDescription;
+export default getViewDefinitions;
