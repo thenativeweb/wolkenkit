@@ -1,8 +1,7 @@
 import Application from './Application';
-import { Dictionary } from '../../types/Dictionary';
 
 class ApplicationCache {
-  private readonly applications: Dictionary<Application>;
+  private readonly applications: Record<string, Application | undefined>;
 
   public constructor () {
     this.applications = {};

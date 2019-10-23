@@ -2,7 +2,6 @@ import ApplicationCache from './ApplicationCache';
 import { ApplicationConfiguration } from './ApplicationConfiguration';
 import { CommandConfigurationExternal } from './CommandConfigurationExternal';
 import { CommandConfigurationInternal } from './CommandConfigurationInternal';
-import { Dictionary } from '../../types/Dictionary';
 import errors from '../errors';
 import { EventConfigurationExternal } from './EventConfigurationExternal';
 import { EventConfigurationInternal } from './EventConfigurationInternal';
@@ -21,26 +20,26 @@ class Application {
   public readonly rootDirectory: string;
 
   public readonly initialState: {
-    internal: Dictionary<Dictionary<InitialStateConfiguration>>;
+    internal: Record<string, Record<string, InitialStateConfiguration>>;
   };
 
   public readonly commands: {
-    internal: Dictionary<Dictionary<Dictionary<CommandConfigurationInternal>>>;
-    external: Dictionary<Dictionary<Dictionary<CommandConfigurationExternal>>>;
+    internal: Record<string, Record<string, Record<string, CommandConfigurationInternal>>>;
+    external: Record<string, Record<string, Record<string, CommandConfigurationExternal>>>;
   };
 
   public readonly events: {
-    internal: Dictionary<Dictionary<Dictionary<EventConfigurationInternal>>>;
-    external: Dictionary<Dictionary<Dictionary<EventConfigurationExternal>>>;
+    internal: Record<string, Record<string, Record<string, EventConfigurationInternal>>>;
+    external: Record<string, Record<string, Record<string, EventConfigurationExternal>>>;
   };
 
   public readonly views: {
-    internal: Dictionary<Dictionary<Dictionary<Todo>>>;
-    external: Dictionary<Dictionary<Dictionary<Todo>>>;
+    internal: Record<string, Record<string, Record<string, Todo>>>;
+    external: Record<string, Record<string, Record<string, Todo>>>;
   };
 
   public readonly flows: {
-    internal: Dictionary<Dictionary<Todo>>;
+    internal: Record<string, Record<string, Todo>>;
   };
 
   private constructor ({ configuration }: {
@@ -59,15 +58,15 @@ class Application {
       }
 
       const initialState: {
-        internal: Dictionary<InitialStateConfiguration>;
+        internal: Record<string, InitialStateConfiguration>;
       } = { internal: {}};
       const commands: {
-        internal: Dictionary<Dictionary<CommandConfigurationInternal>>;
-        external: Dictionary<Dictionary<CommandConfigurationExternal>>;
+        internal: Record<string, Record<string, CommandConfigurationInternal>>;
+        external: Record<string, Record<string, CommandConfigurationExternal>>;
       } = { internal: {}, external: {}};
       const events: {
-        internal: Dictionary<Dictionary<EventConfigurationInternal>>;
-        external: Dictionary<Dictionary<EventConfigurationExternal>>;
+        internal: Record<string, Record<string, EventConfigurationInternal>>;
+        external: Record<string, Record<string, EventConfigurationExternal>>;
       } = { internal: {}, external: {}};
 
       for (const [ aggregateName, aggregateConfiguration ] of Object.entries(contextConfiguration)) {
@@ -78,10 +77,6 @@ class Application {
         initialState.internal[aggregateName] = aggregateConfiguration.initialState;
 
         for (const [ commandName, commandConfiguration ] of Object.entries(aggregateConfiguration.commands)) {
-          if (!commandConfiguration) {
-            throw new errors.InvalidOperation();
-          }
-
           set(commands, `internal.${aggregateName}.${commandName}`, {
             ...commandConfiguration,
             documentation: commandConfiguration.documentation ? stripIndent(commandConfiguration.documentation).trim() : undefined
@@ -95,10 +90,6 @@ class Application {
         }
 
         for (const [ eventName, eventConfiguration ] of Object.entries(aggregateConfiguration.events)) {
-          if (!eventConfiguration) {
-            throw new errors.InvalidOperation();
-          }
-
           set(events, `internal.${aggregateName}.${eventName}`, {
             ...eventConfiguration,
             documentation: eventConfiguration.documentation ? stripIndent(eventConfiguration.documentation).trim() : undefined
@@ -125,8 +116,8 @@ class Application {
       }
 
       const views: {
-        internal: Dictionary<Dictionary<Todo>>;
-        external: Dictionary<Dictionary<Todo>>;
+        internal: Record<string, Record<string, Todo>>;
+        external: Record<string, Record<string, Todo>>;
       } = { internal: {}, external: {}};
 
       for (const [ modelName, modelDefinition ] of Object.entries(modelTypeDefinition)) {

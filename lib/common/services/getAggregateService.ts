@@ -1,8 +1,5 @@
-import AggregateApiForReadOnly from '../elements/AggregateApiForReadOnly';
 import { AggregateService } from './AggregateService';
 import Application from '../application';
-import { Dictionary } from '../../types/Dictionary';
-import errors from '../errors';
 import Repository from '../domain/Repository';
 
 const getAggregateService = function ({ application, repository }: {
@@ -12,11 +9,7 @@ const getAggregateService = function ({ application, repository }: {
   const aggregateService: Partial<AggregateService> = {};
 
   for (const [ contextName, contextConfiguration ] of Object.entries(application.initialState.internal)) {
-    if (!contextConfiguration) {
-      throw new errors.InvalidOperation();
-    }
-
-    const aggregatesInContext: Dictionary<(aggregateId: string) => {
+    const aggregatesInContext: Record<string, (aggregateId: string) => {
       read: () => Promise<AggregateApiForReadOnly>;
     }> = {};
 

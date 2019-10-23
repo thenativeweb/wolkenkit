@@ -3,7 +3,6 @@ import AggregateApiForReadOnly from '../../../../common/elements/AggregateApiFor
 import Application from '../../../../common/application/Application';
 import ClientMetadata from '../../../../common/utils/http/ClientMetadata';
 import cloneDeep from 'lodash/cloneDeep';
-import { Dictionary } from '../../../../types/Dictionary';
 import errors from '../../../../common/errors';
 import EventInternal from '../../../../common/elements/EventInternal';
 import express from 'express';
@@ -23,7 +22,7 @@ import postEvent, { OnReceiveEvent } from './postEvent';
 class V2 {
   public api: Express;
 
-  public connectionsForGetEvents: Dictionary<{ req: Request; res: Response }>;
+  public connectionsForGetEvents: Record<string, { req: Request; res: Response }>;
 
   protected purpose: Purpose;
 

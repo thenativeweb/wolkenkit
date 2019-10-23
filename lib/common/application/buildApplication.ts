@@ -14,7 +14,7 @@ const buildApplication = async function ({ directory }: {
 
   if (await isTypeScript({ directory })) {
     const tsconfig = await fs.readFile(path.join(directory, 'tsconfig.json'), 'utf-8');
-    const { compilerOptions } = JSON.parse(tsconfig);
+    const { compilerOptions = {}} = JSON.parse(tsconfig);
 
     await compileWithTypeScript({
       sourceDirectory: serverDirectory,

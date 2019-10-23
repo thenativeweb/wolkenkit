@@ -1,9 +1,8 @@
-import { Dictionary } from '../../../../types/Dictionary';
 import uuid from 'uuidv4';
 import { Request, RequestHandler, Response } from 'express-serve-static-core';
 
 const getEvents = function ({ connections, writeLine, heartbeatInterval }: {
-  connections: Dictionary<{ req: Request; res: Response }>;
+  connections: Record<string, { req: Request; res: Response }>;
   writeLine: (args: {
     connectionId: string;
     data: object;

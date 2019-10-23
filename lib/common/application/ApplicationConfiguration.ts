@@ -1,5 +1,4 @@
 import { CommandConfigurationInternal } from './CommandConfigurationInternal';
-import { Dictionary } from '../../types/Dictionary';
 import { EventConfigurationInternal } from './EventConfigurationInternal';
 import { InitialStateConfiguration } from './InitialStateConfiguration';
 
@@ -10,8 +9,8 @@ export interface ApplicationConfiguration {
     [contextName: string]: {
       [aggregateName: string]: {
         initialState: InitialStateConfiguration;
-        commands: Dictionary<CommandConfigurationInternal>;
-        events: Dictionary<EventConfigurationInternal>;
+        commands: Record<string, CommandConfigurationInternal>;
+        events: Record<string, EventConfigurationInternal>;
       } | undefined;
     } | undefined;
   };
