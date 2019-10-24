@@ -1,6 +1,6 @@
-import errors from '../errors';
-import validateProjectionDefinition from './validateProjectionDefinition';
-import validateQueryDefinition from './validateQueryDefinition';
+import { errors } from '../errors';
+import { validateProjectionDefinition } from './validateProjectionDefinition';
+import { validateQueryDefinition } from './validateQueryDefinition';
 import { isFunction, isObject, isString, isUndefined } from 'lodash';
 
 const validateViewDefinition = function ({ viewDefinition }: {
@@ -56,4 +56,4 @@ const validateViewDefinition = function ({ viewDefinition }: {
   }
 };
 
-export default validateViewDefinition;
+export { validateViewDefinition };

@@ -1,15 +1,21 @@
-import { Request, RequestHandler, Response } from 'express-serve-static-core';
+import { RequestHandler } from 'express-serve-static-core';
 
-const getHealth = function ({ processId }: {
-  processId: string;
-}): RequestHandler {
-  if (!processId) {
-    throw new Error('Process id is missing.');
-  }
+const getHealth = function (): RequestHandler {
+  return function (_req, res): void {
+    const { arch, platform, version, pid } = process;
+    const { userCPUTime, systemCPUTime, maxRSS, fsRead, fsWrite } = process.resourceUsage();
+    const { rss, heapTotal, heapUsed, external } = process.memoryUsage();
+    const uptime = process.uptime();
 
-  return function (req: Request, res: Response): void {
-    res.json({ processId });
+    res.json({
+      host: { architecture: arch, platform },
+      node: { version },
+      process: { id: pid, uptime },
+      cpuUsage: { user: userCPUTime, system: systemCPUTime },
+      memoryUsage: { rss, maxRss: maxRSS, heapTotal, heapUsed, external },
+      diskUsage: { read: fsRead, write: fsWrite }
+    });
   };
 };
 
-export default getHealth;
+export { getHealth };

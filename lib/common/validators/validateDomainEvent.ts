@@ -1,7 +1,7 @@
 import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
-import errors from '../errors';
-import getDomainEventSchema from '../schemas/getDomainEventSchema';
+import { errors } from '../errors';
+import { getDomainEventSchema } from '../schemas/getDomainEventSchema';
 import { Todo } from '../../types/Todo';
 
 const validateDomainEvent = function <TDomainEventData extends DomainEventData> ({
@@ -24,4 +24,4 @@ const validateDomainEvent = function <TDomainEventData extends DomainEventData> 
   //       - Validate data against eventhandler.schema
 };
 
-export default validateDomainEvent;
+export { validateDomainEvent };

@@ -1,4 +1,4 @@
-import errors from '../errors';
+import { errors } from '../errors';
 import { isFunction, isString, isUndefined } from 'lodash';
 
 const validateProjectionDefinition = function ({ projectionDefinition }: {
@@ -19,4 +19,4 @@ const validateProjectionDefinition = function ({ projectionDefinition }: {
   }
 };
 
-export default validateProjectionDefinition;
+export { validateProjectionDefinition };

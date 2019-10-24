@@ -1,14 +1,12 @@
+import { ApplicationDefinition } from './ApplicationDefinition';
 import { ApplicationDescription } from './ApplicationDescription';
-import { getApplicationDefinition } from './getApplicationDefinition';
 import { getCommandDescriptions } from './getCommandDescriptions';
 import { getDomainEventDescriptions } from './getDomainEventDescriptions';
 import { getViewDescriptions } from './getViewDescriptions';
 
-const getApplicationDescription = async function ({ applicationDirectory }: {
-  applicationDirectory: string;
-}): Promise<ApplicationDescription> {
-  const applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-
+const getApplicationDescription = function ({ applicationDefinition }: {
+  applicationDefinition: ApplicationDefinition;
+}): ApplicationDescription {
   const applicationDescription: ApplicationDescription = {
     commands: getCommandDescriptions({ commandDefinitions: applicationDefinition.commands }),
     domainEvents: getDomainEventDescriptions({ domainEventDefinitions: applicationDefinition.domainEvents }),
@@ -18,4 +16,4 @@ const getApplicationDescription = async function ({ applicationDirectory }: {
   return applicationDescription;
 };
 
-export getApplicationDescription;
+export { getApplicationDescription };

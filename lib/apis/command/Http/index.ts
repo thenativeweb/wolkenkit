@@ -1,13 +1,12 @@
-import Application from '../../../common/application/Application';
+import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
 import bodyParser from 'body-parser';
-import CommandInternal from '../../../common/elements/CommandInternal';
+import { CommandWithMetadata } from '../../../common/elements/CommandWithMetadata';
 import cors from 'cors';
 import express from 'express';
 import { Express } from 'express-serve-static-core';
 import { IdentityProvider } from 'limes';
 import nocache from 'nocache';
-import { Purpose } from '../../shared/Purpose';
-import V2 from './V2';
+import { V2 } from './V2';
 
 class Http {
   public v2: V2;
@@ -24,15 +23,13 @@ class Http {
 
   public static async create ({
     corsOrigin,
-    purpose,
     onReceiveCommand,
-    application,
+    applicationDefinition,
     identityProviders
   }: {
     corsOrigin: string | (string | RegExp)[];
-    purpose: Purpose;
-    onReceiveCommand: ({ command }: {command: CommandInternal}) => Promise<void>;
-    application: Application;
+    onReceiveCommand: ({ command }: { command: CommandWithMetadata<any> }) => Promise<void>;
+    applicationDefinition: ApplicationDefinition;
     identityProviders: IdentityProvider[];
   }): Promise<Http> {
     let transformedCorsOrigin: string | (string | RegExp)[];
@@ -44,9 +41,8 @@ class Http {
     }
 
     const v2 = new V2({
-      purpose,
       onReceiveCommand,
-      application,
+      applicationDefinition,
       identityProviders
     });
 
@@ -72,4 +68,4 @@ class Http {
   }
 }
 
-export default Http;
+export { Http };

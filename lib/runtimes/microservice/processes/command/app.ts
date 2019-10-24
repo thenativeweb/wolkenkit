@@ -1,19 +1,18 @@
 #!/usr/bin/env node
 
-import Application from '../../../../common/application/Application';
-import CommandHttp from '../../../../apis/command/Http';
+import { Http as CommandHttp } from '../../../../apis/command/Http';
 import express from 'express';
 import flaschenpost from 'flaschenpost';
 import fs from 'fs';
+import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import getCorsOrigin from 'get-cors-origin';
-import getEnvironmentVariables from '../../../../common/utils/process/getEnvironmentVariables';
+import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
 import getHandleReceivedCommand from './getHandleReceivedCommand';
-import HealthHttp from '../../../../apis/health/Http';
+import { Http as HealthHttp } from '../../../../apis/health/Http';
 import http from 'http';
 import { IdentityProvider } from 'limes';
 import path from 'path';
-import registerExceptionHandler from '../../../../common/utils/process/registerExceptionHandler';
-import uuid from 'uuidv4';
+import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -21,8 +20,6 @@ import uuid from 'uuidv4';
 
   try {
     registerExceptionHandler();
-
-    const processId = uuid();
 
     const environmentVariables = getEnvironmentVariables({
       APPLICATION_DIRECTORY: path.join(__dirname, '..', '..', '..', '..', 'test', 'shared', 'applications', 'base'),
@@ -33,7 +30,7 @@ import uuid from 'uuidv4';
       HEALTH_CORS_ORIGIN: '*',
       IDENTITY_PROVIDERS: [{
         issuer: 'https://token.invalid',
-        certificate: path.join(__dirname, '..', '..', '..', '..', 'keys', 'local.wolkenkit.io')
+        certificate: path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io')
       }],
       PORT: 3000
     });
@@ -56,23 +53,21 @@ import uuid from 'uuidv4';
         })
     );
 
-    const application = await Application.load({
-      directory: environmentVariables.APPLICATION_DIRECTORY
+    const applicationDefinition = await getApplicationDefinition({
+      applicationDirectory: environmentVariables.APPLICATION_DIRECTORY
     });
 
     const handleReceivedCommand = getHandleReceivedCommand({ dispatcherServer });
 
     const commandHttp = await CommandHttp.create({
       corsOrigin: getCorsOrigin(environmentVariables.COMMAND_CORS_ORIGIN),
-      purpose: 'external',
       onReceiveCommand: handleReceivedCommand,
-      application,
+      applicationDefinition,
       identityProviders
     });
 
     const healthHttp = await HealthHttp.create({
-      corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN),
-      processId
+      corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN)
     });
 
     const api = express();

@@ -1,28 +1,26 @@
-import Application from '../../../../common/application/Application';
+import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import express from 'express';
 import { Express } from 'express-serve-static-core';
-import getConfiguration from './getConfiguration';
-import { Purpose } from '../../../shared/Purpose';
+import { getDescription } from './getDescription';
+import { OnReceiveCommand } from '../../OnReceiveCommand';
+import { postCommand } from './postCommand';
 import Limes, { IdentityProvider } from 'limes';
-import postCommand, { OnReceiveCommand } from './postCommand';
 
 class V2 {
   public api: Express;
 
-  protected application: Application;
+  protected applicationDefinition: ApplicationDefinition;
 
   public constructor ({
-    purpose,
     onReceiveCommand,
-    application,
+    applicationDefinition,
     identityProviders
   }: {
-    purpose: Purpose;
     onReceiveCommand: OnReceiveCommand;
-    application: Application;
+    applicationDefinition: ApplicationDefinition;
     identityProviders: IdentityProvider[];
   }) {
-    this.application = application;
+    this.applicationDefinition = applicationDefinition;
 
     const limes = new Limes({ identityProviders });
     const verifyTokenMiddleware = limes.verifyTokenMiddleware({
@@ -36,14 +34,13 @@ class V2 {
 
     this.api = express();
 
-    this.api.get('/configuration', getConfiguration({ application }));
+    this.api.get('/description', getDescription({ applicationDefinition }));
 
     this.api.post('/', verifyTokenMiddleware, postCommand({
-      purpose,
       onReceiveCommand,
-      application
+      applicationDefinition
     }));
   }
 }
 
-export default V2;
+export { V2 };

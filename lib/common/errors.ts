@@ -2,10 +2,13 @@ import defekt from 'defekt';
 
 const errors = defekt({
   AggregateDefinitionMalformed: {},
+  AggregateNotFound: {},
   ApplicationNotFound: {},
-  CommandMalformed: {},
   CommandDefinitionMalformed: {},
+  CommandMalformed: {},
+  CommandNotFound: {},
   CompilationFailed: {},
+  ContextNotFound: {},
   DirectoryNotFound: {},
   DispatchFailed: {},
   DomainEventDefinitionInvalid: {},
@@ -21,6 +24,7 @@ const errors = defekt({
   ProjectionDefinitionMalformed: {},
   QueryDefinitionMalformed: {},
   RequestFailed: {},
+  RequestMalformed: {},
   TypeInvalid: {},
   ViewDefinitionMalformed: {}
 });

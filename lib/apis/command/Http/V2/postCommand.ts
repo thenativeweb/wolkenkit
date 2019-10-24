@@ -1,86 +1,74 @@
-import Application from '../../../../common/application/Application';
-import ClientMetadata from '../../../../common/utils/http/ClientMetadata';
-import CommandExternal from '../../../../common/elements/CommandExternal';
-import CommandInternal from '../../../../common/elements/CommandInternal';
-import errors from '../../../../common/errors';
+import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
+import { Command } from '../../../../common/elements/Command';
+import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
+import { errors } from '../../../../common/errors';
 import flaschenpost from 'flaschenpost';
-import { Purpose } from '../../../shared/Purpose';
+import { OnReceiveCommand } from '../../OnReceiveCommand';
+import { RequestHandler } from 'express-serve-static-core';
 import typer from 'content-type';
-import { Request, RequestHandler, Response } from 'express-serve-static-core';
+import uuid from 'uuidv4';
+import { validateCommand } from '../../../../common/validators/validateCommand';
 
 const logger = flaschenpost.getLogger();
 
-export type OnReceiveCommand = ({ command }: { command: CommandInternal }) => Promise<void>;
-
-const postCommand = function ({
-  purpose,
-  onReceiveCommand,
-  application
-}: {
-  purpose: Purpose;
+const postCommand = function ({ onReceiveCommand, applicationDefinition }: {
   onReceiveCommand: OnReceiveCommand;
-  application: Application;
+  applicationDefinition: ApplicationDefinition;
 }): RequestHandler {
-  return async function (req: Request, res: Response): Promise<any> {
+  return async function (req, res): Promise<void> {
     if (!req.token || !req.user) {
       res.status(401).end();
       throw new errors.NotAuthenticatedError('Client information missing in request.');
     }
 
-    let command = req.body,
-        contentType: typer.ParsedMediaType;
-
     try {
-      contentType = typer.parse(req);
+      const contentType = typer.parse(req);
+
+      if (contentType.type !== 'application/json') {
+        throw new errors.RequestMalformed();
+      }
     } catch {
-      return res.status(415).send('Header content-type must be application/json.');
+      res.status(415).send('Header content-type must be application/json.');
+
+      return;
     }
 
-    if (contentType.type !== 'application/json') {
-      return res.status(415).send('Header content-type must be application/json.');
-    }
-
-    switch (purpose) {
-      case 'internal':
-        try {
-          CommandInternal.validate({ command, application });
-        } catch (ex) {
-          return res.status(400).send(ex.message);
-        }
-
-        command = CommandInternal.deserialize(command);
-        break;
-      case 'external':
-        try {
-          CommandExternal.validate({ command, application });
-        } catch (ex) {
-          return res.status(400).send(ex.message);
-        }
-
-        command = CommandInternal.deserialize({
-          ...command,
-          annotations: {
-            client: new ClientMetadata({ req }),
-            initiator: { user: { id: req.user.id, claims: req.user.claims }}
-          }
-        });
-        break;
-      default:
-        throw new errors.InvalidOperation(`Purpose should have been 'internal' or 'external'.`);
-    }
-
-    logger.info('Command received.', { command });
+    const command = new Command(req.body);
 
     try {
-      await onReceiveCommand({ command });
+      validateCommand({ command, applicationDefinition });
+    } catch (ex) {
+      res.status(400).send(ex.message);
+
+      return;
+    }
+
+    const commandId = uuid();
+    const commandWithMetadata = new CommandWithMetadata({
+      ...command,
+      id: commandId,
+      metadata: {
+        causationId: commandId,
+        correlationId: commandId,
+        timestamp: Date.now(),
+        client: new ClientMetadata({ req }),
+        initiator: { user: req.user }
+      }
+    });
+
+    logger.info('Command received.', { command: commandWithMetadata });
+
+    try {
+      await onReceiveCommand({ command: commandWithMetadata });
     } catch {
       res.status(500).end();
 
       return;
     }
 
-    res.status(200).end();
+    res.status(200).json({ id: commandId });
   };
 };
 
-export default postCommand;
+export { postCommand };

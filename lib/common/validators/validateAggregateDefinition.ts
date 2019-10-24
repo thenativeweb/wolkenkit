@@ -1,6 +1,6 @@
-import errors from '../errors';
-import validateCommandDefinition from './validateCommandDefinition';
-import validateDomainEventDefinition from './validateDomainEventDefinition';
+import { errors } from '../errors';
+import { validateCommandDefinition } from './validateCommandDefinition';
+import { validateDomainEventDefinition } from './validateDomainEventDefinition';
 import { isFunction, isObject, isUndefined } from 'lodash';
 
 const validateAggregateDefinition = function ({ aggregateDefinition }: {
@@ -44,4 +44,4 @@ const validateAggregateDefinition = function ({ aggregateDefinition }: {
   }
 };
 
-export default validateAggregateDefinition;
+export { validateAggregateDefinition };

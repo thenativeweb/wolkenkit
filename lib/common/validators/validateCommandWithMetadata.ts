@@ -1,7 +1,7 @@
 import { CommandData } from '../elements/CommandData';
-import CommandWithMetadata from '../elements/CommandWithMetadata';
-import errors from '../errors';
-import getCommandWithMetadataSchema from '../schemas/getCommandWithMetadataSchema';
+import { CommandWithMetadata } from '../elements/CommandWithMetadata';
+import { errors } from '../errors';
+import { getCommandWithMetadataSchema } from '../schemas/getCommandWithMetadataSchema';
 import { Todo } from '../../types/Todo';
 
 const validateCommandWithMetadata = function <TCommandData extends CommandData> ({
@@ -31,4 +31,4 @@ const validateCommandWithMetadata = function <TCommandData extends CommandData> 
   //       - Validate data against commandhandler.schema
 };
 
-export default validateCommandWithMetadata;
+export { validateCommandWithMetadata };

@@ -1,4 +1,4 @@
-import errors from '../errors';
+import { errors } from '../errors';
 import { isFunction, isUndefined } from 'lodash';
 
 const validateCommandDefinition = function ({ commandDefinition }: {
@@ -31,4 +31,4 @@ const validateCommandDefinition = function ({ commandDefinition }: {
   }
 };
 
-export default validateCommandDefinition;
+export { validateCommandDefinition };

@@ -1,17 +1,15 @@
 import express from 'express';
 import { Express } from 'express-serve-static-core';
-import getHealth from './getHealth';
+import { getHealth } from './getHealth';
 
 class V2 {
   public api: Express;
 
-  public constructor ({ processId }: {
-    processId: string;
-  }) {
+  public constructor () {
     this.api = express();
 
-    this.api.get('/', getHealth({ processId }));
+    this.api.get('/', getHealth());
   }
 }
 
-export default V2;
+export { V2 };

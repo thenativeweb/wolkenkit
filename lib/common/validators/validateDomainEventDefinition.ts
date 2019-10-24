@@ -1,4 +1,4 @@
-import errors from '../errors';
+import { errors } from '../errors';
 import { isFunction, isObject, isUndefined } from 'lodash';
 
 const validateDomainEventDefinition = function ({ domainEventDefinition }: {
@@ -43,4 +43,4 @@ const validateDomainEventDefinition = function ({ domainEventDefinition }: {
   }
 };
 
-export default validateDomainEventDefinition;
+export { validateDomainEventDefinition };

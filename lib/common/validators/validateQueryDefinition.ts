@@ -1,4 +1,4 @@
-import errors from '../errors';
+import { errors } from '../errors';
 import { isFunction, isUndefined } from 'lodash';
 
 const validateQueryDefinition = function ({ queryDefinition }: {
@@ -37,4 +37,4 @@ const validateQueryDefinition = function ({ queryDefinition }: {
   }
 };
 
-export default validateQueryDefinition;
+export { validateQueryDefinition };

@@ -1,27 +1,53 @@
-import Command from '../elements/Command';
+import { ApplicationDefinition } from '../application/ApplicationDefinition';
+import { Command } from '../elements/Command';
 import { CommandData } from '../elements/CommandData';
-import errors from '../errors';
-import getCommandSchema from '../schemas/getCommandSchema';
-import { Todo } from '../../types/Todo';
+import { errors } from '../errors';
+import { getCommandSchema } from '../schemas/getCommandSchema';
+import Value from 'validate-value';
 
 const validateCommand = function <TCommandData extends CommandData> ({
   command,
-  application
+  applicationDefinition
 }: {
   command: Command<TCommandData>;
-  application: Todo;
+  applicationDefinition: ApplicationDefinition;
 }): void {
-  const schema = getCommandSchema();
+  const schemaCommand = getCommandSchema();
 
   try {
-    schema.validate(command, { valueName: 'command' });
+    schemaCommand.validate(command, { valueName: 'command' });
   } catch (ex) {
     throw new errors.CommandMalformed(ex.message);
   }
 
-  // TODO: Validate command against application
-  //       - Context, Aggregate, Commandname
-  //       - Validate data against commandhandler.schema
+  const { commands: contextDefinitions } = applicationDefinition;
+
+  const {
+    contextIdentifier: { name: contextName },
+    aggregateIdentifier: { name: aggregateName },
+    name: commandName,
+    data: commandData
+  } = command;
+
+  if (!(contextName in contextDefinitions)) {
+    throw new errors.ContextNotFound(`Context '${contextName}' not found.`);
+  }
+  if (!(aggregateName in contextDefinitions[contextName])) {
+    throw new errors.AggregateNotFound(`Aggregate '${contextName}.${aggregateName}' not found.`);
+  }
+  if (!(commandName in contextDefinitions[contextName][aggregateName])) {
+    throw new errors.CommandNotFound(`Command '${contextName}.${aggregateName}.${commandName}' not found.`);
+  }
+
+  const { getSchema } = contextDefinitions[contextName][aggregateName][commandName];
+
+  if (!getSchema) {
+    return;
+  }
+
+  const schemaData = new Value(getSchema());
+
+  schemaData.validate(commandData, { valueName: 'command.data' });
 };
 
-export default validateCommand;
+export { validateCommand };
