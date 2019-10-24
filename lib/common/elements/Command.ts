@@ -29,4 +29,4 @@ class Command<TCommandData extends CommandData> {
   }
 }
 
-export default Command;
+export { Command };

@@ -1,6 +1,7 @@
+import { ClientService } from '../services/ClientService';
+import { LoggerService } from '../services/LoggerService';
 import { Readable } from 'stream';
 import { Schema } from './Schema';
-import { Todo } from '../../types/Todo';
 
 export interface QueryHandler<TDatabaseView, TQueryOptions, TResult> {
   getDocumentation? (): string;
@@ -9,7 +10,13 @@ export interface QueryHandler<TDatabaseView, TQueryOptions, TResult> {
 
   getItemSchema? (): Schema;
 
-  handle (databaseView: TDatabaseView, queryOptions: TQueryOptions, services: Todo): Readable | Promise<Readable>;
+  handle (databaseView: TDatabaseView, queryOptions: TQueryOptions, services: {
+    client: ClientService;
+    logger: LoggerService;
+  }): Readable | Promise<Readable>;
 
-  isAuthorized (databaseViewItem: TResult, services: Todo): boolean | Promise<boolean>;
+  isAuthorized (databaseViewItem: TResult, services: {
+    client: ClientService;
+    logger: LoggerService;
+  }): boolean | Promise<boolean>;
 }

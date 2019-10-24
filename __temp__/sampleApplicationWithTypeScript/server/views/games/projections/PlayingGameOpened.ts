@@ -5,10 +5,10 @@ import { ProjectionHandler } from '../../../../../../lib/common/elements/Project
 export const handler: ProjectionHandler<Collection, Opened> = {
   selector: 'playing.game.Opened',
 
-  async handle (games, event): Promise<void> {
+  async handle (games, domainEvent): Promise<void> {
     await games.insertOne({
-      level: event.data.level,
-      riddle: event.data.riddle
+      level: domainEvent.data.level,
+      riddle: domainEvent.data.riddle
     });
   }
 };

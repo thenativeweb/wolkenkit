@@ -7,6 +7,8 @@ import { ViewDefinition } from './ViewDefinition';
 
 export interface ApplicationDefinition {
   commands: Record<string, Record<string, Record<string, CommandHandler<State, CommandData>>>>;
+
   domainEvents: Record<string, Record<string, Record<string, DomainEventHandler<State, DomainEventData>>>>;
+
   views: Record<string, ViewDefinition>;
 }

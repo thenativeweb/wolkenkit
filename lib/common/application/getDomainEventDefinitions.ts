@@ -2,13 +2,13 @@ import { CommandData } from '../elements/CommandData';
 import { CommandHandler } from '../elements/CommandHandler';
 import { DomainEventData } from '../elements/DomainEventData';
 import { DomainEventHandler } from '../elements/DomainEventHandler';
-import errors from '../errors';
-import exists from '../utils/fs/exists';
+import { errors } from '../errors';
+import { exists } from '../utils/fs/exists';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { Schema } from '../elements/Schema';
 import { State } from '../elements/State';
-import validateAggregateDefinition from '../validators/validateAggregateDefinition';
+import { validateAggregateDefinition } from '../validators/validateAggregateDefinition';
 
 const getDomainEventDefinitions = async function ({ domainDirectory }: {
   domainDirectory: string;
@@ -110,4 +110,4 @@ const getDomainEventDefinitions = async function ({ domainDirectory }: {
   return domainEventDefinitions;
 };
 
-export default getDomainEventDefinitions;
+export { getDomainEventDefinitions };

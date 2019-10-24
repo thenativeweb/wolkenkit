@@ -73,4 +73,4 @@ class DomainEvent<TDomainEventData extends DomainEventData> {
   }
 }
 
-export default DomainEvent;
+export { DomainEvent };

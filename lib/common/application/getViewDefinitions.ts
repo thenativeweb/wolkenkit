@@ -1,8 +1,8 @@
-import errors from '../errors';
-import exists from '../utils/fs/exists';
+import { errors } from '../errors';
+import { exists } from '../utils/fs/exists';
 import { promises as fs } from 'fs';
 import path from 'path';
-import validateViewDefinition from '../validators/validateViewDefinition';
+import { validateViewDefinition } from '../validators/validateViewDefinition';
 import { ViewDefinition } from './ViewDefinition';
 
 const getViewDefinitions = async function ({ viewsDirectory }: {
@@ -50,4 +50,4 @@ const getViewDefinitions = async function ({ viewsDirectory }: {
   return viewDefinitions;
 };
 
-export default getViewDefinitions;
+export { getViewDefinitions };

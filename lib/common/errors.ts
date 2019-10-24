@@ -25,4 +25,4 @@ const errors = defekt({
   ViewDefinitionMalformed: {}
 });
 
-export default errors;
+export { errors };

@@ -20,4 +20,4 @@ class CompilerErrorData {
   }
 }
 
-export default CompilerErrorData;
+export { CompilerErrorData };

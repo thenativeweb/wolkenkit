@@ -1,9 +1,9 @@
 import { ApplicationDefinition } from './ApplicationDefinition';
-import errors from '../errors';
-import exists from '../utils/fs/exists';
-import getCommandDefinitions from './getCommandDefinitions';
-import getDomainEventDefinitions from './getDomainEventDefinitions';
-import getViewDefinitions from './getViewDefinitions';
+import { errors } from '../errors';
+import { exists } from '../utils/fs/exists';
+import { getCommandDefinitions } from './getCommandDefinitions';
+import { getDomainEventDefinitions } from './getDomainEventDefinitions';
+import { getViewDefinitions } from './getViewDefinitions';
 import path from 'path';
 
 const getApplicationDefinition = async function ({ applicationDirectory }: {
@@ -33,4 +33,4 @@ const getApplicationDefinition = async function ({ applicationDirectory }: {
   };
 };
 
-export default getApplicationDefinition;
+export { getApplicationDefinition };

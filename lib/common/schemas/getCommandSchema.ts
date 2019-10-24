@@ -42,4 +42,4 @@ const getCommandSchema = function (): Value {
   });
 };
 
-export default getCommandSchema;
+export { getCommandSchema };

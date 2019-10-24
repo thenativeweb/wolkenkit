@@ -27,4 +27,4 @@ const getDomainEventDescriptions = function ({ domainEventDefinitions }: {
   return domainEventDescriptions;
 };
 
-export default getDomainEventDescriptions;
+export { getDomainEventDescriptions };

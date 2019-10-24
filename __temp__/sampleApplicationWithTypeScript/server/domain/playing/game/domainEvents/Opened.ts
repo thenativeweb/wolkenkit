@@ -1,5 +1,7 @@
+import { DomainEvent } from '../../../../../../../lib/common/elements/DomainEvent';
+import { DomainEventHandler } from '../../../../../../../lib/common/elements/DomainEventHandler';
+import { Schema } from '../../../../../../../lib/common/elements/Schema';
 import { State } from '../State';
-import { DomainEvent, DomainEventHandler, Schema } from '../../../../../elements';
 
 export interface Opened {
   level: number;

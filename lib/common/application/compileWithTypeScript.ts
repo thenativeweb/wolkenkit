@@ -1,6 +1,6 @@
-import CompilerErrorData from './CompilerErrorData';
-import errors from '../errors';
-import getFiles from '../utils/fs/getFiles';
+import { CompilerErrorData } from './CompilerErrorData';
+import { errors } from '../errors';
+import { getFiles } from '../utils/fs/getFiles';
 import path from 'path';
 import {
   CompilerOptions,
@@ -23,6 +23,9 @@ const compileWithTypeScript = async function ({
     directory: sourceDirectory,
     predicate: (entry): boolean => path.extname(entry.name) === '.ts'
   });
+
+  sourceFiles.push(path.join(__dirname, '..', '..', '..', 'node_modules', 'limes', 'build', 'lib', 'Limes.d.ts'));
+  sourceFiles.push(path.join(__dirname, '..', '..', '..', 'node_modules', 'limes', 'build', 'lib', 'IdentityProvider.d.ts'));
 
   const program = createProgram(sourceFiles, {
     ...compilerOptions,
@@ -65,4 +68,4 @@ const compileWithTypeScript = async function ({
   }
 };
 
-export default compileWithTypeScript;
+export { compileWithTypeScript };

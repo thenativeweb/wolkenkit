@@ -1,6 +1,6 @@
 import { AggregateIdentifier } from './AggregateIdentifier';
 import { ContextIdentifier } from './ContextIdentifier';
-import DomainEvent from './DomainEvent';
+import { DomainEvent } from './DomainEvent';
 import { DomainEventData } from './DomainEventData';
 import { DomainEventMetadata } from './DomainEventMetadata';
 
@@ -78,4 +78,4 @@ class DomainEventWithState<TDomainEventData extends DomainEventData, TState> ext
   }
 }
 
-export default DomainEventWithState;
+export { DomainEventWithState };

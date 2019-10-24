@@ -23,4 +23,4 @@ const sortKeys = function ({ object, recursive = false }: {
     }, {});
 };
 
-export default sortKeys;
+export { sortKeys };

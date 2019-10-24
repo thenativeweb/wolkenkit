@@ -1,16 +1,16 @@
-import AggregateApiForReadOnly from './AggregateApiForReadOnly';
 import { AggregateIdentifier } from '../elements/AggregateIdentifier';
-import Application from '../application';
+import { ApplicationDefinition } from '../application/ApplicationDefinition';
 import { ContextIdentifier } from '../elements/ContextIdentifier';
-import DomainEvent from '../elements/DomainEvent';
+import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
-import DomainEventWithState from '../elements/DomainEventWithState';
-import errors from '../errors';
+import { DomainEventWithState } from '../elements/DomainEventWithState';
+import { errors } from '../errors';
+import { get } from 'lodash';
 import { Readable } from 'stream';
 import { Snapshot } from '../../stores/eventstore/Snapshot';
-import { cloneDeep, get } from 'lodash';
+import { State } from '../elements/State';
 
-class Aggregate<TState> {
+class Aggregate<TState extends State> {
   public readonly contextIdentifier: ContextIdentifier;
 
   public readonly identifier: AggregateIdentifier;
@@ -29,7 +29,7 @@ class Aggregate<TState> {
     this.contextIdentifier = contextIdentifier;
     this.identifier = aggregateIdentifier;
 
-    this.state = cloneDeep(initialState);
+    this.state = initialState;
     this.revision = 0;
     this.uncommittedEvents = [];
   }
@@ -39,7 +39,7 @@ class Aggregate<TState> {
   }
 
   public applySnapshot ({ snapshot }: {
-    snapshot: Snapshot;
+    snapshot: Snapshot<TState>;
   }): void {
     if (this.identifier.id !== snapshot.aggregateIdentifier.id) {
       throw new errors.IdentifierMismatch(`Failed to apply snapshot '${snapshot.aggregateIdentifier.name}.${snapshot.aggregateIdentifier.id}' to aggregate '${this.contextIdentifier.name}.${this.identifier.name}'.`);
@@ -49,8 +49,8 @@ class Aggregate<TState> {
     this.revision = snapshot.revision;
   }
 
-  public async applyEventStream ({ application, eventStream }: {
-    application: Application;
+  public async applyEventStream ({ applicationDefinition, eventStream }: {
+    applicationDefinition: ApplicationDefinition;
     eventStream: Readable;
   }): Promise<void> {
     for await (const event of eventStream) {
@@ -69,19 +69,18 @@ class Aggregate<TState> {
       }
 
       if (
-        !get(application, `events.internal.${this.contextIdentifier.name}.${this.identifier.name}.${event.name}`)
+        !get(applicationDefinition, `events.internal.${this.contextIdentifier.name}.${this.identifier.name}.${event.name}`)
       ) {
-        throw new errors.EventUnknown(`Failed to apply unknown event '${event.name}' in '${this.contextIdentifier.name}.${this.identifier.name}'.`);
+        throw new errors.DomainEventUnknown(`Failed to apply unknown domain event '${event.name}' in '${this.contextIdentifier.name}.${this.identifier.name}'.`);
       }
 
-      const { handle } = get(application, `events.internal.${this.contextIdentifier.name}.${this.identifier.name}.${event.name}`);
-      const aggregateApiForEvents = new AggregateApiForReadOnly({ aggregate: this });
+      const { handle } = get(applicationDefinition, `events.internal.${this.contextIdentifier.name}.${this.identifier.name}.${event.name}`);
 
-      handle(aggregateApiForEvents, event);
+      handle(event);
 
       this.revision = event.metadata.revision.aggregate;
     }
   }
 }
 
-export default Aggregate;
+export { Aggregate };

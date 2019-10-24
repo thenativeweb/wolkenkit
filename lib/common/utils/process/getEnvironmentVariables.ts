@@ -23,4 +23,4 @@ const getEnvironmentVariables = function <T extends {
   return environmentVariables as { [TKey in keyof T]: T[TKey] };
 };
 
-export default getEnvironmentVariables;
+export { getEnvironmentVariables };

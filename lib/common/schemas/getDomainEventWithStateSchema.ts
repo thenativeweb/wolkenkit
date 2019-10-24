@@ -117,4 +117,4 @@ const getDomainEventWithStateSchema = function (): Value {
   });
 };
 
-export default getDomainEventWithStateSchema;
+export { getDomainEventWithStateSchema };

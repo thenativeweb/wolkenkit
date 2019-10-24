@@ -27,4 +27,4 @@ const getCommandDescriptions = function ({ commandDefinitions }: {
   return commandDescriptions;
 };
 
-export default getCommandDescriptions;
+export { getCommandDescriptions };

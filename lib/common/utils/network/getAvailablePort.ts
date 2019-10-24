@@ -23,4 +23,4 @@ const getAvailablePort = async function (): Promise<number> {
   });
 };
 
-export default getAvailablePort;
+export { getAvailablePort };

@@ -1,4 +1,4 @@
-import errors from '../../errors';
+import { errors } from '../../errors';
 import { isArray } from 'lodash';
 import { Request } from 'express-serve-static-core';
 
@@ -31,4 +31,4 @@ class ClientMetadata {
   }
 }
 
-export default ClientMetadata;
+export { ClientMetadata };

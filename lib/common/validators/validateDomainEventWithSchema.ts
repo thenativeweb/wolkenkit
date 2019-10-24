@@ -1,5 +1,5 @@
 import { DomainEventData } from '../elements/DomainEventData';
-import DomainEventWithState from '../elements/DomainEventWithState';
+import { DomainEventWithState } from '../elements/DomainEventWithState';
 import errors from '../errors';
 import getDomainEventWithStateSchema from '../schemas/getDomainEventWithStateSchema';
 import { Todo } from '../../types/Todo';

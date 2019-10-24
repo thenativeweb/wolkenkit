@@ -1,4 +1,4 @@
-import compileWithTypeScript from './compileWithTypeScript';
+import { compileWithTypeScript } from './compileWithTypeScript';
 import { promises as fs } from 'fs';
 import isTypeScript from 'is-typescript';
 import path from 'path';
@@ -30,4 +30,4 @@ const buildApplication = async function ({ applicationDirectory }: {
   shell.cp('-r', `${serverDirectory}/*`, buildDirectory);
 };
 
-export default buildApplication;
+export { buildApplication };

@@ -1,3 +1,3 @@
-import ClientMetadata from '../utils/http/ClientMetadata';
+import { ClientMetadata } from '../utils/http/ClientMetadata';
 
 export type ClientService = ClientMetadata;

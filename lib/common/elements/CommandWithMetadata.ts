@@ -1,5 +1,5 @@
 import { AggregateIdentifier } from './AggregateIdentifier';
-import Command from './Command';
+import { Command } from './Command';
 import { CommandData } from './CommandData';
 import { CommandMetadata } from './CommandMetadata';
 import { ContextIdentifier } from './ContextIdentifier';
@@ -31,4 +31,4 @@ class CommandWithMetadata<TCommandData extends CommandData> extends Command<TCom
   }
 }
 
-export default CommandWithMetadata;
+export { CommandWithMetadata };

@@ -1,23 +1,16 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "declaration": true,
     "esModuleInterop": true,
-    "lib": [ "esnext" ],
-    "module": "commonjs",
+    "lib": [ "ESNext" ],
+    "module": "CommonJS",
     "outDir": "build",
-    "paths": {
-      "*": [ "./types/*" ]
-    },
-    "resolveJsonModule": true,
     "strict": true,
-    "target": "es2019"
+    "target": "ESNext"
   },
   "include": [
-    "./__temp__/**/*.ts",
     "./docker/**/*.ts",
     "./lib/**/*.ts",
-    "./test/**/*.ts",
-    "./types"
+    "./test/**/*.ts"
   ]
 }

@@ -64,7 +64,7 @@ export const handler: QueryHandler<Collection, Options, Item> = {
       stream();
   },
 
-  isAuthorized (_game, { logger }): boolean {
+  isAuthorized (game, { logger }): boolean {
     logger.info('Access granted.');
 
     return true;

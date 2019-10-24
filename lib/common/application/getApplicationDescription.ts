@@ -1,8 +1,8 @@
 import { ApplicationDescription } from './ApplicationDescription';
-import getApplicationDefinition from './getApplicationDefinition';
-import getCommandDescriptions from './getCommandDescriptions';
-import getDomainEventDescriptions from './getDomainEventDescriptions';
-import getViewDescriptions from './getViewDescriptions';
+import { getApplicationDefinition } from './getApplicationDefinition';
+import { getCommandDescriptions } from './getCommandDescriptions';
+import { getDomainEventDescriptions } from './getDomainEventDescriptions';
+import { getViewDescriptions } from './getViewDescriptions';
 
 const getApplicationDescription = async function ({ applicationDirectory }: {
   applicationDirectory: string;
@@ -18,4 +18,4 @@ const getApplicationDescription = async function ({ applicationDirectory }: {
   return applicationDescription;
 };
 
-export default getApplicationDescription;
+export getApplicationDescription;

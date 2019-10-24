@@ -1,6 +1,7 @@
+import { CommandHandler } from '../../../../../../../lib/common/elements/CommandHandler';
 import { Opened } from '../domainEvents/Opened';
-import { State } from '../State';
-import { CommandHandler, Schema } from '../../../../../elements';
+import { Schema } from '../../../../../../../lib/common/elements/Schema';
+import { State } from '../../../../../../../lib/common/elements/State';
 
 export interface Open {
   level?: number;
@@ -43,10 +44,8 @@ export const handler: CommandHandler<State, Open> = {
   },
 
   handle (state, command, { aggregate, logger }): void {
-    aggregate.read()
-
     if (aggregate.exists()) {
-      rejectCommand('Game was already opened.');
+      throw new Error('Game was already opened.');
     }
 
     const level = command.data.level || 1,
@@ -54,6 +53,6 @@ export const handler: CommandHandler<State, Open> = {
 
     logger.info('Game opened.');
 
-    aggregate.publishEvent<Opened>('Opened', { level, riddle });
+    aggregate.publishDomainEvent<Opened>('Opened', { level, riddle });
   }
 };

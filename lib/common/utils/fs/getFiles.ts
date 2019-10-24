@@ -1,5 +1,5 @@
-import fs, { Dirent } from 'fs';
 import path from 'path';
+import fs, { Dirent } from 'fs';
 
 const getFiles = async function ({
   directory,
@@ -31,4 +31,4 @@ const getFiles = async function ({
   return result;
 };
 
-export default getFiles;
+export { getFiles };

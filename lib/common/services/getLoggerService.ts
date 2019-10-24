@@ -9,4 +9,4 @@ const getLoggerService = function ({ fileName }: {
   return logger;
 };
 
-export default getLoggerService;
+export { getLoggerService };

@@ -110,4 +110,4 @@ const getCommandWithMetadataSchema = function (): Value {
   });
 };
 
-export default getCommandWithMetadataSchema;
+export { getCommandWithMetadataSchema };

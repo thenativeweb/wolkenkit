@@ -11,4 +11,4 @@ const omitByDeep = function (object: any, predicate: (value: any, key: string) =
     value();
 };
 
-export default omitByDeep;
+export { omitByDeep };

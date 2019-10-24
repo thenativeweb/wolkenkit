@@ -1,4 +1,4 @@
-import errors from '../errors';
+import { errors } from '../errors';
 import fs from 'fs';
 import path from 'path';
 
@@ -24,6 +24,6 @@ const getApplicationRoot = async function ({ directory }: {
   }
 
   return directory;
-}
+};
 
-export default getApplicationRoot;
+export { getApplicationRoot };

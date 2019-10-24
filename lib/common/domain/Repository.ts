@@ -1,9 +1,9 @@
-import Aggregate from '../elements/Aggregate';
+import { Aggregate } from '../elements/Aggregate';
 import { AggregateIdentifier } from '../elements/AggregateIdentifier';
-import Application from '../application/Application';
+import { Application } from '../application/Application';
 import { ContextIdentifier } from '../elements/ContextIdentifier';
-import errors from '../errors';
-import EventInternal from '../elements/EventInternal';
+import { errors } from '../errors';
+import { EventInternal } from '../elements/EventInternal';
 import { Eventstore } from '../../stores/eventstore/Eventstore';
 
 class Repository {
@@ -88,4 +88,4 @@ class Repository {
   }
 }
 
-export default Repository;
+export { Repository };

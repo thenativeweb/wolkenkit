@@ -1,12 +1,12 @@
 import { CommandData } from '../elements/CommandData';
 import { CommandDefinitions } from './CommandDefinitions';
 import { CommandHandler } from '../elements/CommandHandler';
-import errors from '../errors';
-import exists from '../utils/fs/exists';
+import { errors } from '../errors';
+import { exists } from '../utils/fs/exists';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { State } from '../elements/State';
-import validateAggregateDefinition from '../validators/validateAggregateDefinition';
+import { validateAggregateDefinition } from '../validators/validateAggregateDefinition';
 
 const getCommandDefinitions = async function ({ domainDirectory }: {
   domainDirectory: string;
@@ -70,4 +70,4 @@ const getCommandDefinitions = async function ({ domainDirectory }: {
   return commandDefinitions;
 };
 
-export default getCommandDefinitions;
+export { getCommandDefinitions };

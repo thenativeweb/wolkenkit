@@ -26,4 +26,4 @@ const getViewDescriptions = function ({ viewDefinitions }: {
   return viewDescriptions;
 };
 
-export default getViewDescriptions;
+export { getViewDescriptions };

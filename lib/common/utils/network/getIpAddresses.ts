@@ -1,4 +1,4 @@
-import ip from './ip';
+import { ip } from './ip';
 import { promises as dns, LookupAddress } from 'dns';
 import { isEqual, uniqWith } from 'lodash';
 
@@ -23,4 +23,4 @@ const getIpAddresses = async function (
   return uniqueAddresses;
 };
 
-export default getIpAddresses;
+export { getIpAddresses };

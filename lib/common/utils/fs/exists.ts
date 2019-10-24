@@ -16,4 +16,4 @@ const exists = async function ({ path }: {
   return true;
 };
 
-export default exists;
+export { exists };
