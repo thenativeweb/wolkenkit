@@ -1,4 +1,5 @@
 import { CommandData } from '../elements/CommandData';
+import { CommandDefinitions } from './CommandDefinitions';
 import { CommandHandler } from '../elements/CommandHandler';
 import errors from '../errors';
 import exists from '../utils/fs/exists';
@@ -9,12 +10,12 @@ import validateAggregateDefinition from '../validators/validateAggregateDefiniti
 
 const getCommandDefinitions = async function ({ domainDirectory }: {
   domainDirectory: string;
-}): Promise<Record<string, Record<string, Record<string, CommandHandler<State, CommandData>>>>> {
+}): Promise<CommandDefinitions> {
   if (!await exists({ path: domainDirectory })) {
     throw new errors.DirectoryNotFound(`Directory '<app>/server/domain' not found.`);
   }
 
-  const commandDefinitions: Record<string, Record<string, Record<string, CommandHandler<State, CommandData>>>> = {};
+  const commandDefinitions: CommandDefinitions = {};
 
   for (const contextDirectory of await fs.readdir(domainDirectory, { withFileTypes: true })) {
     if (!contextDirectory.isDirectory()) {
