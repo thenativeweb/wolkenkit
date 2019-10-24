@@ -192,7 +192,7 @@
     "dir-compare": "1.7.3",
     "execa": "3.2.0",
     "measure-time": "4.0.0",
-    "nock": "11.5.0",
+    "nock": "11.6.0",
     "nodeenv": "2.0.1",
     "p-queue": "6.2.0",
     "record-stdstreams": "2.1.0",
