@@ -9,6 +9,7 @@
     "target": "ESNext"
   },
   "include": [
+    "./__temp__/**/*.ts",
     "./docker/**/*.ts",
     "./lib/**/*.ts",
     "./test/**/*.ts"

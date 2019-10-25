@@ -1,36 +1,37 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
-import errors from '../../../common/errors';
-import EventExternal from '../../../common/elements/EventExternal';
-import EventInternal from '../../../common/elements/EventInternal';
-import { Eventstore } from '../Eventstore';
-import omitByDeep from '../../../common/utils/omitByDeep';
+import { DomainEvent } from '../../../common/elements/DomainEvent';
+import { DomainEventData } from '../../../common/elements/DomainEventData';
+import { DomainEventStore } from '../DomainEventStore';
+import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
+import { errors } from '../../../common/errors';
+import { omitByDeep } from '../../../common/utils/omitByDeep';
 import { PassThrough } from 'stream';
 import { Snapshot } from '../Snapshot';
 
-class InMemoryEventstore implements Eventstore {
+class InMemoryDomainEventStore implements DomainEventStore {
   protected database: {
-    events: EventExternal[];
-    snapshots: Snapshot[];
+    domainEvents: DomainEvent<any>[];
+    snapshots: Snapshot<any>[];
   };
 
   public constructor () {
     this.database = {
-      events: [],
+      domainEvents: [],
       snapshots: []
     };
   }
 
-  public static async create (): Promise<InMemoryEventstore> {
-    return new InMemoryEventstore();
+  public static async create (): Promise<InMemoryDomainEventStore> {
+    return new InMemoryDomainEventStore();
   }
 
   public async destroy (): Promise<void> {
-    this.database = { events: [], snapshots: []};
+    this.database = { domainEvents: [], snapshots: []};
   }
 
-  public async getLastEvent ({ aggregateIdentifier }: {
+  public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<EventExternal | undefined> {
+  }): Promise<DomainEvent<TDomainEventData> | undefined> {
     const eventsInDatabase = this.getStoredEvents().
       filter((event: EventExternal): boolean => event.aggregateIdentifier.id === aggregateIdentifier.id);
 
@@ -43,7 +44,7 @@ class InMemoryEventstore implements Eventstore {
     return lastEvent;
   }
 
-  public async getEventStream ({
+  public async getDomainEventStream ({
     aggregateIdentifier,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1
@@ -58,7 +59,7 @@ class InMemoryEventstore implements Eventstore {
 
     const passThrough = new PassThrough({ objectMode: true });
 
-    const filteredEvents = this.getStoredEvents().
+    const filteredEvents = this.getStoredDomainEvents().
       filter((event: EventExternal): boolean =>
         event.aggregateIdentifier.id === aggregateIdentifier.id &&
         event.metadata.revision.aggregate >= fromRevision &&
@@ -73,7 +74,7 @@ class InMemoryEventstore implements Eventstore {
     return passThrough;
   }
 
-  public async getUnpublishedEventStream (): Promise<PassThrough> {
+  public async getUnpublishedDomainEventStream (): Promise<PassThrough> {
     const filteredEvents = this.getStoredEvents().
       filter((event: EventExternal): boolean => !event.metadata.isPublished);
 
@@ -88,7 +89,7 @@ class InMemoryEventstore implements Eventstore {
     return passThrough;
   }
 
-  public async saveEvents ({ uncommittedEvents }: {
+  public async saveDomainEvents ({ uncommittedEvents }: {
     uncommittedEvents: EventInternal[];
   }): Promise<EventInternal[]> {
     if (uncommittedEvents.length === 0) {
@@ -245,4 +246,4 @@ class InMemoryEventstore implements Eventstore {
   }
 }
 
-export default InMemoryEventstore;
+export default InMemoryDomainEventStore;
