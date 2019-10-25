@@ -126,7 +126,7 @@
     "eslint": "6.5.1",
     "express": "4.17.1",
     "findsuggestions": "1.0.0",
-    "flaschenpost": "3.1.0",
+    "flaschenpost": "3.2.0",
     "flat": "5.0.0",
     "fs-extra": "8.1.0",
     "get-cors-origin": "2.0.0",
