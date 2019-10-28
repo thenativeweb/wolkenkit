@@ -1,4 +1,4 @@
-import { Lock } from '../Lock';
+import { Lock } from './Lock';
 import { LockStore } from '../LockStore';
 import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';

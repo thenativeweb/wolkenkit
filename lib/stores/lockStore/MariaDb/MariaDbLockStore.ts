@@ -1,27 +1,28 @@
 import { LockStore } from '../LockStore';
 import { mariaDb as maxDate } from '../../../common/utils/maxDate';
-import mysql from 'mysql';
 import { noop } from 'lodash';
 import retry from 'async-retry';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { sortKeys } from '../../../common/utils/sortKeys';
+import { TableNames } from './TableNames';
+import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
 
 class MariaDbLockStore implements LockStore {
-  protected namespace: string;
+  protected tableNames: TableNames;
 
-  protected pool: mysql.Pool;
+  protected pool: Pool;
 
   protected nonce: null | string;
 
   protected maxLockSize: number;
 
-  protected constructor ({ namespace, pool, nonce, maxLockSize }: {
-    namespace: string;
-    pool: mysql.Pool;
+  protected constructor ({ tableNames, pool, nonce, maxLockSize }: {
+    tableNames: TableNames;
+    pool: Pool;
     nonce: null | string;
     maxLockSize: number;
   }) {
-    this.namespace = namespace;
+    this.tableNames = tableNames;
     this.pool = pool;
     this.nonce = nonce;
     this.maxLockSize = maxLockSize;
@@ -31,19 +32,20 @@ class MariaDbLockStore implements LockStore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  protected static releaseConnection (connection: mysql.PoolConnection): void {
+  protected static releaseConnection ({ connection }: {
+    connection: PoolConnection;
+  }): void {
     (connection as any).removeListener('end', MariaDbLockStore.onUnexpectedClose);
     connection.release();
   }
 
-  protected async getDatabase (): Promise<mysql.PoolConnection> {
-    const database = await retry(async (): Promise<mysql.PoolConnection> => new Promise((resolve, reject): void => {
-      this.pool.getConnection((err: null | mysql.MysqlError, poolConnection: mysql.PoolConnection): void => {
+  protected async getDatabase (): Promise<PoolConnection> {
+    const database = await retry(async (): Promise<PoolConnection> => new Promise((resolve, reject): void => {
+      this.pool.getConnection((err: MysqlError | null, poolConnection): void => {
         if (err) {
-          reject(err);
-
-          return;
+          return reject(err);
         }
+
         resolve(poolConnection);
       });
     }));
@@ -57,7 +59,7 @@ class MariaDbLockStore implements LockStore {
     username,
     password,
     database,
-    namespace,
+    tableNames,
     nonce = null,
     maxLockSize = 968
   }: {
@@ -66,13 +68,11 @@ class MariaDbLockStore implements LockStore {
     username: string;
     password: string;
     database: string;
-    namespace: string;
+    tableNames: TableNames;
     nonce?: null | string;
     maxLockSize?: number;
   }): Promise<MariaDbLockStore> {
-    const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
-
-    const pool = mysql.createPool({
+    const pool = createPool({
       host: hostname,
       port,
       user: username,
@@ -82,25 +82,25 @@ class MariaDbLockStore implements LockStore {
       multipleStatements: true
     });
 
-    pool.on('connection', (connection: mysql.PoolConnection): void => {
-      connection.on('error', (err: Error): never => {
+    pool.on('connection', (connection: PoolConnection): void => {
+      connection.on('error', (err): never => {
         throw err;
       });
       connection.on('end', MariaDbLockStore.onUnexpectedClose);
     });
 
-    const eventstore = new MariaDbLockStore({
-      namespace: prefixedNamespace,
+    const lockStore = new MariaDbLockStore({
+      tableNames,
       pool,
       nonce,
       maxLockSize
     });
 
-    const connection = await eventstore.getDatabase();
+    const connection = await lockStore.getDatabase();
 
-    await mysqlQuery(
+    await runQuery({
       connection,
-      `CREATE TABLE IF NOT EXISTS ${prefixedNamespace}_locks (
+      query: `CREATE TABLE IF NOT EXISTS ${tableNames.locks} (
         namespace VARCHAR(64) NOT NULL,
         value VARCHAR(${maxLockSize}) NOT NULL,
         expiresAt DATETIME(3) NOT NULL,
@@ -108,11 +108,11 @@ class MariaDbLockStore implements LockStore {
 
         PRIMARY KEY(namespace, value)
       );`
-    );
+    });
 
-    MariaDbLockStore.releaseConnection(connection);
+    MariaDbLockStore.releaseConnection({ connection });
 
-    return eventstore;
+    return lockStore;
   }
 
   public async acquireLock ({
@@ -126,7 +126,10 @@ class MariaDbLockStore implements LockStore {
     expiresAt?: number;
     onAcquired? (): void | Promise<void>;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({
+      object: value,
+      recursive: true
+    }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -135,14 +138,14 @@ class MariaDbLockStore implements LockStore {
     const connection = await this.getDatabase();
 
     try {
-      const [ rows ] = await mysqlQuery(
+      const [ rows ] = await runQuery({
         connection,
-        `SELECT expiresAt
-          FROM ${this.namespace}_locks
+        query: `SELECT expiresAt
+          FROM ${this.tableNames.locks}
          WHERE namespace = ?
            AND value = ?;`,
-        [ namespace, sortedSerializedValue ]
-      );
+        parameters: [ namespace, sortedSerializedValue ]
+      });
 
       let newEntry = true;
 
@@ -161,22 +164,22 @@ class MariaDbLockStore implements LockStore {
 
       if (newEntry) {
         query = `
-        INSERT INTO ${this.namespace}_locks (expiresAt, nonce, namespace, value)
+        INSERT INTO ${this.tableNames.locks} (expiresAt, nonce, namespace, value)
         VALUES (?, ?, ?, ?);`;
       } else {
         query = `
-        UPDATE ${this.namespace}_locks
+        UPDATE ${this.tableNames.locks}
            SET expiresAt = ?,
                nonce = ?
          WHERE namespace = ?
            AND value = ?;`;
       }
 
-      await mysqlQuery(
+      await runQuery({
         connection,
         query,
-        [ new Date(expiresAt), this.nonce, namespace, sortedSerializedValue ]
-      );
+        parameters: [ new Date(expiresAt), this.nonce, namespace, sortedSerializedValue ]
+      });
 
       try {
         await onAcquired();
@@ -186,7 +189,7 @@ class MariaDbLockStore implements LockStore {
         throw ex;
       }
     } finally {
-      MariaDbLockStore.releaseConnection(connection);
+      MariaDbLockStore.releaseConnection({ connection });
     }
   }
 
@@ -194,7 +197,10 @@ class MariaDbLockStore implements LockStore {
     namespace: string;
     value: any;
   }): Promise<boolean> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({
+      object: value,
+      recursive: true
+    }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -205,14 +211,14 @@ class MariaDbLockStore implements LockStore {
     let isLocked = false;
 
     try {
-      const [ rows ] = await mysqlQuery(
+      const [ rows ] = await runQuery({
         connection,
-        `SELECT expiresAt
-          FROM ${this.namespace}_locks
+        query: `SELECT expiresAt
+          FROM ${this.tableNames.locks}
          WHERE namespace = ?
            AND value = ?;`,
-        [ namespace, sortedSerializedValue ]
-      );
+        parameters: [ namespace, sortedSerializedValue ]
+      });
 
       if (rows.length > 0) {
         const [ entry ] = rows;
@@ -220,7 +226,7 @@ class MariaDbLockStore implements LockStore {
         isLocked = Date.now() < entry.expiresAt.getTime();
       }
     } finally {
-      MariaDbLockStore.releaseConnection(connection);
+      MariaDbLockStore.releaseConnection({ connection });
     }
 
     return isLocked;
@@ -231,7 +237,10 @@ class MariaDbLockStore implements LockStore {
     value: any;
     expiresAt: number;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({
+      object: value,
+      recursive: true
+    }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -240,14 +249,14 @@ class MariaDbLockStore implements LockStore {
     const connection = await this.getDatabase();
 
     try {
-      const [ rows ] = await mysqlQuery(
+      const [ rows ] = await runQuery({
         connection,
-        `SELECT expiresAt, nonce
-          FROM ${this.namespace}_locks
+        query: `SELECT expiresAt, nonce
+          FROM ${this.tableNames.locks}
          WHERE namespace = ?
            AND value = ?;`,
-        [ namespace, sortedSerializedValue ]
-      );
+        parameters: [ namespace, sortedSerializedValue ]
+      });
 
       if (rows.length === 0) {
         throw new Error('Failed to renew lock.');
@@ -259,16 +268,16 @@ class MariaDbLockStore implements LockStore {
         throw new Error('Failed to renew lock.');
       }
 
-      await mysqlQuery(
+      await runQuery({
         connection,
-        `UPDATE ${this.namespace}_locks
+        query: `UPDATE ${this.tableNames.locks}
            SET expiresAt = ?
          WHERE namespace = ?
            AND value = ?;`,
-        [ new Date(expiresAt), namespace, sortedSerializedValue ]
-      );
+        parameters: [ new Date(expiresAt), namespace, sortedSerializedValue ]
+      });
     } finally {
-      MariaDbLockStore.releaseConnection(connection);
+      MariaDbLockStore.releaseConnection({ connection });
     }
   }
 
@@ -276,7 +285,10 @@ class MariaDbLockStore implements LockStore {
     namespace: string;
     value: any;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({
+      object: value,
+      recursive: true
+    }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -285,14 +297,14 @@ class MariaDbLockStore implements LockStore {
     const connection = await this.getDatabase();
 
     try {
-      const [ rows ] = await mysqlQuery(
+      const [ rows ] = await runQuery({
         connection,
-        `SELECT expiresAt, nonce
-          FROM ${this.namespace}_locks
+        query: `SELECT expiresAt, nonce
+          FROM ${this.tableNames.locks}
          WHERE namespace = ?
            AND value = ?;`,
-        [ namespace, sortedSerializedValue ]
-      );
+        parameters: [ namespace, sortedSerializedValue ]
+      });
 
       if (rows.length === 0) {
         return;
@@ -304,15 +316,15 @@ class MariaDbLockStore implements LockStore {
         throw new Error('Failed to release lock.');
       }
 
-      await mysqlQuery(
+      await runQuery({
         connection,
-        `DELETE FROM ${this.namespace}_locks
+        query: `DELETE FROM ${this.tableNames.locks}
          WHERE namespace = ?
            AND value = ?;`,
-        [ namespace, sortedSerializedValue ]
-      );
+        parameters: [ namespace, sortedSerializedValue ]
+      });
     } finally {
-      MariaDbLockStore.releaseConnection(connection);
+      MariaDbLockStore.releaseConnection({ connection });
     }
   }
 

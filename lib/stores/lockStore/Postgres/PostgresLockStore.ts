@@ -2,10 +2,11 @@ import { LockStore } from '../LockStore';
 import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
 import retry from 'async-retry';
+import { TableNames } from './TableNames';
 import { Client, Pool, PoolClient } from 'pg';
 
 class PostgresLockStore implements LockStore {
-  protected namespace: string;
+  protected tableNames: TableNames;
 
   protected pool: Pool;
 
@@ -29,14 +30,14 @@ class PostgresLockStore implements LockStore {
     return database;
   }
 
-  protected constructor ({ namespace, pool, nonce, maxLockSize, disconnectWatcher }: {
-    namespace: string;
+  protected constructor ({ tableNames, pool, nonce, maxLockSize, disconnectWatcher }: {
+    tableNames: TableNames;
     pool: Pool;
     nonce: string | null;
     maxLockSize: number;
     disconnectWatcher: Client;
   }) {
-    this.namespace = namespace;
+    this.tableNames = tableNames;
     this.pool = pool;
     this.nonce = nonce;
     this.maxLockSize = maxLockSize;
@@ -50,7 +51,7 @@ class PostgresLockStore implements LockStore {
     password,
     database,
     encryptConnection = false,
-    namespace,
+    tableNames,
     nonce = null,
     maxLockSize = 2048
   }: {
@@ -60,12 +61,10 @@ class PostgresLockStore implements LockStore {
     password: string;
     database: string;
     encryptConnection: boolean;
-    namespace: string;
+    tableNames: TableNames;
     nonce: string | null;
     maxLockSize: number;
   }): Promise<PostgresLockStore> {
-    const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
-
     const pool = new Pool({
       host: hostname,
       port,
@@ -102,7 +101,7 @@ class PostgresLockStore implements LockStore {
     });
 
     const lockstore = new PostgresLockStore({
-      namespace: prefixedNamespace,
+      tableNames,
       pool,
       nonce,
       maxLockSize,
@@ -114,13 +113,13 @@ class PostgresLockStore implements LockStore {
     try {
       await retry(async (): Promise<void> => {
         await connection.query(`
-          CREATE TABLE IF NOT EXISTS "${prefixedNamespace}_locks" (
+          CREATE TABLE IF NOT EXISTS "${tableNames.locks}" (
             "namespace" VARCHAR(64) NOT NULL,
             "value" jsonb NOT NULL,
             "expiresAt" timestamp NOT NULL,
             "nonce" VARCHAR(64),
 
-            CONSTRAINT "${prefixedNamespace}_locks_pk" PRIMARY KEY("namespace", "value")
+            CONSTRAINT "${tableNames.locks}_pk" PRIMARY KEY("namespace", "value")
           );
         `);
       }, {
@@ -159,7 +158,7 @@ class PostgresLockStore implements LockStore {
         name: 'get entry',
         text: `
         SELECT "expiresAt"
-          FROM "${this.namespace}_locks"
+          FROM "${this.tableNames.locks}"
          WHERE "namespace" = $1
            AND "value" = $2
       `,
@@ -184,12 +183,12 @@ class PostgresLockStore implements LockStore {
 
       if (newEntry) {
         query = `
-        INSERT INTO "${this.namespace}_locks" ("namespace", "value", "expiresAt", "nonce")
+        INSERT INTO "${this.tableNames.locks}" ("namespace", "value", "expiresAt", "nonce")
         VALUES ($1, $2, $3, $4)
         `;
       } else {
         query = `
-        UPDATE "${this.namespace}_locks"
+        UPDATE "${this.tableNames.locks}"
            SET "expiresAt" = $3,
                "nonce" = $4
          WHERE "namespace" = $1
@@ -234,7 +233,7 @@ class PostgresLockStore implements LockStore {
         name: 'get lock',
         text: `
         SELECT "expiresAt"
-          FROM "${this.namespace}_locks"
+          FROM "${this.tableNames.locks}"
          WHERE "namespace" = $1
            AND "value" = $2
       `,
@@ -271,7 +270,7 @@ class PostgresLockStore implements LockStore {
         name: 'get lock',
         text: `
         SELECT "expiresAt", "nonce"
-          FROM "${this.namespace}_locks"
+          FROM "${this.tableNames.locks}"
          WHERE "namespace" = $1
            AND "value" = $2
       `,
@@ -291,7 +290,7 @@ class PostgresLockStore implements LockStore {
       await connection.query({
         name: 'renew lock',
         text: `
-        UPDATE "${this.namespace}_locks"
+        UPDATE "${this.tableNames.locks}"
            SET "expiresAt" = $3
          WHERE "namespace" = $1
            AND "value" = $2
@@ -320,7 +319,7 @@ class PostgresLockStore implements LockStore {
         name: 'get lock',
         text: `
         SELECT "expiresAt", "nonce"
-          FROM "${this.namespace}_locks"
+          FROM "${this.tableNames.locks}"
          WHERE "namespace" = $1
            AND "value" = $2
       `,
@@ -340,7 +339,7 @@ class PostgresLockStore implements LockStore {
       await connection.query({
         name: 'remove lock',
         text: `
-        DELETE FROM "${this.namespace}_locks"
+        DELETE FROM "${this.tableNames.locks}"
          WHERE "namespace" = $1
            AND "value" = $2
       `,

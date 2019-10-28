@@ -1,3 +1,4 @@
+import { ListNames } from './ListNames';
 import { LockStore } from '../LockStore';
 import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
@@ -8,7 +9,7 @@ import redis, { RedisClient } from 'redis';
 class RedisLockStore implements LockStore {
   protected client: RedisClient;
 
-  protected namespace: string;
+  protected listNames: ListNames;
 
   protected maxLockSize: number;
 
@@ -18,36 +19,39 @@ class RedisLockStore implements LockStore {
 
   protected constructor ({
     client,
-    namespace,
+    listNames,
     maxLockSize,
     nonce,
     requireValidExpiration
   }: {
     client: RedisClient;
-    namespace: string;
+    listNames: ListNames;
     maxLockSize: number;
     nonce: string | null;
     requireValidExpiration: boolean;
   }) {
     this.client = client;
-    this.namespace = namespace;
+    this.listNames = listNames;
     this.maxLockSize = maxLockSize;
     this.nonce = nonce || 'null';
     this.requireValidExpiration = requireValidExpiration;
   }
 
-  protected getLockName ({ namespace, value, store }: {
+  protected getLockName ({ namespace, value, list }: {
     namespace: string;
     value: any;
-    store: string;
+    list: string;
   }): string {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({
+      object: value,
+      recursive: true
+    }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
     }
 
-    const name = `${store}#${namespace}#${sortedSerializedValue}`;
+    const name = `${list}#${namespace}#${sortedSerializedValue}`;
 
     return name;
   }
@@ -69,7 +73,7 @@ class RedisLockStore implements LockStore {
     port,
     password,
     database,
-    namespace,
+    listNames,
     nonce = 'null',
     requireValidExpiration = true,
     maxLockSize = 2048
@@ -78,13 +82,11 @@ class RedisLockStore implements LockStore {
     port: number;
     password: string;
     database: string;
-    namespace: string;
+    listNames: ListNames;
     nonce: string | null;
     requireValidExpiration: boolean;
     maxLockSize: number;
   }): Promise<RedisLockStore> {
-    const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
-
     const url = `redis://:${password}@${hostname}:${port}/${database}`;
 
     const client = await retry(async (): Promise<RedisClient> => new Promise((resolve, reject): void => {
@@ -103,7 +105,7 @@ class RedisLockStore implements LockStore {
 
     const lockstore = new RedisLockStore({
       client,
-      namespace: prefixedNamespace,
+      listNames,
       maxLockSize,
       nonce,
       requireValidExpiration
@@ -120,10 +122,10 @@ class RedisLockStore implements LockStore {
   }: {
     namespace: string;
     value: any;
-    expiresAt: number;
-    onAcquired (): void | Promise<void>;
+    expiresAt?: number;
+    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
-    const key = this.getLockName({ namespace, value, store: this.namespace });
+    const key = this.getLockName({ namespace, value, list: this.listNames.locks });
     const expiration = RedisLockStore.getExpiration({ expiresAt });
 
     let result;
@@ -163,7 +165,7 @@ class RedisLockStore implements LockStore {
     namespace: string;
     value: any;
   }): Promise<boolean> {
-    const key = this.getLockName({ namespace, value, store: this.namespace });
+    const key = this.getLockName({ namespace, value, list: this.listNames.locks });
 
     const existingLock = await new Promise((resolve, reject): void => {
       this.client.get(key, (err, reply): void => {
@@ -185,7 +187,7 @@ class RedisLockStore implements LockStore {
     value: any;
     expiresAt: number;
   }): Promise<void> {
-    const key = this.getLockName({ namespace, value, store: this.namespace });
+    const key = this.getLockName({ namespace, value, list: this.listNames.locks });
     const expiration = RedisLockStore.getExpiration({ expiresAt });
 
     let result;
@@ -229,7 +231,7 @@ class RedisLockStore implements LockStore {
     namespace: string;
     value: any;
   }): Promise<void> {
-    const key = this.getLockName({ namespace, value, store: this.namespace });
+    const key = this.getLockName({ namespace, value, list: this.listNames.locks });
 
     let result;
 

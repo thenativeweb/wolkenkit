@@ -1,3 +1,4 @@
+import { CollectionNames } from './CollectionNames';
 import { LockStore } from '../LockStore';
 import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
@@ -15,15 +16,18 @@ class MongoDbLockStore implements LockStore {
 
   protected maxLockSize: number;
 
+  protected collectionNames: CollectionNames;
+
   protected collections: {
     locks: Collection<any>;
   };
 
-  protected constructor ({ client, db, nonce, maxLockSize, collections }: {
+  protected constructor ({ client, db, nonce, maxLockSize, collectionNames, collections }: {
     client: MongoClient;
     db: Db;
     nonce: string | null;
     maxLockSize: number;
+    collectionNames: CollectionNames;
     collections: {
       locks: Collection<any>;
     };
@@ -32,6 +36,7 @@ class MongoDbLockStore implements LockStore {
     this.db = db;
     this.nonce = nonce;
     this.maxLockSize = maxLockSize;
+    this.collectionNames = collectionNames;
     this.collections = collections;
   }
 
@@ -45,7 +50,7 @@ class MongoDbLockStore implements LockStore {
     username,
     password,
     database,
-    namespace,
+    collectionNames,
     nonce = null,
     maxLockSize = 968
   }: {
@@ -54,12 +59,10 @@ class MongoDbLockStore implements LockStore {
     username: string;
     password: string;
     database: string;
-    namespace: string;
+    collectionNames: CollectionNames;
     nonce: string | null;
     maxLockSize: number;
   }): Promise<MongoDbLockStore> {
-    const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
-
     const url = `mongodb://${username}:${password}@${hostname}:${port}/${database}`;
 
     /* eslint-disable id-length */
@@ -89,7 +92,7 @@ class MongoDbLockStore implements LockStore {
     db.on('close', MongoDbLockStore.onUnexpectedClose);
 
     const collections = {
-      locks: db.collection(`${prefixedNamespace}_locks`)
+      locks: db.collection(collectionNames.locks)
     };
 
     const lockstore = new MongoDbLockStore({
@@ -97,13 +100,14 @@ class MongoDbLockStore implements LockStore {
       db,
       nonce,
       maxLockSize,
+      collectionNames,
       collections
     });
 
     await collections.locks.createIndexes([
       {
         key: { namespace: 1, value: 1 },
-        name: `${prefixedNamespace}_namespace_value`,
+        name: `${collectionNames.locks}_namespace_value`,
         unique: true
       }
     ]);
@@ -119,10 +123,13 @@ class MongoDbLockStore implements LockStore {
   }: {
     namespace: string;
     value: any;
-    expiresAt: number;
-    onAcquired (): void | Promise<void>;
+    expiresAt?: number;
+    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({
+      object: value,
+      recursive: true
+    }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -163,7 +170,10 @@ class MongoDbLockStore implements LockStore {
     namespace: string;
     value: any;
   }): Promise<boolean> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({
+      object: value,
+      recursive: true
+    }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -185,7 +195,10 @@ class MongoDbLockStore implements LockStore {
     value: any;
     expiresAt: number;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({
+      object: value,
+      recursive: true
+    }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');
@@ -217,7 +230,10 @@ class MongoDbLockStore implements LockStore {
     namespace: string;
     value: any;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
+    const sortedSerializedValue = JSON.stringify(sortKeys({
+      object: value,
+      recursive: true
+    }));
 
     if (sortedSerializedValue.length > this.maxLockSize) {
       throw new Error('Lock value is too large.');

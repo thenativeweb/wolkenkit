@@ -5,12 +5,13 @@ import { noop } from 'lodash';
 import { Pool } from 'tarn';
 import retry from 'async-retry';
 import { sortKeys } from '../../../common/utils/sortKeys';
+import { TableNames } from './TableNames';
 import { Connection, Request, TYPES } from 'tedious';
 
 class SqlServerLockStore implements LockStore {
   protected pool: Pool<Connection>;
 
-  protected namespace: string;
+  protected tableNames: TableNames;
 
   protected nonce: string | null;
 
@@ -30,14 +31,14 @@ class SqlServerLockStore implements LockStore {
     return database;
   }
 
-  protected constructor ({ pool, namespace, nonce, maxLockSize }: {
+  protected constructor ({ pool, tableNames, nonce, maxLockSize }: {
     pool: Pool<Connection>;
-    namespace: string;
+    tableNames: TableNames;
     nonce: string | null;
     maxLockSize: number;
   }) {
     this.pool = pool;
-    this.namespace = namespace;
+    this.tableNames = tableNames;
     this.nonce = nonce;
     this.maxLockSize = maxLockSize;
   }
@@ -49,7 +50,7 @@ class SqlServerLockStore implements LockStore {
     password,
     database,
     encryptConnection = false,
-    namespace,
+    tableNames,
     nonce = null,
     maxLockSize = 828
   }: {
@@ -59,12 +60,10 @@ class SqlServerLockStore implements LockStore {
     password: string;
     database: string;
     encryptConnection?: boolean;
-    namespace: string;
+    tableNames: TableNames;
     nonce: string | null;
     maxLockSize: number;
   }): Promise<SqlServerLockStore> {
-    const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
-
     const pool = createPool({
       host: hostname,
       port,
@@ -84,7 +83,7 @@ class SqlServerLockStore implements LockStore {
 
     const lockstore = new SqlServerLockStore({
       pool,
-      namespace: prefixedNamespace,
+      tableNames,
       nonce,
       maxLockSize
     });
@@ -94,15 +93,15 @@ class SqlServerLockStore implements LockStore {
     const query = `
       BEGIN TRANSACTION setupTable;
 
-      IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${prefixedNamespace}_locks')
+      IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.locks}')
         BEGIN
-          CREATE TABLE [${prefixedNamespace}_locks] (
+          CREATE TABLE [${tableNames.locks}] (
             [namespace] NVARCHAR(64) NOT NULL,
             [value] VARCHAR(${maxLockSize}) NOT NULL,
             [expiresAt] DATETIME2(3) NOT NULL,
             [nonce] NVARCHAR(64),
 
-            CONSTRAINT [${prefixedNamespace}_locks_pk] PRIMARY KEY([namespace], [value])
+            CONSTRAINT [${tableNames.locks}_pk] PRIMARY KEY([namespace], [value])
           );
         END
 
@@ -158,7 +157,7 @@ class SqlServerLockStore implements LockStore {
 
         const request = new Request(`
           SELECT TOP(1) [expiresAt]
-            FROM ${this.namespace}_locks
+            FROM ${this.tableNames.locks}
             WHERE [namespace] = @namespace
               AND [value] = @value
           ;
@@ -198,12 +197,12 @@ class SqlServerLockStore implements LockStore {
 
       if (newEntry) {
         query = `
-          INSERT INTO [${this.namespace}_locks] ([namespace], [value], [expiresAt], [nonce])
+          INSERT INTO [${this.tableNames.locks}] ([namespace], [value], [expiresAt], [nonce])
           VALUES (@namespace, @value, @expiresAt, @nonce)
           ;`;
       } else {
         query = `
-        UPDATE [${this.namespace}_locks]
+        UPDATE [${this.tableNames.locks}]
            SET [expiresAt] = @expiresAt,
                [nonce] = @nonce
          WHERE [namespace] = @namespace
@@ -260,7 +259,7 @@ class SqlServerLockStore implements LockStore {
 
         const request = new Request(`
           SELECT TOP(1) [expiresAt]
-            FROM ${this.namespace}_locks
+            FROM ${this.tableNames.locks}
             WHERE [namespace] = @namespace
               AND [value] = @value
           ;
@@ -313,7 +312,7 @@ class SqlServerLockStore implements LockStore {
 
         const request = new Request(`
           SELECT TOP(1) [expiresAt], [nonce]
-            FROM ${this.namespace}_locks
+            FROM ${this.tableNames.locks}
             WHERE [namespace] = @namespace
               AND [value] = @value
           ;
@@ -347,7 +346,7 @@ class SqlServerLockStore implements LockStore {
 
       await new Promise((resolve, reject): void => {
         const request = new Request(`
-        UPDATE [${this.namespace}_locks]
+        UPDATE [${this.tableNames.locks}]
            SET [expiresAt] = @expiresAt
          WHERE [namespace] = @namespace
            AND [value] = @value
@@ -388,7 +387,7 @@ class SqlServerLockStore implements LockStore {
 
         const request = new Request(`
           SELECT TOP(1) [expiresAt], [nonce]
-            FROM ${this.namespace}_locks
+            FROM ${this.tableNames.locks}
             WHERE [namespace] = @namespace
               AND [value] = @value
           ;
@@ -423,7 +422,7 @@ class SqlServerLockStore implements LockStore {
 
       await new Promise((resolve, reject): void => {
         const request = new Request(`
-          DELETE FROM [${this.namespace}_locks]
+          DELETE FROM [${this.tableNames.locks}]
            WHERE [namespace] = @namespace
              AND [value] = @value
         `, (err?: Error): void => {
