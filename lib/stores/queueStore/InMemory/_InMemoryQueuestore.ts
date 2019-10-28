@@ -1,10 +1,11 @@
-import CommandInternal from '../../../common/elements/CommandInternal';
+import { CommandData } from '../../../common/elements/CommandData';
+import { CommandWithMetadata } from '../../../common/elements/CommandWithMetadata';
 import { minBy } from 'lodash';
 import { Queue } from '../Queue';
-import { Queuestore } from '../Queuestore';
+import { QueueStore } from '../QueueStore';
 import uuid from 'uuidv4';
 
-class InMemoryQueuestore implements Queuestore {
+class InMemoryQueueStore implements QueueStore {
   protected database: { queues: Queue[] };
 
   protected processingDuration: number;
@@ -19,8 +20,8 @@ class InMemoryQueuestore implements Queuestore {
 
   public static async create ({ processingDuration = 30 * 1000 }: {
     processingDuration: number;
-  }): Promise<InMemoryQueuestore> {
-    const queuestore = new InMemoryQueuestore({ processingDuration });
+  }): Promise<InMemoryQueueStore> {
+    const queuestore = new InMemoryQueueStore({ processingDuration });
 
     return queuestore;
   }
@@ -32,7 +33,7 @@ class InMemoryQueuestore implements Queuestore {
   }
 
   public async enqueueItem ({ item }: {
-    item: CommandInternal;
+    item: CommandWithMetadata<CommandData>;
   }): Promise<void> {
     const { queues } = this.database;
     const aggregateId = item.aggregateIdentifier.id;
@@ -62,7 +63,7 @@ class InMemoryQueuestore implements Queuestore {
   }
 
   public async getNextUnprocessedItem (): Promise<{
-    unprocessedItem: CommandInternal;
+    unprocessedItem: CommandWithMetadata<CommandData>;
     token: string;
   }> {
     const { queues } = this.database;
@@ -96,7 +97,7 @@ class InMemoryQueuestore implements Queuestore {
   }
 
   public async extendItemProcessingTime ({ item, token }: {
-    item: CommandInternal;
+    item: CommandWithMetadata<CommandData>;
     token: string;
   }): Promise<void> {
     const { queues } = this.database;
@@ -116,7 +117,7 @@ class InMemoryQueuestore implements Queuestore {
   }
 
   public async dequeueItem ({ item, token }: {
-    item: CommandInternal;
+    item: CommandWithMetadata<CommandData>;
     token: string;
   }): Promise<void> {
     const { queues } = this.database;
@@ -157,4 +158,4 @@ class InMemoryQueuestore implements Queuestore {
   }
 }
 
-export default InMemoryQueuestore;
+export { InMemoryQueueStore };

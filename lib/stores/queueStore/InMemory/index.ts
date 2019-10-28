@@ -1,3 +1,3 @@
-import InMemoryQueuestore from './InMemoryQueuestore';
+import { InMemoryQueueStore } from './InMemoryQueueStore';
 
-export default InMemoryQueuestore;
+export { InMemoryQueueStore };
