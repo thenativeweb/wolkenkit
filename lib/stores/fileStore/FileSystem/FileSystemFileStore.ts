@@ -1,12 +1,12 @@
 import { errors } from '../../../common/errors';
+import { exists } from '../../../common/utils/fs/exists';
 import { FileStore } from '../FileStore';
+import fs from 'fs';
 import isolated from 'isolated';
 import { Metadata } from '../Metadata';
 import { OwnedAuthorizationOptions } from '../../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
 import path from 'path';
 import { promisify } from 'util';
-import shell from 'shelljs';
-import { createReadStream, createWriteStream, pathExists, readFile, writeFile } from 'fs-extra';
 import { pipeline as pipelineCallback, Readable } from 'stream';
 
 const pipeline = promisify(pipelineCallback);
@@ -20,16 +20,12 @@ class FileSystemFileStore implements FileStore {
     this.directory = directory;
   }
 
-  public static async create ({ optionalDirectory }: {
-    optionalDirectory?: string;
+  public static async create ({ directory }: {
+    directory?: string;
   }): Promise<FileSystemFileStore> {
-    let directory = optionalDirectory;
-
-    if (!directory) {
-      directory = await isolated();
-    }
-
-    return new FileSystemFileStore({ directory });
+    return new FileSystemFileStore({
+      directory: directory || await isolated()
+    });
   }
 
   public async addFile ({ id, fileName, contentType, isAuthorized, stream }: {
@@ -40,16 +36,16 @@ class FileSystemFileStore implements FileStore {
     stream: Readable;
   }): Promise<void> {
     const fileDirectory = path.join(this.directory, id);
-    const fileFileData = path.join(fileDirectory, 'data');
-    const fileFileMetadata = path.join(fileDirectory, 'metadata.json');
+    const fileData = path.join(fileDirectory, 'data');
+    const fileMetadata = path.join(fileDirectory, 'metadata.json');
 
-    if (await pathExists(fileDirectory)) {
+    if (await exists({ path: fileDirectory })) {
       throw new errors.FileAlreadyExists();
     }
 
-    shell.mkdir('-p', fileDirectory);
+    await fs.promises.mkdir(fileDirectory, { recursive: true });
 
-    const targetStream = createWriteStream(fileFileData);
+    const targetStream = fs.createWriteStream(fileData);
 
     let contentLength = 0;
 
@@ -67,18 +63,18 @@ class FileSystemFileStore implements FileStore {
       isAuthorized
     };
 
-    await writeFile(fileFileMetadata, JSON.stringify(metadata), { encoding: 'utf8' });
+    await fs.promises.writeFile(fileMetadata, JSON.stringify(metadata), 'utf8');
   }
 
   public async getMetadata ({ id }: { id: string }): Promise<Metadata> {
     const fileDirectory = path.join(this.directory, id);
-    const fileFileMetadata = path.join(fileDirectory, 'metadata.json');
+    const fileMetadata = path.join(fileDirectory, 'metadata.json');
 
-    if (!await pathExists(fileDirectory)) {
+    if (!await exists({ path: fileDirectory })) {
       throw new errors.FileNotFound();
     }
 
-    const rawMetadata = await readFile(fileFileMetadata, { encoding: 'utf8' });
+    const rawMetadata = await fs.promises.readFile(fileMetadata, 'utf8');
     const metadata = JSON.parse(rawMetadata);
 
     return {
@@ -92,13 +88,13 @@ class FileSystemFileStore implements FileStore {
 
   public async getFile ({ id }: { id: string }): Promise<Readable> {
     const fileDirectory = path.join(this.directory, id);
-    const fileFileData = path.join(fileDirectory, 'data');
+    const fileData = path.join(fileDirectory, 'data');
 
-    if (!await pathExists(fileDirectory)) {
+    if (!await exists({ path: fileDirectory })) {
       throw new errors.FileNotFound();
     }
 
-    const stream = createReadStream(fileFileData);
+    const stream = fs.createReadStream(fileData);
 
     return stream;
   }
@@ -106,11 +102,11 @@ class FileSystemFileStore implements FileStore {
   public async removeFile ({ id }: { id: string }): Promise<void> {
     const fileDirectory = path.join(this.directory, id);
 
-    if (!await pathExists(fileDirectory)) {
+    if (!await exists({ path: fileDirectory })) {
       throw new errors.FileNotFound();
     }
 
-    shell.rm('-rf', fileDirectory);
+    await fs.promises.rmdir(fileDirectory, { recursive: true });
   }
 
   public async transferOwnership ({ id, to }: {
@@ -118,18 +114,18 @@ class FileSystemFileStore implements FileStore {
     to: string;
   }): Promise<void> {
     const fileDirectory = path.join(this.directory, id);
-    const fileFileMetadata = path.join(fileDirectory, 'metadata.json');
+    const fileMetadata = path.join(fileDirectory, 'metadata.json');
 
-    if (!await pathExists(fileDirectory)) {
+    if (!await exists({ path: fileDirectory })) {
       throw new errors.FileNotFound();
     }
 
-    const rawMetadata = await readFile(fileFileMetadata, { encoding: 'utf8' });
+    const rawMetadata = await fs.promises.readFile(fileMetadata, 'utf8');
     const metadata = JSON.parse(rawMetadata);
 
     metadata.isAuthorized.owner = to;
 
-    await writeFile(fileFileMetadata, JSON.stringify(metadata), { encoding: 'utf8' });
+    await fs.promises.writeFile(fileMetadata, JSON.stringify(metadata), 'utf8');
   }
 
   public async authorize ({ id, isAuthorized }: {
@@ -137,18 +133,18 @@ class FileSystemFileStore implements FileStore {
     isAuthorized: OwnedAuthorizationOptions;
   }): Promise<void> {
     const fileDirectory = path.join(this.directory, id);
-    const fileFileMetadata = path.join(fileDirectory, 'metadata.json');
+    const fileMetadata = path.join(fileDirectory, 'metadata.json');
 
-    if (!await pathExists(fileDirectory)) {
+    if (!await exists({ path: fileDirectory })) {
       throw new errors.FileNotFound();
     }
 
-    const rawMetadata = await readFile(fileFileMetadata, { encoding: 'utf8' });
+    const rawMetadata = await fs.promises.readFile(fileMetadata, 'utf8');
     const metadata = JSON.parse(rawMetadata);
 
     metadata.isAuthorized = isAuthorized;
 
-    await writeFile(fileFileMetadata, JSON.stringify(metadata), { encoding: 'utf8' });
+    await fs.promises.writeFile(fileMetadata, JSON.stringify(metadata), 'utf8');
   }
 }
 
