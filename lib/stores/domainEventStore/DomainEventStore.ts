@@ -6,7 +6,7 @@ import { PassThrough } from 'stream';
 import { Snapshot } from './Snapshot';
 import { State } from '../../common/elements/State';
 
-// All PassThrough streams here emit objects of type DomainEvent.
+// All pass through streams in this interface emit objects of type DomainEvent.
 export interface DomainEventStore {
   destroy: () => Promise<void>;
 
@@ -16,18 +16,18 @@ export interface DomainEventStore {
     toRevision?: number;
   }) => Promise<PassThrough>;
 
-  getLastDomainEvent: <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
+  getLastDomainEvent: ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
-  }) => Promise<DomainEvent<TDomainEventData> | undefined>;
+  }) => Promise<DomainEvent<DomainEventData> | undefined>;
 
   getReplay: ({ fromRevisionGlobal, toRevisionGlobal }: {
     fromRevisionGlobal?: number;
     toRevisionGlobal?: number;
   }) => Promise<PassThrough>;
 
-  getSnapshot: <TState extends State> ({ aggregateIdentifier }: {
+  getSnapshot: ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
-  }) => Promise<Snapshot<TState> | undefined>;
+  }) => Promise<Snapshot<State> | undefined>;
 
   getUnpublishedDomainEventStream: () => Promise<PassThrough>;
 
@@ -37,11 +37,11 @@ export interface DomainEventStore {
     toRevision: number;
   }) => Promise<void>;
 
-  saveDomainEvents: <TDomainEventData extends DomainEventData, TState extends State> ({ uncommittedDomainEvents }: {
-    uncommittedDomainEvents: DomainEventWithState<TDomainEventData, TState>[];
-  }) => Promise<DomainEventWithState<TDomainEventData, TState>[]>;
+  saveDomainEvents: ({ domainEvents }: {
+    domainEvents: DomainEventWithState<DomainEventData, State>[];
+  }) => Promise<DomainEventWithState<DomainEventData, State>[]>;
 
-  saveSnapshot: <TState extends State> ({ snapshot }: {
-    snapshot: Snapshot<TState>;
+  saveSnapshot: ({ snapshot }: {
+    snapshot: Snapshot<State>;
   }) => Promise<void>;
 }
