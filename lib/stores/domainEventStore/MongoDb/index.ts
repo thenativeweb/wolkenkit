@@ -1,3 +1,3 @@
-import MongoDbEventstore from './MongoDbEventstore';
+import { MongoDbDomainEventStore } from './MongoDbDomainEventStore';
 
-export default MongoDbEventstore;
+export { MongoDbDomainEventStore };

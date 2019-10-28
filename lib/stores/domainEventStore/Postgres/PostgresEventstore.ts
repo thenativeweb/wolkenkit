@@ -1,28 +1,29 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
-import EventExternal from '../../../common/elements/EventExternal';
-import EventInternal from '../../../common/elements/EventInternal';
-import { Eventstore } from '../Eventstore';
-import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
-import omitByDeep from '../../../common/utils/omitByDeep';
+import { DomainEvent } from '../../../common/elements/DomainEvent';
+import { DomainEventData } from '../../../common/elements/DomainEventData';
+import { DomainEventStore } from '../DomainEventStore';
+import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
 import { PassThrough } from 'stream';
-import pg from 'pg';
 import QueryStream from 'pg-query-stream';
 import retry from 'async-retry';
 import { Snapshot } from '../Snapshot';
+import { State } from '../../../common/elements/State';
+import { TableNames } from './TableNames';
+import { Client, Pool, PoolClient } from 'pg';
 
-class PostgresEventstore implements Eventstore {
-  protected pool: pg.Pool;
+class PostgresDomainEventStore implements DomainEventStore {
+  protected pool: Pool;
 
-  protected namespace: string;
+  protected tableNames: TableNames;
 
-  protected disconnectWatcher: pg.Client;
+  protected disconnectWatcher: Client;
 
   protected static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  protected static async getDatabase (pool: pg.Pool): Promise<pg.PoolClient> {
-    const database = await retry(async (): Promise<pg.PoolClient> => {
+  protected static async getDatabase (pool: Pool): Promise<PoolClient> {
+    const database = await retry(async (): Promise<PoolClient> => {
       const connection = await pool.connect();
 
       return connection;
@@ -31,13 +32,13 @@ class PostgresEventstore implements Eventstore {
     return database;
   }
 
-  protected constructor ({ pool, namespace, disconnectWatcher }: {
-    pool: pg.Pool;
-    namespace: string;
-    disconnectWatcher: pg.Client;
+  protected constructor ({ pool, tableNames, disconnectWatcher }: {
+    pool: Pool;
+    tableNames: TableNames;
+    disconnectWatcher: Client;
   }) {
     this.pool = pool;
-    this.namespace = namespace;
+    this.tableNames = tableNames;
     this.disconnectWatcher = disconnectWatcher;
   }
 
@@ -48,7 +49,7 @@ class PostgresEventstore implements Eventstore {
     password,
     database,
     encryptConnection = false,
-    namespace
+    tableNames
   }: {
     hostname: string;
     port: number;
@@ -56,11 +57,9 @@ class PostgresEventstore implements Eventstore {
     password: string;
     database: string;
     encryptConnection?: boolean;
-    namespace: string;
-  }): Promise<PostgresEventstore> {
-    const prefixedNamespace = `store_${limitAlphanumeric(namespace)}`;
-
-    const pool = new pg.Pool({
+    tableNames: TableNames;
+  }): Promise<PostgresDomainEventStore> {
+    const pool = new Pool({
       host: hostname,
       port,
       user: username,
@@ -69,11 +68,11 @@ class PostgresEventstore implements Eventstore {
       ssl: encryptConnection
     });
 
-    pool.on('error', (err: Error): never => {
+    pool.on('error', (err): never => {
       throw err;
     });
 
-    const disconnectWatcher = new pg.Client({
+    const disconnectWatcher = new Client({
       host: hostname,
       port,
       user: username,
@@ -82,8 +81,8 @@ class PostgresEventstore implements Eventstore {
       ssl: encryptConnection
     });
 
-    disconnectWatcher.on('end', PostgresEventstore.onUnexpectedClose);
-    disconnectWatcher.on('error', (err: Error): never => {
+    disconnectWatcher.on('end', PostgresDomainEventStore.onUnexpectedClose);
+    disconnectWatcher.on('error', (err): never => {
       throw err;
     });
 
@@ -95,33 +94,33 @@ class PostgresEventstore implements Eventstore {
       }
     });
 
-    const eventstore = new PostgresEventstore({
+    const domainEventStore = new PostgresDomainEventStore({
       pool,
-      namespace: prefixedNamespace,
+      tableNames,
       disconnectWatcher
     });
 
-    const connection = await PostgresEventstore.getDatabase(pool);
+    const connection = await PostgresDomainEventStore.getDatabase(pool);
 
     try {
       await retry(async (): Promise<void> => {
         await connection.query(`
-          CREATE TABLE IF NOT EXISTS "${prefixedNamespace}_events" (
+          CREATE TABLE IF NOT EXISTS "${tableNames.domainEvents}" (
             "revisionGlobal" bigserial NOT NULL,
             "aggregateId" uuid NOT NULL,
             "revisionAggregate" integer NOT NULL,
-            "event" jsonb NOT NULL,
+            "domainEvent" jsonb NOT NULL,
             "isPublished" boolean NOT NULL,
 
-            CONSTRAINT "${prefixedNamespace}_events_pk" PRIMARY KEY("revisionGlobal"),
-            CONSTRAINT "${prefixedNamespace}_aggregateId_revisionAggregate" UNIQUE ("aggregateId", "revisionAggregate")
+            CONSTRAINT "${tableNames.domainEvents}_pk" PRIMARY KEY("revisionGlobal"),
+            CONSTRAINT "${tableNames.domainEvents}_aggregateId_revisionAggregate" UNIQUE ("aggregateId", "revisionAggregate")
           );
-          CREATE TABLE IF NOT EXISTS "${prefixedNamespace}_snapshots" (
+          CREATE TABLE IF NOT EXISTS "${tableNames.snapshots}" (
             "aggregateId" uuid NOT NULL,
             "revisionAggregate" integer NOT NULL,
             "state" jsonb NOT NULL,
 
-            CONSTRAINT "${prefixedNamespace}_snapshots_pk" PRIMARY KEY("aggregateId", "revisionAggregate")
+            CONSTRAINT "${tableNames.snapshots}_pk" PRIMARY KEY("aggregateId", "revisionAggregate")
           );
         `);
       }, {
@@ -133,26 +132,26 @@ class PostgresEventstore implements Eventstore {
       connection.release();
     }
 
-    return eventstore;
+    return domainEventStore;
   }
 
   public async destroy (): Promise<void> {
-    this.disconnectWatcher.removeListener('end', PostgresEventstore.onUnexpectedClose);
+    this.disconnectWatcher.removeListener('end', PostgresDomainEventStore.onUnexpectedClose);
     await this.disconnectWatcher.end();
     await this.pool.end();
   }
 
-  public async getLastEvent ({ aggregateIdentifier }: {
+  public async getLastDomainEvent ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<EventExternal | undefined> {
-    const connection = await PostgresEventstore.getDatabase(this.pool);
+  }): Promise<DomainEvent<DomainEventData> | undefined> {
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
 
     try {
       const result = await connection.query({
-        name: 'get last event',
+        name: 'get last domain event',
         text: `
-          SELECT "event", "revisionGlobal"
-            FROM "${this.namespace}_events"
+          SELECT "domainEvent", "revisionGlobal"
+            FROM "${this.tableNames.domainEvents}"
             WHERE "aggregateId" = $1
             ORDER BY "revisionAggregate" DESC
             LIMIT 1
@@ -164,19 +163,19 @@ class PostgresEventstore implements Eventstore {
         return;
       }
 
-      let event = EventExternal.deserialize(result.rows[0].event);
+      let domainEvent = new DomainEvent<DomainEventData>(result.rows[0].domainEvent);
 
-      event = event.setRevisionGlobal({
+      domainEvent = domainEvent.withRevisionGlobal({
         revisionGlobal: Number(result.rows[0].revisionGlobal)
       });
 
-      return event;
+      return domainEvent;
     } finally {
       connection.release();
     }
   }
 
-  public async getEventStream ({
+  public async getDomainEventStream ({
     aggregateIdentifier,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1
@@ -189,13 +188,13 @@ class PostgresEventstore implements Eventstore {
       throw new Error('From revision is greater than to revision.');
     }
 
-    const connection = await PostgresEventstore.getDatabase(this.pool);
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
 
     const passThrough = new PassThrough({ objectMode: true });
-    const eventStream = connection.query(
+    const domainEventStream = connection.query(
       new QueryStream(`
-        SELECT "event", "revisionGlobal", "isPublished"
-          FROM "${this.namespace}_events"
+        SELECT "domainEvent", "revisionGlobal", "isPublished"
+          FROM "${this.tableNames.domainEvents}"
           WHERE "aggregateId" = $1
             AND "revisionAggregate" >= $2
             AND "revisionAggregate" <= $3
@@ -209,23 +208,23 @@ class PostgresEventstore implements Eventstore {
 
     const unsubscribe = function (): void {
       connection.release();
-      eventStream.removeListener('data', onData);
-      eventStream.removeListener('end', onEnd);
-      eventStream.removeListener('error', onError);
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
     };
 
     onData = function (data: any): void {
-      let event = EventExternal.deserialize(data.event);
+      let domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
 
-      event = event.setRevisionGlobal({
+      domainEvent = domainEvent.withRevisionGlobal({
         revisionGlobal: Number(data.revisionGlobal)
       });
 
       if (data.isPublished) {
-        event = event.markAsPublished();
+        domainEvent = domainEvent.asPublished();
       }
 
-      passThrough.write(event);
+      passThrough.write(domainEvent);
     };
 
     onEnd = function (): void {
@@ -239,21 +238,21 @@ class PostgresEventstore implements Eventstore {
       passThrough.end();
     };
 
-    eventStream.on('data', onData);
-    eventStream.on('end', onEnd);
-    eventStream.on('error', onError);
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
 
     return passThrough;
   }
 
-  public async getUnpublishedEventStream (): Promise<PassThrough> {
-    const connection = await PostgresEventstore.getDatabase(this.pool);
+  public async getUnpublishedDomainEventStream (): Promise<PassThrough> {
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
 
     const passThrough = new PassThrough({ objectMode: true });
-    const eventStream = connection.query(
+    const domainEventStream = connection.query(
       new QueryStream(`
-        SELECT "event", "revisionGlobal", "isPublished"
-          FROM "${this.namespace}_events"
+        SELECT "domainEvent", "revisionGlobal", "isPublished"
+          FROM "${this.tableNames.domainEvents}"
           WHERE "isPublished" = false
           ORDER BY "revisionGlobal"`)
     );
@@ -264,23 +263,23 @@ class PostgresEventstore implements Eventstore {
 
     const unsubscribe = function (): void {
       connection.release();
-      eventStream.removeListener('data', onData);
-      eventStream.removeListener('end', onEnd);
-      eventStream.removeListener('error', onError);
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
     };
 
     onData = function (data: any): void {
-      let event = EventExternal.deserialize(data.event);
+      let domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
 
-      event = event.setRevisionGlobal({
+      domainEvent = domainEvent.withRevisionGlobal({
         revisionGlobal: Number(data.revisionGlobal)
       });
 
       if (data.isPublished) {
-        event = event.markAsPublished();
+        domainEvent = domainEvent.asPublished();
       }
 
-      passThrough.write(event);
+      passThrough.write(domainEvent);
     };
 
     onEnd = function (): void {
@@ -294,63 +293,59 @@ class PostgresEventstore implements Eventstore {
       passThrough.end();
     };
 
-    eventStream.on('data', onData);
-    eventStream.on('end', onEnd);
-    eventStream.on('error', onError);
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
 
     return passThrough;
   }
 
-  public async saveEvents ({ uncommittedEvents }: {
-    uncommittedEvents: EventInternal[];
-  }): Promise<EventInternal[]> {
-    if (uncommittedEvents.length === 0) {
-      throw new Error('Uncommitted events are missing.');
+  public async saveDomainEvents ({ domainEvents }: {
+    domainEvents: DomainEventWithState<DomainEventData, State>[];
+  }): Promise<DomainEventWithState<DomainEventData, State>[]> {
+    if (domainEvents.length === 0) {
+      throw new Error('Domain events are missing.');
     }
 
     const placeholders = [],
           values = [];
 
-    for (const [ index, uncommittedEvent ] of uncommittedEvents.entries()) {
-      if (!(uncommittedEvent instanceof EventInternal)) {
-        throw new Error('Event must be internal.');
-      }
-
+    for (const [ index, domainEvent ] of domainEvents.entries()) {
       const base = (4 * index) + 1;
 
       placeholders.push(`($${base}, $${base + 1}, $${base + 2}, $${base + 3})`);
       values.push(
-        uncommittedEvent.aggregateIdentifier.id,
-        uncommittedEvent.metadata.revision.aggregate,
-        uncommittedEvent.asExternal(),
-        uncommittedEvent.metadata.isPublished
+        domainEvent.aggregateIdentifier.id,
+        domainEvent.metadata.revision.aggregate,
+        domainEvent.withoutState(),
+        domainEvent.metadata.isPublished
       );
     }
 
-    const connection = await PostgresEventstore.getDatabase(this.pool);
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
 
     const text = `
-      INSERT INTO "${this.namespace}_events"
-        ("aggregateId", "revisionAggregate", "event", "isPublished")
+      INSERT INTO "${this.tableNames.domainEvents}"
+        ("aggregateId", "revisionAggregate", "domainEvent", "isPublished")
       VALUES
         ${placeholders.join(',')} RETURNING "revisionGlobal";
     `;
 
-    const committedEvents = [];
+    const committedDomainEvents = [];
 
     try {
       const result = await connection.query({
-        name: `save events ${uncommittedEvents.length}`,
+        name: `save domain events ${domainEvents.length}`,
         text,
         values
       });
 
-      for (const [ index, uncommittedEvent ] of uncommittedEvents.entries()) {
-        const committedEvent = uncommittedEvent.setRevisionGlobal({
+      for (const [ index, domainEvent ] of domainEvents.entries()) {
+        const committedDomainEvent = domainEvent.withRevisionGlobal({
           revisionGlobal: Number(result.rows[index].revisionGlobal)
         });
 
-        committedEvents.push(committedEvent);
+        committedDomainEvents.push(committedDomainEvent);
       }
     } catch (ex) {
       if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", "revisionAggregate")')) {
@@ -362,24 +357,25 @@ class PostgresEventstore implements Eventstore {
       connection.release();
     }
 
-    const indexForSnapshot = committedEvents.findIndex(
-      (committedEvent): boolean => committedEvent.metadata.revision.aggregate % 100 === 0
+    const indexForSnapshot = committedDomainEvents.findIndex(
+      (committedDomainEvent): boolean =>
+        committedDomainEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const { aggregateIdentifier } = committedEvents[indexForSnapshot];
-      const { aggregate: revisionAggregate } = committedEvents[indexForSnapshot].metadata.revision;
-      const { state } = committedEvents[indexForSnapshot].annotations;
+      const { aggregateIdentifier } = committedDomainEvents[indexForSnapshot];
+      const { aggregate: revisionAggregate } = committedDomainEvents[indexForSnapshot].metadata.revision;
+      const { next: state } = committedDomainEvents[indexForSnapshot].state;
 
       await this.saveSnapshot({
         snapshot: { aggregateIdentifier, revision: revisionAggregate, state }
       });
     }
 
-    return committedEvents;
+    return committedDomainEvents;
   }
 
-  public async markEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {
+  public async markDomainEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {
     aggregateIdentifier: AggregateIdentifier;
     fromRevision: number;
     toRevision: number;
@@ -388,13 +384,13 @@ class PostgresEventstore implements Eventstore {
       throw new Error('From revision is greater than to revision.');
     }
 
-    const connection = await PostgresEventstore.getDatabase(this.pool);
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
 
     try {
       await connection.query({
-        name: 'mark events as published',
+        name: 'mark domain events as published',
         text: `
-          UPDATE "${this.namespace}_events"
+          UPDATE "${this.tableNames.domainEvents}"
             SET "isPublished" = true
             WHERE "aggregateId" = $1
               AND "revisionAggregate" >= $2
@@ -409,15 +405,15 @@ class PostgresEventstore implements Eventstore {
 
   public async getSnapshot ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<Snapshot | undefined> {
-    const connection = await PostgresEventstore.getDatabase(this.pool);
+  }): Promise<Snapshot<State> | undefined> {
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
 
     try {
       const result = await connection.query({
         name: 'get snapshot',
         text: `
           SELECT "state", "revisionAggregate"
-            FROM "${this.namespace}_snapshots"
+            FROM "${this.tableNames.snapshots}"
             WHERE "aggregateId" = $1
             ORDER BY "revisionAggregate" DESC
             LIMIT 1
@@ -440,25 +436,20 @@ class PostgresEventstore implements Eventstore {
   }
 
   public async saveSnapshot ({ snapshot }: {
-    snapshot: Snapshot;
+    snapshot: Snapshot<State>;
   }): Promise<void> {
-    const filteredState = omitByDeep(
-      snapshot.state,
-      (value): boolean => value === undefined
-    );
-
-    const connection = await PostgresEventstore.getDatabase(this.pool);
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
 
     try {
       await connection.query({
         name: 'save snapshot',
         text: `
-        INSERT INTO "${this.namespace}_snapshots" (
+        INSERT INTO "${this.tableNames.snapshots}" (
           "aggregateId", "revisionAggregate", state
         ) VALUES ($1, $2, $3)
         ON CONFLICT DO NOTHING;
         `,
-        values: [ snapshot.aggregateIdentifier.id, snapshot.revision, filteredState ]
+        values: [ snapshot.aggregateIdentifier.id, snapshot.revision, snapshot.state ]
       });
     } finally {
       connection.release();
@@ -473,13 +464,13 @@ class PostgresEventstore implements Eventstore {
       throw new Error('From revision global is greater than to revision global.');
     }
 
-    const connection = await PostgresEventstore.getDatabase(this.pool);
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
 
     const passThrough = new PassThrough({ objectMode: true });
-    const eventStream = connection.query(
+    const domainEventStream = connection.query(
       new QueryStream(`
-        SELECT "event", "revisionGlobal"
-          FROM "${this.namespace}_events"
+        SELECT "domainEvent", "revisionGlobal"
+          FROM "${this.tableNames.domainEvents}"
           WHERE "revisionGlobal" >= $1
             AND "revisionGlobal" <= $2
           ORDER BY "revisionGlobal"`,
@@ -492,19 +483,19 @@ class PostgresEventstore implements Eventstore {
 
     const unsubscribe = function (): void {
       connection.release();
-      eventStream.removeListener('data', onData);
-      eventStream.removeListener('end', onEnd);
-      eventStream.removeListener('error', onError);
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
     };
 
     onData = function (data: any): void {
-      let event = EventExternal.deserialize(data.event);
+      let domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
 
-      event = event.setRevisionGlobal({
+      domainEvent = domainEvent.withRevisionGlobal({
         revisionGlobal: Number(data.revisionGlobal)
       });
 
-      passThrough.write(event);
+      passThrough.write(domainEvent);
     };
 
     onEnd = function (): void {
@@ -518,12 +509,12 @@ class PostgresEventstore implements Eventstore {
       passThrough.end();
     };
 
-    eventStream.on('data', onData);
-    eventStream.on('end', onEnd);
-    eventStream.on('error', onError);
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
 
     return passThrough;
   }
 }
 
-export default PostgresEventstore;
+export { PostgresDomainEventStore };

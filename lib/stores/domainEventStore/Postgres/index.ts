@@ -1,3 +1,3 @@
-import PostgresEventstore from './PostgresEventstore';
+import { PostgresDomainEventStore } from './PostgresDomainEventStore';
 
-export default PostgresEventstore;
+export { PostgresDomainEventStore };

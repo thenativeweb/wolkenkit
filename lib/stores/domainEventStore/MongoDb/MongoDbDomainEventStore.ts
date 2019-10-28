@@ -1,37 +1,42 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
-import EventExternal from '../../../common/elements/EventExternal';
-import EventInternal from '../../../common/elements/EventInternal';
-import { Eventstore } from '../Eventstore';
-import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
-import omitByDeep from '../../../common/utils/omitByDeep';
+import { CollectionNames } from './CollectionNames';
+import { DomainEvent } from '../../../common/elements/DomainEvent';
+import { DomainEventData } from '../../../common/elements/DomainEventData';
+import { DomainEventStore } from '../DomainEventStore';
+import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
 import { parse } from 'url';
 import { PassThrough } from 'stream';
 import retry from 'async-retry';
 import { Snapshot } from '../Snapshot';
+import { State } from '../../../common/elements/State';
 import { Collection, Db, MongoClient } from 'mongodb';
 
-class MongoDbEventstore implements Eventstore {
+class MongoDbDomainEventStore implements DomainEventStore {
   protected client: MongoClient;
 
   protected db: Db;
 
+  protected collectionNames: CollectionNames;
+
   protected collections: {
-    events: Collection<any>;
+    domainEvents: Collection<any>;
     snapshots: Collection<any>;
     counters: Collection<any>;
   };
 
-  protected constructor ({ client, db, collections }: {
+  protected constructor ({ client, db, collectionNames, collections }: {
     client: MongoClient;
     db: Db;
+    collectionNames: CollectionNames;
     collections: {
-      events: Collection<any>;
+      domainEvents: Collection<any>;
       snapshots: Collection<any>;
       counters: Collection<any>;
     };
   }) {
     this.client = client;
     this.db = db;
+    this.collectionNames = collectionNames;
     this.collections = collections;
   }
 
@@ -39,16 +44,14 @@ class MongoDbEventstore implements Eventstore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  public static async create ({ hostname, port, username, password, database, namespace }: {
+  public static async create ({ hostname, port, username, password, database, collectionNames }: {
     hostname: string;
     port: number;
     username: string;
     password: string;
     database: string;
-    namespace: string;
-  }): Promise<MongoDbEventstore> {
-    const prefixedNamespace = `store_${limitAlphanumeric(namespace)}`;
-
+    collectionNames: CollectionNames;
+  }): Promise<MongoDbDomainEventStore> {
     const url = `mongodb://${username}:${password}@${hostname}:${port}/${database}`;
 
     /* eslint-disable id-length */
@@ -75,29 +78,34 @@ class MongoDbEventstore implements Eventstore {
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);
 
-    db.on('close', MongoDbEventstore.onUnexpectedClose);
+    db.on('close', MongoDbDomainEventStore.onUnexpectedClose);
 
     const collections = {
-      events: db.collection(`${prefixedNamespace}_events`),
-      snapshots: db.collection(`${prefixedNamespace}_snapshots`),
-      counters: db.collection(`${prefixedNamespace}_counters`)
+      domainEvents: db.collection(collectionNames.domainEvents),
+      snapshots: db.collection(collectionNames.snapshots),
+      counters: db.collection(collectionNames.counters)
     };
 
-    const eventstore = new MongoDbEventstore({ client, db, collections });
+    const domainEventStore = new MongoDbDomainEventStore({
+      client,
+      db,
+      collectionNames,
+      collections
+    });
 
-    await collections.events.createIndexes([
+    await collections.domainEvents.createIndexes([
       {
         key: { 'aggregateIdentifier.id': 1 },
-        name: `${prefixedNamespace}_aggregateId`
+        name: `${collectionNames.domainEvents}_aggregateId`
       },
       {
         key: { 'aggregateIdentifier.id': 1, 'metadata.revision.aggregate': 1 },
-        name: `${prefixedNamespace}_aggregateId_revisionAggregate`,
+        name: `${collectionNames.domainEvents}_aggregateId_revisionAggregate`,
         unique: true
       },
       {
         key: { 'metadata.revision.global': 1 },
-        name: `${prefixedNamespace}_revisionGlobal`,
+        name: `${collectionNames.domainEvents}_revisionGlobal`,
         unique: true
       }
     ]);
@@ -109,16 +117,19 @@ class MongoDbEventstore implements Eventstore {
     ]);
 
     try {
-      await collections.counters.insertOne({ _id: 'events', seq: 0 });
+      await collections.counters.insertOne({
+        _id: collectionNames.domainEvents,
+        seq: 0
+      });
     } catch (ex) {
       if (ex.code === 11000 && ex.message.includes('_counters index: _id_ dup key')) {
-        return eventstore;
+        return domainEventStore;
       }
 
       throw ex;
     }
 
-    return eventstore;
+    return domainEventStore;
   }
 
   protected async getNextSequence ({ name }: {
@@ -133,10 +144,10 @@ class MongoDbEventstore implements Eventstore {
     return counter.value.seq;
   }
 
-  public async getLastEvent ({ aggregateIdentifier }: {
+  public async getLastDomainEvent ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<EventExternal | undefined> {
-    const events = await this.collections.events.find({
+  }): Promise<DomainEvent<DomainEventData> | undefined> {
+    const domainEvents = await this.collections.domainEvents.find({
       'aggregateIdentifier.id': aggregateIdentifier.id
     }, {
       projection: { _id: 0 },
@@ -144,14 +155,14 @@ class MongoDbEventstore implements Eventstore {
       limit: 1
     }).toArray();
 
-    if (events.length === 0) {
+    if (domainEvents.length === 0) {
       return;
     }
 
-    return EventExternal.deserialize(events[0]);
+    return new DomainEvent<DomainEventData>(domainEvents[0]);
   }
 
-  public async getEventStream ({
+  public async getDomainEventStream ({
     aggregateIdentifier,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1
@@ -165,7 +176,7 @@ class MongoDbEventstore implements Eventstore {
     }
 
     const passThrough = new PassThrough({ objectMode: true });
-    const eventStream = this.collections.events.find({
+    const domainEventStream = this.collections.domainEvents.find({
       $and: [
         { 'aggregateIdentifier.id': aggregateIdentifier.id },
         { 'metadata.revision.aggregate': { $gte: fromRevision }},
@@ -181,20 +192,20 @@ class MongoDbEventstore implements Eventstore {
         onError: (err: Error) => void;
 
     const unsubscribe = function (): void {
-      eventStream.removeListener('data', onData);
-      eventStream.removeListener('end', onEnd);
-      eventStream.removeListener('error', onError);
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
     };
 
     onData = function (data: any): void {
-      passThrough.write(EventExternal.deserialize(data));
+      passThrough.write(new DomainEvent<DomainEventData>(data));
     };
 
     onEnd = function (): void {
       unsubscribe();
       passThrough.end();
 
-      // In the PostgreSQL eventstore, we call eventStream.end() here. In
+      // In the PostgreSQL eventstore, we call domainEventStream.end() here. In
       // MongoDB, this function apparently is not implemented. This note is just
       // for informational purposes to ensure that you are aware that the two
       // implementations differ here.
@@ -205,22 +216,22 @@ class MongoDbEventstore implements Eventstore {
       passThrough.emit('error', err);
       passThrough.end();
 
-      // In the PostgreSQL eventstore, we call eventStream.end() here. In
+      // In the PostgreSQL eventstore, we call domainEventStream.end() here. In
       // MongoDB, this function apparently is not implemented. This note is just
       // for informational purposes to ensure that you are aware that the two
       // implementations differ here.
     };
 
-    eventStream.on('data', onData);
-    eventStream.on('end', onEnd);
-    eventStream.on('error', onError);
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
 
     return passThrough;
   }
 
-  public async getUnpublishedEventStream (): Promise<PassThrough> {
+  public async getUnpublishedDomainEventStream (): Promise<PassThrough> {
     const passThrough = new PassThrough({ objectMode: true });
-    const eventStream = this.collections.events.find({
+    const domainEventStream = this.collections.domainEvents.find({
       'metadata.isPublished': false
     }, {
       projection: { _id: 0 },
@@ -232,20 +243,20 @@ class MongoDbEventstore implements Eventstore {
         onError: (err: Error) => void;
 
     const unsubscribe = function (): void {
-      eventStream.removeListener('data', onData);
-      eventStream.removeListener('end', onEnd);
-      eventStream.removeListener('error', onError);
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
     };
 
     onData = function (data: any): void {
-      passThrough.write(EventExternal.deserialize(data));
+      passThrough.write(new DomainEvent(data));
     };
 
     onEnd = function (): void {
       unsubscribe();
       passThrough.end();
 
-      // In the PostgreSQL eventstore, we call eventStream.end() here. In
+      // In the PostgreSQL eventstore, we call domainEventStream.end() here. In
       // MongoDB, this function apparently is not implemented. This note is just
       // for informational purposes to ensure that you are aware that the two
       // implementations differ here.
@@ -256,49 +267,39 @@ class MongoDbEventstore implements Eventstore {
       passThrough.emit('error', err);
       passThrough.end();
 
-      // In the PostgreSQL eventstore, we call eventStream.end() here. In
+      // In the PostgreSQL eventstore, we call domainEventStream.end() here. In
       // MongoDB, this function apparently is not implemented. This note is just
       // for informational purposes to ensure that you are aware that the two
       // implementations differ here.
     };
 
-    eventStream.on('data', onData);
-    eventStream.on('end', onEnd);
-    eventStream.on('error', onError);
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
 
     return passThrough;
   }
 
-  public async saveEvents ({ uncommittedEvents }: {
-    uncommittedEvents: EventInternal[];
-  }): Promise<EventInternal[]> {
-    if (uncommittedEvents.length === 0) {
-      throw new Error('Uncommitted events are missing.');
+  public async saveDomainEvents ({ domainEvents }: {
+    domainEvents: DomainEventWithState<DomainEventData, State>[];
+  }): Promise<DomainEventWithState<DomainEventData, State>[]> {
+    if (domainEvents.length === 0) {
+      throw new Error('Domain events are missing.');
     }
 
-    const committedEvents = [];
+    const committedDomainEvents = [];
 
     try {
-      for (const uncommittedEvent of uncommittedEvents) {
-        if (!(uncommittedEvent instanceof EventInternal)) {
-          throw new Error('Event must be internal.');
-        }
-
-        const revisionGlobal = await this.getNextSequence({ name: 'events' });
-
-        let committedEvent = uncommittedEvent.setData({
-          data: omitByDeep(
-            uncommittedEvent.data,
-            (value): boolean => value === undefined
-          )
+      for (const domainEvent of domainEvents) {
+        const revisionGlobal = await this.getNextSequence({
+          name: this.collectionNames.domainEvents
         });
 
-        committedEvent = committedEvent.setRevisionGlobal({ revisionGlobal });
-        committedEvents.push(committedEvent);
+        const committedDomainEvent = domainEvent.withRevisionGlobal({ revisionGlobal });
 
-        // Use cloned events here to hinder MongoDB from adding an _id property
-        // to the original event objects.
-        await this.collections.events.insertOne(committedEvent.asExternal());
+        committedDomainEvents.push(committedDomainEvent);
+
+        await this.collections.domainEvents.insertOne(committedDomainEvent.withoutState());
       }
     } catch (ex) {
       if (ex.code === 11000 && ex.message.includes('_aggregateId_revision')) {
@@ -308,25 +309,25 @@ class MongoDbEventstore implements Eventstore {
       throw ex;
     }
 
-    const indexForSnapshot = committedEvents.findIndex(
-      (committedEvent): boolean =>
-        committedEvent.metadata.revision.aggregate % 100 === 0
+    const indexForSnapshot = committedDomainEvents.findIndex(
+      (committedDomainEvent): boolean =>
+        committedDomainEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const { aggregateIdentifier } = committedEvents[indexForSnapshot];
-      const { aggregate: revisionAggregate } = committedEvents[indexForSnapshot].metadata.revision;
-      const { state } = committedEvents[indexForSnapshot].annotations;
+      const { aggregateIdentifier } = committedDomainEvents[indexForSnapshot];
+      const { aggregate: revisionAggregate } = committedDomainEvents[indexForSnapshot].metadata.revision;
+      const { next: state } = committedDomainEvents[indexForSnapshot].state;
 
       await this.saveSnapshot({
         snapshot: { aggregateIdentifier, revision: revisionAggregate, state }
       });
     }
 
-    return committedEvents;
+    return committedDomainEvents;
   }
 
-  public async markEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {
+  public async markDomainEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {
     aggregateIdentifier: AggregateIdentifier;
     fromRevision: number;
     toRevision: number;
@@ -335,7 +336,7 @@ class MongoDbEventstore implements Eventstore {
       throw new Error('From revision is greater than to revision.');
     }
 
-    await this.collections.events.updateMany({
+    await this.collections.domainEvents.updateMany({
       'aggregateIdentifier.id': aggregateIdentifier.id,
       'metadata.revision.aggregate': {
         $gte: fromRevision,
@@ -350,7 +351,7 @@ class MongoDbEventstore implements Eventstore {
 
   public async getSnapshot ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<Snapshot | undefined> {
+  }): Promise<Snapshot<State> | undefined> {
     const snapshot = await this.collections.snapshots.findOne(
       { aggregateIdentifier },
       { projection: { _id: false, revisionAggregate: true, state: true }}
@@ -370,20 +371,11 @@ class MongoDbEventstore implements Eventstore {
   }
 
   public async saveSnapshot ({ snapshot }: {
-    snapshot: Snapshot;
+    snapshot: Snapshot<State>;
   }): Promise<void> {
-    const filteredState = omitByDeep(
-      snapshot.state,
-      (value): boolean => value === undefined
-    );
-
     await this.collections.snapshots.updateOne(
       { aggregateIdentifier: snapshot.aggregateIdentifier },
-      { $set: {
-        aggregateIdentifier: snapshot.aggregateIdentifier,
-        state: filteredState,
-        revisionAggregate: snapshot.revision
-      }},
+      { $set: snapshot },
       { upsert: true }
     );
   }
@@ -400,7 +392,7 @@ class MongoDbEventstore implements Eventstore {
     }
 
     const passThrough = new PassThrough({ objectMode: true });
-    const replayStream = this.collections.events.find({
+    const replayStream = this.collections.domainEvents.find({
       $and: [
         { 'metadata.revision.global': { $gte: fromRevisionGlobal }},
         { 'metadata.revision.global': { $lte: toRevisionGlobal }}
@@ -421,7 +413,7 @@ class MongoDbEventstore implements Eventstore {
     };
 
     onData = function (data: any): void {
-      passThrough.write(EventExternal.deserialize(data));
+      passThrough.write(new DomainEvent<DomainEventData>(data));
     };
 
     onEnd = function (): void {
@@ -453,9 +445,9 @@ class MongoDbEventstore implements Eventstore {
   }
 
   public async destroy (): Promise<void> {
-    this.db.removeListener('close', MongoDbEventstore.onUnexpectedClose);
+    this.db.removeListener('close', MongoDbDomainEventStore.onUnexpectedClose);
     await this.client.close(true);
   }
 }
 
-export default MongoDbEventstore;
+export { MongoDbDomainEventStore };

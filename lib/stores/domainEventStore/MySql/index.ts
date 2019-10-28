@@ -1,3 +1,3 @@
-import MySqlEventstore from './MySqlEventstore';
+import { MySqlDomainEventStore } from './MySqlDomainEventStore';
 
-export default MySqlEventstore;
+export { MySqlDomainEventStore };

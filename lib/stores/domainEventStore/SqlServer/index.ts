@@ -1,3 +1,3 @@
-import SqlServerEventstore from './SqlServerEventstore';
+import { SqlServerDomainEventStore } from './SqlServerDomainEventStore';
 
-export default SqlServerEventstore;
+export { SqlServerDomainEventStore };

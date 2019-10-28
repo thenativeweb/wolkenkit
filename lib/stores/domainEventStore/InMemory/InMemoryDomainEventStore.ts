@@ -4,21 +4,19 @@ import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
 import { errors } from '../../../common/errors';
-import { omitByDeep } from '../../../common/utils/omitByDeep';
+import { last } from 'lodash';
 import { PassThrough } from 'stream';
 import { Snapshot } from '../Snapshot';
+import { State } from '../../../common/elements/State';
 
 class InMemoryDomainEventStore implements DomainEventStore {
-  protected database: {
-    domainEvents: DomainEvent<any>[];
-    snapshots: Snapshot<any>[];
-  };
+  protected domainEvents: DomainEvent<DomainEventData>[];
+
+  protected snapshots: Snapshot<State>[];
 
   public constructor () {
-    this.database = {
-      domainEvents: [],
-      snapshots: []
-    };
+    this.domainEvents = [];
+    this.snapshots = [];
   }
 
   public static async create (): Promise<InMemoryDomainEventStore> {
@@ -26,22 +24,20 @@ class InMemoryDomainEventStore implements DomainEventStore {
   }
 
   public async destroy (): Promise<void> {
-    this.database = { domainEvents: [], snapshots: []};
+    this.domainEvents = [];
+    this.snapshots = [];
   }
 
-  public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
+  public async getLastDomainEvent ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<DomainEvent<TDomainEventData> | undefined> {
-    const eventsInDatabase = this.getStoredEvents().
-      filter((event: EventExternal): boolean => event.aggregateIdentifier.id === aggregateIdentifier.id);
+  }): Promise<DomainEvent<DomainEventData> | undefined> {
+    const storedDomainEvents = this.getStoredDomainEvents().filter(
+      (domainEvent): boolean => domainEvent.aggregateIdentifier.id === aggregateIdentifier.id
+    );
 
-    if (eventsInDatabase.length === 0) {
-      return;
-    }
+    const lastDomainEvent = last(storedDomainEvents);
 
-    const lastEvent = eventsInDatabase[eventsInDatabase.length - 1];
-
-    return lastEvent;
+    return lastDomainEvent;
   }
 
   public async getDomainEventStream ({
@@ -59,14 +55,15 @@ class InMemoryDomainEventStore implements DomainEventStore {
 
     const passThrough = new PassThrough({ objectMode: true });
 
-    const filteredEvents = this.getStoredDomainEvents().
-      filter((event: EventExternal): boolean =>
-        event.aggregateIdentifier.id === aggregateIdentifier.id &&
-        event.metadata.revision.aggregate >= fromRevision &&
-        event.metadata.revision.aggregate <= toRevision);
+    const storedDomainEvents = this.getStoredDomainEvents().filter(
+      (domainEvent): boolean =>
+        domainEvent.aggregateIdentifier.id === aggregateIdentifier.id &&
+        domainEvent.metadata.revision.aggregate >= fromRevision &&
+        domainEvent.metadata.revision.aggregate <= toRevision
+    );
 
-    for (const event of filteredEvents) {
-      passThrough.write(event);
+    for (const domainEvent of storedDomainEvents) {
+      passThrough.write(domainEvent);
     }
 
     passThrough.end();
@@ -75,13 +72,14 @@ class InMemoryDomainEventStore implements DomainEventStore {
   }
 
   public async getUnpublishedDomainEventStream (): Promise<PassThrough> {
-    const filteredEvents = this.getStoredEvents().
-      filter((event: EventExternal): boolean => !event.metadata.isPublished);
+    const storedDomainEvents = this.getStoredDomainEvents().filter(
+      (domainEvent): boolean => !domainEvent.metadata.isPublished
+    );
 
     const passThrough = new PassThrough({ objectMode: true });
 
-    for (const event of filteredEvents) {
-      passThrough.write(event);
+    for (const domainEvent of storedDomainEvents) {
+      passThrough.write(domainEvent);
     }
 
     passThrough.end();
@@ -89,55 +87,60 @@ class InMemoryDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
-  public async saveDomainEvents ({ uncommittedEvents }: {
-    uncommittedEvents: EventInternal[];
-  }): Promise<EventInternal[]> {
-    if (uncommittedEvents.length === 0) {
-      throw new Error('Uncommitted events are missing.');
+  public async saveDomainEvents ({ domainEvents }: {
+    domainEvents: DomainEventWithState<DomainEventData, State>[];
+  }): Promise<DomainEventWithState<DomainEventData, State>[]> {
+    if (domainEvents.length === 0) {
+      throw new Error('Uncommitted domain events are missing.');
     }
 
-    const eventsInDatabase = this.getStoredEvents();
-    const committedEvents = [];
+    const storedDomainEvents = this.getStoredDomainEvents();
+    const committedDomainEvents = [];
 
-    for (const uncommittedEvent of uncommittedEvents) {
-      const alreadyExists = eventsInDatabase.some((eventInDatabase: EventExternal): boolean =>
-        uncommittedEvent.aggregateIdentifier.id === eventInDatabase.aggregateIdentifier.id &&
-        uncommittedEvent.metadata.revision.aggregate === eventInDatabase.metadata.revision.aggregate);
+    for (const uncommittedDomainEvent of domainEvents) {
+      const alreadyExists = storedDomainEvents.some(
+        (eventInDatabase): boolean =>
+          uncommittedDomainEvent.aggregateIdentifier.id === eventInDatabase.aggregateIdentifier.id &&
+          uncommittedDomainEvent.metadata.revision.aggregate === eventInDatabase.metadata.revision.aggregate
+      );
 
       if (alreadyExists) {
         throw new Error('Aggregate id and revision already exist.');
       }
 
-      const revisionGlobal = eventsInDatabase.length + 1;
-      let committedEvent = uncommittedEvent.setData({
-        data: omitByDeep(
-          uncommittedEvent.data,
-          (value: any): boolean => value === undefined
-        )
+      const committedDomainEvent = uncommittedDomainEvent.withRevisionGlobal({
+        revisionGlobal: storedDomainEvents.length + 1
       });
 
-      committedEvent = committedEvent.setRevisionGlobal({ revisionGlobal });
-      committedEvents.push(committedEvent);
+      committedDomainEvents.push(committedDomainEvent);
 
-      this.storeEventAtDatabase(committedEvent.asExternal());
+      this.storeDomainEventAtDatabase({
+        domainEvent: committedDomainEvent.withoutState()
+      });
     }
 
-    const indexForSnapshot = committedEvents.findIndex(
-      (committedEvent: EventInternal): boolean => committedEvent.metadata.revision.aggregate % 100 === 0
+    const indexForSnapshot = committedDomainEvents.findIndex(
+      (committedDomainEvent): boolean => committedDomainEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const { aggregateIdentifier } = committedEvents[indexForSnapshot];
-      const { aggregate: revisionAggregate } = committedEvents[indexForSnapshot].metadata.revision;
-      const { state } = committedEvents[indexForSnapshot].annotations;
+      const { aggregateIdentifier } = committedDomainEvents[indexForSnapshot];
+      const { aggregate: revisionAggregate } = committedDomainEvents[indexForSnapshot].metadata.revision;
+      const { next: state } = committedDomainEvents[indexForSnapshot].state;
 
-      await this.saveSnapshot({ snapshot: { aggregateIdentifier, revision: revisionAggregate, state }});
+      await this.saveSnapshot({
+        snapshot: {
+          aggregateIdentifier,
+          revision: revisionAggregate,
+          state
+        }
+      });
     }
 
-    return committedEvents;
+    return committedDomainEvents;
   }
 
-  public async markEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {
+  public async markDomainEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {
     aggregateIdentifier: AggregateIdentifier;
     fromRevision: number;
     toRevision: number;
@@ -146,49 +149,49 @@ class InMemoryDomainEventStore implements DomainEventStore {
       throw new Error('From revision is greater than to revision.');
     }
 
-    const eventsFromDatabase = this.getStoredEvents();
+    const storedDomainEvents = this.getStoredDomainEvents();
 
-    const shouldEventBeMarkedAsPublished = (event: EventExternal): boolean =>
+    const needsToBeMarkedAsPublished = (event: DomainEvent<DomainEventData>): boolean =>
       event.aggregateIdentifier.id === aggregateIdentifier.id &&
       event.metadata.revision.aggregate >= fromRevision &&
       event.metadata.revision.aggregate <= toRevision;
 
-    for (const [ index, event ] of eventsFromDatabase.entries()) {
-      if (shouldEventBeMarkedAsPublished(event)) {
-        const eventToUpdate = event.markAsPublished();
-
-        this.updateEventInDatabaseAtIndex(index, eventToUpdate);
+    for (const [ index, domainEvent ] of storedDomainEvents.entries()) {
+      if (!needsToBeMarkedAsPublished(domainEvent)) {
+        continue;
       }
+
+      const updatedDomainEvent = domainEvent.asPublished();
+
+      this.updateDomainEventInDatabaseAtIndex({ index, updatedDomainEvent });
     }
   }
 
   public async getSnapshot ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<Snapshot | undefined> {
-    const matchingSnapshotsForAggregateId = this.getStoredSnapshots().
-      filter((snapshot: Snapshot): boolean => snapshot.aggregateIdentifier.id === aggregateIdentifier.id);
-
-    const newestSnapshotRevision = Math.max(
-      ...matchingSnapshotsForAggregateId.map((snapshot: Snapshot): number => snapshot.revision)
+  }): Promise<Snapshot<State> | undefined> {
+    const storedSnapshots = this.getStoredSnapshots().filter(
+      (snapshot): boolean => snapshot.aggregateIdentifier.id === aggregateIdentifier.id
     );
 
-    const matchingSnapshot = matchingSnapshotsForAggregateId.
-      find((snapshot: Snapshot): boolean => snapshot.revision === newestSnapshotRevision);
+    const newestSnapshotRevision = Math.max(
+      ...storedSnapshots.map((snapshot): number => snapshot.revision)
+    );
 
-    if (!matchingSnapshot) {
+    const newestSnapshot = storedSnapshots.
+      find((snapshot): boolean => snapshot.revision === newestSnapshotRevision);
+
+    if (!newestSnapshot) {
       return;
     }
 
-    return matchingSnapshot;
+    return newestSnapshot;
   }
 
   public async saveSnapshot ({ snapshot }: {
-    snapshot: Snapshot;
+    snapshot: Snapshot<State>;
   }): Promise<void> {
-    const filteredState = omitByDeep(snapshot.state, (value): boolean => value === undefined);
-    const filteredSnapshot = { ...snapshot, state: filteredState };
-
-    this.storeSnapshotAtDatabase(filteredSnapshot);
+    this.storeSnapshotAtDatabase({ snapshot });
   }
 
   public async getReplay ({
@@ -204,20 +207,21 @@ class InMemoryDomainEventStore implements DomainEventStore {
 
     const passThrough = new PassThrough({ objectMode: true });
 
-    const filteredEvents = this.getStoredEvents().
-      filter((event: EventExternal): boolean => {
-        if (!event.metadata.revision.global) {
-          throw new errors.InvalidOperation('Event from event store is missing global revision.');
+    const storedDomainEvents = this.getStoredDomainEvents().filter(
+      (domainEvent): boolean => {
+        if (!domainEvent.metadata.revision.global) {
+          throw new errors.InvalidOperation('Domain event from domain event store is missing global revision.');
         }
 
         return (
-          event.metadata.revision.global >= fromRevisionGlobal &&
-          event.metadata.revision.global <= toRevisionGlobal
+          domainEvent.metadata.revision.global >= fromRevisionGlobal &&
+          domainEvent.metadata.revision.global <= toRevisionGlobal
         );
-      });
+      }
+    );
 
-    for (const event of filteredEvents) {
-      passThrough.write(event);
+    for (const domainEvent of storedDomainEvents) {
+      passThrough.write(domainEvent);
     }
 
     passThrough.end();
@@ -225,25 +229,32 @@ class InMemoryDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
-  protected getStoredEvents (): EventExternal[] {
-    return this.database.events;
+  protected getStoredDomainEvents (): DomainEvent<State>[] {
+    return this.domainEvents;
   }
 
-  protected getStoredSnapshots (): Snapshot[] {
-    return this.database.snapshots;
+  protected getStoredSnapshots (): Snapshot<State>[] {
+    return this.snapshots;
   }
 
-  protected storeEventAtDatabase (event: EventExternal): void {
-    this.database.events.push(event);
+  protected storeDomainEventAtDatabase ({ domainEvent }: {
+    domainEvent: DomainEvent<State>;
+  }): void {
+    this.domainEvents.push(domainEvent);
   }
 
-  protected storeSnapshotAtDatabase (snapshot: Snapshot): void {
-    this.database.snapshots.push(snapshot);
+  protected storeSnapshotAtDatabase ({ snapshot }: {
+    snapshot: Snapshot<State>;
+  }): void {
+    this.snapshots.push(snapshot);
   }
 
-  protected updateEventInDatabaseAtIndex (index: number, newEventData: EventExternal): void {
-    this.database.events[index] = newEventData;
+  protected updateDomainEventInDatabaseAtIndex ({ index, updatedDomainEvent }: {
+    index: number;
+    updatedDomainEvent: DomainEvent<State>;
+  }): void {
+    this.domainEvents[index] = updatedDomainEvent;
   }
 }
 
-export default InMemoryDomainEventStore;
+export { InMemoryDomainEventStore };

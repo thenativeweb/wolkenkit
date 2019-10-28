@@ -11,7 +11,7 @@ import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
 import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
 
-class MySqlDomainEventStore implements DomainEventStore {
+class MariaDbDomainEventStore implements DomainEventStore {
   protected tableNames: TableNames;
 
   protected pool: Pool;
@@ -31,21 +31,21 @@ class MySqlDomainEventStore implements DomainEventStore {
   protected static releaseConnection ({ connection }: {
     connection: PoolConnection;
   }): void {
-    (connection as any).removeListener('end', MySqlDomainEventStore.onUnexpectedClose);
+    (connection as any).removeListener('end', MariaDbDomainEventStore.onUnexpectedClose);
     connection.release();
   }
 
   protected async getDatabase (): Promise<PoolConnection> {
-    const database = await retry(async (): Promise<PoolConnection> => new Promise((resolve, reject): void => {
-      this.pool.getConnection((err: MysqlError | null, poolConnection): void => {
-        if (err) {
-          reject(err);
+    const database = await retry(async (): Promise<PoolConnection> =>
+      new Promise((resolve, reject): void => {
+        this.pool.getConnection((err: MysqlError | null, poolConnection): void => {
+          if (err) {
+            return reject(err);
+          }
 
-          return;
-        }
-        resolve(poolConnection);
-      });
-    }));
+          resolve(poolConnection);
+        });
+      }));
 
     return database;
   }
@@ -57,7 +57,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     password: string;
     database: string;
     tableNames: TableNames;
-  }): Promise<MySqlDomainEventStore> {
+  }): Promise<MariaDbDomainEventStore> {
     const pool = createPool({
       host: hostname,
       port,
@@ -68,18 +68,19 @@ class MySqlDomainEventStore implements DomainEventStore {
       multipleStatements: true
     });
 
-    pool.on('connection', (connection: PoolConnection): void => {
-      connection.on('error', (err: Error): never => {
+    pool.on('connection', (connection): void => {
+      connection.on('error', (err): never => {
         throw err;
       });
-      connection.on('end', MySqlDomainEventStore.onUnexpectedClose);
+
+      connection.on('end', MariaDbDomainEventStore.onUnexpectedClose);
     });
 
-    const domainEventStore = new MySqlDomainEventStore({ tableNames, pool });
+    const domainEventStore = new MariaDbDomainEventStore({ tableNames, pool });
     const connection = await domainEventStore.getDatabase();
 
-    const createUuidToBinFunction = `
-      CREATE FUNCTION UuidToBin(_uuid BINARY(36))
+    const query = `
+      CREATE FUNCTION IF NOT EXISTS UuidToBin(_uuid BINARY(36))
         RETURNS BINARY(16)
         RETURN UNHEX(CONCAT(
           SUBSTR(_uuid, 15, 4),
@@ -88,23 +89,8 @@ class MySqlDomainEventStore implements DomainEventStore {
           SUBSTR(_uuid, 20, 4),
           SUBSTR(_uuid, 25)
         ));
-    `;
 
-    try {
-      await runQuery({ connection, query: createUuidToBinFunction });
-    } catch (ex) {
-      // If the function already exists, we can ignore this error; otherwise
-      // rethrow it. Generally speaking, this should be done using a SQL clause
-      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
-      // there is a ready-made function UUID_TO_BIN, but this is only available
-      // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidToBin already exists')) {
-        throw ex;
-      }
-    }
-
-    const createUuidFromBinFunction = `
-      CREATE FUNCTION UuidFromBin(_bin BINARY(16))
+      CREATE FUNCTION IF NOT EXISTS UuidFromBin(_bin BINARY(16))
         RETURNS BINARY(36)
         RETURN LCASE(CONCAT_WS('-',
           HEX(SUBSTR(_bin,  5, 4)),
@@ -113,22 +99,7 @@ class MySqlDomainEventStore implements DomainEventStore {
           HEX(SUBSTR(_bin,  9, 2)),
           HEX(SUBSTR(_bin, 11))
         ));
-    `;
 
-    try {
-      await runQuery({ connection, query: createUuidFromBinFunction });
-    } catch (ex) {
-      // If the function already exists, we can ignore this error; otherwise
-      // rethrow it. Generally speaking, this should be done using a SQL clause
-      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
-      // there is a ready-made function BIN_TO_UUID, but this is only available
-      // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidFromBin already exists')) {
-        throw ex;
-      }
-    }
-
-    const query = `
       CREATE TABLE IF NOT EXISTS ${tableNames.domainEvents} (
         revisionGlobal SERIAL,
         aggregateId BINARY(16) NOT NULL,
@@ -151,7 +122,7 @@ class MySqlDomainEventStore implements DomainEventStore {
 
     await runQuery({ connection, query });
 
-    MySqlDomainEventStore.releaseConnection({ connection });
+    MariaDbDomainEventStore.releaseConnection({ connection });
 
     return domainEventStore;
   }
@@ -179,7 +150,7 @@ class MySqlDomainEventStore implements DomainEventStore {
 
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = connection.query(`
-      SELECT domainEvent, revisionGlobal, isPublished
+      SELECT event, revisionGlobal, isPublished
         FROM ${this.tableNames.domainEvents}
         WHERE aggregateId = UuidToBin(?)
           AND revisionAggregate >= ?
@@ -188,22 +159,24 @@ class MySqlDomainEventStore implements DomainEventStore {
     [ aggregateIdentifier.id, fromRevision, toRevision ]);
 
     const unsubscribe = function (): void {
-      // The listeners on domainEventStream should be removed here, but the
-      // mysql typings unfortunately don't support that.
-      MySqlDomainEventStore.releaseConnection({ connection });
+      // Listeners should be removed here, but the mysql typings don't support
+      // that.
+      MariaDbDomainEventStore.releaseConnection({ connection });
     };
 
     const onEnd = function (): void {
       unsubscribe();
       passThrough.end();
     };
+
     const onError = function (err: MysqlError): void {
       unsubscribe();
       passThrough.emit('error', err);
       passThrough.end();
     };
+
     const onResult = function (row: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
+      let domainEvent = new DomainEvent<State>(JSON.parse(row.domainEvent));
 
       domainEvent = domainEvent.withRevisionGlobal({
         revisionGlobal: Number(row.revisionGlobal)
@@ -225,11 +198,11 @@ class MySqlDomainEventStore implements DomainEventStore {
 
   public async getLastDomainEvent ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<DomainEvent<DomainEventData> | undefined> {
+  }): Promise<DomainEvent<State> | undefined> {
     const connection = await this.getDatabase();
 
     try {
-      const [ rows ] = await runQuery({
+      const [ rows ]: any[] = await runQuery({
         connection,
         query: `SELECT domainEvent, revisionGlobal
           FROM ${this.tableNames.domainEvents}
@@ -243,7 +216,7 @@ class MySqlDomainEventStore implements DomainEventStore {
         return;
       }
 
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(rows[0].domainEvent));
+      let domainEvent = new DomainEvent<State>(JSON.parse(rows[0].domainEvent));
 
       domainEvent = domainEvent.withRevisionGlobal({
         revisionGlobal: Number(rows[0].revisionGlobal)
@@ -251,7 +224,7 @@ class MySqlDomainEventStore implements DomainEventStore {
 
       return domainEvent;
     } finally {
-      MySqlDomainEventStore.releaseConnection({ connection });
+      MariaDbDomainEventStore.releaseConnection({ connection });
     }
   }
 
@@ -280,20 +253,22 @@ class MySqlDomainEventStore implements DomainEventStore {
     const unsubscribe = function (): void {
       // Listeners should be removed here, but the mysql typings don't support
       // that.
-      MySqlDomainEventStore.releaseConnection({ connection });
+      MariaDbDomainEventStore.releaseConnection({ connection });
     };
 
     const onEnd = function (): void {
       unsubscribe();
       passThrough.end();
     };
+
     const onError = function (err: MysqlError): void {
       unsubscribe();
       passThrough.emit('error', err);
       passThrough.end();
     };
+
     const onResult = function (row: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
+      let domainEvent = new DomainEvent<State>(JSON.parse(row.domainEvent));
 
       domainEvent = domainEvent.withRevisionGlobal({
         revisionGlobal: Number(row.revisionGlobal)
@@ -315,7 +290,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     const connection = await this.getDatabase();
 
     try {
-      const [ rows ] = await runQuery({
+      const [ rows ]: any[] = await runQuery({
         connection,
         query: `SELECT state, revisionAggregate
           FROM ${this.tableNames.snapshots}
@@ -335,7 +310,7 @@ class MySqlDomainEventStore implements DomainEventStore {
         state: JSON.parse(rows[0].state)
       };
     } finally {
-      MySqlDomainEventStore.releaseConnection({ connection });
+      MariaDbDomainEventStore.releaseConnection({ connection });
     }
   }
 
@@ -353,20 +328,22 @@ class MySqlDomainEventStore implements DomainEventStore {
     const unsubscribe = function (): void {
       // Listeners should be removed here, but the mysql typings don't support
       // that.
-      MySqlDomainEventStore.releaseConnection({ connection });
+      MariaDbDomainEventStore.releaseConnection({ connection });
     };
 
     const onEnd = function (): void {
       unsubscribe();
       passThrough.end();
     };
+
     const onError = function (err: MysqlError): void {
       unsubscribe();
       passThrough.emit('error', err);
       passThrough.end();
     };
+
     const onResult = function (row: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
+      let domainEvent = new DomainEvent<State>(JSON.parse(row.domainEvent));
 
       domainEvent = domainEvent.withRevisionGlobal({
         revisionGlobal: Number(row.revisionGlobal)
@@ -408,7 +385,7 @@ class MySqlDomainEventStore implements DomainEventStore {
         parameters: [ aggregateIdentifier.id, fromRevision, toRevision ]
       });
     } finally {
-      MySqlDomainEventStore.releaseConnection({ connection });
+      MariaDbDomainEventStore.releaseConnection({ connection });
     }
   }
 
@@ -446,7 +423,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     try {
       await runQuery({ connection, query, parameters });
 
-      const [ rows ] = await runQuery({
+      const [ rows ]: any[] = await runQuery({
         connection,
         query: 'SELECT LAST_INSERT_ID() AS revisionGlobal;'
       });
@@ -468,7 +445,7 @@ class MySqlDomainEventStore implements DomainEventStore {
 
       throw ex;
     } finally {
-      MySqlDomainEventStore.releaseConnection({ connection });
+      MariaDbDomainEventStore.releaseConnection({ connection });
     }
 
     const indexForSnapshot = committedDomainEvents.findIndex(
@@ -504,12 +481,12 @@ class MySqlDomainEventStore implements DomainEventStore {
         query: `INSERT IGNORE INTO ${this.tableNames.snapshots}
           (aggregateId, revisionAggregate, state)
           VALUES (UuidToBin(?), ?, ?);`,
-        parameters: [ snapshot.aggregateIdentifier.id, snapshot.revision, JSON.stringify(snapshot.state) ]
+        parameters: [ snapshot.aggregateIdentifier.id, snapshot.revision, snapshot.state ]
       });
     } finally {
-      MySqlDomainEventStore.releaseConnection({ connection });
+      MariaDbDomainEventStore.releaseConnection({ connection });
     }
   }
 }
 
-export { MySqlDomainEventStore };
+export { MariaDbDomainEventStore };
