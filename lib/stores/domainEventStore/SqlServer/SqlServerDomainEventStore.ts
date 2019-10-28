@@ -1,9 +1,8 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
-import createPool from '../../utils/sqlServer/createPool';
+import { createPool } from '../../utils/sqlServer/createPool';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
-import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
 import { PassThrough } from 'stream';
 import { Pool } from 'tarn';
 import retry from 'async-retry';
@@ -312,8 +311,8 @@ class SqlServerDomainEventStore implements DomainEventStore {
   }
 
   public async saveDomainEvents ({ domainEvents }: {
-    domainEvents: DomainEventWithState<DomainEventData, State>[];
-  }): Promise<DomainEventWithState<DomainEventData, State>[]> {
+    domainEvents: DomainEvent<DomainEventData>[];
+  }): Promise<DomainEvent<DomainEventData>[]> {
     if (domainEvents.length === 0) {
       throw new Error('Domain events are missing.');
     }
@@ -328,7 +327,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
       const row = [
         { key: `aggregateId${rowId}`, value: domainEvent.aggregateIdentifier.id, type: TYPES.UniqueIdentifier, options: undefined },
         { key: `revisionAggregate${rowId}`, value: domainEvent.metadata.revision.aggregate, type: TYPES.Int, options: undefined },
-        { key: `event${rowId}`, value: JSON.stringify(domainEvent.withoutState()), type: TYPES.NVarChar, options: { length: 4000 }},
+        { key: `event${rowId}`, value: JSON.stringify(domainEvent), type: TYPES.NVarChar, options: { length: 4000 }},
         { key: `isPublished${rowId}`, value: domainEvent.metadata.isPublished, type: TYPES.Bit, options: undefined }
       ];
 
@@ -345,7 +344,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
       VALUES ${placeholders.join(',')};
     `;
 
-    const savedDomainEvents: DomainEventWithState<DomainEventData, State>[] = [];
+    const savedDomainEvents: DomainEvent<DomainEventData>[] = [];
 
     try {
       await new Promise((resolve, reject): void => {
@@ -387,21 +386,6 @@ class SqlServerDomainEventStore implements DomainEventStore {
       throw ex;
     } finally {
       this.pool.release(database);
-    }
-
-    const indexForSnapshot = savedDomainEvents.findIndex(
-      (savedDomainEvent): boolean =>
-        savedDomainEvent.metadata.revision.aggregate % 100 === 0
-    );
-
-    if (indexForSnapshot !== -1) {
-      const { aggregateIdentifier } = savedDomainEvents[indexForSnapshot];
-      const { aggregate: revisionAggregate } = savedDomainEvents[indexForSnapshot].metadata.revision;
-      const { next: state } = savedDomainEvents[indexForSnapshot].state;
-
-      await this.saveSnapshot({
-        snapshot: { aggregateIdentifier, revision: revisionAggregate, state }
-      });
     }
 
     return savedDomainEvents;

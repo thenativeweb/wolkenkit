@@ -2,7 +2,6 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
-import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
 import { errors } from '../../../common/errors';
 import { last } from 'lodash';
 import { PassThrough } from 'stream';
@@ -88,8 +87,8 @@ class InMemoryDomainEventStore implements DomainEventStore {
   }
 
   public async saveDomainEvents ({ domainEvents }: {
-    domainEvents: DomainEventWithState<DomainEventData, State>[];
-  }): Promise<DomainEventWithState<DomainEventData, State>[]> {
+    domainEvents: DomainEvent<DomainEventData>[];
+  }): Promise<DomainEvent<DomainEventData>[]> {
     if (domainEvents.length === 0) {
       throw new Error('Domain events are missing.');
     }
@@ -97,44 +96,24 @@ class InMemoryDomainEventStore implements DomainEventStore {
     const storedDomainEvents = this.getStoredDomainEvents();
     const savedDomainEvents = [];
 
-    for (const unsavedDomainEvent of domainEvents) {
+    for (const domainEvent of domainEvents) {
       const alreadyExists = storedDomainEvents.some(
         (eventInDatabase): boolean =>
-          unsavedDomainEvent.aggregateIdentifier.id === eventInDatabase.aggregateIdentifier.id &&
-          unsavedDomainEvent.metadata.revision.aggregate === eventInDatabase.metadata.revision.aggregate
+          domainEvent.aggregateIdentifier.id === eventInDatabase.aggregateIdentifier.id &&
+          domainEvent.metadata.revision.aggregate === eventInDatabase.metadata.revision.aggregate
       );
 
       if (alreadyExists) {
         throw new Error('Aggregate id and revision already exist.');
       }
 
-      const savedDomainEvent = unsavedDomainEvent.withRevisionGlobal({
+      const savedDomainEvent = domainEvent.withRevisionGlobal({
         revisionGlobal: storedDomainEvents.length + 1
       });
 
       savedDomainEvents.push(savedDomainEvent);
 
-      this.storeDomainEventAtDatabase({
-        domainEvent: savedDomainEvent.withoutState()
-      });
-    }
-
-    const indexForSnapshot = savedDomainEvents.findIndex(
-      (savedDomainEvent): boolean => savedDomainEvent.metadata.revision.aggregate % 100 === 0
-    );
-
-    if (indexForSnapshot !== -1) {
-      const { aggregateIdentifier } = savedDomainEvents[indexForSnapshot];
-      const { aggregate: revisionAggregate } = savedDomainEvents[indexForSnapshot].metadata.revision;
-      const { next: state } = savedDomainEvents[indexForSnapshot].state;
-
-      await this.saveSnapshot({
-        snapshot: {
-          aggregateIdentifier,
-          revision: revisionAggregate,
-          state
-        }
-      });
+      this.storeDomainEventAtDatabase({ domainEvent: savedDomainEvent });
     }
 
     return savedDomainEvents;

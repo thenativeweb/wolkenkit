@@ -2,7 +2,6 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
-import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
 import { PassThrough } from 'stream';
 import QueryStream from 'pg-query-stream';
 import retry from 'async-retry';
@@ -301,8 +300,8 @@ class PostgresDomainEventStore implements DomainEventStore {
   }
 
   public async saveDomainEvents ({ domainEvents }: {
-    domainEvents: DomainEventWithState<DomainEventData, State>[];
-  }): Promise<DomainEventWithState<DomainEventData, State>[]> {
+    domainEvents: DomainEvent<DomainEventData>[];
+  }): Promise<DomainEvent<DomainEventData>[]> {
     if (domainEvents.length === 0) {
       throw new Error('Domain events are missing.');
     }
@@ -317,7 +316,7 @@ class PostgresDomainEventStore implements DomainEventStore {
       values.push(
         domainEvent.aggregateIdentifier.id,
         domainEvent.metadata.revision.aggregate,
-        domainEvent.withoutState(),
+        domainEvent,
         domainEvent.metadata.isPublished
       );
     }
@@ -355,21 +354,6 @@ class PostgresDomainEventStore implements DomainEventStore {
       throw ex;
     } finally {
       connection.release();
-    }
-
-    const indexForSnapshot = savedDomainEvents.findIndex(
-      (savedDomainEvent): boolean =>
-        savedDomainEvent.metadata.revision.aggregate % 100 === 0
-    );
-
-    if (indexForSnapshot !== -1) {
-      const { aggregateIdentifier } = savedDomainEvents[indexForSnapshot];
-      const { aggregate: revisionAggregate } = savedDomainEvents[indexForSnapshot].metadata.revision;
-      const { next: state } = savedDomainEvents[indexForSnapshot].state;
-
-      await this.saveSnapshot({
-        snapshot: { aggregateIdentifier, revision: revisionAggregate, state }
-      });
     }
 
     return savedDomainEvents;

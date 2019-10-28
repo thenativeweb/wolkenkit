@@ -1,7 +1,6 @@
 import { AggregateIdentifier } from '../../common/elements/AggregateIdentifier';
 import { DomainEvent } from '../../common/elements/DomainEvent';
 import { DomainEventData } from '../../common/elements/DomainEventData';
-import { DomainEventWithState } from '../../common/elements/DomainEventWithState';
 import { PassThrough } from 'stream';
 import { Snapshot } from './Snapshot';
 import { State } from '../../common/elements/State';
@@ -38,8 +37,8 @@ export interface DomainEventStore {
   }) => Promise<void>;
 
   saveDomainEvents: ({ domainEvents }: {
-    domainEvents: DomainEventWithState<DomainEventData, State>[];
-  }) => Promise<DomainEventWithState<DomainEventData, State>[]>;
+    domainEvents: DomainEvent<DomainEventData>[];
+  }) => Promise<DomainEvent<DomainEventData>[]>;
 
   saveSnapshot: ({ snapshot }: {
     snapshot: Snapshot<State>;

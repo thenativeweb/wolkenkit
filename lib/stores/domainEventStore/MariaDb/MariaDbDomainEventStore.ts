@@ -2,7 +2,6 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
-import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
 import { PassThrough } from 'stream';
 import retry from 'async-retry';
 import { runQuery } from '../../utils/mySql/runQuery';
@@ -390,8 +389,8 @@ class MariaDbDomainEventStore implements DomainEventStore {
   }
 
   public async saveDomainEvents ({ domainEvents }: {
-    domainEvents: DomainEventWithState<DomainEventData, State>[];
-  }): Promise<DomainEventWithState<DomainEventData, State>[]> {
+    domainEvents: DomainEvent<DomainEventData>[];
+  }): Promise<DomainEvent<DomainEventData>[]> {
     if (domainEvents.length === 0) {
       throw new Error('Domain events are missing.');
     }
@@ -406,7 +405,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
       parameters.push(
         domainEvent.aggregateIdentifier.id,
         domainEvent.metadata.revision.aggregate,
-        JSON.stringify(domainEvent.withoutState()),
+        JSON.stringify(domainEvent),
         domainEvent.metadata.isPublished
       );
     }
@@ -446,25 +445,6 @@ class MariaDbDomainEventStore implements DomainEventStore {
       throw ex;
     } finally {
       MariaDbDomainEventStore.releaseConnection({ connection });
-    }
-
-    const indexForSnapshot = savedDomainEvents.findIndex(
-      (savedDomainEvent): boolean =>
-        savedDomainEvent.metadata.revision.aggregate % 100 === 0
-    );
-
-    if (indexForSnapshot !== -1) {
-      const { aggregateIdentifier } = savedDomainEvents[indexForSnapshot];
-      const { aggregate: revisionAggregate } = savedDomainEvents[indexForSnapshot].metadata.revision;
-      const { next: state } = savedDomainEvents[indexForSnapshot].state;
-
-      await this.saveSnapshot({
-        snapshot: {
-          aggregateIdentifier,
-          revision: revisionAggregate,
-          state
-        }
-      });
     }
 
     return savedDomainEvents;
