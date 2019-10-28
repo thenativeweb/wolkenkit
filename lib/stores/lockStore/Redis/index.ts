@@ -1,3 +1,3 @@
-import RedisLockstore from './RedisLockstore';
+import { RedisLockStore } from './RedisLockStore';
 
-export default RedisLockstore;
+export { RedisLockStore };

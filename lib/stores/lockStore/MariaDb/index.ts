@@ -1,3 +1,3 @@
-import MariaDbLockstore from './MariaDbLockstore';
+import { MariaDbLockStore } from './MariaDbLockStore';
 
-export default MariaDbLockstore;
+export { MariaDbLockStore };

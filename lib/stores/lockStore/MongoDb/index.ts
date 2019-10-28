@@ -1,3 +1,3 @@
-import MongoDbLockstore from './MongoDbLockstore';
+import { MongoDbLockStore } from './MongoDbLockStore';
 
-export default MongoDbLockstore;
+export { MongoDbLockStore };

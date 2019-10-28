@@ -1,3 +1,3 @@
-import MySqlLockstore from './MySqlLockstore';
+import { MySqlLockStore } from './MySqlLockStore';
 
-export default MySqlLockstore;
+export { MySqlLockStore };

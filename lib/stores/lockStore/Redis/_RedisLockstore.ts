@@ -1,12 +1,11 @@
-import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
-import { Lockstore } from '../Lockstore';
-import maxDate from '../../../common/utils/maxDate';
+import { LockStore } from '../LockStore';
+import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
 import retry from 'async-retry';
-import sortKeys from '../../../common/utils/sortKeys';
+import { sortKeys } from '../../../common/utils/sortKeys';
 import redis, { RedisClient } from 'redis';
 
-class RedisLockstore implements Lockstore {
+class RedisLockStore implements LockStore {
   protected client: RedisClient;
 
   protected namespace: string;
@@ -83,7 +82,7 @@ class RedisLockstore implements Lockstore {
     nonce: string | null;
     requireValidExpiration: boolean;
     maxLockSize: number;
-  }): Promise<RedisLockstore> {
+  }): Promise<RedisLockStore> {
     const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     const url = `redis://:${password}@${hostname}:${port}/${database}`;
@@ -100,9 +99,9 @@ class RedisLockstore implements Lockstore {
       });
     }));
 
-    client.on('error', RedisLockstore.onUnexpectedError);
+    client.on('error', RedisLockStore.onUnexpectedError);
 
-    const lockstore = new RedisLockstore({
+    const lockstore = new RedisLockStore({
       client,
       namespace: prefixedNamespace,
       maxLockSize,
@@ -125,7 +124,7 @@ class RedisLockstore implements Lockstore {
     onAcquired (): void | Promise<void>;
   }): Promise<void> {
     const key = this.getLockName({ namespace, value, store: this.namespace });
-    const expiration = RedisLockstore.getExpiration({ expiresAt });
+    const expiration = RedisLockStore.getExpiration({ expiresAt });
 
     let result;
 
@@ -187,7 +186,7 @@ class RedisLockstore implements Lockstore {
     expiresAt: number;
   }): Promise<void> {
     const key = this.getLockName({ namespace, value, store: this.namespace });
-    const expiration = RedisLockstore.getExpiration({ expiresAt });
+    const expiration = RedisLockStore.getExpiration({ expiresAt });
 
     let result;
 
@@ -265,9 +264,9 @@ class RedisLockstore implements Lockstore {
   }
 
   public async destroy (): Promise<void> {
-    this.client.removeListener('error', RedisLockstore.onUnexpectedError);
+    this.client.removeListener('error', RedisLockStore.onUnexpectedError);
     this.client.quit();
   }
 }
 
-export default RedisLockstore;
+export { RedisLockStore };

@@ -1,27 +1,26 @@
-import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
-import { Lockstore } from '../Lockstore';
-import maxDate from '../../../common/utils/maxDate';
+import { LockStore } from '../LockStore';
+import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
-import pg from 'pg';
 import retry from 'async-retry';
+import { Client, Pool, PoolClient } from 'pg';
 
-class PostgresLockstore implements Lockstore {
+class PostgresLockStore implements LockStore {
   protected namespace: string;
 
-  protected pool: pg.Pool;
+  protected pool: Pool;
 
   protected nonce: string | null;
 
   protected maxLockSize: number;
 
-  protected disconnectWatcher: pg.Client;
+  protected disconnectWatcher: Client;
 
   protected static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  protected static async getDatabase (pool: pg.Pool): Promise<pg.PoolClient> {
-    const database = await retry(async (): Promise<pg.PoolClient> => {
+  protected static async getDatabase (pool: Pool): Promise<PoolClient> {
+    const database = await retry(async (): Promise<PoolClient> => {
       const connection = await pool.connect();
 
       return connection;
@@ -32,10 +31,10 @@ class PostgresLockstore implements Lockstore {
 
   protected constructor ({ namespace, pool, nonce, maxLockSize, disconnectWatcher }: {
     namespace: string;
-    pool: pg.Pool;
+    pool: Pool;
     nonce: string | null;
     maxLockSize: number;
-    disconnectWatcher: pg.Client;
+    disconnectWatcher: Client;
   }) {
     this.namespace = namespace;
     this.pool = pool;
@@ -64,10 +63,10 @@ class PostgresLockstore implements Lockstore {
     namespace: string;
     nonce: string | null;
     maxLockSize: number;
-  }): Promise<PostgresLockstore> {
+  }): Promise<PostgresLockStore> {
     const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
-    const pool = new pg.Pool({
+    const pool = new Pool({
       host: hostname,
       port,
       user: username,
@@ -80,7 +79,7 @@ class PostgresLockstore implements Lockstore {
       throw err;
     });
 
-    const disconnectWatcher = new pg.Client({
+    const disconnectWatcher = new Client({
       host: hostname,
       port,
       user: username,
@@ -89,7 +88,7 @@ class PostgresLockstore implements Lockstore {
       ssl: encryptConnection
     });
 
-    disconnectWatcher.on('end', PostgresLockstore.onUnexpectedClose);
+    disconnectWatcher.on('end', PostgresLockStore.onUnexpectedClose);
     disconnectWatcher.on('error', (err: Error): never => {
       throw err;
     });
@@ -102,7 +101,7 @@ class PostgresLockstore implements Lockstore {
       }
     });
 
-    const lockstore = new PostgresLockstore({
+    const lockstore = new PostgresLockStore({
       namespace: prefixedNamespace,
       pool,
       nonce,
@@ -110,7 +109,7 @@ class PostgresLockstore implements Lockstore {
       disconnectWatcher
     });
 
-    const connection = await PostgresLockstore.getDatabase(pool);
+    const connection = await PostgresLockStore.getDatabase(pool);
 
     try {
       await retry(async (): Promise<void> => {
@@ -153,7 +152,7 @@ class PostgresLockstore implements Lockstore {
       throw new Error('Lock value is too large.');
     }
 
-    const connection = await PostgresLockstore.getDatabase(this.pool);
+    const connection = await PostgresLockStore.getDatabase(this.pool);
 
     try {
       const result = await connection.query({
@@ -226,7 +225,7 @@ class PostgresLockstore implements Lockstore {
       throw new Error('Lock value is too large.');
     }
 
-    const connection = await PostgresLockstore.getDatabase(this.pool);
+    const connection = await PostgresLockStore.getDatabase(this.pool);
 
     let isLocked = false;
 
@@ -265,7 +264,7 @@ class PostgresLockstore implements Lockstore {
       throw new Error('Lock value is too large.');
     }
 
-    const connection = await PostgresLockstore.getDatabase(this.pool);
+    const connection = await PostgresLockStore.getDatabase(this.pool);
 
     try {
       const result = await connection.query({
@@ -314,7 +313,7 @@ class PostgresLockstore implements Lockstore {
       throw new Error('Lock value is too large.');
     }
 
-    const connection = await PostgresLockstore.getDatabase(this.pool);
+    const connection = await PostgresLockStore.getDatabase(this.pool);
 
     try {
       const result = await connection.query({
@@ -353,10 +352,10 @@ class PostgresLockstore implements Lockstore {
   }
 
   public async destroy (): Promise<void> {
-    this.disconnectWatcher.removeListener('end', PostgresLockstore.onUnexpectedClose);
+    this.disconnectWatcher.removeListener('end', PostgresLockStore.onUnexpectedClose);
     await this.disconnectWatcher.end();
     await this.pool.end();
   }
 }
 
-export default PostgresLockstore;
+export { PostgresLockStore };

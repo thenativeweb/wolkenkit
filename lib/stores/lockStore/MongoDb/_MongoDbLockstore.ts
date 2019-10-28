@@ -1,13 +1,12 @@
-import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
-import { Lockstore } from '../Lockstore';
-import maxDate from '../../../common/utils/maxDate';
+import { LockStore } from '../LockStore';
+import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
 import { parse } from 'url';
 import retry from 'async-retry';
-import sortKeys from '../../../common/utils/sortKeys';
+import { sortKeys } from '../../../common/utils/sortKeys';
 import { Collection, Db, MongoClient } from 'mongodb';
 
-class MongoDbLockstore implements Lockstore {
+class MongoDbLockStore implements LockStore {
   protected client: MongoClient;
 
   protected db: Db;
@@ -58,7 +57,7 @@ class MongoDbLockstore implements Lockstore {
     namespace: string;
     nonce: string | null;
     maxLockSize: number;
-  }): Promise<MongoDbLockstore> {
+  }): Promise<MongoDbLockStore> {
     const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     const url = `mongodb://${username}:${password}@${hostname}:${port}/${database}`;
@@ -87,13 +86,13 @@ class MongoDbLockstore implements Lockstore {
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);
 
-    db.on('close', MongoDbLockstore.onUnexpectedClose);
+    db.on('close', MongoDbLockStore.onUnexpectedClose);
 
     const collections = {
       locks: db.collection(`${prefixedNamespace}_locks`)
     };
 
-    const lockstore = new MongoDbLockstore({
+    const lockstore = new MongoDbLockStore({
       client,
       db,
       nonce,
@@ -252,9 +251,9 @@ class MongoDbLockstore implements Lockstore {
   }
 
   public async destroy (): Promise<void> {
-    this.db.removeListener('close', MongoDbLockstore.onUnexpectedClose);
+    this.db.removeListener('close', MongoDbLockStore.onUnexpectedClose);
     await this.client.close(true);
   }
 }
 
-export default MongoDbLockstore;
+export { MongoDbLockStore };

@@ -1,10 +1,10 @@
 import { Lock } from '../Lock';
-import { Lockstore } from '../Lockstore';
-import maxDate from '../../../common/utils/maxDate';
+import { LockStore } from '../LockStore';
+import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
-import sortKeys from '../../../common/utils/sortKeys';
+import { sortKeys } from '../../../common/utils/sortKeys';
 
-class InMemoryLockstore implements Lockstore {
+class InMemoryLockStore implements LockStore {
   protected maxLockSize: number;
 
   protected database: { locks: Lock[] };
@@ -18,8 +18,8 @@ class InMemoryLockstore implements Lockstore {
 
   public static async create ({ maxLockSize = 2048 }: {
     maxLockSize: number;
-  }): Promise<InMemoryLockstore> {
-    const lockstore = new InMemoryLockstore({ maxLockSize });
+  }): Promise<InMemoryLockStore> {
+    const lockstore = new InMemoryLockStore({ maxLockSize });
 
     return lockstore;
   }
@@ -126,4 +126,4 @@ class InMemoryLockstore implements Lockstore {
   }
 }
 
-export default InMemoryLockstore;
+export { InMemoryLockStore };

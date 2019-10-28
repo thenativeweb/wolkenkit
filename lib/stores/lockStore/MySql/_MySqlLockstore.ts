@@ -1,13 +1,12 @@
-import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
-import { Lockstore } from '../Lockstore';
+import { LockStore } from '../LockStore';
 import { mySql as maxDate } from '../../../common/utils/maxDate';
 import mysql from 'mysql';
-import { query as mysqlQuery } from '../../utils/mySql/query';
-import noop from 'lodash/noop';
+import { runQuery } from '../../utils/mySql/runQuery';
+import { noop } from 'lodash';
 import retry from 'async-retry';
-import sortKeys from '../../../common/utils/sortKeys';
+import { sortKeys } from '../../../common/utils/sortKeys';
 
-class MySqlLockstore implements Lockstore {
+class MySqlLockStore implements LockStore {
   protected namespace: string;
 
   protected pool: mysql.Pool;
@@ -33,7 +32,7 @@ class MySqlLockstore implements Lockstore {
   }
 
   protected static releaseConnection (connection: mysql.PoolConnection): void {
-    (connection as any).removeListener('end', MySqlLockstore.onUnexpectedClose);
+    (connection as any).removeListener('end', MySqlLockStore.onUnexpectedClose);
     connection.release();
   }
 
@@ -70,7 +69,7 @@ class MySqlLockstore implements Lockstore {
     namespace: string;
     nonce?: null | string;
     maxLockSize?: number;
-  }): Promise<MySqlLockstore> {
+  }): Promise<MySqlLockStore> {
     const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     const pool = mysql.createPool({
@@ -87,10 +86,10 @@ class MySqlLockstore implements Lockstore {
       connection.on('error', (err: Error): never => {
         throw err;
       });
-      connection.on('end', MySqlLockstore.onUnexpectedClose);
+      connection.on('end', MySqlLockStore.onUnexpectedClose);
     });
 
-    const eventstore = new MySqlLockstore({
+    const eventstore = new MySqlLockStore({
       namespace: prefixedNamespace,
       pool,
       nonce,
@@ -111,7 +110,7 @@ class MySqlLockstore implements Lockstore {
       );`
     );
 
-    MySqlLockstore.releaseConnection(connection);
+    MySqlLockStore.releaseConnection(connection);
 
     return eventstore;
   }
@@ -187,7 +186,7 @@ class MySqlLockstore implements Lockstore {
         throw ex;
       }
     } finally {
-      MySqlLockstore.releaseConnection(connection);
+      MySqlLockStore.releaseConnection(connection);
     }
   }
 
@@ -221,7 +220,7 @@ class MySqlLockstore implements Lockstore {
         isLocked = Date.now() < entry.expiresAt.getTime();
       }
     } finally {
-      MySqlLockstore.releaseConnection(connection);
+      MySqlLockStore.releaseConnection(connection);
     }
 
     return isLocked;
@@ -269,7 +268,7 @@ class MySqlLockstore implements Lockstore {
         [ new Date(expiresAt), namespace, sortedSerializedValue ]
       );
     } finally {
-      MySqlLockstore.releaseConnection(connection);
+      MySqlLockStore.releaseConnection(connection);
     }
   }
 
@@ -313,7 +312,7 @@ class MySqlLockstore implements Lockstore {
         [ namespace, sortedSerializedValue ]
       );
     } finally {
-      MySqlLockstore.releaseConnection(connection);
+      MySqlLockStore.releaseConnection(connection);
     }
   }
 
@@ -324,4 +323,4 @@ class MySqlLockstore implements Lockstore {
   }
 }
 
-export default MySqlLockstore;
+export { MySqlLockStore };

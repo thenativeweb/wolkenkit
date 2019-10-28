@@ -1,13 +1,12 @@
-import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
-import { Lockstore } from '../Lockstore';
+import { LockStore } from '../LockStore';
 import { mariaDb as maxDate } from '../../../common/utils/maxDate';
 import mysql from 'mysql';
-import { query as mysqlQuery } from '../../utils/mySql/query';
-import noop from 'lodash/noop';
+import { noop } from 'lodash';
 import retry from 'async-retry';
-import sortKeys from '../../../common/utils/sortKeys';
+import { runQuery } from '../../utils/mySql/runQuery';
+import { sortKeys } from '../../../common/utils/sortKeys';
 
-class MariaDbLockstore implements Lockstore {
+class MariaDbLockStore implements LockStore {
   protected namespace: string;
 
   protected pool: mysql.Pool;
@@ -33,7 +32,7 @@ class MariaDbLockstore implements Lockstore {
   }
 
   protected static releaseConnection (connection: mysql.PoolConnection): void {
-    (connection as any).removeListener('end', MariaDbLockstore.onUnexpectedClose);
+    (connection as any).removeListener('end', MariaDbLockStore.onUnexpectedClose);
     connection.release();
   }
 
@@ -70,7 +69,7 @@ class MariaDbLockstore implements Lockstore {
     namespace: string;
     nonce?: null | string;
     maxLockSize?: number;
-  }): Promise<MariaDbLockstore> {
+  }): Promise<MariaDbLockStore> {
     const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     const pool = mysql.createPool({
@@ -87,10 +86,10 @@ class MariaDbLockstore implements Lockstore {
       connection.on('error', (err: Error): never => {
         throw err;
       });
-      connection.on('end', MariaDbLockstore.onUnexpectedClose);
+      connection.on('end', MariaDbLockStore.onUnexpectedClose);
     });
 
-    const eventstore = new MariaDbLockstore({
+    const eventstore = new MariaDbLockStore({
       namespace: prefixedNamespace,
       pool,
       nonce,
@@ -111,7 +110,7 @@ class MariaDbLockstore implements Lockstore {
       );`
     );
 
-    MariaDbLockstore.releaseConnection(connection);
+    MariaDbLockStore.releaseConnection(connection);
 
     return eventstore;
   }
@@ -187,7 +186,7 @@ class MariaDbLockstore implements Lockstore {
         throw ex;
       }
     } finally {
-      MariaDbLockstore.releaseConnection(connection);
+      MariaDbLockStore.releaseConnection(connection);
     }
   }
 
@@ -221,7 +220,7 @@ class MariaDbLockstore implements Lockstore {
         isLocked = Date.now() < entry.expiresAt.getTime();
       }
     } finally {
-      MariaDbLockstore.releaseConnection(connection);
+      MariaDbLockStore.releaseConnection(connection);
     }
 
     return isLocked;
@@ -269,7 +268,7 @@ class MariaDbLockstore implements Lockstore {
         [ new Date(expiresAt), namespace, sortedSerializedValue ]
       );
     } finally {
-      MariaDbLockstore.releaseConnection(connection);
+      MariaDbLockStore.releaseConnection(connection);
     }
   }
 
@@ -313,7 +312,7 @@ class MariaDbLockstore implements Lockstore {
         [ namespace, sortedSerializedValue ]
       );
     } finally {
-      MariaDbLockstore.releaseConnection(connection);
+      MariaDbLockStore.releaseConnection(connection);
     }
   }
 
@@ -324,4 +323,4 @@ class MariaDbLockstore implements Lockstore {
   }
 }
 
-export default MariaDbLockstore;
+export { MariaDbLockStore };

@@ -1,14 +1,13 @@
-import createPool from '../../utils/sqlServer/createPool';
-import limitAlphanumeric from '../../../common/utils/limitAlphanumeric';
-import { Lockstore } from '../Lockstore';
+import { createPool } from '../../utils/sqlServer/createPool';
+import { LockStore } from '../LockStore';
 import { sqlServer as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
 import { Pool } from 'tarn';
 import retry from 'async-retry';
-import sortKeys from '../../../common/utils/sortKeys';
+import { sortKeys } from '../../../common/utils/sortKeys';
 import { Connection, Request, TYPES } from 'tedious';
 
-class SqlServerLockstore implements Lockstore {
+class SqlServerLockStore implements LockStore {
   protected pool: Pool<Connection>;
 
   protected namespace: string;
@@ -63,7 +62,7 @@ class SqlServerLockstore implements Lockstore {
     namespace: string;
     nonce: string | null;
     maxLockSize: number;
-  }): Promise<SqlServerLockstore> {
+  }): Promise<SqlServerLockStore> {
     const prefixedNamespace = `lockstore_${limitAlphanumeric(namespace)}`;
 
     const pool = createPool({
@@ -79,18 +78,18 @@ class SqlServerLockstore implements Lockstore {
       },
 
       onDisconnect (): void {
-        SqlServerLockstore.onUnexpectedClose();
+        SqlServerLockStore.onUnexpectedClose();
       }
     });
 
-    const lockstore = new SqlServerLockstore({
+    const lockstore = new SqlServerLockStore({
       pool,
       namespace: prefixedNamespace,
       nonce,
       maxLockSize
     });
 
-    const connection = await SqlServerLockstore.getDatabase(pool);
+    const connection = await SqlServerLockStore.getDatabase(pool);
 
     const query = `
       BEGIN TRANSACTION setupTable;
@@ -151,7 +150,7 @@ class SqlServerLockstore implements Lockstore {
       throw new Error('Lock value is too large.');
     }
 
-    const database = await SqlServerLockstore.getDatabase(this.pool);
+    const database = await SqlServerLockStore.getDatabase(this.pool);
 
     try {
       const result: { expiresAt: Date } | undefined = await new Promise((resolve, reject): void => {
@@ -251,7 +250,7 @@ class SqlServerLockstore implements Lockstore {
       throw new Error('Lock value is too large.');
     }
 
-    const database = await SqlServerLockstore.getDatabase(this.pool);
+    const database = await SqlServerLockStore.getDatabase(this.pool);
 
     let isLocked = false;
 
@@ -306,7 +305,7 @@ class SqlServerLockstore implements Lockstore {
       throw new Error('Lock value is too large.');
     }
 
-    const database = await SqlServerLockstore.getDatabase(this.pool);
+    const database = await SqlServerLockStore.getDatabase(this.pool);
 
     try {
       const result: { expiresAt: Date; nonce: string | null } | undefined = await new Promise((resolve, reject): void => {
@@ -381,7 +380,7 @@ class SqlServerLockstore implements Lockstore {
       throw new Error('Lock value is too large.');
     }
 
-    const database = await SqlServerLockstore.getDatabase(this.pool);
+    const database = await SqlServerLockStore.getDatabase(this.pool);
 
     try {
       const result: { expiresAt: Date; nonce: string | null } | undefined = await new Promise((resolve, reject): void => {
@@ -450,4 +449,4 @@ class SqlServerLockstore implements Lockstore {
   }
 }
 
-export default SqlServerLockstore;
+export { SqlServerLockStore };

@@ -1,3 +1,3 @@
-import SqlServerLockstore from './SqlServerLockstore';
+import { SqlServerLockStore } from './SqlServerLockStore';
 
-export default SqlServerLockstore;
+export { SqlServerLockStore };

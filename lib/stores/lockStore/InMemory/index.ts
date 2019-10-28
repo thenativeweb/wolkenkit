@@ -1,3 +1,3 @@
-import InMemoryLockstore from './InMemoryLockstore';
+import { InMemoryLockStore } from './InMemoryLockStore';
 
-export default InMemoryLockstore;
+export { InMemoryLockStore };

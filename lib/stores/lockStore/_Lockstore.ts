@@ -1,4 +1,4 @@
-export interface Lockstore {
+export interface LockStore {
   acquireLock: ({ namespace, value, expiresAt, onAcquired }: {
     namespace: string;
     value: any;

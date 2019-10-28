@@ -1,3 +1,3 @@
-import PostgresLockstore from './PostgresLockstore';
+import { PostgresLockStore } from './PostgresLockStore';
 
-export default PostgresLockstore;
+export { PostgresLockStore };
