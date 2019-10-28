@@ -345,7 +345,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
       VALUES ${placeholders.join(',')};
     `;
 
-    const committedDomainEvents: DomainEventWithState<DomainEventData, State>[] = [];
+    const savedDomainEvents: DomainEventWithState<DomainEventData, State>[] = [];
 
     try {
       await new Promise((resolve, reject): void => {
@@ -367,11 +367,11 @@ class SqlServerDomainEventStore implements DomainEventStore {
 
         onRow = (columns: ColumnValue[]): void => {
           const domainEvent = domainEvents[resultCount];
-          const committedDomainEvent = domainEvent.withRevisionGlobal({
+          const savedDomainEvent = domainEvent.withRevisionGlobal({
             revisionGlobal: Number(columns[0].value)
           });
 
-          committedDomainEvents.push(committedDomainEvent);
+          savedDomainEvents.push(savedDomainEvent);
           resultCount += 1;
         };
 
@@ -389,22 +389,22 @@ class SqlServerDomainEventStore implements DomainEventStore {
       this.pool.release(database);
     }
 
-    const indexForSnapshot = committedDomainEvents.findIndex(
-      (committedDomainEvent): boolean =>
-        committedDomainEvent.metadata.revision.aggregate % 100 === 0
+    const indexForSnapshot = savedDomainEvents.findIndex(
+      (savedDomainEvent): boolean =>
+        savedDomainEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const { aggregateIdentifier } = committedDomainEvents[indexForSnapshot];
-      const { aggregate: revisionAggregate } = committedDomainEvents[indexForSnapshot].metadata.revision;
-      const { next: state } = committedDomainEvents[indexForSnapshot].state;
+      const { aggregateIdentifier } = savedDomainEvents[indexForSnapshot];
+      const { aggregate: revisionAggregate } = savedDomainEvents[indexForSnapshot].metadata.revision;
+      const { next: state } = savedDomainEvents[indexForSnapshot].state;
 
       await this.saveSnapshot({
         snapshot: { aggregateIdentifier, revision: revisionAggregate, state }
       });
     }
 
-    return committedDomainEvents;
+    return savedDomainEvents;
   }
 
   public async markDomainEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {

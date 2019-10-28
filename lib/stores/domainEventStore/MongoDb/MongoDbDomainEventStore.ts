@@ -287,7 +287,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
       throw new Error('Domain events are missing.');
     }
 
-    const committedDomainEvents = [];
+    const savedDomainEvents = [];
 
     try {
       for (const domainEvent of domainEvents) {
@@ -295,11 +295,11 @@ class MongoDbDomainEventStore implements DomainEventStore {
           name: this.collectionNames.domainEvents
         });
 
-        const committedDomainEvent = domainEvent.withRevisionGlobal({ revisionGlobal });
+        const savedDomainEvent = domainEvent.withRevisionGlobal({ revisionGlobal });
 
-        committedDomainEvents.push(committedDomainEvent);
+        savedDomainEvents.push(savedDomainEvent);
 
-        await this.collections.domainEvents.insertOne(committedDomainEvent.withoutState());
+        await this.collections.domainEvents.insertOne(savedDomainEvent.withoutState());
       }
     } catch (ex) {
       if (ex.code === 11000 && ex.message.includes('_aggregateId_revision')) {
@@ -309,22 +309,22 @@ class MongoDbDomainEventStore implements DomainEventStore {
       throw ex;
     }
 
-    const indexForSnapshot = committedDomainEvents.findIndex(
-      (committedDomainEvent): boolean =>
-        committedDomainEvent.metadata.revision.aggregate % 100 === 0
+    const indexForSnapshot = savedDomainEvents.findIndex(
+      (savedDomainEvent): boolean =>
+        savedDomainEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const { aggregateIdentifier } = committedDomainEvents[indexForSnapshot];
-      const { aggregate: revisionAggregate } = committedDomainEvents[indexForSnapshot].metadata.revision;
-      const { next: state } = committedDomainEvents[indexForSnapshot].state;
+      const { aggregateIdentifier } = savedDomainEvents[indexForSnapshot];
+      const { aggregate: revisionAggregate } = savedDomainEvents[indexForSnapshot].metadata.revision;
+      const { next: state } = savedDomainEvents[indexForSnapshot].state;
 
       await this.saveSnapshot({
         snapshot: { aggregateIdentifier, revision: revisionAggregate, state }
       });
     }
 
-    return committedDomainEvents;
+    return savedDomainEvents;
   }
 
   public async markDomainEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {

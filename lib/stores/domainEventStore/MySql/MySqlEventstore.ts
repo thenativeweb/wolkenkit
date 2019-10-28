@@ -441,7 +441,7 @@ class MySqlDomainEventStore implements DomainEventStore {
         ${placeholders.join(',')};
     `;
 
-    const committedDomainEvents = [];
+    const savedDomainEvents = [];
 
     try {
       await runQuery({ connection, query, parameters });
@@ -455,11 +455,11 @@ class MySqlDomainEventStore implements DomainEventStore {
       // single INSERT statement, the database guarantees that the global
       // revisions are sequential, so we easily calculate them by ourselves.
       for (const [ index, domainEvent ] of domainEvents.entries()) {
-        const committedDomainEvent = domainEvent.withRevisionGlobal({
+        const savedDomainEvent = domainEvent.withRevisionGlobal({
           revisionGlobal: Number(rows[0].revisionGlobal) + index
         });
 
-        committedDomainEvents.push(committedDomainEvent);
+        savedDomainEvents.push(savedDomainEvent);
       }
     } catch (ex) {
       if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'aggregateId\'')) {
@@ -471,15 +471,15 @@ class MySqlDomainEventStore implements DomainEventStore {
       MySqlDomainEventStore.releaseConnection({ connection });
     }
 
-    const indexForSnapshot = committedDomainEvents.findIndex(
-      (committedDomainEvent): boolean =>
-        committedDomainEvent.metadata.revision.aggregate % 100 === 0
+    const indexForSnapshot = savedDomainEvents.findIndex(
+      (savedDomainEvent): boolean =>
+        savedDomainEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const { aggregateIdentifier } = committedDomainEvents[indexForSnapshot];
-      const { aggregate: revisionAggregate } = committedDomainEvents[indexForSnapshot].metadata.revision;
-      const { next: state } = committedDomainEvents[indexForSnapshot].state;
+      const { aggregateIdentifier } = savedDomainEvents[indexForSnapshot];
+      const { aggregate: revisionAggregate } = savedDomainEvents[indexForSnapshot].metadata.revision;
+      const { next: state } = savedDomainEvents[indexForSnapshot].state;
 
       await this.saveSnapshot({
         snapshot: {
@@ -490,7 +490,7 @@ class MySqlDomainEventStore implements DomainEventStore {
       });
     }
 
-    return committedDomainEvents;
+    return savedDomainEvents;
   }
 
   public async saveSnapshot ({ snapshot }: {

@@ -331,7 +331,7 @@ class PostgresDomainEventStore implements DomainEventStore {
         ${placeholders.join(',')} RETURNING "revisionGlobal";
     `;
 
-    const committedDomainEvents = [];
+    const savedDomainEvents = [];
 
     try {
       const result = await connection.query({
@@ -341,11 +341,11 @@ class PostgresDomainEventStore implements DomainEventStore {
       });
 
       for (const [ index, domainEvent ] of domainEvents.entries()) {
-        const committedDomainEvent = domainEvent.withRevisionGlobal({
+        const savedDomainEvent = domainEvent.withRevisionGlobal({
           revisionGlobal: Number(result.rows[index].revisionGlobal)
         });
 
-        committedDomainEvents.push(committedDomainEvent);
+        savedDomainEvents.push(savedDomainEvent);
       }
     } catch (ex) {
       if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", "revisionAggregate")')) {
@@ -357,22 +357,22 @@ class PostgresDomainEventStore implements DomainEventStore {
       connection.release();
     }
 
-    const indexForSnapshot = committedDomainEvents.findIndex(
-      (committedDomainEvent): boolean =>
-        committedDomainEvent.metadata.revision.aggregate % 100 === 0
+    const indexForSnapshot = savedDomainEvents.findIndex(
+      (savedDomainEvent): boolean =>
+        savedDomainEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const { aggregateIdentifier } = committedDomainEvents[indexForSnapshot];
-      const { aggregate: revisionAggregate } = committedDomainEvents[indexForSnapshot].metadata.revision;
-      const { next: state } = committedDomainEvents[indexForSnapshot].state;
+      const { aggregateIdentifier } = savedDomainEvents[indexForSnapshot];
+      const { aggregate: revisionAggregate } = savedDomainEvents[indexForSnapshot].metadata.revision;
+      const { next: state } = savedDomainEvents[indexForSnapshot].state;
 
       await this.saveSnapshot({
         snapshot: { aggregateIdentifier, revision: revisionAggregate, state }
       });
     }
 
-    return committedDomainEvents;
+    return savedDomainEvents;
   }
 
   public async markDomainEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {

@@ -91,42 +91,42 @@ class InMemoryDomainEventStore implements DomainEventStore {
     domainEvents: DomainEventWithState<DomainEventData, State>[];
   }): Promise<DomainEventWithState<DomainEventData, State>[]> {
     if (domainEvents.length === 0) {
-      throw new Error('Uncommitted domain events are missing.');
+      throw new Error('Domain events are missing.');
     }
 
     const storedDomainEvents = this.getStoredDomainEvents();
-    const committedDomainEvents = [];
+    const savedDomainEvents = [];
 
-    for (const uncommittedDomainEvent of domainEvents) {
+    for (const unsavedDomainEvent of domainEvents) {
       const alreadyExists = storedDomainEvents.some(
         (eventInDatabase): boolean =>
-          uncommittedDomainEvent.aggregateIdentifier.id === eventInDatabase.aggregateIdentifier.id &&
-          uncommittedDomainEvent.metadata.revision.aggregate === eventInDatabase.metadata.revision.aggregate
+          unsavedDomainEvent.aggregateIdentifier.id === eventInDatabase.aggregateIdentifier.id &&
+          unsavedDomainEvent.metadata.revision.aggregate === eventInDatabase.metadata.revision.aggregate
       );
 
       if (alreadyExists) {
         throw new Error('Aggregate id and revision already exist.');
       }
 
-      const committedDomainEvent = uncommittedDomainEvent.withRevisionGlobal({
+      const savedDomainEvent = unsavedDomainEvent.withRevisionGlobal({
         revisionGlobal: storedDomainEvents.length + 1
       });
 
-      committedDomainEvents.push(committedDomainEvent);
+      savedDomainEvents.push(savedDomainEvent);
 
       this.storeDomainEventAtDatabase({
-        domainEvent: committedDomainEvent.withoutState()
+        domainEvent: savedDomainEvent.withoutState()
       });
     }
 
-    const indexForSnapshot = committedDomainEvents.findIndex(
-      (committedDomainEvent): boolean => committedDomainEvent.metadata.revision.aggregate % 100 === 0
+    const indexForSnapshot = savedDomainEvents.findIndex(
+      (savedDomainEvent): boolean => savedDomainEvent.metadata.revision.aggregate % 100 === 0
     );
 
     if (indexForSnapshot !== -1) {
-      const { aggregateIdentifier } = committedDomainEvents[indexForSnapshot];
-      const { aggregate: revisionAggregate } = committedDomainEvents[indexForSnapshot].metadata.revision;
-      const { next: state } = committedDomainEvents[indexForSnapshot].state;
+      const { aggregateIdentifier } = savedDomainEvents[indexForSnapshot];
+      const { aggregate: revisionAggregate } = savedDomainEvents[indexForSnapshot].metadata.revision;
+      const { next: state } = savedDomainEvents[indexForSnapshot].state;
 
       await this.saveSnapshot({
         snapshot: {
@@ -137,7 +137,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
       });
     }
 
-    return committedDomainEvents;
+    return savedDomainEvents;
   }
 
   public async markDomainEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {
