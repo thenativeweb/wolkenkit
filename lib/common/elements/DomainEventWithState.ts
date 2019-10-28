@@ -76,6 +76,10 @@ class DomainEventWithState<TDomainEventData extends DomainEventData, TState> ext
       state: this.state
     });
   }
+
+  public withoutState (): DomainEvent<TDomainEventData> {
+    return new DomainEvent(this);
+  }
 }
 
 export { DomainEventWithState };
