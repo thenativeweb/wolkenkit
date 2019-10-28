@@ -1,12 +1,12 @@
 import { Client } from 'minio';
-import errors from '../../../common/errors';
-import { Filestore } from '../Filestore';
+import { errors } from '../../../common/errors';
+import { FileStore } from '../FileStore';
 import { Metadata } from '../Metadata';
 import { OwnedAuthorizationOptions } from '../../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
 import { Readable } from 'stream';
 import streamToString from 'stream-to-string';
 
-class S3Filestore implements Filestore {
+class S3FileStore implements FileStore {
   protected client: Client;
 
   protected bucketName: string;
@@ -59,8 +59,8 @@ class S3Filestore implements Filestore {
     secretKey: string;
     region?: string;
     bucketName: string;
-  }): Promise<S3Filestore> {
-    const s3 = new S3Filestore({
+  }): Promise<S3FileStore> {
+    const s3 = new S3FileStore({
       hostname,
       port,
       encryptConnection,
@@ -252,4 +252,4 @@ class S3Filestore implements Filestore {
   }
 }
 
-export default S3Filestore;
+export { S3FileStore };

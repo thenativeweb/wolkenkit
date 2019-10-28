@@ -2,7 +2,7 @@ import { Metadata } from './Metadata';
 import { OwnedAuthorizationOptions } from '../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
 import { Readable } from 'stream';
 
-export interface Filestore {
+export interface FileStore {
   addFile (args: {
     id: string;
     fileName: string;

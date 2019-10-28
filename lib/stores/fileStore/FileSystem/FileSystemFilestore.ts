@@ -1,5 +1,5 @@
-import errors from '../../../common/errors';
-import { Filestore } from '../Filestore';
+import { errors } from '../../../common/errors';
+import { FileStore } from '../FileStore';
 import isolated from 'isolated';
 import { Metadata } from '../Metadata';
 import { OwnedAuthorizationOptions } from '../../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
@@ -11,7 +11,7 @@ import { pipeline as pipelineCallback, Readable } from 'stream';
 
 const pipeline = promisify(pipelineCallback);
 
-class FileSystemFilestore implements Filestore {
+class FileSystemFileStore implements FileStore {
   protected directory: string;
 
   protected constructor ({ directory }: {
@@ -22,14 +22,14 @@ class FileSystemFilestore implements Filestore {
 
   public static async create ({ optionalDirectory }: {
     optionalDirectory?: string;
-  }): Promise<FileSystemFilestore> {
+  }): Promise<FileSystemFileStore> {
     let directory = optionalDirectory;
 
     if (!directory) {
       directory = await isolated();
     }
 
-    return new FileSystemFilestore({ directory });
+    return new FileSystemFileStore({ directory });
   }
 
   public async addFile ({ id, fileName, contentType, isAuthorized, stream }: {
@@ -152,4 +152,4 @@ class FileSystemFilestore implements Filestore {
   }
 }
 
-export default FileSystemFilestore;
+export { FileSystemFileStore };
