@@ -145,7 +145,7 @@
     "open": "7.0.0",
     "partof": "2.0.1",
     "pg": "7.12.1",
-    "pg-query-stream": "2.0.0",
+    "pg-query-stream": "2.0.1",
     "portscanner": "2.2.0",
     "processenv": "2.0.1",
     "recursive-readdir": "2.2.2",
