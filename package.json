@@ -197,7 +197,7 @@
     "p-queue": "6.2.0",
     "record-stdstreams": "2.1.0",
     "retry-ignore-abort": "1.0.1",
-    "roboter": "9.0.7",
+    "roboter": "9.1.0",
     "run-script-os": "1.0.7",
     "runfork": "2.0.0",
     "sinon": "7.5.0",
