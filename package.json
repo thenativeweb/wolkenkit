@@ -174,7 +174,7 @@
     "@types/express": "4.17.2",
     "@types/fs-extra": "8.0.1",
     "@types/json-schema": "7.0.3",
-    "@types/lodash": "4.14.144",
+    "@types/lodash": "4.14.145",
     "@types/minio": "7.0.3",
     "@types/mongodb": "3.3.8",
     "@types/mysql": "2.15.7",
