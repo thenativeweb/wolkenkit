@@ -176,7 +176,7 @@
     "@types/json-schema": "7.0.3",
     "@types/lodash": "4.14.146",
     "@types/minio": "7.0.3",
-    "@types/mongodb": "3.3.9",
+    "@types/mongodb": "3.3.10",
     "@types/mysql": "2.15.8",
     "@types/node": "12.12.7",
     "@types/pg": "7.11.2",
