@@ -202,7 +202,7 @@
     "runfork": "2.0.0",
     "sinon": "7.5.0",
     "streamtoarray": "2.0.1",
-    "strip-ansi": "5.2.0",
+    "strip-ansi": "6.0.0",
     "supertest": "4.0.2",
     "terminal-img": "1.1.1",
     "twitter": "1.7.1"
