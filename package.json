@@ -194,7 +194,7 @@
     "measure-time": "4.0.0",
     "nock": "11.7.0",
     "nodeenv": "2.0.1",
-    "p-queue": "6.2.0",
+    "p-queue": "6.2.1",
     "record-stdstreams": "2.1.0",
     "retry-ignore-abort": "1.0.1",
     "roboter": "9.1.0",
