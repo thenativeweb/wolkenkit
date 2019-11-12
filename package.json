@@ -190,7 +190,7 @@
     "assertthat": "4.0.2",
     "async-wait-until": "1.2.4",
     "dir-compare": "1.8.0",
-    "execa": "3.2.0",
+    "execa": "3.3.0",
     "measure-time": "4.0.0",
     "nock": "11.7.0",
     "nodeenv": "2.0.1",
