@@ -1,3 +1,4 @@
+import { AggregatesService } from '../../../../../build/lib/common/services/AggregatesService';
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { cloneDeep } from 'lodash';
@@ -19,8 +20,6 @@ import { State } from '../../../../common/elements/State';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
 import { Express, Request, Response } from 'express-serve-static-core';
 import Limes, { IdentityProvider } from 'limes';
-import { ClientService } from '../../../../common/services/ClientService';
-import { AggregatesService } from '../../../../../build/lib/common/services/AggregatesService';
 
 class V2 {
   public api: Express;
