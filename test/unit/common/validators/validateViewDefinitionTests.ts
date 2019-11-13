@@ -24,7 +24,7 @@ suite('validateViewDefinition', (): void => {
   test('throws an error if the given view definition is not an object.', async (): Promise<void> => {
     assert.that((): void => {
       validateViewDefinition({ viewDefinition: undefined });
-    }).is.throwing((ex): boolean => (ex as CustomError).code === 'EVIEWDEFINITIONMALFORMED' && ex.message === `Property 'viewDefinition' is not an object.`);
+    }).is.throwing((ex): boolean => (ex as CustomError).code === 'EVIEWDEFINITIONMALFORMED' && ex.message === `View handler is not an object.`);
   });
 
   test('throws an error if initializer is missing.', async (): Promise<void> => {
@@ -136,7 +136,7 @@ suite('validateViewDefinition', (): void => {
     }).is.throwing(
       (ex): boolean =>
         (ex as CustomError).code === 'EVIEWDEFINITIONMALFORMED' &&
-        ex.message === `Projection handler 'sampleProjection' is malformed: It is not an object.`
+        ex.message === `Projection handler 'sampleProjection' is malformed: Projection handler is not an object.`
     );
   });
 
@@ -183,7 +183,7 @@ suite('validateViewDefinition', (): void => {
     }).is.throwing(
       (ex): boolean =>
         (ex as CustomError).code === 'EVIEWDEFINITIONMALFORMED' &&
-        ex.message === `Query handler 'sampleQuery' is malformed: It is not an object.`
+        ex.message === `Query handler 'sampleQuery' is malformed: Query handler is not an object.`
     );
   });
 });
