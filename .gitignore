@@ -2,15 +2,8 @@
 node_modules/
 
 # Build artefacts
-build/
+/build/
 
 # OS generated files and folders
 .DS_Store
 npm-debug.log
-
-# Terraform
-.terraform/
-terraform.tfstate
-terraform.tfstate.backup
-.terraform.tfstate.lock.info
-.docker/

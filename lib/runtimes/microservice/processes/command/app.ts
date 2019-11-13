@@ -1,19 +1,18 @@
 #!/usr/bin/env node
 
-import Application from '../../../../common/application/Application';
-import CommandHttp from '../../../../apis/command/Http';
+import { Http as CommandHttp } from '../../../../apis/command/Http';
 import express from 'express';
 import flaschenpost from 'flaschenpost';
 import fs from 'fs';
+import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import getCorsOrigin from 'get-cors-origin';
-import getEnvironmentVariables from '../../../../common/utils/process/getEnvironmentVariables';
-import getHandleReceivedCommand from './getHandleReceivedCommand';
-import HealthHttp from '../../../../apis/health/Http';
+import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
+import { getHandleReceivedCommand } from './getHandleReceivedCommand';
+import { Http as HealthHttp } from '../../../../apis/health/Http';
 import http from 'http';
 import { IdentityProvider } from 'limes';
 import path from 'path';
-import registerExceptionHandler from '../../../../common/utils/process/registerExceptionHandler';
-import uuid from 'uuidv4';
+import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -22,26 +21,24 @@ import uuid from 'uuidv4';
   try {
     registerExceptionHandler();
 
-    const processId = uuid();
-
     const environmentVariables = getEnvironmentVariables({
-      APPLICATION_DIRECTORY: path.join(__dirname, '..', '..', '..', '..', 'test', 'shared', 'applications', 'base'),
+      APPLICATION_DIRECTORY: path.join(__dirname, '..', '..', '..', '..', '..', 'test', 'shared', 'applications', 'javascript', 'base'),
       COMMAND_CORS_ORIGIN: '*',
-      DISPATCHER_SERVER_DISABLE_RETRIES: false,
       DISPATCHER_SERVER_HOSTNAME: 'dispatcher',
       DISPATCHER_SERVER_PORT: 3000,
+      DISPATCHER_SERVER_RETRIES: 5,
       HEALTH_CORS_ORIGIN: '*',
       IDENTITY_PROVIDERS: [{
         issuer: 'https://token.invalid',
-        certificate: path.join(__dirname, '..', '..', '..', '..', 'keys', 'local.wolkenkit.io')
+        certificate: path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io')
       }],
       PORT: 3000
     });
 
     const dispatcherServer = {
-      hostname: environmentVariables.DISPATCHER_SERVER_HOSTNAME,
+      hostName: environmentVariables.DISPATCHER_SERVER_HOSTNAME,
       port: environmentVariables.DISPATCHER_SERVER_PORT,
-      disableRetries: environmentVariables.DISPATCHER_SERVER_DISABLE_RETRIES
+      retries: environmentVariables.DISPATCHER_SERVER_RETRIES
     };
 
     const identityProviders = await Promise.all(
@@ -56,23 +53,21 @@ import uuid from 'uuidv4';
         })
     );
 
-    const application = await Application.load({
-      directory: environmentVariables.APPLICATION_DIRECTORY
+    const applicationDefinition = await getApplicationDefinition({
+      applicationDirectory: environmentVariables.APPLICATION_DIRECTORY
     });
 
     const handleReceivedCommand = getHandleReceivedCommand({ dispatcherServer });
 
     const commandHttp = await CommandHttp.create({
       corsOrigin: getCorsOrigin(environmentVariables.COMMAND_CORS_ORIGIN),
-      purpose: 'external',
       onReceiveCommand: handleReceivedCommand,
-      application,
+      applicationDefinition,
       identityProviders
     });
 
     const healthHttp = await HealthHttp.create({
-      corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN),
-      processId
+      corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN)
     });
 
     const api = express();

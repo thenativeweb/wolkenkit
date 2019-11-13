@@ -1,3 +1,1 @@
-import { Dictionary } from '../../types/Dictionary';
-
-export type State = Dictionary<any>;
+export type State = object;

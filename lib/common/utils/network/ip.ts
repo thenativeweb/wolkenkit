@@ -29,4 +29,4 @@ const ip = {
   }
 };
 
-export default ip;
+export { ip };

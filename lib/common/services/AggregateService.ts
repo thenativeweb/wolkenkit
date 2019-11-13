@@ -1,9 +1,10 @@
-import AggregateApiForReadOnly from '../elements/AggregateApiForReadOnly';
+import { DomainEventData } from '../elements/DomainEventData';
+import { State } from '../elements/State';
 
-export interface AggregateService {
-  [contextName: string]: {
-    [aggregateName: string]: ((aggregateId: string) => {
-      read: () => Promise<AggregateApiForReadOnly>;
-    }) | undefined;
-  } | undefined;
+export interface AggregateService<TState extends State> {
+  id (): string;
+
+  exists (): boolean;
+
+  publishDomainEvent <TDomainEventData extends DomainEventData> (domainEventName: string, domainEventData: TDomainEventData): TState;
 }

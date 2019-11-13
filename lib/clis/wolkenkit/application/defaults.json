@@ -1,9 +1,0 @@
-{
-  "api": {
-    "host": {
-      "name": "local.wolkenkit.io",
-      "certificate": "/keys/local.wolkenkit.io"
-    },
-    "port": 3000
-  }
-}

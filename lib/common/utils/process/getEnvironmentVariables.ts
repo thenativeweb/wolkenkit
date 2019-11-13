@@ -1,8 +1,6 @@
 import processenv from 'processenv';
 
-const getEnvironmentVariables = function <T extends {
-  [ key: string ]: any;
-}> (
+const getEnvironmentVariables = function <T extends Record<string, any>> (
   requiredEnvironmentVariables: T
 ): {[ TKey in keyof T ]: T[TKey] } {
   const environmentVariables: Partial<{[ TKey in keyof T ]: T[TKey]}> = {};
@@ -20,7 +18,7 @@ const getEnvironmentVariables = function <T extends {
   }
   /* eslint-enable guard-for-in */
 
-  return environmentVariables as { [TKey in keyof T]: T[TKey] };
+  return environmentVariables as {[ TKey in keyof T ]: T[TKey]};
 };
 
-export default getEnvironmentVariables;
+export { getEnvironmentVariables };

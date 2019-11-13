@@ -4,9 +4,6 @@ import express from 'express';
 import { Express } from 'express-serve-static-core';
 import fs from 'fs';
 import nocache from 'nocache';
-import { promisify } from 'util';
-
-const stat = promisify(fs.stat);
 
 class Http {
   public api: Express;
@@ -54,9 +51,7 @@ class Http {
     let staticPath;
 
     try {
-      /* eslint-disable no-sync */
-      staticPath = await stat(serveStatic);
-      /* eslint-enble no-sync */
+      staticPath = await fs.promises.stat(serveStatic);
     } catch {
       throw new Error('Serve static is an invalid path.');
     }
@@ -72,4 +67,4 @@ class Http {
   }
 }
 
-export default Http;
+export { Http };

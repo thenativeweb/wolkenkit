@@ -100,4 +100,4 @@ const createPool = function ({
   return pool;
 };
 
-export default createPool;
+export { createPool };

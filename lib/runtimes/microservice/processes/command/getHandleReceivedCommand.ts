@@ -1,39 +1,34 @@
-import CommandInternal from '../../../../common/elements/CommandInternal';
-import errors from '../../../../common/errors';
+import axios from 'axios';
+import { CommandData } from '../../../../common/elements/CommandData';
+import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
+import { errors } from '../../../../common/errors';
 import flaschenpost from 'flaschenpost';
-import sendCommand from '../../../../communication/http/sendCommand';
+import retry from 'async-retry';
 
 const logger = flaschenpost.getLogger();
 
 type HandleReceivedCommand = ({ command }: {
-  command: CommandInternal;
+  command: CommandWithMetadata<CommandData>;
 }) => Promise<void>;
 
 const getHandleReceivedCommand = function ({ dispatcherServer }: {
   dispatcherServer: {
-    hostname: string;
+    hostName: string;
     port: number;
-    disableRetries: boolean;
+    retries: number;
   };
 }): HandleReceivedCommand {
-  const { hostname, port, disableRetries } = dispatcherServer;
-
-  let retries = 4;
-
-  if (disableRetries) {
-    retries = 0;
-  }
+  const { hostName, port, retries } = dispatcherServer;
 
   return async function ({ command }): Promise<void> {
     try {
-      await sendCommand({
-        command,
-        protocol: 'http',
-        hostname,
-        port,
-        pathname: '/command/v2',
-        retries
-      });
+      await retry(async (): Promise<void> => {
+        await axios({
+          method: 'POST',
+          url: `http://${hostName}:${port}/command/v2`,
+          data: command
+        });
+      }, { retries, maxTimeout: 1000 });
 
       logger.info('Command forwarded to dispatcher server.', { command });
     } catch (ex) {
@@ -44,4 +39,4 @@ const getHandleReceivedCommand = function ({ dispatcherServer }: {
   };
 };
 
-export default getHandleReceivedCommand;
+export { getHandleReceivedCommand };

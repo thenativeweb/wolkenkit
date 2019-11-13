@@ -1,4 +1,4 @@
-const getAuthorizationSchema = (): object => {
+const getSchema = (): object => {
   const result = {
     type: 'object',
     properties: {
@@ -79,4 +79,4 @@ const getAuthorizationSchema = (): object => {
   return result;
 };
 
-export default getAuthorizationSchema;
+export { getSchema };

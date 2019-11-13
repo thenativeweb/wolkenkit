@@ -1,6 +1,6 @@
 import { Writable } from 'stream';
 
-const asJsonStream = function (...handleJson: ((...args: any[]) => void)[]): Writable {
+const asJsonStream = function <TItem> (...handleJson: ((item: TItem) => void)[]): Writable {
   let counter = 0;
 
   return new Writable({
@@ -19,4 +19,4 @@ const asJsonStream = function (...handleJson: ((...args: any[]) => void)[]): Wri
   });
 };
 
-export default asJsonStream;
+export { asJsonStream };

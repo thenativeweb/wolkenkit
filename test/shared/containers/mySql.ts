@@ -1,17 +1,17 @@
 import buntstift from 'buntstift';
-import connectionOptions from './connectionOptions';
-import mysql from 'mysql';
+import { connectionOptions } from './connectionOptions';
 import { oneLine } from 'common-tags';
 import retry from 'async-retry';
-import retryOptions from './retryOptions';
+import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
+import { createPool, MysqlError, PoolConnection } from 'mysql';
 
 const mySql = {
   async start (): Promise<void> {
     const {
-      hostname,
+      hostName,
       port,
-      username,
+      userName,
       password,
       database
     } = connectionOptions.mySql;
@@ -21,7 +21,7 @@ const mySql = {
         -d
         -p ${port}:3306
         -e MYSQL_ROOT_PASSWORD=${password}
-        -e MYSQL_USER=${username}
+        -e MYSQL_USER=${userName}
         -e MYSQL_PASSWORD=${password}
         -e MYSQL_DATABASE=${database}
         --name test-mysql
@@ -29,10 +29,10 @@ const mySql = {
         --bind-address=0.0.0.0
     `);
 
-    const pool = mysql.createPool({
-      host: hostname,
+    const pool = createPool({
+      host: hostName,
       port,
-      user: username,
+      user: userName,
       password,
       database,
       connectTimeout: 0
@@ -40,8 +40,8 @@ const mySql = {
 
     try {
       await retry(async (): Promise<void> => {
-        const connection: mysql.PoolConnection = await new Promise((resolve, reject): void => {
-          pool.getConnection((err: null | mysql.MysqlError, poolConnection: mysql.PoolConnection): void => {
+        const connection: PoolConnection = await new Promise((resolve, reject): void => {
+          pool.getConnection((err: MysqlError | null, poolConnection): void => {
             if (err) {
               reject(err);
 
@@ -72,4 +72,4 @@ const mySql = {
   }
 };
 
-export default mySql;
+export { mySql };

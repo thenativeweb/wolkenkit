@@ -1,4 +1,4 @@
-import { Filestore } from '../../../../stores/filestore/Filestore';
+import { FileStore } from '../../../../stores/fileStore/FileStore';
 import flaschenpost from 'flaschenpost';
 import { hasAccess } from './isAuthorized';
 import { pipeline as pipelineCallback } from 'stream';
@@ -8,7 +8,7 @@ import { RequestHandler } from 'express';
 const pipeline = promisify(pipelineCallback);
 const logger = flaschenpost.getLogger();
 
-const getFile = function ({ provider }: { provider: Filestore }): RequestHandler {
+const getFile = function ({ provider }: { provider: FileStore }): RequestHandler {
   return async function (req, res): Promise<any> {
     const { id } = req.params;
     const { user } = req;
@@ -40,4 +40,4 @@ const getFile = function ({ provider }: { provider: Filestore }): RequestHandler
   };
 };
 
-export default getFile;
+export { getFile };

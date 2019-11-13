@@ -1,91 +1,85 @@
-import Aggregate from '../elements/Aggregate';
 import { AggregateIdentifier } from '../elements/AggregateIdentifier';
-import Application from '../application/Application';
+import { ApplicationDefinition } from '../application/ApplicationDefinition';
 import { ContextIdentifier } from '../elements/ContextIdentifier';
-import errors from '../errors';
-import EventInternal from '../elements/EventInternal';
-import { Eventstore } from '../../stores/eventstore/Eventstore';
+import { CurrentAggregateState } from './CurrentAggregateState';
+import { DomainEvent } from '../elements/DomainEvent';
+import { DomainEventData } from '../elements/DomainEventData';
+import { DomainEventStore } from '../../stores/domainEventStore/DomainEventStore';
+import { errors } from '../errors';
+import { State } from '../elements/State';
 
 class Repository {
-  protected application: Application;
+  protected applicationDefinition: ApplicationDefinition;
 
-  protected eventstore: Eventstore;
+  protected domainEventStore: DomainEventStore;
 
-  public constructor ({ application, eventstore }: {
-    application: Application;
-    eventstore: Eventstore;
+  public constructor ({ applicationDefinition, domainEventStore }: {
+    applicationDefinition: ApplicationDefinition;
+    domainEventStore: DomainEventStore;
   }) {
-    this.application = application;
-    this.eventstore = eventstore;
+    this.applicationDefinition = applicationDefinition;
+    this.domainEventStore = domainEventStore;
   }
 
-  public async replayAggregate ({ aggregate }: {
-    aggregate: Aggregate;
-  }): Promise<Aggregate> {
-    const snapshot = await this.eventstore.getSnapshot({
-      aggregateIdentifier: aggregate.identifier
-    });
-
-    let fromRevision = 1;
-
-    if (snapshot) {
-      aggregate.applySnapshot({ snapshot });
-      fromRevision = snapshot.revision + 1;
-    }
-
-    const eventStream = await this.eventstore.getEventStream({
-      aggregateIdentifier: aggregate.identifier,
-      fromRevision
-    });
-
-    await aggregate.applyEventStream({
-      application: this.application,
-      eventStream
-    });
-
-    return aggregate;
-  }
-
-  public async loadAggregate ({ contextIdentifier, aggregateIdentifier }: {
+  public async loadCurrentAggregateState <TState extends State> ({ contextIdentifier, aggregateIdentifier }: {
     contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<Aggregate> {
-    const contextState = this.application.initialState.internal[contextIdentifier.name];
-
-    if (!contextState) {
-      throw new errors.IdentifierMismatch();
+  }): Promise<CurrentAggregateState<TState>> {
+    if (!(contextIdentifier.name in this.applicationDefinition.domain)) {
+      throw new errors.ContextNotFound();
     }
 
-    const initialState = contextState[aggregateIdentifier.name];
+    const contextDefinition = this.applicationDefinition.domain[contextIdentifier.name];
 
-    if (!initialState) {
-      throw new errors.IdentifierMismatch();
+    if (!(aggregateIdentifier.name in contextDefinition)) {
+      throw new errors.AggregateNotFound();
     }
 
-    const aggregate = new Aggregate({
+    const initialState = contextDefinition[aggregateIdentifier.name].getInitialState() as TState;
+
+    const currentAggregateState = new CurrentAggregateState<TState>({
       contextIdentifier,
       aggregateIdentifier,
       initialState
     });
 
-    const replayedAggregate = await this.replayAggregate({ aggregate });
+    const snapshot = await this.domainEventStore.getSnapshot<TState>({
+      aggregateIdentifier: currentAggregateState.aggregateIdentifier
+    });
 
-    return replayedAggregate;
+    let fromRevision = 1;
+
+    if (snapshot) {
+      currentAggregateState.applySnapshot({ snapshot });
+      fromRevision = snapshot.revision + 1;
+    }
+
+    const domainEventStream = await this.domainEventStore.getDomainEventStream({
+      aggregateIdentifier: currentAggregateState.aggregateIdentifier,
+      fromRevision
+    });
+
+    await currentAggregateState.applyDomainEventStream({
+      applicationDefinition: this.applicationDefinition,
+      domainEventStream
+    });
+
+    return currentAggregateState;
   }
 
-  public async saveAggregate ({ aggregate }: {
-    aggregate: Aggregate;
-  }): Promise<EventInternal[]> {
-    if (aggregate.uncommittedEvents.length === 0) {
+  public async saveCurrentAggregateState ({ currentAggregateState }: {
+    currentAggregateState: CurrentAggregateState<State>;
+  }): Promise<DomainEvent<DomainEventData>[]> {
+    if (currentAggregateState.unsavedDomainEvents.length === 0) {
       return [];
     }
 
-    const committedEvents = await this.eventstore.saveEvents({
-      uncommittedEvents: aggregate.uncommittedEvents
+    const savedDomainEvents = await this.domainEventStore.saveDomainEvents({
+      domainEvents: currentAggregateState.unsavedDomainEvents
     });
 
-    return committedEvents;
+    return savedDomainEvents;
   }
 }
 
-export default Repository;
+export { Repository };

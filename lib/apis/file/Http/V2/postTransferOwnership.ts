@@ -1,4 +1,4 @@
-import { Filestore } from '../../../../stores/filestore/Filestore';
+import { FileStore } from '../../../../stores/fileStore/FileStore';
 import flaschenpost from 'flaschenpost';
 import { hasAccess } from './isAuthorized';
 import { RequestHandler } from 'express-serve-static-core';
@@ -6,7 +6,7 @@ import { RequestHandler } from 'express-serve-static-core';
 const logger = flaschenpost.getLogger();
 
 const postTransferOwnership = ({ fileProvider }: {
-  fileProvider: Filestore;
+  fileProvider: FileStore;
 }): RequestHandler => async function (req, res): Promise<any> {
   let metadata;
 
@@ -51,4 +51,4 @@ const postTransferOwnership = ({ fileProvider }: {
   }
 };
 
-export default postTransferOwnership;
+export { postTransferOwnership };

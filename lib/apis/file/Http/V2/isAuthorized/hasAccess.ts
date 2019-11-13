@@ -1,9 +1,8 @@
 import { get } from 'lodash';
 import { OwnedAuthorizationOptions } from './AuthorizationOptions';
-import { Todo } from '../../../../../types/Todo';
 
 const hasAccess = function ({ user, to, authorizationOptions, isConstructor = false }: {
-  user: Todo;
+  user: any;
   to: string;
   authorizationOptions: OwnedAuthorizationOptions;
   isConstructor?: boolean;
@@ -30,4 +29,4 @@ const hasAccess = function ({ user, to, authorizationOptions, isConstructor = fa
   return false;
 };
 
-export default hasAccess;
+export { hasAccess };

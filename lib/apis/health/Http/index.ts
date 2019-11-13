@@ -2,7 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { Express } from 'express-serve-static-core';
 import nocache from 'nocache';
-import V2 from './V2';
+import { V2 } from './V2';
 
 class Http {
   public v2: V2;
@@ -17,9 +17,8 @@ class Http {
     this.api = api;
   }
 
-  public static async create ({ corsOrigin, processId }: {
+  public static async create ({ corsOrigin }: {
     corsOrigin: string | (RegExp | string)[];
-    processId: string;
   }): Promise<Http> {
     let transformedCorsOrigin;
 
@@ -29,7 +28,7 @@ class Http {
       transformedCorsOrigin = [ corsOrigin ].flat();
     }
 
-    const v2 = new V2({ processId });
+    const v2 = new V2();
 
     const api = express();
 
@@ -51,4 +50,4 @@ class Http {
   }
 }
 
-export default Http;
+export { Http };

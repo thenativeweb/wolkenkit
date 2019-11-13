@@ -1,58 +1,58 @@
-export const connectionOptions = {
+const connectionOptions = {
   mariaDb: {
-    hostname: 'localhost',
+    hostName: 'localhost',
     port: 3306,
-    username: 'wolkenkit',
+    userName: 'wolkenkit',
     password: 'wolkenkit',
     database: 'wolkenkit'
   },
   minio: {
-    hostname: 'localhost',
+    hostName: 'localhost',
     port: 9000,
     accessKey: 'wolkenkit',
     secretKey: 'wolkenkit',
     encryptConnection: false
   },
   mongoDb: {
-    hostname: 'localhost',
+    hostName: 'localhost',
     port: 27017,
-    username: 'wolkenkit',
+    userName: 'wolkenkit',
     password: 'wolkenkit',
     database: 'wolkenkit'
   },
   mySql: {
-    hostname: 'localhost',
+    hostName: 'localhost',
     port: 3307,
-    username: 'wolkenkit',
+    userName: 'wolkenkit',
     password: 'wolkenkit',
     database: 'wolkenkit'
   },
   postgres: {
-    hostname: 'localhost',
+    hostName: 'localhost',
     port: 5432,
-    username: 'wolkenkit',
+    userName: 'wolkenkit',
     password: 'wolkenkit',
     database: 'wolkenkit'
   },
   rabbitMq: {
-    hostname: 'localhost',
+    hostName: 'localhost',
     port: 5672,
-    username: 'wolkenkit',
+    userName: 'wolkenkit',
     password: 'wolkenkit'
   },
   redis: {
-    hostname: 'localhost',
+    hostName: 'localhost',
     port: 6379,
     password: 'wolkenkit',
     database: '0'
   },
   sqlServer: {
-    hostname: 'localhost',
+    hostName: 'localhost',
     port: 1433,
-    username: 'SA',
+    userName: 'SA',
     password: 'Wolkenkit123',
     database: 'wolkenkit'
   }
 };
 
-export default connectionOptions;
+export { connectionOptions };

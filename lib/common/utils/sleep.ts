@@ -4,4 +4,4 @@ const sleep = async function ({ ms }: { ms: number }): Promise<void> {
   });
 };
 
-export default sleep;
+export { sleep };

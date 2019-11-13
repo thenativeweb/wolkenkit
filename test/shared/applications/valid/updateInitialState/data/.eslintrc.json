@@ -1,7 +1,0 @@
-{
-  "root": true,
-  "extends": "es/node",
-  "rules": {
-    "no-unused-vars": "off"
-  }
-}

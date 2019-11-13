@@ -1,0 +1,5 @@
+# Build artefacts
+/build/
+
+# Test applications outside of the main typescript project
+test/shared/applications/typescript/

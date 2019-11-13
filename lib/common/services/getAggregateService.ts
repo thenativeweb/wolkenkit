@@ -1,50 +1,83 @@
-import AggregateApiForReadOnly from '../elements/AggregateApiForReadOnly';
 import { AggregateService } from './AggregateService';
-import Application from '../application';
-import { Dictionary } from '../../types/Dictionary';
-import errors from '../errors';
-import Repository from '../domain/Repository';
+import { ApplicationDefinition } from '../application/ApplicationDefinition';
+import { CommandWithMetadata } from '../elements/CommandWithMetadata';
+import { CurrentAggregateState } from '../domain/CurrentAggregateState';
+import { DomainEvent } from '../elements/DomainEvent';
+import { DomainEventData } from '../elements/DomainEventData';
+import { DomainEventHandler } from '../elements/DomainEventHandler';
+import { DomainEventWithState } from '../elements/DomainEventWithState';
+import { errors } from '../errors';
+import { State } from '../elements/State';
+import uuid from 'uuidv4';
+import Value from 'validate-value';
+import { cloneDeep, get } from 'lodash';
 
-const getAggregateService = function ({ application, repository }: {
-  application: Application;
-  repository: Repository;
-}): AggregateService {
-  const aggregateService: Partial<AggregateService> = {};
+const getAggregateService = function <TState extends State> ({ currentAggregateState, applicationDefinition, command }: {
+  currentAggregateState: CurrentAggregateState<TState>;
+  applicationDefinition: ApplicationDefinition;
+  command: CommandWithMetadata<any>;
+}): AggregateService<TState> {
+  return {
+    id (): string {
+      return currentAggregateState.aggregateIdentifier.id;
+    },
 
-  for (const [ contextName, contextConfiguration ] of Object.entries(application.initialState.internal)) {
-    if (!contextConfiguration) {
-      throw new errors.InvalidOperation();
-    }
+    exists (): boolean {
+      return currentAggregateState.exists();
+    },
 
-    const aggregatesInContext: Dictionary<(aggregateId: string) => {
-      read: () => Promise<AggregateApiForReadOnly>;
-    }> = {};
+    publishDomainEvent <TDomainEventData extends DomainEventData> (domainEventName: string, data: TDomainEventData): TState {
+      const contextName = currentAggregateState.contextIdentifier.name;
+      const aggregateName = currentAggregateState.aggregateIdentifier.name;
 
-    for (const aggregateName of Object.keys(contextConfiguration)) {
-      aggregatesInContext[aggregateName] = function (aggregateId: string): {
-        read: () => Promise<AggregateApiForReadOnly>;
-      } {
-        return {
-          async read (): Promise<AggregateApiForReadOnly> {
-            const aggregate = await repository.loadAggregate({
-              contextIdentifier: { name: contextName },
-              aggregateIdentifier: { name: aggregateName, id: aggregateId }
-            });
+      const domainEventHandler = get(applicationDefinition.domain, [ contextName, aggregateName, 'domainEventHandlers', domainEventName ]) as DomainEventHandler<State, DomainEventData> | undefined;
 
-            if (!aggregate.exists()) {
-              throw new Error('Aggregate not found.');
-            }
+      if (!domainEventHandler) {
+        throw new errors.DomainEventUnknown(`Failed to publish unknown domain event '${domainEventName}' in '${contextName}.${aggregateName}'.`);
+      }
 
-            return new AggregateApiForReadOnly({ aggregate });
+      if (domainEventHandler.getSchema) {
+        const schema = domainEventHandler.getSchema();
+        const value = new Value(schema);
+
+        value.validate(data, { valueName: 'data', separator: '.' });
+      }
+
+      const domainEvent = new DomainEvent({
+        contextIdentifier: currentAggregateState.contextIdentifier,
+        aggregateIdentifier: currentAggregateState.aggregateIdentifier,
+        name: domainEventName,
+        data,
+        id: uuid(),
+        metadata: {
+          causationId: command.id,
+          correlationId: command.metadata.correlationId,
+          timestamp: Date.now(),
+          isPublished: false,
+          initiator: command.metadata.initiator,
+          revision: {
+            aggregate: currentAggregateState.revision + currentAggregateState.unsavedDomainEvents.length + 1,
+            global: null
           }
-        };
-      };
+        }
+      });
+
+      const previousState = cloneDeep(currentAggregateState.state);
+      const nextState = currentAggregateState.applyDomainEvent({ applicationDefinition, domainEvent });
+
+      const domainEventWithState = new DomainEventWithState({
+        ...domainEvent,
+        state: {
+          previous: previousState,
+          next: nextState
+        }
+      });
+
+      currentAggregateState.unsavedDomainEvents.push(domainEventWithState);
+
+      return nextState;
     }
-
-    aggregateService[contextName] = aggregatesInContext;
-  }
-
-  return aggregateService as AggregateService;
+  };
 };
 
-export default getAggregateService;
+export { getAggregateService };

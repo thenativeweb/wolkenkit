@@ -1,17 +1,17 @@
 import buntstift from 'buntstift';
-import connectionOptions from './connectionOptions';
+import { connectionOptions } from './connectionOptions';
 import { oneLine } from 'common-tags';
-import pg from 'pg';
+import { Pool } from 'pg';
 import retry from 'async-retry';
-import retryOptions from './retryOptions';
+import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
 
 const postgres = {
   async start (): Promise<void> {
     const {
-      hostname,
+      hostName,
       port,
-      username,
+      userName,
       password,
       database
     } = connectionOptions.postgres;
@@ -21,16 +21,16 @@ const postgres = {
         -d
         -p ${port}:5432
         -e POSTGRES_DB=${database}
-        -e POSTGRES_USER=${username}
+        -e POSTGRES_USER=${userName}
         -e POSTGRES_PASSWORD=${password}
         --name test-postgres
         thenativeweb/wolkenkit-postgres:latest
     `);
 
-    const pool = new pg.Pool({
-      host: hostname,
+    const pool = new Pool({
+      host: hostName,
       port,
-      user: username,
+      user: userName,
       password,
       database
     });
@@ -58,4 +58,4 @@ const postgres = {
   }
 };
 
-export default postgres;
+export { postgres };

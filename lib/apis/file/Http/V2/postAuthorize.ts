@@ -1,13 +1,13 @@
-import { Filestore } from '../../../../stores/filestore/Filestore';
+import { FileStore } from '../../../../stores/fileStore/FileStore';
 import flaschenpost from 'flaschenpost';
-import merge from 'lodash/merge';
+import { merge } from 'lodash';
 import { RequestHandler } from 'express-serve-static-core';
 import { hasAccess, isValid } from './isAuthorized';
 
 const logger = flaschenpost.getLogger();
 
 const postAuthorize = ({ fileProvider }: {
-  fileProvider: Filestore;
+  fileProvider: FileStore;
 }): RequestHandler => async function (req, res): Promise<any> {
   let metadata;
 
@@ -54,4 +54,4 @@ const postAuthorize = ({ fileProvider }: {
   }
 };
 
-export default postAuthorize;
+export { postAuthorize };

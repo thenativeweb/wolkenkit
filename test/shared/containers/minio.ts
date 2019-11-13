@@ -1,16 +1,16 @@
 import buntstift from 'buntstift';
 import { Client } from 'minio';
-import connectionOptions from './connectionOptions';
+import { connectionOptions } from './connectionOptions';
 import { oneLine } from 'common-tags';
 import retry from 'async-retry';
-import retryOptions from './retryOptions';
+import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
 import uuid from 'uuidv4';
 
 const minio = {
   async start (): Promise<void> {
     const {
-      hostname,
+      hostName,
       port,
       accessKey,
       secretKey,
@@ -32,7 +32,7 @@ const minio = {
     try {
       await retry(async (): Promise<void> => {
         const client = new Client({
-          endPoint: hostname,
+          endPoint: hostName,
           port,
           useSSL: encryptConnection,
           accessKey,
@@ -56,4 +56,4 @@ const minio = {
   }
 };
 
-export default minio;
+export { minio };

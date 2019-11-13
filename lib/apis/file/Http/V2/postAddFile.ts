@@ -1,7 +1,7 @@
-import errors from '../../../../common/errors';
-import { Filestore } from '../../../../stores/filestore/Filestore';
+import { errors } from '../../../../common/errors';
+import { FileStore } from '../../../../stores/fileStore/FileStore';
 import flaschenpost from 'flaschenpost';
-import merge from 'lodash/merge';
+import { merge } from 'lodash';
 import { RequestHandler } from 'express-serve-static-core';
 import { SpecificAuthorizationOption } from './isAuthorized/AuthorizationOptions';
 import uuid from 'uuidv4';
@@ -11,7 +11,7 @@ const logger = flaschenpost.getLogger();
 
 const postAddFile = function ({ addFileAuthorizationOptions, fileProvider }: {
   addFileAuthorizationOptions: SpecificAuthorizationOption;
-  fileProvider: Filestore;
+  fileProvider: FileStore;
 }): RequestHandler {
   const rawAuthorizationOptions = merge({}, getDefaults(), {
     commands: {
@@ -81,4 +81,4 @@ const postAddFile = function ({ addFileAuthorizationOptions, fileProvider }: {
   };
 };
 
-export default postAddFile;
+export { postAddFile };

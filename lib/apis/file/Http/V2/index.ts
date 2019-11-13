@@ -1,11 +1,11 @@
 import express from 'express';
 import { Express } from 'express-serve-static-core';
-import { Filestore } from '../../../../stores/filestore/Filestore';
-import getFile from './getFile';
-import postAddFile from './postAddFile';
-import postAuthorize from './postAuthorize';
-import postRemoveFile from './postRemoveFile';
-import postTransferOwnership from './postTransferOwnership';
+import { FileStore } from '../../../../stores/fileStore/FileStore';
+import { getFile } from './getFile';
+import { postAddFile } from './postAddFile';
+import { postAuthorize } from './postAuthorize';
+import { postRemoveFile } from './postRemoveFile';
+import { postTransferOwnership } from './postTransferOwnership';
 import { SpecificAuthorizationOption } from './isAuthorized/AuthorizationOptions';
 import Limes, { IdentityProvider } from 'limes';
 
@@ -15,7 +15,7 @@ class V2 {
   public constructor ({ addFileAuthorizationOptions, identityProviders, provider }: {
     addFileAuthorizationOptions: SpecificAuthorizationOption;
     identityProviders: IdentityProvider[];
-    provider: Filestore;
+    provider: FileStore;
   }) {
     this.api = express();
 
@@ -38,4 +38,4 @@ class V2 {
   }
 }
 
-export default V2;
+export { V2 };

@@ -1,7 +1,7 @@
-import getDefaults from './getDefaults';
-import getSchema from './getSchema';
-import hasAccess from './hasAccess';
-import isValid from './isValid';
+import { getDefaults } from './getDefaults';
+import { getSchema } from './getSchema';
+import { hasAccess } from './hasAccess';
+import { isValid } from './isValid';
 
 export {
   getDefaults,

@@ -12,5 +12,4 @@ const mySql = 253_402_297_199_000;
 // datetime2 column.
 const sqlServer = 253_402_297_199_000;
 
-export default javascript;
-export { mariaDb, mySql, sqlServer };
+export { javascript, mariaDb, mySql, sqlServer };

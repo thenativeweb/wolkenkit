@@ -1,4 +1,4 @@
-import ClientMetadata from '../utils/http/ClientMetadata';
+import { ClientMetadata } from '../utils/http/ClientMetadata';
 import { ClientService } from './ClientService';
 
 const getClientService = function ({ clientMetadata }: {
@@ -7,4 +7,4 @@ const getClientService = function ({ clientMetadata }: {
   return clientMetadata;
 };
 
-export default getClientService;
+export { getClientService };

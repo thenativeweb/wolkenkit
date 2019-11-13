@@ -1,10 +1,10 @@
 import cors from 'cors';
 import express from 'express';
 import { Express } from 'express-serve-static-core';
-import { Filestore } from '../../../stores/filestore/Filestore';
+import { FileStore } from '../../../stores/fileStore/FileStore';
 import { IdentityProvider } from 'limes';
 import { SpecificAuthorizationOption } from './V2/isAuthorized/AuthorizationOptions';
-import V2 from './V2';
+import { V2 } from './V2';
 
 class Http {
   public v2: V2;
@@ -23,12 +23,12 @@ class Http {
     corsOrigin,
     addFileAuthorizationOptions,
     identityProviders,
-    filestore
+    fileStore
   }: {
     corsOrigin: string | RegExp | string[];
     addFileAuthorizationOptions: SpecificAuthorizationOption;
     identityProviders: IdentityProvider[];
-    filestore: Filestore;
+    fileStore: FileStore;
   }): Promise<Http> {
     let transformedCorsOrigin;
 
@@ -38,7 +38,7 @@ class Http {
       transformedCorsOrigin = [ corsOrigin ].flat();
     }
 
-    const v2 = new V2({ addFileAuthorizationOptions, identityProviders, provider: filestore });
+    const v2 = new V2({ addFileAuthorizationOptions, identityProviders, provider: fileStore });
 
     const api = express();
 
@@ -54,4 +54,4 @@ class Http {
   }
 }
 
-export default Http;
+export { Http };

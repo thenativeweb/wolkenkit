@@ -1,4 +1,4 @@
-import getSchema from './getSchema';
+import { getSchema } from './getSchema';
 import { OwnedAuthorizationOptions } from './AuthorizationOptions';
 import Value from 'validate-value';
 
@@ -11,4 +11,4 @@ const isValid = function (isAuthorized: OwnedAuthorizationOptions): boolean {
   return isAuthorizedValid;
 };
 
-export default isValid;
+export { isValid };

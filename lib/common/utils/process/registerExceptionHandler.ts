@@ -26,4 +26,4 @@ const registerExceptionHandler = function (): void {
   process.on('unhandledRejection', handleUnhandledRejection);
 };
 
-export default registerExceptionHandler;
+export { registerExceptionHandler };

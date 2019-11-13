@@ -27,4 +27,4 @@ const getDefaults = (): AuthorizationOptions => {
   return result;
 };
 
-export default getDefaults;
+export { getDefaults };

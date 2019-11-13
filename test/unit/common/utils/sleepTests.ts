@@ -1,6 +1,6 @@
 import assert from 'assertthat';
 
-import sleep from '../../../../lib/common/utils/sleep';
+import { sleep } from '../../../../lib/common/utils/sleep';
 
 suite('sleep', (): void => {
   test('waits for the given amount of milliseconds.', async (): Promise<void> => {

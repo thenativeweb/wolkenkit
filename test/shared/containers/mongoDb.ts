@@ -1,17 +1,17 @@
 import buntstift from 'buntstift';
-import connectionOptions from './connectionOptions';
+import { connectionOptions } from './connectionOptions';
 import { MongoClient } from 'mongodb';
 import { oneLine } from 'common-tags';
 import retry from 'async-retry';
-import retryOptions from './retryOptions';
+import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
 
 const mongoDb = {
   async start (): Promise<void> {
     const {
-      hostname,
+      hostName,
       port,
-      username,
+      userName,
       password,
       database
     } = connectionOptions.mongoDb;
@@ -20,14 +20,14 @@ const mongoDb = {
       docker run
         -d
         -p 27017:27017
-        -e MONGO_INITDB_ROOT_USERNAME=${username}
+        -e MONGO_INITDB_ROOT_USERNAME=${userName}
         -e MONGO_INITDB_ROOT_PASSWORD=${password}
         -e MONGO_INITDB_DATABASE=${database}
         --name test-mongodb
         thenativeweb/wolkenkit-mongodb:latest
     `);
 
-    const url = `mongodb://${username}:${password}@${hostname}:${port}/${database}`;
+    const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
 
     try {
       await retry(async (): Promise<void> => {
@@ -59,4 +59,4 @@ const mongoDb = {
   }
 };
 
-export default mongoDb;
+export { mongoDb };
