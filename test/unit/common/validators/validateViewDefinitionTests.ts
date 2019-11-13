@@ -136,7 +136,7 @@ suite('validateViewDefinition', (): void => {
     }).is.throwing(
       (ex): boolean =>
         (ex as CustomError).code === 'EVIEWDEFINITIONMALFORMED' &&
-        ex.message === `Projection definition 'sampleProjection' is malformed: Property 'projectionDefinition' is not an object.`
+        ex.message === `Projection handler 'sampleProjection' is malformed: It is not an object.`
     );
   });
 
@@ -183,7 +183,7 @@ suite('validateViewDefinition', (): void => {
     }).is.throwing(
       (ex): boolean =>
         (ex as CustomError).code === 'EVIEWDEFINITIONMALFORMED' &&
-        ex.message === `Query definition 'sampleQuery' is malformed: Property 'queryDefinition' is not an object.`
+        ex.message === `Query handler 'sampleQuery' is malformed: It is not an object.`
     );
   });
 });

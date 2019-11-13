@@ -18,7 +18,7 @@ suite('validateDomainEventHandler', (): void => {
     }).is.not.throwing();
   });
 
-  test('throws an error if the given domain event definition is not an object.', async (): Promise<void> => {
+  test('throws an error if the given domain event handler is not an object.', async (): Promise<void> => {
     assert.that((): void => {
       validateDomainEventHandler({ domainEventHandler: undefined });
     }).is.throwing((ex): boolean => (ex as CustomError).code === 'EDOMAINEVENTHANDLERMALFORMED' && ex.message === `Property 'domainEventHandler' is not an object.`);
