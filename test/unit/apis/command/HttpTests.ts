@@ -6,42 +6,31 @@ import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWith
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
+import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { Http } from '../../../../lib/apis/command/Http';
 import { identityProvider } from '../../../shared/identityProvider';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
-import path from 'path';
 import uuid from 'uuidv4';
 import supertest, { Response } from 'supertest';
 
 suite('command/Http', (): void => {
   const identityProviders = [ identityProvider ];
+
   let applicationDefinition: ApplicationDefinition,
       domainEventStore: DomainEventStore;
 
-  setup(async (): Promise<void> => {
-    const applicationDirectory = path.join(__dirname, '..', '..', '..', 'shared', 'applications', 'base');
+  suiteSetup(async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
     applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+  });
+
+  setup(async (): Promise<void> => {
     domainEventStore = await InMemoryDomainEventStore.create();
   });
 
   teardown(async (): Promise<void> => {
     await domainEventStore.destroy();
-  });
-
-  suite('initialize', (): void => {
-    test('sets api to an Express application.', async (): Promise<void> => {
-      const http = await Http.create({
-        corsOrigin: '*',
-        async onReceiveCommand (): Promise<void> {
-          // Intentionally left blank.
-        },
-        applicationDefinition,
-        identityProviders
-      });
-
-      assert.that(http.api).is.ofType('function');
-    });
   });
 
   suite('CORS', (): void => {
@@ -143,18 +132,21 @@ suite('command/Http', (): void => {
         });
     });
 
-    test('serves the command description.', async (): Promise<void> => {
+    test('returns the commands description.', async (): Promise<void> => {
       await supertest(http.api).
         get('/v2/description').
         expect((res: Response): void => {
-          const commandDescription = getApplicationDescription({ applicationDefinition });
+          const { commands: commandsDescription } = getApplicationDescription({
+            applicationDefinition
+          });
 
           // Convert and parse as JSON, to get rid of any values that are undefined.
           // This is what the HTTP API does internally, and here we need to simulate
           // this to make things work.
-          const expectedCommandDescription = JSON.parse(JSON.stringify(commandDescription));
+          const expectedCommandsDescription =
+            JSON.parse(JSON.stringify(commandsDescription));
 
-          assert.that(res.body).is.equalTo(expectedCommandDescription);
+          assert.that(res.body).is.equalTo(expectedCommandsDescription);
         });
     });
   });
@@ -206,7 +198,7 @@ suite('command/Http', (): void => {
         send({ foo: 'bar' }).
         expect((res: Response): void => {
           assert.that(res.status).is.equalTo(400);
-          assert.that(res.text).is.equalTo('Command malformed.');
+          assert.that(res.text).is.equalTo('Invalid type: undefined should be object (at command.data).');
         });
     });
 
@@ -223,7 +215,7 @@ suite('command/Http', (): void => {
         send(command).
         expect((res: Response): void => {
           assert.that(res.status).is.equalTo(400);
-          assert.that(res.text).is.equalTo('Invalid context name.');
+          assert.that(res.text).is.equalTo(`Context 'nonExistent' not found.`);
         });
     });
 
@@ -240,7 +232,7 @@ suite('command/Http', (): void => {
         send(command).
         expect((res: Response): void => {
           assert.that(res.status).is.equalTo(400);
-          assert.that(res.text).is.equalTo('Invalid aggregate name.');
+          assert.that(res.text).is.equalTo(`Aggregate 'sampleContext.nonExistent' not found.`);
         });
     });
 
@@ -257,7 +249,7 @@ suite('command/Http', (): void => {
         send(command).
         expect((res: Response): void => {
           assert.that(res.status).is.equalTo(400);
-          assert.that(res.text).is.equalTo('Invalid command name.');
+          assert.that(res.text).is.equalTo(`Command 'sampleContext.sampleAggregate.nonExistent' not found.`);
         });
     });
 

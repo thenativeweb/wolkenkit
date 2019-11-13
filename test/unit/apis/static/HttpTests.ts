@@ -10,17 +10,6 @@ suite('static/Http', (): void => {
     serveStatic = path.join(__dirname, '..', '..', '..', 'shared', 'serveStatic');
   });
 
-  suite('initialize', (): void => {
-    test('sets api to an Express application.', async (): Promise<void> => {
-      const http = await Http.create({
-        corsOrigin: '*',
-        serveStatic
-      });
-
-      assert.that(http.api).is.ofType('function');
-    });
-  });
-
   suite('CORS', (): void => {
     const corsOrigins = [
       {

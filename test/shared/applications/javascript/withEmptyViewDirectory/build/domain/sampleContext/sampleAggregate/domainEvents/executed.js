@@ -12,14 +12,14 @@ const executed = {
     };
   },
 
-  isAuthorized () {
-    return true;
-  },
-
   handle (state) {
     return {
       domainEventNames: [ ...state.domainEventNames, 'executed' ]
     };
+  },
+
+  isAuthorized () {
+    return true;
   }
 };
 

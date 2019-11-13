@@ -12,23 +12,23 @@ export interface DomainEventHandler<TState extends State, TDomainEventData exten
 
   getSchema? (): Schema;
 
-  handle (state: TState, event: DomainEvent<TDomainEventData>, services: {
+  handle (state: TState, domainEvent: DomainEvent<TDomainEventData>, services: {
     logger: LoggerService;
   }): Partial<TState>;
 
-  isAuthorized (state: TState, event: DomainEventWithState<TDomainEventData, TState>, services: {
+  isAuthorized (state: TState, domainEvent: DomainEventWithState<TDomainEventData, TState>, services: {
     aggregates: AggregatesService;
     client: ClientService;
     logger: LoggerService;
   }): boolean | Promise<boolean>;
 
-  filter? (state: TState, event: DomainEventWithState<TDomainEventData, TState>, services: {
+  filter? (state: TState, domainEvent: DomainEventWithState<TDomainEventData, TState>, services: {
     aggregates: AggregatesService;
     client: ClientService;
     logger: LoggerService;
   }): boolean | Promise<boolean>;
 
-  map? (state: TState, event: DomainEventWithState<TDomainEventData, TState>, services: {
+  map? (state: TState, domainEvent: DomainEventWithState<TDomainEventData, TState>, services: {
     aggregates: AggregatesService;
     client: ClientService;
     logger: LoggerService;

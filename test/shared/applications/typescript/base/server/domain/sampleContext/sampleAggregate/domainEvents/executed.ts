@@ -18,13 +18,13 @@ export const executed: DomainEventHandler<SampleState, ExecutedData> = {
     };
   },
 
-  isAuthorized (): boolean {
-    return true;
-  },
-
   handle (state: any): Partial<SampleState> {
     return {
       domainEventNames: [ ...state.domainEventNames, 'executed' ]
     };
+  },
+
+  isAuthorized (): boolean {
+    return true;
   }
 };

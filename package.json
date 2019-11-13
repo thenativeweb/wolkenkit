@@ -170,7 +170,8 @@
     "roboter": "9.1.0",
     "run-script-os": "1.0.7",
     "runfork": "2.0.0",
-    "streamtoarray": "2.0.1"
+    "streamtoarray": "2.0.1",
+    "supertest": "4.0.2"
   },
   "scripts": {
     "build": "run-script-os",

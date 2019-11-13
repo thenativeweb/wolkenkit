@@ -1,16 +1,9 @@
 import assert from 'assertthat';
 import { Http } from '../../../../lib/apis/health/Http';
+import Value from 'validate-value';
 import supertest, { Response } from 'supertest';
 
 suite('health/Http', (): void => {
-  suite('initialize', (): void => {
-    test('sets api to an Express application.', async (): Promise<void> => {
-      const http = await Http.create({ corsOrigin: '*' });
-
-      assert.that(http.api).is.ofType('function');
-    });
-  });
-
   suite('CORS', (): void => {
     const corsOrigins = [
       {
@@ -96,11 +89,77 @@ suite('health/Http', (): void => {
         });
     });
 
-    test('answers with health information.', async (): Promise<void> => {
+    test('returns health information.', async (): Promise<void> => {
+      const value = new Value({
+        type: 'object',
+        properties: {
+          host: {
+            type: 'object',
+            properties: {
+              architecture: { type: 'string' },
+              platform: { type: 'string' }
+            },
+            required: [ 'architecture', 'platform' ],
+            additionalProperties: false
+          },
+          node: {
+            type: 'object',
+            properties: {
+              version: { type: 'string' }
+            },
+            required: [ 'version' ],
+            additionalProperties: false
+          },
+          process: {
+            type: 'object',
+            properties: {
+              id: { type: 'number' },
+              uptime: { type: 'number' }
+            },
+            required: [ 'id', 'uptime' ],
+            additionalProperties: false
+          },
+          cpuUsage: {
+            type: 'object',
+            properties: {
+              user: { type: 'number' },
+              system: { type: 'number' }
+            },
+            required: [ 'user', 'system' ],
+            additionalProperties: false
+          },
+          memoryUsage: {
+            type: 'object',
+            properties: {
+              rss: { type: 'number' },
+              maxRss: { type: 'number' },
+              heapTotal: { type: 'number' },
+              heapUsed: { type: 'number' },
+              external: { type: 'number' }
+            },
+            required: [ 'rss', 'maxRss', 'heapTotal', 'heapUsed', 'external' ],
+            additionalProperties: false
+          },
+          diskUsage: {
+            type: 'object',
+            properties: {
+              read: { type: 'number' },
+              write: { type: 'number' }
+            },
+            required: [ 'read', 'write' ],
+            additionalProperties: false
+          }
+        },
+        required: [ 'host', 'node', 'process', 'cpuUsage', 'memoryUsage', 'diskUsage' ],
+        additionalProperties: false
+      });
+
       await supertest(http.api).
         get('/v2/').
         expect((res: Response): void => {
-          assert.that(res.body).is.equalTo({});
+          assert.that((): void => {
+            value.validate(res.body);
+          }).is.not.throwing();
         });
     });
   });

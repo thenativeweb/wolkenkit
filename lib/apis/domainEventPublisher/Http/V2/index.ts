@@ -1,6 +1,7 @@
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { cloneDeep } from 'lodash';
+import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventHandler } from '../../../../../lib/common/elements/DomainEventHandler';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
@@ -98,7 +99,7 @@ class V2 {
   public async prepareDomainEvent ({ connectionId, domainEvent }: {
     connectionId: string;
     domainEvent: DomainEventWithState<DomainEventData, State>;
-  }): Promise<DomainEventWithState<DomainEventData, State> | undefined> {
+  }): Promise<DomainEvent<DomainEventData> | undefined> {
     const connection = this.connectionsForGetDomainEvents[connectionId];
 
     // Maybe the connection has been removed in the background, so we can not
@@ -198,14 +199,20 @@ class V2 {
       }
     }
 
-    return mappedDomainEvent;
+    return mappedDomainEvent.withoutState();
   }
 
   public async publishDomainEvent ({ domainEvent }: {
     domainEvent: DomainEventWithState<DomainEventData, State>;
   }): Promise<void> {
     for (const connectionId of Object.keys(this.connectionsForGetDomainEvents)) {
-      const preparedDomainEvent = await this.prepareDomainEvent({ connectionId, domainEvent });
+      let preparedDomainEvent;
+
+      try {
+        preparedDomainEvent = await this.prepareDomainEvent({ connectionId, domainEvent });
+      } catch {
+        continue;
+      }
 
       if (!preparedDomainEvent) {
         continue;
