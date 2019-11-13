@@ -3,34 +3,23 @@ import assert from 'assertthat';
 import { Command } from '../../../../lib/common/elements/Command';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
-import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { Http } from '../../../../lib/apis/command/Http';
 import { identityProvider } from '../../../shared/identityProvider';
-import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
 import uuid from 'uuidv4';
 import supertest, { Response } from 'supertest';
 
 suite('command/Http', (): void => {
   const identityProviders = [ identityProvider ];
 
-  let applicationDefinition: ApplicationDefinition,
-      domainEventStore: DomainEventStore;
+  let applicationDefinition: ApplicationDefinition;
 
   suiteSetup(async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
     applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-  });
-
-  setup(async (): Promise<void> => {
-    domainEventStore = await InMemoryDomainEventStore.create();
-  });
-
-  teardown(async (): Promise<void> => {
-    await domainEventStore.destroy();
   });
 
   suite('CORS', (): void => {
