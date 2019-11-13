@@ -1,6 +1,6 @@
 import { errors } from '../errors';
-import { validateProjectionDefinition } from './validateProjectionDefinition';
-import { validateQueryDefinition } from './validateQueryDefinition';
+import { validateProjectionHandler } from './validateProjectionHandler';
+import { validateQueryHandler } from './validateQueryHandler';
 import { isArray, isFunction, isObjectLike, isString, isUndefined } from 'lodash';
 
 const validateViewDefinition = function ({ viewDefinition }: {
@@ -36,11 +36,11 @@ const validateViewDefinition = function ({ viewDefinition }: {
     throw new errors.ViewDefinitionMalformed(`Property 'projectionHandlers' is not an object.`);
   }
 
-  for (const [ projectionName, projectionDefinition ] of Object.entries(viewDefinition.projectionHandlers)) {
+  for (const [ projectionName, projectionHandler ] of Object.entries(viewDefinition.projectionHandlers)) {
     try {
-      validateProjectionDefinition({ projectionDefinition });
+      validateProjectionHandler({ projectionHandler });
     } catch (ex) {
-      throw new errors.ViewDefinitionMalformed(`Projection definition '${projectionName}' is malformed: ${ex.message}`);
+      throw new errors.ViewDefinitionMalformed(`Projection handler '${projectionName}' is malformed: ${ex.message}`);
     }
   }
 
@@ -51,11 +51,11 @@ const validateViewDefinition = function ({ viewDefinition }: {
     throw new errors.ViewDefinitionMalformed(`Property 'queryHandlers' is not an object.`);
   }
 
-  for (const [ queryName, queryDefinition ] of Object.entries(viewDefinition.queryHandlers)) {
+  for (const [ queryName, queryHandler ] of Object.entries(viewDefinition.queryHandlers)) {
     try {
-      validateQueryDefinition({ queryDefinition });
+      validateQueryHandler({ queryHandler });
     } catch (ex) {
-      throw new errors.ViewDefinitionMalformed(`Query definition '${queryName}' is malformed: ${ex.message}`);
+      throw new errors.ViewDefinitionMalformed(`Query handler '${queryName}' is malformed: ${ex.message}`);
     }
   }
 
