@@ -13,5 +13,8 @@
     "./docker/**/*.ts",
     "./lib/**/*.ts",
     "./test/**/*.ts"
+  ],
+  "exclude": [
+    "./build/**/*.ts"
   ]
 }
