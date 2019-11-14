@@ -2,12 +2,10 @@ import { processenv } from 'processenv';
 
 const getEnvironmentVariables = function <T extends Record<string, any>> (
   requiredEnvironmentVariables: T
-): {[ TKey in keyof T ]: T[TKey] } {
-  const environmentVariables: Partial<{[ TKey in keyof T ]: T[TKey]}> = {};
+): T {
+  const environmentVariables: Record<string, any> = {};
 
-  /* eslint-disable guard-for-in */
-  for (const name in requiredEnvironmentVariables) {
-    const defaultValue = requiredEnvironmentVariables[name];
+  for (const [ name, defaultValue ] of Object.entries(requiredEnvironmentVariables)) {
     const value = processenv(name, defaultValue);
 
     if (value === undefined) {
@@ -16,9 +14,8 @@ const getEnvironmentVariables = function <T extends Record<string, any>> (
 
     environmentVariables[name] = value;
   }
-  /* eslint-enable guard-for-in */
 
-  return environmentVariables as {[ TKey in keyof T ]: T[TKey]};
+  return environmentVariables as T;
 };
 
 export { getEnvironmentVariables };

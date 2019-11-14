@@ -1,4 +1,4 @@
-import { AggregatesService } from '../../../../../build/lib/common/services/AggregatesService';
+import { AggregatesService } from '../../../../../lib/common/services/AggregatesService';
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { cloneDeep } from 'lodash';
