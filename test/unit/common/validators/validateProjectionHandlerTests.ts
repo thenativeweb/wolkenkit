@@ -19,7 +19,7 @@ suite('validateProjectionHandler', (): void => {
   test('throws an error if the given projection handler is not an object.', async (): Promise<void> => {
     assert.that((): void => {
       validateProjectionHandler({ projectionHandler: undefined });
-    }).is.throwing((ex): boolean => (ex as CustomError).code === 'EPROJECTIONHANDLERMALFORMED' && ex.message === `Property 'projectionHandler' is not an object.`);
+    }).is.throwing((ex): boolean => (ex as CustomError).code === 'EPROJECTIONHANDLERMALFORMED' && ex.message === `Projection handler is not an object.`);
   });
 
   test('throws an error if selector is missing.', async (): Promise<void> => {

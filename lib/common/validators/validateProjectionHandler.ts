@@ -5,7 +5,7 @@ const validateProjectionHandler = function ({ projectionHandler }: {
   projectionHandler: any;
 }): void {
   if (!isObjectLike(projectionHandler)) {
-    throw new errors.ProjectionHandlerMalformed(`Property 'projectionHandler' is not an object.`);
+    throw new errors.ProjectionHandlerMalformed(`Projection handler is not an object.`);
   }
 
   if (isUndefined(projectionHandler.selector)) {

@@ -7,7 +7,7 @@ const validateViewDefinition = function ({ viewDefinition }: {
   viewDefinition: any;
 }): void {
   if (!isObjectLike(viewDefinition)) {
-    throw new errors.ViewDefinitionMalformed(`Property 'viewDefinition' is not an object.`);
+    throw new errors.ViewDefinitionMalformed(`View handler is not an object.`);
   }
 
   if (isUndefined(viewDefinition.initializer)) {

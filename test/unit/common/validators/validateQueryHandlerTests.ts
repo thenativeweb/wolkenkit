@@ -21,7 +21,7 @@ suite('validateQueryHandler', (): void => {
   test('throws an error if the given query handler is not an object.', async (): Promise<void> => {
     assert.that((): void => {
       validateQueryHandler({ queryHandler: undefined });
-    }).is.throwing((ex): boolean => (ex as CustomError).code === 'EQUERYHANDLERMALFORMED' && ex.message === `Property 'queryHandler' is not an object.`);
+    }).is.throwing((ex): boolean => (ex as CustomError).code === 'EQUERYHANDLERMALFORMED' && ex.message === `Query handler is not an object.`);
   });
 
   test('throws an error if handle is missing.', async (): Promise<void> => {

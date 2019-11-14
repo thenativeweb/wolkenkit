@@ -5,7 +5,7 @@ const validateQueryHandler = function ({ queryHandler }: {
   queryHandler: any;
 }): void {
   if (!isObjectLike(queryHandler)) {
-    throw new errors.QueryHandlerMalformed(`Property 'queryHandler' is not an object.`);
+    throw new errors.QueryHandlerMalformed(`Query handler is not an object.`);
   }
 
   if (isUndefined(queryHandler.handle)) {

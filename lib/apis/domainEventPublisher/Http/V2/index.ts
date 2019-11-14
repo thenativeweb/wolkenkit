@@ -1,3 +1,4 @@
+import { AggregatesService } from '../../../../../build/lib/common/services/AggregatesService';
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { cloneDeep } from 'lodash';
@@ -12,6 +13,7 @@ import { getDescription } from './getDescription';
 import { getDomainEvents } from './getDomainEvents';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { join } from 'path';
+import { LoggerService } from '../../../../common/services/LoggerService';
 import partOf from 'partof';
 import { Repository } from '../../../../common/domain/Repository';
 import { State } from '../../../../common/elements/State';
@@ -96,9 +98,16 @@ class V2 {
     }
   }
 
-  public async prepareDomainEvent ({ connectionId, domainEvent }: {
+  public async prepareDomainEvent ({
+    connectionId,
+    domainEvent,
+    aggregatesService,
+    loggerService
+  }: {
     connectionId: string;
     domainEvent: DomainEventWithState<DomainEventData, State>;
+    aggregatesService: AggregatesService;
+    loggerService: LoggerService;
   }): Promise<DomainEvent<DomainEventData> | undefined> {
     const connection = this.connectionsForGetDomainEvents[connectionId];
 
@@ -138,12 +147,9 @@ class V2 {
     }
 
     const services = {
-      aggregates: getAggregatesService({ applicationDefinition: this.applicationDefinition, repository: this.repository }),
+      aggregates: aggregatesService,
       client: getClientService({ clientMetadata }),
-      logger: getLoggerService({
-        fileName: join(this.applicationDefinition.rootDirectory, `server/domain/${domainEvent.contextIdentifier.name}/${domainEvent.aggregateIdentifier.name}/index.js`),
-        packageManifest: this.applicationDefinition.packageManifest
-      })
+      logger: loggerService
     };
 
     const aggregateInstance = await this.repository.loadCurrentAggregateState({
@@ -205,12 +211,20 @@ class V2 {
   public async publishDomainEvent ({ domainEvent }: {
     domainEvent: DomainEventWithState<DomainEventData, State>;
   }): Promise<void> {
+    const aggregatesService = getAggregatesService({ applicationDefinition: this.applicationDefinition, repository: this.repository });
+    const loggerService = getLoggerService({
+      fileName: join(this.applicationDefinition.rootDirectory, `server/domain/${domainEvent.contextIdentifier.name}/${domainEvent.aggregateIdentifier.name}/index.js`),
+      packageManifest: this.applicationDefinition.packageManifest
+    });
+
     for (const connectionId of Object.keys(this.connectionsForGetDomainEvents)) {
       let preparedDomainEvent;
 
       try {
-        preparedDomainEvent = await this.prepareDomainEvent({ connectionId, domainEvent });
-      } catch {
+        preparedDomainEvent = await this.prepareDomainEvent({ connectionId, domainEvent, aggregatesService, loggerService });
+      } catch (ex) {
+        loggerService.error('Preparing domain event failed.', { domainEvent, ex });
+
         continue;
       }
 
