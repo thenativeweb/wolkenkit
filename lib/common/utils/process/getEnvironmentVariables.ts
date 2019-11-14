@@ -1,4 +1,4 @@
-import processenv from 'processenv';
+import { processenv } from 'processenv';
 
 const getEnvironmentVariables = function <T extends Record<string, any>> (
   requiredEnvironmentVariables: T
