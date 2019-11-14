@@ -164,7 +164,7 @@
     "async-wait-until": "1.2.4",
     "dir-compare": "1.8.0",
     "measure-time": "4.0.0",
-    "nodeenv": "2.0.1",
+    "nodeenv": "3.0.0",
     "p-queue": "6.2.1",
     "record-stdstreams": "2.1.0",
     "roboter": "9.1.0",
