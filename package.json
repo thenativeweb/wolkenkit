@@ -127,7 +127,7 @@
     "partof": "2.0.1",
     "pg": "7.12.1",
     "pg-query-stream": "2.0.1",
-    "processenv": "2.0.1",
+    "processenv": "3.0.0",
     "redis": "2.8.0",
     "saslprep": "1.0.3",
     "shelljs": "0.8.3",
