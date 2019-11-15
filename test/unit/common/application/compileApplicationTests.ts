@@ -1,8 +1,8 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { compileWithTypeScript } from '../../../../lib/common/application/compileWithTypeScript';
 import { CustomError } from 'defekt';
 import fs from 'fs';
-import isolated from 'isolated';
+import { isolated } from 'isolated';
 import path from 'path';
 import { stripIndent } from 'common-tags';
 

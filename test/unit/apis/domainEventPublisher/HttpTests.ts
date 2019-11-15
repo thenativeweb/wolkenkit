@@ -1,6 +1,6 @@
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
@@ -15,7 +15,7 @@ import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStor
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { State } from '../../../../lib/common/elements/State';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 import supertest, { Response } from 'supertest';
 
 suite('domainEventPublisher/Http', (): void => {

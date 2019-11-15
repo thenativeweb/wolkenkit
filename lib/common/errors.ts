@@ -1,4 +1,4 @@
-import defekt from 'defekt';
+import { defekt } from 'defekt';
 
 const errors = defekt({
   AggregateDefinitionMalformed: {},

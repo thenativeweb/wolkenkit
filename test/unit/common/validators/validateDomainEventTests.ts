@@ -1,11 +1,11 @@
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { buildDomainEvent } from 'test/shared/buildDomainEvent';
 import { CustomError } from 'defekt';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 import { validateDomainEvent } from '../../../../lib/common/validators/validateDomainEvent';
 
 suite('validateDomainEvent', (): void => {

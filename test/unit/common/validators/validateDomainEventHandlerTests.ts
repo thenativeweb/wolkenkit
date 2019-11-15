@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import { validateDomainEventHandler } from '../../../../lib/common/validators/validateDomainEventHandler';
 

@@ -1,7 +1,7 @@
-import uuid from 'uuidv4';
-import Value from 'validate-value';
+import { regex } from 'uuidv4';
+import { Value } from 'validate-value';
 
-const uuidRegex = uuid.regex.v4.toString().slice(1, -1);
+const uuidRegex = regex.v4.toString().slice(1, -1);
 
 const getDomainEventSchema = function (): Value {
   return new Value({

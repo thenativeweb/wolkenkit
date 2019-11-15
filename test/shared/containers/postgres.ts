@@ -1,4 +1,4 @@
-import buntstift from 'buntstift';
+import { buntstift } from 'buntstift';
 import { connectionOptions } from './connectionOptions';
 import { oneLine } from 'common-tags';
 import { Pool } from 'pg';

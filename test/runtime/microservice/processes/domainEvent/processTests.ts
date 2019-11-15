@@ -1,5 +1,5 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../shared/buildDomainEvent';
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
@@ -7,7 +7,7 @@ import { getAvailablePort } from '../../../../../lib/common/utils/network/getAva
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import path from 'path';
 import { startProcess } from '../../../../shared/runtime/startProcess';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 import axios, { AxiosError } from 'axios';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');

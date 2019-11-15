@@ -3,7 +3,7 @@ import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
 import { errors } from '../errors';
 import { getDomainEventSchema } from '../schemas/getDomainEventSchema';
-import Value from 'validate-value';
+import { Value } from 'validate-value';
 
 const validateDomainEvent = function <TDomainEventData extends DomainEventData> ({
   domainEvent,

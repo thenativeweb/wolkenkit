@@ -1,8 +1,8 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { getShortId } from '../../../shared/getShortId';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { sleep } from '../../../../lib/common/utils/sleep';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 
 const inMilliseconds = function ({ ms }: {
   ms: number;

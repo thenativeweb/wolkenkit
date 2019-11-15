@@ -1,6 +1,6 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { Command } from '../../../../lib/common/elements/Command';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 
 suite('Command', (): void => {
   test('sets the given values.', async (): Promise<void> => {

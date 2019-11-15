@@ -1,5 +1,5 @@
 import { Aggregate } from '../../../../lib/common/elements/Aggregate';
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import { State } from '../../../../lib/common/elements/State';
 import { validateAggregateDefinition } from '../../../../lib/common/validators/validateAggregateDefinition';

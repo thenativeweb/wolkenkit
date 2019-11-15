@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { exists } from '../../../../../lib/common/utils/fs/exists';
 import path from 'path';
 

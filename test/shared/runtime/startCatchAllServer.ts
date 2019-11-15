@@ -1,7 +1,7 @@
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
-import flaschenpost from 'flaschenpost';
+import { flaschenpost } from 'flaschenpost';
 import http from 'http';
 import { RequestHandler } from 'express-serve-static-core';
 

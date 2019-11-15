@@ -1,6 +1,6 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 
 suite('CommandWithMetadata', (): void => {
   test('sets the given values.', async (): Promise<void> => {

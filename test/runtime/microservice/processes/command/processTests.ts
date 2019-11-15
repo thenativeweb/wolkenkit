@@ -1,11 +1,11 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { Command } from '../../../../../lib/common/elements/Command';
 import { getAvailablePort } from '../../../../../lib/common/utils/network/getAvailablePort';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import path from 'path';
 import { startCatchAllServer } from '../../../../shared/runtime/startCatchAllServer';
 import { startProcess } from '../../../../shared/runtime/startProcess';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 import axios, { AxiosError } from 'axios';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');

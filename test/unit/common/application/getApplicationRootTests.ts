@@ -1,8 +1,8 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import fs from 'fs';
 import { getApplicationRoot } from '../../../../lib/common/application/getApplicationRoot';
-import isolated from 'isolated';
+import { isolated } from 'isolated';
 import path from 'path';
 
 suite('getApplicationRoot', (): void => {

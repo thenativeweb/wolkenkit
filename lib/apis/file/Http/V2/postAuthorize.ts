@@ -1,5 +1,5 @@
 import { FileStore } from '../../../../stores/fileStore/FileStore';
-import flaschenpost from 'flaschenpost';
+import { flaschenpost } from 'flaschenpost';
 import { merge } from 'lodash';
 import { RequestHandler } from 'express-serve-static-core';
 import { hasAccess, isValid } from './isAuthorized';

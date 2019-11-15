@@ -4,7 +4,7 @@ import { Express } from 'express-serve-static-core';
 import { getDescription } from './getDescription';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { postCommand } from './postCommand';
-import Limes, { IdentityProvider } from 'limes';
+import { IdentityProvider, Limes } from 'limes';
 
 class V2 {
   public api: Express;

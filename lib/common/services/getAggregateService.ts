@@ -8,8 +8,8 @@ import { DomainEventHandler } from '../elements/DomainEventHandler';
 import { DomainEventWithState } from '../elements/DomainEventWithState';
 import { errors } from '../errors';
 import { State } from '../elements/State';
-import uuid from 'uuidv4';
-import Value from 'validate-value';
+import { uuid } from 'uuidv4';
+import { Value } from 'validate-value';
 import { cloneDeep, get } from 'lodash';
 
 const getAggregateService = function <TState extends State> ({ currentAggregateState, applicationDefinition, command }: {

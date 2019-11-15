@@ -1,6 +1,6 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 
 suite('DomainEvent', (): void => {
   test('sets the given values.', async (): Promise<void> => {

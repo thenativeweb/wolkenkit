@@ -1,5 +1,5 @@
 import { FileStore } from '../../../../stores/fileStore/FileStore';
-import flaschenpost from 'flaschenpost';
+import { flaschenpost } from 'flaschenpost';
 import { hasAccess } from './isAuthorized';
 import { pipeline as pipelineCallback } from 'stream';
 import { promisify } from 'util';

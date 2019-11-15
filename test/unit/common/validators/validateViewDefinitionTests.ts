@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import { validateViewDefinition } from '../../../../lib/common/validators/validateViewDefinition';
 import { View } from '../../../../lib/common/elements/View';

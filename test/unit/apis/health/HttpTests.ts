@@ -1,6 +1,6 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { Http } from '../../../../lib/apis/health/Http';
-import Value from 'validate-value';
+import { Value } from 'validate-value';
 import supertest, { Response } from 'supertest';
 
 suite('health/Http', (): void => {

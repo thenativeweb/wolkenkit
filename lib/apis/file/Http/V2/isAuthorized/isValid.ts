@@ -1,6 +1,6 @@
 import { getSchema } from './getSchema';
 import { OwnedAuthorizationOptions } from './AuthorizationOptions';
-import Value from 'validate-value';
+import { Value } from 'validate-value';
 
 const isValid = function (isAuthorized: OwnedAuthorizationOptions): boolean {
   const schema = getSchema();

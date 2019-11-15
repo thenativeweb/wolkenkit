@@ -1,7 +1,7 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { getLoggerService } from '../../../../lib/common/services/getLoggerService';
 import path from 'path';
-import record from 'record-stdstreams';
+import { record } from 'record-stdstreams';
 
 suite('getLoggerService', (): void => {
   suite('LoggerService', (): void => {

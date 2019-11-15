@@ -2,7 +2,7 @@ import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
 import { FileStore } from '../FileStore';
 import fs from 'fs';
-import isolated from 'isolated';
+import { isolated } from 'isolated';
 import { Metadata } from '../Metadata';
 import { OwnedAuthorizationOptions } from '../../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
 import path from 'path';

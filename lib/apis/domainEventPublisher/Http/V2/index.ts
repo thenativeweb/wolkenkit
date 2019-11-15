@@ -14,12 +14,12 @@ import { getDomainEvents } from './getDomainEvents';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { join } from 'path';
 import { LoggerService } from '../../../../common/services/LoggerService';
-import partOf from 'partof';
+import { partOf } from 'partof';
 import { Repository } from '../../../../common/domain/Repository';
 import { State } from '../../../../common/elements/State';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
 import { Express, Request, Response } from 'express-serve-static-core';
-import Limes, { IdentityProvider } from 'limes';
+import { IdentityProvider, Limes } from 'limes';
 
 class V2 {
   public api: Express;

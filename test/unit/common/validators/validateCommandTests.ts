@@ -1,10 +1,10 @@
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { Command } from '../../../../lib/common/elements/Command';
 import { CustomError } from 'defekt';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 import { validateCommand } from '../../../../lib/common/validators/validateCommand';
 
 suite('validateCommand', (): void => {

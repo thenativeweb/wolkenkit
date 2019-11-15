@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 
 import { sleep } from '../../../../lib/common/utils/sleep';
 

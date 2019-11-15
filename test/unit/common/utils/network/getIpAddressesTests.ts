@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { getIpAddresses } from '../../../../../lib/common/utils/network/getIpAddresses';
 
 suite('getIpAddresses', (): void => {

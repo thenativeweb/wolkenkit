@@ -1,5 +1,5 @@
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { Command } from '../../../../lib/common/elements/Command';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
@@ -8,7 +8,7 @@ import { getApplicationDescription } from '../../../../lib/common/application/ge
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { Http } from '../../../../lib/apis/command/Http';
 import { identityProvider } from '../../../shared/identityProvider';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 import supertest, { Response } from 'supertest';
 
 suite('command/Http', (): void => {

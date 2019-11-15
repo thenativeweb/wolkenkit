@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { getClientService } from '../../../../lib/common/services/getClientService';
 
 suite('getClientService', (): void => {

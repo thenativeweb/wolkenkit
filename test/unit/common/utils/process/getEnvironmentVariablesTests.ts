@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { getEnvironmentVariables } from '../../../../../lib/common/utils/process/getEnvironmentVariables';
 import { nodeenv } from 'nodeenv';
 

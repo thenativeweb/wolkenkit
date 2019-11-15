@@ -1,4 +1,4 @@
-import flaschenpost from 'flaschenpost';
+import { flaschenpost } from 'flaschenpost';
 
 const logger = flaschenpost.getLogger();
 

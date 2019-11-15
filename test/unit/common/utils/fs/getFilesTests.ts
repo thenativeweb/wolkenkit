@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import { getFiles } from '../../../../../lib/common/utils/fs/getFiles';
 import path from 'path';

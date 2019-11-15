@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 
 import { sortKeys } from '../../../../lib/common/utils/sortKeys';
 

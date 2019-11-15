@@ -2,7 +2,7 @@ import axios from 'axios';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
-import flaschenpost from 'flaschenpost';
+import { flaschenpost } from 'flaschenpost';
 import retry from 'async-retry';
 
 const logger = flaschenpost.getLogger();

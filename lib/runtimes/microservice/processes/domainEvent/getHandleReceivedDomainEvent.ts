@@ -1,7 +1,7 @@
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { errors } from '../../../../common/errors';
-import flaschenpost from 'flaschenpost';
+import { flaschenpost } from 'flaschenpost';
 import { Http } from '../../../../apis/domainEventPublisher/Http';
 import { OnReceiveDomainEvent } from '../../../../apis/domainEventReceiver/OnReceiveDomainEvent';
 import { State } from '../../../../common/elements/State';

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { buildImages } from '../../docker/buildImages';
-import buntstift from 'buntstift';
+import { buntstift } from 'buntstift';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {

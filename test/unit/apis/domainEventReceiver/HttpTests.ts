@@ -1,5 +1,5 @@
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
@@ -7,7 +7,7 @@ import { getApplicationDefinition } from '../../../../lib/common/application/get
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { Http } from '../../../../lib/apis/domainEventReceiver/Http';
 import { State } from '../../../../lib/common/elements/State';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 import supertest, { Response } from 'supertest';
 
 suite('domainEventReceiver/Http', (): void => {

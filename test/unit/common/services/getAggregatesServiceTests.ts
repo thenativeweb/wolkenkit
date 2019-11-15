@@ -1,5 +1,5 @@
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getAggregatesService } from '../../../../lib/common/services/getAggregatesService';
@@ -7,7 +7,7 @@ import { getApplicationDefinition } from '../../../../lib/common/application/get
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory/InMemoryDomainEventStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 
 suite('getAggregatesService', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });

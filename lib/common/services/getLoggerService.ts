@@ -1,4 +1,4 @@
-import flaschenpost from 'flaschenpost';
+import { flaschenpost } from 'flaschenpost';
 import { LoggerService } from './LoggerService';
 import { PackageManifest } from '../application/PackageManifest';
 

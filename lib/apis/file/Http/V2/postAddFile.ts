@@ -1,10 +1,10 @@
 import { errors } from '../../../../common/errors';
 import { FileStore } from '../../../../stores/fileStore/FileStore';
-import flaschenpost from 'flaschenpost';
+import { flaschenpost } from 'flaschenpost';
+import { isUuid } from 'uuidv4';
 import { merge } from 'lodash';
 import { RequestHandler } from 'express-serve-static-core';
 import { SpecificAuthorizationOption } from './isAuthorized/AuthorizationOptions';
-import uuid from 'uuidv4';
 import { getDefaults, hasAccess, isValid } from './isAuthorized';
 
 const logger = flaschenpost.getLogger();
@@ -52,7 +52,7 @@ const postAddFile = function ({ addFileAuthorizationOptions, fileProvider }: {
     if (!id) {
       return res.status(400).send('Id is missing.');
     }
-    if (!uuid.is(id)) {
+    if (!isUuid(id)) {
       return res.status(400).send('Id is malformed.');
     }
     if (!fileName) {

@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { omitDeepBy } from '../../../../lib/common/utils/omitDeepBy';
 
 suite('omitDeepBy', (): void => {

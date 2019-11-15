@@ -1,6 +1,6 @@
 import { AggregateService } from '../../../../lib/common/services/AggregateService';
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { cloneDeep } from 'lodash';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { CurrentAggregateState } from '../../../../lib/common/domain/CurrentAggregateState';
@@ -11,7 +11,7 @@ import { getTestApplicationDirectory } from '../../../shared/applications/getTes
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { State } from '../../../../lib/common/elements/State';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 
 suite('getAggregateService', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });

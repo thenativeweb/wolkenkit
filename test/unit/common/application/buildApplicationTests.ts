@@ -1,9 +1,9 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { buildApplication } from 'lib/common/application/buildApplication';
 import fs from 'fs';
 import { getApplicationDefinition } from 'lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
-import isolated from 'isolated';
+import { isolated } from 'isolated';
 import path from 'path';
 import shell from 'shelljs';
 

@@ -3,7 +3,7 @@ import { Command } from '../elements/Command';
 import { CommandData } from '../elements/CommandData';
 import { errors } from '../errors';
 import { getCommandSchema } from '../schemas/getCommandSchema';
-import Value from 'validate-value';
+import { Value } from 'validate-value';
 
 const validateCommand = function <TCommandData extends CommandData> ({
   command,

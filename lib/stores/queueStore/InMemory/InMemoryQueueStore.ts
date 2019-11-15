@@ -3,7 +3,7 @@ import { CommandWithMetadata } from '../../../common/elements/CommandWithMetadat
 import { minBy } from 'lodash';
 import { Queue } from '../Queue';
 import { QueueStore } from '../QueueStore';
-import uuid from 'uuidv4';
+import { empty, uuid } from 'uuidv4';
 
 class InMemoryQueueStore implements QueueStore {
   protected database: { queues: Queue[] };
@@ -47,7 +47,7 @@ class InMemoryQueueStore implements QueueStore {
         aggregateId,
         waitingSince: 0,
         processingUntil: 0,
-        token: uuid.empty(),
+        token: empty(),
         items: []
       };
       queues.push(queue);
@@ -150,7 +150,7 @@ class InMemoryQueueStore implements QueueStore {
     // we know that it can't be undefined here.
     queue.waitingSince = oldestItem!.metadata.timestamp;
     queue.processingUntil = 0;
-    queue.token = uuid.empty();
+    queue.token = empty();
   }
 
   public async destroy (): Promise<void> {

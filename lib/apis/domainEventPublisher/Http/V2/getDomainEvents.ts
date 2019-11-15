@@ -1,4 +1,4 @@
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 import { Request, RequestHandler, Response } from 'express-serve-static-core';
 
 const getDomainEvents = function ({ connections, writeLine, heartbeatInterval }: {

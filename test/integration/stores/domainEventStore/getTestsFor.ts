@@ -1,11 +1,11 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getShortId } from '../../../shared/getShortId';
-import toArray from 'streamtoarray';
-import uuid from 'uuidv4';
+import { toArray } from 'streamtoarray';
+import { uuid } from 'uuidv4';
 
 /* eslint-disable mocha/max-top-level-suites */
 const getTestsFor = function ({ createDomainEventStore }: {

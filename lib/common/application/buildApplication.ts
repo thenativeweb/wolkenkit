@@ -1,5 +1,5 @@
 import { compileWithTypeScript } from './compileWithTypeScript';
-import isTypeScript from 'is-typescript';
+import { isTypeScript } from 'is-typescript';
 import path from 'path';
 import shell from 'shelljs';
 

@@ -1,5 +1,5 @@
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { CurrentAggregateState } from '../../../../lib/common/domain/CurrentAggregateState';
 import { CustomError } from 'defekt';
@@ -7,7 +7,7 @@ import { getApplicationDefinition } from '../../../../lib/common/application/get
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { PassThrough } from 'stream';
 import { State } from '../../../../lib/common/elements/State';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 
 suite('CurrentAggregateState', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });

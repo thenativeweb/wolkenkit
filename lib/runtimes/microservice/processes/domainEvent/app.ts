@@ -4,9 +4,9 @@ import { createDomainEventStore } from '../../../../stores/domainEventStore/crea
 import { Http as DomainEventPublisherHttp } from '../../../../../lib/apis/domainEventPublisher/Http';
 import { Http as DomainEventReceiverHttp } from '../../../../../lib/apis/domainEventReceiver/Http';
 import express from 'express';
-import flaschenpost from 'flaschenpost';
+import { flaschenpost } from 'flaschenpost';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
-import getCorsOrigin from 'get-cors-origin';
+import { getCorsOrigin } from 'get-cors-origin';
 import { getEnvironmentVariables } from '../../../../../lib/common/utils/process/getEnvironmentVariables';
 import { getHandleReceivedDomainEvent } from './getHandleReceivedDomainEvent';
 import { Http as HealthHttp } from '../../../../../lib/apis/health/Http';

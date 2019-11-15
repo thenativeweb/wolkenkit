@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { getAvailablePort } from '../../../../../lib/common/utils/network/getAvailablePort';
 import http from 'http';
 import { sleep } from '../../../../../lib/common/utils/sleep';

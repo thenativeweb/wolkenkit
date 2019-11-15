@@ -2,10 +2,10 @@
 
 import { Http as CommandHttp } from '../../../../apis/command/Http';
 import express from 'express';
-import flaschenpost from 'flaschenpost';
+import { flaschenpost } from 'flaschenpost';
 import fs from 'fs';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
-import getCorsOrigin from 'get-cors-origin';
+import { getCorsOrigin } from 'get-cors-origin';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
 import { getHandleReceivedCommand } from './getHandleReceivedCommand';
 import { Http as HealthHttp } from '../../../../apis/health/Http';

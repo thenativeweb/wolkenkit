@@ -1,7 +1,7 @@
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
-import flaschenpost from 'flaschenpost';
+import { flaschenpost } from 'flaschenpost';
 import { OnReceiveDomainEvent } from '../../OnReceiveDomainEvent';
 import { State } from '../../../../common/elements/State';
 import typer from 'content-type';

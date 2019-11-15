@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import { validateQueryHandler } from '../../../../lib/common/validators/validateQueryHandler';
 

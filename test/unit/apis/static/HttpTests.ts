@@ -1,4 +1,4 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { Http } from '../../../../lib/apis/static/Http';
 import path from 'path';
 import supertest, { Response } from 'supertest';

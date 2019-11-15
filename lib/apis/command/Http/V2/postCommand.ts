@@ -3,11 +3,11 @@ import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { Command } from '../../../../common/elements/Command';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
-import flaschenpost from 'flaschenpost';
+import { flaschenpost } from 'flaschenpost';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { RequestHandler } from 'express-serve-static-core';
 import typer from 'content-type';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 import { validateCommand } from '../../../../common/validators/validateCommand';
 
 const logger = flaschenpost.getLogger();

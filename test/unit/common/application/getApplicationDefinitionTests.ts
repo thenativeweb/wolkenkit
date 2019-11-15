@@ -1,9 +1,9 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import fs from 'fs';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
-import isolated from 'isolated';
+import { isolated } from 'isolated';
 import path from 'path';
 
 suite('getApplicationDefinition', (): void => {

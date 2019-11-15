@@ -1,11 +1,11 @@
-import buntstift from 'buntstift';
+import { buntstift } from 'buntstift';
 import { Client } from 'minio';
 import { connectionOptions } from './connectionOptions';
 import { oneLine } from 'common-tags';
 import retry from 'async-retry';
 import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 
 const minio = {
   async start (): Promise<void> {

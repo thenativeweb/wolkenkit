@@ -1,7 +1,7 @@
 import axios from 'axios';
 import path from 'path';
 import retry from 'async-retry';
-import runfork from 'runfork';
+import { runfork } from 'runfork';
 
 const startProcess = async function ({ runtime, name, port, env = {}}: {
   runtime: string;
