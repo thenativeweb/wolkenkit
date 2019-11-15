@@ -160,7 +160,7 @@
     "@types/sinon": "7.5.0",
     "@types/supertest": "2.0.8",
     "@types/tedious": "4.0.0",
-    "assertthat": "4.0.2",
+    "assertthat": "5.0.1",
     "async-wait-until": "1.2.4",
     "dir-compare": "1.8.0",
     "measure-time": "4.0.0",
