@@ -135,7 +135,7 @@
     "tarn": "2.0.0",
     "tedious": "6.6.2",
     "uuidv4": "5.0.1",
-    "validate-value": "6.0.1"
+    "validate-value": "7.0.0"
   },
   "devDependencies": {
     "@types/async-retry": "1.4.1",
