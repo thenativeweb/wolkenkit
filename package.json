@@ -163,7 +163,7 @@
     "assertthat": "4.0.2",
     "async-wait-until": "1.2.4",
     "dir-compare": "1.8.0",
-    "measure-time": "4.0.0",
+    "measure-time": "5.0.0",
     "nodeenv": "3.0.0",
     "p-queue": "6.2.1",
     "record-stdstreams": "2.1.0",
