@@ -134,7 +134,7 @@
     "stream-to-string": "1.2.0",
     "tarn": "2.0.0",
     "tedious": "6.6.2",
-    "uuidv4": "5.0.1",
+    "uuidv4": "6.0.0",
     "validate-value": "6.0.1"
   },
   "devDependencies": {
