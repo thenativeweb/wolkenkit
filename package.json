@@ -124,7 +124,7 @@
     "mongodb": "3.3.4",
     "mysql": "2.17.1",
     "nocache": "2.1.0",
-    "partof": "2.0.1",
+    "partof": "3.0.0",
     "pg": "7.12.1",
     "pg-query-stream": "2.0.1",
     "processenv": "3.0.0",
