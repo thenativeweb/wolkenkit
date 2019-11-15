@@ -116,7 +116,7 @@
     "flaschenpost": "3.2.0",
     "get-cors-origin": "2.0.0",
     "is-ip": "3.1.0",
-    "is-typescript": "3.0.1",
+    "is-typescript": "4.0.0",
     "isolated": "2.0.1",
     "limes": "5.1.0",
     "lodash": "4.17.15",
