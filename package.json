@@ -105,7 +105,7 @@
     "async-retry": "1.2.3",
     "axios": "0.19.0",
     "body-parser": "1.19.0",
-    "buntstift": "2.0.1",
+    "buntstift": "3.0.0",
     "common-tags": "1.8.0",
     "compression": "1.7.4",
     "content-type": "1.0.4",
