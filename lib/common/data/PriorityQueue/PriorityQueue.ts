@@ -117,7 +117,7 @@ class PriorityQueue<TItem> {
     return this.items[0];
   }
 
-  public async getHeap (): Promise<(TItem | undefined)[]> {
+  public async values (): Promise<(TItem | undefined)[]> {
     return this.items;
   }
 

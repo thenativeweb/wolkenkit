@@ -41,15 +41,15 @@ suite('PriorityQueue', (): void => {
     });
   });
 
-  suite('getHeap', (): void => {
+  suite('values', (): void => {
     test('returns an empty array if no items have been enqueued.', async (): Promise<void> => {
-      assert.that(await priorityQueue.getHeap()).is.equalTo([]);
+      assert.that(await priorityQueue.values()).is.equalTo([]);
     });
 
     test('returns the heap array if items have been enqueued.', async (): Promise<void> => {
       await priorityQueue.enqueue({ item: 23 });
 
-      assert.that(await priorityQueue.getHeap()).is.equalTo([ 23 ]);
+      assert.that(await priorityQueue.values()).is.equalTo([ 23 ]);
     });
   });
 
@@ -57,7 +57,7 @@ suite('PriorityQueue', (): void => {
     test('enqueues the first item as root.', async (): Promise<void> => {
       await priorityQueue.enqueue({ item: 23 });
 
-      assert.that(await priorityQueue.getHeap()).is.equalTo([ 23 ]);
+      assert.that(await priorityQueue.values()).is.equalTo([ 23 ]);
     });
 
     test('enqueues with respect to the heap structure.', async (): Promise<void> => {
@@ -67,7 +67,7 @@ suite('PriorityQueue', (): void => {
       await priorityQueue.enqueue({ item: 5 });
       await priorityQueue.enqueue({ item: 12 });
 
-      assert.that(await priorityQueue.getHeap()).is.equalTo([ 5, 7, 23, 42, 12 ]);
+      assert.that(await priorityQueue.values()).is.equalTo([ 5, 7, 23, 42, 12 ]);
     });
   });
 
@@ -76,7 +76,7 @@ suite('PriorityQueue', (): void => {
       await priorityQueue.enqueue({ item: 23 });
       await priorityQueue.dequeue({ item: 23 });
 
-      assert.that(await priorityQueue.getHeap()).is.equalTo([]);
+      assert.that(await priorityQueue.values()).is.equalTo([]);
     });
 
     test('dequeues with respect to the heap structure.', async (): Promise<void> => {
@@ -87,19 +87,19 @@ suite('PriorityQueue', (): void => {
       await priorityQueue.enqueue({ item: 12 });
 
       await priorityQueue.dequeue({ item: 23 });
-      assert.that(await priorityQueue.getHeap()).is.equalTo([ 5, 7, 12, 42 ]);
+      assert.that(await priorityQueue.values()).is.equalTo([ 5, 7, 12, 42 ]);
 
       await priorityQueue.dequeue({ item: 42 });
-      assert.that(await priorityQueue.getHeap()).is.equalTo([ 5, 7, 12 ]);
+      assert.that(await priorityQueue.values()).is.equalTo([ 5, 7, 12 ]);
 
       await priorityQueue.dequeue({ item: 7 });
-      assert.that(await priorityQueue.getHeap()).is.equalTo([ 5, 12 ]);
+      assert.that(await priorityQueue.values()).is.equalTo([ 5, 12 ]);
 
       await priorityQueue.dequeue({ item: 5 });
-      assert.that(await priorityQueue.getHeap()).is.equalTo([ 12 ]);
+      assert.that(await priorityQueue.values()).is.equalTo([ 12 ]);
 
       await priorityQueue.dequeue({ item: 12 });
-      assert.that(await priorityQueue.getHeap()).is.equalTo([]);
+      assert.that(await priorityQueue.values()).is.equalTo([]);
     });
   });
 
@@ -126,7 +126,7 @@ suite('PriorityQueue', (): void => {
       await priorityQueueComplex.rebalance({ item: itemToRebalance });
 
       assert.that(
-        (await priorityQueueComplex.getHeap()).map((item): number => item!.value)
+        (await priorityQueueComplex.values()).map((item): number => item!.value)
       ).is.equalTo([ 7, 5, 23, 42, 12 ]);
     });
 
@@ -135,7 +135,7 @@ suite('PriorityQueue', (): void => {
       await priorityQueueComplex.rebalance({ item: itemToRebalance });
 
       assert.that(
-        (await priorityQueueComplex.getHeap()).map((item): number => item!.value)
+        (await priorityQueueComplex.values()).map((item): number => item!.value)
       ).is.equalTo([ 5, 12, 23, 42, 7 ]);
     });
 
@@ -146,7 +146,7 @@ suite('PriorityQueue', (): void => {
       await priorityQueueComplex.rebalance({ item: rootItem! });
 
       assert.that(
-        (await priorityQueueComplex.getHeap()).map((item): number => item!.value)
+        (await priorityQueueComplex.values()).map((item): number => item!.value)
       ).is.equalTo([ 5, 7, 23, 42, 12 ]);
     });
 
@@ -157,7 +157,7 @@ suite('PriorityQueue', (): void => {
       await priorityQueueComplex.rebalance({ item: rootItem! });
 
       assert.that(
-        (await priorityQueueComplex.getHeap()).map((item): number => item!.value)
+        (await priorityQueueComplex.values()).map((item): number => item!.value)
       ).is.equalTo([ 7, 12, 23, 42, 5 ]);
     });
   });
