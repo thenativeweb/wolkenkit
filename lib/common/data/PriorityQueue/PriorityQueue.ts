@@ -1,8 +1,5 @@
 import { GetPriority } from './GetPriority';
 
-// Hashtable als Index für effizientes Remove (um Linear Scan wegzubekommen)
-// => Key -> Liste(Array-Index)
-
 class PriorityQueue<TItem> {
   protected items: (TItem | undefined)[];
 
