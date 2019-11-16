@@ -142,15 +142,7 @@ class PriorityQueue<TItem> {
     }
 
     this.items[index] = lastItem;
-
-    const itemPriority = this.getPriority(item);
-    const lastItemPriority = this.getPriority(lastItem!);
-
-    if (lastItemPriority < itemPriority) {
-      this.repairUp({ item: lastItem!, index });
-    } else {
-      this.repairDown({ item: lastItem!, index });
-    }
+    this.repairDown({ item: lastItem!, index });
   }
 
   public async rebalance ({ item }: { item: TItem }): Promise<void> {
