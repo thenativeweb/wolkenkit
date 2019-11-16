@@ -1,9 +1,12 @@
 import { GetPriority } from './GetPriority';
+import { IsEqual } from './IsEqual';
 
 class PriorityQueue<TItem> {
   protected items: (TItem | undefined)[];
 
   protected getPriority: GetPriority<TItem>;
+
+  protected isEqual: IsEqual<TItem>;
 
   protected static getIndexOfLeftChild ({ index }: { index: number }): number {
     return (2 * index) + 1;
@@ -23,14 +26,21 @@ class PriorityQueue<TItem> {
     return (index - 2) / 2;
   }
 
-  public constructor ({ getPriority }: { getPriority: GetPriority<TItem> }) {
+  public constructor ({
+    getPriority,
+    isEqual = (leftItem, rightItem): boolean => leftItem === rightItem
+  }: {
+    getPriority: GetPriority<TItem>;
+    isEqual?: IsEqual<TItem>;
+  }) {
     this.items = [];
     this.getPriority = getPriority;
+    this.isEqual = isEqual;
   }
 
   protected getIndexOfItem ({ item }: { item: TItem }): number | undefined {
     for (const [ currentIndex, currentItem ] of this.items.entries()) {
-      if (item === currentItem) {
+      if (this.isEqual(item, currentItem!)) {
         return currentIndex;
       }
     }
