@@ -46,7 +46,7 @@ class PriorityQueue<TItem> {
     }
   }
 
-  protected swim ({ item, index }: { item: TItem; index: number }): void {
+  protected repairUp ({ item, index }: { item: TItem; index: number }): void {
     if (index === 0) {
       return;
     }
@@ -64,10 +64,10 @@ class PriorityQueue<TItem> {
     this.items[parentIndex] = item;
     this.items[index] = parentItem;
 
-    this.swim({ item, index: parentIndex });
+    this.repairUp({ item, index: parentIndex });
   }
 
-  protected sink ({ item, index }: { item: TItem; index: number }): void {
+  protected repairDown ({ item, index }: { item: TItem; index: number }): void {
     const leftChildIndex = PriorityQueue.getIndexOfLeftChild({ index });
     const rightChildIndex = PriorityQueue.getIndexOfRightChild({ index });
 
@@ -98,11 +98,11 @@ class PriorityQueue<TItem> {
     if (leftChildItemPriority <= rightChildItemPriority) {
       this.items[leftChildIndex] = item;
       this.items[index] = leftChildItem;
-      this.sink({ item, index: leftChildIndex });
+      this.repairDown({ item, index: leftChildIndex });
     } else {
       this.items[rightChildIndex] = item;
       this.items[index] = rightChildItem;
-      this.sink({ item, index: rightChildIndex });
+      this.repairDown({ item, index: rightChildIndex });
     }
   }
 
@@ -122,7 +122,7 @@ class PriorityQueue<TItem> {
     const enqueueIndex = this.items.length;
 
     this.items[enqueueIndex] = item;
-    this.swim({ item, index: enqueueIndex });
+    this.repairUp({ item, index: enqueueIndex });
   }
 
   public async dequeue ({ item }: { item: TItem }): Promise<void> {
@@ -144,9 +144,9 @@ class PriorityQueue<TItem> {
     const lastItemPriority = this.getPriority(lastItem!);
 
     if (lastItemPriority < itemPriority) {
-      this.swim({ item: lastItem!, index });
+      this.repairUp({ item: lastItem!, index });
     } else {
-      this.sink({ item: lastItem!, index });
+      this.repairDown({ item: lastItem!, index });
     }
   }
 
@@ -157,11 +157,11 @@ class PriorityQueue<TItem> {
       return;
     }
 
-    // Run both, swim and sink. One of them may take action. Instead of trying
-    // to detect which one to call, simply call both, and one of them will do
-    // its job if necessary.
-    this.swim({ item, index });
-    this.sink({ item, index });
+    // Run both, repairUp and repairDown. One of them may take action. Instead
+    // of trying to detect which one to call, simply call both, and one of them
+    // will do its job if necessary.
+    this.repairUp({ item, index });
+    this.repairDown({ item, index });
   }
 }
 
