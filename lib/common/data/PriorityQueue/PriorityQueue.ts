@@ -1,6 +1,9 @@
 import { GetPriority } from './GetPriority';
 import { IsEqual } from './IsEqual';
 
+// The priority queue implemented by this class is based on a heap data
+// structure, where items with smaller values tend to become closer to the root
+// node. Hence, it's a min-heap here.
 class PriorityQueue<TItem> {
   protected items: (TItem | undefined)[];
 
