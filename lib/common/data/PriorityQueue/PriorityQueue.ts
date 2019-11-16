@@ -145,7 +145,7 @@ class PriorityQueue<TItem> {
     this.repairDown({ item: lastItem!, index });
   }
 
-  public async rebalance ({ item }: { item: TItem }): Promise<void> {
+  public async repair ({ item }: { item: TItem }): Promise<void> {
     const index = this.getIndexOfItem({ item });
 
     if (index === undefined) {

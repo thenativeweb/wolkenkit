@@ -103,8 +103,8 @@ suite('PriorityQueue', (): void => {
     });
   });
 
-  suite('rebalance', (): void => {
-    let itemToRebalance: { value: number; priority: number },
+  suite('repair', (): void => {
+    let itemToRepair: { value: number; priority: number },
         priorityQueueComplex: PriorityQueue<{ value: number; priority: number }>;
 
     setup(async (): Promise<void> => {
@@ -112,49 +112,49 @@ suite('PriorityQueue', (): void => {
         getPriority: (item): number => item.priority
       });
 
-      itemToRebalance = { value: 7, priority: 7 };
+      itemToRepair = { value: 7, priority: 7 };
 
       await priorityQueueComplex.enqueue({ item: { value: 23, priority: 23 }});
       await priorityQueueComplex.enqueue({ item: { value: 42, priority: 42 }});
-      await priorityQueueComplex.enqueue({ item: itemToRebalance });
+      await priorityQueueComplex.enqueue({ item: itemToRepair });
       await priorityQueueComplex.enqueue({ item: { value: 5, priority: 5 }});
       await priorityQueueComplex.enqueue({ item: { value: 12, priority: 12 }});
     });
 
-    test('rebalances the heap structure if a priority becomes smaller.', async (): Promise<void> => {
-      itemToRebalance.priority = 1;
-      await priorityQueueComplex.rebalance({ item: itemToRebalance });
+    test('repairs the heap structure if a priority becomes smaller.', async (): Promise<void> => {
+      itemToRepair.priority = 1;
+      await priorityQueueComplex.repair({ item: itemToRepair });
 
       assert.that(
         (await priorityQueueComplex.values()).map((item): number => item!.value)
       ).is.equalTo([ 7, 5, 23, 42, 12 ]);
     });
 
-    test('rebalances the heap structure if a priority becomes larger.', async (): Promise<void> => {
-      itemToRebalance.priority = 99;
-      await priorityQueueComplex.rebalance({ item: itemToRebalance });
+    test('repairs the heap structure if a priority becomes larger.', async (): Promise<void> => {
+      itemToRepair.priority = 99;
+      await priorityQueueComplex.repair({ item: itemToRepair });
 
       assert.that(
         (await priorityQueueComplex.values()).map((item): number => item!.value)
       ).is.equalTo([ 5, 12, 23, 42, 7 ]);
     });
 
-    test('rebalances the heap structure if the priority of the root item becomes smaller.', async (): Promise<void> => {
+    test('repairs the heap structure if the priority of the root item becomes smaller.', async (): Promise<void> => {
       const rootItem = await priorityQueueComplex.getNextItem();
 
       rootItem!.priority = 1;
-      await priorityQueueComplex.rebalance({ item: rootItem! });
+      await priorityQueueComplex.repair({ item: rootItem! });
 
       assert.that(
         (await priorityQueueComplex.values()).map((item): number => item!.value)
       ).is.equalTo([ 5, 7, 23, 42, 12 ]);
     });
 
-    test('rebalances the heap structure if the priority of the root item becomes larger.', async (): Promise<void> => {
+    test('repairs the heap structure if the priority of the root item becomes larger.', async (): Promise<void> => {
       const rootItem = await priorityQueueComplex.getNextItem();
 
       rootItem!.priority = 99;
-      await priorityQueueComplex.rebalance({ item: rootItem! });
+      await priorityQueueComplex.repair({ item: rootItem! });
 
       assert.that(
         (await priorityQueueComplex.values()).map((item): number => item!.value)
