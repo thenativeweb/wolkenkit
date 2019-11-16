@@ -21,9 +21,9 @@ suite('PriorityQueue', (): void => {
       assert.that(await priorityQueue.isEmpty()).is.false();
     });
 
-    test('returns true if all items have been dequeued.', async (): Promise<void> => {
+    test('returns true if all items have been removed.', async (): Promise<void> => {
       await priorityQueue.enqueue({ item: 23 });
-      await priorityQueue.dequeue({ item: 23 });
+      await priorityQueue.remove({ item: 23 });
 
       assert.that(await priorityQueue.isEmpty()).is.true();
     });
@@ -71,35 +71,63 @@ suite('PriorityQueue', (): void => {
     });
   });
 
-  suite('dequeue', (): void => {
-    test('dequeues the root item if there is only one item.', async (): Promise<void> => {
+  suite('remove', (): void => {
+    test('removes the root item if there is only one item.', async (): Promise<void> => {
       await priorityQueue.enqueue({ item: 23 });
-      await priorityQueue.dequeue({ item: 23 });
+      await priorityQueue.remove({ item: 23 });
 
       assert.that(await priorityQueue.values()).is.equalTo([]);
     });
 
-    test('dequeues with respect to the heap structure.', async (): Promise<void> => {
+    test('removes with respect to the heap structure.', async (): Promise<void> => {
       await priorityQueue.enqueue({ item: 23 });
       await priorityQueue.enqueue({ item: 42 });
       await priorityQueue.enqueue({ item: 7 });
       await priorityQueue.enqueue({ item: 5 });
       await priorityQueue.enqueue({ item: 12 });
 
-      await priorityQueue.dequeue({ item: 23 });
+      await priorityQueue.remove({ item: 23 });
       assert.that(await priorityQueue.values()).is.equalTo([ 5, 7, 12, 42 ]);
 
-      await priorityQueue.dequeue({ item: 42 });
+      await priorityQueue.remove({ item: 42 });
       assert.that(await priorityQueue.values()).is.equalTo([ 5, 7, 12 ]);
 
-      await priorityQueue.dequeue({ item: 7 });
+      await priorityQueue.remove({ item: 7 });
       assert.that(await priorityQueue.values()).is.equalTo([ 5, 12 ]);
 
-      await priorityQueue.dequeue({ item: 5 });
+      await priorityQueue.remove({ item: 5 });
       assert.that(await priorityQueue.values()).is.equalTo([ 12 ]);
 
-      await priorityQueue.dequeue({ item: 12 });
+      await priorityQueue.remove({ item: 12 });
       assert.that(await priorityQueue.values()).is.equalTo([]);
+    });
+  });
+
+  suite('dequeue', (): void => {
+    test('returns undefined if there is no next item.', async (): Promise<void> => {
+      assert.that(await priorityQueue.dequeue()).is.undefined();
+    });
+
+    test('removes and returns the root item if there is only one item.', async (): Promise<void> => {
+      await priorityQueue.enqueue({ item: 23 });
+
+      const nextItem = await priorityQueue.dequeue();
+
+      assert.that(nextItem).is.equalTo(23);
+      assert.that(await priorityQueue.values()).is.equalTo([]);
+    });
+
+    test('removes and returns the next item if there are more items.', async (): Promise<void> => {
+      await priorityQueue.enqueue({ item: 23 });
+      await priorityQueue.enqueue({ item: 42 });
+      await priorityQueue.enqueue({ item: 7 });
+      await priorityQueue.enqueue({ item: 5 });
+      await priorityQueue.enqueue({ item: 12 });
+
+      const nextItem = await priorityQueue.dequeue();
+
+      assert.that(nextItem).is.equalTo(5);
+      assert.that(await priorityQueue.values()).is.equalTo([ 7, 12, 23, 42 ]);
     });
   });
 

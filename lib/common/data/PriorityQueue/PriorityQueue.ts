@@ -128,7 +128,7 @@ class PriorityQueue<TItem> {
     this.repairUp({ item, index: enqueueIndex });
   }
 
-  public async dequeue ({ item }: { item: TItem }): Promise<void> {
+  public async remove ({ item }: { item: TItem }): Promise<void> {
     const index = this.getIndexOfItem({ item });
 
     if (index === undefined) {
@@ -143,6 +143,18 @@ class PriorityQueue<TItem> {
 
     this.items[index] = lastItem;
     this.repairDown({ item: lastItem!, index });
+  }
+
+  public async dequeue (): Promise<TItem | undefined> {
+    const nextItem = await this.getNextItem();
+
+    if (!nextItem) {
+      return;
+    }
+
+    await this.remove({ item: nextItem });
+
+    return nextItem;
   }
 
   public async repair ({ item }: { item: TItem }): Promise<void> {
