@@ -1,6 +1,6 @@
 import { assert } from 'assertthat';
 import { Command } from '../../../../../lib/common/elements/Command';
-import { getAvailablePort } from '../../../../../lib/common/utils/network/getAvailablePort';
+import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import path from 'path';
 import { startCatchAllServer } from '../../../../shared/runtime/startCatchAllServer';
@@ -17,10 +17,11 @@ suite('command', function (): void {
 
   let commandReceivedByDispatcherServer: object | undefined,
       port: number,
+      portDispatcherServer: number,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    const portDispatcherServer = await getAvailablePort();
+    [ port, portDispatcherServer ] = await getAvailablePorts({ count: 2 });
 
     await startCatchAllServer({
       port: portDispatcherServer,
@@ -29,8 +30,6 @@ suite('command', function (): void {
         res.status(200).end();
       }
     });
-
-    port = await getAvailablePort();
 
     stopProcess = await startProcess({
       runtime: 'microservice',
