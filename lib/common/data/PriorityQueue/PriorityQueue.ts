@@ -109,26 +109,26 @@ class PriorityQueue<TItem> {
     }
   }
 
-  public async isEmpty (): Promise<boolean> {
+  public isEmpty (): boolean {
     return this.items.length === 0;
   }
 
-  public async getNextItem (): Promise<TItem | undefined> {
+  public getNextItem (): TItem | undefined {
     return this.items[0];
   }
 
-  public async values (): Promise<(TItem | undefined)[]> {
+  public values (): (TItem | undefined)[] {
     return this.items;
   }
 
-  public async enqueue ({ item }: { item: TItem }): Promise<void> {
+  public enqueue ({ item }: { item: TItem }): void {
     const enqueueIndex = this.items.length;
 
     this.items[enqueueIndex] = item;
     this.repairUp({ item, index: enqueueIndex });
   }
 
-  public async remove ({ item }: { item: TItem }): Promise<void> {
+  public remove ({ item }: { item: TItem }): void {
     const index = this.getIndexOfItem({ item });
 
     if (index === undefined) {
@@ -145,19 +145,19 @@ class PriorityQueue<TItem> {
     this.repairDown({ item: lastItem!, index });
   }
 
-  public async dequeue (): Promise<TItem | undefined> {
-    const nextItem = await this.getNextItem();
+  public dequeue (): TItem | undefined {
+    const nextItem = this.getNextItem();
 
     if (!nextItem) {
       return;
     }
 
-    await this.remove({ item: nextItem });
+    this.remove({ item: nextItem });
 
     return nextItem;
   }
 
-  public async repair ({ item }: { item: TItem }): Promise<void> {
+  public repair ({ item }: { item: TItem }): void {
     const index = this.getIndexOfItem({ item });
 
     if (index === undefined) {
