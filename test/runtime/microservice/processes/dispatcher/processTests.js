@@ -2,11 +2,11 @@
 
 const assert = require('assertthat').default,
       axios = require('axios'),
-      until = require('async-wait-until'),
       uuid = require('uuidv4');
 
 const { CommandInternal } = require('../../../../../common/elements'),
       getAvailablePort = require('../../../../../common/utils/network/getAvailablePort'),
+      sleep = require('../../../../../common/utils/sleep'),
       startCatchAllServer = require('../../../../shared/runtime/startCatchAllServer'),
       startProcess = require('../../../../shared/runtime/startProcess');
 
@@ -113,7 +113,9 @@ suite('dispatcher', function () {
 
       assert.that(status).is.equalTo(200);
 
-      await until(() => commandsReceivedByDomainServer.length === 1);
+      while (commandsReceivedByDomainServer.length === 0) {
+        await sleep({ ms: 50 });
+      }
 
       assert.that(commandsReceivedByDomainServer.length).is.equalTo(1);
       assert.that(commandsReceivedByDomainServer[0]).is.equalTo(command);
