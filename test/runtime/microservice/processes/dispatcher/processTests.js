@@ -14,17 +14,17 @@ suite('dispatcher', function () {
   this.timeout(10 * 1000);
 
   let commandsReceivedByDomainServer,
+      domainServerPort,
       port,
-      portDomainServer,
       stopProcess;
 
   setup(async () => {
     commandsReceivedByDomainServer = [];
 
-    [ port, portDomainServer ] = await getAvailablePorts({ count: 2 });
+    [ port, domainServerPort ] = await getAvailablePorts({ count: 2 });
 
     await startCatchAllServer({
-      port: portDomainServer,
+      port: domainServerPort,
       onRequest (req, res) {
         commandsReceivedByDomainServer.push(req.body);
         res.status(200).end();
@@ -38,7 +38,7 @@ suite('dispatcher', function () {
       env: {
         PORT: port,
         DOMAIN_SERVER_HOSTNAME: 'localhost',
-        DOMAIN_SERVER_PORT: portDomainServer
+        DOMAIN_SERVER_PORT: domainServerPort
       }
     });
   });

@@ -16,15 +16,15 @@ suite('command', function (): void {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   let commandReceivedByDispatcherServer: object | undefined,
+      dispatcherServerPort: number,
       port: number,
-      portDispatcherServer: number,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ port, portDispatcherServer ] = await getAvailablePorts({ count: 2 });
+    [ port, dispatcherServerPort ] = await getAvailablePorts({ count: 2 });
 
     await startCatchAllServer({
-      port: portDispatcherServer,
+      port: dispatcherServerPort,
       onRequest (req, res): void {
         commandReceivedByDispatcherServer = req.body;
         res.status(200).end();
@@ -39,7 +39,7 @@ suite('command', function (): void {
         APPLICATION_DIRECTORY: applicationDirectory,
         PORT: String(port),
         DISPATCHER_SERVER_HOSTNAME: 'localhost',
-        DISPATCHER_SERVER_PORT: String(portDispatcherServer),
+        DISPATCHER_SERVER_PORT: String(dispatcherServerPort),
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
       }
     });
