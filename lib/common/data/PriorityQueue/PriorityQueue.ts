@@ -1,4 +1,5 @@
 import { errors } from '../../errors';
+import { FindPredicate } from './FindPredicate';
 import { GetPriority } from './GetPriority';
 import PQueue from 'p-queue';
 
@@ -129,6 +130,16 @@ class PriorityQueue<TItem> {
     return this.items;
   }
 
+  protected async findInternal (predicate: FindPredicate<TItem>): Promise<TItem | undefined> {
+    return this.items.find((element): boolean => {
+      if (element === undefined) {
+        return false;
+      }
+
+      return predicate(element);
+    });
+  }
+
   protected async enqueueInternal ({ item }: { item: TItem }): Promise<void> {
     if (this.index.get(item) !== undefined) {
       return;
@@ -204,6 +215,12 @@ class PriorityQueue<TItem> {
   public async values (): Promise<(TItem | undefined)[]> {
     return await this.functionCallQueue.add(
       async (): Promise<(TItem | undefined)[]> => this.valuesInternal()
+    );
+  }
+
+  public async find (predicate: FindPredicate<TItem>): Promise<TItem | undefined> {
+    return await this.functionCallQueue.add(
+      async (): Promise<TItem | undefined> => this.findInternal(predicate)
     );
   }
 
