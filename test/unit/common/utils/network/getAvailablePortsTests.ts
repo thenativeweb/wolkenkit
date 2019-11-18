@@ -6,7 +6,7 @@ import { uniq } from 'lodash';
 
 suite('getAvailablePorts', (): void => {
   test('returns a list of distinct ports.', async (): Promise<void> => {
-    const availablePorts = await getAvailablePorts({ count: 100 });
+    const availablePorts = await getAvailablePorts({ count: 10 });
 
     assert.that(uniq(availablePorts)).is.equalTo(availablePorts);
   });
