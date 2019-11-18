@@ -1,5 +1,6 @@
 import { GetPriority } from './GetPriority';
 import { IsEqual } from './IsEqual';
+import PQueue from 'p-queue';
 
 // The priority queue implemented by this class is based on a heap data
 // structure, where items with smaller values tend to become closer to the root
@@ -10,6 +11,8 @@ class PriorityQueue<TItem> {
   protected getPriority: GetPriority<TItem>;
 
   protected isEqual: IsEqual<TItem>;
+
+  protected functionCallQueue: PQueue;
 
   protected static getIndexOfLeftChild ({ index }: { index: number }): number {
     return (2 * index) + 1;
@@ -39,6 +42,7 @@ class PriorityQueue<TItem> {
     this.items = [];
     this.getPriority = getPriority;
     this.isEqual = isEqual;
+    this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
   protected getIndexOfItem ({ item }: { item: TItem }): number | undefined {
@@ -109,26 +113,26 @@ class PriorityQueue<TItem> {
     }
   }
 
-  public async isEmpty (): Promise<boolean> {
+  protected async isEmptyInternal (): Promise<boolean> {
     return this.items.length === 0;
   }
 
-  public async getNextItem (): Promise<TItem | undefined> {
+  protected async getNextItemInternal (): Promise<TItem | undefined> {
     return this.items[0];
   }
 
-  public async values (): Promise<(TItem | undefined)[]> {
+  protected async valuesInternal (): Promise<(TItem | undefined)[]> {
     return this.items;
   }
 
-  public async enqueue ({ item }: { item: TItem }): Promise<void> {
+  protected async enqueueInternal ({ item }: { item: TItem }): Promise<void> {
     const enqueueIndex = this.items.length;
 
     this.items[enqueueIndex] = item;
     this.repairUp({ item, index: enqueueIndex });
   }
 
-  public async remove ({ item }: { item: TItem }): Promise<void> {
+  protected async removeInternal ({ item }: { item: TItem }): Promise<void> {
     const index = this.getIndexOfItem({ item });
 
     if (index === undefined) {
@@ -145,19 +149,19 @@ class PriorityQueue<TItem> {
     this.repairDown({ item: lastItem!, index });
   }
 
-  public async dequeue (): Promise<TItem | undefined> {
-    const nextItem = await this.getNextItem();
+  protected async dequeueInternal (): Promise<TItem | undefined> {
+    const nextItem = await this.getNextItemInternal();
 
     if (!nextItem) {
       return;
     }
 
-    await this.remove({ item: nextItem });
+    await this.removeInternal({ item: nextItem });
 
     return nextItem;
   }
 
-  public async repair ({ item }: { item: TItem }): Promise<void> {
+  protected async repairInternal ({ item }: { item: TItem }): Promise<void> {
     const index = this.getIndexOfItem({ item });
 
     if (index === undefined) {
@@ -169,6 +173,48 @@ class PriorityQueue<TItem> {
     // will do its job if necessary.
     this.repairUp({ item, index });
     this.repairDown({ item, index });
+  }
+
+  public async isEmpty (): Promise<boolean> {
+    return await this.functionCallQueue.add(
+      async (): Promise<boolean> => this.isEmptyInternal()
+    );
+  }
+
+  public async getNextItem (): Promise<TItem | undefined> {
+    return await this.functionCallQueue.add(
+      async (): Promise<TItem | undefined> => this.getNextItemInternal()
+    );
+  }
+
+  public async values (): Promise<(TItem | undefined)[]> {
+    return await this.functionCallQueue.add(
+      async (): Promise<(TItem | undefined)[]> => this.valuesInternal()
+    );
+  }
+
+  public async enqueue ({ item }: { item: TItem }): Promise<void> {
+    await this.functionCallQueue.add(
+      async (): Promise<void> => this.enqueueInternal({ item })
+    );
+  }
+
+  public async remove ({ item }: { item: TItem }): Promise<void> {
+    await this.functionCallQueue.add(
+      async (): Promise<void> => this.removeInternal({ item })
+    );
+  }
+
+  public async dequeue (): Promise<TItem | undefined> {
+    return await this.functionCallQueue.add(
+      async (): Promise<TItem | undefined> => this.dequeueInternal()
+    );
+  }
+
+  public async repair ({ item }: { item: TItem }): Promise<void> {
+    await this.functionCallQueue.add(
+      async (): Promise<void> => this.repairInternal({ item })
+    );
   }
 }
 
