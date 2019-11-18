@@ -1,5 +1,5 @@
+import { errors } from '../../errors';
 import { GetPriority } from './GetPriority';
-import { IsEqual } from './IsEqual';
 import PQueue from 'p-queue';
 
 // The priority queue implemented by this class is based on a heap data
@@ -8,9 +8,9 @@ import PQueue from 'p-queue';
 class PriorityQueue<TItem> {
   protected items: (TItem | undefined)[];
 
-  protected getPriority: GetPriority<TItem>;
+  protected index: Map<TItem, number>;
 
-  protected isEqual: IsEqual<TItem>;
+  protected getPriority: GetPriority<TItem>;
 
   protected functionCallQueue: PQueue;
 
@@ -32,28 +32,21 @@ class PriorityQueue<TItem> {
     return (index - 2) / 2;
   }
 
-  public constructor ({
-    getPriority,
-    isEqual = (leftItem, rightItem): boolean => leftItem === rightItem
-  }: {
+  public constructor ({ getPriority }: {
     getPriority: GetPriority<TItem>;
-    isEqual?: IsEqual<TItem>;
   }) {
     this.items = [];
+    this.index = new Map<TItem, number>();
     this.getPriority = getPriority;
-    this.isEqual = isEqual;
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  protected getIndexOfItem ({ item }: { item: TItem }): number | undefined {
-    for (const [ currentIndex, currentItem ] of this.items.entries()) {
-      if (this.isEqual(item, currentItem!)) {
-        return currentIndex;
-      }
-    }
-  }
+  protected repairUp ({ item }: { item: TItem }): void {
+    const index = this.index.get(item);
 
-  protected repairUp ({ item, index }: { item: TItem; index: number }): void {
+    if (index === undefined) {
+      throw new errors.InvalidOperation();
+    }
     if (index === 0) {
       return;
     }
@@ -70,11 +63,19 @@ class PriorityQueue<TItem> {
 
     this.items[parentIndex] = item;
     this.items[index] = parentItem;
+    this.index.set(item, parentIndex);
+    this.index.set(parentItem!, index);
 
-    this.repairUp({ item, index: parentIndex });
+    this.repairUp({ item });
   }
 
-  protected repairDown ({ item, index }: { item: TItem; index: number }): void {
+  protected repairDown ({ item }: { item: TItem }): void {
+    const index = this.index.get(item);
+
+    if (index === undefined) {
+      throw new errors.InvalidOperation();
+    }
+
     const leftChildIndex = PriorityQueue.getIndexOfLeftChild({ index });
     const rightChildIndex = PriorityQueue.getIndexOfRightChild({ index });
 
@@ -87,10 +88,7 @@ class PriorityQueue<TItem> {
 
     const itemPriority = this.getPriority(item);
 
-    const leftChildItemPriority = leftChildItem ?
-      this.getPriority(leftChildItem) :
-      Number.MAX_SAFE_INTEGER;
-
+    const leftChildItemPriority = this.getPriority(leftChildItem!);
     const rightChildItemPriority = rightChildItem ?
       this.getPriority(rightChildItem) :
       Number.MAX_SAFE_INTEGER;
@@ -105,11 +103,17 @@ class PriorityQueue<TItem> {
     if (leftChildItemPriority <= rightChildItemPriority) {
       this.items[leftChildIndex] = item;
       this.items[index] = leftChildItem;
-      this.repairDown({ item, index: leftChildIndex });
+      this.index.set(item, leftChildIndex);
+      this.index.set(leftChildItem!, index);
+
+      this.repairDown({ item });
     } else {
       this.items[rightChildIndex] = item;
       this.items[index] = rightChildItem;
-      this.repairDown({ item, index: rightChildIndex });
+      this.index.set(item, rightChildIndex);
+      this.index.set(rightChildItem!, index);
+
+      this.repairDown({ item });
     }
   }
 
@@ -126,14 +130,20 @@ class PriorityQueue<TItem> {
   }
 
   protected async enqueueInternal ({ item }: { item: TItem }): Promise<void> {
+    if (this.index.get(item) !== undefined) {
+      return;
+    }
+
     const enqueueIndex = this.items.length;
 
     this.items[enqueueIndex] = item;
-    this.repairUp({ item, index: enqueueIndex });
+    this.index.set(item, enqueueIndex);
+
+    this.repairUp({ item });
   }
 
   protected async removeInternal ({ item }: { item: TItem }): Promise<void> {
-    const index = this.getIndexOfItem({ item });
+    const index = this.index.get(item);
 
     if (index === undefined) {
       return;
@@ -141,12 +151,16 @@ class PriorityQueue<TItem> {
 
     const lastItem = this.items.pop();
 
+    this.index.delete(item);
+
     if (index >= this.items.length) {
       return;
     }
 
     this.items[index] = lastItem;
-    this.repairDown({ item: lastItem!, index });
+    this.index.set(lastItem!, index);
+
+    this.repairDown({ item: lastItem! });
   }
 
   protected async dequeueInternal (): Promise<TItem | undefined> {
@@ -162,7 +176,7 @@ class PriorityQueue<TItem> {
   }
 
   protected async repairInternal ({ item }: { item: TItem }): Promise<void> {
-    const index = this.getIndexOfItem({ item });
+    const index = this.index.get(item);
 
     if (index === undefined) {
       return;
@@ -171,8 +185,8 @@ class PriorityQueue<TItem> {
     // Run both, repairUp and repairDown. One of them may take action. Instead
     // of trying to detect which one to call, simply call both, and one of them
     // will do its job if necessary.
-    this.repairUp({ item, index });
-    this.repairDown({ item, index });
+    this.repairUp({ item });
+    this.repairDown({ item });
   }
 
   public async isEmpty (): Promise<boolean> {
