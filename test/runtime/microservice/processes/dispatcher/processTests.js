@@ -5,7 +5,7 @@ const assert = require('assertthat').default,
       uuid = require('uuidv4');
 
 const { CommandInternal } = require('../../../../../common/elements'),
-      getAvailablePort = require('../../../../../common/utils/network/getAvailablePort'),
+      getAvailablePorts = require('../../../../../common/utils/network/getAvailablePorts'),
       sleep = require('../../../../../common/utils/sleep'),
       startCatchAllServer = require('../../../../shared/runtime/startCatchAllServer'),
       startProcess = require('../../../../shared/runtime/startProcess');
