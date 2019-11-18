@@ -1,3 +1,4 @@
+import { sleep } from '../sleep';
 import { AddressInfo, createServer, Server } from 'net';
 
 const servers: Record<number, Server | undefined> = {};
@@ -37,6 +38,7 @@ const releasePort = async function ({ port }: { port: number }): Promise<void> {
         return reject(err);
       }
 
+      await sleep({ ms: 50 });
       resolve();
     });
   });
@@ -58,10 +60,4 @@ const getAvailablePorts = async function ({ count }: {
   return availablePorts;
 };
 
-const getAvailablePort = async function (): Promise<number> {
-  const [ availablePort ] = await getAvailablePorts({ count: 1 });
-
-  return availablePort;
-};
-
-export { getAvailablePorts, getAvailablePort };
+export { getAvailablePorts };

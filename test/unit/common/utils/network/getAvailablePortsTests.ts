@@ -2,8 +2,26 @@ import { assert } from 'assertthat';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import http from 'http';
 import { sleep } from '../../../../../lib/common/utils/sleep';
+import { uniq } from 'lodash';
 
 suite('getAvailablePorts', (): void => {
+  test('returns a list of distinct ports.', async (): Promise<void> => {
+    const availablePorts = await getAvailablePorts({ count: 100 });
+
+    assert.that(uniq(availablePorts)).is.equalTo(availablePorts);
+  });
+
+  test('returns a list of distinct ports even with a pause in-between.', async (): Promise<void> => {
+    const firstAvailablePorts = await getAvailablePorts({ count: 10 });
+
+    await sleep({ ms: 100 });
+
+    const secondAvailablePorts = await getAvailablePorts({ count: 10 });
+    const availablePorts = [ ...firstAvailablePorts, ...secondAvailablePorts ];
+
+    assert.that(uniq(availablePorts)).is.equalTo(availablePorts);
+  });
+
   test('returns a list of available ports.', async (): Promise<void> => {
     const firstServer = http.createServer((_req, res): void => {
       res.end();
