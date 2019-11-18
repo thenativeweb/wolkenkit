@@ -5,7 +5,7 @@ const assert = require('assertthat').default,
       uuid = require('uuidv4');
 
 const { CommandInternal } = require('../../../../../common/elements'),
-      getAvailablePort = require('../../../../../common/utils/network/getAvailablePort'),
+      getAvailablePorts = require('../../../../../common/utils/network/getAvailablePorts'),
       sleep = require('../../../../../common/utils/sleep'),
       startCatchAllServer = require('../../../../shared/runtime/startCatchAllServer'),
       startProcess = require('../../../../shared/runtime/startProcess');
@@ -14,23 +14,22 @@ suite('dispatcher', function () {
   this.timeout(10 * 1000);
 
   let commandsReceivedByDomainServer,
+      domainServerPort,
       port,
       stopProcess;
 
   setup(async () => {
     commandsReceivedByDomainServer = [];
 
-    const portDomainServer = await getAvailablePort();
+    [ port, domainServerPort ] = await getAvailablePorts({ count: 2 });
 
     await startCatchAllServer({
-      port: portDomainServer,
+      port: domainServerPort,
       onRequest (req, res) {
         commandsReceivedByDomainServer.push(req.body);
         res.status(200).end();
       }
     });
-
-    port = await getAvailablePort();
 
     stopProcess = await startProcess({
       runtime: 'microservice',
@@ -39,7 +38,7 @@ suite('dispatcher', function () {
       env: {
         PORT: port,
         DOMAIN_SERVER_HOSTNAME: 'localhost',
-        DOMAIN_SERVER_PORT: portDomainServer
+        DOMAIN_SERVER_PORT: domainServerPort
       }
     });
   });

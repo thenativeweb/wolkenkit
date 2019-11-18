@@ -3,7 +3,7 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../shared/buildDomainEvent';
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
-import { getAvailablePort } from '../../../../../lib/common/utils/network/getAvailablePort';
+import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import path from 'path';
 import { startProcess } from '../../../../shared/runtime/startProcess';
@@ -17,21 +17,20 @@ suite('domain event', function (): void {
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-  let portPublisher: number,
-      portReceiver: number,
+  let portReceiver: number,
+      receiverPort: number,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    portPublisher = await getAvailablePort();
-    portReceiver = await getAvailablePort();
+    [ receiverPort, portReceiver ] = await getAvailablePorts({ count: 2 });
 
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEvent',
-      port: portPublisher,
+      port: receiverPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
-        PORT_PUBLISHER: String(portPublisher),
+        PORT_PUBLISHER: String(receiverPort),
         PORT_RECEIVER: String(portReceiver),
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
       }
@@ -51,7 +50,7 @@ suite('domain event', function (): void {
       test('is using the health API.', async (): Promise<void> => {
         const { status } = await axios({
           method: 'get',
-          url: `http://localhost:${portPublisher}/health/v2`
+          url: `http://localhost:${receiverPort}/health/v2`
         });
 
         assert.that(status).is.equalTo(200);
@@ -124,7 +123,7 @@ suite('domain event', function (): void {
         try {
           const { data } = await axios({
             method: 'get',
-            url: `http://localhost:${portPublisher}/domain-events/v2`,
+            url: `http://localhost:${receiverPort}/domain-events/v2`,
             responseType: 'stream'
           });
 
