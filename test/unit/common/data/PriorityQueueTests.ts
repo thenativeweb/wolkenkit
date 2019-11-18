@@ -53,11 +53,34 @@ suite('PriorityQueue', (): void => {
     });
   });
 
+  suite('find', (): void => {
+    test('returns undefined if no items have been enqueued.', async (): Promise<void> => {
+      assert.that(await priorityQueue.find((): boolean => true)).is.undefined();
+    });
+
+    test('returns the appropriate item if items have been enqueued.', async (): Promise<void> => {
+      await priorityQueue.enqueue({ item: 23 });
+      await priorityQueue.enqueue({ item: 42 });
+      await priorityQueue.enqueue({ item: 7 });
+      await priorityQueue.enqueue({ item: 5 });
+      await priorityQueue.enqueue({ item: 12 });
+
+      assert.that(await priorityQueue.find((item): boolean => item === 23)).is.equalTo(23);
+    });
+  });
+
   suite('enqueue', (): void => {
     test('enqueues the first item as root.', async (): Promise<void> => {
       await priorityQueue.enqueue({ item: 23 });
 
       assert.that(await priorityQueue.values()).is.equalTo([ 23 ]);
+    });
+
+    test('does not enqueue the same item twice.', async (): Promise<void> => {
+      await priorityQueue.enqueue({ item: 23 });
+      await priorityQueue.enqueue({ item: 23 });
+
+      assert.that((await priorityQueue.values()).length).is.equalTo(1);
     });
 
     test('enqueues with respect to the heap structure.', async (): Promise<void> => {
