@@ -3,7 +3,7 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../shared/buildDomainEvent';
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import findFreePorts from 'find-free-ports';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import path from 'path';
 import { startProcess } from '../../../../shared/runtime/startProcess';
@@ -22,7 +22,7 @@ suite('domain event', function (): void {
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ portPublisher, portReceiver ] = await getAvailablePorts({ count: 2 });
+    [ portPublisher, portReceiver ] = await findFreePorts(2);
 
     stopProcess = await startProcess({
       runtime: 'microservice',

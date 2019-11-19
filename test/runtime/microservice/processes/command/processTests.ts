@@ -1,6 +1,6 @@
 import { assert } from 'assertthat';
 import { Command } from '../../../../../lib/common/elements/Command';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import findFreePorts from 'find-free-ports';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import path from 'path';
 import { startCatchAllServer } from '../../../../shared/runtime/startCatchAllServer';
@@ -21,7 +21,7 @@ suite('command', function (): void {
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ port, dispatcherServerPort ] = await getAvailablePorts({ count: 2 });
+    [ port, dispatcherServerPort ] = await findFreePorts(2);
 
     await startCatchAllServer({
       port: dispatcherServerPort,
