@@ -118,7 +118,7 @@
     "is-ip": "3.1.0",
     "is-typescript": "4.0.0",
     "isolated": "3.0.0",
-    "limes": "6.0.0",
+    "limes": "6.0.1",
     "lodash": "4.17.15",
     "minio": "7.0.12",
     "mongodb": "3.3.4",
