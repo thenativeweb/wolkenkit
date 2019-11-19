@@ -2,7 +2,7 @@ import { uuid } from 'uuidv4';
 import { Request, RequestHandler, Response } from 'express-serve-static-core';
 
 const getDomainEvents = function ({ connections, writeLine, heartbeatInterval }: {
-  connections: Record<string, { req: Request; res: Response } | undefined>;
+  connections: Map<string, { req: Request; res: Response }>;
   writeLine: (args: {
     connectionId: string;
     data: object;
@@ -19,17 +19,14 @@ const getDomainEvents = function ({ connections, writeLine, heartbeatInterval }:
     const onClose = function (): void {
       res.connection.removeListener('close', onClose);
       clearInterval(heartbeatIntervalId);
-      /* eslint-disable no-param-reassign */
-      delete connections[connectionId];
-      /* eslint-enable no-param-reassign */
+
+      connections.delete(connectionId);
     };
 
     res.connection.once('close', onClose);
     res.writeHead(200, { 'content-type': 'application/x-ndjson' });
 
-    /* eslint-disable no-param-reassign */
-    connections[connectionId] = { req, res };
-    /* eslint-enable no-param-reassign */
+    connections.set(connectionId, { req, res });
 
     // Send an initial heartbeat to initialize the connection. If we do not do
     // this, sometimes the connection does not become open until the first data

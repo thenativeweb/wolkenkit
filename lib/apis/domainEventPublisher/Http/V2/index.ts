@@ -24,7 +24,7 @@ import { IdentityProvider, Limes } from 'limes';
 class V2 {
   public api: Express;
 
-  public connectionsForGetDomainEvents: Record<string, { req: Request; res: Response } | undefined>;
+  public connectionsForGetDomainEvents: Map<string, { req: Request; res: Response }>;
 
   protected applicationDefinition: ApplicationDefinition;
 
@@ -43,7 +43,7 @@ class V2 {
   }) {
     this.applicationDefinition = applicationDefinition;
     this.repository = repository;
-    this.connectionsForGetDomainEvents = {};
+    this.connectionsForGetDomainEvents = new Map();
 
     const limes = new Limes({ identityProviders });
     const verifyTokenMiddleware = limes.verifyTokenMiddleware({
@@ -70,7 +70,7 @@ class V2 {
     connectionId: string;
     data: object;
   }): void {
-    const connection = this.connectionsForGetDomainEvents[connectionId];
+    const connection = this.connectionsForGetDomainEvents.get(connectionId);
 
     // Maybe the connection has been removed in the background, so we can not
     // assume that it definitely exists. If we try to access a non-existing
@@ -89,7 +89,7 @@ class V2 {
         // was closed concurrently, and we can't do anything about it anyway.
         // Hence, remove the connection from the list of connections, and
         // return.
-        delete this.connectionsForGetDomainEvents[connectionId];
+        this.connectionsForGetDomainEvents.delete(connectionId);
 
         return;
       }
@@ -109,7 +109,7 @@ class V2 {
     aggregatesService: AggregatesService;
     loggerService: LoggerService;
   }): Promise<DomainEvent<DomainEventData> | undefined> {
-    const connection = this.connectionsForGetDomainEvents[connectionId];
+    const connection = this.connectionsForGetDomainEvents.get(connectionId);
 
     // Maybe the connection has been removed in the background, so we can not
     // assume that it definitely exists. If we try to access a non-existing
