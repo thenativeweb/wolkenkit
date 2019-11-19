@@ -62,8 +62,8 @@ class PostgresLockStore implements LockStore {
     database: string;
     encryptConnection: boolean;
     tableNames: TableNames;
-    nonce: string | null;
-    maxLockSize: number;
+    nonce?: string | null;
+    maxLockSize?: number;
   }): Promise<PostgresLockStore> {
     const pool = new Pool({
       host: hostName,

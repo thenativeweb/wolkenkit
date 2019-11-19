@@ -205,15 +205,15 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
     });
 
     test('renews the lock.', async (): Promise<void> => {
-      await lockStore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
-      await sleep({ ms: 25 });
+      await lockStore.acquireLock({ namespace, value, expiresAt: inMilliseconds({ ms: 100 }) });
+      await sleep({ ms: 50 });
 
       // Tests tend to be flaky on Sql engines. 100ms
-      await lockStore.renewLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
-      await sleep({ ms: 25 });
+      await lockStore.renewLock({ namespace, value, expiresAt: inMilliseconds({ ms: 100 }) });
+      await sleep({ ms: 50 });
 
-      // If renewing didn't work, now 50ms + exchange have passed, and the original
-      // expiration was set to 50ms. If we can not acquire the lock, it is still
+      // If renewing didn't work, now 100ms + exchange have passed, and the original
+      // expiration was set to 100ms. If we can not acquire the lock, it is still
       // active and renewing did work. In other words: If you change the times
       // above, make sure to keep the logic.
       await assert.that(async (): Promise<void> => {
