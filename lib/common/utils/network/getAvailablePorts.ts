@@ -1,4 +1,3 @@
-import { sleep } from '../sleep';
 import { AddressInfo, createServer, Server } from 'net';
 
 const servers: Record<number, Server | undefined> = {};
@@ -9,12 +8,11 @@ const lockPort = async function (): Promise<number> {
 
     let port: number;
 
-    server.once('listening', async (): Promise<void> => {
+    server.once('listening', (): void => {
       ({ port } = (server.address() as AddressInfo));
 
       servers[port] = server;
 
-      await sleep({ ms: 50 });
       resolve(port);
     });
 
@@ -39,7 +37,6 @@ const releasePort = async function ({ port }: { port: number }): Promise<void> {
         return reject(err);
       }
 
-      await sleep({ ms: 50 });
       resolve();
     });
   });
