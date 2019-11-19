@@ -23,11 +23,16 @@ const errors = defekt({
   ForwardFailed: {},
   IdentifierMismatch: {},
   InvalidOperation: {},
+  ItemAlreadyExists: {},
+  ItemNotFound: {},
+  ItemNotLocked: {},
+  LockExpired: {},
   NotAuthenticatedError: {},
   ProjectionHandlerMalformed: {},
   QueryHandlerMalformed: {},
   RequestFailed: {},
   RequestMalformed: {},
+  TokenMismatch: {},
   TypeInvalid: {},
   ViewDefinitionMalformed: {}
 });
