@@ -35,15 +35,15 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
     aggregateIdentifier,
     name,
     data,
-    id: id || uuid(),
+    id: id ?? uuid(),
     metadata: {
-      causationId: metadata.causationId || uuid(),
-      correlationId: metadata.correlationId || uuid(),
-      timestamp: metadata.timestamp || Date.now(),
-      isPublished: metadata.isPublished || false,
+      causationId: metadata.causationId ?? uuid(),
+      correlationId: metadata.correlationId ?? uuid(),
+      timestamp: metadata.timestamp ?? Date.now(),
+      isPublished: metadata.isPublished ?? false,
       revision: {
         aggregate: metadata.revision.aggregate,
-        global: metadata.revision.global || null
+        global: metadata.revision.global ?? null
       },
       initiator: metadata.initiator
     }

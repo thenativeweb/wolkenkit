@@ -14,7 +14,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
 
   protected snapshots: Snapshot<State>[];
 
-  public constructor () {
+  protected constructor () {
     this.domainEvents = [];
     this.snapshots = [];
   }

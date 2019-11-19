@@ -71,7 +71,7 @@ suite('getAggregateService', (): void => {
     /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
     /* eslint-enable @typescript-eslint/unbound-method */
 
-    domainEventStore = new InMemoryDomainEventStore();
+    domainEventStore = await InMemoryDomainEventStore.create();
 
     repository = new Repository({ applicationDefinition, domainEventStore });
 
