@@ -14,6 +14,7 @@ const lockPort = async function (): Promise<number> {
 
       servers[port] = server;
 
+      await sleep({ ms: 50 });
       resolve(port);
     });
 
