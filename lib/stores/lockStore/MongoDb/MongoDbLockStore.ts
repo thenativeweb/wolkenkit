@@ -60,8 +60,8 @@ class MongoDbLockStore implements LockStore {
     password: string;
     database: string;
     collectionNames: CollectionNames;
-    nonce: string | null;
-    maxLockSize: number;
+    nonce?: string | null;
+    maxLockSize?: number;
   }): Promise<MongoDbLockStore> {
     const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
 

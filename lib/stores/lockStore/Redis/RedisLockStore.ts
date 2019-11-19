@@ -83,9 +83,9 @@ class RedisLockStore implements LockStore {
     password: string;
     database: string;
     listNames: ListNames;
-    nonce: string | null;
-    requireValidExpiration: boolean;
-    maxLockSize: number;
+    nonce?: string | null;
+    requireValidExpiration?: boolean;
+    maxLockSize?: number;
   }): Promise<RedisLockStore> {
     const url = `redis://:${password}@${hostName}:${port}/${database}`;
 
@@ -97,7 +97,7 @@ class RedisLockStore implements LockStore {
           return reject(err);
         }
 
-        resolve(client);
+        resolve(redisClient);
       });
     }));
 

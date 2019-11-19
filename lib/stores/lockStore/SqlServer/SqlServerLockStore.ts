@@ -61,8 +61,8 @@ class SqlServerLockStore implements LockStore {
     database: string;
     encryptConnection?: boolean;
     tableNames: TableNames;
-    nonce: string | null;
-    maxLockSize: number;
+    nonce?: string | null;
+    maxLockSize?: number;
   }): Promise<SqlServerLockStore> {
     const pool = createPool({
       host: hostName,

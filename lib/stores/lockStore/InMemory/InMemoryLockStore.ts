@@ -17,7 +17,7 @@ class InMemoryLockStore implements LockStore {
   }
 
   public static async create ({ maxLockSize = 2048 }: {
-    maxLockSize: number;
+    maxLockSize?: number;
   }): Promise<InMemoryLockStore> {
     const lockstore = new InMemoryLockStore({ maxLockSize });
 
