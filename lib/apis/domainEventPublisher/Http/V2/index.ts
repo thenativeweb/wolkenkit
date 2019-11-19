@@ -217,7 +217,7 @@ class V2 {
       packageManifest: this.applicationDefinition.packageManifest
     });
 
-    for (const connectionId of Object.keys(this.connectionsForGetDomainEvents)) {
+    for (const connectionId of this.connectionsForGetDomainEvents.keys()) {
       let preparedDomainEvent;
 
       try {
