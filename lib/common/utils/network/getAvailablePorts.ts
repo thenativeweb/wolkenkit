@@ -9,7 +9,7 @@ const lockPort = async function (): Promise<number> {
 
     let port: number;
 
-    server.once('listening', (): void => {
+    server.once('listening', async (): Promise<void> => {
       ({ port } = (server.address() as AddressInfo));
 
       servers[port] = server;
