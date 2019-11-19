@@ -21,7 +21,7 @@ suite('getAggregatesService', (): void => {
   });
 
   setup(async (): Promise<void> => {
-    domainEventStore = new InMemoryDomainEventStore();
+    domainEventStore = await InMemoryDomainEventStore.create();
 
     repository = new Repository({ applicationDefinition, domainEventStore });
   });

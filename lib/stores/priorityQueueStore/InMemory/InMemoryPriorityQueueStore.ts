@@ -49,13 +49,19 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
   }
   /* eslint-enable class-methods-use-this */
 
-  public constructor ({ expirationTime = 15_000 }: {
-    expirationTime?: number;
+  protected constructor ({ expirationTime }: {
+    expirationTime: number;
   }) {
     this.expirationTime = expirationTime;
     this.queues = [];
     this.index = new Map();
     this.functionCallQueue = new PQueue({ concurrency: 1 });
+  }
+
+  public static async create<TItem extends CommandWithMetadata<CommandData> | DomainEvent<DomainEventData>> ({ expirationTime = 15_000 }: {
+    expirationTime?: number;
+  }): Promise<InMemoryPriorityQueueStore<TItem>> {
+    return new InMemoryPriorityQueueStore<TItem>({ expirationTime });
   }
 
   protected repairUp ({ queue }: { queue: Queue<TItem> }): void {
@@ -157,6 +163,31 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     this.repairDown({ queue: lastQueue });
   }
 
+  protected getQueueIfLocked ({ item, token }: {
+    item: TItem;
+    token: string;
+  }): Queue<TItem> {
+    const queueIndex = this.index.get(item.aggregateIdentifier.id);
+
+    if (queueIndex === undefined) {
+      throw new errors.ItemNotFound(`Item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}' not found.`);
+    }
+
+    const queue = this.queues[queueIndex]!;
+
+    if (!queue.lock) {
+      throw new errors.ItemNotLocked(`Item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}' not locked.`);
+    }
+    if (queue.lock.token !== token) {
+      throw new errors.TokenMismatch(`Token mismatch for item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}'.`);
+    }
+    if (queue.items[0].id !== item.id) {
+      throw new errors.ItemNotFound(`Item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}' not found.`);
+    }
+
+    return queue;
+  }
+
   protected enqueueInternal ({ item }: { item: TItem }): void {
     const queueIndex = this.index.get(item.aggregateIdentifier.id) ?? this.queues.length;
     let queue = this.queues[queueIndex];
@@ -187,9 +218,13 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
   }
 
   protected lockNextInternal (): { item: TItem; token: string } | undefined {
-    const queue = this.queues[0];
+    if (this.queues.length === 0) {
+      return;
+    }
 
-    if (!queue) {
+    const queue = this.queues[0]!;
+
+    if (queue.lock && queue.lock.until > Date.now()) {
       return;
     }
 
@@ -215,23 +250,9 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     item: TItem;
     token: string;
   }): void {
-    const queueIndex = this.index.get(item.aggregateIdentifier.id);
+    const queue = this.getQueueIfLocked({ item, token });
 
-    if (queueIndex === undefined) {
-      throw new errors.ItemNotFound(`Item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}' not found.`);
-    }
-
-    const queue = this.queues[queueIndex]!;
-
-    if (!queue.lock) {
-      throw new errors.ItemNotLocked(`Item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}' not locked.`);
-    }
-
-    if (queue.lock.token !== token) {
-      throw new errors.TokenMismatch(`Token mismatch for item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}'.`);
-    }
-
-    queue.lock.until = Date.now() + this.expirationTime;
+    queue.lock!.until = Date.now() + this.expirationTime;
 
     this.repairDown({ queue });
   }
@@ -249,21 +270,7 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     item: TItem;
     token: string;
   }): void {
-    const queueIndex = this.index.get(item.aggregateIdentifier.id);
-
-    if (queueIndex === undefined) {
-      throw new errors.ItemNotFound(`Item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}' not found.`);
-    }
-
-    const queue = this.queues[queueIndex]!;
-
-    if (!queue.lock) {
-      throw new errors.ItemNotLocked(`Item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}' not locked.`);
-    }
-
-    if (queue.lock.token !== token) {
-      throw new errors.TokenMismatch(`Token mismatch for item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}'.`);
-    }
+    const queue = this.getQueueIfLocked({ item, token });
 
     queue.items.shift();
 

@@ -3,11 +3,11 @@
     "baseUrl": ".",
     "declaration": true,
     "esModuleInterop": true,
-    "lib": [ "ESNext" ],
+    "lib": [ "ES2020" ],
     "module": "CommonJS",
     "outDir": "build",
     "strict": true,
-    "target": "ESNext"
+    "target": "ES2020"
   },
   "include": [
     "./docker/**/*.ts",
