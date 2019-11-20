@@ -149,7 +149,7 @@
     "@types/fs-extra": "8.0.1",
     "@types/json-schema": "7.0.3",
     "@types/lodash": "4.14.149",
-    "@types/minio": "7.0.3",
+    "@types/minio": "7.0.4",
     "@types/mongodb": "3.3.11",
     "@types/mysql": "2.15.8",
     "@types/node": "12.12.11",
