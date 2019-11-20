@@ -1,6 +1,6 @@
 import { Application } from 'express';
 import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
-import { CorsOrigin } from '../../base/CorsOrigin';
+import { CorsOrigin } from 'get-cors-origin';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
 import { getApiBase } from '../../base/getApiBase';
@@ -48,14 +48,13 @@ const getApi = async function ({
   }));
 
   api.get('/', authenticationMiddleware, v2.getDomainEvents({
+    applicationDefinition,
     heartbeatInterval,
     domainEventEmitter,
     repository
   }));
 
-  const publishDomainEvent = function ({ domainEvent }: {
-    domainEvent: DomainEventWithState<DomainEventData, State>;
-  }): void {
+  const publishDomainEvent: PublishDomainEvent = function ({ domainEvent }): void {
     validateDomainEventWithState({ domainEvent, applicationDefinition });
 
     domainEventEmitter.emit(domainEvent);

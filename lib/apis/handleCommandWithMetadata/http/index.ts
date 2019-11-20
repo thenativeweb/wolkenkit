@@ -1,6 +1,6 @@
 import { Application } from 'express';
 import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
-import { CorsOrigin } from '../../base/CorsOrigin';
+import { CorsOrigin } from 'get-cors-origin';
 import { getApiBase } from '../../base/getApiBase';
 import { OnReceiveCommand } from '../OnReceiveCommand';
 import * as v2 from './v2';

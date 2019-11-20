@@ -1,5 +1,5 @@
 import { Application } from 'express';
-import { CorsOrigin } from '../../base/CorsOrigin';
+import { CorsOrigin } from 'get-cors-origin';
 import { getApiBase } from '../../base/getApiBase';
 import * as v2 from './v2';
 

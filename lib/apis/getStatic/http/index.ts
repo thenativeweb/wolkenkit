@@ -1,5 +1,5 @@
 import compression from 'compression';
-import { CorsOrigin } from '../../base/CorsOrigin';
+import { CorsOrigin } from 'get-cors-origin';
 import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
 import fs from 'fs';

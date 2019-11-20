@@ -1,4 +1,4 @@
-import { CorsOrigin } from './CorsOrigin';
+import { CorsOrigin } from 'get-cors-origin';
 
 export interface GetApiBaseParameters {
   request: {
