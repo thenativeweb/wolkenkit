@@ -1,6 +1,6 @@
 import { Application } from 'express';
 import cors from 'cors';
-import { CorsOrigin } from '../../base/CorsOrigin';
+import { CorsOrigin } from 'get-cors-origin';
 import { FileStore } from '../../../stores/fileStore/FileStore';
 import { getApiBase } from '../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../base/getAuthenticationMiddleware';
