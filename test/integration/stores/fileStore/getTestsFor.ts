@@ -2,7 +2,7 @@ import { assert } from 'assertthat';
 import { createReadStream } from 'fs-extra';
 import { CustomError } from 'defekt';
 import { FileStore } from '../../../../lib/stores/fileStore/FileStore';
-import { OwnedAuthorizationOptions } from '../../../../lib/apis/file/Http/V2/isAuthorized/AuthorizationOptions';
+import { OwnedAuthorizationOptions } from '../../../../lib/apis/getFile/http/v2/isAuthorized/AuthorizationOptions';
 import path from 'path';
 import { ReadStream } from 'fs';
 import streamToString from 'stream-to-string';

@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
-import { Http as CommandHttp } from '../../../../apis/command/Http';
 import express from 'express';
 import { flaschenpost } from 'flaschenpost';
 import fs from 'fs';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
+import { getApi as getCommandApi } from '../../../../apis/handleCommand/http';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
 import { getHandleReceivedCommand } from './getHandleReceivedCommand';
-import { Http as HealthHttp } from '../../../../apis/health/Http';
+import { getApi as getHealthApi } from '../../../../apis/getHealth/http';
 import http from 'http';
 import { IdentityProvider } from 'limes';
 import path from 'path';
@@ -59,14 +59,14 @@ import { registerExceptionHandler } from '../../../../common/utils/process/regis
 
     const handleReceivedCommand = getHandleReceivedCommand({ dispatcherServer });
 
-    const commandHttp = await CommandHttp.create({
+    const commandHttp = await getCommandApi({
       corsOrigin: getCorsOrigin(environmentVariables.COMMAND_CORS_ORIGIN),
       onReceiveCommand: handleReceivedCommand,
       applicationDefinition,
       identityProviders
     });
 
-    const healthHttp = await HealthHttp.create({
+    const healthHttp = await getHealthApi({
       corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN)
     });
 

@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
-import { Http as DomainEventPublisherHttp } from '../../../../../lib/apis/domainEventPublisher/Http';
-import { Http as DomainEventReceiverHttp } from '../../../../../lib/apis/domainEventReceiver/Http';
 import express from 'express';
 import { flaschenpost } from 'flaschenpost';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getCorsOrigin } from 'get-cors-origin';
-import { getEnvironmentVariables } from '../../../../../lib/common/utils/process/getEnvironmentVariables';
+import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
+import { getApi as getHandleDomainEventsApi } from '../../../../apis/handleDomainEvent/http';
 import { getHandleReceivedDomainEvent } from './getHandleReceivedDomainEvent';
-import { Http as HealthHttp } from '../../../../../lib/apis/health/Http';
+import { getApi as getHealthApi } from '../../../../apis/getHealth/http';
+import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
 import http from 'http';
 import { IdentityProvider } from 'limes';
 import path from 'path';
-import { registerExceptionHandler } from '../../../../../lib/common/utils/process/registerExceptionHandler';
-import { Repository } from '../../../../../lib/common/domain/Repository';
+import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
+import { Repository } from '../../../../common/domain/Repository';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -53,21 +53,21 @@ import { Repository } from '../../../../../lib/common/domain/Repository';
 
   const repository = new Repository({ applicationDefinition, domainEventStore });
 
-  const domainEventPublisherHttp = await DomainEventPublisherHttp.create({
+  const domainEventPublisherHttp = await getObserveDomainEventsApi({
     corsOrigin: getCorsOrigin(environmentVariables.DOMAINEVENT_CORS_ORIGIN),
     applicationDefinition,
     identityProviders,
     repository
   });
 
-  const healthHttp = await HealthHttp.create({
+  const healthHttp = await getHealthApi({
     corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN)
   });
 
   const handleReceivedDomainEvent = getHandleReceivedDomainEvent({
-    domainEventPublisherHttp
+    publishDomainEvent: domainEventPublisherHttp.publishDomainEvent
   });
-  const domainEventReceiverHttp = await DomainEventReceiverHttp.create({
+  const domainEventReceiverHttp = await getHandleDomainEventsApi({
     onReceiveDomainEvent: handleReceivedDomainEvent,
     corsOrigin: '*',
     applicationDefinition

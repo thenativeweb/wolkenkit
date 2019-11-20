@@ -1,4 +1,4 @@
-import { OwnedAuthorizationOptions } from '../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
+import { OwnedAuthorizationOptions } from '../../apis/getFile/http/v2/isAuthorized/AuthorizationOptions';
 
 export interface Metadata {
   id: string;

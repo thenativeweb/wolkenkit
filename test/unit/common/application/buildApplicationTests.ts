@@ -50,7 +50,7 @@ const getExpectedApplicationDefinition = ({ applicationDirectory, packageName }:
 suite('buildApplication', function (): void {
   this.timeout(20 * 1000);
 
-  test('builds a javascript application.', async (): Promise<void> => {
+  test('builds a JavaScript application.', async (): Promise<void> => {
     const applicationDirectory = await isolated();
 
     shell.cp('-r', path.join(javascriptApplicationDirectory, '*'), applicationDirectory);
@@ -62,7 +62,7 @@ suite('buildApplication', function (): void {
     assert.that(actualApplicationDefinition).is.atLeast(expectedApplicationDefinition);
   });
 
-  test('builds a typescript application.', async (): Promise<void> => {
+  test('builds a TypeScript application.', async (): Promise<void> => {
     const applicationDirectory = await isolated();
     const wolkenkitDirectory = path.join(__dirname, '..', '..', '..', '..');
 
