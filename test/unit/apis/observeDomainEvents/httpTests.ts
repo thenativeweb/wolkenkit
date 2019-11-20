@@ -20,7 +20,7 @@ import { State } from '../../../../lib/common/elements/State';
 import { uuid } from 'uuidv4';
 import supertest, { Response } from 'supertest';
 
-suite('domainEventPublisher/Http', (): void => {
+suite('observeDomainEvents/http', (): void => {
   const identityProviders = [ identityProvider ];
 
   let applicationDefinition: ApplicationDefinition,
