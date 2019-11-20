@@ -1,4 +1,4 @@
-FROM nginx:1.17.5-alpine
+FROM nginx:1.17.6-alpine
 LABEL maintainer="the native web <hello@thenativeweb.io>"
 
 ADD ./docker/wolkenkit-proxy/configuration/nginx.conf.tpl /tpl/nginx.conf.tpl
