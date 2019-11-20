@@ -1,4 +1,3 @@
-import { sleep } from '../sleep';
 import { AddressInfo, createServer, Server } from 'net';
 
 const servers: Record<number, Server | undefined> = {};
@@ -21,7 +20,7 @@ const lockPort = async function (): Promise<number> {
       reject(err);
     });
 
-    server.listen(0, '127.0.0.1');
+    server.listen(0, '0.0.0.0');
   });
 };
 
@@ -38,7 +37,6 @@ const releasePort = async function ({ port }: { port: number }): Promise<void> {
         return reject(err);
       }
 
-      await sleep({ ms: 50 });
       resolve();
     });
   });
