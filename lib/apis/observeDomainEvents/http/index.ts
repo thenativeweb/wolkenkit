@@ -47,7 +47,7 @@ const getApi = async function ({
     applicationDefinition
   }));
 
-  api.get('/', authenticationMiddleware, v2.getDomainEvents({
+  api.get('/v2/', authenticationMiddleware, v2.getDomainEvents({
     applicationDefinition,
     heartbeatInterval,
     domainEventEmitter,
