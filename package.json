@@ -158,7 +158,7 @@
     "@types/redis": "2.8.14",
     "@types/require-dir": "1.0.0",
     "@types/shelljs": "0.8.6",
-    "@types/sinon": "7.5.0",
+    "@types/sinon": "7.5.1",
     "@types/supertest": "2.0.8",
     "@types/tedious": "4.0.0",
     "assertthat": "5.0.2",
