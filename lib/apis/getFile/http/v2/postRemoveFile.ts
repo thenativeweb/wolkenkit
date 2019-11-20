@@ -5,8 +5,8 @@ import { RequestHandler } from 'express-serve-static-core';
 
 const logger = flaschenpost.getLogger();
 
-const postRemoveFile = ({ fileProvider }: {
-  fileProvider: FileStore;
+const postRemoveFile = ({ fileStore }: {
+  fileStore: FileStore;
 }): RequestHandler => async function (req, res): Promise<any> {
   let metadata;
 
@@ -25,13 +25,13 @@ const postRemoveFile = ({ fileProvider }: {
   const { user } = req;
 
   try {
-    const { isAuthorized } = await fileProvider.getMetadata({ id });
+    const { isAuthorized } = await fileStore.getMetadata({ id });
 
     if (!hasAccess({ user, to: 'commands.removeFile', authorizationOptions: isAuthorized })) {
       return res.status(401).end();
     }
 
-    await fileProvider.removeFile({ id });
+    await fileStore.removeFile({ id });
 
     res.status(200).end();
   } catch (ex) {

@@ -9,9 +9,9 @@ import { getDefaults, hasAccess, isValid } from './isAuthorized';
 
 const logger = flaschenpost.getLogger();
 
-const postAddFile = function ({ addFileAuthorizationOptions, fileProvider }: {
+const postAddFile = function ({ addFileAuthorizationOptions, fileStore }: {
   addFileAuthorizationOptions: SpecificAuthorizationOption;
-  fileProvider: FileStore;
+  fileStore: FileStore;
 }): RequestHandler {
   const rawAuthorizationOptions = merge({}, getDefaults(), {
     commands: {
@@ -66,7 +66,7 @@ const postAddFile = function ({ addFileAuthorizationOptions, fileProvider }: {
     }
 
     try {
-      await fileProvider.addFile({ id, fileName, contentType, isAuthorized, stream: req });
+      await fileStore.addFile({ id, fileName, contentType, isAuthorized, stream: req });
 
       res.status(200).end();
     } catch (ex) {

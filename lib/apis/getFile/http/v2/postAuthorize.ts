@@ -6,8 +6,8 @@ import { hasAccess, isValid } from './isAuthorized';
 
 const logger = flaschenpost.getLogger();
 
-const postAuthorize = ({ fileProvider }: {
-  fileProvider: FileStore;
+const postAuthorize = ({ fileStore }: {
+  fileStore: FileStore;
 }): RequestHandler => async function (req, res): Promise<any> {
   let metadata;
 
@@ -28,7 +28,7 @@ const postAuthorize = ({ fileProvider }: {
   const { user } = req;
 
   try {
-    const { isAuthorized } = await fileProvider.getMetadata({ id });
+    const { isAuthorized } = await fileStore.getMetadata({ id });
 
     if (!hasAccess({ user, to: 'commands.authorize', authorizationOptions: isAuthorized })) {
       return res.status(401).end();
@@ -40,7 +40,7 @@ const postAuthorize = ({ fileProvider }: {
       return res.status(400).send('Is authorized is malformed.');
     }
 
-    await fileProvider.authorize({ id, isAuthorized: newIsAuthorized });
+    await fileStore.authorize({ id, isAuthorized: newIsAuthorized });
 
     res.status(200).end();
   } catch (ex) {

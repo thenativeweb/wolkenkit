@@ -7,16 +7,18 @@ import express, { Application } from 'express';
 const getApiBase = async function ({ request, response }: GetApiBaseParameters): Promise<Application> {
   const api = express();
 
-  api.options('*', cors({
-    methods: [ 'GET', 'POST' ],
-    origin: request.headers.cors.origin,
-    optionsSuccessStatus: 200
-  }));
-  api.use(cors({
-    methods: [ 'GET', 'POST' ],
-    origin: request.headers.cors.origin,
-    optionsSuccessStatus: 200
-  }));
+  if (request.headers.cors) {
+    api.options('*', cors({
+      methods: [ 'GET', 'POST' ],
+      origin: request.headers.cors.origin,
+      optionsSuccessStatus: 200
+    }));
+    api.use(cors({
+      methods: [ 'GET', 'POST' ],
+      origin: request.headers.cors.origin,
+      optionsSuccessStatus: 200
+    }));
+  }
 
   if (!response.headers.cache) {
     api.use(nocache());

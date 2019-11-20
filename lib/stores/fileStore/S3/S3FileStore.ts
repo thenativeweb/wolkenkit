@@ -2,7 +2,7 @@ import { Client } from 'minio';
 import { errors } from '../../../common/errors';
 import { FileStore } from '../FileStore';
 import { Metadata } from '../Metadata';
-import { OwnedAuthorizationOptions } from '../../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
+import { OwnedAuthorizationOptions } from '../../../apis/getFile/http/v2/isAuthorized/AuthorizationOptions';
 import { Readable } from 'stream';
 import streamToString from 'stream-to-string';
 

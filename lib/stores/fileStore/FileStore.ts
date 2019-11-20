@@ -1,5 +1,5 @@
 import { Metadata } from './Metadata';
-import { OwnedAuthorizationOptions } from '../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
+import { OwnedAuthorizationOptions } from '../../apis/getFile/http/v2/isAuthorized/AuthorizationOptions';
 import { Readable } from 'stream';
 
 export interface FileStore {

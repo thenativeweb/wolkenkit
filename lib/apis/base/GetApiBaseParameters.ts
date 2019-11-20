@@ -5,7 +5,7 @@ export interface GetApiBaseParameters {
     headers: {
       cors: {
         origin: CorsOrigin;
-      };
+      } | false;
     };
     body: {
       parser: {

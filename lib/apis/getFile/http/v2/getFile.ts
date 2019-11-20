@@ -8,19 +8,19 @@ import { RequestHandler } from 'express';
 const pipeline = promisify(pipelineCallback);
 const logger = flaschenpost.getLogger();
 
-const getFile = function ({ provider }: { provider: FileStore }): RequestHandler {
+const getFile = function ({ fileStore }: { fileStore: FileStore }): RequestHandler {
   return async function (req, res): Promise<any> {
     const { id } = req.params;
     const { user } = req;
 
     try {
-      const { fileName, contentType, contentLength, isAuthorized } = await provider.getMetadata({ id });
+      const { fileName, contentType, contentLength, isAuthorized } = await fileStore.getMetadata({ id });
 
       if (!hasAccess({ user, to: 'queries.getFile', authorizationOptions: isAuthorized })) {
         return res.status(401).end();
       }
 
-      const stream = await provider.getFile({ id });
+      const stream = await fileStore.getFile({ id });
 
       res.set('content-type', contentType);
       res.set('content-length', String(contentLength));

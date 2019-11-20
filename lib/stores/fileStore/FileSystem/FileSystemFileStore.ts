@@ -4,7 +4,7 @@ import { FileStore } from '../FileStore';
 import fs from 'fs';
 import { isolated } from 'isolated';
 import { Metadata } from '../Metadata';
-import { OwnedAuthorizationOptions } from '../../../apis/file/Http/V2/isAuthorized/AuthorizationOptions';
+import { OwnedAuthorizationOptions } from '../../../apis/getFile/http/v2/isAuthorized/AuthorizationOptions';
 import path from 'path';
 import { promisify } from 'util';
 import { pipeline as pipelineCallback, Readable } from 'stream';

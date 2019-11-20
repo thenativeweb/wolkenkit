@@ -5,8 +5,8 @@ import { RequestHandler } from 'express-serve-static-core';
 
 const logger = flaschenpost.getLogger();
 
-const postTransferOwnership = ({ fileProvider }: {
-  fileProvider: FileStore;
+const postTransferOwnership = ({ fileStore }: {
+  fileStore: FileStore;
 }): RequestHandler => async function (req, res): Promise<any> {
   let metadata;
 
@@ -31,13 +31,13 @@ const postTransferOwnership = ({ fileProvider }: {
   const { user } = req;
 
   try {
-    const { isAuthorized } = await fileProvider.getMetadata({ id });
+    const { isAuthorized } = await fileStore.getMetadata({ id });
 
     if (!hasAccess({ user, to: 'commands.transferOwnership', authorizationOptions: isAuthorized })) {
       return res.status(401).end();
     }
 
-    await fileProvider.transferOwnership({ id, to });
+    await fileStore.transferOwnership({ id, to });
 
     res.status(200).end();
   } catch (ex) {
