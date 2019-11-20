@@ -48,6 +48,7 @@ const getDomainEvents = function ({
             domainEventWithState,
             domainEventFilter,
             applicationDefinition,
+            repository,
             services: {
               aggregates: aggregatesService,
               client: clientService,

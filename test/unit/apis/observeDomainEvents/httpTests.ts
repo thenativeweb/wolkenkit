@@ -448,7 +448,7 @@ suite('observeDomainEvents/http', (): void => {
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
           repository = new Repository({ applicationDefinition, domainEventStore });
 
-          ({ api } = await getApi({
+          ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
             applicationDefinition,
             repository,
@@ -512,7 +512,7 @@ suite('observeDomainEvents/http', (): void => {
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
           repository = new Repository({ applicationDefinition, domainEventStore });
 
-          ({ api } = await getApi({
+          ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
             applicationDefinition,
             repository,
@@ -566,7 +566,7 @@ suite('observeDomainEvents/http', (): void => {
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
           repository = new Repository({ applicationDefinition, domainEventStore });
 
-          ({ api } = await getApi({
+          ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
             applicationDefinition,
             repository,
@@ -616,7 +616,7 @@ suite('observeDomainEvents/http', (): void => {
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
           repository = new Repository({ applicationDefinition, domainEventStore });
 
-          ({ api } = await getApi({
+          ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
             applicationDefinition,
             repository,
@@ -680,7 +680,7 @@ suite('observeDomainEvents/http', (): void => {
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
           repository = new Repository({ applicationDefinition, domainEventStore });
 
-          ({ api } = await getApi({
+          ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
             applicationDefinition,
             repository,
@@ -744,7 +744,7 @@ suite('observeDomainEvents/http', (): void => {
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
           repository = new Repository({ applicationDefinition, domainEventStore });
 
-          ({ api } = await getApi({
+          ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
             applicationDefinition,
             repository,
@@ -798,7 +798,7 @@ suite('observeDomainEvents/http', (): void => {
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
           repository = new Repository({ applicationDefinition, domainEventStore });
 
-          ({ api } = await getApi({
+          ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
             applicationDefinition,
             repository,
@@ -849,7 +849,7 @@ suite('observeDomainEvents/http', (): void => {
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
           repository = new Repository({ applicationDefinition, domainEventStore });
 
-          ({ api } = await getApi({
+          ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
             applicationDefinition,
             repository,
@@ -913,7 +913,7 @@ suite('observeDomainEvents/http', (): void => {
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
           repository = new Repository({ applicationDefinition, domainEventStore });
 
-          ({ api } = await getApi({
+          ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
             applicationDefinition,
             repository,
@@ -977,7 +977,7 @@ suite('observeDomainEvents/http', (): void => {
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
           repository = new Repository({ applicationDefinition, domainEventStore });
 
-          ({ api } = await getApi({
+          ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
             applicationDefinition,
             repository,

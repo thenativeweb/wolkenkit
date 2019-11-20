@@ -6,6 +6,7 @@ import { filterDomainEvent } from './filterDomainEvent';
 import { isDomainEventAuthorized } from './isDomainEventAuthorized';
 import { mapDomainEvent } from './mapDomainEvent';
 import { partOf } from 'partof';
+import { Repository } from '../../../../../common/domain/Repository';
 import { Services } from './Services';
 import { State } from '../../../../../common/elements/State';
 
@@ -13,11 +14,13 @@ const prepareForPublication = async function ({
   domainEventWithState,
   domainEventFilter,
   applicationDefinition,
+  repository,
   services
 }: {
   domainEventWithState: DomainEventWithState<DomainEventData, State>;
   domainEventFilter: object;
   applicationDefinition: ApplicationDefinition;
+  repository: Repository;
   services: Services;
 }): Promise<DomainEvent<DomainEventData> | undefined> {
   if (!partOf(domainEventFilter, domainEventWithState)) {
@@ -25,18 +28,16 @@ const prepareForPublication = async function ({
   }
 
   const {
-    contextIdentifier: {
-      name: contextName
-    },
-    aggregateIdentifier: {
-      name: aggregateName,
-      id: aggregateId
-    },
+    contextIdentifier,
+    aggregateIdentifier,
     name: domainEventName
   } = domainEventWithState;
 
-  const aggregateState =
-    await services.aggregates[contextName]![aggregateName]!(aggregateId).read();
+  const { name: contextName } = contextIdentifier;
+  const { name: aggregateName } = aggregateIdentifier;
+
+  const aggregateInstance = await repository.loadCurrentAggregateState({ contextIdentifier, aggregateIdentifier });
+  const aggregateState = aggregateInstance.state;
 
   const domainEventHandler =
     applicationDefinition.domain[contextName]![aggregateName]!.domainEventHandlers[domainEventName]!;

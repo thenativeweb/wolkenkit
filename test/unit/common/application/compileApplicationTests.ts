@@ -9,7 +9,7 @@ import { stripIndent } from 'common-tags';
 suite('compileApplication', function (): void {
   this.timeout(10 * 1000);
 
-  test('compiles successfully if the typescript code is correct.', async (): Promise<void> => {
+  test('compiles successfully if the TypeScript code is correct.', async (): Promise<void> => {
     const typescriptFileContent = stripIndent`
       export const add = function (left: number, right: number): number {
         return left + right;
@@ -71,7 +71,7 @@ suite('compileApplication', function (): void {
     assert.that(actualJavascript).is.equalTo(expectedJavascript);
   });
 
-  test('throws an error if the typescript code is broken.', async (): Promise<void> => {
+  test('throws an error if the TypeScript code is broken.', async (): Promise<void> => {
     const typescriptFileContent = stripIndent`
       // number + number should not be a string
       export const add = function (left: number, right: number): string {
