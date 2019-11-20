@@ -3,13 +3,14 @@ import { ApplicationDefinition } from '../../../common/application/ApplicationDe
 import { CorsOrigin } from '../../base/CorsOrigin';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
-import { EventEmitter } from 'events';
 import { getApiBase } from '../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../base/getAuthenticationMiddleware';
 import { IdentityProvider } from 'limes';
 import { PublishDomainEvent } from '../PublishDomainEvent';
 import { Repository } from '../../../common/domain/Repository';
+import { SpecializedEventEmitter } from '../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../common/elements/State';
+import { validateDomainEventWithState } from '../../../common/validators/validateDomainEventWithState';
 import * as v2 from './v2';
 
 const getApi = async function ({
@@ -39,7 +40,8 @@ const getApi = async function ({
     identityProviders
   });
 
-  const domainEventEmitter = new EventEmitter();
+  const domainEventEmitter =
+    new SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>();
 
   api.get('/v2/description', v2.getDescription({
     applicationDefinition
@@ -47,13 +49,16 @@ const getApi = async function ({
 
   api.get('/', authenticationMiddleware, v2.getDomainEvents({
     heartbeatInterval,
+    domainEventEmitter,
     repository
   }));
 
   const publishDomainEvent = function ({ domainEvent }: {
     domainEvent: DomainEventWithState<DomainEventData, State>;
   }): void {
-    domainEventEmitter.emit('domain-event', domainEvent);
+    validateDomainEventWithState({ domainEvent, applicationDefinition });
+
+    domainEventEmitter.emit(domainEvent);
   };
 
   return { api, publishDomainEvent };
