@@ -1,39 +1,40 @@
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { getCorsOrigin } from 'get-cors-origin';
-import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
 import { getApi as getHealthApi } from '../../../../apis/getHealth/http';
+import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
 import { IdentityProvider } from 'limes';
-import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
+import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/PublishDomainEvent';
+import { Repository } from '../../../../common/domain/Repository';
 import express, { Application } from 'express';
 
-const getApi = async function ({
+const getPublicApi = async function ({
   environmentVariables,
   applicationDefinition,
   identityProviders,
-  onReceiveCommand
+  repository
 }: {
   environmentVariables: Record<string, any>;
   applicationDefinition: ApplicationDefinition;
   identityProviders: IdentityProvider[];
-  onReceiveCommand: OnReceiveCommand;
-}): Promise<{ api: Application }> {
+  repository: Repository;
+}): Promise<{ api: Application; publishDomainEvent: PublishDomainEvent }> {
   const { api: healthApi } = await getHealthApi({
     corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN)
   });
 
-  const { api: handleCommandApi } = await getHandleCommandApi({
-    corsOrigin: getCorsOrigin(environmentVariables.COMMAND_CORS_ORIGIN),
-    onReceiveCommand,
+  const { api: observeDomainEventsApi, publishDomainEvent } = await getObserveDomainEventsApi({
+    corsOrigin: getCorsOrigin(environmentVariables.DOMAINEVENT_CORS_ORIGIN),
     applicationDefinition,
-    identityProviders
+    identityProviders,
+    repository
   });
 
   const api = express();
 
   api.use('/health', healthApi);
-  api.use('/command', handleCommandApi);
+  api.use('/domain-events', observeDomainEventsApi);
 
-  return { api };
+  return { api, publishDomainEvent };
 };
 
-export { getApi };
+export { getPublicApi };

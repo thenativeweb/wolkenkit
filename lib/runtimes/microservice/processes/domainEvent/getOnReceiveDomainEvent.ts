@@ -8,7 +8,7 @@ import { State } from '../../../../common/elements/State';
 
 const logger = flaschenpost.getLogger();
 
-const getHandleReceivedDomainEvent = function ({ publishDomainEvent }: {
+const getOnReceiveDomainEvent = function ({ publishDomainEvent }: {
   publishDomainEvent: PublishDomainEvent;
 }): OnReceiveDomainEvent {
   return async function ({ domainEvent }: {
@@ -17,13 +17,16 @@ const getHandleReceivedDomainEvent = function ({ publishDomainEvent }: {
     try {
       publishDomainEvent({ domainEvent });
 
-      logger.info('Domain event forwarded to publisher API.', { domainEvent });
+      logger.info('Domain event sent to public API.', { domainEvent });
     } catch (ex) {
-      logger.error('Failed to forward domain event to publisher API.', { domainEvent, ex });
+      logger.error('Failed to send domain event to public API.', { domainEvent, ex });
 
-      throw new errors.ForwardFailed();
+      throw new errors.RequestFailed('Failed to send domain event to public API.', {
+        cause: ex,
+        data: { domainEvent }
+      });
     }
   };
 };
 
-export { getHandleReceivedDomainEvent };
+export { getOnReceiveDomainEvent };

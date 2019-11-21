@@ -4,7 +4,7 @@ import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
-import { getIdentityProviders } from './getIdentityProviders';
+import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getOnReceiveCommand } from './getOnReceiveCommand';
 import http from 'http';
 import path from 'path';
@@ -20,9 +20,9 @@ import { registerExceptionHandler } from '../../../../common/utils/process/regis
     const environmentVariables = getEnvironmentVariables({
       APPLICATION_DIRECTORY: path.join(__dirname, '..', '..', '..', '..', '..', 'test', 'shared', 'applications', 'javascript', 'base'),
       COMMAND_CORS_ORIGIN: '*',
-      DISPATCHER_SERVER_HOSTNAME: 'dispatcher',
-      DISPATCHER_SERVER_PORT: 3000,
-      DISPATCHER_SERVER_RETRIES: 5,
+      DISPATCHER_HOSTNAME: 'dispatcher',
+      DISPATCHER_PORT: 3000,
+      DISPATCHER_RETRIES: 5,
       HEALTH_CORS_ORIGIN: '*',
       IDENTITY_PROVIDERS: [{
         issuer: 'https://token.invalid',
@@ -41,13 +41,13 @@ import { registerExceptionHandler } from '../../../../common/utils/process/regis
 
     const onReceiveCommand = getOnReceiveCommand({
       dispatcher: {
-        hostName: environmentVariables.DISPATCHER_SERVER_HOSTNAME,
-        port: environmentVariables.DISPATCHER_SERVER_PORT,
-        retries: environmentVariables.DISPATCHER_SERVER_RETRIES
+        hostName: environmentVariables.DISPATCHER_HOSTNAME,
+        port: environmentVariables.DISPATCHER_PORT,
+        retries: environmentVariables.DISPATCHER_RETRIES
       }
     });
 
-    const api = await getApi({
+    const { api } = await getApi({
       environmentVariables,
       applicationDefinition,
       identityProviders,

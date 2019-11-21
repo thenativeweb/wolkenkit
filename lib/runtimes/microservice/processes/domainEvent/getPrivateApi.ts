@@ -1,39 +1,35 @@
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { getCorsOrigin } from 'get-cors-origin';
-import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
+import { getApi as getHandleDomainEventsApi } from '../../../../apis/handleDomainEvent/http';
 import { getApi as getHealthApi } from '../../../../apis/getHealth/http';
-import { IdentityProvider } from 'limes';
-import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
+import { OnReceiveDomainEvent } from '../../../../apis/handleDomainEvent/OnReceiveDomainEvent';
 import express, { Application } from 'express';
 
-const getApi = async function ({
+const getPrivateApi = async function ({
   environmentVariables,
   applicationDefinition,
-  identityProviders,
-  onReceiveCommand
+  onReceiveDomainEvent
 }: {
   environmentVariables: Record<string, any>;
   applicationDefinition: ApplicationDefinition;
-  identityProviders: IdentityProvider[];
-  onReceiveCommand: OnReceiveCommand;
+  onReceiveDomainEvent: OnReceiveDomainEvent;
 }): Promise<{ api: Application }> {
   const { api: healthApi } = await getHealthApi({
     corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN)
   });
 
-  const { api: handleCommandApi } = await getHandleCommandApi({
-    corsOrigin: getCorsOrigin(environmentVariables.COMMAND_CORS_ORIGIN),
-    onReceiveCommand,
+  const { api: handleDomainEventsApi } = await getHandleDomainEventsApi({
+    corsOrigin: getCorsOrigin(environmentVariables.DOMAINEVENT_CORS_ORIGIN),
     applicationDefinition,
-    identityProviders
+    onReceiveDomainEvent
   });
 
   const api = express();
 
   api.use('/health', healthApi);
-  api.use('/command', handleCommandApi);
+  api.use('/domain-event', handleDomainEventsApi);
 
   return { api };
 };
 
-export { getApi };
+export { getPrivateApi };

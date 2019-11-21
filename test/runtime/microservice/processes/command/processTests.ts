@@ -15,18 +15,18 @@ suite('command', function (): void {
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-  let commandReceivedByDispatcherServer: object | undefined,
-      dispatcherServerPort: number,
+  let commandReceivedByDispatcher: object | undefined,
+      dispatcherPort: number,
       port: number,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ port, dispatcherServerPort ] = await getAvailablePorts({ count: 2 });
+    [ port, dispatcherPort ] = await getAvailablePorts({ count: 2 });
 
     await startCatchAllServer({
-      port: dispatcherServerPort,
+      port: dispatcherPort,
       onRequest (req, res): void {
-        commandReceivedByDispatcherServer = req.body;
+        commandReceivedByDispatcher = req.body;
         res.status(200).end();
       }
     });
@@ -38,8 +38,8 @@ suite('command', function (): void {
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
         PORT: String(port),
-        DISPATCHER_SERVER_HOSTNAME: 'localhost',
-        DISPATCHER_SERVER_PORT: String(dispatcherServerPort),
+        DISPATCHER_HOSTNAME: 'localhost',
+        DISPATCHER_PORT: String(dispatcherPort),
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
       }
     });
@@ -51,7 +51,7 @@ suite('command', function (): void {
     }
 
     stopProcess = undefined;
-    commandReceivedByDispatcherServer = undefined;
+    commandReceivedByDispatcher = undefined;
   });
 
   suite('GET /health/v2', (): void => {
@@ -83,7 +83,7 @@ suite('command', function (): void {
       }).is.throwingAsync((ex): boolean => (ex as AxiosError).response!.status === 400);
     });
 
-    test('forwards commands to the dispatcher server.', async (): Promise<void> => {
+    test('sends commands to the dispatcher.', async (): Promise<void> => {
       const command = new Command({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -99,7 +99,7 @@ suite('command', function (): void {
 
       assert.that(status).is.equalTo(200);
 
-      assert.that(commandReceivedByDispatcherServer).is.atLeast({
+      assert.that(commandReceivedByDispatcher).is.atLeast({
         ...command,
         metadata: {
           client: {
@@ -112,7 +112,7 @@ suite('command', function (): void {
       });
     });
 
-    test('returns 500 if forwarding the given command to the dispatcher server fails.', async (): Promise<void> => {
+    test('returns 500 if sending the given command to the dispatcher fails.', async (): Promise<void> => {
       if (stopProcess) {
         await stopProcess();
       }
@@ -146,7 +146,7 @@ suite('command', function (): void {
         });
       }).is.throwingAsync((ex): boolean => (ex as AxiosError).response!.status === 500);
 
-      assert.that(commandReceivedByDispatcherServer).is.undefined();
+      assert.that(commandReceivedByDispatcher).is.undefined();
     });
   });
 });
