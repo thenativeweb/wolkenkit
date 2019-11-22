@@ -8,7 +8,7 @@ import { ReadStream } from 'fs';
 import streamToString from 'stream-to-string';
 import { uuid } from 'uuidv4';
 
-/* eslint-disable mocha/max-top-level-suites */
+/* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createFileStore }: {
   createFileStore (): Promise<FileStore>;
 }): void {
@@ -123,6 +123,6 @@ const getTestsFor = function ({ createFileStore }: {
     });
   });
 };
-/* eslint-enable mocha/max-top-level-suites */
+/* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 
 export { getTestsFor };

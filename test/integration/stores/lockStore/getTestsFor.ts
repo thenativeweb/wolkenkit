@@ -18,7 +18,7 @@ const oneSecondAgo = function (): number {
   return inMilliseconds({ ms: -1000 });
 };
 
-/* eslint-disable mocha/max-top-level-suites */
+/* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }: {
   createLockStore ({ suffix, nonce }: {
     suffix: string;
@@ -271,6 +271,6 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
     }
   });
 };
-/* eslint-enable mocha/max-top-level-suites */
+/* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 
 export { getTestsFor };
