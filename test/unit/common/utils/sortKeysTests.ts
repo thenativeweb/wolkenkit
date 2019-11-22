@@ -1,6 +1,6 @@
-import assert from 'assertthat';
+import { assert } from 'assertthat';
 
-import sortKeys from '../../../../src/common/utils/sortKeys';
+import { sortKeys } from '../../../../lib/common/utils/sortKeys';
 
 suite('sortKeys', (): void => {
   test('sorts the keys of a shallow object.', async (): Promise<void> => {

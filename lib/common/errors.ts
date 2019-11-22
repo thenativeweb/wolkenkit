@@ -1,0 +1,42 @@
+import { defekt } from 'defekt';
+
+const errors = defekt({
+  AggregateDefinitionMalformed: {},
+  AggregateNotFound: {},
+  ApplicationNotFound: {},
+  CommandHandlerMalformed: {},
+  CommandMalformed: {},
+  CommandNotFound: {},
+  CommandRejected: {},
+  CompilationFailed: {},
+  ContextNotFound: {},
+  CorsOriginInvalid: {},
+  DatabaseTypeInvalid: {},
+  DirectoryNotFound: {},
+  DispatchFailed: {},
+  DomainEventAlreadyExists: {},
+  DomainEventHandlerMalformed: {},
+  DomainEventNotAuthorized: {},
+  DomainEventNotFound: {},
+  DomainEventMalformed: {},
+  DomainEventRejected: {},
+  DomainEventUnknown: {},
+  FileAlreadyExists: {},
+  FileNotFound: {},
+  IdentifierMismatch: {},
+  InvalidOperation: {},
+  ItemAlreadyExists: {},
+  ItemNotFound: {},
+  ItemNotLocked: {},
+  LockExpired: {},
+  NotAuthenticatedError: {},
+  ProjectionHandlerMalformed: {},
+  QueryHandlerMalformed: {},
+  RequestFailed: {},
+  RequestMalformed: {},
+  TokenMismatch: {},
+  TypeInvalid: {},
+  ViewDefinitionMalformed: {}
+});
+
+export { errors };

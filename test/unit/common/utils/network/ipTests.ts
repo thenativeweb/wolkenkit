@@ -1,5 +1,5 @@
-import assert from 'assertthat';
-import ip from '../../../../../src/common/utils/network/ip';
+import { assert } from 'assertthat';
+import { ip } from '../../../../../lib/common/utils/network/ip';
 
 suite('ip', (): void => {
   suite('is', (): void => {

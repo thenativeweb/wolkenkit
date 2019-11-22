@@ -3,20 +3,18 @@
     "baseUrl": ".",
     "declaration": true,
     "esModuleInterop": true,
-    "lib": [ "esnext" ],
-    "module": "commonjs",
+    "lib": [ "ES2020" ],
+    "module": "CommonJS",
     "outDir": "build",
-    "paths": {
-      "*": [ "./types/*" ]
-    },
-    "resolveJsonModule": true,
     "strict": true,
-    "target": "es2019"
+    "target": "ES2020"
   },
   "include": [
-    "./src/**/*.ts",
     "./docker/**/*.ts",
-    "./test/**/*.ts",
-    "./types"
+    "./lib/**/*.ts",
+    "./test/**/*.ts"
+  ],
+  "exclude": [
+    "./build/**/*.ts"
   ]
 }

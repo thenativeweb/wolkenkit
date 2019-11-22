@@ -1,5 +1,5 @@
-import assert from 'assertthat';
-import getIpAddresses from '../../../../../src/common/utils/network/getIpAddresses';
+import { assert } from 'assertthat';
+import { getIpAddresses } from '../../../../../lib/common/utils/network/getIpAddresses';
 
 suite('getIpAddresses', (): void => {
   test('returns addresses if ip is given.', async (): Promise<void> => {

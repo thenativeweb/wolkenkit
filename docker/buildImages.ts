@@ -1,14 +1,14 @@
-import fs from 'fs-extra';
+import fs from 'fs';
 import { oneLine } from 'common-tags';
 import path from 'path';
 import shell from 'shelljs';
 
 const buildImages = async function (): Promise<void> {
-  const entries = await fs.readdir(__dirname);
+  const entries = await fs.promises.readdir(__dirname);
 
   await Promise.all(entries.map(async (entry: string): Promise<void> => {
     const imageDirectory = path.join(__dirname, entry);
-    const stat = await fs.stat(imageDirectory);
+    const stat = await fs.promises.stat(imageDirectory);
 
     if (!stat.isDirectory()) {
       return;
@@ -30,4 +30,4 @@ const buildImages = async function (): Promise<void> {
   }));
 };
 
-export default buildImages;
+export { buildImages };

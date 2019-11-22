@@ -1,17 +1,6 @@
-FROM node:12.12.0-alpine
+FROM node:12.13.0-alpine
 LABEL maintainer="the native web <hello@thenativeweb.io>"
 
 RUN apk update && \
     apk upgrade && \
     apk add git
-
-ADD ./package.json /wolkenkit/
-
-RUN cd /wolkenkit && \
-    npm install --production --silent
-
-ADD . /wolkenkit/
-
-# CMD is set programmatically by the wolkenkit CLI.
-
-ONBUILD ADD . /wolkenkit-application/

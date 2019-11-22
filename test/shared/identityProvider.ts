@@ -10,4 +10,4 @@ const identityProvider = new IdentityProvider({
 });
 /* eslint-enable no-sync */
 
-export default identityProvider;
+export { identityProvider };

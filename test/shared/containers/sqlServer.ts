@@ -1,8 +1,8 @@
-import buntstift from 'buntstift';
-import connectionOptions from './connectionOptions';
+import { buntstift } from 'buntstift';
+import { connectionOptions } from './connectionOptions';
 import { oneLine } from 'common-tags';
 import retry from 'async-retry';
-import retryOptions from './retryOptions';
+import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
 import { Connection, Request } from 'tedious';
 
@@ -32,9 +32,9 @@ const createDatabase = async function ({ connection, database }: {
 const sqlServer = {
   async start (): Promise<void> {
     const {
-      hostname,
+      hostName,
       port,
-      username,
+      userName,
       password,
       database
     } = connectionOptions.sqlServer;
@@ -50,14 +50,11 @@ const sqlServer = {
     `);
 
     const configuration = {
-      server: hostname,
+      server: hostName,
       options: { port, database: 'master', encrypt: false },
       authentication: {
         type: 'default',
-        options: {
-          userName: username,
-          password
-        }
+        options: { userName, password }
       }
     };
 
@@ -124,4 +121,4 @@ const sqlServer = {
   }
 };
 
-export default sqlServer;
+export { sqlServer };

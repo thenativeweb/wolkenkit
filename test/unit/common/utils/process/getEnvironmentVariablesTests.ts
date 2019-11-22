@@ -1,6 +1,6 @@
-import assert from 'assertthat';
-import getEnvironmentVariables from '../../../../../src/common/utils/process/getEnvironmentVariables';
-import nodeenv from 'nodeenv';
+import { assert } from 'assertthat';
+import { getEnvironmentVariables } from '../../../../../lib/common/utils/process/getEnvironmentVariables';
+import { nodeenv } from 'nodeenv';
 
 suite('getEnvironmentVariables', (): void => {
   test('returns the required environment variables if they are set.', async (): Promise<void> => {

@@ -1,6 +1,4 @@
-FROM mongo:3.5.6
+FROM mongo:4.2.1
 LABEL maintainer="the native web <hello@thenativeweb.io>"
 
-ADD ./docker/wolkenkit-mongodb/scripts /scripts
-
-CMD [ "/scripts/run.sh" ]
+ADD ./docker/wolkenkit-mongodb/scripts/initialize.sh /docker-entrypoint-initdb.d/

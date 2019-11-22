@@ -21,8 +21,8 @@ jobs:
             export NVM_DIR="/opt/circleci/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-            nvm install v12.10.0
-            nvm alias default v12.10.0
+            nvm install v12.13.1
+            nvm alias default v12.13.1
       - restore_cache:
           keys:
             - node-modules-{{ checksum "package.json" }}
