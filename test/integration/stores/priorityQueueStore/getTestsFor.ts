@@ -7,7 +7,7 @@ import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/Pr
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { uuid } from 'uuidv4';
 
-/* eslint-disable mocha/max-top-level-suites */
+/* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createPriorityQueueStore }: {
   createPriorityQueueStore ({ expirationTime }: {
     expirationTime: number;
@@ -302,6 +302,6 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
   });
 };
-/* eslint-enable mocha/max-top-level-suites */
+/* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 
 export { getTestsFor };
