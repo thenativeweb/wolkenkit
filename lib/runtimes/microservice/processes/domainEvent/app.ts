@@ -1,17 +1,14 @@
 #!/usr/bin/env node
 
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
-import express from 'express';
 import { flaschenpost } from 'flaschenpost';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
-import { getCorsOrigin } from 'get-cors-origin';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
-import { getApi as getHandleDomainEventsApi } from '../../../../apis/handleDomainEvent/http';
-import { getHandleReceivedDomainEvent } from './getHandleReceivedDomainEvent';
-import { getApi as getHealthApi } from '../../../../apis/getHealth/http';
-import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
+import { getIdentityProviders } from '../../../shared/getIdentityProviders';
+import { getOnReceiveDomainEvent } from './getOnReceiveDomainEvent';
+import { getPrivateApi } from './getPrivateApi';
+import { getPublicApi } from './getPublicApi';
 import http from 'http';
-import { IdentityProvider } from 'limes';
 import path from 'path';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
@@ -32,15 +29,13 @@ import { Repository } from '../../../../common/domain/Repository';
       issuer: 'https://token.invalid',
       certificate: path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io')
     }],
-    PORT_PUBLISHER: 3000,
-    PORT_RECEIVER: 4000
+    PORT_PUBLIC: 3000,
+    PORT_PRIVATE: 4000
   });
 
-  const identityProviders = environmentVariables.IDENTITY_PROVIDERS.
-    map((identityProvider): IdentityProvider => new IdentityProvider({
-      issuer: identityProvider.issuer,
-      certificate: Buffer.from(path.join(identityProvider.certificate, 'certificate.pem'))
-    }));
+  const identityProviders = await getIdentityProviders({
+    identityProvidersEnvironmentVariable: environmentVariables.IDENTITY_PROVIDERS
+  });
 
   const applicationDefinition = await getApplicationDefinition({
     applicationDirectory: environmentVariables.APPLICATION_DIRECTORY
@@ -51,50 +46,37 @@ import { Repository } from '../../../../common/domain/Repository';
     options: environmentVariables.DOMAINEVENTSTORE_OPTIONS
   });
 
-  const repository = new Repository({ applicationDefinition, domainEventStore });
+  const repository = new Repository({
+    applicationDefinition,
+    domainEventStore
+  });
 
-  const domainEventPublisherHttp = await getObserveDomainEventsApi({
-    corsOrigin: getCorsOrigin(environmentVariables.DOMAINEVENT_CORS_ORIGIN),
+  const { api: publicApi, publishDomainEvent } = await getPublicApi({
+    environmentVariables,
     applicationDefinition,
     identityProviders,
     repository
   });
 
-  const healthHttp = await getHealthApi({
-    corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN)
+  const onReceiveDomainEvent = getOnReceiveDomainEvent({
+    publishDomainEvent
   });
 
-  const handleReceivedDomainEvent = getHandleReceivedDomainEvent({
-    publishDomainEvent: domainEventPublisherHttp.publishDomainEvent
-  });
-  const domainEventReceiverHttp = await getHandleDomainEventsApi({
-    onReceiveDomainEvent: handleReceivedDomainEvent,
-    corsOrigin: '*',
-    applicationDefinition
+  const { api: privateApi } = await getPrivateApi({
+    environmentVariables,
+    applicationDefinition,
+    onReceiveDomainEvent
   });
 
-  const domainEventPublisherApi = express();
-  const domainEventReceiverApi = express();
+  const privateServer = http.createServer(privateApi);
+  const publicServer = http.createServer(publicApi);
 
-  domainEventPublisherApi.use('/domain-events', domainEventPublisherHttp.api);
-  domainEventPublisherApi.use('/health', healthHttp.api);
-
-  domainEventReceiverApi.use('/domain-event', domainEventReceiverHttp.api);
-  domainEventReceiverApi.use('/health', healthHttp.api);
-
-  const publishingServer = http.createServer(domainEventPublisherApi);
-  const receivingServer = http.createServer(domainEventReceiverApi);
-
-  await new Promise((resolve): void => {
-    publishingServer.listen(environmentVariables.PORT_PUBLISHER, resolve);
+  privateServer.listen(environmentVariables.PORT_PRIVATE, (): void => {
+    logger.info('Private server started.', { port: environmentVariables.PORT_PRIVATE });
   });
 
-  logger.info('Domain event publisher server started.', { port: environmentVariables.PORT_PUBLISHER });
-
-  await new Promise((resolve): void => {
-    receivingServer.listen(environmentVariables.PORT_RECEIVER, resolve);
+  publicServer.listen(environmentVariables.PORT_PUBLIC, (): void => {
+    logger.info('Public server started.', { port: environmentVariables.PORT_PUBLIC });
   });
-
-  logger.info('Domain event receiver server started.', { port: environmentVariables.PORT_RECEIVER });
 })();
 /* eslint-enable @typescript-eslint/no-floating-promises */

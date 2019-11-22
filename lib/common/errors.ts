@@ -23,7 +23,6 @@ const errors = defekt({
   DomainEventUnknown: {},
   FileAlreadyExists: {},
   FileNotFound: {},
-  ForwardFailed: {},
   IdentifierMismatch: {},
   InvalidOperation: {},
   ItemAlreadyExists: {},

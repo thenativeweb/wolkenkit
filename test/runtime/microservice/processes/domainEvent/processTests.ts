@@ -17,21 +17,21 @@ suite('domain event', function (): void {
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-  let portPublisher: number,
-      portReceiver: number,
+  let privatePort: number,
+      publicPort: number,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ portPublisher, portReceiver ] = await getAvailablePorts({ count: 2 });
+    [ publicPort, privatePort ] = await getAvailablePorts({ count: 2 });
 
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEvent',
-      port: portPublisher,
+      port: publicPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
-        PORT_PUBLISHER: String(portPublisher),
-        PORT_RECEIVER: String(portReceiver),
+        PORT_PRIVATE: String(privatePort),
+        PORT_PUBLIC: String(publicPort),
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
       }
     });
@@ -46,22 +46,22 @@ suite('domain event', function (): void {
   });
 
   suite('GET /health/v2', (): void => {
-    suite('external', (): void => {
+    suite('public', (): void => {
       test('is using the health API.', async (): Promise<void> => {
         const { status } = await axios({
           method: 'get',
-          url: `http://localhost:${portPublisher}/health/v2`
+          url: `http://localhost:${publicPort}/health/v2`
         });
 
         assert.that(status).is.equalTo(200);
       });
     });
 
-    suite('internal', (): void => {
+    suite('private', (): void => {
       test('is using the health API.', async (): Promise<void> => {
         const { status } = await axios({
           method: 'get',
-          url: `http://localhost:${portReceiver}/health/v2`
+          url: `http://localhost:${privatePort}/health/v2`
         });
 
         assert.that(status).is.equalTo(200);
@@ -69,7 +69,7 @@ suite('domain event', function (): void {
     });
   });
 
-  suite('POST /domain-event/v2 (internal)', (): void => {
+  suite('POST /domain-event/v2 (private)', (): void => {
     test('rejects invalid domain events.', async (): Promise<void> => {
       const domainEventWithoutState = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
@@ -85,13 +85,13 @@ suite('domain event', function (): void {
       await assert.that(async (): Promise<void> => {
         await axios({
           method: 'post',
-          url: `http://localhost:${portReceiver}/domain-event/v2`,
+          url: `http://localhost:${privatePort}/domain-event/v2`,
           data: domainEventWithoutState
         });
       }).is.throwingAsync((ex): boolean => (ex as AxiosError).response!.status === 400);
     });
 
-    test('forwards domain events to the external domain event API.', async (): Promise<void> => {
+    test('forwards domain events to the public API.', async (): Promise<void> => {
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
           contextIdentifier: { name: 'sampleContext' },
@@ -112,7 +112,7 @@ suite('domain event', function (): void {
       setTimeout(async (): Promise<void> => {
         const { status } = await axios({
           method: 'post',
-          url: `http://localhost:${portReceiver}/domain-event/v2`,
+          url: `http://localhost:${privatePort}/domain-event/v2`,
           data: domainEvent
         });
 
@@ -123,7 +123,7 @@ suite('domain event', function (): void {
         try {
           const { data } = await axios({
             method: 'get',
-            url: `http://localhost:${portPublisher}/domain-events/v2`,
+            url: `http://localhost:${publicPort}/domain-events/v2`,
             responseType: 'stream'
           });
 
