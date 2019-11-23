@@ -9,7 +9,7 @@ import { runQuery } from '../../utils/mySql/runQuery';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
-import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
+import { createPool, Pool, PoolConnection } from 'mysql2';
 
 class MariaDbDomainEventStore implements DomainEventStore {
   protected tableNames: TableNames;
@@ -31,14 +31,14 @@ class MariaDbDomainEventStore implements DomainEventStore {
   protected static releaseConnection ({ connection }: {
     connection: PoolConnection;
   }): void {
-    (connection as any).removeListener('end', MariaDbDomainEventStore.onUnexpectedClose);
+    connection.removeListener('end', MariaDbDomainEventStore.onUnexpectedClose);
     connection.release();
   }
 
   protected async getDatabase (): Promise<PoolConnection> {
     const database = await retry(async (): Promise<PoolConnection> =>
       new Promise((resolve, reject): void => {
-        this.pool.getConnection((err: MysqlError | null, poolConnection): void => {
+        this.pool.getConnection((err: Error | null, poolConnection): void => {
           if (err) {
             return reject(err);
           }
@@ -69,7 +69,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
     });
 
     pool.on('connection', (connection): void => {
-      connection.on('error', (err): never => {
+      connection.on('error', (err: Error): never => {
         throw err;
       });
 
@@ -169,7 +169,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
       passThrough.end();
     };
 
-    const onError = function (err: MysqlError): void {
+    const onError = function (err: Error): void {
       unsubscribe();
       passThrough.emit('error', err);
       passThrough.end();
@@ -261,7 +261,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
       passThrough.end();
     };
 
-    const onError = function (err: MysqlError): void {
+    const onError = function (err: Error): void {
       unsubscribe();
       passThrough.emit('error', err);
       passThrough.end();
@@ -336,7 +336,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
       passThrough.end();
     };
 
-    const onError = function (err: MysqlError): void {
+    const onError = function (err: Error): void {
       unsubscribe();
       passThrough.emit('error', err);
       passThrough.end();

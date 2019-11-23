@@ -4,7 +4,7 @@ import { oneLine } from 'common-tags';
 import retry from 'async-retry';
 import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
-import { createPool, MysqlError, PoolConnection } from 'mysql';
+import { createPool, PoolConnection } from 'mysql2';
 
 const mySql = {
   async start (): Promise<void> {
@@ -41,7 +41,7 @@ const mySql = {
     try {
       await retry(async (): Promise<void> => {
         const connection: PoolConnection = await new Promise((resolve, reject): void => {
-          pool.getConnection((err: MysqlError | null, poolConnection): void => {
+          pool.getConnection((err: Error | null, poolConnection): void => {
             if (err) {
               reject(err);
 

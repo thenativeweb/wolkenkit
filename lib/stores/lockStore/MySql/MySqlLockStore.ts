@@ -5,7 +5,7 @@ import retry from 'async-retry';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { sortKeys } from '../../../common/utils/sortKeys';
 import { TableNames } from './TableNames';
-import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
+import { createPool, Pool, PoolConnection } from 'mysql2';
 
 class MySqlLockStore implements LockStore {
   protected pool: Pool;
@@ -35,13 +35,13 @@ class MySqlLockStore implements LockStore {
   protected static releaseConnection ({ connection }: {
     connection: PoolConnection;
   }): void {
-    (connection as any).removeListener('end', MySqlLockStore.onUnexpectedClose);
+    connection.removeListener('end', MySqlLockStore.onUnexpectedClose);
     connection.release();
   }
 
   protected async getDatabase (): Promise<PoolConnection> {
     const database = await retry(async (): Promise<PoolConnection> => new Promise((resolve, reject): void => {
-      this.pool.getConnection((err: MysqlError | null, poolConnection): void => {
+      this.pool.getConnection((err: Error | null, poolConnection): void => {
         if (err) {
           reject(err);
 

@@ -9,7 +9,7 @@ import { runQuery } from '../../utils/mySql/runQuery';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
-import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
+import { createPool, Pool, PoolConnection } from 'mysql2';
 
 class MySqlDomainEventStore implements DomainEventStore {
   protected tableNames: TableNames;
@@ -31,13 +31,13 @@ class MySqlDomainEventStore implements DomainEventStore {
   protected static releaseConnection ({ connection }: {
     connection: PoolConnection;
   }): void {
-    (connection as any).removeListener('end', MySqlDomainEventStore.onUnexpectedClose);
+    connection.removeListener('end', MySqlDomainEventStore.onUnexpectedClose);
     connection.release();
   }
 
   protected async getDatabase (): Promise<PoolConnection> {
     const database = await retry(async (): Promise<PoolConnection> => new Promise((resolve, reject): void => {
-      this.pool.getConnection((err: MysqlError | null, poolConnection): void => {
+      this.pool.getConnection((err: Error | null, poolConnection): void => {
         if (err) {
           reject(err);
 
@@ -81,6 +81,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     const createUuidToBinFunction = `
       CREATE FUNCTION UuidToBin(_uuid BINARY(36))
         RETURNS BINARY(16)
+        NO SQL
         RETURN UNHEX(CONCAT(
           SUBSTR(_uuid, 15, 4),
           SUBSTR(_uuid, 10, 4),
@@ -197,7 +198,7 @@ class MySqlDomainEventStore implements DomainEventStore {
       unsubscribe();
       passThrough.end();
     };
-    const onError = function (err: MysqlError): void {
+    const onError = function (err: Error): void {
       unsubscribe();
       passThrough.emit('error', err);
       passThrough.end();
@@ -287,7 +288,7 @@ class MySqlDomainEventStore implements DomainEventStore {
       unsubscribe();
       passThrough.end();
     };
-    const onError = function (err: MysqlError): void {
+    const onError = function (err: Error): void {
       unsubscribe();
       passThrough.emit('error', err);
       passThrough.end();
@@ -360,7 +361,7 @@ class MySqlDomainEventStore implements DomainEventStore {
       unsubscribe();
       passThrough.end();
     };
-    const onError = function (err: MysqlError): void {
+    const onError = function (err: Error): void {
       unsubscribe();
       passThrough.emit('error', err);
       passThrough.end();

@@ -1,11 +1,11 @@
-import { MysqlError, PoolConnection } from 'mysql';
+import { PoolConnection } from 'mysql2';
 
 type Resolve = (value?: unknown) => void;
 type Reject = (reason?: any) => void;
-type Callback = (err: MysqlError | null) => void;
+type Callback = (err: Error | null) => void;
 
 const getCallback = function (resolve: Resolve, reject: Reject): Callback {
-  return function (err: null | MysqlError, rows?: any, fields?: any): void {
+  return function (err: null | Error, rows?: any, fields?: any): void {
     if (err) {
       return reject(err);
     }
