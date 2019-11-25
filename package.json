@@ -152,7 +152,7 @@
     "@types/minio": "7.0.4",
     "@types/mongodb": "3.3.11",
     "@types/mysql": "2.15.8",
-    "@types/node": "12.12.12",
+    "@types/node": "12.12.13",
     "@types/pg": "7.11.2",
     "@types/pg-query-stream": "1.0.3",
     "@types/redis": "2.8.14",
