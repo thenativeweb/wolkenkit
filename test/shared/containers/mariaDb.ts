@@ -49,7 +49,6 @@ const mariaDb = {
             }
 
             connection.release();
-
             resolve(connection);
           });
         });
@@ -60,8 +59,14 @@ const mariaDb = {
       throw ex;
     }
 
-    await new Promise((resolve): void => {
-      pool.end(resolve);
+    await new Promise((resolve, reject): void => {
+      pool.end((err): void => {
+        if (err) {
+          return reject(err);
+        }
+
+        resolve();
+      });
     });
   },
 

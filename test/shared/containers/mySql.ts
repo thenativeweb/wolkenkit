@@ -4,7 +4,7 @@ import { oneLine } from 'common-tags';
 import retry from 'async-retry';
 import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
-import { createPool, MysqlError, PoolConnection } from 'mysql';
+import { createPool, MysqlError } from 'mysql';
 
 const mySql = {
   async start (): Promise<void> {
@@ -40,18 +40,18 @@ const mySql = {
 
     try {
       await retry(async (): Promise<void> => {
-        const connection: PoolConnection = await new Promise((resolve, reject): void => {
-          pool.getConnection((err: MysqlError | null, poolConnection): void => {
+        await new Promise((resolve, reject): void => {
+          pool.getConnection((err: MysqlError | null, connection): void => {
             if (err) {
               reject(err);
 
               return;
             }
-            resolve(poolConnection);
+
+            connection.release();
+            resolve(connection);
           });
         });
-
-        connection.release();
       }, retryOptions);
     } catch (ex) {
       buntstift.info(ex.message);
@@ -59,8 +59,14 @@ const mySql = {
       throw ex;
     }
 
-    await new Promise((resolve): void => {
-      pool.end(resolve);
+    await new Promise((resolve, reject): void => {
+      pool.end((err): void => {
+        if (err) {
+          return reject(err);
+        }
+
+        resolve();
+      });
     });
   },
 
