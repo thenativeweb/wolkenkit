@@ -1,7 +1,7 @@
 const connectionOptions = {
   mariaDb: {
     hostName: 'localhost',
-    port: 3306,
+    port: 3307,
     userName: 'wolkenkit',
     password: 'wolkenkit',
     database: 'wolkenkit'
@@ -22,7 +22,7 @@ const connectionOptions = {
   },
   mySql: {
     hostName: 'localhost',
-    port: 3307,
+    port: 3308,
     userName: 'wolkenkit',
     password: 'wolkenkit',
     database: 'wolkenkit'
