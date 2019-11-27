@@ -26,7 +26,7 @@ const mariaDb = {
         -e MYSQL_DATABASE=${database}
         --name test-mariadb
         thenativeweb/wolkenkit-mariadb:latest
-        --bind-address=0.0.0.0
+        --bind-address=127.0.0.1
     `);
 
     const pool = createPool({
