@@ -22,4 +22,4 @@ jobs:
         npm install
     - name: Run roboter
       run: |
-        npx roboter
+        npx roboter || docker exec -t test-mariadb mysql --port 3307 -u wolkenkit -p wolkenkit --execute "SHOW TABLES"

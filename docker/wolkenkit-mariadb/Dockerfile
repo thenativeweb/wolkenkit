@@ -1,2 +1,2 @@
-FROM mariadb:10.3.20
+FROM mariadb:10.4.10
 LABEL maintainer="the native web <hello@thenativeweb.io>"
