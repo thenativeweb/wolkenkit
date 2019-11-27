@@ -4,6 +4,7 @@ import { oneLine } from 'common-tags';
 import retry from 'async-retry';
 import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
+import { sleep } from '../../../lib/common/utils/sleep';
 import { createPool, MysqlError } from 'mysql';
 
 const mariaDb = {
@@ -28,6 +29,8 @@ const mariaDb = {
         thenativeweb/wolkenkit-mariadb:latest
         --bind-address=0.0.0.0
     `);
+
+    await sleep({ ms: 30_000 });
 
     const pool = createPool({
       host: hostName,
