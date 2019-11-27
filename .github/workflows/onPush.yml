@@ -22,4 +22,4 @@ jobs:
         npm install
     - name: Run roboter
       run: |
-        docker run -d -p 3309:3306 -e MYSQL_ROOT_PASSWORD=wolkenkit -e MYSQL_USER=wolkenkit -e MYSQL_PASSWORD=wolkenkit -e MYSQL_DATABASE=wolkenkit --name test-mariadb mysql:5.7.21 --bind-address=0.0.0.0 && mysql --port=3009 --user=wolkenkit --password=wolkenkit --database=wolkenkit --verbose --execute="SELECT USER(),CURRENT_USER();"
+        docker run -d -p 3309:3306 -e MYSQL_ROOT_PASSWORD=wolkenkit -e MYSQL_USER=wolkenkit -e MYSQL_PASSWORD=wolkenkit -e MYSQL_DATABASE=wolkenkit --name test-mariadb mysql:5.7.21 --bind-address=0.0.0.0 && sleep 15 && mysql --port=3009 --user=wolkenkit --password=wolkenkit --database=wolkenkit --verbose --execute="SELECT USER(),CURRENT_USER();"
