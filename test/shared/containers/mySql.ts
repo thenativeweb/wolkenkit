@@ -60,7 +60,7 @@ const mySql = {
     }
 
     await new Promise((resolve, reject): void => {
-      pool.end((err): void => {
+      pool.end((err: MysqlError | null): void => {
         if (err) {
           return reject(err);
         }
