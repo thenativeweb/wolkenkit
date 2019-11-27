@@ -29,6 +29,11 @@ const mariaDb = {
         --bind-address=0.0.0.0
     `);
 
+    return;
+
+    /* eslint-disable unicorn/no-abusive-eslint-disable */
+    /* eslint-disable */
+
     const pool = createPool({
       host: hostName,
       port,
