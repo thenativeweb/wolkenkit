@@ -60,10 +60,17 @@ const mariaDb = {
     }
 
     await new Promise((resolve, reject): void => {
+      /* eslint-disable no-console */
+      console.log('########## 1');
+      /* eslint-enable no-console */
+
       pool.end((err: MysqlError | null): void => {
+        /* eslint-disable no-console */
+        console.log('########## 2');
+        /* eslint-enable no-console */
         if (err) {
           /* eslint-disable no-console */
-          console.log('##########', err);
+          console.log('########## 3', err);
           /* eslint-enable no-console */
 
           return reject(err);
