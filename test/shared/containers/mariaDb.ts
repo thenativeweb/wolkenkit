@@ -42,13 +42,14 @@ const mariaDb = {
       await retry(async (): Promise<void> => {
         await new Promise((resolve, reject): void => {
           pool.getConnection((err: MysqlError | null, connection): void => {
-            connection.release();
-
             if (err) {
               reject(err);
 
               return;
             }
+
+            connection.release();
+
             resolve(connection);
           });
         });
