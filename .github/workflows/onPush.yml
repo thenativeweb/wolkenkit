@@ -22,4 +22,4 @@ jobs:
         npm install
     - name: Run roboter
       run: |
-        npx roboter || mysql --port 3007 -u wolkenkit -p wolkenkit --execute "SHOW TABLES"
+        npx roboter || mysql --port=3007 --user=wolkenkit --password=wolkenkit --execute="SHOW TABLES"
