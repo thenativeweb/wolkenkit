@@ -4,7 +4,7 @@ import { oneLine } from 'common-tags';
 import retry from 'async-retry';
 import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
-import { createPool, MysqlError, PoolConnection } from 'mysql';
+import { createPool, MysqlError } from 'mysql';
 
 const mariaDb = {
   async start (): Promise<void> {
