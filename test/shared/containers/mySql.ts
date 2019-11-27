@@ -4,7 +4,6 @@ import { oneLine } from 'common-tags';
 import retry from 'async-retry';
 import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
-import { sleep } from '../../../lib/common/utils/sleep';
 import { createPool, MysqlError } from 'mysql';
 
 const mySql = {
@@ -59,8 +58,6 @@ const mySql = {
       buntstift.error('Failed to connect to MySQL.');
       throw ex;
     }
-
-    await sleep({ ms: 1000 });
 
     await new Promise((resolve, reject): void => {
       pool.end((err: MysqlError | null): void => {
