@@ -40,18 +40,18 @@ const mariaDb = {
 
     try {
       await retry(async (): Promise<void> => {
-        const connection: PoolConnection = await new Promise((resolve, reject): void => {
-          pool.getConnection((err: MysqlError | null, poolConnection): void => {
+        await new Promise((resolve, reject): void => {
+          pool.getConnection((err: MysqlError | null, connection): void => {
+            connection.release();
+
             if (err) {
               reject(err);
 
               return;
             }
-            resolve(poolConnection);
+            resolve(connection);
           });
         });
-
-        connection.release();
       }, retryOptions);
     } catch (ex) {
       buntstift.info(ex.message);
