@@ -41,16 +41,20 @@ const mySql = {
     try {
       await retry(async (): Promise<void> => {
         await new Promise((resolve, reject): void => {
-          pool.getConnection((err: MysqlError | null, connection): void => {
-            if (err) {
-              reject(err);
+          try {
+            pool.getConnection((err: MysqlError | null, connection): void => {
+              if (err) {
+                reject(err);
 
-              return;
-            }
+                return;
+              }
 
-            connection.release();
-            resolve(connection);
-          });
+              connection.release();
+              resolve(connection);
+            });
+          } catch (ex) {
+            reject(ex);
+          }
         });
       }, retryOptions);
     } catch (ex) {
