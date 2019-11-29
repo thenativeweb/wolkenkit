@@ -11,7 +11,7 @@ wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and
 | Version          | [![npm](https://img.shields.io/npm/v/wolkenkit)](https://www.npmjs.com/package/wolkenkit)                                                      |
 | Dependencies     | ![David](https://img.shields.io/david/thenativeweb/wolkenkit)                                                                                  |
 | Dev dependencies | ![David](https://img.shields.io/david/dev/thenativeweb/wolkenkit)                                                                              |
-| Build            | [![CircleCI](https://img.shields.io/circleci/build/github/thenativeweb/wolkenkit)](https://circleci.com/gh/thenativeweb/wolkenkit/tree/master) |
+| Build            | ![GitHub Actions](https://github.com/thenativeweb/wolkenkit/workflows/Release/badge.svg?branch=master) |
 | License          | ![GitHub](https://img.shields.io/github/license/thenativeweb/wolkenkit)                                                                        |
 
 ## Installation
