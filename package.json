@@ -161,7 +161,7 @@
     "@types/sinon": "7.5.1",
     "@types/supertest": "2.0.8",
     "@types/tedious": "4.0.0",
-    "assertthat": "5.0.2",
+    "assertthat": "5.1.0",
     "nodeenv": "3.0.0",
     "record-stdstreams": "3.0.0",
     "roboter": "9.2.6",
