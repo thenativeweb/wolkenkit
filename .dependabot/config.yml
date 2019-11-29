@@ -11,6 +11,9 @@ update_configs:
     - "yeldiRium"
     default_labels:
     - "Dependencies"
+    commit_message:
+      prefix: "fix"
+      prefix_development: "chore"
     allowed_updates:
     - match:
         dependency_type: "direct"
@@ -27,6 +30,8 @@ update_configs:
     - "yeldiRium"
     default_labels:
     - "Dependencies"
+    commit_message:
+      prefix: "fix"
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-mariadb"
@@ -38,6 +43,8 @@ update_configs:
     - "yeldiRium"
     default_labels:
     - "Dependencies"
+    commit_message:
+      prefix: "fix"
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-minio"
@@ -49,6 +56,8 @@ update_configs:
     - "yeldiRium"
     default_labels:
     - "Dependencies"
+    commit_message:
+      prefix: "fix"
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-mongodb"
@@ -60,6 +69,8 @@ update_configs:
     - "yeldiRium"
     default_labels:
     - "Dependencies"
+    commit_message:
+      prefix: "fix"
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-mysql"
@@ -71,6 +82,8 @@ update_configs:
     - "yeldiRium"
     default_labels:
     - "Dependencies"
+    commit_message:
+      prefix: "fix"
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-postgres"
@@ -82,6 +95,8 @@ update_configs:
     - "yeldiRium"
     default_labels:
     - "Dependencies"
+    commit_message:
+      prefix: "fix"
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-proxy"
@@ -93,6 +108,8 @@ update_configs:
     - "yeldiRium"
     default_labels:
     - "Dependencies"
+    commit_message:
+      prefix: "fix"
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-redis"
@@ -104,6 +121,8 @@ update_configs:
     - "yeldiRium"
     default_labels:
     - "Dependencies"
+    commit_message:
+      prefix: "fix"
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-sqlserver"
@@ -115,3 +134,5 @@ update_configs:
     - "yeldiRium"
     default_labels:
     - "Dependencies"
+    commit_message:
+      prefix: "fix"
