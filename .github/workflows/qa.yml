@@ -1,9 +1,14 @@
-name: On push
+name: QA
 
-on: [ push ]
+on:
+  push:
+    branches:
+      - '*'
+      - '!master'
 
 jobs:
-  build:
+  qa:
+    name: QA
     runs-on: ${{ matrix.os }}
 
     strategy:
