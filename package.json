@@ -111,7 +111,7 @@
     "content-type": "1.0.4",
     "cors": "2.8.5",
     "defekt": "5.0.0",
-    "eslint": "6.7.1",
+    "eslint": "6.7.2",
     "express": "4.17.1",
     "flaschenpost": "4.0.0",
     "get-cors-origin": "4.0.0",
