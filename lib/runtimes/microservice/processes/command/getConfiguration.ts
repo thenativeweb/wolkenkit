@@ -4,7 +4,7 @@ import { getEnvironmentVariables } from '../../../../common/utils/process/getEnv
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import path from 'path';
-import { withCamelCaseKeys } from 'lib/common/utils/withCamelCaseKeys';
+import { withCamelCaseKeys } from '../../../../common/utils/withCamelCaseKeys';
 
 const corsSchema = getCorsSchema();
 const portSchema = getPortSchema();
