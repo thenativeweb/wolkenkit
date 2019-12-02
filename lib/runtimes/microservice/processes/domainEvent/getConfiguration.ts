@@ -18,15 +18,15 @@ const getConfiguration = function (): Configuration {
         minLength: 1
       }
     },
-    DOMAINEVENT_CORS_ORIGIN: {
+    DOMAIN_EVENT_CORS_ORIGIN: {
       default: '*',
       schema: corsSchema
     },
-    DOMAINEVENTSTORE_OPTIONS: {
+    DOMAIN_EVENT_STORE_OPTIONS: {
       default: {},
       schema: { type: 'object' }
     },
-    DOMAINEVENTSTORE_TYPE: {
+    DOMAIN_EVENT_STORE_TYPE: {
       default: 'InMemory',
       schema: { type: 'string' }
     },
