@@ -11,7 +11,10 @@ const getConfiguration = function (): Configuration {
   const environmentVariables = getEnvironmentVariables({
     APPLICATION_DIRECTORY: {
       default: path.join(__dirname, '..', '..', '..', '..', '..', 'test', 'shared', 'applications', 'javascript', 'base'),
-      schema: { type: 'string' }
+      schema: {
+        type: 'string',
+        minLength: 1
+      }
     },
     COMMAND_CORS_ORIGIN: {
       default: '*',
@@ -19,15 +22,18 @@ const getConfiguration = function (): Configuration {
     },
     DISPATCHER_HOST_NAME: {
       default: 'dispatcher',
-      schema: { type: 'string' }
+      schema: {
+        type: 'string',
+        format: 'hostname'
+      }
     },
     DISPATCHER_PORT: {
       default: 3000,
-      schema: { type: 'number' }
+      schema: { type: 'integer' }
     },
     DISPATCHER_RETRIES: {
       default: 5,
-      schema: { type: 'number' }
+      schema: { type: 'integer' }
     },
     HEALTH_CORS_ORIGIN: {
       default: '*',
@@ -42,7 +48,7 @@ const getConfiguration = function (): Configuration {
     },
     PORT: {
       default: 3000,
-      schema: { type: 'number' }
+      schema: { type: 'integer' }
     }
   });
 

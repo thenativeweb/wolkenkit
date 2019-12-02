@@ -9,7 +9,8 @@ const getIdentityProviderSchema = function (): Schema {
         issuer: { type: 'string' },
         certificate: { type: 'string' }
       },
-      required: [ 'issuer', 'certificate' ]
+      required: [ 'issuer', 'certificate' ],
+      additionalProperties: false
     }
   };
 };

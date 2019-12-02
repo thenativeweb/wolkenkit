@@ -11,7 +11,10 @@ const getConfiguration = function (): Configuration {
   const environmentVariables = getEnvironmentVariables({
     APPLICATION_DIRECTORY: {
       default: path.join(__dirname, '..', '..', '..', '..', '..', 'test', 'shared', 'applications', 'javascript', 'base'),
-      schema: { type: 'string' }
+      schema: {
+        type: 'string',
+        minLength: 1
+      }
     },
     DOMAINEVENT_CORS_ORIGIN: {
       default: '*',
@@ -38,11 +41,11 @@ const getConfiguration = function (): Configuration {
     },
     PORT_PUBLIC: {
       default: 3000,
-      schema: { type: 'number' }
+      schema: { type: 'integer' }
     },
     PORT_PRIVATE: {
       default: 4000,
-      schema: { type: 'number' }
+      schema: { type: 'integer' }
     }
   });
 
