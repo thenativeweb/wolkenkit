@@ -38,7 +38,7 @@ suite('command', function (): void {
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
         PORT: String(port),
-        DISPATCHER_HOSTNAME: 'localhost',
+        DISPATCHER_HOST_NAME: 'localhost',
         DISPATCHER_PORT: String(dispatcherPort),
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
       }

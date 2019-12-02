@@ -1,4 +1,5 @@
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getHandleDomainEventsApi } from '../../../../apis/handleDomainEvent/http';
 import { getApi as getHealthApi } from '../../../../apis/getHealth/http';
@@ -6,20 +7,20 @@ import { OnReceiveDomainEvent } from '../../../../apis/handleDomainEvent/OnRecei
 import express, { Application } from 'express';
 
 const getPrivateApi = async function ({
-  environmentVariables,
+  configuration,
   applicationDefinition,
   onReceiveDomainEvent
 }: {
-  environmentVariables: Record<string, any>;
+  configuration: Configuration;
   applicationDefinition: ApplicationDefinition;
   onReceiveDomainEvent: OnReceiveDomainEvent;
 }): Promise<{ api: Application }> {
   const { api: healthApi } = await getHealthApi({
-    corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN)
+    corsOrigin: getCorsOrigin(configuration.healthCorsOrigin)
   });
 
   const { api: handleDomainEventsApi } = await getHandleDomainEventsApi({
-    corsOrigin: getCorsOrigin(environmentVariables.DOMAINEVENT_CORS_ORIGIN),
+    corsOrigin: getCorsOrigin(configuration.domainEventCorsOrigin),
     applicationDefinition,
     onReceiveDomainEvent
   });
