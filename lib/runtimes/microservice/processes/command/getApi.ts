@@ -1,4 +1,5 @@
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
 import { getApi as getHealthApi } from '../../../../apis/getHealth/http';
@@ -7,22 +8,22 @@ import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveComman
 import express, { Application } from 'express';
 
 const getApi = async function ({
-  environmentVariables,
+  configuration,
   applicationDefinition,
   identityProviders,
   onReceiveCommand
 }: {
-  environmentVariables: Record<string, any>;
+  configuration: Configuration;
   applicationDefinition: ApplicationDefinition;
   identityProviders: IdentityProvider[];
   onReceiveCommand: OnReceiveCommand;
 }): Promise<{ api: Application }> {
   const { api: healthApi } = await getHealthApi({
-    corsOrigin: getCorsOrigin(environmentVariables.HEALTH_CORS_ORIGIN)
+    corsOrigin: getCorsOrigin(configuration.healthCorsOrigin)
   });
 
   const { api: handleCommandApi } = await getHandleCommandApi({
-    corsOrigin: getCorsOrigin(environmentVariables.COMMAND_CORS_ORIGIN),
+    corsOrigin: getCorsOrigin(configuration.commandCorsOrigin),
     onReceiveCommand,
     applicationDefinition,
     identityProviders
