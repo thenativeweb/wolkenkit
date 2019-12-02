@@ -14,7 +14,7 @@ suite('withCamelCaseKeys', (): void => {
       FOO_BAR_BAZ: 'fooBarBaz'
     };
 
-    assert.that(object).is.equalTo({
+    assert.that(withCamelCaseKeys(object)).is.equalTo({
       foo: 'foo',
       fooBar: 'fooBar',
       foobaz: 'foobaz',
