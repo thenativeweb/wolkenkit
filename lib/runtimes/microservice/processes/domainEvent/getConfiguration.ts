@@ -2,10 +2,12 @@ import { Configuration } from './Configuration';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
+import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import path from 'path';
-import { camelCase, mapKeys } from 'lodash';
+import { withCamelCaseKeys } from 'lib/common/utils/withCamelCaseKeys';
 
 const corsSchema = getCorsSchema();
+const portSchema = getPortSchema();
 
 const getConfiguration = function (): Configuration {
   const environmentVariables = getEnvironmentVariables({
@@ -41,15 +43,15 @@ const getConfiguration = function (): Configuration {
     },
     PORT_PUBLIC: {
       default: 3000,
-      schema: { type: 'integer' }
+      schema: portSchema
     },
     PORT_PRIVATE: {
       default: 4000,
-      schema: { type: 'integer' }
+      schema: portSchema
     }
   });
 
-  return mapKeys(environmentVariables, camelCase) as Configuration;
+  return withCamelCaseKeys(environmentVariables) as Configuration;
 };
 
 export {
