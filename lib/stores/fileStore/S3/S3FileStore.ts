@@ -112,7 +112,7 @@ class S3FileStore implements FileStore {
       // Intentionally left blank.
     }
 
-    if (statsData || statsMetadata) {
+    if (statsData ?? statsMetadata) {
       throw new errors.FileAlreadyExists();
     }
 

@@ -29,7 +29,7 @@ class ClientMetadata {
       header = headers;
     }
 
-    this.ip = header || req.connection.remoteAddress || '';
+    this.ip = header ?? req.connection.remoteAddress ?? '';
   }
 }
 
