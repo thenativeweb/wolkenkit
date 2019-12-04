@@ -32,7 +32,7 @@ const buildCommandWithMetadata = function <TCommandData extends CommandData> ({
     aggregateIdentifier,
     name,
     data,
-    id: id || uuid(),
+    id: id ?? uuid(),
     metadata: {
       causationId: metadata?.causationId ?? uuid(),
       correlationId: metadata?.correlationId ?? uuid(),

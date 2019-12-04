@@ -33,7 +33,7 @@ class RedisLockStore implements LockStore {
     this.client = client;
     this.listNames = listNames;
     this.maxLockSize = maxLockSize;
-    this.nonce = nonce || 'null';
+    this.nonce = nonce ?? 'null';
     this.requireValidExpiration = requireValidExpiration;
   }
 

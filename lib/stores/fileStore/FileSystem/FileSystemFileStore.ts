@@ -24,7 +24,7 @@ class FileSystemFileStore implements FileStore {
     directory?: string;
   }): Promise<FileSystemFileStore> {
     return new FileSystemFileStore({
-      directory: directory || await isolated()
+      directory: directory ?? await isolated()
     });
   }
 

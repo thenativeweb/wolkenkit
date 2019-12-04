@@ -8,7 +8,7 @@ const buildApplication = async function ({ applicationDirectory, buildDirectoryO
   buildDirectoryOverride?: string;
 }): Promise<void> {
   const serverDirectory = path.join(applicationDirectory, 'server');
-  const buildDirectory = buildDirectoryOverride || path.join(applicationDirectory, 'build');
+  const buildDirectory = buildDirectoryOverride ?? path.join(applicationDirectory, 'build');
 
   shell.rm('-rf', buildDirectory);
 
