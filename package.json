@@ -164,7 +164,7 @@
     "assertthat": "5.1.0",
     "nodeenv": "3.0.0",
     "record-stdstreams": "3.0.0",
-    "roboter": "10.0.1",
+    "roboter": "10.0.2",
     "run-script-os": "1.0.7",
     "runfork": "3.0.0",
     "streamtoarray": "3.0.0",
