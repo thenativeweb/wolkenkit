@@ -31,25 +31,6 @@ suite('streamNdjson middleware', (): void => {
     });
   });
 
-  test('returns application/x-ndjson.', async (): Promise<void> => {
-    await new Promise((resolve, reject): void => {
-      try {
-        /* eslint-disable @typescript-eslint/no-floating-promises */
-        supertest(api).
-          get('/').
-          expect('Content-Type', 'application/x-ndjson').
-          pipe(asJsonStream<any>(
-            (): void => {
-              resolve();
-            }
-          ));
-        /* eslint-ensable @typescript-eslint/no-floating-promises */
-      } catch (ex) {
-        reject(ex);
-      }
-    });
-  });
-
   test('sends a periodic heartbeat.', async (): Promise<void> => {
     await new Promise((resolve, reject): void => {
       try {
