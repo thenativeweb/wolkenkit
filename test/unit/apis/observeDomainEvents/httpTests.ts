@@ -52,7 +52,7 @@ suite('observeDomainEvents/http', (): void => {
         }));
       });
 
-      test('returns 200.', async (): Promise<void> => {
+      test('returns the status code 200.', async (): Promise<void> => {
         await supertest(api).
           get('/v2/description').
           expect((res: Response): void => {

@@ -12,7 +12,7 @@ suite('streamNdjson middleware', (): void => {
     api.get('/', streamNdjsonMiddleware({ heartbeatInterval: 1000 }));
   });
 
-  test('returns 200.', async (): Promise<void> => {
+  test('returns the status code 200.', async (): Promise<void> => {
     await new Promise((resolve, reject): void => {
       try {
         /* eslint-disable @typescript-eslint/no-floating-promises */
@@ -31,13 +31,13 @@ suite('streamNdjson middleware', (): void => {
     });
   });
 
-  test('returns application/json.', async (): Promise<void> => {
+  test('returns application/x-ndjson.', async (): Promise<void> => {
     await new Promise((resolve, reject): void => {
       try {
         /* eslint-disable @typescript-eslint/no-floating-promises */
         supertest(api).
           get('/').
-          expect('Content-Type', 'application/json; charset=utf-8').
+          expect('Content-Type', 'application/x-ndjson').
           pipe(asJsonStream<any>(
             (): void => {
               resolve();

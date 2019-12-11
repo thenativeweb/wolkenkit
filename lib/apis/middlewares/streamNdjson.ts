@@ -6,11 +6,9 @@ const logger = flaschenpost.getLogger();
 
 const heartbeat = { name: 'heartbeat' };
 
-/**
- * The streamNdjson middleware initializes a long-lived connection with the
- * content type `application/x-ndjson` and sends a periodic heartbeat every
- * `heartbeatInterval` milliseconds.
- */
+// The streamNdjson middleware initializes a long-lived connection with the
+// content type `application/x-ndjson` and sends a periodic heartbeat every
+// `heartbeatInterval` milliseconds.
 const streamNdjsonMiddleware = function ({
   heartbeatInterval
 }: {
