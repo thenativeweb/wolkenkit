@@ -2,7 +2,7 @@ import { CommandData } from '../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../common/elements/CommandWithMetadata';
 import { DomainEvent } from '../../common/elements/DomainEvent';
 import { DomainEventData } from '../../common/elements/DomainEventData';
-import { ItemIdentifier } from './ItemIdentifier';
+import { ItemIdentifier } from '../../common/elements/ItemIdentifier';
 
 export interface PriorityQueueStore<TItem extends CommandWithMetadata<CommandData> | DomainEvent<DomainEventData>> {
   enqueue ({ item }: { item: TItem }): Promise<void>;

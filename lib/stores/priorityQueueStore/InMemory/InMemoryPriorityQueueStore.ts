@@ -4,7 +4,7 @@ import { CommandWithMetadata } from '../../../common/elements/CommandWithMetadat
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { errors } from '../../../common/errors';
-import { ItemIdentifier } from '../ItemIdentifier';
+import { ItemIdentifier } from '../../../common/elements/ItemIdentifier';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';

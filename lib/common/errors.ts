@@ -26,6 +26,8 @@ const errors = defekt({
   IdentifierMismatch: {},
   InvalidOperation: {},
   ItemAlreadyExists: {},
+  ItemIdentifierMalformed: {},
+  ItemIdentifierNotFound: {},
   ItemNotFound: {},
   ItemNotLocked: {},
   LockExpired: {},

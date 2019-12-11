@@ -3,19 +3,10 @@ import { buildCommandWithMetadata } from '../../../shared/buildCommandWithMetada
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { CustomError } from 'defekt';
-import { ItemIdentifier } from '../../../../lib/stores/priorityQueueStore/ItemIdentifier';
+import { getItemIdentifierFromCommand } from '../../../shared/getItemIdentifierFromCommand';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { uuid } from 'uuidv4';
-
-const getItemIdentifierFromCommand = function (command: CommandWithMetadata<CommandData>): ItemIdentifier {
-  return {
-    contextIdentifier: command.contextIdentifier,
-    aggregateIdentifier: command.aggregateIdentifier,
-    id: command.id,
-    name: command.name
-  };
-};
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createPriorityQueueStore }: {
