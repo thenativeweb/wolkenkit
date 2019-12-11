@@ -8,7 +8,7 @@ import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/Pr
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { uuid } from 'uuidv4';
 
-const itemIdentifierFromCommand = function (command: CommandWithMetadata<CommandData>): ItemIdentifier {
+const getItemIdentifierFromCommand = function (command: CommandWithMetadata<CommandData>): ItemIdentifier {
   return {
     contextIdentifier: command.contextIdentifier,
     aggregateIdentifier: command.aggregateIdentifier,
@@ -201,7 +201,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     test('throws an error if the given item is not enqueued.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
         await priorityQueueStore.renewLock({
-          itemIdentifier: itemIdentifierFromCommand(commands.firstAggregate.firstCommand),
+          itemIdentifier: getItemIdentifierFromCommand(commands.firstAggregate.firstCommand),
           token: 'non-existent'
         });
       }).is.throwingAsync((ex): boolean =>
@@ -214,7 +214,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
       await assert.that(async (): Promise<void> => {
         await priorityQueueStore.renewLock({
-          itemIdentifier: itemIdentifierFromCommand(commands.firstAggregate.firstCommand),
+          itemIdentifier: getItemIdentifierFromCommand(commands.firstAggregate.firstCommand),
           token: 'non-existent'
         });
       }).is.throwingAsync((ex): boolean =>
@@ -228,7 +228,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
       await assert.that(async (): Promise<void> => {
         await priorityQueueStore.renewLock({
-          itemIdentifier: itemIdentifierFromCommand(commands.firstAggregate.firstCommand),
+          itemIdentifier: getItemIdentifierFromCommand(commands.firstAggregate.firstCommand),
           token: 'wrong-token'
         });
       }).is.throwingAsync((ex): boolean =>
@@ -244,7 +244,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
       await assert.that(async (): Promise<void> => {
         await priorityQueueStore.renewLock({
-          itemIdentifier: itemIdentifierFromCommand(commands.firstAggregate.secondCommand),
+          itemIdentifier: getItemIdentifierFromCommand(commands.firstAggregate.secondCommand),
           token
         });
       }).is.throwingAsync((ex): boolean =>
@@ -259,7 +259,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
       await sleep({ ms: expirationTime * 0.75 });
       await priorityQueueStore.renewLock({
-        itemIdentifier: itemIdentifierFromCommand(commands.firstAggregate.firstCommand),
+        itemIdentifier: getItemIdentifierFromCommand(commands.firstAggregate.firstCommand),
         token
       });
       await sleep({ ms: expirationTime * 0.75 });
@@ -274,7 +274,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     test('throws an error if the given item is not enqueued.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
         await priorityQueueStore.acknowledge({
-          itemIdentifier: itemIdentifierFromCommand(commands.firstAggregate.firstCommand),
+          itemIdentifier: getItemIdentifierFromCommand(commands.firstAggregate.firstCommand),
           token: 'non-existent'
         });
       }).is.throwingAsync((ex): boolean =>
@@ -287,7 +287,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
       await assert.that(async (): Promise<void> => {
         await priorityQueueStore.acknowledge({
-          itemIdentifier: itemIdentifierFromCommand(commands.firstAggregate.firstCommand),
+          itemIdentifier: getItemIdentifierFromCommand(commands.firstAggregate.firstCommand),
           token: 'non-existent'
         });
       }).is.throwingAsync((ex): boolean =>
@@ -301,7 +301,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
       await assert.that(async (): Promise<void> => {
         await priorityQueueStore.acknowledge({
-          itemIdentifier: itemIdentifierFromCommand(commands.firstAggregate.firstCommand),
+          itemIdentifier: getItemIdentifierFromCommand(commands.firstAggregate.firstCommand),
           token: 'wrong-token'
         });
       }).is.throwingAsync((ex): boolean =>
@@ -317,7 +317,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
       await assert.that(async (): Promise<void> => {
         await priorityQueueStore.acknowledge({
-          itemIdentifier: itemIdentifierFromCommand(commands.firstAggregate.secondCommand),
+          itemIdentifier: getItemIdentifierFromCommand(commands.firstAggregate.secondCommand),
           token
         });
       }).is.throwingAsync((ex): boolean =>
@@ -332,7 +332,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       const { token } = (await priorityQueueStore.lockNext())!;
 
       await priorityQueueStore.acknowledge({
-        itemIdentifier: itemIdentifierFromCommand(commands.firstAggregate.firstCommand),
+        itemIdentifier: getItemIdentifierFromCommand(commands.firstAggregate.firstCommand),
         token
       });
 
