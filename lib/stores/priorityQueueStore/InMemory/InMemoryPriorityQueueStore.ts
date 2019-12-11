@@ -4,6 +4,7 @@ import { CommandWithMetadata } from '../../../common/elements/CommandWithMetadat
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { errors } from '../../../common/errors';
+import { ItemIdentifier } from '../ItemIdentifier';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
@@ -163,26 +164,26 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     this.repairDown({ queue: lastQueue });
   }
 
-  protected getQueueIfLocked ({ item, token }: {
-    item: TItem;
+  protected getQueueIfLocked ({ itemIdentifier, token }: {
+    itemIdentifier: ItemIdentifier;
     token: string;
   }): Queue<TItem> {
-    const queueIndex = this.index.get(item.aggregateIdentifier.id);
+    const queueIndex = this.index.get(itemIdentifier.aggregateIdentifier.id);
 
     if (queueIndex === undefined) {
-      throw new errors.ItemNotFound(`Item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}' not found.`);
+      throw new errors.ItemNotFound(`Item '${itemIdentifier.contextIdentifier.name}.${itemIdentifier.aggregateIdentifier.name}.${itemIdentifier.aggregateIdentifier.id}.${itemIdentifier.name}.${itemIdentifier.id}' not found.`);
     }
 
     const queue = this.queues[queueIndex]!;
 
     if (!queue.lock) {
-      throw new errors.ItemNotLocked(`Item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}' not locked.`);
+      throw new errors.ItemNotLocked(`Item '${itemIdentifier.contextIdentifier.name}.${itemIdentifier.aggregateIdentifier.name}.${itemIdentifier.aggregateIdentifier.id}.${itemIdentifier.name}.${itemIdentifier.id}' not locked.`);
     }
     if (queue.lock.token !== token) {
-      throw new errors.TokenMismatch(`Token mismatch for item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}'.`);
+      throw new errors.TokenMismatch(`Token mismatch for item '${itemIdentifier.contextIdentifier.name}.${itemIdentifier.aggregateIdentifier.name}.${itemIdentifier.aggregateIdentifier.id}.${itemIdentifier.name}.${itemIdentifier.id}'.`);
     }
-    if (queue.items[0].id !== item.id) {
-      throw new errors.ItemNotFound(`Item '${item.contextIdentifier.name}.${item.aggregateIdentifier.name}.${item.aggregateIdentifier.id}.${item.name}.${item.id}' not found.`);
+    if (queue.items[0].id !== itemIdentifier.id) {
+      throw new errors.ItemNotFound(`Item '${itemIdentifier.contextIdentifier.name}.${itemIdentifier.aggregateIdentifier.name}.${itemIdentifier.aggregateIdentifier.id}.${itemIdentifier.name}.${itemIdentifier.id}' not found.`);
     }
 
     return queue;
@@ -246,31 +247,31 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     );
   }
 
-  protected renewLockInternal ({ item, token }: {
-    item: TItem;
+  protected renewLockInternal ({ itemIdentifier, token }: {
+    itemIdentifier: ItemIdentifier;
     token: string;
   }): void {
-    const queue = this.getQueueIfLocked({ item, token });
+    const queue = this.getQueueIfLocked({ itemIdentifier, token });
 
     queue.lock!.until = Date.now() + this.expirationTime;
 
     this.repairDown({ queue });
   }
 
-  public async renewLock ({ item, token }: {
-    item: TItem;
+  public async renewLock ({ itemIdentifier, token }: {
+    itemIdentifier: ItemIdentifier;
     token: string;
   }): Promise<void> {
     await this.functionCallQueue.add(
-      async (): Promise<void> => this.renewLockInternal({ item, token })
+      async (): Promise<void> => this.renewLockInternal({ itemIdentifier, token })
     );
   }
 
-  protected acknowledgeInternal ({ item, token }: {
-    item: TItem;
+  protected acknowledgeInternal ({ itemIdentifier, token }: {
+    itemIdentifier: ItemIdentifier;
     token: string;
   }): void {
-    const queue = this.getQueueIfLocked({ item, token });
+    const queue = this.getQueueIfLocked({ itemIdentifier, token });
 
     queue.items.shift();
 
@@ -284,12 +285,12 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     this.removeInternal({ aggregateIdentifier: queue.aggregateIdentifier });
   }
 
-  public async acknowledge ({ item, token }: {
-    item: TItem;
+  public async acknowledge ({ itemIdentifier, token }: {
+    itemIdentifier: ItemIdentifier;
     token: string;
   }): Promise<void> {
     await this.functionCallQueue.add(
-      async (): Promise<void> => this.acknowledgeInternal({ item, token })
+      async (): Promise<void> => this.acknowledgeInternal({ itemIdentifier, token })
     );
   }
 
