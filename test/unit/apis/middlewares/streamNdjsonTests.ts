@@ -55,11 +55,9 @@ suite('streamNdjson middleware', (): void => {
       try {
         supertest(api).get('/').pipe(asJsonStream<any>(
           (streamElement): void => {
-            console.log('heartbeat 1');
             assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
           },
           (streamElement): void => {
-            console.log('heartbeat 2');
             assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             resolve();
           }

@@ -1,6 +1,6 @@
 import { flaschenpost } from 'flaschenpost';
-import { writeLine } from '../base/writeLine';
 import { RequestHandler } from 'express';
+import { writeLine } from '../base/writeLine';
 
 const logger = flaschenpost.getLogger();
 
