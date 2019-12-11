@@ -17,15 +17,11 @@ import { Request, RequestHandler, Response } from 'express';
 
 const logger = flaschenpost.getLogger();
 
-const heartbeat = { name: 'heartbeat' };
-
 const getDomainEvents = function ({
-  heartbeatInterval,
   domainEventEmitter,
   applicationDefinition,
   repository
 }: {
-  heartbeatInterval: number;
   domainEventEmitter: SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>;
   applicationDefinition: ApplicationDefinition;
   repository: Repository;
@@ -34,8 +30,6 @@ const getDomainEvents = function ({
 
   return async function (req: Request, res: Response): Promise<void> {
     try {
-      let heartbeatIntervalId: NodeJS.Timeout;
-
       const domainEventQueue = new PQueue({ concurrency: 1 });
 
       const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
@@ -68,27 +62,12 @@ const getDomainEvents = function ({
         /* eslint-enable @typescript-eslint/no-floating-promises */
       };
 
-      req.setTimeout(0, (): void => undefined);
-      res.setTimeout(0);
-
-      res.writeHead(200, { 'content-type': 'application/x-ndjson' });
-
       res.connection.once('close', (): void => {
         domainEventEmitter.off(handleDomainEvent);
         domainEventQueue.clear();
-        clearInterval(heartbeatIntervalId);
       });
 
       domainEventEmitter.on(handleDomainEvent);
-
-      // Send an initial heartbeat to initialize the connection. If we do not do
-      // this, sometimes the connection does not become open until the first data
-      // is sent.
-      writeLine({ res, data: heartbeat });
-
-      heartbeatIntervalId = setInterval((): void => {
-        writeLine({ res, data: heartbeat });
-      }, heartbeatInterval);
     } catch (ex) {
       // It can happen that the connection gets closed in the background, and
       // hence the underlying socket does not have a remote address any more. We
