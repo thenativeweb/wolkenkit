@@ -1,8 +1,8 @@
 import { Application } from 'express';
 import { assert } from 'assertthat';
 import { getApi } from '../../../../lib/apis/getHealth/http';
+import { runAsServer } from '../../../shared/http/runAsServer';
 import { Value } from 'validate-value';
-import supertest, { Response } from 'supertest';
 
 suite('getHealth/http', (): void => {
   suite('/v2', (): void => {
@@ -14,19 +14,25 @@ suite('getHealth/http', (): void => {
       });
 
       test('returns 200.', async (): Promise<void> => {
-        await supertest(api).
-          get('/v2/').
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(200);
-          });
+        const client = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'get',
+          url: '/v2/'
+        });
+
+        assert.that(status).is.equalTo(200);
       });
 
       test('returns application/json.', async (): Promise<void> => {
-        await supertest(api).
-          get('/v2/').
-          expect((res: Response): void => {
-            assert.that(res.header['content-type']).is.equalTo('application/json; charset=utf-8');
-          });
+        const client = await runAsServer({ app: api });
+
+        const { headers } = await client({
+          method: 'get',
+          url: '/v2/'
+        });
+
+        assert.that(headers['content-type']).is.equalTo('application/json; charset=utf-8');
       });
 
       test('returns health information.', async (): Promise<void> => {
@@ -94,13 +100,16 @@ suite('getHealth/http', (): void => {
           additionalProperties: false
         });
 
-        await supertest(api).
-          get('/v2/').
-          expect((res: Response): void => {
-            assert.that((): void => {
-              value.validate(res.body);
-            }).is.not.throwing();
-          });
+        const client = await runAsServer({ app: api });
+
+        const { data } = await client({
+          method: 'get',
+          url: '/v2/'
+        });
+
+        assert.that((): void => {
+          value.validate(data);
+        }).is.not.throwing();
       });
     });
   });
