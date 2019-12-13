@@ -14,7 +14,7 @@ import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { isUuid, uuid } from 'uuidv4';
 
-suite.only('awaitCommandWithMetadata/http', (): void => {
+suite('awaitCommandWithMetadata/http', (): void => {
   suite('/v2', (): void => {
     const expirationTime = 600;
     const pollInterval = 500;
