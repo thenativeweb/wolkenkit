@@ -477,6 +477,58 @@ suite('awaitCommandWithMetadata/http', (): void => {
           headers: { 'content-type': 'application/json' },
           data: {
             itemIdentifier: getItemIdentifierFromCommand(commandWithMetadata),
+            token: 'not-a-uuid'
+          },
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo('Expected token to be a uuidv4.');
+      });
+
+      test('returns a 400 status code if an unknown token is sent.', async (): Promise<void> => {
+        const client = await runAsServer({ app: api });
+
+        const commandWithMetadata = new CommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          id: uuid(),
+          data: {},
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            timestamp: Date.now(),
+            client: {
+              ip: '127.0.0.1',
+              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
+              token: '...'
+            },
+            initiator: {
+              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
+            }
+          }
+        });
+
+        await priorityQueueStore.enqueue({ item: commandWithMetadata });
+
+        await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/renew-lock',
+          headers: { 'content-type': 'application/json' },
+          data: {
+            itemIdentifier: getItemIdentifierFromCommand(commandWithMetadata),
             token: uuid()
           },
           validateStatus: (): boolean => true
@@ -608,6 +660,58 @@ suite('awaitCommandWithMetadata/http', (): void => {
       });
 
       test('returns a 400 status code if an invalid token is sent.', async (): Promise<void> => {
+        const client = await runAsServer({ app: api });
+
+        const commandWithMetadata = new CommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          id: uuid(),
+          data: {},
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            timestamp: Date.now(),
+            client: {
+              ip: '127.0.0.1',
+              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
+              token: '...'
+            },
+            initiator: {
+              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
+            }
+          }
+        });
+
+        await priorityQueueStore.enqueue({ item: commandWithMetadata });
+
+        await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/acknowledge',
+          headers: { 'content-type': 'application/json' },
+          data: {
+            itemIdentifier: getItemIdentifierFromCommand(commandWithMetadata),
+            token: 'not-a-uuid'
+          },
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo('Expected token to be a uuidv4.');
+      });
+
+      test('returns a 400 status code if an unknown token is sent.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
         const commandWithMetadata = new CommandWithMetadata({

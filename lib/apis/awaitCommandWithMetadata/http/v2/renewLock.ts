@@ -2,6 +2,7 @@ import { ApplicationDefinition } from '../../../../common/application/Applicatio
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
+import { isUuid } from 'uuidv4';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { RequestHandler } from 'express-serve-static-core';
 import typer from 'content-type';
@@ -28,6 +29,12 @@ const renewLock = function ({
     }
 
     const { itemIdentifier, token } = req.body;
+
+    if (!isUuid(token)) {
+      res.status(400).send('Expected token to be a uuidv4.');
+
+      return;
+    }
 
     try {
       validateItemIdentifier({ itemIdentifier, applicationDefinition });
