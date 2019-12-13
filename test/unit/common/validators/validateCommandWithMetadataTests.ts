@@ -48,10 +48,10 @@ suite('validateCommandWithMetadata', (): void => {
   test('throws an error if the command does not match the commandWithMetadata schema.', async (): Promise<void> => {
     assert.that((): void => {
       validateCommandWithMetadata({
-        command: {
+        command: ({
           ...command,
           name: ''
-        },
+        }) as any,
         applicationDefinition
       });
     }).is.throwing(
@@ -64,12 +64,12 @@ suite('validateCommandWithMetadata', (): void => {
   test(`throws an error if the command's context doesn't exist in the application definition.`, async (): Promise<void> => {
     assert.that((): void => {
       validateCommandWithMetadata({
-        command: {
+        command: ({
           ...command,
           contextIdentifier: {
             name: 'someContext'
           }
-        },
+        }) as any,
         applicationDefinition
       });
     }).is.throwing(
@@ -82,13 +82,13 @@ suite('validateCommandWithMetadata', (): void => {
   test(`throws an error if the command's aggregate doesn't exist in the application definition.`, async (): Promise<void> => {
     assert.that((): void => {
       validateCommandWithMetadata({
-        command: {
+        command: ({
           ...command,
           aggregateIdentifier: {
             name: 'someAggregate',
             id: uuid()
           }
-        },
+        }) as any,
         applicationDefinition
       });
     }).is.throwing(
@@ -101,10 +101,10 @@ suite('validateCommandWithMetadata', (): void => {
   test(`throws an error if the command doesn't exist in the application definition.`, async (): Promise<void> => {
     assert.that((): void => {
       validateCommandWithMetadata({
-        command: {
+        command: ({
           ...command,
           name: 'someCommand'
-        },
+        }) as any,
         applicationDefinition
       });
     }).is.throwing(
@@ -117,12 +117,12 @@ suite('validateCommandWithMetadata', (): void => {
   test(`throws an error if the command's data doesn't match its schema.`, async (): Promise<void> => {
     assert.that((): void => {
       validateCommandWithMetadata({
-        command: {
+        command: ({
           ...command,
           data: {
             foo: ''
           }
-        },
+        }) as any,
         applicationDefinition
       });
     }).is.throwing(
