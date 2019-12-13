@@ -48,7 +48,7 @@ suite('DomainEvent', (): void => {
   });
 
   suite('getItemIdentifier', (): void => {
-    test('returns the item identifier for the command.', async (): Promise<void> => {
+    test('returns the item identifier for the domain event.', async (): Promise<void> => {
       const aggregateId = uuid(),
             causationId = uuid(),
             correlationId = uuid(),
