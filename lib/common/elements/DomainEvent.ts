@@ -2,6 +2,7 @@ import { AggregateIdentifier } from './AggregateIdentifier';
 import { ContextIdentifier } from './ContextIdentifier';
 import { DomainEventData } from './DomainEventData';
 import { DomainEventMetadata } from './DomainEventMetadata';
+import { ItemIdentifier } from './ItemIdentifier';
 
 class DomainEvent<TDomainEventData extends DomainEventData> {
   public readonly contextIdentifier: ContextIdentifier;
@@ -70,6 +71,15 @@ class DomainEvent<TDomainEventData extends DomainEventData> {
         isPublished: true
       }
     });
+  }
+
+  public getItemIdentifier (): ItemIdentifier {
+    return {
+      contextIdentifier: this.contextIdentifier,
+      aggregateIdentifier: this.aggregateIdentifier,
+      name: this.name,
+      id: this.id
+    };
   }
 }
 

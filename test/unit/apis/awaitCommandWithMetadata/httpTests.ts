@@ -6,7 +6,6 @@ import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { getApi } from '../../../../lib/apis/awaitCommandWithMetadata/http';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
-import { getItemIdentifierFromCommand } from '../../../shared/getItemIdentifierFromCommand';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/InMemory';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
@@ -476,7 +475,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
           url: '/v2/renew-lock',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: getItemIdentifierFromCommand(commandWithMetadata),
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
             token: 'not-a-uuid'
           },
           validateStatus: (): boolean => true
@@ -528,7 +527,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
           url: '/v2/renew-lock',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: getItemIdentifierFromCommand(commandWithMetadata),
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
             token: uuid()
           },
           validateStatus: (): boolean => true
@@ -603,7 +602,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
           url: '/v2/renew-lock',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: getItemIdentifierFromCommand(commandWithMetadata),
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
             token
           }
         });
@@ -701,7 +700,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
           url: '/v2/acknowledge',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: getItemIdentifierFromCommand(commandWithMetadata),
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
             token: 'not-a-uuid'
           },
           validateStatus: (): boolean => true
@@ -753,7 +752,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
           url: '/v2/acknowledge',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: getItemIdentifierFromCommand(commandWithMetadata),
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
             token: uuid()
           },
           validateStatus: (): boolean => true
@@ -827,7 +826,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
           responseType: 'stream'
         });
 
-        const { item: firstItem, token: firstToken } = await new Promise((resolve, reject): void => {
+        const { item, token } = await new Promise((resolve, reject): void => {
           firstLockData.on('error', (err: any): void => {
             reject(err);
           });
@@ -842,13 +841,15 @@ suite('awaitCommandWithMetadata/http', (): void => {
           ));
         });
 
+        const commandWithMetadata = new CommandWithMetadata(item);
+
         await client({
           method: 'post',
           url: '/v2/acknowledge',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: getItemIdentifierFromCommand(firstItem),
-            token: firstToken
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            token
           }
         });
 
