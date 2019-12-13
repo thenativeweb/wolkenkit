@@ -1,6 +1,7 @@
 import { Application } from 'express';
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { assert } from 'assertthat';
+import { AxiosError } from 'axios';
 import { Command } from '../../../../lib/common/elements/Command';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
@@ -9,8 +10,8 @@ import { getApplicationDefinition } from '../../../../lib/common/application/get
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
+import { runAsServer } from '../../../shared/http/runAsServer';
 import { uuid } from 'uuidv4';
-import supertest, { Response } from 'supertest';
 
 suite('handleCommand/http', (): void => {
   const identityProviders = [ identityProvider ];
@@ -39,37 +40,46 @@ suite('handleCommand/http', (): void => {
       });
 
       test('returns 200.', async (): Promise<void> => {
-        await supertest(api).
-          get('/v2/description').
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(200);
-          });
+        const client = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'get',
+          url: '/v2/description'
+        });
+
+        assert.that(status).is.equalTo(200);
       });
 
       test('returns application/json.', async (): Promise<void> => {
-        await supertest(api).
-          get('/v2/description').
-          expect((res: Response): void => {
-            assert.that(res.header['content-type']).is.equalTo('application/json; charset=utf-8');
-          });
+        const client = await runAsServer({ app: api });
+
+        const { headers } = await client({
+          method: 'get',
+          url: '/v2/description'
+        });
+
+        assert.that(headers['content-type']).is.equalTo('application/json; charset=utf-8');
       });
 
       test('returns the commands description.', async (): Promise<void> => {
-        await supertest(api).
-          get('/v2/description').
-          expect((res: Response): void => {
-            const { commands: commandsDescription } = getApplicationDescription({
-              applicationDefinition
-            });
+        const client = await runAsServer({ app: api });
 
-            // Convert and parse as JSON, to get rid of any values that are undefined.
-            // This is what the HTTP API does internally, and here we need to simulate
-            // this to make things work.
-            const expectedCommandsDescription =
-            JSON.parse(JSON.stringify(commandsDescription));
+        const { data } = await client({
+          method: 'get',
+          url: '/v2/description'
+        });
 
-            assert.that(res.body).is.equalTo(expectedCommandsDescription);
-          });
+        const { commands: commandsDescription } = getApplicationDescription({
+          applicationDefinition
+        });
+
+        // Convert and parse as JSON, to get rid of any values that are undefined.
+        // This is what the HTTP API does internally, and here we need to simulate
+        // this to make things work.
+        const expectedCommandsDescription =
+          JSON.parse(JSON.stringify(commandsDescription));
+
+        assert.that(data).is.equalTo(expectedCommandsDescription);
       });
     });
 
@@ -93,35 +103,58 @@ suite('handleCommand/http', (): void => {
       });
 
       test('returns 415 if the content-type header is missing.', async (): Promise<void> => {
-        await supertest(api).
-          post('/v2/').
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(415);
-            assert.that(res.text).is.equalTo('Header content-type must be application/json.');
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            headers: {
+              'content-type': ''
+            },
+            responseType: 'text'
           });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as AxiosError).response!.status === 415 &&
+            (ex as AxiosError).response!.data === 'Header content-type must be application/json.'
+        );
       });
 
       test('returns 415 if content-type is not set to application/json.', async (): Promise<void> => {
-        await supertest(api).
-          post('/v2/').
-          set({
-            'content-type': 'text/plain'
-          }).
-          send('foobar').
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(415);
-            assert.that(res.text).is.equalTo('Header content-type must be application/json.');
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            headers: {
+              'content-type': 'text/plain'
+            },
+            responseType: 'text'
           });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as AxiosError).response!.status === 415 &&
+            (ex as AxiosError).response!.data === 'Header content-type must be application/json.'
+        );
       });
 
       test('returns 400 if a malformed command is sent.', async (): Promise<void> => {
-        await supertest(api).
-          post('/v2/').
-          send({ foo: 'bar' }).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(400);
-            assert.that(res.text).is.equalTo('Invalid type: undefined should be object (at command.data).');
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            data: { foo: 'bar' },
+            responseType: 'text'
           });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as AxiosError).response!.status === 400 &&
+            (ex as AxiosError).response!.data === 'Invalid type: undefined should be object (at command.data).'
+        );
       });
 
       test('returns 400 if a wellformed command is sent with a non-existent context name.', async (): Promise<void> => {
@@ -132,13 +165,20 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(command).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(400);
-            assert.that(res.text).is.equalTo(`Context 'nonExistent' not found.`);
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            data: command,
+            responseType: 'text'
           });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as AxiosError).response!.status === 400 &&
+            (ex as AxiosError).response!.data === `Context 'nonExistent' not found.`
+        );
       });
 
       test('returns 400 if a wellformed command is sent with a non-existent aggregate name.', async (): Promise<void> => {
@@ -149,13 +189,20 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(command).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(400);
-            assert.that(res.text).is.equalTo(`Aggregate 'sampleContext.nonExistent' not found.`);
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            data: command,
+            responseType: 'text'
           });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as AxiosError).response!.status === 400 &&
+            (ex as AxiosError).response!.data === `Aggregate 'sampleContext.nonExistent' not found.`
+        );
       });
 
       test('returns 400 if a wellformed command is sent with a non-existent command name.', async (): Promise<void> => {
@@ -166,13 +213,20 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(command).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(400);
-            assert.that(res.text).is.equalTo(`Command 'sampleContext.sampleAggregate.nonExistent' not found.`);
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            data: command,
+            responseType: 'text'
           });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as AxiosError).response!.status === 400 &&
+            (ex as AxiosError).response!.data === `Command 'sampleContext.sampleAggregate.nonExistent' not found.`
+        );
       });
 
       test('returns 400 if a command is sent with a payload that does not match the schema.', async (): Promise<void> => {
@@ -183,13 +237,20 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'invalid-value' }
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(command).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(400);
-            assert.that(res.text).is.equalTo('No enum match (invalid-value), expects: succeed, fail, reject (at command.data.strategy).');
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            data: command,
+            responseType: 'text'
           });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as AxiosError).response!.status === 400 &&
+            (ex as AxiosError).response!.data === 'No enum match (invalid-value), expects: succeed, fail, reject (at command.data.strategy).'
+        );
       });
 
       test('returns 200 if a wellformed and existing command is sent.', async (): Promise<void> => {
@@ -200,12 +261,15 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(command).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(200);
-          });
+        const client = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: command
+        });
+
+        assert.that(status).is.equalTo(200);
       });
 
       test('receives commands.', async (): Promise<void> => {
@@ -216,9 +280,13 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(command);
+        const client = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/',
+          data: command
+        });
 
         assert.that(receivedCommands.length).is.equalTo(1);
         assert.that(receivedCommands[0]).is.atLeast({
@@ -252,14 +320,17 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(command).
-          expect((res: Response): void => {
-            assert.that(res.body).is.equalTo({
-              id: receivedCommands[0].id
-            });
-          });
+        const client = await runAsServer({ app: api });
+
+        const { data } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: command
+        });
+
+        assert.that(data).is.equalTo({
+          id: receivedCommands[0].id
+        });
       });
 
       test('returns 500 if on received command throws an error.', async (): Promise<void> => {
@@ -279,12 +350,15 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(command).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(500);
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise <void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            data: command
           });
+        }).is.throwingAsync((ex): boolean => (ex as AxiosError).response?.status === 500);
       });
     });
   });
