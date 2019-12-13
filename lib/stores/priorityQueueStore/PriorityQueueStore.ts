@@ -7,6 +7,8 @@ import { ItemIdentifier } from '../../common/elements/ItemIdentifier';
 export interface PriorityQueueStore<TItem extends CommandWithMetadata<CommandData> | DomainEvent<DomainEventData>> {
   enqueue ({ item }: { item: TItem }): Promise<void>;
 
+  hasNext (): Promise<boolean>;
+
   lockNext (): Promise<{ item: TItem; token: string } | undefined>;
 
   renewLock ({ itemIdentifier, token }: {

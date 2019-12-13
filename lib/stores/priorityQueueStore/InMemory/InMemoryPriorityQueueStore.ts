@@ -218,6 +218,24 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     );
   }
 
+  public async hasNext (): Promise<boolean> {
+    return await this.functionCallQueue.add(
+      async (): Promise<boolean> => {
+        if (this.queues.length === 0) {
+          return false;
+        }
+
+        const queue = this.queues[0]!;
+
+        if (queue.lock && queue.lock.until > Date.now()) {
+          return false;
+        }
+
+        return true;
+      }
+    );
+  }
+
   protected lockNextInternal (): { item: TItem; token: string } | undefined {
     if (this.queues.length === 0) {
       return;

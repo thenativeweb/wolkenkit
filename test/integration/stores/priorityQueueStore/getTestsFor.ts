@@ -101,6 +101,33 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
   });
 
+  suite('hasNext', (): void => {
+    test('returns false if there are no enqueued items.', async (): Promise<void> => {
+      assert.that(await priorityQueueStore.hasNext()).is.false();
+    });
+
+    test('returns true if there is an enqueued and unlocked item in the queue.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+
+      assert.that(await priorityQueueStore.hasNext()).is.true();
+    });
+
+    test('does not lock the next item.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+
+      assert.that(await priorityQueueStore.hasNext()).is.true();
+      assert.that(await priorityQueueStore.hasNext()).is.true();
+    });
+
+    test('returns false if all items in the queue are locked.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+
+      await priorityQueueStore.lockNext();
+
+      assert.that(await priorityQueueStore.hasNext()).is.false();
+    });
+  });
+
   suite('lockNext', (): void => {
     test('returns undefined if there are no enqueued items.', async (): Promise<void> => {
       const nextCommand = await priorityQueueStore.lockNext();
