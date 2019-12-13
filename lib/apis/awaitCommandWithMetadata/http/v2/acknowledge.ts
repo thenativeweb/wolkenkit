@@ -31,7 +31,7 @@ const acknowledge = function ({
     const { itemIdentifier, token } = req.body;
 
     if (!isUuid(token)) {
-      res.status(400).send('Expected token to be a uuidv4.');
+      res.status(400).send('Token must be a UUID v4.');
 
       return;
     }
