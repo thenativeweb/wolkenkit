@@ -14,9 +14,10 @@ import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { isUuid, uuid } from 'uuidv4';
 
-suite('awaitCommandWithMetadata/http', (): void => {
-  suite('/v2', function (): void {
-    this.timeout(10_000);
+suite.only('awaitCommandWithMetadata/http', (): void => {
+  suite('/v2', (): void => {
+    const expirationTime = 600;
+    const pollInterval = 500;
 
     let api: Application,
         applicationDefinition: ApplicationDefinition,
@@ -28,13 +29,14 @@ suite('awaitCommandWithMetadata/http', (): void => {
       applicationDefinition = await getApplicationDefinition({ applicationDirectory });
 
       priorityQueueStore = await InMemoryPriorityQueueStore.create({
-        expirationTime: 5_000
+        expirationTime
       });
 
       ({ api } = await getApi({
         applicationDefinition,
         corsOrigin: '*',
-        priorityQueueStore
+        priorityQueueStore,
+        pollInterval
       }));
     });
 
@@ -87,7 +89,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             }
           ));
 
-          await sleep({ ms: 5_000 });
+          await sleep({ ms: pollInterval });
 
           resolve();
         });
@@ -137,7 +139,9 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
       });
 
-      test('redelivers the same command if the timeout expires.', async (): Promise<void> => {
+      test('redelivers the same command if the timeout expires.', async function (): Promise<void> {
+        this.timeout(5_000);
+
         const client = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -174,7 +178,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
           ));
         });
 
-        await sleep({ ms: 5_000 });
+        await sleep({ ms: 1.25 * expirationTime });
 
         const { data: dataSecondTry } = await client({
           method: 'get',
@@ -187,10 +191,6 @@ suite('awaitCommandWithMetadata/http', (): void => {
             reject(err);
           });
 
-          dataSecondTry.on('close', (): void => {
-            resolve();
-          });
-
           dataSecondTry.pipe(asJsonStream(
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
@@ -198,6 +198,8 @@ suite('awaitCommandWithMetadata/http', (): void => {
             (streamElement: any): void => {
               assert.that(streamElement.item).is.equalTo(commandWithMetadata);
               assert.that(isUuid(streamElement.token)).is.true();
+
+              resolve();
             }
           ));
         });
@@ -440,9 +442,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
         assert.that(data).is.equalTo(`Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`);
       });
 
-      test('extends the lock expiry time.', async function (): Promise<void> {
-        this.timeout(15_000);
-
+      test('extends the lock expiry time.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -484,7 +484,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
           ));
         });
 
-        await sleep({ ms: 3_000 });
+        await sleep({ ms: 0.6 * expirationTime });
 
         await client({
           method: 'post',
@@ -496,10 +496,12 @@ suite('awaitCommandWithMetadata/http', (): void => {
           }
         });
 
-        await sleep({ ms: 3_000 });
+        await sleep({ ms: 0.6 * expirationTime });
 
-        // Since the only queued Command should still be locked, the next
-        // request to /v2/ should stay open indefinitely.
+        // We have now waited 1.2 * expirationTime, so if the request to
+        // /renew-lock did not work, the command should be available again.
+        // If the request worked, the next request to /v2/ should stay open
+        // indefinitely.
         const { data: unavailableLockData } = await client({
           method: 'get',
           url: '/v2/',
@@ -521,7 +523,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             }
           ));
 
-          await sleep({ ms: 5_000 });
+          await sleep({ ms: pollInterval });
 
           resolve();
         });
