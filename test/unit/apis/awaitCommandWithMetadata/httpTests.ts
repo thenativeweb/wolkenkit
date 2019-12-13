@@ -92,7 +92,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
       });
 
-      test('keeps the connection open and delivers a command, then closes.', async (): Promise<void> => {
+      test('closes the connection once a command has been delivered.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
         const { data } = await client({
@@ -230,7 +230,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
       });
 
-      test('delivers a locked command to the next waiting client after the lock expires.', async (): Promise<void> => {
+      test('delivers a locked command to the next waiting client after the lock has expired.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
         const commandWithMetadata = new CommandWithMetadata({
