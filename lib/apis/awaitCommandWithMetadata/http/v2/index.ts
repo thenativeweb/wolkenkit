@@ -3,7 +3,7 @@ import { awaitCommandWithMetadata } from './awaitCommandWithMetadata';
 import { renewLock } from './renewLock';
 
 export {
-  acknowledge,
   awaitCommandWithMetadata,
+  acknowledge,
   renewLock
 };
