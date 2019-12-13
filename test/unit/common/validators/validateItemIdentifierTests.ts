@@ -28,7 +28,7 @@ suite('validateItemIdentifier', (): void => {
     }).is.not.throwing();
   });
 
-  test('throws an error if the itemIdentifier does not match the itemIdentifier schema.', async (): Promise<void> => {
+  test('throws an error if the item identifier does not match the item identifier schema.', async (): Promise<void> => {
     assert.that((): void => {
       validateItemIdentifier({
         itemIdentifier: {
@@ -44,7 +44,7 @@ suite('validateItemIdentifier', (): void => {
     );
   });
 
-  test(`throws an error if the itemIdentifier's context doesn't exist in the application definition.`, async (): Promise<void> => {
+  test(`throws an error if the item identifier's context doesn't exist in the application definition.`, async (): Promise<void> => {
     assert.that((): void => {
       validateItemIdentifier({
         itemIdentifier: {
@@ -62,7 +62,7 @@ suite('validateItemIdentifier', (): void => {
     );
   });
 
-  test(`throws an error if the itemIdentifier's aggregate doesn't exist in the application definition.`, async (): Promise<void> => {
+  test(`throws an error if the item identifier's aggregate doesn't exist in the application definition.`, async (): Promise<void> => {
     assert.that((): void => {
       validateItemIdentifier({
         itemIdentifier: {
