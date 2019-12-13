@@ -533,7 +533,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
           validateStatus: (): boolean => true
         });
 
-        assert.that(status).is.equalTo(400);
+        assert.that(status).is.equalTo(403);
         assert.that(data).is.equalTo(`Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`);
       });
 
@@ -758,7 +758,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
           validateStatus: (): boolean => true
         });
 
-        assert.that(status).is.equalTo(400);
+        assert.that(status).is.equalTo(403);
         assert.that(data).is.equalTo(`Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`);
       });
 

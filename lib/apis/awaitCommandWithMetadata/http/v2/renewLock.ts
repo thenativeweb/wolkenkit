@@ -49,7 +49,16 @@ const renewLock = function ({
 
       res.status(200).end();
     } catch (ex) {
-      res.status(400).send(ex.message);
+      switch (ex.code) {
+        case 'ETOKENMISMATCH': {
+          res.status(403).send(ex.message);
+
+          return;
+        }
+        default: {
+          res.status(400).send(ex.message);
+        }
+      }
     }
   };
 };
