@@ -401,10 +401,10 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo('Expected token to be a uuidv4.');
+        assert.that(data).is.equalTo('Token must be a UUID v4.');
       });
 
-      test('returns a 400 status code if an unknown token is sent.', async (): Promise<void> => {
+      test('returns a 403 status code if an unknown token is sent.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -584,10 +584,10 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo('Expected token to be a uuidv4.');
+        assert.that(data).is.equalTo('Token must be a  UUID v4.');
       });
 
-      test('returns a 400 status code if an unknown token is sent.', async (): Promise<void> => {
+      test('returns a 403 status code if an unknown token is sent.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
