@@ -2,6 +2,7 @@ import { Application } from 'express';
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
+import { buildCommandWithMetadata } from '../../../shared/buildCommandWithMetadata';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { getApi } from '../../../../lib/apis/awaitCommandWithMetadata/http';
@@ -101,7 +102,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
           responseType: 'stream'
         });
 
-        const commandWithMetadata = new CommandWithMetadata({
+        const commandWithMetadata = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
           },
@@ -110,21 +111,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             id: uuid()
           },
           name: 'execute',
-          id: uuid(),
-          data: {},
-          metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
-            timestamp: Date.now(),
-            client: {
-              ip: '127.0.0.1',
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-              token: '...'
-            },
-            initiator: {
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-            }
-          }
+          data: {}
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
@@ -153,7 +140,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
       test('redelivers the same command if the timeout expires.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
-        const commandWithMetadata = new CommandWithMetadata({
+        const commandWithMetadata = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
           },
@@ -162,21 +149,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             id: uuid()
           },
           name: 'execute',
-          id: uuid(),
-          data: {},
-          metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
-            timestamp: Date.now(),
-            client: {
-              ip: '127.0.0.1',
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-              token: '...'
-            },
-            initiator: {
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-            }
-          }
+          data: {}
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
@@ -233,7 +206,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
       test('delivers a locked command to the next waiting client after the lock has expired.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
-        const commandWithMetadata = new CommandWithMetadata({
+        const commandWithMetadata = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
           },
@@ -242,21 +215,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             id: uuid()
           },
           name: 'execute',
-          id: uuid(),
-          data: {},
-          metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
-            timestamp: Date.now(),
-            client: {
-              ip: '127.0.0.1',
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-              token: '...'
-            },
-            initiator: {
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-            }
-          }
+          data: {}
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
@@ -312,7 +271,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
       test('delivers commands in different aggregates in parallel.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
-        const commandOne = new CommandWithMetadata({
+        const commandOne = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
           },
@@ -321,23 +280,9 @@ suite('awaitCommandWithMetadata/http', (): void => {
             id: uuid()
           },
           name: 'execute',
-          id: uuid(),
-          data: {},
-          metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
-            timestamp: Date.now(),
-            client: {
-              ip: '127.0.0.1',
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-              token: '...'
-            },
-            initiator: {
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-            }
-          }
+          data: {}
         });
-        const commandTwo = new CommandWithMetadata({
+        const commandTwo = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
           },
@@ -346,21 +291,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             id: uuid()
           },
           name: 'execute',
-          id: uuid(),
-          data: {},
-          metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
-            timestamp: Date.now(),
-            client: {
-              ip: '127.0.0.1',
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-              token: '...'
-            },
-            initiator: {
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-            }
-          }
+          data: {}
         });
 
         await priorityQueueStore.enqueue({ item: commandOne });
@@ -436,7 +367,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
       test('returns a 400 status code if an invalid token is sent.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
-        const commandWithMetadata = new CommandWithMetadata({
+        const commandWithMetadata = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
           },
@@ -445,21 +376,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             id: uuid()
           },
           name: 'execute',
-          id: uuid(),
-          data: {},
-          metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
-            timestamp: Date.now(),
-            client: {
-              ip: '127.0.0.1',
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-              token: '...'
-            },
-            initiator: {
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-            }
-          }
+          data: {}
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
@@ -488,7 +405,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
       test('returns a 400 status code if an unknown token is sent.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
-        const commandWithMetadata = new CommandWithMetadata({
+        const commandWithMetadata = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
           },
@@ -497,21 +414,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             id: uuid()
           },
           name: 'execute',
-          id: uuid(),
-          data: {},
-          metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
-            timestamp: Date.now(),
-            client: {
-              ip: '127.0.0.1',
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-              token: '...'
-            },
-            initiator: {
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-            }
-          }
+          data: {}
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
@@ -542,7 +445,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
 
         const client = await runAsServer({ app: api });
 
-        const commandWithMetadata = new CommandWithMetadata({
+        const commandWithMetadata = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
           },
@@ -551,21 +454,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             id: uuid()
           },
           name: 'execute',
-          id: uuid(),
-          data: {},
-          metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
-            timestamp: Date.now(),
-            client: {
-              ip: '127.0.0.1',
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-              token: '...'
-            },
-            initiator: {
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-            }
-          }
+          data: {}
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
@@ -661,7 +550,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
       test('returns a 400 status code if an invalid token is sent.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
-        const commandWithMetadata = new CommandWithMetadata({
+        const commandWithMetadata = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
           },
@@ -670,21 +559,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             id: uuid()
           },
           name: 'execute',
-          id: uuid(),
-          data: {},
-          metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
-            timestamp: Date.now(),
-            client: {
-              ip: '127.0.0.1',
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-              token: '...'
-            },
-            initiator: {
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-            }
-          }
+          data: {}
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
@@ -713,7 +588,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
       test('returns a 400 status code if an unknown token is sent.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
-        const commandWithMetadata = new CommandWithMetadata({
+        const commandWithMetadata = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
           },
@@ -722,21 +597,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             id: uuid()
           },
           name: 'execute',
-          id: uuid(),
-          data: {},
-          metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
-            timestamp: Date.now(),
-            client: {
-              ip: '127.0.0.1',
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-              token: '...'
-            },
-            initiator: {
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-            }
-          }
+          data: {}
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
@@ -766,7 +627,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
         const client = await runAsServer({ app: api });
 
         const aggregateId = uuid();
-        const commandOne = new CommandWithMetadata({
+        const commandOne = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
           },
@@ -775,23 +636,9 @@ suite('awaitCommandWithMetadata/http', (): void => {
             id: aggregateId
           },
           name: 'execute',
-          id: uuid(),
-          data: {},
-          metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
-            timestamp: Date.now(),
-            client: {
-              ip: '127.0.0.1',
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-              token: '...'
-            },
-            initiator: {
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-            }
-          }
+          data: {}
         });
-        const commandTwo = new CommandWithMetadata({
+        const commandTwo = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
           },
@@ -800,21 +647,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             id: aggregateId
           },
           name: 'execute',
-          id: uuid(),
-          data: {},
-          metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
-            timestamp: Date.now(),
-            client: {
-              ip: '127.0.0.1',
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
-              token: '...'
-            },
-            initiator: {
-              user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
-            }
-          }
+          data: {}
         });
 
         await priorityQueueStore.enqueue({ item: commandOne });
