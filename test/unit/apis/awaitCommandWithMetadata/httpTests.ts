@@ -62,7 +62,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
       });
 
-      test('leaves the connection open indefiniteley as long as no command is enqueued.', async (): Promise<void> => {
+      test('leaves the connection open indefinitely as long as no command is enqueued.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
         const { data } = await client({
