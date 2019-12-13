@@ -584,7 +584,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo('Token must be a  UUID v4.');
+        assert.that(data).is.equalTo('Token must be a UUID v4.');
       });
 
       test('returns a 403 status code if an unknown token is sent.', async (): Promise<void> => {
