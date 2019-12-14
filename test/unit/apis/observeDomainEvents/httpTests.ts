@@ -2,10 +2,7 @@ import { Application } from 'express';
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { AxiosError } from 'axios';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
-import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
-import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { getApi } from '../../../../lib/apis/observeDomainEvents/http';
@@ -19,7 +16,6 @@ import qs from 'qs';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
-import { State } from '../../../../lib/common/elements/State';
 import { uuid } from 'uuidv4';
 
 suite('observeDomainEvents/http', (): void => {
