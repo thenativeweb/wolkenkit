@@ -1,15 +1,16 @@
 import { Application } from 'express';
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { assert } from 'assertthat';
+import { AxiosError } from 'axios';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { getApi } from '../../../../lib/apis/handleDomainEvent/http';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { runAsServer } from '../../../shared/http/runAsServer';
 import { State } from '../../../../lib/common/elements/State';
 import { uuid } from 'uuidv4';
-import supertest, { Response } from 'supertest';
 
 suite('handleDomainEvent/http', (): void => {
   let applicationDefinition: ApplicationDefinition;
@@ -40,35 +41,53 @@ suite('handleDomainEvent/http', (): void => {
       });
 
       test('returns 415 if the content-type header is missing.', async (): Promise<void> => {
-        await supertest(api).
-          post('/v2/').
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(415);
-            assert.that(res.text).is.equalTo('Header content-type must be application/json.');
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            headers: {
+              'content-type': ''
+            },
+            responseType: 'text'
           });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as AxiosError).response?.status === 415 &&
+          (ex as AxiosError).response?.data === 'Header content-type must be application/json.');
       });
 
       test('returns 415 if content-type is not set to application/json.', async (): Promise<void> => {
-        await supertest(api).
-          post('/v2/').
-          set({
-            'content-type': 'text/plain'
-          }).
-          send('foobar').
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(415);
-            assert.that(res.text).is.equalTo('Header content-type must be application/json.');
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            headers: {
+              'content-type': 'text/plain'
+            },
+            data: 'foobar',
+            responseType: 'text'
           });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as AxiosError).response?.status === 415 &&
+          (ex as AxiosError).response?.data === 'Header content-type must be application/json.');
       });
 
       test('returns 400 if a malformed domain event is sent.', async (): Promise<void> => {
-        await supertest(api).
-          post('/v2/').
-          send({ foo: 'bar' }).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(400);
-            assert.that(res.text).is.equalTo('Invalid type: undefined should be object (at domainEvent.state).');
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            data: { foo: 'bar' },
+            responseType: 'text'
           });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as AxiosError).response?.status === 400 &&
+          (ex as AxiosError).response?.data === 'Invalid type: undefined should be object (at domainEvent.state).');
       });
 
       test('returns 400 if a wellformed domain event is sent with a non-existent context name.', async (): Promise<void> => {
@@ -87,13 +106,18 @@ suite('handleDomainEvent/http', (): void => {
           state: { previous: {}, next: {}}
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(domainEventExecuted).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(400);
-            assert.that(res.text).is.equalTo(`Context 'nonExistent' not found.`);
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            data: domainEventExecuted,
+            responseType: 'text'
           });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as AxiosError).response?.status === 400 &&
+          (ex as AxiosError).response?.data === `Context 'nonExistent' not found.`);
       });
 
       test('returns 400 if a wellformed domain event is sent with a non-existent aggregate name.', async (): Promise<void> => {
@@ -112,13 +136,18 @@ suite('handleDomainEvent/http', (): void => {
           state: { previous: {}, next: {}}
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(domainEventExecuted).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(400);
-            assert.that(res.text).is.equalTo(`Aggregate 'sampleContext.nonExistent' not found.`);
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            data: domainEventExecuted,
+            responseType: 'text'
           });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as AxiosError).response?.status === 400 &&
+          (ex as AxiosError).response?.data === `Aggregate 'sampleContext.nonExistent' not found.`);
       });
 
       test('returns 400 if a wellformed domain event is sent with a non-existent domain event name.', async (): Promise<void> => {
@@ -137,13 +166,18 @@ suite('handleDomainEvent/http', (): void => {
           state: { previous: {}, next: {}}
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(domainEventExecuted).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(400);
-            assert.that(res.text).is.equalTo(`Domain event 'sampleContext.sampleAggregate.nonExistent' not found.`);
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            data: domainEventExecuted,
+            responseType: 'text'
           });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as AxiosError).response?.status === 400 &&
+          (ex as AxiosError).response?.data === `Domain event 'sampleContext.sampleAggregate.nonExistent' not found.`);
       });
 
       test('returns 400 if a domain event is sent with a payload that does not match the schema.', async (): Promise<void> => {
@@ -162,13 +196,18 @@ suite('handleDomainEvent/http', (): void => {
           state: { previous: {}, next: {}}
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(domainEventExecuted).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(400);
-            assert.that(res.text).is.equalTo('No enum match (invalidValue), expects: succeed, fail, reject (at domainEvent.data.strategy).');
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            data: domainEventExecuted,
+            responseType: 'text'
           });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as AxiosError).response?.status === 400 &&
+          (ex as AxiosError).response?.data === 'No enum match (invalidValue), expects: succeed, fail, reject (at domainEvent.data.strategy).');
       });
 
       test('returns 200 if a wellformed and existing domain event is sent.', async (): Promise<void> => {
@@ -187,12 +226,15 @@ suite('handleDomainEvent/http', (): void => {
           state: { previous: {}, next: {}}
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(domainEventExecuted).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(200);
-          });
+        const client = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: domainEventExecuted
+        });
+
+        assert.that(status).is.equalTo(200);
       });
 
       test('receives domain events.', async (): Promise<void> => {
@@ -211,9 +253,13 @@ suite('handleDomainEvent/http', (): void => {
           state: { previous: {}, next: {}}
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(domainEventExecuted);
+        const client = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/',
+          data: domainEventExecuted
+        });
 
         assert.that(receivedDomainEvents.length).is.equalTo(1);
         assert.that(receivedDomainEvents[0]).is.atLeast({
@@ -248,12 +294,15 @@ suite('handleDomainEvent/http', (): void => {
           state: { previous: {}, next: {}}
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(domainEventExecuted).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(200);
-          });
+        const client = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: domainEventExecuted
+        });
+
+        assert.that(status).is.equalTo(200);
       });
 
       test('returns 500 if on received domain event throws an error.', async (): Promise<void> => {
@@ -280,12 +329,17 @@ suite('handleDomainEvent/http', (): void => {
           state: { previous: {}, next: {}}
         });
 
-        await supertest(api).
-          post('/v2/').
-          send(domainEventExecuted).
-          expect((res: Response): void => {
-            assert.that(res.status).is.equalTo(500);
+        const client = await runAsServer({ app: api });
+
+        await assert.that(async (): Promise<void> => {
+          await client({
+            method: 'post',
+            url: '/v2/',
+            data: domainEventExecuted,
+            responseType: 'text'
           });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as AxiosError).response?.status === 500);
       });
     });
   });
