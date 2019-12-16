@@ -28,7 +28,7 @@ import { registerExceptionHandler } from '../../../../common/utils/process/regis
       type: configuration.priorityQueueStoreType,
       options: {
         ...configuration.priorityQueueStoreOptions,
-        expirationTime: configuration.queueLockExpirationTime
+        expirationTime: configuration.priorityQueueStoreOptions.expirationTime
       }
     });
 

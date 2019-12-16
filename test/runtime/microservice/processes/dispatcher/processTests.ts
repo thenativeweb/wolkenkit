@@ -10,7 +10,7 @@ import { uuid } from 'uuidv4';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
-suite('dispatcher', function (): void {
+suite.only('dispatcher', function (): void {
   this.timeout(10 * 1000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
@@ -30,9 +30,9 @@ suite('dispatcher', function (): void {
       port,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
+        PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${queueLockExpirationTime}}`,
         PORT: String(port),
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
-        QUEUE_LOCK_EXPIRATION_TIME: String(queueLockExpirationTime),
         QUEUE_POLL_INTERVAL: String(queuePollInterval)
       }
     });

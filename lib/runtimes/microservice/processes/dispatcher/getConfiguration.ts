@@ -20,7 +20,14 @@ const getConfiguration = function (): Configuration {
     },
     PRIORITY_QUEUE_STORE_OPTIONS: {
       default: {},
-      schema: { type: 'object' }
+      schema: {
+        type: 'object',
+        properties: {
+          expirationTime: { type: 'number', minimum: 1 }
+        },
+        required: [ 'expirationTime' ],
+        additionalProperties: true
+      }
     },
     AWAIT_COMMAND_CORS_ORIGIN: {
       default: '*',
@@ -37,10 +44,6 @@ const getConfiguration = function (): Configuration {
     PORT: {
       default: 3_000,
       schema: portSchema
-    },
-    QUEUE_LOCK_EXPIRATION_TIME: {
-      default: 5_000,
-      schema: { type: 'number', minimum: 1 }
     },
     QUEUE_POLL_INTERVAL: {
       default: 500,
