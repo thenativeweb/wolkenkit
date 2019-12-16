@@ -12,7 +12,7 @@ const createPriorityQueueStore = async function<TItem extends CommandWithMetadat
 }): Promise<PriorityQueueStore<TItem>> {
   switch (type) {
     case 'InMemory': {
-      return InMemoryPriorityQueueStore.create(options);
+      return await InMemoryPriorityQueueStore.create(options);
     }
     default: {
       throw new errors.DatabaseTypeInvalid();
