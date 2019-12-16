@@ -43,8 +43,8 @@ const getApi = async function ({
   const api = express();
 
   api.use('/health', healthApi);
-  api.use('/handleCommand', handleCommandApi);
-  api.use('/awaitCommand', awaitCommandWithMetadataApi);
+  api.use('/handle-command', handleCommandApi);
+  api.use('/await-command', awaitCommandWithMetadataApi);
 
   return { api };
 };

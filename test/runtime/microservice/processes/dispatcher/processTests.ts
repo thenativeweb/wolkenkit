@@ -57,8 +57,8 @@ suite('dispatcher', function (): void {
     });
   });
 
-  suite('GET /awaitCommand/v2', (): void => {
-    test('delivers a command that is sent to /handleCommand/v2.', async (): Promise<void> => {
+  suite('GET /await-command/v2', (): void => {
+    test('delivers a command that is sent to /handle-command/v2.', async (): Promise<void> => {
       const command = buildCommandWithMetadata({
         contextIdentifier: {
           name: 'sampleContext'
@@ -75,13 +75,13 @@ suite('dispatcher', function (): void {
 
       await axios({
         method: 'post',
-        url: `http://localhost:${port}/handleCommand/v2`,
+        url: `http://localhost:${port}/handle-command/v2`,
         data: command
       });
 
       const { data } = await axios({
         method: 'get',
-        url: `http://localhost:${port}/awaitCommand/v2`,
+        url: `http://localhost:${port}/await-command/v2`,
         responseType: 'stream'
       });
 
