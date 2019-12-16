@@ -10,7 +10,7 @@ import { uuid } from 'uuidv4';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
-suite.only('dispatcher', function (): void {
+suite('dispatcher', function (): void {
   this.timeout(10 * 1000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
