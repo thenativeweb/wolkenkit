@@ -84,6 +84,10 @@ const getDomainEventWithStateSchema = function (): Value {
         ],
         additionalProperties: false
       },
+      tags: {
+        type: 'array',
+        items: { type: 'string', minLength: 1 }
+      },
       state: {
         type: 'object',
         properties: {
@@ -111,6 +115,7 @@ const getDomainEventWithStateSchema = function (): Value {
       'data',
       'id',
       'metadata',
+      'tags',
       'state'
     ],
     additionalProperties: false

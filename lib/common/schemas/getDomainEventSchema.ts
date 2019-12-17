@@ -83,6 +83,10 @@ const getDomainEventSchema = function (): Value {
           'initiator'
         ],
         additionalProperties: false
+      },
+      tags: {
+        type: 'array',
+        items: { type: 'string', minLength: 1 }
       }
     },
     required: [
@@ -91,7 +95,8 @@ const getDomainEventSchema = function (): Value {
       'name',
       'data',
       'id',
-      'metadata'
+      'metadata',
+      'tags'
     ],
     additionalProperties: false
   });
