@@ -29,6 +29,23 @@ const getConfiguration = function (): Configuration {
         additionalProperties: true
       }
     },
+    PUB_SUB_TYPE: {
+      default: 'InMemory',
+      schema: { type: 'string', minLength: 1 }
+    },
+    PUB_SUB_OPTIONS: {
+      default: { channel: 'newCommand', subscriber: {}, publisher: {}},
+      schema: {
+        type: 'object',
+        properties: {
+          channel: { type: 'string', minLength: 1 },
+          subscriber: { type: 'object' },
+          publisher: { type: 'object' }
+        },
+        required: [ 'channel', 'subscriber', 'publisher' ],
+        additionalProperties: false
+      }
+    },
     AWAIT_COMMAND_CORS_ORIGIN: {
       default: '*',
       schema: corsSchema
@@ -45,8 +62,8 @@ const getConfiguration = function (): Configuration {
       default: 3_000,
       schema: portSchema
     },
-    QUEUE_POLL_INTERVAL: {
-      default: 500,
+    MISSED_COMMAND_RECOVERY_INTERVAL: {
+      default: 5_000,
       schema: { type: 'number', minimum: 1 }
     }
   });
