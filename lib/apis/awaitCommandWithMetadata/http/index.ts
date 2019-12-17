@@ -6,20 +6,23 @@ import { CorsOrigin } from 'get-cors-origin';
 import { getApiBase } from '../../base/getApiBase';
 import { PriorityQueueStore } from '../../../stores/priorityQueueStore/PriorityQueueStore';
 import { streamNdjsonMiddleware } from '../../middlewares/streamNdjson';
+import { Subscriber } from '../../../messaging/pubSub/Subscriber';
 import * as v2 from './v2';
 
 const getApi = async function ({
   applicationDefinition,
   corsOrigin,
   priorityQueueStore,
-  heartbeatInterval = 90_000,
-  pollInterval = 5_000
+  newCommandSubscriber,
+  newCommandSubscriberChannel,
+  heartbeatInterval = 90_000
 }: {
   applicationDefinition: ApplicationDefinition;
   corsOrigin: CorsOrigin;
   priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
+  newCommandSubscriber: Subscriber<object>;
+  newCommandSubscriberChannel: string;
   heartbeatInterval?: number;
-  pollInterval?: number;
 }): Promise<{ api: Application }> {
   const api = await getApiBase({
     request: {
@@ -36,7 +39,8 @@ const getApi = async function ({
     streamNdjsonMiddleware({ heartbeatInterval }),
     v2.awaitCommandWithMetadata({
       priorityQueueStore,
-      pollInterval
+      newCommandSubscriber,
+      newCommandSubscriberChannel
     })
   );
 

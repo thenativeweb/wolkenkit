@@ -34,4 +34,6 @@ class InMemorySubscriber<T extends object> implements Subscriber<T> {
   }
 }
 
-export default InMemorySubscriber;
+export {
+  InMemorySubscriber
+};

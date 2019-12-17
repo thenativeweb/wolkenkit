@@ -33,9 +33,11 @@ const errors = defekt({
   LockExpired: {},
   NotAuthenticatedError: {},
   ProjectionHandlerMalformed: {},
+  PublisherTypeInvalid: {},
   QueryHandlerMalformed: {},
   RequestFailed: {},
   RequestMalformed: {},
+  SubscriberTypeInvalid: {},
   TokenMismatch: {},
   TypeInvalid: {},
   ViewDefinitionMalformed: {}

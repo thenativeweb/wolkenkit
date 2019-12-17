@@ -24,4 +24,6 @@ class InMemoryPublisher<T extends object> implements Publisher<T> {
   }
 }
 
-export default InMemoryPublisher;
+export {
+  InMemoryPublisher
+};

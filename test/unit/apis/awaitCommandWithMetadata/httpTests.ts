@@ -9,9 +9,13 @@ import { getApi } from '../../../../lib/apis/awaitCommandWithMetadata/http';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/InMemory';
+import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
+import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
+import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
+import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { isUuid, uuid } from 'uuidv4';
 
 suite('awaitCommandWithMetadata/http', (): void => {
@@ -21,12 +25,19 @@ suite('awaitCommandWithMetadata/http', (): void => {
 
     let api: Application,
         applicationDefinition: ApplicationDefinition,
+        newCommandPublisher: Publisher<object>,
+        newCommandSubscriber: Subscriber<object>,
+        newCommandSubscriberChannel: string,
         priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
 
     setup(async (): Promise<void> => {
       const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
       applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+
+      newCommandSubscriber = await InMemorySubscriber.create();
+      newCommandSubscriberChannel = uuid();
+      newCommandPublisher = await InMemoryPublisher.create();
 
       priorityQueueStore = await InMemoryPriorityQueueStore.create({
         expirationTime
@@ -36,7 +47,8 @@ suite('awaitCommandWithMetadata/http', (): void => {
         applicationDefinition,
         corsOrigin: '*',
         priorityQueueStore,
-        pollInterval
+        newCommandSubscriber,
+        newCommandSubscriberChannel
       }));
     });
 
@@ -95,7 +107,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
       });
 
-      test('closes the connection once a command has been delivered.', async (): Promise<void> => {
+      test('closes the connection once a command has been delivered and a notification has been sent.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 
         const { data } = await client({
@@ -117,6 +129,10 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await newCommandPublisher.publish({
+          channel: newCommandSubscriberChannel,
+          message: {}
+        });
 
         await new Promise((resolve, reject): void => {
           data.on('error', (err: any): void => {
@@ -157,6 +173,10 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await newCommandPublisher.publish({
+          channel: newCommandSubscriberChannel,
+          message: {}
+        });
 
         const { data: dataFirstTry } = await client({
           method: 'get',
@@ -184,71 +204,6 @@ suite('awaitCommandWithMetadata/http', (): void => {
           method: 'get',
           url: '/v2/',
           responseType: 'stream'
-        });
-
-        await new Promise((resolve, reject): void => {
-          dataSecondTry.on('error', (err: any): void => {
-            reject(err);
-          });
-
-          dataSecondTry.pipe(asJsonStream(
-            (streamElement): void => {
-              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
-            },
-            (streamElement: any): void => {
-              assert.that(streamElement.item).is.equalTo(commandWithMetadata);
-              assert.that(isUuid(streamElement.token)).is.true();
-
-              resolve();
-            }
-          ));
-        });
-      });
-
-      test('delivers a locked command to the next waiting client after the lock has expired.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
-
-        const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
-          aggregateIdentifier: {
-            name: 'sampleContext',
-            id: uuid()
-          },
-          name: 'execute',
-          data: {}
-        });
-
-        await priorityQueueStore.enqueue({ item: commandWithMetadata });
-
-        const { data: dataFirstTry } = await client({
-          method: 'get',
-          url: '/v2/',
-          responseType: 'stream'
-        });
-
-        const { data: dataSecondTry } = await client({
-          method: 'get',
-          url: '/v2/',
-          responseType: 'stream'
-        });
-
-        await new Promise((resolve, reject): void => {
-          dataSecondTry.on('error', (err: any): void => {
-            reject(err);
-          });
-
-          dataFirstTry.pipe(asJsonStream(
-            (streamElement): void => {
-              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
-            },
-            (streamElement: any): void => {
-              assert.that(streamElement.item).is.equalTo(commandWithMetadata);
-
-              resolve();
-            }
-          ));
         });
 
         await new Promise((resolve, reject): void => {
@@ -382,6 +337,10 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await newCommandPublisher.publish({
+          channel: newCommandSubscriberChannel,
+          message: {}
+        });
 
         await client({
           method: 'get',
@@ -420,6 +379,10 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await newCommandPublisher.publish({
+          channel: newCommandSubscriberChannel,
+          message: {}
+        });
 
         await client({
           method: 'get',
@@ -458,6 +421,10 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await newCommandPublisher.publish({
+          channel: newCommandSubscriberChannel,
+          message: {}
+        });
 
         const { data: lockData } = await client({
           method: 'get',
@@ -565,6 +532,10 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await newCommandPublisher.publish({
+          channel: newCommandSubscriberChannel,
+          message: {}
+        });
 
         await client({
           method: 'get',
@@ -603,6 +574,10 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await newCommandPublisher.publish({
+          channel: newCommandSubscriberChannel,
+          message: {}
+        });
 
         await client({
           method: 'get',
