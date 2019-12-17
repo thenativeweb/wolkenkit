@@ -1,17 +1,16 @@
-import { InMemoryPubSubSingleton } from './InMemoryPubSubSingleton';
+import { EventEmitter } from 'events';
+import { inMemoryEventEmitterSingleton } from './inMemoryEventEmitterSingleton';
 import { Publisher } from '../Publisher';
 
 class InMemoryPublisher<T extends object> implements Publisher<T> {
-  protected pubSubSingleton: InMemoryPubSubSingleton;
+  protected eventEmitter: EventEmitter;
 
-  protected constructor ({ pubSubSingleton }: { pubSubSingleton: InMemoryPubSubSingleton }) {
-    this.pubSubSingleton = pubSubSingleton;
+  protected constructor ({ eventEmitter }: { eventEmitter: EventEmitter }) {
+    this.eventEmitter = eventEmitter;
   }
 
   public static async create<T extends object> (): Promise<InMemoryPublisher<T>> {
-    const pubSubSingleton = await InMemoryPubSubSingleton.create();
-
-    return new InMemoryPublisher({ pubSubSingleton });
+    return new InMemoryPublisher({ eventEmitter: inMemoryEventEmitterSingleton });
   }
 
   public async publish ({
@@ -21,7 +20,7 @@ class InMemoryPublisher<T extends object> implements Publisher<T> {
     channel: string;
     message: T;
   }): Promise<void> {
-    this.pubSubSingleton.eventEmitter.emit(channel, message);
+    this.eventEmitter.emit(channel, message);
   }
 }
 

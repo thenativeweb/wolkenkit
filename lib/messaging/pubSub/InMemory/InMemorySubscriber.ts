@@ -1,17 +1,16 @@
-import { InMemoryPubSubSingleton } from './InMemoryPubSubSingleton';
+import { EventEmitter } from 'events';
+import { inMemoryEventEmitterSingleton } from './inMemoryEventEmitterSingleton';
 import { Subscriber } from '../Subscriber';
 
 class InMemorySubscriber<T extends object> implements Subscriber<T> {
-  protected pubSubSingleton: InMemoryPubSubSingleton;
+  protected eventEmitter: EventEmitter;
 
-  protected constructor ({ pubSubSingleton }: { pubSubSingleton: InMemoryPubSubSingleton }) {
-    this.pubSubSingleton = pubSubSingleton;
+  protected constructor ({ eventEmitter }: { eventEmitter: EventEmitter }) {
+    this.eventEmitter = eventEmitter;
   }
 
   public static async create<T extends object> (): Promise<InMemorySubscriber<T>> {
-    const pubSubSingleton = await InMemoryPubSubSingleton.create();
-
-    return new InMemorySubscriber({ pubSubSingleton });
+    return new InMemorySubscriber({ eventEmitter: inMemoryEventEmitterSingleton });
   }
 
   public async subscribe ({
@@ -21,7 +20,7 @@ class InMemorySubscriber<T extends object> implements Subscriber<T> {
     channel: string;
     callback: (message: T) => void | Promise<void>;
   }): Promise<void> {
-    this.pubSubSingleton.eventEmitter.on(channel, callback);
+    this.eventEmitter.on(channel, callback);
   }
 }
 
