@@ -4,7 +4,7 @@ import InMemorySubscriber from '../../../../lib/messaging/pubSub/InMemory/InMemo
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 
-suite.only('InMemory', (): void => {
+suite('InMemory', (): void => {
   getTestsFor({
     async createPublisher<T extends object> (): Promise<Publisher<T>> {
       return await InMemoryPublisher.create();
