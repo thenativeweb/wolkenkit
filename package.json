@@ -166,7 +166,7 @@
     "nodeenv": "3.0.0",
     "qs": "6.9.1",
     "record-stdstreams": "3.0.0",
-    "roboter": "10.1.0",
+    "roboter": "10.1.2",
     "run-script-os": "1.0.7",
     "runfork": "3.0.0",
     "streamtoarray": "3.0.0"
@@ -183,5 +183,5 @@
   "keywords": [
     "wolkenkit"
   ],
-  "license": "AGPL-3.0"
+  "license": "AGPL-3.0-or-later"
 }
