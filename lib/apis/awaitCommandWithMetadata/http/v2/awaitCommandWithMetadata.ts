@@ -4,6 +4,7 @@ import { flaschenpost } from 'flaschenpost';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { RequestHandler } from 'express-serve-static-core';
 import { Response } from 'express';
+import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { writeLine } from '../../../../apis/base/writeLine';
 
 const logger = flaschenpost.getLogger();
@@ -31,10 +32,12 @@ const maybeHandleLock = async function ({
 
 const awaitCommandWithMetadata = function ({
   priorityQueueStore,
-  pollInterval
+  newCommandSubscriber,
+  newCommandSubscriberChannel
 }: {
   priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
-  pollInterval: number;
+  newCommandSubscriber: Subscriber<object>;
+  newCommandSubscriberChannel: string;
 }): RequestHandler {
   return async function (req, res): Promise<void> {
     const instantSuccess = await maybeHandleLock({ priorityQueueStore, res });
@@ -43,13 +46,21 @@ const awaitCommandWithMetadata = function ({
       return;
     }
 
-    const lockNextIntervalId = setInterval(async (): Promise<void> => {
+    const callback = async function (): Promise<void> {
       const success = await maybeHandleLock({ priorityQueueStore, res });
 
       if (success) {
-        clearInterval(lockNextIntervalId);
+        await newCommandSubscriber.unsubscribe({
+          channel: newCommandSubscriberChannel,
+          callback
+        });
       }
-    }, pollInterval);
+    };
+
+    await newCommandSubscriber.subscribe({
+      channel: newCommandSubscriberChannel,
+      callback
+    });
   };
 };
 

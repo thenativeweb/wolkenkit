@@ -8,20 +8,23 @@ import { getApi as getHandleCommandWithMetadataApi } from '../../../../apis/hand
 import { getApi as getHealthApi } from '../../../../apis/getHealth/http';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
+import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import express, { Application } from 'express';
 
 const getApi = async function ({
   configuration,
   applicationDefinition,
   priorityQueueStore,
-  onReceiveCommand,
-  queuePollInterval
+  newCommandSubscriber,
+  newCommandPubSubChannel,
+  onReceiveCommand
 }: {
   configuration: Configuration;
   applicationDefinition: ApplicationDefinition;
   priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
+  newCommandSubscriber: Subscriber<object>;
+  newCommandPubSubChannel: string;
   onReceiveCommand: OnReceiveCommand;
-  queuePollInterval: number;
 }): Promise<{ api: Application }> {
   const { api: healthApi } = await getHealthApi({
     corsOrigin: getCorsOrigin(configuration.healthCorsOrigin)
@@ -37,7 +40,8 @@ const getApi = async function ({
     applicationDefinition,
     corsOrigin: getCorsOrigin(configuration.awaitCommandCorsOrigin),
     priorityQueueStore,
-    pollInterval: queuePollInterval
+    newCommandSubscriber,
+    newCommandSubscriberChannel: newCommandPubSubChannel
   });
 
   const api = express();

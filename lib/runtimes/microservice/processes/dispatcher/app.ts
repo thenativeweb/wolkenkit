@@ -3,6 +3,8 @@
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
+import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
+import { createSubscriber } from '../../../../messaging/pubSub/createSubscriber';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
@@ -32,16 +34,42 @@ import { registerExceptionHandler } from '../../../../common/utils/process/regis
       }
     });
 
-    const onReceiveCommand = getOnReceiveCommand({
-      priorityQueueStore
+    const newCommandSubscriber = await createSubscriber<object>({
+      type: configuration.pubSubType,
+      options: configuration.pubSubOptions.subscriber
     });
+
+    const newCommandPublisher = await createPublisher<object>({
+      type: configuration.pubSubType,
+      options: configuration.pubSubOptions.publisher
+    });
+
+    const onReceiveCommand = getOnReceiveCommand({
+      priorityQueueStore,
+      newCommandPublisher,
+      newCommandPubSubChannel: configuration.pubSubOptions.channel
+    });
+
+    // Publish new command events on an interval even if there are no new
+    // commands so that missed events or crashing workers will not lead to
+    // unprocessed commands.
+    setInterval(
+      async (): Promise<void> => {
+        await newCommandPublisher.publish({
+          channel: configuration.pubSubOptions.channel,
+          message: {}
+        });
+      },
+      configuration.missedCommandRecoveryInterval
+    );
 
     const { api } = await getApi({
       configuration,
       applicationDefinition,
       priorityQueueStore,
-      onReceiveCommand,
-      queuePollInterval: configuration.queuePollInterval
+      newCommandSubscriber,
+      newCommandPubSubChannel: configuration.pubSubOptions.channel,
+      onReceiveCommand
     });
 
     const server = http.createServer(api);

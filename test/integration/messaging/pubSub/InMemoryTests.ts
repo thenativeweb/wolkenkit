@@ -1,6 +1,6 @@
 import { getTestsFor } from './getTestsFor';
-import InMemoryPublisher from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
-import InMemorySubscriber from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
+import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
+import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 
