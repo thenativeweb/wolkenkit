@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { inMemoryEventEmitterSingleton } from './inMemoryEventEmitterSingleton';
+import { inMemoryEventEmitter } from './inMemoryEventEmitter';
 import { Publisher } from '../Publisher';
 
 class InMemoryPublisher<T extends object> implements Publisher<T> {
@@ -10,7 +10,7 @@ class InMemoryPublisher<T extends object> implements Publisher<T> {
   }
 
   public static async create<T extends object> (): Promise<InMemoryPublisher<T>> {
-    return new InMemoryPublisher({ eventEmitter: inMemoryEventEmitterSingleton });
+    return new InMemoryPublisher({ eventEmitter: inMemoryEventEmitter });
   }
 
   public async publish ({
