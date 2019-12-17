@@ -22,6 +22,16 @@ class InMemorySubscriber<T extends object> implements Subscriber<T> {
   }): Promise<void> {
     this.eventEmitter.on(channel, callback);
   }
+
+  public async unsubscribe ({
+    channel,
+    callback
+  }: {
+    channel: string;
+    callback: (message: T) => void | Promise<void>;
+  }): Promise<void> {
+    this.eventEmitter.off(channel, callback);
+  }
 }
 
 export default InMemorySubscriber;
