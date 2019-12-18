@@ -62,21 +62,6 @@ class DomainEventWithState<TDomainEventData extends DomainEventData, TState> ext
     });
   }
 
-  public asPublished (): DomainEventWithState<TDomainEventData, TState> {
-    return new DomainEventWithState({
-      contextIdentifier: this.contextIdentifier,
-      aggregateIdentifier: this.aggregateIdentifier,
-      name: this.name,
-      data: this.data,
-      id: this.id,
-      metadata: {
-        ...this.metadata,
-        isPublished: true
-      },
-      state: this.state
-    });
-  }
-
   public withoutState (): DomainEvent<TDomainEventData> {
     return new DomainEvent(this);
   }

@@ -110,7 +110,6 @@ class PostgresDomainEventStore implements DomainEventStore {
             "aggregateId" uuid NOT NULL,
             "revisionAggregate" integer NOT NULL,
             "domainEvent" jsonb NOT NULL,
-            "isPublished" boolean NOT NULL,
 
             CONSTRAINT "${tableNames.domainEvents}_pk" PRIMARY KEY("revisionGlobal"),
             CONSTRAINT "${tableNames.domainEvents}_aggregateId_revisionAggregate" UNIQUE ("aggregateId", "revisionAggregate")
@@ -193,7 +192,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = connection.query(
       new QueryStream(`
-        SELECT "domainEvent", "revisionGlobal", "isPublished"
+        SELECT "domainEvent", "revisionGlobal"
           FROM "${this.tableNames.domainEvents}"
           WHERE "aggregateId" = $1
             AND "revisionAggregate" >= $2
@@ -219,65 +218,6 @@ class PostgresDomainEventStore implements DomainEventStore {
       domainEvent = domainEvent.withRevisionGlobal({
         revisionGlobal: Number(data.revisionGlobal)
       });
-
-      if (data.isPublished) {
-        domainEvent = domainEvent.asPublished();
-      }
-
-      passThrough.write(domainEvent);
-    };
-
-    onEnd = function (): void {
-      unsubscribe();
-      passThrough.end();
-    };
-
-    onError = function (err: Error): void {
-      unsubscribe();
-      passThrough.emit('error', err);
-      passThrough.end();
-    };
-
-    domainEventStream.on('data', onData);
-    domainEventStream.on('end', onEnd);
-    domainEventStream.on('error', onError);
-
-    return passThrough;
-  }
-
-  public async getUnpublishedDomainEventStream (): Promise<PassThrough> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
-
-    const passThrough = new PassThrough({ objectMode: true });
-    const domainEventStream = connection.query(
-      new QueryStream(`
-        SELECT "domainEvent", "revisionGlobal", "isPublished"
-          FROM "${this.tableNames.domainEvents}"
-          WHERE "isPublished" = false
-          ORDER BY "revisionGlobal"`)
-    );
-
-    let onData: (data: any) => void,
-        onEnd: () => void,
-        onError: (err: Error) => void;
-
-    const unsubscribe = function (): void {
-      connection.release();
-      domainEventStream.removeListener('data', onData);
-      domainEventStream.removeListener('end', onEnd);
-      domainEventStream.removeListener('error', onError);
-    };
-
-    onData = function (data: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(data.revisionGlobal)
-      });
-
-      if (data.isPublished) {
-        domainEvent = domainEvent.asPublished();
-      }
 
       passThrough.write(domainEvent);
     };
@@ -311,14 +251,13 @@ class PostgresDomainEventStore implements DomainEventStore {
           values = [];
 
     for (const [ index, domainEvent ] of domainEvents.entries()) {
-      const base = (4 * index) + 1;
+      const base = (3 * index) + 1;
 
-      placeholders.push(`($${base}, $${base + 1}, $${base + 2}, $${base + 3})`);
+      placeholders.push(`($${base}, $${base + 1}, $${base + 2})`);
       values.push(
         domainEvent.aggregateIdentifier.id,
         domainEvent.metadata.revision.aggregate,
-        domainEvent,
-        domainEvent.metadata.isPublished
+        domainEvent
       );
     }
 
@@ -326,7 +265,7 @@ class PostgresDomainEventStore implements DomainEventStore {
 
     const text = `
       INSERT INTO "${this.tableNames.domainEvents}"
-        ("aggregateId", "revisionAggregate", "domainEvent", "isPublished")
+        ("aggregateId", "revisionAggregate", "domainEvent")
       VALUES
         ${placeholders.join(',')} RETURNING "revisionGlobal";
     `;
@@ -361,34 +300,6 @@ class PostgresDomainEventStore implements DomainEventStore {
     }
 
     return savedDomainEvents;
-  }
-
-  public async markDomainEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {
-    aggregateIdentifier: AggregateIdentifier;
-    fromRevision: number;
-    toRevision: number;
-  }): Promise<void> {
-    if (fromRevision > toRevision) {
-      throw new Error('From revision is greater than to revision.');
-    }
-
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
-
-    try {
-      await connection.query({
-        name: 'mark domain events as published',
-        text: `
-          UPDATE "${this.tableNames.domainEvents}"
-            SET "isPublished" = true
-            WHERE "aggregateId" = $1
-              AND "revisionAggregate" >= $2
-              AND "revisionAggregate" <= $3
-        `,
-        values: [ aggregateIdentifier.id, fromRevision, toRevision ]
-      });
-    } finally {
-      connection.release();
-    }
   }
 
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {

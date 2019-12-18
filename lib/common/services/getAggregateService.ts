@@ -57,7 +57,6 @@ const getAggregateService = function <TState extends State> ({ currentAggregateS
           causationId: command.id,
           correlationId: command.metadata.correlationId,
           timestamp: Date.now(),
-          isPublished: false,
           initiator: command.metadata.initiator,
           revision: {
             aggregate: currentAggregateState.revision + currentAggregateState.unsavedDomainEvents.length + 1,

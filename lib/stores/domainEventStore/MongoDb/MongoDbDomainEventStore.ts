@@ -229,57 +229,6 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
-  public async getUnpublishedDomainEventStream (): Promise<PassThrough> {
-    const passThrough = new PassThrough({ objectMode: true });
-    const domainEventStream = this.collections.domainEvents.find({
-      'metadata.isPublished': false
-    }, {
-      projection: { _id: 0 },
-      sort: { 'metadata.revision.global': 1 }
-    }).stream();
-
-    let onData: (data: any) => void,
-        onEnd: () => void,
-        onError: (err: Error) => void;
-
-    const unsubscribe = function (): void {
-      domainEventStream.removeListener('data', onData);
-      domainEventStream.removeListener('end', onEnd);
-      domainEventStream.removeListener('error', onError);
-    };
-
-    onData = function (data: any): void {
-      passThrough.write(new DomainEvent(data));
-    };
-
-    onEnd = function (): void {
-      unsubscribe();
-      passThrough.end();
-
-      // In the PostgreSQL eventstore, we call domainEventStream.end() here. In
-      // MongoDB, this function apparently is not implemented. This note is just
-      // for informational purposes to ensure that you are aware that the two
-      // implementations differ here.
-    };
-
-    onError = function (err: Error): void {
-      unsubscribe();
-      passThrough.emit('error', err);
-      passThrough.end();
-
-      // In the PostgreSQL eventstore, we call domainEventStream.end() here. In
-      // MongoDB, this function apparently is not implemented. This note is just
-      // for informational purposes to ensure that you are aware that the two
-      // implementations differ here.
-    };
-
-    domainEventStream.on('data', onData);
-    domainEventStream.on('end', onEnd);
-    domainEventStream.on('error', onError);
-
-    return passThrough;
-  }
-
   public async saveDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
   }): Promise<DomainEvent<TDomainEventData>[]> {
@@ -315,28 +264,6 @@ class MongoDbDomainEventStore implements DomainEventStore {
     }
 
     return savedDomainEvents;
-  }
-
-  public async markDomainEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {
-    aggregateIdentifier: AggregateIdentifier;
-    fromRevision: number;
-    toRevision: number;
-  }): Promise<void> {
-    if (fromRevision > toRevision) {
-      throw new Error('From revision is greater than to revision.');
-    }
-
-    await this.collections.domainEvents.updateMany({
-      'aggregateIdentifier.id': aggregateIdentifier.id,
-      'metadata.revision.aggregate': {
-        $gte: fromRevision,
-        $lte: toRevision
-      }
-    }, {
-      $set: {
-        'metadata.isPublished': true
-      }
-    });
   }
 
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {

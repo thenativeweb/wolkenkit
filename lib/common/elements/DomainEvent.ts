@@ -59,20 +59,6 @@ class DomainEvent<TDomainEventData extends DomainEventData> {
     });
   }
 
-  public asPublished (): DomainEvent<TDomainEventData> {
-    return new DomainEvent({
-      contextIdentifier: this.contextIdentifier,
-      aggregateIdentifier: this.aggregateIdentifier,
-      name: this.name,
-      data: this.data,
-      id: this.id,
-      metadata: {
-        ...this.metadata,
-        isPublished: true
-      }
-    });
-  }
-
   public getItemIdentifier (): ItemIdentifier {
     return {
       contextIdentifier: this.contextIdentifier,

@@ -87,7 +87,6 @@ class SqlServerDomainEventStore implements DomainEventStore {
             [aggregateId] UNIQUEIDENTIFIER NOT NULL,
             [revisionAggregate] INT NOT NULL,
             [domainEvent] NVARCHAR(4000) NOT NULL,
-            [isPublished] BIT NOT NULL,
 
             CONSTRAINT [${tableNames.domainEvents}_pk] PRIMARY KEY([revisionGlobal]),
             CONSTRAINT [${tableNames.domainEvents}_aggregateId_revisionAggregate] UNIQUE ([aggregateId], [revisionAggregate])
@@ -218,15 +217,11 @@ class SqlServerDomainEventStore implements DomainEventStore {
         revisionGlobal: Number(columns[1].value)
       });
 
-      if (columns[2].value) {
-        domainEvent = domainEvent.asPublished();
-      }
-
       passThrough.write(domainEvent);
     };
 
     request = new Request(`
-      SELECT [domainEvent], [revisionAggregate], [isPublished]
+      SELECT [domainEvent], [revisionAggregate]
         FROM [${this.tableNames.domainEvents}]
         WHERE [aggregateId] = @aggregateId
           AND [revisionAggregate] >= @fromRevision
@@ -253,64 +248,6 @@ class SqlServerDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
-  public async getUnpublishedDomainEventStream (): Promise<PassThrough> {
-    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
-
-    const passThrough = new PassThrough({ objectMode: true });
-
-    let onError: (err: Error) => void,
-        onRow: (columns: ColumnValue[]) => void,
-        request: Request;
-
-    const unsubscribe = (): void => {
-      this.pool.release(database);
-      request.removeListener('error', onError);
-      request.removeListener('row', onRow);
-    };
-
-    onError = (err: Error): void => {
-      unsubscribe();
-      passThrough.emit('error', err);
-      passThrough.end();
-    };
-
-    onRow = (columns: ColumnValue[]): void => {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(columns[1].value)
-      });
-
-      if (columns[2].value) {
-        domainEvent = domainEvent.asPublished();
-      }
-
-      passThrough.write(domainEvent);
-    };
-
-    request = new Request(`
-      SELECT [domainEvent], [revisionGlobal], [isPublished]
-        FROM [${this.tableNames.domainEvents}]
-        WHERE [isPublished] = 0
-        ORDER BY [revisionGlobal]
-      `, (err: Error | null): void => {
-      unsubscribe();
-
-      if (err) {
-        passThrough.emit('error', err);
-      }
-
-      passThrough.end();
-    });
-
-    request.on('error', onError);
-    request.on('row', onRow);
-
-    database.execSql(request);
-
-    return passThrough;
-  }
-
   public async saveDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
   }): Promise<DomainEvent<TDomainEventData>[]> {
@@ -328,11 +265,10 @@ class SqlServerDomainEventStore implements DomainEventStore {
       const row = [
         { key: `aggregateId${rowId}`, value: domainEvent.aggregateIdentifier.id, type: TYPES.UniqueIdentifier, options: undefined },
         { key: `revisionAggregate${rowId}`, value: domainEvent.metadata.revision.aggregate, type: TYPES.Int, options: undefined },
-        { key: `event${rowId}`, value: JSON.stringify(domainEvent), type: TYPES.NVarChar, options: { length: 4000 }},
-        { key: `isPublished${rowId}`, value: domainEvent.metadata.isPublished, type: TYPES.Bit, options: undefined }
+        { key: `event${rowId}`, value: JSON.stringify(domainEvent), type: TYPES.NVarChar, options: { length: 4000 }}
       ];
 
-      placeholders.push(`(@${row[0].key}, @${row[1].key}, @${row[2].key}, @${row[3].key})`);
+      placeholders.push(`(@${row[0].key}, @${row[1].key}, @${row[2].key})`);
 
       values.push(...row);
     }
@@ -340,7 +276,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
     const database = await SqlServerDomainEventStore.getDatabase(this.pool);
 
     const text = `
-      INSERT INTO [${this.tableNames.domainEvents}] ([aggregateId], [revisionAggregate], [domainEvent], [isPublished])
+      INSERT INTO [${this.tableNames.domainEvents}] ([aggregateId], [revisionAggregate], [domainEvent])
         OUTPUT INSERTED.[revisionGlobal]
       VALUES ${placeholders.join(',')};
     `;
@@ -393,44 +329,6 @@ class SqlServerDomainEventStore implements DomainEventStore {
     }
 
     return savedDomainEvents;
-  }
-
-  public async markDomainEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {
-    aggregateIdentifier: AggregateIdentifier;
-    fromRevision: number;
-    toRevision: number;
-  }): Promise<void> {
-    if (fromRevision > toRevision) {
-      throw new Error('From revision is greater than to revision.');
-    }
-
-    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
-
-    try {
-      await new Promise((resolve, reject): void => {
-        const request = new Request(`
-          UPDATE [${this.tableNames.domainEvents}]
-            SET [isPublished] = 1
-            WHERE [aggregateId] = @aggregateId
-              AND [revisionAggregate] >= @fromRevision
-              AND [revisionAggregate] <= @toRevision
-          `, (err: Error | null): void => {
-          if (err) {
-            return reject(err);
-          }
-
-          resolve();
-        });
-
-        request.addParameter('aggregateId', TYPES.UniqueIdentifier, aggregateIdentifier.id);
-        request.addParameter('fromRevision', TYPES.Int, fromRevision);
-        request.addParameter('toRevision', TYPES.Int, toRevision);
-
-        database.execSql(request);
-      });
-    } finally {
-      this.pool.release(database);
-    }
   }
 
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {

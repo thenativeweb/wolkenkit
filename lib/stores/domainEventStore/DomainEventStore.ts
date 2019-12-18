@@ -17,21 +17,13 @@ export interface DomainEventStore {
     toRevision?: number;
   }) => Promise<PassThrough>;
 
-  getUnpublishedDomainEventStream: () => Promise<PassThrough>;
+  getSnapshot: <TState extends State> ({ aggregateIdentifier }: {
+    aggregateIdentifier: AggregateIdentifier;
+  }) => Promise<Snapshot<TState> | undefined>;
 
   saveDomainEvents: <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
   }) => Promise<DomainEvent<TDomainEventData>[]>;
-
-  markDomainEventsAsPublished: ({ aggregateIdentifier, fromRevision, toRevision }: {
-    aggregateIdentifier: AggregateIdentifier;
-    fromRevision: number;
-    toRevision: number;
-  }) => Promise<void>;
-
-  getSnapshot: <TState extends State> ({ aggregateIdentifier }: {
-    aggregateIdentifier: AggregateIdentifier;
-  }) => Promise<Snapshot<TState> | undefined>;
 
   saveSnapshot: <TState extends State> ({ snapshot }: {
     snapshot: Snapshot<TState>;
