@@ -24,9 +24,9 @@ suite('DomainEvent', (): void => {
         timestamp,
         isPublished: true,
         revision: { aggregate: 23, global: 42 },
-        initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-      },
-      tags: [ 'gdpr' ]
+        initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+        tags: [ 'gdpr' ]
+      }
     });
 
     assert.that(domainEvent).is.equalTo({
@@ -43,9 +43,9 @@ suite('DomainEvent', (): void => {
         timestamp,
         isPublished: true,
         revision: { aggregate: 23, global: 42 },
-        initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-      },
-      tags: [ 'gdpr' ]
+        initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+        tags: [ 'gdpr' ]
+      }
     });
   });
 
@@ -71,9 +71,9 @@ suite('DomainEvent', (): void => {
           timestamp,
           isPublished: true,
           revision: { aggregate: 23, global: 42 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        },
-        tags: []
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: []
+        }
       });
 
       const itemIdentifier = domainEvent.getItemIdentifier();

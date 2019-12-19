@@ -11,8 +11,7 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
   name,
   data,
   id,
-  metadata,
-  tags
+  metadata
 }: {
   contextIdentifier: ContextIdentifier;
   aggregateIdentifier: AggregateIdentifier;
@@ -29,8 +28,8 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
       global?: number | null;
     };
     initiator: Initiator;
+    tags?: string[];
   };
-  tags?: string[];
 }): DomainEvent<TDomainEventData> {
   return new DomainEvent({
     contextIdentifier,
@@ -47,9 +46,9 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
         aggregate: metadata.revision.aggregate,
         global: metadata.revision.global ?? null
       },
-      initiator: metadata.initiator
-    },
-    tags: tags ?? []
+      initiator: metadata.initiator,
+      tags: metadata.tags ?? []
+    }
   });
 };
 

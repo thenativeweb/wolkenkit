@@ -26,7 +26,11 @@ const getAggregateService = function <TState extends State> ({ currentAggregateS
       return currentAggregateState.exists();
     },
 
-    publishDomainEvent <TDomainEventData extends DomainEventData> (domainEventName: string, data: TDomainEventData, tags: string[] = []): TState {
+    publishDomainEvent <TDomainEventData extends DomainEventData> (
+      domainEventName: string,
+      data: TDomainEventData,
+      metadata: { tags: string[] } = { tags: []}
+    ): TState {
       const contextName = currentAggregateState.contextIdentifier.name;
       const aggregateName = currentAggregateState.aggregateIdentifier.name;
 
@@ -58,9 +62,9 @@ const getAggregateService = function <TState extends State> ({ currentAggregateS
           revision: {
             aggregate: currentAggregateState.revision + currentAggregateState.unsavedDomainEvents.length + 1,
             global: null
-          }
-        },
-        tags
+          },
+          tags: metadata.tags
+        }
       });
 
       const previousState = cloneDeep(currentAggregateState.state);

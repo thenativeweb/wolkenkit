@@ -17,7 +17,6 @@ class DomainEventWithState<TDomainEventData extends DomainEventData, TState> ext
     data,
     id,
     metadata,
-    tags,
     state
   }: {
     contextIdentifier: ContextIdentifier;
@@ -26,7 +25,6 @@ class DomainEventWithState<TDomainEventData extends DomainEventData, TState> ext
     data: TDomainEventData;
     id: string;
     metadata: DomainEventMetadata;
-    tags: string[];
     state: {
       previous: TState;
       next: TState;
@@ -38,8 +36,7 @@ class DomainEventWithState<TDomainEventData extends DomainEventData, TState> ext
       name,
       data,
       id,
-      metadata,
-      tags
+      metadata
     });
 
     this.state = state;
@@ -61,7 +58,6 @@ class DomainEventWithState<TDomainEventData extends DomainEventData, TState> ext
           global: revisionGlobal
         }
       },
-      tags: this.tags,
       state: this.state
     });
   }
@@ -77,7 +73,6 @@ class DomainEventWithState<TDomainEventData extends DomainEventData, TState> ext
         ...this.metadata,
         isPublished: true
       },
-      tags: this.tags,
       state: this.state
     });
   }

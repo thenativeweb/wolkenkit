@@ -17,16 +17,13 @@ class DomainEvent<TDomainEventData extends DomainEventData> {
 
   public readonly metadata: DomainEventMetadata;
 
-  public readonly tags: string[];
-
   public constructor ({
     contextIdentifier,
     aggregateIdentifier,
     name,
     data,
     id,
-    metadata,
-    tags
+    metadata
   }: {
     contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
@@ -34,7 +31,6 @@ class DomainEvent<TDomainEventData extends DomainEventData> {
     data: TDomainEventData;
     id: string;
     metadata: DomainEventMetadata;
-    tags: string[];
   }) {
     this.contextIdentifier = contextIdentifier;
     this.aggregateIdentifier = aggregateIdentifier;
@@ -42,7 +38,6 @@ class DomainEvent<TDomainEventData extends DomainEventData> {
     this.data = data;
     this.id = id;
     this.metadata = metadata;
-    this.tags = tags;
   }
 
   public withRevisionGlobal ({ revisionGlobal }: {
@@ -60,8 +55,7 @@ class DomainEvent<TDomainEventData extends DomainEventData> {
           ...this.metadata.revision,
           global: revisionGlobal
         }
-      },
-      tags: this.tags
+      }
     });
   }
 
@@ -75,8 +69,7 @@ class DomainEvent<TDomainEventData extends DomainEventData> {
       metadata: {
         ...this.metadata,
         isPublished: true
-      },
-      tags: this.tags
+      }
     });
   }
 

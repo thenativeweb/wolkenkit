@@ -123,9 +123,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
           revision: { aggregate: 1 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        },
-        tags: [ 'gdpr' ]
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
       });
 
       await domainEventStore.saveDomainEvents<DomainEventData>({
@@ -134,7 +134,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
 
       const domainEvent = await domainEventStore.getLastDomainEvent({ aggregateIdentifier });
 
-      assert.that(domainEvent!.tags).is.equalTo([ 'gdpr' ]);
+      assert.that(domainEvent!.metadata.tags).is.equalTo([ 'gdpr' ]);
     });
   });
 
@@ -301,9 +301,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
           revision: { aggregate: 1 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        },
-        tags: [ 'gdpr' ]
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
       });
 
       await domainEventStore.saveDomainEvents<DomainEventData>({
@@ -315,7 +315,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
-      assert.that(aggregateDomainEvents[0].tags).is.equalTo([ 'gdpr' ]);
+      assert.that(aggregateDomainEvents[0].metadata.tags).is.equalTo([ 'gdpr' ]);
     });
   });
 
@@ -394,9 +394,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
           revision: { aggregate: 1 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        },
-        tags: [ 'gdpr' ]
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
       });
 
       await domainEventStore.saveDomainEvents<DomainEventData>({
@@ -407,7 +407,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
       const unpublishedDomainEvents = await toArray(domainEventStream);
 
       assert.that(unpublishedDomainEvents.length).is.equalTo(1);
-      assert.that(unpublishedDomainEvents[0].tags).is.equalTo([ 'gdpr' ]);
+      assert.that(unpublishedDomainEvents[0].metadata.tags).is.equalTo([ 'gdpr' ]);
     });
   });
 
@@ -575,9 +575,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
           revision: { aggregate: 1 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        },
-        tags: [ 'gdpr' ]
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
       });
 
       await domainEventStore.saveDomainEvents({ domainEvents: [ domainEvent ]});
@@ -586,7 +586,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(1);
-      assert.that(aggregateDomainEvents[0].tags).is.equalTo([ 'gdpr' ]);
+      assert.that(aggregateDomainEvents[0].metadata.tags).is.equalTo([ 'gdpr' ]);
     });
 
     suite('domain event stream order', function (): void {
@@ -1115,9 +1115,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
           data: { initiator: 'Jane Doe', destination: 'Riva' },
           metadata: {
             revision: { aggregate: 1 },
-            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-          },
-          tags: [ 'gdpr' ]
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
         });
 
         const domainEventJoinedFirst = buildDomainEvent({
@@ -1127,9 +1127,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
           data: { participant: 'Jane Doe' },
           metadata: {
             revision: { aggregate: 2 },
-            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-          },
-          tags: [ 'gdpr' ]
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
         });
 
         const domainEventJoinedSecond = buildDomainEvent({
@@ -1139,9 +1139,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
           data: { participant: 'Jennifer Doe' },
           metadata: {
             revision: { aggregate: 3 },
-            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-          },
-          tags: [ 'gdpr' ]
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
         });
 
         await domainEventStore.saveDomainEvents<DomainEventData>({
@@ -1200,9 +1200,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
         const replayStream = await domainEventStore.getReplay({});
         const replayEvents = await toArray(replayStream);
 
-        assert.that(replayEvents[0].tags).is.equalTo([ 'gdpr' ]);
-        assert.that(replayEvents[1].tags).is.equalTo([ 'gdpr' ]);
-        assert.that(replayEvents[2].tags).is.equalTo([ 'gdpr' ]);
+        assert.that(replayEvents[0].metadata.tags).is.equalTo([ 'gdpr' ]);
+        assert.that(replayEvents[1].metadata.tags).is.equalTo([ 'gdpr' ]);
+        assert.that(replayEvents[2].metadata.tags).is.equalTo([ 'gdpr' ]);
       });
     });
   });

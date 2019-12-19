@@ -10,4 +10,5 @@ export interface DomainEventMetadata {
     global: number | null;
   };
   initiator: Initiator;
+  tags: string[];
 }
