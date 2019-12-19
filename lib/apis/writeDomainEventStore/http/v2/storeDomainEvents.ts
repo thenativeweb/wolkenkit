@@ -1,6 +1,10 @@
+import { DomainEvent } from 'lib/common/elements/DomainEvent';
+import { DomainEventData } from 'lib/wolkenkit';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
-import { RequestHandler } from 'express-serve-static-core';
+import { getDomainEventSchema } from 'lib/common/schemas/getDomainEventSchema';
 import { Publisher } from '../../../../messaging/pubSub/Publisher';
+import { RequestHandler } from 'express-serve-static-core';
+import typer from 'content-type';
 
 const storeDomainEvents = function ({
   domainEventStore,
@@ -11,7 +15,47 @@ const storeDomainEvents = function ({
   newDomainEventPublisher: Publisher<object>;
   newDomainEventPublisherChannel: string;
 }): RequestHandler {
-  return async function (req, res): Promise<void> {
+  return async function (req, res): Promise<any> {
+    let contentType: typer.ParsedMediaType;
+
+    try {
+      contentType = typer.parse(req);
+    } catch {
+      return res.status(415).send('Header content-type must be application/json.');
+    }
+
+    if (contentType.type !== 'application/json') {
+      return res.status(415).send('Header content-type must be application/json.');
+    }
+
+    if (!Array.isArray(req.body)) {
+      return res.status(400).send('Excpected array of domain events.');
+    }
+
+    let domainEvents;
+
+    try {
+      domainEvents = req.body.map((domainEvent): DomainEvent<DomainEventData> => new DomainEvent(domainEvent));
+
+      const domainEventSchema = getDomainEventSchema();
+
+      domainEvents.forEach((domainEvent): void => {
+        domainEventSchema.validate(domainEvent, { valueName: 'domainEvent' });
+      });
+    } catch (ex) {
+      return res.status(400).send(ex.message);
+    }
+
+    const storedDomainEvents = await domainEventStore.storeDomainEvents({ domainEvents });
+
+    for (const domainEvent of storedDomainEvents) {
+      await newDomainEventPublisher.publish({
+        channel: newDomainEventPublisherChannel,
+        message: domainEvent
+      });
+    }
+
+    res.json(storedDomainEvents);
   };
 };
 
