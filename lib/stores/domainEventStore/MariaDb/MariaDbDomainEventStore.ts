@@ -373,7 +373,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
     return savedDomainEvents;
   }
 
-  public async saveSnapshot ({ snapshot }: {
+  public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
     const connection = await this.getDatabase();

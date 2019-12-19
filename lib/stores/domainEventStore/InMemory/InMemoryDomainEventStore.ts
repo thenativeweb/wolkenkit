@@ -132,7 +132,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
     return newestSnapshot as Snapshot<TState>;
   }
 
-  public async saveSnapshot ({ snapshot }: {
+  public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
     this.storeSnapshotAtDatabase({

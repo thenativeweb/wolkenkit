@@ -287,7 +287,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return mappedSnapshot;
   }
 
-  public async saveSnapshot <TState extends State> ({ snapshot }: {
+  public async storeSnapshot <TState extends State> ({ snapshot }: {
     snapshot: Snapshot<TState>;
   }): Promise<void> {
     await this.collections.snapshots.updateOne(

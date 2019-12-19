@@ -334,14 +334,14 @@ class PostgresDomainEventStore implements DomainEventStore {
     }
   }
 
-  public async saveSnapshot ({ snapshot }: {
+  public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
     const connection = await PostgresDomainEventStore.getDatabase(this.pool);
 
     try {
       await connection.query({
-        name: 'save snapshot',
+        name: 'store snapshot',
         text: `
         INSERT INTO "${this.tableNames.snapshots}" (
           "aggregateId", "revisionAggregate", state

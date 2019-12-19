@@ -25,7 +25,7 @@ export interface DomainEventStore {
     domainEvents: DomainEvent<TDomainEventData>[];
   }) => Promise<DomainEvent<TDomainEventData>[]>;
 
-  saveSnapshot: <TState extends State> ({ snapshot }: {
+  storeSnapshot: <TState extends State> ({ snapshot }: {
     snapshot: Snapshot<TState>;
   }) => Promise<void>;
 

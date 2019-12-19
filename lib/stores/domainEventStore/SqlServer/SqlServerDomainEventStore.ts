@@ -376,7 +376,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
     }
   }
 
-  public async saveSnapshot ({ snapshot }: {
+  public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
     const database = await SqlServerDomainEventStore.getDatabase(this.pool);

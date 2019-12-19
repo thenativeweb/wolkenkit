@@ -566,7 +566,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         assert.that(aggregateDomainEvents[1].metadata.revision.global).is.equalTo(2);
       });
 
-      test('assigns increasing global revisions even when saving the domain events individually.', async (): Promise<void> => {
+      test('assigns increasing global revisions even when storing the domain events individually.', async (): Promise<void> => {
         const aggregateIdentifier = {
           id: uuid(),
           name: 'peerGroup'
@@ -734,7 +734,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         participants: [ 'Jane Doe' ]
       };
 
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 5, state }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 5, state }});
 
       const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
@@ -757,7 +757,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         participants: []
       };
 
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 5, state }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 5, state }});
 
       const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
@@ -788,8 +788,8 @@ const getTestsFor = function ({ createDomainEventStore }: {
         participants: [ 'Jane Doe', 'Jenny Doe' ]
       };
 
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 5, state: stateOld }});
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state: stateNew }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 5, state: stateOld }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state: stateNew }});
 
       const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
@@ -801,7 +801,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
     });
   });
 
-  suite('saveSnapshot', function (): void {
+  suite('storeSnapshot', function (): void {
     this.timeout(5 * 1000);
 
     setup(async (): Promise<void> => {
@@ -815,7 +815,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
       await domainEventStore.destroy();
     });
 
-    test('saves a snapshot.', async (): Promise<void> => {
+    test('stores a snapshot.', async (): Promise<void> => {
       const aggregateIdentifier = {
         id: uuid(),
         name: 'peerGroup'
@@ -827,7 +827,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         participants: [ 'Jane Doe' ]
       };
 
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
 
       const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
@@ -838,7 +838,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
       });
     });
 
-    test('saves multiple snapshots.', async (): Promise<void> => {
+    test('stores multiple snapshots.', async (): Promise<void> => {
       const state = {
         initiator: 'Jane Doe',
         destination: 'Riva',
@@ -861,7 +861,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
       ];
 
       for (const aggregateIdentifier of aggregateIdentifiers) {
-        await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
+        await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
       }
 
       for (const aggregateIdentifier of aggregateIdentifiers) {
@@ -886,7 +886,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         participants: []
       };
 
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
 
       const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
@@ -900,7 +900,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
       });
     });
 
-    test('does not throw an error if trying to save an already saved snapshot.', async (): Promise<void> => {
+    test('does not throw an error if trying to store an already stored snapshot.', async (): Promise<void> => {
       const aggregateIdentifier = {
         id: uuid(),
         name: 'peerGroup'
@@ -911,8 +911,8 @@ const getTestsFor = function ({ createDomainEventStore }: {
         participants: [ 'Jane Doe' ]
       };
 
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
     });
   });
 
