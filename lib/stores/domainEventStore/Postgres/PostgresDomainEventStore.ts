@@ -240,7 +240,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
-  public async saveDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
+  public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
   }): Promise<DomainEvent<TDomainEventData>[]> {
     if (domainEvents.length === 0) {
@@ -274,7 +274,7 @@ class PostgresDomainEventStore implements DomainEventStore {
 
     try {
       const result = await connection.query({
-        name: `save domain events ${domainEvents.length}`,
+        name: `store domain events ${domainEvents.length}`,
         text,
         values
       });

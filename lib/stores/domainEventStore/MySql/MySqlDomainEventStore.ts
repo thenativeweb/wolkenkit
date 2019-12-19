@@ -334,7 +334,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     }
   }
 
-  public async saveDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
+  public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
   }): Promise<DomainEvent<TDomainEventData>[]> {
     if (domainEvents.length === 0) {

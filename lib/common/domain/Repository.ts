@@ -74,7 +74,7 @@ class Repository {
       return [];
     }
 
-    const savedDomainEvents = await this.domainEventStore.saveDomainEvents({
+    const savedDomainEvents = await this.domainEventStore.storeDomainEvents({
       domainEvents: currentAggregateState.unsavedDomainEvents
     });
 

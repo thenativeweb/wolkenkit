@@ -55,7 +55,7 @@ suite('getAggregatesService', (): void => {
         }
       });
 
-      await domainEventStore.saveDomainEvents({ domainEvents: [ sampleDomainEvent ]});
+      await domainEventStore.storeDomainEvents({ domainEvents: [ sampleDomainEvent ]});
 
       const aggregatesService = getAggregatesService({ applicationDefinition, repository });
       const sampleAggregateState = await aggregatesService.sampleContext!.sampleAggregate!(id).read();

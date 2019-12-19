@@ -57,7 +57,7 @@ suite('Repository', (): void => {
         }
       });
 
-      await domainEventStore.saveDomainEvents({
+      await domainEventStore.storeDomainEvents({
         domainEvents: [ domainEventSucceeded, domainEventExecuted ]
       });
 

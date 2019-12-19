@@ -21,7 +21,7 @@ export interface DomainEventStore {
     aggregateIdentifier: AggregateIdentifier;
   }) => Promise<Snapshot<TState> | undefined>;
 
-  saveDomainEvents: <TDomainEventData extends DomainEventData> ({ domainEvents }: {
+  storeDomainEvents: <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
   }) => Promise<DomainEvent<TDomainEventData>[]>;
 
