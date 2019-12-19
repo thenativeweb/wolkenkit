@@ -1,5 +1,7 @@
 import { Application } from 'express';
 import { CorsOrigin } from 'get-cors-origin';
+import { DomainEvent } from '../../../common/elements/DomainEvent';
+import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../stores/domainEventStore/DomainEventStore';
 import { getApiBase } from '../../base/getApiBase';
 import { Publisher } from '../../../messaging/pubSub/Publisher';
@@ -13,7 +15,7 @@ const getApi = async function ({
 }: {
   domainEventStore: DomainEventStore;
   corsOrigin: CorsOrigin;
-  newDomainEventPublisher: Publisher<object>;
+  newDomainEventPublisher: Publisher<DomainEvent<DomainEventData>>;
   newDomainEventPublisherChannel: string;
   heartbeatInterval?: number;
 }): Promise<{ api: Application }> {

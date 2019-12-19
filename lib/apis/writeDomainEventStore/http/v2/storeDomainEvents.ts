@@ -1,5 +1,5 @@
-import { DomainEvent } from 'lib/common/elements/DomainEvent';
-import { DomainEventData } from 'lib/wolkenkit';
+import { DomainEvent } from '../../../../common/elements/DomainEvent';
+import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { getDomainEventSchema } from 'lib/common/schemas/getDomainEventSchema';
 import { Publisher } from '../../../../messaging/pubSub/Publisher';
@@ -12,7 +12,7 @@ const storeDomainEvents = function ({
   newDomainEventPublisherChannel
 }: {
   domainEventStore: DomainEventStore;
-  newDomainEventPublisher: Publisher<object>;
+  newDomainEventPublisher: Publisher<DomainEvent<DomainEventData>>;
   newDomainEventPublisherChannel: string;
 }): RequestHandler {
   return async function (req, res): Promise<any> {

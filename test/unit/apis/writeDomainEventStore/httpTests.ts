@@ -4,6 +4,8 @@ import { asJsonStream } from 'test/shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { createDomainEventStore } from 'lib/stores/domainEventStore/createDomainEventStore';
+import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
+import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getApi } from '../../../../lib/apis/writeDomainEventStore/http';
 import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
@@ -18,9 +20,9 @@ suite('writeDomainEventStore/http', (): void => {
   suite('/v2', (): void => {
     let api: Application,
         domainEventStore: DomainEventStore,
-        newDomainEventPublisher: Publisher<object>,
+        newDomainEventPublisher: Publisher<DomainEvent<DomainEventData>>,
         newDomainEventPublisherChannel: string,
-        newDomainEventSubscriber: Subscriber<object>;
+        newDomainEventSubscriber: Subscriber<DomainEvent<DomainEventData>>;
 
     setup(async (): Promise<void> => {
       domainEventStore = await createDomainEventStore({
