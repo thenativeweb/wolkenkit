@@ -162,7 +162,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return new DomainEvent<TDomainEventData>(domainEvents[0]);
   }
 
-  public async getDomainEventStream ({
+  public async getReplayForAggregate ({
     aggregateIdentifier,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1

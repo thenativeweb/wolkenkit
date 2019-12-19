@@ -83,7 +83,7 @@ suite('Repository', (): void => {
 
       await repository.saveCurrentAggregateState({ currentAggregateState });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
         aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId }
       });
 
@@ -126,7 +126,7 @@ suite('Repository', (): void => {
 
       await repository.saveCurrentAggregateState({ currentAggregateState });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
         aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId }
       });
 
@@ -195,7 +195,7 @@ suite('Repository', (): void => {
 
       await repository.saveCurrentAggregateState({ currentAggregateState });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
         aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId }
       });
 

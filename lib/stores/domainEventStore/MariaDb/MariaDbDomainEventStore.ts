@@ -132,7 +132,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
     });
   }
 
-  public async getDomainEventStream ({
+  public async getReplayForAggregate ({
     aggregateIdentifier,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1

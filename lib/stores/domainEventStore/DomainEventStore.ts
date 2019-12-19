@@ -11,7 +11,7 @@ export interface DomainEventStore {
     aggregateIdentifier: AggregateIdentifier;
   }) => Promise<DomainEvent<TDomainEventData> | undefined>;
 
-  getDomainEventStream: ({ aggregateIdentifier, fromRevision, toRevision }: {
+  getReplayForAggregate: ({ aggregateIdentifier, fromRevision, toRevision }: {
     aggregateIdentifier: AggregateIdentifier;
     fromRevision?: number;
     toRevision?: number;

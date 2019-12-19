@@ -44,7 +44,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
     return lastDomainEvent as DomainEvent<TDomainEventData>;
   }
 
-  public async getDomainEventStream ({
+  public async getReplayForAggregate ({
     aggregateIdentifier,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1

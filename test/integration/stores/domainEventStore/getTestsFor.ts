@@ -128,7 +128,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents<DomainEventData>({
+      await domainEventStore.storeDomainEvents<DomainEventData>({
         domainEvents: [ domainEventStarted ]
       });
 
@@ -138,7 +138,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
     });
   });
 
-  suite('getDomainEventStream', function (): void {
+  suite('getReplayForAggregate', function (): void {
     this.timeout(5 * 1000);
 
     setup(async (): Promise<void> => {
@@ -158,7 +158,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         name: 'peerGroup'
       };
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateIdentifier });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(0);
@@ -196,7 +196,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         domainEvents: [ domainEventStarted, domainEventJoined ]
       });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateIdentifier });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(2);
@@ -236,7 +236,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         domainEvents: [ domainEventStarted, domainEventJoined ]
       });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
         aggregateIdentifier,
         fromRevision: 2
       });
@@ -278,7 +278,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         domainEvents: [ domainEventStarted, domainEventJoined ]
       });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
         aggregateIdentifier,
         toRevision: 1
       });
@@ -306,11 +306,11 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents<DomainEventData>({
+      await domainEventStore.storeDomainEvents<DomainEventData>({
         domainEvents: [ domainEventStarted ]
       });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
         aggregateIdentifier
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
@@ -371,7 +371,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         domainEvents: [ domainEventStarted, domainEventJoined ]
       });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
         aggregateIdentifier
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
@@ -463,7 +463,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
 
       await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateIdentifier });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(1);
@@ -488,16 +488,16 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents({ domainEvents: [ domainEvent ]});
+      await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateIdentifier });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(1);
       assert.that(aggregateDomainEvents[0].metadata.tags).is.equalTo([ 'gdpr' ]);
     });
 
-    suite('domain event stream order', function (): void {
+    suite('replay for aggregate order', function (): void {
       this.timeout(5 * 1000);
 
       test('assigns the global revision 1 to the first domain event.', async (): Promise<void> => {
@@ -519,7 +519,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
 
         await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-        const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+        const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateIdentifier });
         const aggregateDomainEvents = await toArray(domainEventStream);
 
         assert.that(aggregateDomainEvents.length).is.equalTo(1);
@@ -558,7 +558,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
           domainEvents: [ domainEventStarted, domainEventJoined ]
         });
 
-        const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+        const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateIdentifier });
         const aggregateDomainEvents = await toArray(domainEventStream);
 
         assert.that(aggregateDomainEvents.length).is.equalTo(2);
@@ -597,7 +597,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         await domainEventStore.storeDomainEvents({ domainEvents: [ domainEventStarted ]});
         await domainEventStore.storeDomainEvents({ domainEvents: [ domainEventJoined ]});
 
-        const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+        const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateIdentifier });
         const aggregateDomainEvents = await toArray(domainEventStream);
 
         assert.that(aggregateDomainEvents.length).is.equalTo(2);
@@ -637,13 +637,13 @@ const getTestsFor = function ({ createDomainEventStore }: {
         await domainEventStore.storeDomainEvents({ domainEvents: [ domainEventStarted1 ]});
         await domainEventStore.storeDomainEvents({ domainEvents: [ domainEventStarted2 ]});
 
-        const domainEventStream1 = await domainEventStore.getDomainEventStream({ aggregateIdentifier: domainEventStarted1.aggregateIdentifier });
+        const domainEventStream1 = await domainEventStore.getReplayForAggregate({ aggregateIdentifier: domainEventStarted1.aggregateIdentifier });
         const aggregateDomainEvents1 = await toArray(domainEventStream1);
 
         assert.that(aggregateDomainEvents1.length).is.equalTo(1);
         assert.that(aggregateDomainEvents1[0].metadata.revision.global).is.equalTo(1);
 
-        const domainEventStream2 = await domainEventStore.getDomainEventStream({ aggregateIdentifier: domainEventStarted2.aggregateIdentifier });
+        const domainEventStream2 = await domainEventStore.getReplayForAggregate({ aggregateIdentifier: domainEventStarted2.aggregateIdentifier });
         const aggregateDomainEvents2 = await toArray(domainEventStream2);
 
         assert.that(aggregateDomainEvents2.length).is.equalTo(1);
