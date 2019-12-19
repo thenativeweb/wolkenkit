@@ -38,6 +38,7 @@ const errors = defekt({
   QueryHandlerMalformed: {},
   RequestFailed: {},
   RequestMalformed: {},
+  SnapshotMalformed: {},
   SubscriberTypeInvalid: {},
   TokenMismatch: {},
   TypeInvalid: {},

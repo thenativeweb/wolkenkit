@@ -3,7 +3,7 @@ import { CustomError } from 'defekt';
 import { uuid } from 'uuidv4';
 import { validateSnapshot } from '../../../../lib/common/validators/validateSnapshot';
 
-suite.only('validateSnapshot', (): void => {
+suite('validateSnapshot', (): void => {
   const snapshot = {
     aggregateIdentifier: {
       name: 'sampleAggregate',

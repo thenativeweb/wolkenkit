@@ -2,20 +2,15 @@ import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateId
 import { Application } from 'express';
 import { asJsonStream } from 'test/shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { AxiosError } from 'axios';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { createDomainEventStore } from 'lib/stores/domainEventStore/createDomainEventStore';
-import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
-import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
-import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { getApi } from '../../../../lib/apis/writeDomainEventStore/http';
 import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
 import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
-import { State } from '../../../../lib/common/elements/State';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { uuid } from 'uuidv4';
 
@@ -176,6 +171,79 @@ suite('writeDomainEventStore/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo('Header content-type must be application/json.');
+      });
+    });
+
+    suite('POST /store-snapshot', (): void => {
+      test('stores the given snapshot.', async (): Promise<void> => {
+        const aggregateIdentifier: AggregateIdentifier = {
+          name: 'sampleAggregate',
+          id: uuid()
+        };
+
+        const snapshot: Snapshot<object> = {
+          aggregateIdentifier,
+          revision: 1,
+          state: {}
+        };
+
+        const client = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/store-snapshot',
+          data: snapshot
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(await domainEventStore.getSnapshot({ aggregateIdentifier })).is.equalTo(snapshot);
+      });
+
+      test('overwrites the previous snapshot if one existed.', async (): Promise<void> => {
+        const aggregateIdentifier: AggregateIdentifier = {
+          name: 'sampleAggregate',
+          id: uuid()
+        };
+
+        const firstSnapshot: Snapshot<object> = {
+          aggregateIdentifier,
+          revision: 1,
+          state: {}
+        };
+        const secondSnapshot: Snapshot<object> = {
+          aggregateIdentifier,
+          revision: 2,
+          state: {}
+        };
+
+        const client = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/store-snapshot',
+          data: firstSnapshot
+        });
+        await client({
+          method: 'post',
+          url: '/v2/store-snapshot',
+          data: secondSnapshot
+        });
+
+        assert.that(await domainEventStore.getSnapshot({ aggregateIdentifier })).is.equalTo(secondSnapshot);
+      });
+
+      test('returns 400 if the snapshot is malformed.', async (): Promise<void> => {
+        const client = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/store-snapshot',
+          data: {},
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo('Missing required property: aggregateIdentifier (at snapshot.aggregateIdentifier).');
       });
     });
   });
