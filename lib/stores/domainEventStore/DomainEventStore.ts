@@ -7,7 +7,9 @@ import { State } from '../../common/elements/State';
 
 // All pass through streams in this interface emit objects of type DomainEvent.
 export interface DomainEventStore {
-  destroy: () => Promise<void>;
+  getLastDomainEvent: <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
+    aggregateIdentifier: AggregateIdentifier;
+  }) => Promise<DomainEvent<TDomainEventData> | undefined>;
 
   getDomainEventStream: ({ aggregateIdentifier, fromRevision, toRevision }: {
     aggregateIdentifier: AggregateIdentifier;
@@ -15,20 +17,11 @@ export interface DomainEventStore {
     toRevision?: number;
   }) => Promise<PassThrough>;
 
-  getLastDomainEvent: <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
-    aggregateIdentifier: AggregateIdentifier;
-  }) => Promise<DomainEvent<TDomainEventData> | undefined>;
-
-  getReplay: ({ fromRevisionGlobal, toRevisionGlobal }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
-  }) => Promise<PassThrough>;
-
-  getSnapshot: <TState extends State> ({ aggregateIdentifier }: {
-    aggregateIdentifier: AggregateIdentifier;
-  }) => Promise<Snapshot<TState> | undefined>;
-
   getUnpublishedDomainEventStream: () => Promise<PassThrough>;
+
+  saveDomainEvents: <TDomainEventData extends DomainEventData> ({ domainEvents }: {
+    domainEvents: DomainEvent<TDomainEventData>[];
+  }) => Promise<DomainEvent<TDomainEventData>[]>;
 
   markDomainEventsAsPublished: ({ aggregateIdentifier, fromRevision, toRevision }: {
     aggregateIdentifier: AggregateIdentifier;
@@ -36,11 +29,18 @@ export interface DomainEventStore {
     toRevision: number;
   }) => Promise<void>;
 
-  saveDomainEvents: <TDomainEventData extends DomainEventData> ({ domainEvents }: {
-    domainEvents: DomainEvent<TDomainEventData>[];
-  }) => Promise<DomainEvent<TDomainEventData>[]>;
+  getSnapshot: <TState extends State> ({ aggregateIdentifier }: {
+    aggregateIdentifier: AggregateIdentifier;
+  }) => Promise<Snapshot<TState> | undefined>;
 
   saveSnapshot: <TState extends State> ({ snapshot }: {
     snapshot: Snapshot<TState>;
   }) => Promise<void>;
+
+  getReplay: ({ fromRevisionGlobal, toRevisionGlobal }: {
+    fromRevisionGlobal?: number;
+    toRevisionGlobal?: number;
+  }) => Promise<PassThrough>;
+
+  destroy: () => Promise<void>;
 }

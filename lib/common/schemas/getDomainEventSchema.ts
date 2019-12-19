@@ -72,6 +72,10 @@ const getDomainEventSchema = function (): Value {
             },
             required: [ 'user' ],
             additionalProperties: false
+          },
+          tags: {
+            type: 'array',
+            items: { type: 'string', minLength: 1 }
           }
         },
         required: [
@@ -80,7 +84,8 @@ const getDomainEventSchema = function (): Value {
           'timestamp',
           'isPublished',
           'revision',
-          'initiator'
+          'initiator',
+          'tags'
         ],
         additionalProperties: false
       }

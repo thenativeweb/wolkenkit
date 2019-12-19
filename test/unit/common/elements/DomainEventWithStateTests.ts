@@ -24,7 +24,8 @@ suite('DomainEventWithState', (): void => {
         timestamp,
         isPublished: true,
         revision: { aggregate: 23, global: 42 },
-        initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+        tags: [ 'gdpr' ]
       },
       state: { previous: { foo: 'bar' }, next: { foo: 'bas' }}
     });
@@ -43,7 +44,8 @@ suite('DomainEventWithState', (): void => {
         timestamp,
         isPublished: true,
         revision: { aggregate: 23, global: 42 },
-        initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+        tags: [ 'gdpr' ]
       },
       state: { previous: { foo: 'bar' }, next: { foo: 'bas' }}
     });
