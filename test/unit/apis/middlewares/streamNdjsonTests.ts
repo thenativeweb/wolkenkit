@@ -47,7 +47,7 @@ suite('streamNdjson middleware', (): void => {
 
     await new Promise((resolve, reject): void => {
       try {
-        data.pipe(asJsonStream<any>(
+        data.pipe(asJsonStream<any>([
           (streamElement): void => {
             assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
           },
@@ -55,7 +55,7 @@ suite('streamNdjson middleware', (): void => {
             assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             resolve();
           }
-        ));
+        ]));
       } catch (ex) {
         reject(ex);
       }

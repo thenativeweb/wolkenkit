@@ -143,7 +143,7 @@ suite('observeDomainEvents/http', (): void => {
             resolve();
           });
 
-          data.pipe(asJsonStream(
+          data.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
@@ -151,7 +151,7 @@ suite('observeDomainEvents/http', (): void => {
               assert.that(streamElement.data).is.equalTo({ strategy: 'succeed' });
               resolve();
             }
-          ));
+          ]));
         });
       });
 
@@ -205,7 +205,7 @@ suite('observeDomainEvents/http', (): void => {
             resolve();
           });
 
-          data.pipe(asJsonStream(
+          data.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
@@ -218,7 +218,7 @@ suite('observeDomainEvents/http', (): void => {
               assert.that(streamElement.data).is.equalTo({ strategy: 'succeed' });
               resolve();
             }
-          ));
+          ]));
         });
       });
 
@@ -273,7 +273,7 @@ suite('observeDomainEvents/http', (): void => {
             resolve();
           });
 
-          data.pipe(asJsonStream(
+          data.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
@@ -282,7 +282,7 @@ suite('observeDomainEvents/http', (): void => {
               assert.that(streamElement.data).is.equalTo({ strategy: 'succeed' });
               resolve();
             }
-          ));
+          ]));
         });
       });
 
@@ -343,7 +343,7 @@ suite('observeDomainEvents/http', (): void => {
             resolve();
           });
 
-          data.pipe(asJsonStream(
+          data.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
@@ -352,7 +352,7 @@ suite('observeDomainEvents/http', (): void => {
               assert.that(streamElement.data).is.equalTo({ strategy: 'succeed' });
               resolve();
             }
-          ));
+          ]));
         });
       });
 
@@ -392,7 +392,7 @@ suite('observeDomainEvents/http', (): void => {
             resolve();
           });
 
-          data.pipe(asJsonStream(
+          data.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
@@ -400,7 +400,7 @@ suite('observeDomainEvents/http', (): void => {
               assert.that(streamElement.state).is.undefined();
               resolve();
             }
-          ));
+          ]));
         });
       });
 
@@ -511,7 +511,7 @@ suite('observeDomainEvents/http', (): void => {
               resolve();
             });
 
-            data.pipe(asJsonStream(
+            data.pipe(asJsonStream([
               (streamElement): void => {
                 assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
               },
@@ -519,7 +519,7 @@ suite('observeDomainEvents/http', (): void => {
                 assert.that(streamElement.name).is.equalTo('executed');
                 resolve();
               }
-            ));
+            ]));
           });
         });
 
@@ -589,7 +589,7 @@ suite('observeDomainEvents/http', (): void => {
               resolve();
             });
 
-            data.pipe(asJsonStream(
+            data.pipe(asJsonStream([
               (streamElement): void => {
                 assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
               },
@@ -597,7 +597,7 @@ suite('observeDomainEvents/http', (): void => {
                 assert.that(streamElement.name).is.equalTo('executed');
                 resolve();
               }
-            ));
+            ]));
           });
         });
 
@@ -651,7 +651,7 @@ suite('observeDomainEvents/http', (): void => {
               resolve();
             });
 
-            data.pipe(asJsonStream(
+            data.pipe(asJsonStream([
               (streamElement): void => {
                 assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
               },
@@ -659,7 +659,7 @@ suite('observeDomainEvents/http', (): void => {
                 assert.that(streamElement.name).is.equalTo('authorizationWithMutation');
                 resolve();
               }
-            ));
+            ]));
           });
 
           assert.that((authorizationWithMutation.data as any).isMutated).is.undefined();
@@ -717,7 +717,7 @@ suite('observeDomainEvents/http', (): void => {
               resolve();
             });
 
-            data.pipe(asJsonStream(
+            data.pipe(asJsonStream([
               (streamElement): void => {
                 assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
               },
@@ -725,7 +725,7 @@ suite('observeDomainEvents/http', (): void => {
                 assert.that(streamElement.name).is.equalTo('filterPassed');
                 resolve();
               }
-            ));
+            ]));
           });
         });
 
@@ -793,7 +793,7 @@ suite('observeDomainEvents/http', (): void => {
               resolve();
             });
 
-            data.pipe(asJsonStream(
+            data.pipe(asJsonStream([
               (streamElement): void => {
                 assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
               },
@@ -801,7 +801,7 @@ suite('observeDomainEvents/http', (): void => {
                 assert.that(streamElement.name).is.equalTo('executed');
                 resolve();
               }
-            ));
+            ]));
           });
         });
 
@@ -869,7 +869,7 @@ suite('observeDomainEvents/http', (): void => {
               resolve();
             });
 
-            data.pipe(asJsonStream(
+            data.pipe(asJsonStream([
               (streamElement): void => {
                 assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
               },
@@ -877,7 +877,7 @@ suite('observeDomainEvents/http', (): void => {
                 assert.that(streamElement.name).is.equalTo('executed');
                 resolve();
               }
-            ));
+            ]));
           });
         });
 
@@ -931,7 +931,7 @@ suite('observeDomainEvents/http', (): void => {
               resolve();
             });
 
-            data.pipe(asJsonStream(
+            data.pipe(asJsonStream([
               (streamElement): void => {
                 assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
               },
@@ -939,7 +939,7 @@ suite('observeDomainEvents/http', (): void => {
                 assert.that(streamElement.name).is.equalTo('filterWithMutation');
                 resolve();
               }
-            ));
+            ]));
           });
 
           assert.that((filterWithMutation.data as any).isMutated).is.undefined();
@@ -997,7 +997,7 @@ suite('observeDomainEvents/http', (): void => {
               resolve();
             });
 
-            data.pipe(asJsonStream(
+            data.pipe(asJsonStream([
               (streamElement): void => {
                 assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
               },
@@ -1006,7 +1006,7 @@ suite('observeDomainEvents/http', (): void => {
                 assert.that(streamElement.data).is.equalTo({ isMapped: true });
                 resolve();
               }
-            ));
+            ]));
           });
         });
 
@@ -1074,7 +1074,7 @@ suite('observeDomainEvents/http', (): void => {
               resolve();
             });
 
-            data.pipe(asJsonStream(
+            data.pipe(asJsonStream([
               (streamElement): void => {
                 assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
               },
@@ -1082,7 +1082,7 @@ suite('observeDomainEvents/http', (): void => {
                 assert.that(streamElement.name).is.equalTo('executed');
                 resolve();
               }
-            ));
+            ]));
           });
         });
 
@@ -1150,7 +1150,7 @@ suite('observeDomainEvents/http', (): void => {
               resolve();
             });
 
-            data.pipe(asJsonStream(
+            data.pipe(asJsonStream([
               (streamElement): void => {
                 assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
               },
@@ -1158,7 +1158,7 @@ suite('observeDomainEvents/http', (): void => {
                 assert.that(streamElement.name).is.equalTo('executed');
                 resolve();
               }
-            ));
+            ]));
           });
         });
 
@@ -1212,7 +1212,7 @@ suite('observeDomainEvents/http', (): void => {
               resolve();
             });
 
-            data.pipe(asJsonStream(
+            data.pipe(asJsonStream([
               (streamElement): void => {
                 assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
               },
@@ -1220,7 +1220,7 @@ suite('observeDomainEvents/http', (): void => {
                 assert.that(streamElement.name).is.equalTo('mapWithMutation');
                 resolve();
               }
-            ));
+            ]));
           });
 
           assert.that((mapWithMutation.data as any).isMutated).is.undefined();

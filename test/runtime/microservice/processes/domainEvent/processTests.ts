@@ -127,7 +127,7 @@ suite('domain event', function (): void {
             responseType: 'stream'
           });
 
-          data.pipe(asJsonStream<DomainEvent<any>>(
+          data.pipe(asJsonStream<DomainEvent<any>>([
             (receivedEvent): void => {
               assert.that(receivedEvent).is.equalTo({ name: 'heartbeat' });
             },
@@ -135,7 +135,7 @@ suite('domain event', function (): void {
               assert.that(receivedEvent.data).is.equalTo({ strategy: 'succeed' });
               resolve();
             }
-          ));
+          ]));
         } catch (ex) {
           reject(ex);
         }
