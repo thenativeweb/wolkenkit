@@ -166,7 +166,7 @@
     "nodeenv": "3.0.0",
     "qs": "6.9.1",
     "record-stdstreams": "3.0.0",
-    "roboter": "10.1.3",
+    "roboter": "10.1.5",
     "run-script-os": "1.0.7",
     "runfork": "3.0.0",
     "streamtoarray": "3.0.0"
