@@ -311,7 +311,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
       });
 
       const domainEventStream = await domainEventStore.getReplayForAggregate({
-        aggregateIdentifier
+        aggregateId: aggregateIdentifier.id
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
@@ -490,7 +490,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
 
       await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateIdentifier });
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
+        aggregateId: aggregateIdentifier.id
+      });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(1);
