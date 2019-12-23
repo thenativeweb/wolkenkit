@@ -55,7 +55,7 @@ class Repository {
     }
 
     const domainEventStream = await this.domainEventStore.getReplayForAggregate({
-      aggregateIdentifier: currentAggregateState.aggregateIdentifier,
+      aggregateId: currentAggregateState.aggregateIdentifier.id,
       fromRevision
     });
 

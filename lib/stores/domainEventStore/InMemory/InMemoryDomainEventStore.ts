@@ -45,11 +45,11 @@ class InMemoryDomainEventStore implements DomainEventStore {
   }
 
   public async getReplayForAggregate ({
-    aggregateIdentifier,
+    aggregateId,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1
   }: {
-    aggregateIdentifier: AggregateIdentifier;
+    aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
   }): Promise<PassThrough> {
@@ -61,7 +61,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
 
     const storedDomainEvents = this.getStoredDomainEvents().filter(
       (domainEvent): boolean =>
-        domainEvent.aggregateIdentifier.id === aggregateIdentifier.id &&
+        domainEvent.aggregateIdentifier.id === aggregateId &&
         domainEvent.metadata.revision.aggregate >= fromRevision &&
         domainEvent.metadata.revision.aggregate <= toRevision
     );

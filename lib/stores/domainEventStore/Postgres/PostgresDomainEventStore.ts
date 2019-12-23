@@ -175,11 +175,11 @@ class PostgresDomainEventStore implements DomainEventStore {
   }
 
   public async getReplayForAggregate ({
-    aggregateIdentifier,
+    aggregateId,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1
   }: {
-    aggregateIdentifier: AggregateIdentifier;
+    aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
   }): Promise<PassThrough> {
@@ -198,7 +198,7 @@ class PostgresDomainEventStore implements DomainEventStore {
             AND "revisionAggregate" >= $2
             AND "revisionAggregate" <= $3
           ORDER BY "revisionAggregate"`,
-      [ aggregateIdentifier.id, fromRevision, toRevision ])
+      [ aggregateId, fromRevision, toRevision ])
     );
 
     let onData: (data: any) => void,

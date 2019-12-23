@@ -162,11 +162,11 @@ class MySqlDomainEventStore implements DomainEventStore {
   }
 
   public async getReplayForAggregate ({
-    aggregateIdentifier,
+    aggregateId,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1
   }: {
-    aggregateIdentifier: AggregateIdentifier;
+    aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
   }): Promise<PassThrough> {
@@ -184,7 +184,7 @@ class MySqlDomainEventStore implements DomainEventStore {
           AND revisionAggregate >= ?
           AND revisionAggregate <= ?
         ORDER BY revisionAggregate`,
-    [ aggregateIdentifier.id, fromRevision, toRevision ]);
+    [ aggregateId, fromRevision, toRevision ]);
 
     const unsubscribe = function (): void {
       // The listeners on domainEventStream should be removed here, but the

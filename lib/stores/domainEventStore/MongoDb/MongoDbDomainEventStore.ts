@@ -163,11 +163,11 @@ class MongoDbDomainEventStore implements DomainEventStore {
   }
 
   public async getReplayForAggregate ({
-    aggregateIdentifier,
+    aggregateId,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1
   }: {
-    aggregateIdentifier: AggregateIdentifier;
+    aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
   }): Promise<PassThrough> {
@@ -178,7 +178,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = this.collections.domainEvents.find({
       $and: [
-        { 'aggregateIdentifier.id': aggregateIdentifier.id },
+        { 'aggregateIdentifier.id': aggregateId },
         { 'metadata.revision.aggregate': { $gte: fromRevision }},
         { 'metadata.revision.aggregate': { $lte: toRevision }}
       ]

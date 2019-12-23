@@ -133,11 +133,11 @@ class MariaDbDomainEventStore implements DomainEventStore {
   }
 
   public async getReplayForAggregate ({
-    aggregateIdentifier,
+    aggregateId,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1
   }: {
-    aggregateIdentifier: AggregateIdentifier;
+    aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
   }): Promise<PassThrough> {
@@ -155,7 +155,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
           AND revisionAggregate >= ?
           AND revisionAggregate <= ?
         ORDER BY revisionAggregate`,
-    [ aggregateIdentifier.id, fromRevision, toRevision ]);
+    [ aggregateId, fromRevision, toRevision ]);
 
     const unsubscribe = function (): void {
       // Listeners should be removed here, but the mysql typings don't support

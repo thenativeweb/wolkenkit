@@ -178,11 +178,11 @@ class SqlServerDomainEventStore implements DomainEventStore {
   }
 
   public async getReplayForAggregate ({
-    aggregateIdentifier,
+    aggregateId,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1
   }: {
-    aggregateIdentifier: AggregateIdentifier;
+    aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
   }): Promise<PassThrough> {
@@ -236,7 +236,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
       passThrough.end();
     });
 
-    request.addParameter('aggregateId', TYPES.UniqueIdentifier, aggregateIdentifier.id);
+    request.addParameter('aggregateId', TYPES.UniqueIdentifier, aggregateId);
     request.addParameter('fromRevision', TYPES.Int, fromRevision);
     request.addParameter('toRevision', TYPES.Int, toRevision);
 
