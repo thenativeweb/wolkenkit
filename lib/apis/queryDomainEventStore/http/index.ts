@@ -4,7 +4,6 @@ import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../stores/domainEventStore/DomainEventStore';
 import { getApiBase } from '../../base/getApiBase';
-import { streamNdjsonMiddleware } from '../../middlewares/streamNdjson';
 import { Subscriber } from '../../../messaging/pubSub/Subscriber';
 import * as v2 from './v2';
 
@@ -35,21 +34,21 @@ const getApi = async function ({
 
   api.get(
     '/v2/replay',
-    streamNdjsonMiddleware({ heartbeatInterval }),
     v2.getReplay({
       domainEventStore,
       newDomainEventSubscriber,
-      newDomainEventSubscriberChannel
+      newDomainEventSubscriberChannel,
+      heartbeatInterval
     })
   );
 
   api.get(
     '/v2/replay/:aggregateId',
-    streamNdjsonMiddleware({ heartbeatInterval }),
     v2.getReplayForAggregate({
       domainEventStore,
       newDomainEventSubscriber,
-      newDomainEventSubscriberChannel
+      newDomainEventSubscriberChannel,
+      heartbeatInterval
     })
   );
 

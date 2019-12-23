@@ -1,26 +1,37 @@
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
+import { parseGetReplayQueryParameters } from './parameters/parseGetReplayQueryParameters';
 import { RequestHandler } from 'express-serve-static-core';
+import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { writeLine } from '../../../base/writeLine';
 
 const getReplay = function ({
   domainEventStore,
   newDomainEventSubscriber,
-  newDomainEventSubscriberChannel
+  newDomainEventSubscriberChannel,
+  heartbeatInterval
 }: {
   domainEventStore: DomainEventStore;
   newDomainEventSubscriber: Subscriber<DomainEvent<DomainEventData>>;
   newDomainEventSubscriberChannel: string;
+  heartbeatInterval: number;
 }): RequestHandler {
-  return async function (req, res): Promise<void> {
-    const fromRevisionGlobalParsed = Number(req.query.fromRevisionGlobal);
-    const toRevisionGlobalParsed = Number(req.query.toRevisionGlobal);
+  return async function (req, res): Promise<any> {
+    let fromRevisionGlobal: number | undefined,
+        observe: boolean,
+        toRevisionGlobal: number | undefined;
 
-    const fromRevisionGlobal = isNaN(fromRevisionGlobalParsed) ? undefined : fromRevisionGlobalParsed;
-    const toRevisionGlobal = isNaN(toRevisionGlobalParsed) ? undefined : toRevisionGlobalParsed;
-    const observe = req.query.observe === 'true';
+    try {
+      ({ fromRevisionGlobal, toRevisionGlobal, observe } = parseGetReplayQueryParameters({ parameters: req.query }));
+    } catch (ex) {
+      return res.status(400).send(ex.message);
+    }
+
+    await streamNdjsonMiddleware({ heartbeatInterval })(req, res, (): void => {
+      // No need for a callback for this middleware.
+    });
 
     const domainEventStream = await domainEventStore.getReplay({ fromRevisionGlobal, toRevisionGlobal });
 
