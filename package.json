@@ -134,7 +134,7 @@
     "shelljs": "0.8.3",
     "stream-to-string": "1.2.0",
     "tarn": "2.0.0",
-    "tedious": "6.6.2",
+    "tedious": "6.6.5",
     "uuidv4": "6.0.0",
     "validate-value": "7.0.0"
   },
