@@ -33,7 +33,7 @@ const getReplayForAggregate = function ({
     const { aggregateId } = req.params;
 
     if (!isUuid(aggregateId)) {
-      return res.status(400).end('Excepted aggregate id to be a uuid.');
+      return res.status(400).end('Expected aggregate id to be a uuid.');
     }
 
     const heartbeatMiddleware = streamNdjsonMiddleware({ heartbeatInterval });
