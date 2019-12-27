@@ -15,6 +15,7 @@ import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { uuid } from 'uuidv4';
+import { waitForSignals } from 'wait-for-signals';
 
 suite('writeDomainEventStore/http', (): void => {
   suite('/v2', (): void => {
@@ -76,10 +77,7 @@ suite('writeDomainEventStore/http', (): void => {
 
         let receivedNotificationCount = 0;
 
-        let resolveSubscriber: () => void;
-        const subscriberCallbackPromise = new Promise((resolve): void => {
-          resolveSubscriber = resolve;
-        });
+        const collector = waitForSignals({ signals: 1 });
 
         await newDomainEventSubscriber.subscribe({
           channel: newDomainEventPublisherChannel,
@@ -94,7 +92,7 @@ suite('writeDomainEventStore/http', (): void => {
             receivedNotificationCount += 1;
 
             if (receivedNotificationCount === 2) {
-              resolveSubscriber();
+              await collector.sendSignal();
             }
           }
         });
@@ -131,7 +129,7 @@ suite('writeDomainEventStore/http', (): void => {
           ));
         });
 
-        await subscriberCallbackPromise;
+        await collector.finish;
       });
 
       test('returns 400 if the data is not an array.', async (): Promise<void> => {
