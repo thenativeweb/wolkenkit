@@ -170,7 +170,7 @@
     "run-script-os": "1.0.7",
     "runfork": "3.0.0",
     "streamtoarray": "3.0.0",
-    "wait-for-signals": "file://../wait-for-signals"
+    "wait-for-signals": "1.0.0"
   },
   "scripts": {
     "build": "run-script-os",
