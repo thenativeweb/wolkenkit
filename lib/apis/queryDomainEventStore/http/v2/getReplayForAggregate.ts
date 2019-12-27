@@ -36,8 +36,10 @@ const getReplayForAggregate = function ({
       return res.status(400).end('Excepted aggregate id to be a uuid.');
     }
 
-    await streamNdjsonMiddleware({ heartbeatInterval })(req, res, (): void => {
-      // No need for a callback for this middleware.
+    const heartbeatMiddleware = streamNdjsonMiddleware({ heartbeatInterval });
+
+    await heartbeatMiddleware(req, res, (): void => {
+      // No need for a `next`-callback for this middleware.
     });
 
     const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId, fromRevision, toRevision });

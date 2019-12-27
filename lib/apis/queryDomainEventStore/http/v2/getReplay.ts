@@ -29,8 +29,10 @@ const getReplay = function ({
       return res.status(400).send(ex.message);
     }
 
-    await streamNdjsonMiddleware({ heartbeatInterval })(req, res, (): void => {
-      // No need for a callback for this middleware.
+    const heartbeatMiddleware = streamNdjsonMiddleware({ heartbeatInterval });
+
+    await heartbeatMiddleware(req, res, (): void => {
+      // No need for a `next`-callback for this middleware.
     });
 
     const domainEventStream = await domainEventStore.getReplay({ fromRevisionGlobal, toRevisionGlobal });
