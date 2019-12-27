@@ -29,7 +29,7 @@ const storeDomainEvents = function ({
     }
 
     if (!Array.isArray(req.body)) {
-      return res.status(400).send('Excpected array of domain events.');
+      return res.status(400).send('Request body must be an array of domain events.');
     }
 
     let domainEvents;

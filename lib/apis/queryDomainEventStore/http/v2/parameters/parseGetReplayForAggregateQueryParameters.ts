@@ -6,10 +6,10 @@ const parseGetReplayForAggregateQueryParameters = function ({ parameters }: {
     observe: boolean;
   } {
   if (parameters.fromRevision !== undefined && isNaN(Number(parameters.fromRevision))) {
-    throw new Error(`Expected query parameter 'fromRevision' to be a number.`);
+    throw new Error(`Query parameter 'fromRevision' must be a number.`);
   }
   if (parameters.toRevision !== undefined && isNaN(Number(parameters.toRevision))) {
-    throw new Error(`Expected query parameter 'toRevision' to be a number.`);
+    throw new Error(`Query parameter 'toRevision' must be a number.`);
   }
 
   const fromRevisionParsed = Number(parameters.fromRevision);
@@ -19,17 +19,17 @@ const parseGetReplayForAggregateQueryParameters = function ({ parameters }: {
   const toRevision = isNaN(toRevisionParsed) ? undefined : toRevisionParsed;
 
   if (fromRevision !== undefined && fromRevision < 1) {
-    throw new Error(`Expected query parameter 'fromRevision' to be at least 1.`);
+    throw new Error(`Query parameter 'fromRevision' must be at least 1.`);
   }
   if (toRevision !== undefined && toRevision < 1) {
-    throw new Error(`Expected query parameter 'toRevision' to be at least 1.`);
+    throw new Error(`Query parameter 'toRevision' must be at least 1.`);
   }
   if (fromRevision !== undefined && toRevision !== undefined && toRevision < fromRevision) {
-    throw new Error(`Expected query parameter 'toRevision' to be greater or equal to 'fromRevision'.`);
+    throw new Error(`Query parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
   }
 
   if (parameters.observe !== undefined && ![ 'true', 'false' ].includes(parameters.observe)) {
-    throw new Error(`Expected query parameter 'observe' to be either 'true' or 'false'.`);
+    throw new Error(`Query parameter 'observe' must be either 'true' or 'false'.`);
   }
 
   const observe = parameters.observe === 'true';
