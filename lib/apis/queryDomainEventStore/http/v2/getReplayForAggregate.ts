@@ -44,43 +44,41 @@ const getReplayForAggregate = function ({
 
     const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId, fromRevision, toRevision });
 
-    domainEventStream.on('data', (data): void => {
-      writeLine({ res, data });
-    });
+    for await (const domainEvent of domainEventStream) {
+      writeLine({ res, data: domainEvent });
+    }
 
-    domainEventStream.on('end', async (): Promise<void> => {
-      if (observe) {
-        const publishDomainEvent = async function (domainEvent: DomainEvent<DomainEventData>): Promise<void> {
-          if (domainEvent.aggregateIdentifier.id !== aggregateId) {
-            return;
-          }
+    if (observe) {
+      const publishDomainEvent = async function (domainEvent: DomainEvent<DomainEventData>): Promise<void> {
+        if (domainEvent.aggregateIdentifier.id !== aggregateId) {
+          return;
+        }
 
-          if (fromRevision && domainEvent.metadata.revision.global! < fromRevision) {
-            return;
-          }
+        if (fromRevision && domainEvent.metadata.revision.global! < fromRevision) {
+          return;
+        }
 
-          if (toRevision && domainEvent.metadata.revision.global! > toRevision) {
-            await newDomainEventSubscriber.unsubscribe({
-              channel: newDomainEventSubscriberChannel,
-              callback: publishDomainEvent
-            });
+        if (toRevision && domainEvent.metadata.revision.global! > toRevision) {
+          await newDomainEventSubscriber.unsubscribe({
+            channel: newDomainEventSubscriberChannel,
+            callback: publishDomainEvent
+          });
 
-            res.end();
+          res.end();
 
-            return;
-          }
+          return;
+        }
 
-          writeLine({ res, data: domainEvent });
-        };
+        writeLine({ res, data: domainEvent });
+      };
 
-        await newDomainEventSubscriber.subscribe({
-          channel: newDomainEventSubscriberChannel,
-          callback: publishDomainEvent
-        });
-      } else {
-        res.end();
-      }
-    });
+      await newDomainEventSubscriber.subscribe({
+        channel: newDomainEventSubscriberChannel,
+        callback: publishDomainEvent
+      });
+    } else {
+      res.end();
+    }
   };
 };
 
