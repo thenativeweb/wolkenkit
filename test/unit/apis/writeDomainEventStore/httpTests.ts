@@ -160,6 +160,20 @@ suite('writeDomainEventStore/http', (): void => {
         assert.that(data).is.equalTo('Invalid type: undefined should be object (at domainEvent.metadata).');
       });
 
+      test('returns 400 if the data is an empty array.', async (): Promise<void> => {
+        const client = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/store-domain-events',
+          data: [],
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo('Domain events are missing.');
+      });
+
       test('returns 415 if the content type is not application/json.', async (): Promise<void> => {
         const client = await runAsServer({ app: api });
 

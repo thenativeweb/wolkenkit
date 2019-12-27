@@ -32,6 +32,10 @@ const storeDomainEvents = function ({
       return res.status(400).send('Request body must be an array of domain events.');
     }
 
+    if (req.body.length === 0) {
+      return res.status(400).send('Domain events are missing.');
+    }
+
     let domainEvents;
 
     try {
