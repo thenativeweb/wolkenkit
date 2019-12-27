@@ -7,7 +7,7 @@ import { startProcess } from '../../../../shared/runtime/startProcess';
 import { uuid } from 'uuidv4';
 import { waitForSignals } from 'wait-for-signals';
 
-suite.only('domain event store', function (): void {
+suite('domain event store', function (): void {
   this.timeout(10_000);
 
   let port: number,
