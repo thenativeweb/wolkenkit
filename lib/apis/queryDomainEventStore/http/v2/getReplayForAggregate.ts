@@ -48,37 +48,37 @@ const getReplayForAggregate = function ({
       writeLine({ res, data: domainEvent });
     }
 
-    if (observe) {
-      const publishDomainEvent = async function (domainEvent: DomainEvent<DomainEventData>): Promise<void> {
-        if (domainEvent.aggregateIdentifier.id !== aggregateId) {
-          return;
-        }
-
-        if (fromRevision && domainEvent.metadata.revision.global! < fromRevision) {
-          return;
-        }
-
-        if (toRevision && domainEvent.metadata.revision.global! > toRevision) {
-          await newDomainEventSubscriber.unsubscribe({
-            channel: newDomainEventSubscriberChannel,
-            callback: publishDomainEvent
-          });
-
-          res.end();
-
-          return;
-        }
-
-        writeLine({ res, data: domainEvent });
-      };
-
-      await newDomainEventSubscriber.subscribe({
-        channel: newDomainEventSubscriberChannel,
-        callback: publishDomainEvent
-      });
-    } else {
-      res.end();
+    if (!observe) {
+      return res.end();
     }
+
+    const publishDomainEvent = async function (domainEvent: DomainEvent<DomainEventData>): Promise<void> {
+      if (domainEvent.aggregateIdentifier.id !== aggregateId) {
+        return;
+      }
+
+      if (fromRevision && domainEvent.metadata.revision.global! < fromRevision) {
+        return;
+      }
+
+      if (toRevision && domainEvent.metadata.revision.global! > toRevision) {
+        await newDomainEventSubscriber.unsubscribe({
+          channel: newDomainEventSubscriberChannel,
+          callback: publishDomainEvent
+        });
+
+        res.end();
+
+        return;
+      }
+
+      writeLine({ res, data: domainEvent });
+    };
+
+    await newDomainEventSubscriber.subscribe({
+      channel: newDomainEventSubscriberChannel,
+      callback: publishDomainEvent
+    });
   };
 };
 

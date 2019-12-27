@@ -41,33 +41,33 @@ const getReplay = function ({
       writeLine({ res, data: domainEvent });
     }
 
-    if (observe) {
-      const publishDomainEvent = async function (domainEvent: DomainEvent<DomainEventData>): Promise<void> {
-        if (fromRevisionGlobal && domainEvent.metadata.revision.global! < fromRevisionGlobal) {
-          return;
-        }
-
-        if (toRevisionGlobal && domainEvent.metadata.revision.global! > toRevisionGlobal) {
-          await newDomainEventSubscriber.unsubscribe({
-            channel: newDomainEventSubscriberChannel,
-            callback: publishDomainEvent
-          });
-
-          res.end();
-
-          return;
-        }
-
-        writeLine({ res, data: domainEvent });
-      };
-
-      await newDomainEventSubscriber.subscribe({
-        channel: newDomainEventSubscriberChannel,
-        callback: publishDomainEvent
-      });
-    } else {
-      res.end();
+    if (!observe) {
+      return res.end();
     }
+
+    const publishDomainEvent = async function (domainEvent: DomainEvent<DomainEventData>): Promise<void> {
+      if (fromRevisionGlobal && domainEvent.metadata.revision.global! < fromRevisionGlobal) {
+        return;
+      }
+
+      if (toRevisionGlobal && domainEvent.metadata.revision.global! > toRevisionGlobal) {
+        await newDomainEventSubscriber.unsubscribe({
+          channel: newDomainEventSubscriberChannel,
+          callback: publishDomainEvent
+        });
+
+        res.end();
+
+        return;
+      }
+
+      writeLine({ res, data: domainEvent });
+    };
+
+    await newDomainEventSubscriber.subscribe({
+      channel: newDomainEventSubscriberChannel,
+      callback: publishDomainEvent
+    });
   };
 };
 
