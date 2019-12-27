@@ -46,7 +46,7 @@ suite('domain event store', function (): void {
   });
 
   suite('GET /query/v2/replay', (): void => {
-    test('sends out all previously stored domain events.', async (): Promise<void> => {
+    test('streams all previously stored domain events.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -91,7 +91,7 @@ suite('domain event store', function (): void {
       await collector.promise;
     });
 
-    test('sends out all concurrently stored domain events when observing.', async (): Promise<void> => {
+    test('streams all concurrently stored domain events when observing.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -138,7 +138,7 @@ suite('domain event store', function (): void {
   });
 
   suite('GET /query/v2/replay/:aggregateId', (): void => {
-    test('sends out only domain events for the requested aggregate.', async (): Promise<void> => {
+    test('streams only domain events for the requested aggregate.', async (): Promise<void> => {
       const wrongDomainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
