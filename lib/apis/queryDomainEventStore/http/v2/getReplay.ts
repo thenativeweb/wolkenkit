@@ -20,8 +20,8 @@ const getReplay = function ({
 }): RequestHandler {
   return async function (req, res): Promise<any> {
     let fromRevisionGlobal: number | undefined,
-        observe: boolean,
         toRevisionGlobal: number | undefined;
+    let observe: boolean;
 
     try {
       ({ fromRevisionGlobal, toRevisionGlobal, observe } = parseGetReplayQueryParameters({ parameters: req.query }));
