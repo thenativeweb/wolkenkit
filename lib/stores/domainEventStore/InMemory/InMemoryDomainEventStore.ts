@@ -44,12 +44,12 @@ class InMemoryDomainEventStore implements DomainEventStore {
     return lastDomainEvent as DomainEvent<TDomainEventData>;
   }
 
-  public async getDomainEventStream ({
-    aggregateIdentifier,
+  public async getReplayForAggregate ({
+    aggregateId,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1
   }: {
-    aggregateIdentifier: AggregateIdentifier;
+    aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
   }): Promise<PassThrough> {
@@ -61,7 +61,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
 
     const storedDomainEvents = this.getStoredDomainEvents().filter(
       (domainEvent): boolean =>
-        domainEvent.aggregateIdentifier.id === aggregateIdentifier.id &&
+        domainEvent.aggregateIdentifier.id === aggregateId &&
         domainEvent.metadata.revision.aggregate >= fromRevision &&
         domainEvent.metadata.revision.aggregate <= toRevision
     );
@@ -75,23 +75,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
-  public async getUnpublishedDomainEventStream (): Promise<PassThrough> {
-    const storedDomainEvents = this.getStoredDomainEvents().filter(
-      (domainEvent): boolean => !domainEvent.metadata.isPublished
-    );
-
-    const passThrough = new PassThrough({ objectMode: true });
-
-    for (const domainEvent of storedDomainEvents) {
-      passThrough.write(domainEvent);
-    }
-
-    passThrough.end();
-
-    return passThrough;
-  }
-
-  public async saveDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
+  public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
   }): Promise<DomainEvent<TDomainEventData>[]> {
     if (domainEvents.length === 0) {
@@ -127,33 +111,6 @@ class InMemoryDomainEventStore implements DomainEventStore {
     return savedDomainEvents;
   }
 
-  public async markDomainEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {
-    aggregateIdentifier: AggregateIdentifier;
-    fromRevision: number;
-    toRevision: number;
-  }): Promise<void> {
-    if (fromRevision > toRevision) {
-      throw new Error('From revision is greater than to revision.');
-    }
-
-    const storedDomainEvents = this.getStoredDomainEvents();
-
-    const needsToBeMarkedAsPublished = (event: DomainEvent<DomainEventData>): boolean =>
-      event.aggregateIdentifier.id === aggregateIdentifier.id &&
-      event.metadata.revision.aggregate >= fromRevision &&
-      event.metadata.revision.aggregate <= toRevision;
-
-    for (const [ index, domainEvent ] of storedDomainEvents.entries()) {
-      if (!needsToBeMarkedAsPublished(domainEvent)) {
-        continue;
-      }
-
-      const updatedDomainEvent = domainEvent.asPublished();
-
-      this.updateDomainEventInDatabaseAtIndex({ index, updatedDomainEvent });
-    }
-  }
-
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<Snapshot<TState> | undefined> {
@@ -175,7 +132,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
     return newestSnapshot as Snapshot<TState>;
   }
 
-  public async saveSnapshot ({ snapshot }: {
+  public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
     this.storeSnapshotAtDatabase({

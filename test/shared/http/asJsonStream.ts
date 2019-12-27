@@ -1,11 +1,19 @@
 import { Writable } from 'stream';
 
-const asJsonStream = function <TItem> (...handleJson: ((item: TItem) => void)[]): Writable {
+const asJsonStream = function <TItem> (handleJson: ((item: TItem) => void)[], objectMode = false): Writable {
   let counter = 0;
 
   return new Writable({
+    objectMode,
+
     write (chunk: object, _, callback: (error?: any) => void): void {
-      const data = JSON.parse(chunk.toString());
+      let data;
+
+      if (objectMode) {
+        data = chunk;
+      } else {
+        data = JSON.parse(chunk.toString());
+      }
 
       // Ignore any messages after all handlers have been applied.
       if (counter >= handleJson.length) {

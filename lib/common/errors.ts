@@ -2,6 +2,7 @@ import { defekt } from 'defekt';
 
 const errors = defekt({
   AggregateDefinitionMalformed: {},
+  AggregateIdentifierMalformed: {},
   AggregateNotFound: {},
   ApplicationNotFound: {},
   CommandHandlerMalformed: {},
@@ -37,6 +38,7 @@ const errors = defekt({
   QueryHandlerMalformed: {},
   RequestFailed: {},
   RequestMalformed: {},
+  SnapshotMalformed: {},
   SubscriberTypeInvalid: {},
   TokenMismatch: {},
   TypeInvalid: {},

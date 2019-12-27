@@ -57,7 +57,7 @@ suite('Repository', (): void => {
         }
       });
 
-      await domainEventStore.saveDomainEvents({
+      await domainEventStore.storeDomainEvents({
         domainEvents: [ domainEventSucceeded, domainEventExecuted ]
       });
 
@@ -83,8 +83,8 @@ suite('Repository', (): void => {
 
       await repository.saveCurrentAggregateState({ currentAggregateState });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId }
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
+        aggregateId
       });
 
       const domainEvents = await toArray(domainEventStream);
@@ -126,8 +126,8 @@ suite('Repository', (): void => {
 
       await repository.saveCurrentAggregateState({ currentAggregateState });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId }
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
+        aggregateId
       });
 
       const domainEvents: DomainEvent<DomainEventData>[] = await toArray(domainEventStream);
@@ -195,8 +195,8 @@ suite('Repository', (): void => {
 
       await repository.saveCurrentAggregateState({ currentAggregateState });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId }
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
+        aggregateId
       });
 
       const domainEvents: DomainEvent<DomainEventData>[] = await toArray(domainEventStream);

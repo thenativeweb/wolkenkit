@@ -95,11 +95,11 @@ suite('awaitCommandWithMetadata/http', (): void => {
             reject(new Error('Stream should not have closed yet.'));
           });
 
-          data.pipe(asJsonStream(
+          data.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             }
-          ));
+          ]));
 
           await sleep({ ms: pollInterval });
 
@@ -143,7 +143,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             resolve();
           });
 
-          data.pipe(asJsonStream(
+          data.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
@@ -151,7 +151,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
               assert.that(streamElement.item).is.equalTo(commandWithMetadata);
               assert.that(isUuid(streamElement.token)).is.true();
             }
-          ));
+          ]));
         });
       });
 
@@ -185,7 +185,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         await new Promise((resolve): void => {
-          dataFirstTry.pipe(asJsonStream(
+          dataFirstTry.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
@@ -195,7 +195,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
 
               resolve();
             }
-          ));
+          ]));
         });
 
         await sleep({ ms: 1.25 * expirationTime });
@@ -211,7 +211,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             reject(err);
           });
 
-          dataSecondTry.pipe(asJsonStream(
+          dataSecondTry.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
@@ -221,7 +221,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
 
               resolve();
             }
-          ));
+          ]));
         });
       });
 
@@ -271,7 +271,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             reject(err);
           });
 
-          dataFirstTry.pipe(asJsonStream(
+          dataFirstTry.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
@@ -280,7 +280,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
 
               resolve();
             }
-          ));
+          ]));
         });
 
         await new Promise((resolve, reject): void => {
@@ -288,7 +288,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             reject(err);
           });
 
-          dataSecondTry.pipe(asJsonStream(
+          dataSecondTry.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
@@ -297,7 +297,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
 
               resolve();
             }
-          ));
+          ]));
         });
       });
     });
@@ -441,14 +441,14 @@ suite('awaitCommandWithMetadata/http', (): void => {
             resolve();
           });
 
-          lockData.pipe(asJsonStream(
+          lockData.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
             (streamElement: any): void => {
               resolve(streamElement);
             }
-          ));
+          ]));
         });
 
         await sleep({ ms: 0.6 * expirationTime });
@@ -484,11 +484,11 @@ suite('awaitCommandWithMetadata/http', (): void => {
             reject(new Error('Stream should not have closed yet.'));
           });
 
-          unavailableLockData.pipe(asJsonStream(
+          unavailableLockData.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             }
-          ));
+          ]));
 
           await sleep({ ms: pollInterval });
 
@@ -641,14 +641,14 @@ suite('awaitCommandWithMetadata/http', (): void => {
             reject(err);
           });
 
-          firstLockData.pipe(asJsonStream(
+          firstLockData.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
             (streamElement: any): void => {
               resolve(streamElement);
             }
-          ));
+          ]));
         });
 
         const commandWithMetadata = new CommandWithMetadata(item);
@@ -674,7 +674,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
             reject(err);
           });
 
-          secondLockData.pipe(asJsonStream(
+          secondLockData.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
@@ -683,7 +683,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
 
               resolve();
             }
-          ));
+          ]));
         });
       });
     });

@@ -38,7 +38,6 @@ const getDomainEventWithStateSchema = function (): Value {
           causationId: { type: 'string', pattern: uuidRegex },
           correlationId: { type: 'string', pattern: uuidRegex },
           timestamp: { type: 'number' },
-          isPublished: { type: 'boolean' },
           revision: {
             type: 'object',
             properties: {
@@ -82,7 +81,6 @@ const getDomainEventWithStateSchema = function (): Value {
           'causationId',
           'correlationId',
           'timestamp',
-          'isPublished',
           'revision',
           'initiator',
           'tags'

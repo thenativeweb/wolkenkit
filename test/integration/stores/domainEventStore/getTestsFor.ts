@@ -68,7 +68,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents<DomainEventData>({
+      await domainEventStore.storeDomainEvents<DomainEventData>({
         domainEvents: [ domainEventStarted, domainEventJoined ]
       });
 
@@ -100,7 +100,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents({ domainEvents: [ domainEventJoined ]});
+      await domainEventStore.storeDomainEvents({ domainEvents: [ domainEventJoined ]});
 
       const domainEvent: DomainEvent<any> | undefined =
         await domainEventStore.getLastDomainEvent({ aggregateIdentifier });
@@ -128,7 +128,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents<DomainEventData>({
+      await domainEventStore.storeDomainEvents<DomainEventData>({
         domainEvents: [ domainEventStarted ]
       });
 
@@ -138,7 +138,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
     });
   });
 
-  suite('getDomainEventStream', function (): void {
+  suite('getReplayForAggregate', function (): void {
     this.timeout(5 * 1000);
 
     setup(async (): Promise<void> => {
@@ -158,7 +158,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         name: 'peerGroup'
       };
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(0);
@@ -192,11 +192,11 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents<DomainEventData>({
+      await domainEventStore.storeDomainEvents<DomainEventData>({
         domainEvents: [ domainEventStarted, domainEventJoined ]
       });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(2);
@@ -232,12 +232,12 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents<DomainEventData>({
+      await domainEventStore.storeDomainEvents<DomainEventData>({
         domainEvents: [ domainEventStarted, domainEventJoined ]
       });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
-        aggregateIdentifier,
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
+        aggregateId: aggregateIdentifier.id,
         fromRevision: 2
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
@@ -274,12 +274,12 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents<DomainEventData>({
+      await domainEventStore.storeDomainEvents<DomainEventData>({
         domainEvents: [ domainEventStarted, domainEventJoined ]
       });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
-        aggregateIdentifier,
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
+        aggregateId: aggregateIdentifier.id,
         toRevision: 1
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
@@ -306,12 +306,12 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents<DomainEventData>({
+      await domainEventStore.storeDomainEvents<DomainEventData>({
         domainEvents: [ domainEventStarted ]
       });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
-        aggregateIdentifier
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
+        aggregateId: aggregateIdentifier.id
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
@@ -319,99 +319,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
     });
   });
 
-  suite('getUnpublishedDomainEventStream', function (): void {
-    this.timeout(5 * 1000);
-
-    setup(async (): Promise<void> => {
-      suffix = getShortId();
-      domainEventStore = await createDomainEventStore({ suffix });
-    });
-
-    teardown(async function (): Promise<void> {
-      this.timeout(20 * 1000);
-
-      await domainEventStore.destroy();
-    });
-
-    test('returns an empty stream if there are no unpublished domain events.', async (): Promise<void> => {
-      const domainEventStream = await domainEventStore.getUnpublishedDomainEventStream();
-      const unpublishedDomainEvents = await toArray(domainEventStream);
-
-      assert.that(unpublishedDomainEvents.length).is.equalTo(0);
-    });
-
-    test('returns a stream of unpublished domain events.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        id: uuid(),
-        name: 'peerGroup'
-      };
-
-      let domainEventStarted = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
-        aggregateIdentifier,
-        name: 'started',
-        data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: {
-          revision: { aggregate: 1 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        }
-      });
-
-      domainEventStarted = domainEventStarted.asPublished();
-
-      const domainEventJoined = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
-        aggregateIdentifier,
-        name: 'joined',
-        data: { participant: 'Jane Doe' },
-        metadata: {
-          revision: { aggregate: 2 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        }
-      });
-
-      await domainEventStore.saveDomainEvents<DomainEventData>({
-        domainEvents: [ domainEventStarted, domainEventJoined ]
-      });
-
-      const domainEventStream = await domainEventStore.getUnpublishedDomainEventStream();
-      const unpublishedDomainEvents = await toArray(domainEventStream);
-
-      assert.that(unpublishedDomainEvents.length).is.equalTo(1);
-      assert.that(unpublishedDomainEvents[0].name).is.equalTo('joined');
-    });
-
-    test('supports tags.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        id: uuid(),
-        name: 'peerGroup'
-      };
-
-      const domainEventStarted = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
-        aggregateIdentifier,
-        name: 'started',
-        data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: {
-          revision: { aggregate: 1 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-          tags: [ 'gdpr' ]
-        }
-      });
-
-      await domainEventStore.saveDomainEvents<DomainEventData>({
-        domainEvents: [ domainEventStarted ]
-      });
-
-      const domainEventStream = await domainEventStore.getUnpublishedDomainEventStream();
-      const unpublishedDomainEvents = await toArray(domainEventStream);
-
-      assert.that(unpublishedDomainEvents.length).is.equalTo(1);
-      assert.that(unpublishedDomainEvents[0].metadata.tags).is.equalTo([ 'gdpr' ]);
-    });
-  });
-
-  suite('saveDomainEvents', function (): void {
+  suite('storeDomainEvents', function (): void {
     this.timeout(5 * 1000);
 
     setup(async (): Promise<void> => {
@@ -427,11 +335,11 @@ const getTestsFor = function ({ createDomainEventStore }: {
 
     test('throws an error if domain events is an empty array.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
-        await domainEventStore.saveDomainEvents({ domainEvents: []});
+        await domainEventStore.storeDomainEvents({ domainEvents: []});
       }).is.throwingAsync('Domain events are missing.');
     });
 
-    test('saves domain events.', async (): Promise<void> => {
+    test('stores domain events.', async (): Promise<void> => {
       const aggregateIdentifier = {
         id: uuid(),
         name: 'peerGroup'
@@ -459,12 +367,12 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents<DomainEventData>({
+      await domainEventStore.storeDomainEvents<DomainEventData>({
         domainEvents: [ domainEventStarted, domainEventJoined ]
       });
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({
-        aggregateIdentifier
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
+        aggregateId: aggregateIdentifier.id
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
@@ -490,10 +398,10 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents({ domainEvents: [ domainEvent ]});
+      await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
       await assert.that(async (): Promise<void> => {
-        await domainEventStore.saveDomainEvents({ domainEvents: [ domainEvent ]});
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
       }).is.throwingAsync('Aggregate id and revision already exist.');
     });
 
@@ -525,15 +433,15 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      const savedDomainEvents = await domainEventStore.saveDomainEvents<DomainEventData>({
+      const storedDomainEvents = await domainEventStore.storeDomainEvents<DomainEventData>({
         domainEvents: [ domainEventStarted, domainEventJoined ]
       });
 
-      assert.that(savedDomainEvents.length).is.equalTo(2);
-      assert.that(savedDomainEvents[0].name).is.equalTo('started');
-      assert.that(savedDomainEvents[0].metadata.revision.global).is.equalTo(1);
-      assert.that(savedDomainEvents[1].name).is.equalTo('joined');
-      assert.that(savedDomainEvents[1].metadata.revision.global).is.equalTo(2);
+      assert.that(storedDomainEvents.length).is.equalTo(2);
+      assert.that(storedDomainEvents[0].name).is.equalTo('started');
+      assert.that(storedDomainEvents[0].metadata.revision.global).is.equalTo(1);
+      assert.that(storedDomainEvents[1].name).is.equalTo('joined');
+      assert.that(storedDomainEvents[1].metadata.revision.global).is.equalTo(2);
     });
 
     test('correctly handles undefined and null.', async (): Promise<void> => {
@@ -553,9 +461,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents({ domainEvents: [ domainEvent ]});
+      await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(1);
@@ -580,16 +488,18 @@ const getTestsFor = function ({ createDomainEventStore }: {
         }
       });
 
-      await domainEventStore.saveDomainEvents({ domainEvents: [ domainEvent ]});
+      await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-      const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
+        aggregateId: aggregateIdentifier.id
+      });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(1);
       assert.that(aggregateDomainEvents[0].metadata.tags).is.equalTo([ 'gdpr' ]);
     });
 
-    suite('domain event stream order', function (): void {
+    suite('replay for aggregate order', function (): void {
       this.timeout(5 * 1000);
 
       test('assigns the global revision 1 to the first domain event.', async (): Promise<void> => {
@@ -609,9 +519,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
           }
         });
 
-        await domainEventStore.saveDomainEvents({ domainEvents: [ domainEvent ]});
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-        const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+        const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
         const aggregateDomainEvents = await toArray(domainEventStream);
 
         assert.that(aggregateDomainEvents.length).is.equalTo(1);
@@ -646,11 +556,11 @@ const getTestsFor = function ({ createDomainEventStore }: {
           }
         });
 
-        await domainEventStore.saveDomainEvents<DomainEventData>({
+        await domainEventStore.storeDomainEvents<DomainEventData>({
           domainEvents: [ domainEventStarted, domainEventJoined ]
         });
 
-        const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+        const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
         const aggregateDomainEvents = await toArray(domainEventStream);
 
         assert.that(aggregateDomainEvents.length).is.equalTo(2);
@@ -658,7 +568,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         assert.that(aggregateDomainEvents[1].metadata.revision.global).is.equalTo(2);
       });
 
-      test('assigns increasing global revisions even when saving the domain events individually.', async (): Promise<void> => {
+      test('assigns increasing global revisions even when storing the domain events individually.', async (): Promise<void> => {
         const aggregateIdentifier = {
           id: uuid(),
           name: 'peerGroup'
@@ -686,10 +596,10 @@ const getTestsFor = function ({ createDomainEventStore }: {
           }
         });
 
-        await domainEventStore.saveDomainEvents({ domainEvents: [ domainEventStarted ]});
-        await domainEventStore.saveDomainEvents({ domainEvents: [ domainEventJoined ]});
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEventStarted ]});
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEventJoined ]});
 
-        const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
+        const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
         const aggregateDomainEvents = await toArray(domainEventStream);
 
         assert.that(aggregateDomainEvents.length).is.equalTo(2);
@@ -726,23 +636,23 @@ const getTestsFor = function ({ createDomainEventStore }: {
           }
         });
 
-        await domainEventStore.saveDomainEvents({ domainEvents: [ domainEventStarted1 ]});
-        await domainEventStore.saveDomainEvents({ domainEvents: [ domainEventStarted2 ]});
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEventStarted1 ]});
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEventStarted2 ]});
 
-        const domainEventStream1 = await domainEventStore.getDomainEventStream({ aggregateIdentifier: domainEventStarted1.aggregateIdentifier });
+        const domainEventStream1 = await domainEventStore.getReplayForAggregate({ aggregateId: domainEventStarted1.aggregateIdentifier.id });
         const aggregateDomainEvents1 = await toArray(domainEventStream1);
 
         assert.that(aggregateDomainEvents1.length).is.equalTo(1);
         assert.that(aggregateDomainEvents1[0].metadata.revision.global).is.equalTo(1);
 
-        const domainEventStream2 = await domainEventStore.getDomainEventStream({ aggregateIdentifier: domainEventStarted2.aggregateIdentifier });
+        const domainEventStream2 = await domainEventStore.getReplayForAggregate({ aggregateId: domainEventStarted2.aggregateIdentifier.id });
         const aggregateDomainEvents2 = await toArray(domainEventStream2);
 
         assert.that(aggregateDomainEvents2.length).is.equalTo(1);
         assert.that(aggregateDomainEvents2[0].metadata.revision.global).is.equalTo(2);
       });
 
-      test('returns the saved domain events enriched by their global revisions.', async (): Promise<void> => {
+      test('returns the stored domain events enriched by their global revisions.', async (): Promise<void> => {
         const aggregateIdentifier = {
           id: uuid(),
           name: 'peerGroup'
@@ -759,10 +669,10 @@ const getTestsFor = function ({ createDomainEventStore }: {
           }
         });
 
-        const savedDomainEvents = await domainEventStore.saveDomainEvents({ domainEvents: [ domainEvent ]});
+        const storedDomainEvents = await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-        assert.that(savedDomainEvents.length).is.equalTo(1);
-        assert.that(savedDomainEvents[0].metadata.revision.global).is.equalTo(1);
+        assert.that(storedDomainEvents.length).is.equalTo(1);
+        assert.that(storedDomainEvents[0].metadata.revision.global).is.equalTo(1);
       });
 
       test('does not change the domain events that were given as arguments.', async (): Promise<void> => {
@@ -782,82 +692,10 @@ const getTestsFor = function ({ createDomainEventStore }: {
           }
         });
 
-        await domainEventStore.saveDomainEvents({ domainEvents: [ domainEvent ]});
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
         assert.that(domainEvent.metadata.revision.global).is.null();
       });
-    });
-  });
-
-  suite('markDomainEventsAsPublished', function (): void {
-    this.timeout(5 * 1000);
-
-    setup(async (): Promise<void> => {
-      suffix = getShortId();
-      domainEventStore = await createDomainEventStore({ suffix });
-    });
-
-    teardown(async function (): Promise<void> {
-      this.timeout(20 * 1000);
-
-      await domainEventStore.destroy();
-    });
-
-    test('marks the specified domain events as published.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        id: uuid(),
-        name: 'peerGroup'
-      };
-
-      const domainEventStarted = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
-        aggregateIdentifier,
-        name: 'started',
-        data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: {
-          revision: { aggregate: 1 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        }
-      });
-
-      const domainEventJoinedFirst = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
-        aggregateIdentifier,
-        name: 'joined',
-        data: { participant: 'Jane Doe' },
-        metadata: {
-          revision: { aggregate: 2 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        }
-      });
-
-      const domainEventJoinedSecond = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
-        aggregateIdentifier,
-        name: 'joined',
-        data: { participant: 'Jennifer Doe' },
-        metadata: {
-          revision: { aggregate: 3 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        }
-      });
-
-      await domainEventStore.saveDomainEvents<DomainEventData>({
-        domainEvents: [ domainEventStarted, domainEventJoinedFirst, domainEventJoinedSecond ]
-      });
-
-      await domainEventStore.markDomainEventsAsPublished({
-        aggregateIdentifier,
-        fromRevision: 1,
-        toRevision: 2
-      });
-
-      const domainEventStream = await domainEventStore.getDomainEventStream({ aggregateIdentifier });
-      const aggregateDomainEvents = await toArray(domainEventStream);
-
-      assert.that(aggregateDomainEvents[0].metadata.isPublished).is.true();
-      assert.that(aggregateDomainEvents[1].metadata.isPublished).is.true();
-      assert.that(aggregateDomainEvents[2].metadata.isPublished).is.false();
     });
   });
 
@@ -898,7 +736,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         participants: [ 'Jane Doe' ]
       };
 
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 5, state }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 5, state }});
 
       const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
@@ -921,7 +759,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         participants: []
       };
 
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 5, state }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 5, state }});
 
       const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
@@ -952,8 +790,8 @@ const getTestsFor = function ({ createDomainEventStore }: {
         participants: [ 'Jane Doe', 'Jenny Doe' ]
       };
 
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 5, state: stateOld }});
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state: stateNew }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 5, state: stateOld }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state: stateNew }});
 
       const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
@@ -965,7 +803,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
     });
   });
 
-  suite('saveSnapshot', function (): void {
+  suite('storeSnapshot', function (): void {
     this.timeout(5 * 1000);
 
     setup(async (): Promise<void> => {
@@ -979,7 +817,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
       await domainEventStore.destroy();
     });
 
-    test('saves a snapshot.', async (): Promise<void> => {
+    test('stores a snapshot.', async (): Promise<void> => {
       const aggregateIdentifier = {
         id: uuid(),
         name: 'peerGroup'
@@ -991,7 +829,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         participants: [ 'Jane Doe' ]
       };
 
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
 
       const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
@@ -1002,7 +840,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
       });
     });
 
-    test('saves multiple snapshots.', async (): Promise<void> => {
+    test('stores multiple snapshots.', async (): Promise<void> => {
       const state = {
         initiator: 'Jane Doe',
         destination: 'Riva',
@@ -1025,7 +863,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
       ];
 
       for (const aggregateIdentifier of aggregateIdentifiers) {
-        await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
+        await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
       }
 
       for (const aggregateIdentifier of aggregateIdentifiers) {
@@ -1050,7 +888,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
         participants: []
       };
 
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
 
       const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
@@ -1064,7 +902,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
       });
     });
 
-    test('does not throw an error if trying to save an already saved snapshot.', async (): Promise<void> => {
+    test('does not throw an error if trying to store an already stored snapshot.', async (): Promise<void> => {
       const aggregateIdentifier = {
         id: uuid(),
         name: 'peerGroup'
@@ -1075,8 +913,8 @@ const getTestsFor = function ({ createDomainEventStore }: {
         participants: [ 'Jane Doe' ]
       };
 
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
-      await domainEventStore.saveSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
+      await domainEventStore.storeSnapshot({ snapshot: { aggregateIdentifier, revision: 10, state }});
     });
   });
 
@@ -1144,7 +982,7 @@ const getTestsFor = function ({ createDomainEventStore }: {
           }
         });
 
-        await domainEventStore.saveDomainEvents<DomainEventData>({
+        await domainEventStore.storeDomainEvents<DomainEventData>({
           domainEvents: [ domainEventStarted, domainEventJoinedFirst, domainEventJoinedSecond ]
         });
       });

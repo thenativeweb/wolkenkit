@@ -22,7 +22,6 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
     causationId?: string;
     correlationId?: string;
     timestamp?: number;
-    isPublished?: boolean;
     revision: {
       aggregate: number;
       global?: number | null;
@@ -41,7 +40,6 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
       causationId: metadata.causationId ?? uuid(),
       correlationId: metadata.correlationId ?? uuid(),
       timestamp: metadata.timestamp ?? Date.now(),
-      isPublished: metadata.isPublished ?? false,
       revision: {
         aggregate: metadata.revision.aggregate,
         global: metadata.revision.global ?? null

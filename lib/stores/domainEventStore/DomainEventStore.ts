@@ -11,29 +11,21 @@ export interface DomainEventStore {
     aggregateIdentifier: AggregateIdentifier;
   }) => Promise<DomainEvent<TDomainEventData> | undefined>;
 
-  getDomainEventStream: ({ aggregateIdentifier, fromRevision, toRevision }: {
-    aggregateIdentifier: AggregateIdentifier;
+  getReplayForAggregate: ({ aggregateId, fromRevision, toRevision }: {
+    aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
   }) => Promise<PassThrough>;
-
-  getUnpublishedDomainEventStream: () => Promise<PassThrough>;
-
-  saveDomainEvents: <TDomainEventData extends DomainEventData> ({ domainEvents }: {
-    domainEvents: DomainEvent<TDomainEventData>[];
-  }) => Promise<DomainEvent<TDomainEventData>[]>;
-
-  markDomainEventsAsPublished: ({ aggregateIdentifier, fromRevision, toRevision }: {
-    aggregateIdentifier: AggregateIdentifier;
-    fromRevision: number;
-    toRevision: number;
-  }) => Promise<void>;
 
   getSnapshot: <TState extends State> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }) => Promise<Snapshot<TState> | undefined>;
 
-  saveSnapshot: <TState extends State> ({ snapshot }: {
+  storeDomainEvents: <TDomainEventData extends DomainEventData> ({ domainEvents }: {
+    domainEvents: DomainEvent<TDomainEventData>[];
+  }) => Promise<DomainEvent<TDomainEventData>[]>;
+
+  storeSnapshot: <TState extends State> ({ snapshot }: {
     snapshot: Snapshot<TState>;
   }) => Promise<void>;
 

@@ -105,7 +105,6 @@ class MariaDbDomainEventStore implements DomainEventStore {
         aggregateId BINARY(16) NOT NULL,
         revisionAggregate INT NOT NULL,
         domainEvent JSON NOT NULL,
-        isPublished BOOLEAN NOT NULL,
 
         PRIMARY KEY(revisionGlobal),
         UNIQUE (aggregateId, revisionAggregate)
@@ -133,12 +132,12 @@ class MariaDbDomainEventStore implements DomainEventStore {
     });
   }
 
-  public async getDomainEventStream ({
-    aggregateIdentifier,
+  public async getReplayForAggregate ({
+    aggregateId,
     fromRevision = 1,
     toRevision = (2 ** 31) - 1
   }: {
-    aggregateIdentifier: AggregateIdentifier;
+    aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
   }): Promise<PassThrough> {
@@ -150,13 +149,13 @@ class MariaDbDomainEventStore implements DomainEventStore {
 
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = connection.query(`
-      SELECT domainEvent, revisionGlobal, isPublished
+      SELECT domainEvent, revisionGlobal
         FROM ${this.tableNames.domainEvents}
         WHERE aggregateId = UuidToBin(?)
           AND revisionAggregate >= ?
           AND revisionAggregate <= ?
         ORDER BY revisionAggregate`,
-    [ aggregateIdentifier.id, fromRevision, toRevision ]);
+    [ aggregateId, fromRevision, toRevision ]);
 
     const unsubscribe = function (): void {
       // Listeners should be removed here, but the mysql typings don't support
@@ -181,10 +180,6 @@ class MariaDbDomainEventStore implements DomainEventStore {
       domainEvent = domainEvent.withRevisionGlobal({
         revisionGlobal: Number(row.revisionGlobal)
       });
-
-      if (row.isPublished) {
-        domainEvent = domainEvent.asPublished();
-      }
 
       passThrough.write(domainEvent);
     };
@@ -314,82 +309,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
     }
   }
 
-  public async getUnpublishedDomainEventStream (): Promise<PassThrough> {
-    const connection = await this.getDatabase();
-
-    const passThrough = new PassThrough({ objectMode: true });
-    const domainEventStream = connection.query(`
-      SELECT domainEvent, revisionGlobal, isPublished
-        FROM ${this.tableNames.domainEvents}
-        WHERE isPublished = false
-        ORDER BY revisionGlobal
-    `);
-
-    const unsubscribe = function (): void {
-      // Listeners should be removed here, but the mysql typings don't support
-      // that.
-      MariaDbDomainEventStore.releaseConnection({ connection });
-    };
-
-    const onEnd = function (): void {
-      unsubscribe();
-      passThrough.end();
-    };
-
-    const onError = function (err: MysqlError): void {
-      unsubscribe();
-      passThrough.emit('error', err);
-      passThrough.end();
-    };
-
-    const onResult = function (row: any): void {
-      let domainEvent = new DomainEvent<State>(JSON.parse(row.domainEvent));
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(row.revisionGlobal)
-      });
-
-      if (row.isPublished) {
-        domainEvent = domainEvent.asPublished();
-      }
-
-      passThrough.write(domainEvent);
-    };
-
-    domainEventStream.on('end', onEnd);
-    domainEventStream.on('error', onError);
-    domainEventStream.on('result', onResult);
-
-    return passThrough;
-  }
-
-  public async markDomainEventsAsPublished ({ aggregateIdentifier, fromRevision, toRevision }: {
-    aggregateIdentifier: AggregateIdentifier;
-    fromRevision: number;
-    toRevision: number;
-  }): Promise<void> {
-    if (fromRevision > toRevision) {
-      throw new Error('From revision is greater than to revision.');
-    }
-
-    const connection = await this.getDatabase();
-
-    try {
-      await runQuery({
-        connection,
-        query: `UPDATE ${this.tableNames.domainEvents}
-          SET isPublished = true
-          WHERE aggregateId = UuidToBin(?)
-            AND revisionAggregate >= ?
-            AND revisionAggregate <= ?`,
-        parameters: [ aggregateIdentifier.id, fromRevision, toRevision ]
-      });
-    } finally {
-      MariaDbDomainEventStore.releaseConnection({ connection });
-    }
-  }
-
-  public async saveDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
+  public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
   }): Promise<DomainEvent<TDomainEventData>[]> {
     if (domainEvents.length === 0) {
@@ -402,18 +322,17 @@ class MariaDbDomainEventStore implements DomainEventStore {
           placeholders = [];
 
     for (const domainEvent of domainEvents) {
-      placeholders.push('(UuidToBin(?), ?, ?, ?)');
+      placeholders.push('(UuidToBin(?), ?, ?)');
       parameters.push(
         domainEvent.aggregateIdentifier.id,
         domainEvent.metadata.revision.aggregate,
-        JSON.stringify(domainEvent),
-        domainEvent.metadata.isPublished
+        JSON.stringify(domainEvent)
       );
     }
 
     const query = `
       INSERT INTO ${this.tableNames.domainEvents}
-        (aggregateId, revisionAggregate, domainEvent, isPublished)
+        (aggregateId, revisionAggregate, domainEvent)
       VALUES
         ${placeholders.join(',')};
     `;
@@ -454,7 +373,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
     return savedDomainEvents;
   }
 
-  public async saveSnapshot ({ snapshot }: {
+  public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
     const connection = await this.getDatabase();

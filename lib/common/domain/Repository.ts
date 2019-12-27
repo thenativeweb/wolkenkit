@@ -54,8 +54,8 @@ class Repository {
       fromRevision = snapshot.revision + 1;
     }
 
-    const domainEventStream = await this.domainEventStore.getDomainEventStream({
-      aggregateIdentifier: currentAggregateState.aggregateIdentifier,
+    const domainEventStream = await this.domainEventStore.getReplayForAggregate({
+      aggregateId: currentAggregateState.aggregateIdentifier.id,
       fromRevision
     });
 
@@ -74,7 +74,7 @@ class Repository {
       return [];
     }
 
-    const savedDomainEvents = await this.domainEventStore.saveDomainEvents({
+    const savedDomainEvents = await this.domainEventStore.storeDomainEvents({
       domainEvents: currentAggregateState.unsavedDomainEvents
     });
 

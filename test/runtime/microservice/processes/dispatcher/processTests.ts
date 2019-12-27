@@ -90,7 +90,7 @@ suite('dispatcher', function (): void {
           reject(err);
         });
 
-        data.pipe(asJsonStream(
+        data.pipe(asJsonStream([
           (streamElement): void => {
             assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
           },
@@ -99,7 +99,7 @@ suite('dispatcher', function (): void {
 
             resolve();
           }
-        ));
+        ]));
       });
     });
   });
