@@ -345,7 +345,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Expected query parameter 'fromRevisionGlobal' to be at least 1.`);
+        assert.that(data).is.equalTo(`Query parameter 'fromRevisionGlobal' must be at least 1.`);
       });
 
       test('returns 400 if the parameter fromRevisionGlobal is not a number.', async (): Promise<void> => {
@@ -358,7 +358,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Expected query parameter 'fromRevisionGlobal' to be a number.`);
+        assert.that(data).is.equalTo(`Query parameter 'fromRevisionGlobal' must be a number.`);
       });
 
       test('returns 400 if the parameter toRevisionGlobal is less than 1.', async (): Promise<void> => {
@@ -371,7 +371,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Expected query parameter 'toRevisionGlobal' to be at least 1.`);
+        assert.that(data).is.equalTo(`Query parameter 'toRevisionGlobal' must be at least 1.`);
       });
 
       test('returns 400 if the parameter toRevisionGlobal is not a number.', async (): Promise<void> => {
@@ -384,7 +384,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Expected query parameter 'toRevisionGlobal' to be a number.`);
+        assert.that(data).is.equalTo(`Query parameter 'toRevisionGlobal' must be a number.`);
       });
 
       test(`returns 400 if the parameter 'fromRevisionGlobal' is greater than 'toRevisionGlobal'.`, async (): Promise<void> => {
@@ -397,7 +397,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Expected query parameter 'toRevisionGlobal' to be greater or equal to 'fromRevisionGlobal'.`);
+        assert.that(data).is.equalTo(`Query parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
       });
 
       test(`returns 400 if the parameter observe is neither 'true' nor 'false'.`, async (): Promise<void> => {
@@ -410,7 +410,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Expected query parameter 'observe' to be either 'true' or 'false'.`);
+        assert.that(data).is.equalTo(`Query parameter 'observe' must be either 'true' or 'false'.`);
       });
     });
 
@@ -741,7 +741,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Expected query parameter 'fromRevision' to be at least 1.`);
+        assert.that(data).is.equalTo(`Query parameter 'fromRevision' must be at least 1.`);
       });
 
       test('returns 400 if the parameter fromRevision is not a number.', async (): Promise<void> => {
@@ -754,7 +754,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Expected query parameter 'fromRevision' to be a number.`);
+        assert.that(data).is.equalTo(`Query parameter 'fromRevision' must be a number.`);
       });
 
       test('returns 400 if the parameter toRevision is less than 1.', async (): Promise<void> => {
@@ -767,7 +767,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Expected query parameter 'toRevision' to be at least 1.`);
+        assert.that(data).is.equalTo(`Query parameter 'toRevision' must be at least 1.`);
       });
 
       test('returns 400 if the parameter toRevision is not a number.', async (): Promise<void> => {
@@ -780,7 +780,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Expected query parameter 'toRevision' to be a number.`);
+        assert.that(data).is.equalTo(`Query parameter 'toRevision' must be a number.`);
       });
 
       test(`returns 400 if the parameter 'fromRevision' is greater than 'toRevision'.`, async (): Promise<void> => {
@@ -793,7 +793,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Expected query parameter 'toRevision' to be greater or equal to 'fromRevision'.`);
+        assert.that(data).is.equalTo(`Query parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
       });
 
       test(`returns 400 if the parameter observe is neither 'true' nor 'false'.`, async (): Promise<void> => {
@@ -806,7 +806,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Expected query parameter 'observe' to be either 'true' or 'false'.`);
+        assert.that(data).is.equalTo(`Query parameter 'observe' must be either 'true' or 'false'.`);
       });
     });
 

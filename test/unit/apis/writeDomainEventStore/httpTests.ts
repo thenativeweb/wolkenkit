@@ -143,7 +143,7 @@ suite('writeDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo('Excpected array of domain events.');
+        assert.that(data).is.equalTo('Request body must be an array of domain events.');
       });
 
       test('returns 400 if a domain event is malformed.', async (): Promise<void> => {
