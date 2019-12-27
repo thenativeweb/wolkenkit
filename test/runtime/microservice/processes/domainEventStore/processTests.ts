@@ -196,7 +196,7 @@ suite('domain event store', function (): void {
   });
 
   suite('GET /query/v2/last-domain-event', (): void => {
-    test('returns the latest stored domain event.', async (): Promise<void> => {
+    test('returns the last stored domain event.', async (): Promise<void> => {
       const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
       const firstDomainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },

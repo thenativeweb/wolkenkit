@@ -276,7 +276,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
       });
 
-      test('closes the stream once the given to-revision-global is reached and does not deliver it.', async (): Promise<void> => {
+      test('closes the stream once the given to-revision-global is reached.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
           id: uuid()
