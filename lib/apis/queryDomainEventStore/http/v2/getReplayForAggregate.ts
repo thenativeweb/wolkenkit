@@ -21,8 +21,8 @@ const getReplayForAggregate = function ({
 }): RequestHandler {
   return async function (req, res): Promise<any> {
     let fromRevision: number | undefined,
-        observe: boolean,
         toRevision: number | undefined;
+    let observe: boolean;
 
     try {
       ({ fromRevision, toRevision, observe } = parseGetReplayForAggregateQueryParameters({ parameters: req.query }));
