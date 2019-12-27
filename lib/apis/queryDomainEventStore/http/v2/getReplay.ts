@@ -37,39 +37,37 @@ const getReplay = function ({
 
     const domainEventStream = await domainEventStore.getReplay({ fromRevisionGlobal, toRevisionGlobal });
 
-    domainEventStream.on('data', (data): void => {
-      writeLine({ res, data });
-    });
+    for await (const domainEvent of domainEventStream) {
+      writeLine({ res, data: domainEvent });
+    }
 
-    domainEventStream.on('end', async (): Promise<void> => {
-      if (observe) {
-        const publishDomainEvent = async function (domainEvent: DomainEvent<DomainEventData>): Promise<void> {
-          if (fromRevisionGlobal && domainEvent.metadata.revision.global! < fromRevisionGlobal) {
-            return;
-          }
+    if (observe) {
+      const publishDomainEvent = async function (domainEvent: DomainEvent<DomainEventData>): Promise<void> {
+        if (fromRevisionGlobal && domainEvent.metadata.revision.global! < fromRevisionGlobal) {
+          return;
+        }
 
-          if (toRevisionGlobal && domainEvent.metadata.revision.global! > toRevisionGlobal) {
-            await newDomainEventSubscriber.unsubscribe({
-              channel: newDomainEventSubscriberChannel,
-              callback: publishDomainEvent
-            });
+        if (toRevisionGlobal && domainEvent.metadata.revision.global! > toRevisionGlobal) {
+          await newDomainEventSubscriber.unsubscribe({
+            channel: newDomainEventSubscriberChannel,
+            callback: publishDomainEvent
+          });
 
-            res.end();
+          res.end();
 
-            return;
-          }
+          return;
+        }
 
-          writeLine({ res, data: domainEvent });
-        };
+        writeLine({ res, data: domainEvent });
+      };
 
-        await newDomainEventSubscriber.subscribe({
-          channel: newDomainEventSubscriberChannel,
-          callback: publishDomainEvent
-        });
-      } else {
-        res.end();
-      }
-    });
+      await newDomainEventSubscriber.subscribe({
+        channel: newDomainEventSubscriberChannel,
+        callback: publishDomainEvent
+      });
+    } else {
+      res.end();
+    }
   };
 };
 
