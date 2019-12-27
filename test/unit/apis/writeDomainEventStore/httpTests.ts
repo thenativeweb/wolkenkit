@@ -77,7 +77,7 @@ suite('writeDomainEventStore/http', (): void => {
 
         let receivedNotificationCount = 0;
 
-        const collector = waitForSignals({ signals: 1 });
+        const collector = waitForSignals({ count: 1 });
 
         await newDomainEventSubscriber.subscribe({
           channel: newDomainEventPublisherChannel,
@@ -92,7 +92,7 @@ suite('writeDomainEventStore/http', (): void => {
             receivedNotificationCount += 1;
 
             if (receivedNotificationCount === 2) {
-              await collector.sendSignal();
+              await collector.signal();
             }
           }
         });
@@ -129,7 +129,7 @@ suite('writeDomainEventStore/http', (): void => {
           ));
         });
 
-        await collector.finish;
+        await collector.promise;
       });
 
       test('returns 400 if the data is not an array.', async (): Promise<void> => {

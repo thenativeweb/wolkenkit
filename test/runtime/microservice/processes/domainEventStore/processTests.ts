@@ -72,23 +72,23 @@ suite('domain event store', function (): void {
         responseType: 'stream'
       });
 
-      const collector = waitForSignals({ signals: 2 });
+      const collector = waitForSignals({ count: 2 });
 
       assert.that(replayStatus).is.equalTo(200);
       data.pipe(asJsonStream([
         async (heartbeat): Promise<void> => {
           assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
 
-          await collector.sendSignal();
+          await collector.signal();
         },
         async (currentDomainEvent): Promise<void> => {
           assert.that(currentDomainEvent).is.equalTo(domainEvent);
 
-          await collector.sendSignal();
+          await collector.signal();
         }
       ]));
 
-      await collector.finish;
+      await collector.promise;
     });
 
     test('sends out all concurrently stored domain events when observing.', async (): Promise<void> => {
@@ -109,19 +109,19 @@ suite('domain event store', function (): void {
         responseType: 'stream'
       });
 
-      const collector = waitForSignals({ signals: 2 });
+      const collector = waitForSignals({ count: 2 });
 
       assert.that(replayStatus).is.equalTo(200);
       data.pipe(asJsonStream([
         async (heartbeat): Promise<void> => {
           assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
 
-          await collector.sendSignal();
+          await collector.signal();
         },
         async (currentDomainEvent): Promise<void> => {
           assert.that(currentDomainEvent).is.equalTo(domainEvent);
 
-          await collector.sendSignal();
+          await collector.signal();
         }
       ]));
 
@@ -133,7 +133,7 @@ suite('domain event store', function (): void {
 
       assert.that(postStatus).is.equalTo(200);
 
-      await collector.finish;
+      await collector.promise;
     });
   });
 
@@ -175,23 +175,23 @@ suite('domain event store', function (): void {
         responseType: 'stream'
       });
 
-      const collector = waitForSignals({ signals: 2 });
+      const collector = waitForSignals({ count: 2 });
 
       assert.that(replayStatus).is.equalTo(200);
       data.pipe(asJsonStream([
         async (heartbeat): Promise<void> => {
           assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
 
-          await collector.sendSignal();
+          await collector.signal();
         },
         async (currentDomainEvent): Promise<void> => {
           assert.that(currentDomainEvent).is.equalTo(rightDomainEvent);
 
-          await collector.sendSignal();
+          await collector.signal();
         }
       ]));
 
-      await collector.finish;
+      await collector.promise;
     });
   });
 
