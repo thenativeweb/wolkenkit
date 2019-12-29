@@ -126,7 +126,7 @@
     "nocache": "2.1.0",
     "p-queue": "6.2.1",
     "partof": "3.0.0",
-    "pg": "7.16.1",
+    "pg": "7.17.0",
     "pg-query-stream": "2.1.1",
     "processenv": "3.0.1",
     "redis": "2.8.0",
