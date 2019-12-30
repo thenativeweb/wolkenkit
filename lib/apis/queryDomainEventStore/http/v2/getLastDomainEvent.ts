@@ -7,7 +7,7 @@ const getLastDomainEvent = function ({
 }: {
   domainEventStore: DomainEventStore;
 }): RequestHandler {
-  return async function (req, res): Promise<void> {
+  return async function (req, res): Promise<any> {
     let aggregateIdentifier;
 
     try {
@@ -18,13 +18,17 @@ const getLastDomainEvent = function ({
       res.status(400).send(ex.message);
     }
 
-    const lastDomainEvent = await domainEventStore.getLastDomainEvent({ aggregateIdentifier });
+    try {
+      const lastDomainEvent = await domainEventStore.getLastDomainEvent({ aggregateIdentifier });
 
-    if (!lastDomainEvent) {
-      return res.status(404).end();
+      if (!lastDomainEvent) {
+        return res.status(404).end();
+      }
+
+      res.json(lastDomainEvent);
+    } catch (ex) {
+      res.status(400).send(ex.message);
     }
-
-    res.json(lastDomainEvent);
   };
 };
 
