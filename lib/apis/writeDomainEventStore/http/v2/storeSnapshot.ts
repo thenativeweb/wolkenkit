@@ -29,7 +29,11 @@ const storeSnapshot = function ({
       return res.status(400).send(ex.message);
     }
 
-    await domainEventStore.storeSnapshot({ snapshot });
+    try {
+      await domainEventStore.storeSnapshot({ snapshot });
+    } catch (ex) {
+      return res.status(400).send(ex.message);
+    }
 
     res.status(200).end();
   };

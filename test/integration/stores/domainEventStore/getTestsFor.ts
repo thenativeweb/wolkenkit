@@ -8,10 +8,13 @@ import { toArray } from 'streamtoarray';
 import { uuid } from 'uuidv4';
 
 /* eslint-disable mocha/max-top-level-suites */
-const getTestsFor = function ({ createDomainEventStore }: {
+const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore }: {
   createDomainEventStore ({ suffix }: {
     suffix: string;
   }): Promise<DomainEventStore>;
+  teardownDomainEventStore? ({ suffix }: {
+    suffix: string;
+  }): Promise<void>;
 }): void {
   let domainEventStore: DomainEventStore,
       suffix: string;
@@ -28,6 +31,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
       this.timeout(20 * 1000);
 
       await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
     });
 
     test('returns undefined for an aggregate without domain events.', async (): Promise<void> => {
@@ -150,6 +156,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
       this.timeout(20 * 1000);
 
       await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
     });
 
     test('returns an empty stream for a non-existent aggregate.', async (): Promise<void> => {
@@ -331,6 +340,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
       this.timeout(20 * 1000);
 
       await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
     });
 
     test('throws an error if domain events is an empty array.', async (): Promise<void> => {
@@ -711,6 +723,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
       this.timeout(20 * 1000);
 
       await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
     });
 
     test('returns undefined for an aggregate without a snapshot.', async (): Promise<void> => {
@@ -815,6 +830,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
       this.timeout(20 * 1000);
 
       await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
     });
 
     test('stores a snapshot.', async (): Promise<void> => {
@@ -930,6 +948,9 @@ const getTestsFor = function ({ createDomainEventStore }: {
       this.timeout(20 * 1000);
 
       await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
     });
 
     test('returns an empty stream.', async (): Promise<void> => {

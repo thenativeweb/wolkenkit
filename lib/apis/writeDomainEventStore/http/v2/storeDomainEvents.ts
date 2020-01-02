@@ -32,6 +32,10 @@ const storeDomainEvents = function ({
       return res.status(400).send('Request body must be an array of domain events.');
     }
 
+    if (req.body.length === 0) {
+      return res.status(400).send('Domain events are missing.');
+    }
+
     let domainEvents;
 
     try {
@@ -46,16 +50,20 @@ const storeDomainEvents = function ({
       return res.status(400).send(ex.message);
     }
 
-    const storedDomainEvents = await domainEventStore.storeDomainEvents({ domainEvents });
+    try {
+      const storedDomainEvents = await domainEventStore.storeDomainEvents({ domainEvents });
 
-    for (const domainEvent of storedDomainEvents) {
-      await newDomainEventPublisher.publish({
-        channel: newDomainEventPublisherChannel,
-        message: domainEvent
-      });
+      for (const domainEvent of storedDomainEvents) {
+        await newDomainEventPublisher.publish({
+          channel: newDomainEventPublisherChannel,
+          message: domainEvent
+        });
+      }
+
+      res.json(storedDomainEvents);
+    } catch (ex) {
+      return res.status(400).send(ex.message);
     }
-
-    res.json(storedDomainEvents);
   };
 };
 
