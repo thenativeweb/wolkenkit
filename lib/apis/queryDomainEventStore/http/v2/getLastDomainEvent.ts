@@ -15,7 +15,7 @@ const getLastDomainEvent = function ({
 
       validateAggregateIdentifier({ aggregateIdentifier });
     } catch (ex) {
-      res.status(400).send(ex.message);
+      return res.status(400).send(ex.message);
     }
 
     try {
