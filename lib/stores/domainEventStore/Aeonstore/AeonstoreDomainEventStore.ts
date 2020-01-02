@@ -4,9 +4,12 @@ import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { FilterHeartBeatsFromJsonStreamTransform } from 'lib/common/utils/http/FilterHeartBeatsFromJsonStreamTransform';
+import { flaschenpost } from 'flaschenpost';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { PassThrough, pipeline } from 'stream';
+
+const logger = flaschenpost.getLogger();
 
 class AeonstoreDomainEventStore implements DomainEventStore {
   protected aeonstoreBaseUrl: string;
@@ -63,7 +66,16 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     const passThrough = new PassThrough({ objectMode: true });
     const heartbeatFilter = new FilterHeartBeatsFromJsonStreamTransform();
 
-    return pipeline(data, heartbeatFilter, passThrough);
+    return pipeline(
+      data,
+      heartbeatFilter,
+      passThrough,
+      (err): void => {
+        if (err) {
+          logger.error('Pipeline error occured.', { err });
+        }
+      }
+    );
   }
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
@@ -130,7 +142,16 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     const passThrough = new PassThrough({ objectMode: true });
     const heartbeatFilter = new FilterHeartBeatsFromJsonStreamTransform();
 
-    return pipeline(data, heartbeatFilter, passThrough);
+    return pipeline(
+      data,
+      heartbeatFilter,
+      passThrough,
+      (err): void => {
+        if (err) {
+          logger.error('Pipeline error occured.', { err });
+        }
+      }
+    );
   }
 }
 
