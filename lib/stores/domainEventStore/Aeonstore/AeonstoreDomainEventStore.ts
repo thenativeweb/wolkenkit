@@ -4,9 +4,9 @@ import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { FilterHeartBeatsFromJsonStreamTransform } from 'lib/common/utils/http/FilterHeartBeatsFromJsonStreamTransform';
-import { PassThrough } from 'stream';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
+import { PassThrough, pipeline } from 'stream';
 
 class AeonstoreDomainEventStore implements DomainEventStore {
   protected aeonstoreBaseUrl: string;
@@ -63,7 +63,7 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     const passThrough = new PassThrough({ objectMode: true });
     const heartbeatFilter = new FilterHeartBeatsFromJsonStreamTransform();
 
-    return data.pipe(heartbeatFilter).pipe(passThrough);
+    return pipeline(data, heartbeatFilter, passThrough);
   }
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
@@ -130,7 +130,7 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     const passThrough = new PassThrough({ objectMode: true });
     const heartbeatFilter = new FilterHeartBeatsFromJsonStreamTransform();
 
-    return data.pipe(heartbeatFilter).pipe(passThrough);
+    return pipeline(data, heartbeatFilter, passThrough);
   }
 }
 
