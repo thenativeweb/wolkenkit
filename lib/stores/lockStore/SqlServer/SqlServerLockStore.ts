@@ -3,7 +3,7 @@ import { LockStore } from '../LockStore';
 import { sqlServer as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
 import { Pool } from 'tarn';
-import retry from 'async-retry';
+import { retry } from 'retry-ignore-abort';
 import { sortKeys } from '../../../common/utils/sortKeys';
 import { TableNames } from './TableNames';
 import { Connection, Request, TYPES } from 'tedious';

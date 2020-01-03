@@ -2,7 +2,7 @@ import { buntstift } from 'buntstift';
 import { connectionOptions } from './connectionOptions';
 import { MongoClient } from 'mongodb';
 import { oneLine } from 'common-tags';
-import retry from 'async-retry';
+import { retry } from 'retry-ignore-abort';
 import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
 

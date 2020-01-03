@@ -2,7 +2,7 @@ import { buntstift } from 'buntstift';
 import { Client } from 'minio';
 import { connectionOptions } from './connectionOptions';
 import { oneLine } from 'common-tags';
-import retry from 'async-retry';
+import { retry } from 'retry-ignore-abort';
 import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
 import { uuid } from 'uuidv4';

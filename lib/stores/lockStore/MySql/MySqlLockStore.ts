@@ -1,7 +1,7 @@
 import { LockStore } from '../LockStore';
 import { mySql as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
-import retry from 'async-retry';
+import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { sortKeys } from '../../../common/utils/sortKeys';
 import { TableNames } from './TableNames';

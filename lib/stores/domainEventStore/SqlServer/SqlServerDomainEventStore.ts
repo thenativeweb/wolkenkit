@@ -6,7 +6,7 @@ import { DomainEventStore } from '../DomainEventStore';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { PassThrough } from 'stream';
 import { Pool } from 'tarn';
-import retry from 'async-retry';
+import { retry } from 'retry-ignore-abort';
 import { Row } from './Row';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
