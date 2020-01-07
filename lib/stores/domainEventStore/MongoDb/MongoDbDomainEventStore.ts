@@ -6,7 +6,7 @@ import { DomainEventStore } from '../DomainEventStore';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { parse } from 'url';
 import { PassThrough } from 'stream';
-import retry from 'async-retry';
+import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { Collection, Db, MongoClient } from 'mongodb';

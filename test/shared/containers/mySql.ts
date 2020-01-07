@@ -1,7 +1,7 @@
 import { buntstift } from 'buntstift';
 import { connectionOptions } from './connectionOptions';
 import { oneLine } from 'common-tags';
-import retry from 'async-retry';
+import { retry } from 'retry-ignore-abort';
 import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
 import { createPool, MysqlError, PoolConnection } from 'mysql';

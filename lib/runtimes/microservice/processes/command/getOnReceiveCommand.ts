@@ -3,7 +3,7 @@ import { Dispatcher } from './Dispatcher';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
-import retry from 'async-retry';
+import { retry } from 'retry-ignore-abort';
 
 const logger = flaschenpost.getLogger();
 

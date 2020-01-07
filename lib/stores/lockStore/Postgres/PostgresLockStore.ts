@@ -1,7 +1,7 @@
 import { LockStore } from '../LockStore';
 import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
-import retry from 'async-retry';
+import { retry } from 'retry-ignore-abort';
 import { TableNames } from './TableNames';
 import { Client, Pool, PoolClient } from 'pg';
 

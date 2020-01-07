@@ -2,7 +2,7 @@ import { ListNames } from './ListNames';
 import { LockStore } from '../LockStore';
 import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
-import retry from 'async-retry';
+import { retry } from 'retry-ignore-abort';
 import { sortKeys } from '../../../common/utils/sortKeys';
 import redis, { RedisClient } from 'redis';
 

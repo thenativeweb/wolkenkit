@@ -3,7 +3,7 @@ import { LockStore } from '../LockStore';
 import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { noop } from 'lodash';
 import { parse } from 'url';
-import retry from 'async-retry';
+import { retry } from 'retry-ignore-abort';
 import { sortKeys } from '../../../common/utils/sortKeys';
 import { Collection, Db, MongoClient } from 'mongodb';
 

@@ -4,7 +4,7 @@ import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { PassThrough } from 'stream';
-import retry from 'async-retry';
+import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
