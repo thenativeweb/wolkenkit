@@ -112,7 +112,7 @@
     "defekt": "5.0.0",
     "eslint": "6.8.0",
     "express": "4.17.1",
-    "flaschenpost": "4.0.1",
+    "flaschenpost": "4.0.2",
     "get-cors-origin": "4.0.0",
     "is-ip": "3.1.0",
     "is-typescript": "4.0.0",
