@@ -126,7 +126,7 @@
     "p-queue": "6.2.1",
     "partof": "3.0.0",
     "pg": "7.17.1",
-    "pg-query-stream": "2.1.2",
+    "pg-query-stream": "3.0.0",
     "processenv": "3.0.1",
     "redis": "2.8.0",
     "retry-ignore-abort": "2.2.2",
