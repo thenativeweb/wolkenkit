@@ -151,7 +151,7 @@
     "@types/minio": "7.0.5",
     "@types/mongodb": "3.3.14",
     "@types/mysql": "2.15.8",
-    "@types/node": "13.1.7",
+    "@types/node": "13.1.8",
     "@types/pg": "7.14.1",
     "@types/pg-query-stream": "1.0.3",
     "@types/qs": "6.9.0",
