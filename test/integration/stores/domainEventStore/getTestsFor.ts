@@ -7,6 +7,31 @@ import { getShortId } from '../../../shared/getShortId';
 import { toArray } from 'streamtoarray';
 import { uuid } from 'uuidv4';
 
+const createEventBatch = ({ size, startIndex = 0, id = uuid() }: {
+  size: number;
+  startIndex?: number;
+  id?: string;
+}): DomainEvent<any>[] => new Array(size).
+  fill(null).
+  map((_, index): DomainEvent<any> => {
+    const aggregateIdentifier = {
+      id,
+      name: 'peerGroup'
+    };
+
+    return buildDomainEvent({
+      contextIdentifier: { name: 'planning' },
+      aggregateIdentifier,
+      name: 'amended',
+      data: { amendment: index + startIndex + 1 },
+      metadata: {
+        revision: { aggregate: index + startIndex + 1 },
+        initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+        tags: [ 'gdpr' ]
+      }
+    });
+  });
+
 /* eslint-disable mocha/max-top-level-suites */
 const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore }: {
   createDomainEventStore ({ suffix }: {
@@ -1082,31 +1107,6 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         await teardownDomainEventStore({ suffix });
       }
     });
-
-    function createEventBatch ({ size, startIndex = 0, id = uuid() }: {
-      size: number;
-      startIndex?: number;
-      id?: string;
-    }): DomainEvent<any>[] {
-      return new Array(size).fill(null).map((_, index) => {
-        const aggregateIdentifier = {
-          id,
-          name: 'peerGroup'
-        };
-
-        return buildDomainEvent({
-          contextIdentifier: { name: 'planning' },
-          aggregateIdentifier,
-          name: 'amended',
-          data: { amendment: index + startIndex + 1 },
-          metadata: {
-            revision: { aggregate: index + startIndex + 1 },
-            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-            tags: [ 'gdpr' ]
-          }
-        });
-      });
-    }
 
     test('keeps events ordered.', async (): Promise<void> => {
       const largeBatchSize = 1000;
