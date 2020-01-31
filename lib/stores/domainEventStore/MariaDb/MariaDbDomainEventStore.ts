@@ -340,8 +340,13 @@ class MariaDbDomainEventStore implements DomainEventStore {
     const savedDomainEvents = [];
 
     try {
-      await runQuery({ connection, query, parameters });
+      await runQuery({ connection, query: `SELECT GET_LOCK('write', 10);` });
 
+      try {
+        await runQuery({ connection, query, parameters });
+      } finally {
+        await runQuery({ connection, query: `SELECT RELEASE_LOCK('write');` });
+      }
       const [ rows ]: any[] = await runQuery({
         connection,
         query: 'SELECT LAST_INSERT_ID() AS revisionGlobal;'
