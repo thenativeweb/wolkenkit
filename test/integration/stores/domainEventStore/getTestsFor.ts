@@ -1109,7 +1109,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     });
 
     test('keeps events ordered.', async (): Promise<void> => {
-      const largeBatchSize = 100;
+      const largeBatchSize = 1000;
       const id = uuid();
       const largeBatch = createEventBatch({ size: largeBatchSize, id });
       const singleEvent = createEventBatch({ size: 1, startIndex: largeBatchSize, id });
