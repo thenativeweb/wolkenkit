@@ -1065,6 +1065,69 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       });
     });
   });
+
+  suite('concurrency', function (): void {
+    this.timeout(5 * 1000);
+
+    setup(async (): Promise<void> => {
+      suffix = getShortId();
+      domainEventStore = await createDomainEventStore({ suffix });
+    });
+
+    teardown(async function (): Promise<void> {
+      this.timeout(20 * 1000);
+
+      await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
+    });
+
+    function createEventBatch ({ size, startIndex = 0, id = uuid() }: {
+      size: number;
+      startIndex?: number;
+      id?: string;
+    }): DomainEvent<any>[] {
+      return new Array(size).fill(null).map((_, index) => {
+        const aggregateIdentifier = {
+          id,
+          name: 'peerGroup'
+        };
+
+        return buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier,
+          name: 'amended',
+          data: { amendment: index + startIndex + 1 },
+          metadata: {
+            revision: { aggregate: index + startIndex + 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+      });
+    }
+
+    test('keeps events ordered.', async (): Promise<void> => {
+      const largeBatchSize = 1000;
+      const id = uuid();
+      const largeBatch = createEventBatch({ size: largeBatchSize, id });
+      const singleEvent = createEventBatch({ size: 1, startIndex: largeBatchSize, id });
+
+      await Promise.all([
+        domainEventStore.storeDomainEvents({ domainEvents: largeBatch }),
+        domainEventStore.storeDomainEvents({ domainEvents: singleEvent }).
+          then(async (events): Promise<void> => {
+            assert.that(events[0].metadata.revision.global).is.equalTo(largeBatchSize + 1);
+
+            const replayStream = await domainEventStore.getReplay({ fromRevisionGlobal: 1, toRevisionGlobal: largeBatchSize + 1 });
+            const replay = await toArray(replayStream);
+
+            assert.that(replay.length).is.equalTo(largeBatchSize + 1);
+          })
+      ]);
+    });
+  });
 };
 /* eslint-enable mocha/max-top-level-suites */
 
