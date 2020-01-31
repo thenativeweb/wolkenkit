@@ -9,7 +9,7 @@ import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
-import { Client, Pool, PoolClient } from 'pg';
+import { Client, Pool, PoolClient, QueryResult } from 'pg';
 
 class PostgresDomainEventStore implements DomainEventStore {
   protected pool: Pool;
@@ -273,11 +273,25 @@ class PostgresDomainEventStore implements DomainEventStore {
     const savedDomainEvents = [];
 
     try {
-      const result = await connection.query({
-        name: `store domain events ${domainEvents.length}`,
-        text,
-        values
+      let result: QueryResult;
+
+      await connection.query({
+        name: 'obtain write lock',
+        text: 'select pg_advisory_lock(1);'
       });
+
+      try {
+        result = await connection.query({
+          name: `store domain events ${domainEvents.length}`,
+          text,
+          values
+        });
+      } finally {
+        await connection.query({
+          name: 'release write lock',
+          text: 'select pg_advisory_unlock(1);'
+        });
+      }
 
       for (const [ index, domainEvent ] of domainEvents.entries()) {
         const savedDomainEvent = new DomainEvent<TDomainEventData>({
