@@ -19,7 +19,7 @@ import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { uuid } from 'uuidv4';
 import { waitForSignals } from 'wait-for-signals';
 
-suite('writeDomainEventStore/httpClient', (): void => {
+suite('writeDomainEventStore/http/Client', (): void => {
   suite('/v2', (): void => {
     let api: Application,
         domainEventStore: DomainEventStore,

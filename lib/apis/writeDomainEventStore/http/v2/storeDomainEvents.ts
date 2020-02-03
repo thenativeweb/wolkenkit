@@ -1,7 +1,7 @@
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
-import { errors } from 'lib/common/errors';
+import { errors } from '../../../../common/errors';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { Publisher } from '../../../../messaging/pubSub/Publisher';
 import { RequestHandler } from 'express-serve-static-core';
