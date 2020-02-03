@@ -43,6 +43,7 @@ const errors = defekt({
   SubscriberTypeInvalid: {},
   TokenMismatch: {},
   TypeInvalid: {},
+  UnknownError: {},
   ViewDefinitionMalformed: {}
 });
 
