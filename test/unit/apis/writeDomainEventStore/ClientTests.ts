@@ -3,7 +3,9 @@ import { Application } from 'express';
 import { asJsonStream } from 'test/shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
-import { createDomainEventStore } from 'lib/stores/domainEventStore/createDomainEventStore';
+import { Client } from '../../../../lib/apis/writeDomainEventStore/http/v2/Client';
+import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
+import { CustomError } from 'defekt';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
@@ -17,7 +19,7 @@ import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { uuid } from 'uuidv4';
 import { waitForSignals } from 'wait-for-signals';
 
-suite('writeDomainEventStore/http', (): void => {
+suite('writeDomainEventStore/httpClient', (): void => {
   suite('/v2', (): void => {
     let api: Application,
         domainEventStore: DomainEventStore,
@@ -43,7 +45,7 @@ suite('writeDomainEventStore/http', (): void => {
       }));
     });
 
-    suite('POST /store-domain-events', (): void => {
+    suite('storeDomainEvents', (): void => {
       test('stores the given domain events and publishes them via the publisher.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
@@ -97,16 +99,19 @@ suite('writeDomainEventStore/http', (): void => {
           }
         });
 
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: '/v2/store-domain-events',
-          data: [ firstDomainEvent, secondDomainEvent ]
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
         });
 
-        assert.that(status).is.equalTo(200);
-        assert.that(data).is.equalTo([
+        const events = await client.storeDomainEvents([
+          firstDomainEvent,
+          secondDomainEvent
+        ]);
+
+        assert.that(events).is.equalTo([
           firstDomainEvent,
           secondDomainEvent
         ]);
@@ -132,75 +137,21 @@ suite('writeDomainEventStore/http', (): void => {
         await collector.promise;
       });
 
-      test('returns 400 if the data is not an array.', async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: '/v2/store-domain-events',
-          data: {},
-          validateStatus: (): boolean => true
+      test('throws a domain events missing error if the given array is empty.', async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
         });
 
-        assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
-          message: 'Request body must be an array of domain events.'
-        });
-      });
-
-      test('returns 400 if a domain event is malformed.', async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: '/v2/store-domain-events',
-          data: [{}],
-          validateStatus: (): boolean => true
-        });
-
-        assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo({
-          code: 'EDOMAINEVENTMALFORMED',
-          message: 'Invalid type: undefined should be object (at domainEvent.metadata).'
-        });
-      });
-
-      test('returns 400 if the data is an empty array.', async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: '/v2/store-domain-events',
-          data: [],
-          validateStatus: (): boolean => true
-        });
-
-        assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
-          message: 'Domain events are missing.'
-        });
-      });
-
-      test('returns 415 if the content type is not application/json.', async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: '/v2/store-domain-events',
-          validateStatus: (): boolean => true
-        });
-
-        assert.that(status).is.equalTo(415);
-        assert.that(data).is.equalTo({
-          code: 'ECONTENTTYPEMISMATCH',
-          message: 'Header content-type must be application/json.'
-        });
+        await assert.that(async (): Promise<any> => client.storeDomainEvents([])).is.throwingAsync(
+          (ex): boolean => (ex as CustomError).code === 'EREQUESTMALFORMED' && ex.message === 'Domain events are missing.'
+        );
       });
     });
 
-    suite('POST /store-snapshot', (): void => {
+    suite('storeSnapshot', (): void => {
       test('stores the given snapshot.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
@@ -213,15 +164,15 @@ suite('writeDomainEventStore/http', (): void => {
           state: {}
         };
 
-        const { client } = await runAsServer({ app: api });
-
-        const { status } = await client({
-          method: 'post',
-          url: '/v2/store-snapshot',
-          data: snapshot
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
         });
 
-        assert.that(status).is.equalTo(200);
+        await client.storeSnapshot(snapshot);
+
         assert.that(await domainEventStore.getSnapshot({ aggregateIdentifier })).is.equalTo(snapshot);
       });
 
@@ -242,37 +193,17 @@ suite('writeDomainEventStore/http', (): void => {
           state: {}
         };
 
-        const { client } = await runAsServer({ app: api });
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
 
-        await client({
-          method: 'post',
-          url: '/v2/store-snapshot',
-          data: firstSnapshot
-        });
-        await client({
-          method: 'post',
-          url: '/v2/store-snapshot',
-          data: secondSnapshot
-        });
+        await client.storeSnapshot(firstSnapshot);
+        await client.storeSnapshot(secondSnapshot);
 
         assert.that(await domainEventStore.getSnapshot({ aggregateIdentifier })).is.equalTo(secondSnapshot);
-      });
-
-      test('returns 400 if the snapshot is malformed.', async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: '/v2/store-snapshot',
-          data: {},
-          validateStatus: (): boolean => true
-        });
-
-        assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo({
-          code: 'ESNAPSHOTMALFORMED',
-          message: 'Missing required property: aggregateIdentifier (at snapshot.aggregateIdentifier).'
-        });
       });
     });
   });
