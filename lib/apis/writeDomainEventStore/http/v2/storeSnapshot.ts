@@ -1,4 +1,5 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
+import { errors } from '../../../../common/errors';
 import { RequestHandler } from 'express-serve-static-core';
 import typer from 'content-type';
 import { validateSnapshot } from '../../../../common/validators/validateSnapshot';
@@ -14,11 +15,21 @@ const storeSnapshot = function ({
     try {
       contentType = typer.parse(req);
     } catch {
-      return res.status(415).send('Header content-type must be application/json.');
+      const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
+
+      return res.status(415).json({
+        code: ex.code,
+        message: ex.message
+      });
     }
 
     if (contentType.type !== 'application/json') {
-      return res.status(415).send('Header content-type must be application/json.');
+      const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
+
+      return res.status(415).json({
+        code: ex.code,
+        message: ex.message
+      });
     }
 
     const snapshot = req.body;
@@ -26,13 +37,19 @@ const storeSnapshot = function ({
     try {
       validateSnapshot({ snapshot });
     } catch (ex) {
-      return res.status(400).send(ex.message);
+      return res.status(400).json({
+        code: ex.code ?? 'EUNKNOWNERROR',
+        message: ex.message
+      });
     }
 
     try {
       await domainEventStore.storeSnapshot({ snapshot });
     } catch (ex) {
-      return res.status(400).send(ex.message);
+      return res.status(400).json({
+        code: ex.code ?? 'EUNKNOWNERROR',
+        message: ex.message
+      });
     }
 
     res.status(200).end();

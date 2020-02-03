@@ -1,6 +1,7 @@
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
+import { errors } from 'lib/common/errors';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { Publisher } from '../../../../messaging/pubSub/Publisher';
 import { RequestHandler } from 'express-serve-static-core';
@@ -21,19 +22,39 @@ const storeDomainEvents = function ({
     try {
       contentType = typer.parse(req);
     } catch {
-      return res.status(415).send('Header content-type must be application/json.');
+      const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
+
+      return res.status(415).json({
+        code: ex.code,
+        message: ex.message
+      });
     }
 
     if (contentType.type !== 'application/json') {
-      return res.status(415).send('Header content-type must be application/json.');
+      const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
+
+      return res.status(415).json({
+        code: ex.code,
+        message: ex.message
+      });
     }
 
     if (!Array.isArray(req.body)) {
-      return res.status(400).send('Request body must be an array of domain events.');
+      const ex = new errors.RequestMalformed('Request body must be an array of domain events.');
+
+      return res.status(400).json({
+        code: ex.code,
+        message: ex.message
+      });
     }
 
     if (req.body.length === 0) {
-      return res.status(400).send('Domain events are missing.');
+      const ex = new errors.RequestMalformed('Domain events are missing.');
+
+      return res.status(400).json({
+        code: ex.code,
+        message: ex.message
+      });
     }
 
     let domainEvents;
@@ -47,7 +68,12 @@ const storeDomainEvents = function ({
         domainEventSchema.validate(domainEvent, { valueName: 'domainEvent' });
       });
     } catch (ex) {
-      return res.status(400).send(ex.message);
+      const error = new errors.DomainEventMalformed(ex.message);
+
+      return res.status(400).json({
+        code: error.code,
+        message: error.message
+      });
     }
 
     try {
@@ -62,7 +88,10 @@ const storeDomainEvents = function ({
 
       res.json(storedDomainEvents);
     } catch (ex) {
-      return res.status(400).send(ex.message);
+      return res.status(400).json({
+        code: ex.code ?? 'EUNKNOWNERROR',
+        message: ex.message
+      });
     }
   };
 };

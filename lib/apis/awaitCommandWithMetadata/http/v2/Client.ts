@@ -3,9 +3,12 @@ import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/utils/http/FilterHeartbeatsFromJsonStreamTransform';
+import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { PassThrough, pipeline } from 'stream';
+
+const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
   public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
@@ -96,7 +99,8 @@ class Client extends HttpClient {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {
-        throw new errors.InvalidOperation(data.message, { data });
+        logger.error('Unknown error occured.', { ex: data, status });
+        throw new errors.UnknownError();
       }
     }
   }
@@ -132,7 +136,8 @@ class Client extends HttpClient {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {
-        throw new errors.InvalidOperation(data.message, { data });
+        logger.error('Unknown error occured.', { ex: data, status });
+        throw new errors.UnknownError();
       }
     }
   }
