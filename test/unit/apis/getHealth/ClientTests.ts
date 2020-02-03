@@ -7,7 +7,7 @@ import { Value } from 'validate-value';
 
 suite('getHealth/http/Client', (): void => {
   suite('/v2', (): void => {
-    suite('GET /', (): void => {
+    suite('getHealth', (): void => {
       let api: Application;
 
       setup(async (): Promise<void> => {

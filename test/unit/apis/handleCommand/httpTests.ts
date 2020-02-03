@@ -1,7 +1,6 @@
 import { Application } from 'express';
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { assert } from 'assertthat';
-import { AxiosError } from 'axios';
 import { Command } from '../../../../lib/common/elements/Command';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
@@ -105,56 +104,65 @@ suite('handleCommand/http', (): void => {
       test('returns 415 if the content-type header is missing.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
-        await assert.that(async (): Promise<void> => {
-          await client({
-            method: 'post',
-            url: '/v2/',
-            headers: {
-              'content-type': ''
-            },
-            responseType: 'text'
-          });
-        }).is.throwingAsync(
-          (ex): boolean =>
-            (ex as AxiosError).response!.status === 415 &&
-            (ex as AxiosError).response!.data === 'Header content-type must be application/json.'
-        );
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/',
+          headers: {
+            'content-type': ''
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(415);
+        assert.that(data).is.equalTo({
+          code: 'EREQUESTMALFORMED',
+          message: 'Header content-type must be application/json.'
+        });
       });
 
       test('returns 415 if content-type is not set to application/json.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
-        await assert.that(async (): Promise<void> => {
-          await client({
-            method: 'post',
-            url: '/v2/',
-            headers: {
-              'content-type': 'text/plain'
-            },
-            responseType: 'text'
-          });
-        }).is.throwingAsync(
-          (ex): boolean =>
-            (ex as AxiosError).response!.status === 415 &&
-            (ex as AxiosError).response!.data === 'Header content-type must be application/json.'
-        );
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/',
+          headers: {
+            'content-type': 'text/plain'
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(415);
+        assert.that(data).is.equalTo({
+          code: 'EREQUESTMALFORMED',
+          message: 'Header content-type must be application/json.'
+        });
       });
 
       test('returns 400 if a malformed command is sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
-        await assert.that(async (): Promise<void> => {
-          await client({
-            method: 'post',
-            url: '/v2/',
-            data: { foo: 'bar' },
-            responseType: 'text'
-          });
-        }).is.throwingAsync(
-          (ex): boolean =>
-            (ex as AxiosError).response!.status === 400 &&
-            (ex as AxiosError).response!.data === 'Invalid type: undefined should be object (at command.data).'
-        );
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: { foo: 'bar' },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'ECOMMANDMALFORMED',
+          message: 'Invalid type: undefined should be object (at command.data).'
+        });
       });
 
       test('returns 400 if a wellformed command is sent with a non-existent context name.', async (): Promise<void> => {
@@ -167,18 +175,21 @@ suite('handleCommand/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        await assert.that(async (): Promise<void> => {
-          await client({
-            method: 'post',
-            url: '/v2/',
-            data: command,
-            responseType: 'text'
-          });
-        }).is.throwingAsync(
-          (ex): boolean =>
-            (ex as AxiosError).response!.status === 400 &&
-            (ex as AxiosError).response!.data === `Context 'nonExistent' not found.`
-        );
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: command,
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'ECONTEXTNOTFOUND',
+          message: `Context 'nonExistent' not found.`
+        });
       });
 
       test('returns 400 if a wellformed command is sent with a non-existent aggregate name.', async (): Promise<void> => {
@@ -191,18 +202,21 @@ suite('handleCommand/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        await assert.that(async (): Promise<void> => {
-          await client({
-            method: 'post',
-            url: '/v2/',
-            data: command,
-            responseType: 'text'
-          });
-        }).is.throwingAsync(
-          (ex): boolean =>
-            (ex as AxiosError).response!.status === 400 &&
-            (ex as AxiosError).response!.data === `Aggregate 'sampleContext.nonExistent' not found.`
-        );
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: command,
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'EAGGREGATENOTFOUND',
+          message: `Aggregate 'sampleContext.nonExistent' not found.`
+        });
       });
 
       test('returns 400 if a wellformed command is sent with a non-existent command name.', async (): Promise<void> => {
@@ -215,18 +229,21 @@ suite('handleCommand/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        await assert.that(async (): Promise<void> => {
-          await client({
-            method: 'post',
-            url: '/v2/',
-            data: command,
-            responseType: 'text'
-          });
-        }).is.throwingAsync(
-          (ex): boolean =>
-            (ex as AxiosError).response!.status === 400 &&
-            (ex as AxiosError).response!.data === `Command 'sampleContext.sampleAggregate.nonExistent' not found.`
-        );
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: command,
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'ECOMMANDNOTFOUND',
+          message: `Command 'sampleContext.sampleAggregate.nonExistent' not found.`
+        });
       });
 
       test('returns 400 if a command is sent with a payload that does not match the schema.', async (): Promise<void> => {
@@ -239,18 +256,21 @@ suite('handleCommand/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        await assert.that(async (): Promise<void> => {
-          await client({
-            method: 'post',
-            url: '/v2/',
-            data: command,
-            responseType: 'text'
-          });
-        }).is.throwingAsync(
-          (ex): boolean =>
-            (ex as AxiosError).response!.status === 400 &&
-            (ex as AxiosError).response!.data === 'No enum match (invalid-value), expects: succeed, fail, reject (at command.data.strategy).'
-        );
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: command,
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'ECOMMANDMALFORMED',
+          message: 'No enum match (invalid-value), expects: succeed, fail, reject (at command.data.strategy).'
+        });
       });
 
       test('returns 200 if a wellformed and existing command is sent.', async (): Promise<void> => {
@@ -352,13 +372,19 @@ suite('handleCommand/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        await assert.that(async (): Promise <void> => {
-          await client({
-            method: 'post',
-            url: '/v2/',
-            data: command
-          });
-        }).is.throwingAsync((ex): boolean => (ex as AxiosError).response?.status === 500);
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: command,
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(500);
+        assert.that(data).is.equalTo({
+          message: 'Failed to handle received command.'
+        });
       });
     });
   });
