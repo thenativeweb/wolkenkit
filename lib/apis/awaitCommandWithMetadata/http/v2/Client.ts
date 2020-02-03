@@ -3,21 +3,18 @@ import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/utils/http/FilterHeartbeatsFromJsonStreamTransform';
+import { HttpClient } from '../../../shared/HttpClient';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { PassThrough, pipeline } from 'stream';
 
-class Client {
-  protected url: string;
-
+class Client extends HttpClient {
   public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
     protocol?: string;
     hostName: string;
     port: number;
     path?: string;
   }) {
-    const url = `${protocol}://${hostName}:${port}${path}`;
-
-    this.url = url.endsWith('/') ? url.slice(0, -1) : url;
+    super({ protocol, hostName, port, path });
   }
 
   public async awaitCommandWithMetadata (): Promise<{ item: CommandWithMetadata<CommandData>; token: string }> {
