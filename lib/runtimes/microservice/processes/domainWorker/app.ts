@@ -5,10 +5,9 @@ import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
-import { getIdentityProviders } from '../../../shared/getIdentityProviders';
-import { handleCommand } from './handleCommand';
 import http from 'http';
 import pForever from 'p-forever';
+import { processCommand } from './processCommand';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
 
@@ -20,10 +19,6 @@ import { Repository } from '../../../../common/domain/Repository';
     registerExceptionHandler();
 
     const configuration = getConfiguration();
-
-    const identityProviders = await getIdentityProviders({
-      identityProvidersEnvironmentVariable: configuration.identityProviders
-    });
 
     const applicationDefinition = await getApplicationDefinition({
       applicationDirectory: configuration.applicationDirectory
@@ -50,11 +45,10 @@ import { Repository } from '../../../../common/domain/Repository';
 
     for (let i = 0; i < configuration.concurrentCommands; i++) {
       pForever(async (): Promise<void> => {
-        await handleCommand({
+        await processCommand({
           configuration,
           applicationDefinition,
-          repository,
-          identityProviders
+          repository
         });
       });
     }

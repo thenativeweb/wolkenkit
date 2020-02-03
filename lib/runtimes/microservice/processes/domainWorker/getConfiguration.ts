@@ -1,7 +1,6 @@
 import { Configuration } from './Configuration';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
-import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import path from 'path';
 import { withCamelCaseKeys } from '../../../../common/utils/withCamelCaseKeys';
@@ -43,13 +42,6 @@ const getConfiguration = function (): Configuration {
     HEALTH_CORS_ORIGIN: {
       default: '*',
       schema: corsSchema
-    },
-    IDENTITY_PROVIDERS: {
-      default: [{
-        issuer: 'https://token.invalid',
-        certificate: path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io')
-      }],
-      schema: getIdentityProviderSchema()
     },
     PORT: {
       default: 3000,

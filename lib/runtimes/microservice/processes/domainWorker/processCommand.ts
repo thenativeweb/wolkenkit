@@ -1,26 +1,26 @@
+import { acknowledgeCommand } from './acknowledgeCommand';
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { Configuration } from './Configuration';
+import { fetchCommand } from './fetchCommand';
 import { flaschenpost } from 'flaschenpost';
-import { IdentityProvider } from 'limes';
+import { handleCommand } from '../../../../common/domain/handleCommand';
 import { Repository } from '../../../../common/domain/Repository';
 
 const logger = flaschenpost.getLogger();
 
-const handleCommand = async function ({
+const processCommand = async function ({
   configuration,
   applicationDefinition,
-  repository,
-  identityProviders
+  repository
 }: {
   configuration: Configuration;
   applicationDefinition: ApplicationDefinition;
   repository: Repository;
-  identityProviders: IdentityProvider[];
 }): Promise<void> {
   try {
-    const command = await fetchCommandFromDispatcher({ configuration });
+    const command = await fetchCommand({ configuration });
 
-    await processCommand({ command, applicationDefinition, repository, identityProviders });
+    await handleCommand({ command, applicationDefinition, repository });
     await acknowledgeCommand({ command, configuration });
   } catch (ex) {
     switch (ex.code) {
@@ -36,5 +36,5 @@ const handleCommand = async function ({
 };
 
 export {
-  handleCommand
+  processCommand
 };
