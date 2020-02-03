@@ -97,7 +97,7 @@ suite('writeDomainEventStore/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',
@@ -133,7 +133,7 @@ suite('writeDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the data is not an array.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',
@@ -147,7 +147,7 @@ suite('writeDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if a domain event is malformed.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',
@@ -161,7 +161,7 @@ suite('writeDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the data is an empty array.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',
@@ -175,7 +175,7 @@ suite('writeDomainEventStore/http', (): void => {
       });
 
       test('returns 415 if the content type is not application/json.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',
@@ -201,7 +201,7 @@ suite('writeDomainEventStore/http', (): void => {
           state: {}
         };
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
           method: 'post',
@@ -230,7 +230,7 @@ suite('writeDomainEventStore/http', (): void => {
           state: {}
         };
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await client({
           method: 'post',
@@ -247,7 +247,7 @@ suite('writeDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the snapshot is malformed.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',

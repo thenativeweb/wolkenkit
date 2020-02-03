@@ -39,7 +39,7 @@ suite('handleCommandWithMetadata/http', (): void => {
       });
 
       test('returns 415 if the content-type header is missing.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -56,7 +56,7 @@ suite('handleCommandWithMetadata/http', (): void => {
       });
 
       test('returns 415 if content-type is not set to application/json.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -74,7 +74,7 @@ suite('handleCommandWithMetadata/http', (): void => {
       });
 
       test('returns 400 if a malformed command is sent.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -110,7 +110,7 @@ suite('handleCommandWithMetadata/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -146,7 +146,7 @@ suite('handleCommandWithMetadata/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -182,7 +182,7 @@ suite('handleCommandWithMetadata/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -218,7 +218,7 @@ suite('handleCommandWithMetadata/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -254,7 +254,7 @@ suite('handleCommandWithMetadata/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
           method: 'post',
@@ -287,7 +287,7 @@ suite('handleCommandWithMetadata/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await client({
           method: 'post',
@@ -321,7 +321,7 @@ suite('handleCommandWithMetadata/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'post',
@@ -362,7 +362,7 @@ suite('handleCommandWithMetadata/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({

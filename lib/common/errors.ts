@@ -10,6 +10,7 @@ const errors = defekt({
   CommandNotFound: {},
   CommandRejected: {},
   CompilationFailed: {},
+  ContentTypeMismatch: {},
   ContextNotFound: {},
   CorsOriginInvalid: {},
   DatabaseTypeInvalid: {},

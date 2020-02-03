@@ -3,7 +3,7 @@ import axios from 'axios';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
-import { FilterHeartBeatsFromJsonStreamTransform } from 'lib/common/utils/http/FilterHeartBeatsFromJsonStreamTransform';
+import { FilterHeartbeatsFromJsonStreamTransform } from 'lib/common/utils/http/FilterHeartbeatsFromJsonStreamTransform';
 import { flaschenpost } from 'flaschenpost';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
@@ -64,7 +64,7 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     });
 
     const passThrough = new PassThrough({ objectMode: true });
-    const heartbeatFilter = new FilterHeartBeatsFromJsonStreamTransform();
+    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
 
     return pipeline(
       data,
@@ -140,7 +140,7 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     });
 
     const passThrough = new PassThrough({ objectMode: true });
-    const heartbeatFilter = new FilterHeartBeatsFromJsonStreamTransform();
+    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
 
     return pipeline(
       data,

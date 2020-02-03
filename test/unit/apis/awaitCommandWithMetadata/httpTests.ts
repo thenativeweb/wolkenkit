@@ -54,7 +54,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
 
     suite('GET /', (): void => {
       test('returns the status code 200.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
           method: 'get',
@@ -66,7 +66,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
       });
 
       test('returns the content-type application/x-ndjson.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { headers } = await client({
           method: 'get',
@@ -78,7 +78,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
       });
 
       test('leaves the connection open indefinitely as long as no command is enqueued.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'get',
@@ -108,7 +108,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
       });
 
       test('closes the connection once a command has been delivered and a notification has been sent.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'get',
@@ -158,7 +158,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
       test('redelivers the same command if the timeout expires.', async function (): Promise<void> {
         this.timeout(5_000);
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
           contextIdentifier: {
@@ -226,7 +226,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
       });
 
       test('delivers commands in different aggregates in parallel.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const commandOne = buildCommandWithMetadata({
           contextIdentifier: {
@@ -304,7 +304,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
 
     suite('POST /renew-lock', (): void => {
       test('returns a 400 status code if an invalid item identifier is sent.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',
@@ -318,53 +318,14 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo('Missing required property: contextIdentifier (at itemIdentifier.contextIdentifier).');
-      });
-
-      test('returns a 400 status code if an invalid token is sent.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
-
-        const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
-          aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: uuid()
-          },
-          name: 'execute',
-          data: {}
+        assert.that(data).is.equalTo({
+          code: 'EITEMIDENTIFIERMALFORMED',
+          message: 'Missing required property: contextIdentifier (at itemIdentifier.contextIdentifier).'
         });
-
-        await priorityQueueStore.enqueue({ item: commandWithMetadata });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
-          message: {}
-        });
-
-        await client({
-          method: 'get',
-          url: '/v2/',
-          responseType: 'stream'
-        });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: '/v2/renew-lock',
-          headers: { 'content-type': 'application/json' },
-          data: {
-            itemIdentifier: commandWithMetadata.getItemIdentifier(),
-            token: 'not-a-uuid'
-          },
-          validateStatus: (): boolean => true
-        });
-
-        assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo('Token must be a UUID v4.');
       });
 
       test('returns a 403 status code if an unknown token is sent.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
           contextIdentifier: {
@@ -402,11 +363,14 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         assert.that(status).is.equalTo(403);
-        assert.that(data).is.equalTo(`Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`);
+        assert.that(data).is.equalTo({
+          code: 'ETOKENMISMATCH',
+          message: `Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`
+        });
       });
 
       test('extends the lock expiry time.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
           contextIdentifier: {
@@ -499,7 +463,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
 
     suite('POST /acknowledge', (): void => {
       test('returns a 400 status code if an invalid item identifier is sent.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',
@@ -513,53 +477,14 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo('Missing required property: contextIdentifier (at itemIdentifier.contextIdentifier).');
-      });
-
-      test('returns a 400 status code if an invalid token is sent.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
-
-        const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
-          aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: uuid()
-          },
-          name: 'execute',
-          data: {}
+        assert.that(data).is.equalTo({
+          code: 'EITEMIDENTIFIERMALFORMED',
+          message: 'Missing required property: contextIdentifier (at itemIdentifier.contextIdentifier).'
         });
-
-        await priorityQueueStore.enqueue({ item: commandWithMetadata });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
-          message: {}
-        });
-
-        await client({
-          method: 'get',
-          url: '/v2/',
-          responseType: 'stream'
-        });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: '/v2/acknowledge',
-          headers: { 'content-type': 'application/json' },
-          data: {
-            itemIdentifier: commandWithMetadata.getItemIdentifier(),
-            token: 'not-a-uuid'
-          },
-          validateStatus: (): boolean => true
-        });
-
-        assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo('Token must be a UUID v4.');
       });
 
       test('returns a 403 status code if an unknown token is sent.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
           contextIdentifier: {
@@ -597,11 +522,14 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         assert.that(status).is.equalTo(403);
-        assert.that(data).is.equalTo(`Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`);
+        assert.that(data).is.equalTo({
+          code: 'ETOKENMISMATCH',
+          message: `Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`
+        });
       });
 
       test('removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const aggregateId = uuid();
         const commandOne = buildCommandWithMetadata({

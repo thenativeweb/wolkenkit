@@ -44,7 +44,7 @@ suite('queryDomainEventStore/http', (): void => {
 
     suite('GET /replay', (): void => {
       test('returns a stream that sends a heartbeat and then ends instantly if there are no domain events to deliver.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data, headers } = await client({
           method: 'get',
@@ -101,7 +101,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         await domainEventStore.storeDomainEvents({ domainEvents: [ firstDomainEvent, secondDomainEvent ]});
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data, headers } = await client({
           method: 'get',
@@ -186,7 +186,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         await domainEventStore.storeDomainEvents({ domainEvents: [ firstDomainEvent, secondDomainEvent, thirdDomainEvent ]});
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data, headers } = await client({
           method: 'get',
@@ -241,7 +241,7 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data, headers } = await client({
           method: 'get',
@@ -295,7 +295,7 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data, headers } = await client({
           method: 'get',
@@ -336,7 +336,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the parameter fromRevisionGlobal is less than 1.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -349,7 +349,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the parameter fromRevisionGlobal is not a number.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -362,7 +362,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the parameter toRevisionGlobal is less than 1.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -375,7 +375,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the parameter toRevisionGlobal is not a number.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -388,7 +388,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test(`returns 400 if the parameter 'fromRevisionGlobal' is greater than 'toRevisionGlobal'.`, async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -401,7 +401,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test(`returns 400 if the parameter observe is neither 'true' nor 'false'.`, async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -440,7 +440,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         await domainEventStore.storeDomainEvents({ domainEvents: [ firstDomainEvent ]});
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data, headers } = await client({
           method: 'get',
@@ -497,7 +497,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         await domainEventStore.storeDomainEvents({ domainEvents: [ firstDomainEvent, secondDomainEvent ]});
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data, headers } = await client({
           method: 'get',
@@ -582,7 +582,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         await domainEventStore.storeDomainEvents({ domainEvents: [ firstDomainEvent, secondDomainEvent, thirdDomainEvent ]});
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data, headers } = await client({
           method: 'get',
@@ -637,7 +637,7 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data, headers } = await client({
           method: 'get',
@@ -691,7 +691,7 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data, headers } = await client({
           method: 'get',
@@ -732,7 +732,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the parameter fromRevision is less than 1.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -745,7 +745,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the parameter fromRevision is not a number.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -758,7 +758,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the parameter toRevision is less than 1.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -771,7 +771,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the parameter toRevision is not a number.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -784,7 +784,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test(`returns 400 if the parameter 'fromRevision' is greater than 'toRevision'.`, async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -797,7 +797,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test(`returns 400 if the parameter observe is neither 'true' nor 'false'.`, async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -832,7 +832,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -876,7 +876,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         await domainEventStore.storeDomainEvents({ domainEvents: [ firstDomainEvent, secondDomainEvent ]});
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -888,7 +888,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the aggregate identifier is malformed.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -906,7 +906,7 @@ suite('queryDomainEventStore/http', (): void => {
           id: uuid()
         };
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
           method: 'get',
@@ -935,7 +935,7 @@ suite('queryDomainEventStore/http', (): void => {
           snapshot
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -970,7 +970,7 @@ suite('queryDomainEventStore/http', (): void => {
           snapshot: secondSnapshot
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -982,7 +982,7 @@ suite('queryDomainEventStore/http', (): void => {
       });
 
       test('returns 400 if the aggregate identifier is malformed.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
@@ -1000,7 +1000,7 @@ suite('queryDomainEventStore/http', (): void => {
           id: uuid()
         };
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
           method: 'get',

@@ -14,7 +14,7 @@ suite('getHealth/http', (): void => {
       });
 
       test('returns 200.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
           method: 'get',
@@ -25,7 +25,7 @@ suite('getHealth/http', (): void => {
       });
 
       test('returns application/json.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { headers } = await client({
           method: 'get',
@@ -100,7 +100,7 @@ suite('getHealth/http', (): void => {
           additionalProperties: false
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'get',

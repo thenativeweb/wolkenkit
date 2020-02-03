@@ -51,7 +51,7 @@ suite('observeDomainEvents/http', (): void => {
       });
 
       test('returns the status code 200.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
           method: 'get',
@@ -62,7 +62,7 @@ suite('observeDomainEvents/http', (): void => {
       });
 
       test('returns application/json.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { headers } = await client({
           method: 'get',
@@ -73,7 +73,7 @@ suite('observeDomainEvents/http', (): void => {
       });
 
       test('returns the domain events description.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'get',
@@ -126,7 +126,7 @@ suite('observeDomainEvents/http', (): void => {
           publishDomainEvent({ domainEvent: executed });
         }, 100);
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'get',
@@ -188,7 +188,7 @@ suite('observeDomainEvents/http', (): void => {
           publishDomainEvent({ domainEvent: executed });
         }, 100);
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'get',
@@ -255,7 +255,7 @@ suite('observeDomainEvents/http', (): void => {
           publishDomainEvent({ domainEvent: executed });
         }, 100);
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'get',
@@ -319,7 +319,7 @@ suite('observeDomainEvents/http', (): void => {
           publishDomainEvent({ domainEvent: executed });
         }, 100);
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'get',
@@ -375,7 +375,7 @@ suite('observeDomainEvents/http', (): void => {
           publishDomainEvent({ domainEvent: executed });
         }, 100);
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'get',
@@ -419,7 +419,7 @@ suite('observeDomainEvents/http', (): void => {
           state: { previous: {}, next: {}}
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         try {
           await client({
@@ -494,7 +494,7 @@ suite('observeDomainEvents/http', (): void => {
             publishDomainEvent({ domainEvent: executed });
           }, 100);
 
-          const client = await runAsServer({ app: api });
+          const { client } = await runAsServer({ app: api });
 
           const { data } = await client({
             method: 'get',
@@ -572,7 +572,7 @@ suite('observeDomainEvents/http', (): void => {
             publishDomainEvent({ domainEvent: executed });
           }, 100);
 
-          const client = await runAsServer({ app: api });
+          const { client } = await runAsServer({ app: api });
 
           const { data } = await client({
             method: 'get',
@@ -634,7 +634,7 @@ suite('observeDomainEvents/http', (): void => {
             publishDomainEvent({ domainEvent: authorizationWithMutation });
           }, 100);
 
-          const client = await runAsServer({ app: api });
+          const { client } = await runAsServer({ app: api });
 
           const { data } = await client({
             method: 'get',
@@ -700,7 +700,7 @@ suite('observeDomainEvents/http', (): void => {
             publishDomainEvent({ domainEvent: filterPassed });
           }, 100);
 
-          const client = await runAsServer({ app: api });
+          const { client } = await runAsServer({ app: api });
 
           const { data } = await client({
             method: 'get',
@@ -776,7 +776,7 @@ suite('observeDomainEvents/http', (): void => {
             publishDomainEvent({ domainEvent: executed });
           }, 100);
 
-          const client = await runAsServer({ app: api });
+          const { client } = await runAsServer({ app: api });
 
           const { data } = await client({
             method: 'get',
@@ -852,7 +852,7 @@ suite('observeDomainEvents/http', (): void => {
             publishDomainEvent({ domainEvent: executed });
           }, 100);
 
-          const client = await runAsServer({ app: api });
+          const { client } = await runAsServer({ app: api });
 
           const { data } = await client({
             method: 'get',
@@ -914,7 +914,7 @@ suite('observeDomainEvents/http', (): void => {
             publishDomainEvent({ domainEvent: filterWithMutation });
           }, 100);
 
-          const client = await runAsServer({ app: api });
+          const { client } = await runAsServer({ app: api });
 
           const { data } = await client({
             method: 'get',
@@ -980,7 +980,7 @@ suite('observeDomainEvents/http', (): void => {
             publishDomainEvent({ domainEvent: mapApplied });
           }, 100);
 
-          const client = await runAsServer({ app: api });
+          const { client } = await runAsServer({ app: api });
 
           const { data } = await client({
             method: 'get',
@@ -1057,7 +1057,7 @@ suite('observeDomainEvents/http', (): void => {
             publishDomainEvent({ domainEvent: executed });
           }, 100);
 
-          const client = await runAsServer({ app: api });
+          const { client } = await runAsServer({ app: api });
 
           const { data } = await client({
             method: 'get',
@@ -1133,7 +1133,7 @@ suite('observeDomainEvents/http', (): void => {
             publishDomainEvent({ domainEvent: executed });
           }, 100);
 
-          const client = await runAsServer({ app: api });
+          const { client } = await runAsServer({ app: api });
 
           const { data } = await client({
             method: 'get',
@@ -1195,7 +1195,7 @@ suite('observeDomainEvents/http', (): void => {
             publishDomainEvent({ domainEvent: mapWithMutation });
           }, 100);
 
-          const client = await runAsServer({ app: api });
+          const { client } = await runAsServer({ app: api });
 
           const { data } = await client({
             method: 'get',

@@ -40,7 +40,7 @@ suite('handleCommand/http', (): void => {
       });
 
       test('returns 200.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
           method: 'get',
@@ -51,7 +51,7 @@ suite('handleCommand/http', (): void => {
       });
 
       test('returns application/json.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { headers } = await client({
           method: 'get',
@@ -62,7 +62,7 @@ suite('handleCommand/http', (): void => {
       });
 
       test('returns the commands description.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'get',
@@ -103,7 +103,7 @@ suite('handleCommand/http', (): void => {
       });
 
       test('returns 415 if the content-type header is missing.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -122,7 +122,7 @@ suite('handleCommand/http', (): void => {
       });
 
       test('returns 415 if content-type is not set to application/json.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -141,7 +141,7 @@ suite('handleCommand/http', (): void => {
       });
 
       test('returns 400 if a malformed command is sent.', async (): Promise<void> => {
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -165,7 +165,7 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -189,7 +189,7 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -213,7 +213,7 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -237,7 +237,7 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'invalid-value' }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise<void> => {
           await client({
@@ -261,7 +261,7 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
           method: 'post',
@@ -280,7 +280,7 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await client({
           method: 'post',
@@ -320,7 +320,7 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'post',
@@ -350,7 +350,7 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const client = await runAsServer({ app: api });
+        const { client } = await runAsServer({ app: api });
 
         await assert.that(async (): Promise <void> => {
           await client({
