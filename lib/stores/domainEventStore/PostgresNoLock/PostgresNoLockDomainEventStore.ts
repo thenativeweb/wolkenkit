@@ -9,7 +9,7 @@ import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
-import { Client, Pool, PoolClient, QueryResult } from 'pg';
+import { Client, Pool, PoolClient } from 'pg';
 
 class PostgresNoLockDomainEventStore implements DomainEventStore {
   protected pool: Pool;
