@@ -285,11 +285,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
 
     try {
       await new Promise((resolve, reject): void => {
-        let onRow: (columns: ColumnValue[]) => void;
-
-        const request = new Request(text, (err: Error | null): void => {
-          request.removeListener('row', onRow);
-
+        const request = new Request(`sp_getapplock`, (err: Error|null): void => {
           if (err) {
             return reject(err);
           }
@@ -297,27 +293,64 @@ class SqlServerDomainEventStore implements DomainEventStore {
           resolve();
         });
 
-        for (const value of values) {
-          request.addParameter(value.key, value.type, value.value, value.options);
-        }
+        request.addParameter('Resource', TYPES.NVarChar, 'writer', { length: 255 });
+        request.addParameter('LockMode', TYPES.NVarChar, 'Exclusive', { length: 32 });
+        request.addParameter('LockOwner', TYPES.NVarChar, 'Session', { length: 32 });
 
-        onRow = (columns: ColumnValue[]): void => {
-          const domainEvent = domainEvents[resultCount];
-          const savedDomainEvent = new DomainEvent<TDomainEventData>({
-            ...domainEvent.withRevisionGlobal({
-              revisionGlobal: Number(columns[0].value)
-            }),
-            data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
+        database.callProcedure(request);
+      });
+
+      try {
+        await new Promise((resolve, reject): void => {
+          let onRow: (columns: ColumnValue[]) => void;
+
+          const request = new Request(text, (err: Error | null): void => {
+            request.removeListener('row', onRow);
+
+            if (err) {
+              return reject(err);
+            }
+
+            resolve();
           });
 
-          savedDomainEvents.push(savedDomainEvent);
-          resultCount += 1;
-        };
+          for (const value of values) {
+            request.addParameter(value.key, value.type, value.value, value.options);
+          }
 
-        request.on('row', onRow);
+          onRow = (columns: ColumnValue[]): void => {
+            const domainEvent = domainEvents[resultCount];
+            const savedDomainEvent = new DomainEvent<TDomainEventData>({
+              ...domainEvent.withRevisionGlobal({
+                revisionGlobal: Number(columns[0].value)
+              }),
+              data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
+            });
 
-        database.execSql(request);
-      });
+            savedDomainEvents.push(savedDomainEvent);
+            resultCount += 1;
+          };
+
+          request.on('row', onRow);
+
+          database.execSql(request);
+        });
+      } finally {
+        await new Promise((resolve, reject): void => {
+          const request = new Request(`sp_releaseapplock`, (err: Error|null): void => {
+            if (err) {
+              return reject(err);
+            }
+
+            resolve();
+          });
+
+          request.addParameter('Resource', TYPES.NVarChar, 'writer', { length: 255 });
+          request.addParameter('LockOwner', TYPES.NVarChar, 'Session', { length: 32 });
+
+          database.callProcedure(request);
+        });
+      }
     } catch (ex) {
       if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.includes('_aggregateId_revisionAggregate')) {
         throw new Error('Aggregate id and revision already exist.');
