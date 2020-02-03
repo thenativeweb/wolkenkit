@@ -1,11 +1,10 @@
-import { Application } from 'express';
 import { CorsOrigin } from 'get-cors-origin';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../stores/domainEventStore/DomainEventStore';
-import { getApiBase } from '../../base/getApiBase';
+import { getV2 } from './v2';
 import { Subscriber } from '../../../messaging/pubSub/Subscriber';
-import * as v2 from './v2';
+import express, { Application } from 'express';
 
 const getApi = async function ({
   domainEventStore,
@@ -20,51 +19,17 @@ const getApi = async function ({
   newDomainEventSubscriberChannel: string;
   heartbeatInterval?: number;
 }): Promise<{ api: Application }> {
-  const api = await getApiBase({
-    request: {
-      headers: { cors: { origin: corsOrigin }},
-      body: {
-        parser: false
-      }
-    },
-    response: {
-      headers: { cache: false }
-    }
+  const api = express();
+
+  const v2 = await getV2({
+    domainEventStore,
+    corsOrigin,
+    newDomainEventSubscriber,
+    newDomainEventSubscriberChannel,
+    heartbeatInterval
   });
 
-  api.get(
-    '/v2/replay',
-    v2.getReplay({
-      domainEventStore,
-      newDomainEventSubscriber,
-      newDomainEventSubscriberChannel,
-      heartbeatInterval
-    })
-  );
-
-  api.get(
-    '/v2/replay/:aggregateId',
-    v2.getReplayForAggregate({
-      domainEventStore,
-      newDomainEventSubscriber,
-      newDomainEventSubscriberChannel,
-      heartbeatInterval
-    })
-  );
-
-  api.get(
-    '/v2/last-domain-event',
-    v2.getLastDomainEvent({
-      domainEventStore
-    })
-  );
-
-  api.get(
-    '/v2/snapshot',
-    v2.getSnapshot({
-      domainEventStore
-    })
-  );
+  api.use('/v2', v2.api);
 
   return { api };
 };

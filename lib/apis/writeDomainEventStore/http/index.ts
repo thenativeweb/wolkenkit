@@ -1,11 +1,10 @@
-import { Application } from 'express';
 import { CorsOrigin } from 'get-cors-origin';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../stores/domainEventStore/DomainEventStore';
-import { getApiBase } from '../../base/getApiBase';
+import { getV2 } from './v2';
 import { Publisher } from '../../../messaging/pubSub/Publisher';
-import * as v2 from './v2';
+import express, { Application } from 'express';
 
 const getApi = async function ({
   domainEventStore,
@@ -19,31 +18,16 @@ const getApi = async function ({
   newDomainEventPublisherChannel: string;
   heartbeatInterval?: number;
 }): Promise<{ api: Application }> {
-  const api = await getApiBase({
-    request: {
-      headers: { cors: { origin: corsOrigin }},
-      body: { parser: { sizeLimit: 100_000 }}
-    },
-    response: {
-      headers: { cache: false }
-    }
+  const api = express();
+
+  const v2 = await getV2({
+    domainEventStore,
+    corsOrigin,
+    newDomainEventPublisher,
+    newDomainEventPublisherChannel
   });
 
-  api.post(
-    '/v2/store-domain-events',
-    v2.storeDomainEvents({
-      domainEventStore,
-      newDomainEventPublisher,
-      newDomainEventPublisherChannel
-    })
-  );
-
-  api.post(
-    '/v2/store-snapshot',
-    v2.storeSnapshot({
-      domainEventStore
-    })
-  );
+  api.use('/v2', v2.api);
 
   return { api };
 };

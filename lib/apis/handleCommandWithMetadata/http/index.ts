@@ -1,9 +1,8 @@
-import { Application } from 'express';
 import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
 import { CorsOrigin } from 'get-cors-origin';
-import { getApiBase } from '../../base/getApiBase';
+import { getV2 } from './v2';
 import { OnReceiveCommand } from '../OnReceiveCommand';
-import * as v2 from './v2';
+import express, { Application } from 'express';
 
 const getApi = async function ({
   corsOrigin,
@@ -14,20 +13,15 @@ const getApi = async function ({
   onReceiveCommand: OnReceiveCommand;
   applicationDefinition: ApplicationDefinition;
 }): Promise<{ api: Application }> {
-  const api = await getApiBase({
-    request: {
-      headers: { cors: { origin: corsOrigin }},
-      body: { parser: { sizeLimit: 100_000 }}
-    },
-    response: {
-      headers: { cache: false }
-    }
-  });
+  const api = express();
 
-  api.post('/v2/', v2.postCommand({
+  const v2 = await getV2({
+    corsOrigin,
     onReceiveCommand,
     applicationDefinition
-  }));
+  });
+
+  api.use('/v2', v2.api);
 
   return { api };
 };

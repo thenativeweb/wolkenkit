@@ -124,7 +124,7 @@ suite('observeDomainEvents/http', (): void => {
 
         setTimeout(async (): Promise<void> => {
           publishDomainEvent({ domainEvent: executed });
-        }, 50);
+        }, 100);
 
         const client = await runAsServer({ app: api });
 
@@ -186,7 +186,7 @@ suite('observeDomainEvents/http', (): void => {
         setTimeout(async (): Promise<void> => {
           publishDomainEvent({ domainEvent: succeeded });
           publishDomainEvent({ domainEvent: executed });
-        }, 50);
+        }, 100);
 
         const client = await runAsServer({ app: api });
 
@@ -253,7 +253,7 @@ suite('observeDomainEvents/http', (): void => {
         setTimeout(async (): Promise<void> => {
           publishDomainEvent({ domainEvent: succeeded });
           publishDomainEvent({ domainEvent: executed });
-        }, 50);
+        }, 100);
 
         const client = await runAsServer({ app: api });
 
@@ -317,7 +317,7 @@ suite('observeDomainEvents/http', (): void => {
         setTimeout(async (): Promise<void> => {
           publishDomainEvent({ domainEvent: succeeded });
           publishDomainEvent({ domainEvent: executed });
-        }, 50);
+        }, 100);
 
         const client = await runAsServer({ app: api });
 
@@ -373,7 +373,7 @@ suite('observeDomainEvents/http', (): void => {
 
         setTimeout(async (): Promise<void> => {
           publishDomainEvent({ domainEvent: executed });
-        }, 50);
+        }, 100);
 
         const client = await runAsServer({ app: api });
 
@@ -492,7 +492,7 @@ suite('observeDomainEvents/http', (): void => {
           setTimeout(async (): Promise<void> => {
             publishDomainEvent({ domainEvent: authorizationDenied });
             publishDomainEvent({ domainEvent: executed });
-          }, 50);
+          }, 100);
 
           const client = await runAsServer({ app: api });
 
@@ -570,7 +570,7 @@ suite('observeDomainEvents/http', (): void => {
           setTimeout(async (): Promise<void> => {
             publishDomainEvent({ domainEvent: authorizationFailed });
             publishDomainEvent({ domainEvent: executed });
-          }, 50);
+          }, 100);
 
           const client = await runAsServer({ app: api });
 
@@ -632,7 +632,7 @@ suite('observeDomainEvents/http', (): void => {
 
           setTimeout(async (): Promise<void> => {
             publishDomainEvent({ domainEvent: authorizationWithMutation });
-          }, 50);
+          }, 100);
 
           const client = await runAsServer({ app: api });
 
@@ -698,7 +698,7 @@ suite('observeDomainEvents/http', (): void => {
 
           setTimeout(async (): Promise<void> => {
             publishDomainEvent({ domainEvent: filterPassed });
-          }, 50);
+          }, 100);
 
           const client = await runAsServer({ app: api });
 
@@ -774,7 +774,7 @@ suite('observeDomainEvents/http', (): void => {
           setTimeout(async (): Promise<void> => {
             publishDomainEvent({ domainEvent: filterDenied });
             publishDomainEvent({ domainEvent: executed });
-          }, 50);
+          }, 100);
 
           const client = await runAsServer({ app: api });
 
@@ -850,7 +850,7 @@ suite('observeDomainEvents/http', (): void => {
           setTimeout(async (): Promise<void> => {
             publishDomainEvent({ domainEvent: filterFailed });
             publishDomainEvent({ domainEvent: executed });
-          }, 50);
+          }, 100);
 
           const client = await runAsServer({ app: api });
 
@@ -912,7 +912,7 @@ suite('observeDomainEvents/http', (): void => {
 
           setTimeout(async (): Promise<void> => {
             publishDomainEvent({ domainEvent: filterWithMutation });
-          }, 50);
+          }, 100);
 
           const client = await runAsServer({ app: api });
 
@@ -978,7 +978,7 @@ suite('observeDomainEvents/http', (): void => {
 
           setTimeout(async (): Promise<void> => {
             publishDomainEvent({ domainEvent: mapApplied });
-          }, 50);
+          }, 100);
 
           const client = await runAsServer({ app: api });
 
@@ -1055,7 +1055,7 @@ suite('observeDomainEvents/http', (): void => {
           setTimeout(async (): Promise<void> => {
             publishDomainEvent({ domainEvent: mapToUndefined });
             publishDomainEvent({ domainEvent: executed });
-          }, 50);
+          }, 100);
 
           const client = await runAsServer({ app: api });
 
@@ -1131,7 +1131,7 @@ suite('observeDomainEvents/http', (): void => {
           setTimeout(async (): Promise<void> => {
             publishDomainEvent({ domainEvent: mapFailed });
             publishDomainEvent({ domainEvent: executed });
-          }, 50);
+          }, 100);
 
           const client = await runAsServer({ app: api });
 
@@ -1193,7 +1193,7 @@ suite('observeDomainEvents/http', (): void => {
 
           setTimeout(async (): Promise<void> => {
             publishDomainEvent({ domainEvent: mapWithMutation });
-          }, 50);
+          }, 100);
 
           const client = await runAsServer({ app: api });
 
