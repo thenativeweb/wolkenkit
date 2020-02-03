@@ -1,7 +1,6 @@
 import axios from 'axios';
-import { Command } from '../../../../common/elements/Command';
 import { CommandData } from '../../../../common/elements/CommandData';
-import { CommandDescription } from '../../../../common/application/CommandDescription';
+import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
 import { HttpClient } from '../../../shared/HttpClient';
 
@@ -15,20 +14,8 @@ class Client extends HttpClient {
     super({ protocol, hostName, port, path });
   }
 
-  public async getDescription (): Promise<Record<string, Record<string, Record<string, CommandDescription>>>> {
-    const { data } = await axios({
-      method: 'get',
-      url: `${this.url}/description`,
-      validateStatus (): boolean {
-        return true;
-      }
-    });
-
-    return data;
-  }
-
   public async postCommand ({ command }: {
-    command: Command<CommandData>;
+    command: CommandWithMetadata<CommandData>;
   }): Promise<{ id: string }> {
     const { status, data } = await axios({
       method: 'post',
@@ -44,9 +31,6 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case 'ENOTAUTHENTICATEDERROR': {
-        throw new errors.NotAuthenticatedError(data.message);
-      }
       case 'ECOMMANDMALFORMED': {
         throw new errors.CommandMalformed(data.message);
       }

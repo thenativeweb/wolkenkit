@@ -71,7 +71,7 @@ const acknowledge = function ({
         }
         default: {
           res.status(400).json({
-            code: ex.code ?? '',
+            code: ex.code ?? 'EUNKNOWNERROR',
             message: ex.message
           });
         }

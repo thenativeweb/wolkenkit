@@ -21,7 +21,12 @@ const postCommand = function ({ onReceiveCommand, applicationDefinition }: {
         throw new errors.RequestMalformed();
       }
     } catch {
-      res.status(415).send('Header content-type must be application/json.');
+      const ex = new errors.RequestMalformed('Header content-type must be application/json.');
+
+      res.status(415).json({
+        code: ex.code,
+        message: ex.message
+      });
 
       return;
     }
@@ -31,7 +36,10 @@ const postCommand = function ({ onReceiveCommand, applicationDefinition }: {
     try {
       validateCommandWithMetadata({ command, applicationDefinition });
     } catch (ex) {
-      res.status(400).send(ex.message);
+      res.status(400).json({
+        code: ex.code,
+        message: ex.message
+      });
 
       return;
     }
@@ -41,7 +49,12 @@ const postCommand = function ({ onReceiveCommand, applicationDefinition }: {
     try {
       await onReceiveCommand({ command });
     } catch {
-      res.status(500).end();
+      const ex = new errors.UnknownError();
+
+      res.status(500).json({
+        code: ex.code,
+        message: ex.message
+      });
 
       return;
     }

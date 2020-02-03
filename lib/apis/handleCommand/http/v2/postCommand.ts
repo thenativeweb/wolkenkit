@@ -75,7 +75,9 @@ const postCommand = function ({ onReceiveCommand, applicationDefinition }: {
 
     try {
       await onReceiveCommand({ command: commandWithMetadata });
-    } catch (ex) {
+    } catch {
+      const ex = new errors.UnknownError();
+
       res.status(500).json({
         code: ex.code,
         message: ex.message

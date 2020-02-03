@@ -258,7 +258,9 @@ suite('handleCommand/http/Client', (): void => {
 
         await assert.that(async (): Promise<void> => {
           await client.postCommand({ command });
-        }).is.throwingAsync((ex): boolean => ex.message === 'Failed to handle received command.');
+        }).is.throwingAsync((ex): boolean =>
+          (ex as CustomError).code === 'EUNKNOWNERROR' &&
+          (ex as CustomError).message === 'Unknown error.');
       });
     });
   });

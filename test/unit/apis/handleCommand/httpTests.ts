@@ -383,7 +383,8 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(500);
         assert.that(data).is.equalTo({
-          message: 'Failed to handle received command.'
+          code: 'EUNKNOWNERROR',
+          message: 'Unknown error.'
         });
       });
     });
