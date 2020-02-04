@@ -178,7 +178,7 @@ suite('writeDomainEventStore/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: 'EPARAMETERINVALID',
           message: 'Domain events are missing.'
         });
       });

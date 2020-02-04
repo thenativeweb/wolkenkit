@@ -150,7 +150,7 @@ suite('writeDomainEventStore/http/Client', (): void => {
         await assert.that(
           async (): Promise<any> => client.storeDomainEvents({ domainEvents: []})
         ).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EREQUESTMALFORMED' && ex.message === 'Domain events are missing.'
+          (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === 'Domain events are missing.'
         );
       });
     });
