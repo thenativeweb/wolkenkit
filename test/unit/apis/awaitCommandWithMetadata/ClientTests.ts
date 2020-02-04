@@ -8,11 +8,11 @@ import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWith
 import { CustomError } from 'defekt';
 import { getApi } from '../../../../lib/apis/awaitCommandWithMetadata/http';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
+import { getPromiseStatus } from '../../../../lib/common/utils/getPromiseStatus';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/InMemory';
 import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
 import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
-import { isPromiseResolved } from '../../../../lib/common/utils/isPromiseResolved';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { runAsServer } from '../../../shared/http/runAsServer';
@@ -237,12 +237,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
         await sleep({ ms: 0.6 * expirationTime });
 
-        // eslint-disable-next-line @typescript-eslint/await-thenable
         const notResolvingPromise = client.awaitCommandWithMetadata();
 
         await sleep({ ms: pollInterval });
 
-        assert.that(await isPromiseResolved(notResolvingPromise)).is.equalTo(false);
+        assert.that(await getPromiseStatus(notResolvingPromise)).is.equalTo('pending');
       });
     });
 

@@ -1,40 +1,47 @@
 import { acknowledgeCommand } from './acknowledgeCommand';
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
-import { Configuration } from './Configuration';
+import { Dispatcher } from './Dispatcher';
 import { fetchCommand } from './fetchCommand';
 import { flaschenpost } from 'flaschenpost';
 import { handleCommand } from '../../../../common/domain/handleCommand';
+import { keepRenewingLock } from './keepRenewingLock';
+import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { Repository } from '../../../../common/domain/Repository';
 
 const logger = flaschenpost.getLogger();
 
 const processCommand = async function ({
-  configuration,
+  dispatcher,
   applicationDefinition,
-  repository
+  repository,
+  publishDomainEvents
 }: {
-  configuration: Configuration;
+  dispatcher: Dispatcher;
   applicationDefinition: ApplicationDefinition;
   repository: Repository;
+  publishDomainEvents: PublishDomainEvents;
 }): Promise<void> {
-  try {
-    const command = await fetchCommand({ configuration });
+  const { command, token } = await fetchCommand({ dispatcher });
 
-    await handleCommand({ command, applicationDefinition, repository });
-    await acknowledgeCommand({ command, configuration });
+  try {
+    const handleCommandPromise = handleCommand({
+      command,
+      applicationDefinition,
+      repository,
+      publishDomainEvents
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    (async (): Promise<void> => {
+      await keepRenewingLock({ command, handleCommandPromise, dispatcher, token });
+    })();
+
+    await handleCommandPromise;
   } catch (ex) {
-    switch (ex.code) {
-      case 'EFETCHCOMMANDFAILED': {
-        logger.warn('Failed to fetch command from dispatcher.', { message: ex.message });
-        break;
-      }
-      default: {
-        throw ex;
-      }
-    }
+    logger.error('Failed to handle command.', { command, ex });
+  } finally {
+    await acknowledgeCommand({ command, token, dispatcher });
   }
 };
 
-export {
-  processCommand
-};
+export { processCommand };

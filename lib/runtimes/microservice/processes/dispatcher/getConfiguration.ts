@@ -19,7 +19,7 @@ const getConfiguration = function (): Configuration {
       schema: { type: 'string', minLength: 1 }
     },
     PRIORITY_QUEUE_STORE_OPTIONS: {
-      default: {},
+      default: { expirationTime: 30_000 },
       schema: {
         type: 'object',
         properties: {

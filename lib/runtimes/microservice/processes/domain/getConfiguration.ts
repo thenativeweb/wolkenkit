@@ -2,11 +2,13 @@ import { Configuration } from './Configuration';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
 import path from 'path';
 import { withCamelCaseKeys } from '../../../../common/utils/withCamelCaseKeys';
 
 const corsSchema = getCorsSchema();
 const portSchema = getPortSchema();
+const protocolSchema = getProtocolSchema();
 
 const getConfiguration = function (): Configuration {
   const environmentVariables = getEnvironmentVariables({
@@ -16,6 +18,10 @@ const getConfiguration = function (): Configuration {
         type: 'string',
         minLength: 1
       }
+    },
+    DISPATCHER_PROTOCOL: {
+      default: 'http',
+      schema: protocolSchema
     },
     DISPATCHER_HOST_NAME: {
       default: 'dispatcher',
@@ -28,6 +34,17 @@ const getConfiguration = function (): Configuration {
       default: 3000,
       schema: portSchema
     },
+    DISPATCHER_RENEW_INTERVAL: {
+      default: 5_000
+    },
+    DISPATCHER_ACKNOWLEDGE_RETRIES: {
+      default: 5,
+      schema: { type: 'integer' }
+    },
+    AEONSTORE_PROTOCOL: {
+      default: 'http',
+      schema: protocolSchema
+    },
     AEONSTORE_HOST_NAME: {
       default: 'aeonstore',
       schema: {
@@ -38,6 +55,10 @@ const getConfiguration = function (): Configuration {
     AEONSTORE_PORT: {
       default: 3000,
       schema: portSchema
+    },
+    AEONSTORE_RETRIES: {
+      default: 5,
+      schema: { type: 'integer' }
     },
     HEALTH_CORS_ORIGIN: {
       default: '*',
