@@ -3,6 +3,7 @@ import { CollectionNames } from './CollectionNames';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
+import { errors } from '../../../common/errors';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { parse } from 'url';
 import { PassThrough } from 'stream';
@@ -171,8 +172,14 @@ class MongoDbDomainEventStore implements DomainEventStore {
     fromRevision?: number;
     toRevision?: number;
   }): Promise<PassThrough> {
+    if (fromRevision < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
+    }
+    if (toRevision < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be at least 1.`);
+    }
     if (fromRevision > toRevision) {
-      throw new Error('From revision is greater than to revision.');
+      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
     }
 
     const passThrough = new PassThrough({ objectMode: true });
@@ -233,7 +240,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     domainEvents: DomainEvent<TDomainEventData>[];
   }): Promise<DomainEvent<TDomainEventData>[]> {
     if (domainEvents.length === 0) {
-      throw new Error('Domain events are missing.');
+      throw new errors.ParameterInvalid('Domain events are missing.');
     }
 
     const savedDomainEvents = [];
@@ -257,7 +264,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
       }
     } catch (ex) {
       if (ex.code === 11000 && ex.message.includes('_aggregateId_revision')) {
-        throw new Error('Aggregate id and revision already exist.');
+        throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
       throw ex;
@@ -307,8 +314,14 @@ class MongoDbDomainEventStore implements DomainEventStore {
     fromRevisionGlobal?: number;
     toRevisionGlobal?: number;
   } = {}): Promise<PassThrough> {
+    if (fromRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
+    }
+    if (toRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
+    }
     if (fromRevisionGlobal > toRevisionGlobal) {
-      throw new Error('From revision global is greater than to revision global.');
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
     }
 
     const passThrough = new PassThrough({ objectMode: true });

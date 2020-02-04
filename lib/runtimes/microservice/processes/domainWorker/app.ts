@@ -25,7 +25,8 @@ import { Repository } from '../../../../common/domain/Repository';
     });
 
     const domainEventStore = await AeonstoreDomainEventStore.create({
-      aeonstoreBaseUrl: `http://${configuration.aeonstoreHostName}:${configuration.aeonstorePort}`
+      hostName: configuration.aeonstoreHostName,
+      port: configuration.aeonstorePort
     });
 
     const repository = new Repository({

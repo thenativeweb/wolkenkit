@@ -7,6 +7,7 @@ import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/util
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { Snapshot } from '../../../../stores/domainEventStore/Snapshot';
+import { State } from '../../../../common/elements/State';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -27,13 +28,13 @@ class Client extends HttpClient {
     observe?: boolean;
   }): Promise<PassThrough> {
     if (fromRevisionGlobal < 1) {
-      throw new Error(`Parameter 'fromRevisionGlobal' must be at least 1.`);
+      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
     }
     if (toRevisionGlobal < 1) {
-      throw new Error(`Parameter 'toRevisionGlobal' must be at least 1.`);
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
     }
     if (toRevisionGlobal < fromRevisionGlobal) {
-      throw new Error(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
     }
 
     const { status, data } = await axios({
@@ -48,7 +49,7 @@ class Client extends HttpClient {
     if (status !== 200) {
       logger.error('Unknown error occured.', { error: data, status });
 
-      throw new errors.UnknownError();
+      throw new errors.UnknownError(data.message);
     }
 
     const passThrough = new PassThrough({ objectMode: true });
@@ -75,13 +76,13 @@ class Client extends HttpClient {
     observe?: boolean;
   }): Promise<PassThrough> {
     if (fromRevision < 1) {
-      throw new Error(`Parameter 'fromRevision' must be at least 1.`);
+      throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
     }
     if (toRevision < 1) {
-      throw new Error(`Parameter 'toRevision' must be at least 1.`);
+      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be at least 1.`);
     }
     if (toRevision < fromRevision) {
-      throw new Error(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
+      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
     }
 
     const { status, data } = await axios({
@@ -96,7 +97,7 @@ class Client extends HttpClient {
     if (status !== 200) {
       logger.error('Unknown error occured.', { error: data, status });
 
-      throw new errors.UnknownError();
+      throw new errors.UnknownError(data.message);
     }
 
     const passThrough = new PassThrough({ objectMode: true });
@@ -114,9 +115,9 @@ class Client extends HttpClient {
     );
   }
 
-  public async getLastDomainEvent ({ aggregateIdentifier }: {
+  public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<DomainEvent<DomainEventData> | undefined> {
+  }): Promise<DomainEvent<TDomainEventData> | undefined> {
     const { data, status } = await axios({
       method: 'get',
       url: `${this.url}/last-domain-event?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`,
@@ -140,14 +141,14 @@ class Client extends HttpClient {
       default: {
         logger.error('Unknown error occured.', { ex: data, status });
 
-        throw new errors.UnknownError();
+        throw new errors.UnknownError(data.message);
       }
     }
   }
 
-  public async getSnapshot ({ aggregateIdentifier }: {
+  public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<Snapshot<{}> | undefined> {
+  }): Promise<Snapshot<TState> | undefined> {
     const { data, status } = await axios({
       method: 'get',
       url: `${this.url}/snapshot?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`,
@@ -171,7 +172,7 @@ class Client extends HttpClient {
       default: {
         logger.error('Unknown error occured.', { ex: data, status });
 
-        throw new errors.UnknownError();
+        throw new errors.UnknownError(data.message);
       }
     }
   }

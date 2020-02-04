@@ -1,5 +1,6 @@
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { CustomError } from 'defekt';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
@@ -326,6 +327,30 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
       assert.that(aggregateDomainEvents[0].metadata.tags).is.equalTo([ 'gdpr' ]);
     });
+
+    test('throws an error if the parameter fromRevision is less than 1.', async (): Promise<void> => {
+      await assert.that(
+        async (): Promise<any> => await domainEventStore.getReplayForAggregate({ aggregateId: uuid(), fromRevision: 0 })
+      ).is.throwingAsync(
+        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'fromRevision' must be at least 1.`
+      );
+    });
+
+    test('throws an error if the parameter toRevision is less than 1.', async (): Promise<void> => {
+      await assert.that(
+        async (): Promise<any> => await domainEventStore.getReplayForAggregate({ aggregateId: uuid(), toRevision: 0 })
+      ).is.throwingAsync(
+        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'toRevision' must be at least 1.`
+      );
+    });
+
+    test(`throws an error if the parameter 'fromRevision' is greater than 'toRevision'.`, async (): Promise<void> => {
+      await assert.that(
+        async (): Promise<any> => await domainEventStore.getReplayForAggregate({ aggregateId: uuid(), fromRevision: 5, toRevision: 3 })
+      ).is.throwingAsync(
+        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'toRevision' must be greater or equal to 'fromRevision'.`
+      );
+    });
   });
 
   suite('storeDomainEvents', function (): void {
@@ -348,7 +373,9 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     test('throws an error if domain events is an empty array.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
         await domainEventStore.storeDomainEvents({ domainEvents: []});
-      }).is.throwingAsync('Domain events are missing.');
+      }).is.throwingAsync(
+        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === 'Domain events are missing.'
+      );
     });
 
     test('stores domain events.', async (): Promise<void> => {
@@ -414,7 +441,9 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
       await assert.that(async (): Promise<void> => {
         await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
-      }).is.throwingAsync('Aggregate id and revision already exist.');
+      }).is.throwingAsync(
+        (ex): boolean => (ex as CustomError).code === 'EREVISIONALREADYEXISTS' && ex.message === 'Aggregate id and revision already exist.'
+      );
     });
 
     test('returns domain events with updated global revisions.', async (): Promise<void> => {
@@ -1063,6 +1092,30 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         assert.that(replayEvents[1].metadata.tags).is.equalTo([ 'gdpr' ]);
         assert.that(replayEvents[2].metadata.tags).is.equalTo([ 'gdpr' ]);
       });
+    });
+
+    test('throws an error if the parameter fromRevisionGlobal is less than 1.', async (): Promise<void> => {
+      await assert.that(
+        async (): Promise<any> => await domainEventStore.getReplay({ fromRevisionGlobal: 0 })
+      ).is.throwingAsync(
+        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'fromRevisionGlobal' must be at least 1.`
+      );
+    });
+
+    test('throws an error if the parameter toRevisionGlobal is less than 1.', async (): Promise<void> => {
+      await assert.that(
+        async (): Promise<any> => await domainEventStore.getReplay({ toRevisionGlobal: 0 })
+      ).is.throwingAsync(
+        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'toRevisionGlobal' must be at least 1.`
+      );
+    });
+
+    test(`throws an error if the parameter 'fromRevisionGlobal' is greater than 'toRevisionGlobal'.`, async (): Promise<void> => {
+      await assert.that(
+        async (): Promise<any> => await domainEventStore.getReplay({ fromRevisionGlobal: 5, toRevisionGlobal: 3 })
+      ).is.throwingAsync(
+        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`
+      );
     });
   });
 };

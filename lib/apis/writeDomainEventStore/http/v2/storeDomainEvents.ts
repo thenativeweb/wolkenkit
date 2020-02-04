@@ -49,7 +49,7 @@ const storeDomainEvents = function ({
     }
 
     if (req.body.length === 0) {
-      const ex = new errors.RequestMalformed('Domain events are missing.');
+      const ex = new errors.ParameterInvalid('Domain events are missing.');
 
       return res.status(400).json({
         code: ex.code,

@@ -3,7 +3,7 @@ export interface Configuration {
   dispatcherHostName: string;
   dispatcherPort: number;
   aeonstoreHostName: string;
-  aeonstorePort: string;
+  aeonstorePort: number;
   healthCorsOrigin: string | string[];
   port: number;
   concurrentCommands: number;

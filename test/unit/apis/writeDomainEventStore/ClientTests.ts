@@ -106,10 +106,12 @@ suite('writeDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        const events = await client.storeDomainEvents([
-          firstDomainEvent,
-          secondDomainEvent
-        ]);
+        const events = await client.storeDomainEvents({
+          domainEvents: [
+            firstDomainEvent,
+            secondDomainEvent
+          ]
+        });
 
         assert.that(events).is.equalTo([
           firstDomainEvent,
@@ -145,7 +147,9 @@ suite('writeDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        await assert.that(async (): Promise<any> => client.storeDomainEvents([])).is.throwingAsync(
+        await assert.that(
+          async (): Promise<any> => client.storeDomainEvents({ domainEvents: []})
+        ).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === 'EREQUESTMALFORMED' && ex.message === 'Domain events are missing.'
         );
       });
@@ -171,7 +175,7 @@ suite('writeDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        await client.storeSnapshot(snapshot);
+        await client.storeSnapshot({ snapshot });
 
         assert.that(await domainEventStore.getSnapshot({ aggregateIdentifier })).is.equalTo(snapshot);
       });
@@ -200,8 +204,8 @@ suite('writeDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        await client.storeSnapshot(firstSnapshot);
-        await client.storeSnapshot(secondSnapshot);
+        await client.storeSnapshot({ snapshot: firstSnapshot });
+        await client.storeSnapshot({ snapshot: secondSnapshot });
 
         assert.that(await domainEventStore.getSnapshot({ aggregateIdentifier })).is.equalTo(secondSnapshot);
       });

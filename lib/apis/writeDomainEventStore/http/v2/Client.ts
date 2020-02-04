@@ -5,6 +5,7 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { Snapshot } from '../../../../stores/domainEventStore/Snapshot';
+import { State } from '../../../../common/elements/State';
 
 const logger = flaschenpost.getLogger();
 
@@ -18,7 +19,9 @@ class Client extends HttpClient {
     super({ protocol, hostName, port, path });
   }
 
-  public async storeDomainEvents (domainEvents: DomainEvent<DomainEventData>[]): Promise<DomainEvent<DomainEventData>[]> {
+  public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
+    domainEvents: DomainEvent<TDomainEventData>[];
+  }): Promise<DomainEvent<TDomainEventData>[]> {
     const { status, data } = await axios({
       method: 'post',
       url: `${this.url}/store-domain-events`,
@@ -39,14 +42,23 @@ class Client extends HttpClient {
       case 'EDOMAINEVENTMALFORMED': {
         throw new errors.DomainEventMalformed(data.message);
       }
+      case 'EPARAMETERINVALID': {
+        throw new errors.ParameterInvalid(data.message);
+      }
+      case 'EREVISIONALREADYEXISTS': {
+        throw new errors.RevisionAlreadyExists(data.message);
+      }
       default: {
         logger.error('Unknown error occured.', { ex: data, status });
-        throw new errors.UnknownError();
+
+        throw new errors.UnknownError(data.message);
       }
     }
   }
 
-  public async storeSnapshot (snapshot: Snapshot<{}>): Promise<void> {
+  public async storeSnapshot <TState extends State> ({ snapshot }: {
+    snapshot: Snapshot<TState>;
+  }): Promise<void> {
     const { status, data } = await axios({
       method: 'post',
       url: `${this.url}/store-snapshot`,
@@ -69,7 +81,8 @@ class Client extends HttpClient {
       }
       default: {
         logger.error('Unknown error occured.', { ex: data, status });
-        throw new errors.UnknownError();
+
+        throw new errors.UnknownError(data.message);
       }
     }
   }
