@@ -3,11 +3,13 @@ import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
 import path from 'path';
 import { withCamelCaseKeys } from '../../../../common/utils/withCamelCaseKeys';
 
 const corsSchema = getCorsSchema();
 const portSchema = getPortSchema();
+const protocolSchema = getProtocolSchema();
 
 const getConfiguration = function (): Configuration {
   const environmentVariables = getEnvironmentVariables({
@@ -21,6 +23,10 @@ const getConfiguration = function (): Configuration {
     COMMAND_CORS_ORIGIN: {
       default: '*',
       schema: corsSchema
+    },
+    DISPATCHER_PROTOCOL: {
+      default: 'http',
+      schema: protocolSchema
     },
     DISPATCHER_HOST_NAME: {
       default: 'dispatcher',

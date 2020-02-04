@@ -41,7 +41,7 @@ import { Repository } from '../../../../common/domain/Repository';
     const server = http.createServer(api);
 
     server.listen(configuration.port, (): void => {
-      logger.info('Domain worker server started.', { port: configuration.port });
+      logger.info('Domain server started.', { port: configuration.port });
     });
 
     for (let i = 0; i < configuration.concurrentCommands; i++) {
