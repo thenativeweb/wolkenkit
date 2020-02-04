@@ -113,7 +113,7 @@
     "eslint": "6.8.0",
     "express": "4.17.1",
     "flaschenpost": "4.0.2",
-    "get-cors-origin": "4.0.0",
+    "get-cors-origin": "4.0.1",
     "is-typescript": "4.0.0",
     "isolated": "3.0.0",
     "limes": "6.0.1",
