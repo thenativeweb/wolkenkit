@@ -13,10 +13,7 @@ class InMemoryPublisher<T extends object> implements Publisher<T> {
     return new InMemoryPublisher({ eventEmitter: inMemoryEventEmitter });
   }
 
-  public async publish ({
-    channel,
-    message
-  }: {
+  public async publish ({ channel, message }: {
     channel: string;
     message: T;
   }): Promise<void> {
@@ -24,6 +21,4 @@ class InMemoryPublisher<T extends object> implements Publisher<T> {
   }
 }
 
-export {
-  InMemoryPublisher
-};
+export { InMemoryPublisher };

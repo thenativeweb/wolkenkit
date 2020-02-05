@@ -13,20 +13,14 @@ class InMemorySubscriber<T extends object> implements Subscriber<T> {
     return new InMemorySubscriber({ eventEmitter: inMemoryEventEmitter });
   }
 
-  public async subscribe ({
-    channel,
-    callback
-  }: {
+  public async subscribe ({ channel, callback }: {
     channel: string;
     callback: (message: T) => void | Promise<void>;
   }): Promise<void> {
     this.eventEmitter.on(channel, callback);
   }
 
-  public async unsubscribe ({
-    channel,
-    callback
-  }: {
+  public async unsubscribe ({ channel, callback }: {
     channel: string;
     callback: (message: T) => void | Promise<void>;
   }): Promise<void> {
@@ -34,6 +28,4 @@ class InMemorySubscriber<T extends object> implements Subscriber<T> {
   }
 }
 
-export {
-  InMemorySubscriber
-};
+export { InMemorySubscriber };

@@ -1,16 +1,10 @@
 export interface Subscriber<T extends object> {
-  subscribe({
-    channel,
-    callback
-  }: {
+  subscribe({ channel, callback }: {
     channel: string;
     callback: (message: T) => void | Promise<void>;
   }): Promise<void>;
 
-  unsubscribe({
-    channel,
-    callback
-  }: {
+  unsubscribe({ channel, callback }: {
     channel: string;
     callback: (message: T) => void | Promise<void>;
   }): Promise<void>;
