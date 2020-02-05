@@ -8,7 +8,7 @@ import { uuid } from 'uuidv4';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
-suite('domain event', function (): void {
+suite('domain', function (): void {
   this.timeout(10 * 1000);
 
   const queueLockExpirationTime = 600;

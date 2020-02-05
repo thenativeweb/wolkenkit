@@ -8,7 +8,7 @@ import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/Publish
 import { Repository } from '../../../../common/domain/Repository';
 import express, { Application } from 'express';
 
-const getPublicApi = async function ({
+const getApi = async function ({
   configuration,
   applicationDefinition,
   identityProviders,
@@ -38,4 +38,4 @@ const getPublicApi = async function ({
   return { api, publishDomainEvent };
 };
 
-export { getPublicApi };
+export { getApi };

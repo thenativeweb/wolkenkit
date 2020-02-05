@@ -1,14 +1,15 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
+import axios from 'axios';
 import { buildDomainEvent } from '../../../../shared/buildDomainEvent';
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
+import { errors } from '../../../../../lib/common/errors';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import path from 'path';
 import { startProcess } from '../../../../shared/runtime/startProcess';
 import { uuid } from 'uuidv4';
-import axios, { AxiosError } from 'axios';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
@@ -17,22 +18,35 @@ suite('domain event', function (): void {
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-  let privatePort: number,
-      publicPort: number,
-      stopProcess: (() => Promise<void>) | undefined;
+  let port: number,
+      portPublisher: number,
+      stopProcess: (() => Promise<void>) | undefined,
+      stopProcessPublisher: (() => Promise<void>) | undefined;
 
-  setup(async (): Promise<void> => {
-    [ publicPort, privatePort ] = await getAvailablePorts({ count: 2 });
+  setup(async function (): Promise<void> {
+    this.timeout(60 * 1000);
+
+    [ port, portPublisher ] = await getAvailablePorts({ count: 2 });
+
+    stopProcessPublisher = await startProcess({
+      runtime: 'microservice',
+      name: 'publisher',
+      port: portPublisher,
+      env: {
+        PORT: String(portPublisher)
+      }
+    });
 
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEvent',
-      port: publicPort,
+      port,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
-        PORT_PRIVATE: String(privatePort),
-        PORT_PUBLIC: String(publicPort),
-        IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
+        PORT: String(port),
+        IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
+        SUBSCRIBE_MESSAGES_HOST_NAME: 'localhost',
+        SUBSCRIBE_MESSAGES_PORT: String(portPublisher)
       }
     });
   });
@@ -41,36 +55,27 @@ suite('domain event', function (): void {
     if (stopProcess) {
       await stopProcess();
     }
+    if (stopProcessPublisher) {
+      await stopProcessPublisher();
+    }
 
     stopProcess = undefined;
+    stopProcessPublisher = undefined;
   });
 
   suite('GET /health/v2', (): void => {
-    suite('public', (): void => {
-      test('is using the health API.', async (): Promise<void> => {
-        const { status } = await axios({
-          method: 'get',
-          url: `http://localhost:${publicPort}/health/v2`
-        });
-
-        assert.that(status).is.equalTo(200);
+    test('is using the health API.', async (): Promise<void> => {
+      const { status } = await axios({
+        method: 'get',
+        url: `http://localhost:${port}/health/v2`
       });
-    });
 
-    suite('private', (): void => {
-      test('is using the health API.', async (): Promise<void> => {
-        const { status } = await axios({
-          method: 'get',
-          url: `http://localhost:${privatePort}/health/v2`
-        });
-
-        assert.that(status).is.equalTo(200);
-      });
+      assert.that(status).is.equalTo(200);
     });
   });
 
-  suite('POST /domain-event/v2 (private)', (): void => {
-    test('rejects invalid domain events.', async (): Promise<void> => {
+  suite('GET /domain-events/v2', (): void => {
+    test('does not stream invalid domain events.', async (): Promise<void> => {
       const domainEventWithoutState = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -82,16 +87,43 @@ suite('domain event', function (): void {
         }
       });
 
-      await assert.that(async (): Promise<void> => {
-        await axios({
+      setTimeout(async (): Promise<void> => {
+        const { status } = await axios({
           method: 'post',
-          url: `http://localhost:${privatePort}/domain-event/v2`,
+          url: `http://localhost:${portPublisher}/publish/v2`,
           data: domainEventWithoutState
         });
-      }).is.throwingAsync((ex): boolean => (ex as AxiosError).response!.status === 400);
+
+        assert.that(status).is.equalTo(200);
+      }, 50);
+
+      await new Promise(async (resolve, reject): Promise<void> => {
+        try {
+          const { data } = await axios({
+            method: 'get',
+            url: `http://localhost:${port}/domain-events/v2`,
+            responseType: 'stream'
+          });
+
+          data.pipe(asJsonStream<DomainEvent<any>>([
+            (receivedEvent): void => {
+              assert.that(receivedEvent).is.equalTo({ name: 'heartbeat' });
+
+              setTimeout((): void => {
+                resolve();
+              }, 100);
+            },
+            (): void => {
+              throw new errors.InvalidOperation();
+            }
+          ]));
+        } catch (ex) {
+          reject(ex);
+        }
+      });
     });
 
-    test('forwards domain events to the public API.', async (): Promise<void> => {
+    test('streams domain events from the publisher.', async (): Promise<void> => {
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
           contextIdentifier: { name: 'sampleContext' },
@@ -112,7 +144,7 @@ suite('domain event', function (): void {
       setTimeout(async (): Promise<void> => {
         const { status } = await axios({
           method: 'post',
-          url: `http://localhost:${privatePort}/domain-event/v2`,
+          url: `http://localhost:${portPublisher}/publish/v2`,
           data: domainEvent
         });
 
@@ -123,7 +155,7 @@ suite('domain event', function (): void {
         try {
           const { data } = await axios({
             method: 'get',
-            url: `http://localhost:${publicPort}/domain-events/v2`,
+            url: `http://localhost:${port}/domain-events/v2`,
             responseType: 'stream'
           });
 
