@@ -3,7 +3,6 @@ const parseGetReplayQueryParameters = function ({ parameters }: {
 }): {
     fromRevisionGlobal: number | undefined;
     toRevisionGlobal: number | undefined;
-    observe: boolean;
   } {
   if (parameters.fromRevisionGlobal !== undefined && isNaN(Number(parameters.fromRevisionGlobal))) {
     throw new Error(`Query parameter 'fromRevisionGlobal' must be a number.`);
@@ -28,13 +27,7 @@ const parseGetReplayQueryParameters = function ({ parameters }: {
     throw new Error(`Query parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
   }
 
-  if (parameters.observe !== undefined && ![ 'true', 'false' ].includes(parameters.observe)) {
-    throw new Error(`Query parameter 'observe' must be either 'true' or 'false'.`);
-  }
-
-  const observe = parameters.observe === 'true';
-
-  return { fromRevisionGlobal, toRevisionGlobal, observe };
+  return { fromRevisionGlobal, toRevisionGlobal };
 };
 
 export {

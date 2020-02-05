@@ -1,10 +1,6 @@
 #!/usr/bin/env node
 
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
-import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
-import { createSubscriber } from '../../../../messaging/pubSub/createSubscriber';
-import { DomainEvent } from '../../../../common/elements/DomainEvent';
-import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getConfiguration } from './getConfiguration';
@@ -25,22 +21,9 @@ import { registerExceptionHandler } from '../../../../common/utils/process/regis
       options: configuration.domainEventStoreOptions
     });
 
-    const newDomainEventSubscriber = await createSubscriber<DomainEvent<DomainEventData>>({
-      type: configuration.pubSubType,
-      options: configuration.pubSubOptions.subscriber
-    });
-
-    const newDomainEventPublisher = await createPublisher<DomainEvent<DomainEventData>>({
-      type: configuration.pubSubType,
-      options: configuration.pubSubOptions.publisher
-    });
-
     const { api } = await getApi({
       configuration,
-      domainEventStore,
-      newDomainEventPublisher,
-      newDomainEventSubscriber,
-      newDomainEventPubSubChannel: configuration.pubSubOptions.channel
+      domainEventStore
     });
 
     const server = http.createServer(api);

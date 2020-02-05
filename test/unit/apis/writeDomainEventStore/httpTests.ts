@@ -4,26 +4,16 @@ import { asJsonStream } from 'test/shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { createDomainEventStore } from 'lib/stores/domainEventStore/createDomainEventStore';
-import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
-import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getApi } from '../../../../lib/apis/writeDomainEventStore/http';
-import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
-import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
-import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
-import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { uuid } from 'uuidv4';
-import { waitForSignals } from 'wait-for-signals';
 
 suite('writeDomainEventStore/http', (): void => {
   suite('/v2', (): void => {
     let api: Application,
-        domainEventStore: DomainEventStore,
-        newDomainEventPublisher: Publisher<DomainEvent<DomainEventData>>,
-        newDomainEventPublisherChannel: string,
-        newDomainEventSubscriber: Subscriber<DomainEvent<DomainEventData>>;
+        domainEventStore: DomainEventStore;
 
     setup(async (): Promise<void> => {
       domainEventStore = await createDomainEventStore({
@@ -31,20 +21,14 @@ suite('writeDomainEventStore/http', (): void => {
         options: {}
       });
 
-      newDomainEventSubscriber = await InMemorySubscriber.create();
-      newDomainEventPublisherChannel = uuid();
-      newDomainEventPublisher = await InMemoryPublisher.create();
-
       ({ api } = await getApi({
         corsOrigin: '*',
-        domainEventStore,
-        newDomainEventPublisher,
-        newDomainEventPublisherChannel
+        domainEventStore
       }));
     });
 
     suite('POST /store-domain-events', (): void => {
-      test('stores the given domain events and publishes them via the publisher.', async (): Promise<void> => {
+      test('stores the given domain events.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
           id: uuid()
@@ -72,28 +56,6 @@ suite('writeDomainEventStore/http', (): void => {
           metadata: {
             revision: { aggregate: 2, global: 2 },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-          }
-        });
-
-        let receivedNotificationCount = 0;
-
-        const collector = waitForSignals({ count: 1 });
-
-        await newDomainEventSubscriber.subscribe({
-          channel: newDomainEventPublisherChannel,
-          async callback (message): Promise<void> {
-            if (receivedNotificationCount === 0) {
-              assert.that(message).is.equalTo(firstDomainEvent);
-            }
-            if (receivedNotificationCount === 1) {
-              assert.that(message).is.equalTo(secondDomainEvent);
-            }
-
-            receivedNotificationCount += 1;
-
-            if (receivedNotificationCount === 2) {
-              await collector.signal();
-            }
           }
         });
 
@@ -128,8 +90,6 @@ suite('writeDomainEventStore/http', (): void => {
             true
           ));
         });
-
-        await collector.promise;
       });
 
       test('returns 400 if the data is not an array.', async (): Promise<void> => {

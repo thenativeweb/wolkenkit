@@ -90,51 +90,6 @@ suite('domain event store', function (): void {
 
       await collector.promise;
     });
-
-    test('streams all concurrently stored domain events when observing.', async (): Promise<void> => {
-      const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-        name: 'execute',
-        data: {},
-        metadata: {
-          revision: { aggregate: 1, global: 1 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        }
-      });
-
-      const { status: replayStatus, data } = await axios({
-        method: 'get',
-        url: `http://localhost:${port}/query/v2/replay?observe=true`,
-        responseType: 'stream'
-      });
-
-      const collector = waitForSignals({ count: 2 });
-
-      assert.that(replayStatus).is.equalTo(200);
-      data.pipe(asJsonStream([
-        async (heartbeat): Promise<void> => {
-          assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
-
-          await collector.signal();
-        },
-        async (currentDomainEvent): Promise<void> => {
-          assert.that(currentDomainEvent).is.equalTo(domainEvent);
-
-          await collector.signal();
-        }
-      ]));
-
-      const { status: postStatus } = await axios({
-        method: 'post',
-        url: `http://localhost:${port}/write/v2/store-domain-events`,
-        data: [ domainEvent ]
-      });
-
-      assert.that(postStatus).is.equalTo(200);
-
-      await collector.promise;
-    });
   });
 
   suite('GET /query/v2/replay/:aggregateId', (): void => {

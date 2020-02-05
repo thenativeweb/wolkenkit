@@ -37,7 +37,7 @@ suite('observeDomainEvents/http/Client', (): void => {
   });
 
   suite('/v2', (): void => {
-    suite('GET /description', (): void => {
+    suite('getDescription', (): void => {
       let api: Application;
 
       setup(async (): Promise<void> => {
@@ -73,7 +73,7 @@ suite('observeDomainEvents/http/Client', (): void => {
       });
     });
 
-    suite('GET /', (): void => {
+    suite('getDomainEvents', (): void => {
       let api: Application,
           publishDomainEvent: PublishDomainEvent;
 

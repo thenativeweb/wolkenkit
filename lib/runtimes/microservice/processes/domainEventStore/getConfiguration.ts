@@ -17,23 +17,6 @@ const getConfiguration = function (): Configuration {
       default: {},
       schema: { type: 'object' }
     },
-    PUB_SUB_TYPE: {
-      default: 'InMemory',
-      schema: { type: 'string', minLength: 1 }
-    },
-    PUB_SUB_OPTIONS: {
-      default: { channel: 'newDomainEvent', subscriber: {}, publisher: {}},
-      schema: {
-        type: 'object',
-        properties: {
-          channel: { type: 'string', minLength: 1 },
-          subscriber: { type: 'object' },
-          publisher: { type: 'object' }
-        },
-        required: [ 'channel', 'subscriber', 'publisher' ],
-        additionalProperties: false
-      }
-    },
     QUERY_DOMAIN_EVENTS_CORS_ORIGIN: {
       default: '*',
       schema: corsSchema

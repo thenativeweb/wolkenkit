@@ -6,25 +6,16 @@ import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { Client } from '../../../../lib/apis/queryDomainEventStore/http/v2/Client';
 import { createDomainEventStore } from 'lib/stores/domainEventStore/createDomainEventStore';
 import { CustomError } from 'defekt';
-import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
-import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
-import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
-import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
-import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
-import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { uuid } from 'uuidv4';
 
 suite('queryDomainEventStore/http/Client', (): void => {
   suite('/v2', (): void => {
     let api: Application,
-        domainEventStore: DomainEventStore,
-        newDomainEventPublisher: Publisher<DomainEvent<DomainEventData>>,
-        newDomainEventSubscriber: Subscriber<DomainEvent<DomainEventData>>,
-        newDomainEventSubscriberChannel: string;
+        domainEventStore: DomainEventStore;
 
     setup(async (): Promise<void> => {
       domainEventStore = await createDomainEventStore({
@@ -32,15 +23,9 @@ suite('queryDomainEventStore/http/Client', (): void => {
         options: {}
       });
 
-      newDomainEventSubscriber = await InMemorySubscriber.create();
-      newDomainEventSubscriberChannel = uuid();
-      newDomainEventPublisher = await InMemoryPublisher.create();
-
       ({ api } = await getApi({
         corsOrigin: '*',
-        domainEventStore,
-        newDomainEventSubscriber,
-        newDomainEventSubscriberChannel
+        domainEventStore
       }));
     });
 
@@ -212,58 +197,6 @@ suite('queryDomainEventStore/http/Client', (): void => {
         });
       });
 
-      test('leaves the stream open when observe is true and sends domain events when they are published.', async (): Promise<void> => {
-        const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: uuid()
-        };
-
-        const firstDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
-          aggregateIdentifier,
-          name: 'succeeded',
-          data: {},
-          metadata: {
-            revision: { aggregate: 1, global: 1 },
-            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-          }
-        });
-
-        const { port } = await runAsServer({ app: api });
-        const client = new Client({
-          hostName: 'localhost',
-          port,
-          path: '/v2'
-        });
-
-        const data = await client.getReplay({ observe: true });
-
-        await new Promise(async (resolve, reject): Promise<void> => {
-          data.on('error', reject);
-          data.on('end', (): void => {
-            reject(new Error('The stream should not have ended.'));
-          });
-
-          data.pipe(asJsonStream(
-            [
-              (domainEvent): void => {
-                assert.that(domainEvent).is.equalTo(firstDomainEvent);
-
-                resolve();
-              }
-            ],
-            true
-          ));
-
-          await newDomainEventPublisher.publish({
-            channel: newDomainEventSubscriberChannel,
-            message: firstDomainEvent
-          });
-        });
-      });
-
       test('closes the stream once the given to-revision-global is reached.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
@@ -278,10 +211,24 @@ suite('queryDomainEventStore/http/Client', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 3, global: 3 },
+            revision: { aggregate: 1, global: null },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
+        const secondDomainEvent = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier,
+          name: 'succeeded',
+          data: {},
+          metadata: {
+            revision: { aggregate: 2, global: null },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ firstDomainEvent, secondDomainEvent ]});
 
         const { port } = await runAsServer({ app: api });
         const client = new Client({
@@ -290,27 +237,31 @@ suite('queryDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        const data = await client.getReplay({ toRevisionGlobal: 2, observe: true });
+        const data = await client.getReplay({ toRevisionGlobal: 1 });
 
         await new Promise(async (resolve, reject): Promise<void> => {
+          let counter = 0;
+
           data.on('error', reject);
           data.on('end', (): void => {
-            resolve();
+            if (counter === 1) {
+              resolve();
+            } else {
+              reject(new Error('Did not receive the expected amount of messages.'));
+            }
           });
 
           data.pipe(asJsonStream(
             [
               (): void => {
-                reject(new Error('Should not have received more than a heartbeat.'));
+                counter += 1;
+              },
+              (): void => {
+                reject(new Error('Should not have received more than one event.'));
               }
             ],
             true
           ));
-
-          await newDomainEventPublisher.publish({
-            channel: newDomainEventSubscriberChannel,
-            message: firstDomainEvent
-          });
         });
       });
 
@@ -550,58 +501,6 @@ suite('queryDomainEventStore/http/Client', (): void => {
         });
       });
 
-      test('leaves the stream open when observe is true and sends domain events in the selected aggregate when they are published.', async (): Promise<void> => {
-        const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: uuid()
-        };
-
-        const firstDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
-          aggregateIdentifier,
-          name: 'succeeded',
-          data: {},
-          metadata: {
-            revision: { aggregate: 1, global: 1 },
-            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-          }
-        });
-
-        const { port } = await runAsServer({ app: api });
-        const client = new Client({
-          hostName: 'localhost',
-          port,
-          path: '/v2'
-        });
-
-        const data = await client.getReplayForAggregate({ aggregateId: aggregateIdentifier.id, observe: true });
-
-        await new Promise(async (resolve, reject): Promise<void> => {
-          data.on('error', reject);
-          data.on('end', (): void => {
-            reject(new Error('The stream should not have ended.'));
-          });
-
-          data.pipe(asJsonStream(
-            [
-              (domainEvent): void => {
-                assert.that(domainEvent).is.equalTo(firstDomainEvent);
-
-                resolve();
-              }
-            ],
-            true
-          ));
-
-          await newDomainEventPublisher.publish({
-            channel: newDomainEventSubscriberChannel,
-            message: firstDomainEvent
-          });
-        });
-      });
-
       test('closes the stream once the given to-revision-global is reached.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
@@ -616,10 +515,24 @@ suite('queryDomainEventStore/http/Client', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 3, global: 3 },
+            revision: { aggregate: 1, global: null },
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
+        const secondDomainEvent = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier,
+          name: 'succeeded',
+          data: {},
+          metadata: {
+            revision: { aggregate: 2, global: null },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ firstDomainEvent, secondDomainEvent ]});
 
         const { port } = await runAsServer({ app: api });
         const client = new Client({
@@ -628,27 +541,31 @@ suite('queryDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        const data = await client.getReplayForAggregate({ aggregateId: aggregateIdentifier.id, observe: true, toRevision: 2 });
+        const data = await client.getReplayForAggregate({ aggregateId: aggregateIdentifier.id, toRevision: 1 });
 
         await new Promise(async (resolve, reject): Promise<void> => {
+          let counter = 0;
+
           data.on('error', reject);
           data.on('end', (): void => {
-            resolve();
+            if (counter === 1) {
+              resolve();
+            } else {
+              reject(new Error('Did not receive the expected amount of messages.'));
+            }
           });
 
           data.pipe(asJsonStream(
             [
               (): void => {
-                reject(new Error('Should not have received more than a heartbeat.'));
+                counter += 1;
+              },
+              (): void => {
+                reject(new Error('Should not have received more than one event.'));
               }
             ],
             true
           ));
-
-          await newDomainEventPublisher.publish({
-            channel: newDomainEventSubscriberChannel,
-            message: firstDomainEvent
-          });
         });
       });
 

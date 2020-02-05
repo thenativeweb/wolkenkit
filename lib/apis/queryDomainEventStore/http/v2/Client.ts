@@ -22,10 +22,9 @@ class Client extends HttpClient {
     super({ protocol, hostName, port, path });
   }
 
-  public async getReplay ({ fromRevisionGlobal = 1, toRevisionGlobal = (2 ** 31) - 1, observe = false }: {
+  public async getReplay ({ fromRevisionGlobal = 1, toRevisionGlobal = (2 ** 31) - 1 }: {
     fromRevisionGlobal?: number;
     toRevisionGlobal?: number;
-    observe?: boolean;
   }): Promise<PassThrough> {
     if (fromRevisionGlobal < 1) {
       throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
@@ -39,7 +38,7 @@ class Client extends HttpClient {
 
     const { status, data } = await axios({
       method: 'get',
-      url: `${this.url}/replay?fromRevisionGlobal=${fromRevisionGlobal}&toRevisionGlobal=${toRevisionGlobal}&observe=${observe}`,
+      url: `${this.url}/replay?fromRevisionGlobal=${fromRevisionGlobal}&toRevisionGlobal=${toRevisionGlobal}`,
       responseType: 'stream',
       validateStatus (): boolean {
         return true;
@@ -55,7 +54,7 @@ class Client extends HttpClient {
     const passThrough = new PassThrough({ objectMode: true });
     const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
 
-    pipeline(
+    return pipeline(
       data,
       heartbeatFilter,
       passThrough,
@@ -65,15 +64,12 @@ class Client extends HttpClient {
         }
       }
     );
-
-    return passThrough;
   }
 
-  public async getReplayForAggregate ({ aggregateId, fromRevision = 1, toRevision = (2 ** 31) - 1, observe = false }: {
+  public async getReplayForAggregate ({ aggregateId, fromRevision = 1, toRevision = (2 ** 31) - 1 }: {
     aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
-    observe?: boolean;
   }): Promise<PassThrough> {
     if (fromRevision < 1) {
       throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
@@ -87,7 +83,7 @@ class Client extends HttpClient {
 
     const { status, data } = await axios({
       method: 'get',
-      url: `${this.url}/replay/${aggregateId}/?fromRevision=${fromRevision}&toRevision=${toRevision}&observe=${observe}`,
+      url: `${this.url}/replay/${aggregateId}/?fromRevision=${fromRevision}&toRevision=${toRevision}`,
       responseType: 'stream',
       validateStatus (): boolean {
         return true;
