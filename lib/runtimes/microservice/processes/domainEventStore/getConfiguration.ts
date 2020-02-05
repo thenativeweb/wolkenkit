@@ -22,7 +22,7 @@ const getConfiguration = function (): Configuration {
       schema: { type: 'string', minLength: 1 }
     },
     PUB_SUB_OPTIONS: {
-      default: { channel: 'newCommand', subscriber: {}, publisher: {}},
+      default: { channel: 'newDomainEvent', subscriber: {}, publisher: {}},
       schema: {
         type: 'object',
         properties: {
