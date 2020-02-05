@@ -3,18 +3,13 @@ import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { Publisher } from '../../../../messaging/pubSub/Publisher';
 import { RequestHandler } from 'express-serve-static-core';
 import typer from 'content-type';
 
 const storeDomainEvents = function ({
-  domainEventStore,
-  newDomainEventPublisher,
-  newDomainEventPublisherChannel
+  domainEventStore
 }: {
   domainEventStore: DomainEventStore;
-  newDomainEventPublisher: Publisher<DomainEvent<DomainEventData>>;
-  newDomainEventPublisherChannel: string;
 }): RequestHandler {
   return async function (req, res): Promise<any> {
     let contentType: typer.ParsedMediaType;
@@ -78,13 +73,6 @@ const storeDomainEvents = function ({
 
     try {
       const storedDomainEvents = await domainEventStore.storeDomainEvents({ domainEvents });
-
-      for (const domainEvent of storedDomainEvents) {
-        await newDomainEventPublisher.publish({
-          channel: newDomainEventPublisherChannel,
-          message: domainEvent
-        });
-      }
 
       res.json(storedDomainEvents);
     } catch (ex) {

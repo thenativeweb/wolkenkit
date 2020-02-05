@@ -3,7 +3,6 @@ const parseGetReplayForAggregateQueryParameters = function ({ parameters }: {
 }): {
     fromRevision: number | undefined;
     toRevision: number | undefined;
-    observe: boolean;
   } {
   if (parameters.fromRevision !== undefined && isNaN(Number(parameters.fromRevision))) {
     throw new Error(`Query parameter 'fromRevision' must be a number.`);
@@ -28,13 +27,7 @@ const parseGetReplayForAggregateQueryParameters = function ({ parameters }: {
     throw new Error(`Query parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
   }
 
-  if (parameters.observe !== undefined && ![ 'true', 'false' ].includes(parameters.observe)) {
-    throw new Error(`Query parameter 'observe' must be either 'true' or 'false'.`);
-  }
-
-  const observe = parameters.observe === 'true';
-
-  return { fromRevision, toRevision, observe };
+  return { fromRevision, toRevision };
 };
 
 export {
