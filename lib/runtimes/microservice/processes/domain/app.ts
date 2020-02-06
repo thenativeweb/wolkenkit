@@ -2,6 +2,8 @@
 
 import { AeonstoreDomainEventStore } from '../../../../stores/domainEventStore/Aeonstore';
 import { Client as DispatcherClient } from '../../../../apis/awaitCommandWithMetadata/http/v2/Client';
+import { DomainEventData } from '../../../../common/elements/DomainEventData';
+import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
@@ -10,8 +12,10 @@ import http from 'http';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
+import { Client as PublisherClient } from '../../../../apis/publishMessage/http/v2/Client';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
+import { State } from '../../../../common/elements/State';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -40,8 +44,23 @@ import { Repository } from '../../../../common/domain/Repository';
       protocol: configuration.dispatcherProtocol,
       hostName: configuration.dispatcherHostName,
       port: configuration.dispatcherPort,
-      path: '/v2/await-command'
+      path: '/await-command/v2'
     });
+
+    const publisherClient = new PublisherClient({
+      protocol: configuration.publisherProtocol,
+      hostName: configuration.publisherHostName,
+      port: configuration.publisherPort,
+      path: '/publish/v2/'
+    });
+
+    const publishDomainEvents: PublishDomainEvents = async ({ domainEvents }: {
+      domainEvents: DomainEventWithState<DomainEventData, State>[];
+    }): Promise<any> => {
+      for (const domainEvent of domainEvents) {
+        await publisherClient.postMessage({ message: domainEvent });
+      }
+    };
 
     const { api } = await getApi({
       configuration
@@ -52,8 +71,6 @@ import { Repository } from '../../../../common/domain/Repository';
     server.listen(configuration.port, (): void => {
       logger.info('Domain server started.', { port: configuration.port });
     });
-
-    const publishDomainEvents: PublishDomainEvents = async (): Promise<any> => ({});
 
     for (let i = 0; i < configuration.concurrentCommands; i++) {
       pForever(async (): Promise<void> => {

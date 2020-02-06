@@ -4,16 +4,16 @@ import { CommandData } from '../elements/CommandData';
 import { CommandWithMetadata } from '../elements/CommandWithMetadata';
 import { DomainEventData } from '../elements/DomainEventData';
 import { DomainEventWithState } from '../elements/DomainEventWithState';
-import { errors } from 'lib/common/errors';
+import { errors } from '../errors';
 import { getAggregateService } from '../services/getAggregateService';
 import { getAggregatesService } from '../services/getAggregatesService';
 import { getClientService } from '../services/getClientService';
+import { getErrorService } from '../services/getErrorService';
 import { getLoggerService } from '../services/getLoggerService';
 import { PublishDomainEvents } from './PublishDomainEvents';
 import { Repository } from './Repository';
 import { State } from '../elements/State';
 import { validateCommandWithMetadata } from '../validators/validateCommandWithMetadata';
-import { Value } from 'validate-value';
 
 const handleCommand = async function ({
   command,
@@ -37,6 +37,7 @@ const handleCommand = async function ({
     aggregate: getAggregateService({ applicationDefinition, command, currentAggregateState }),
     aggregates: getAggregatesService({ applicationDefinition, repository }),
     client: getClientService({ clientMetadata: command.metadata.client }),
+    error: getErrorService(),
     logger: getLoggerService({
       fileName: `<app>/server/domain/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/`,
       packageManifest: applicationDefinition.packageManifest
@@ -48,13 +49,6 @@ const handleCommand = async function ({
   let domainEvents: DomainEventWithState<DomainEventData, State>[];
 
   try {
-    if (commandHandler.getSchema) {
-      const schema = commandHandler.getSchema();
-      const value = new Value(schema);
-
-      value.validate(command.data, { valueName: 'data', separator: '.' });
-    }
-
     const clonedCommand = cloneDeep(command);
 
     const isAuthorized = await commandHandler.isAuthorized(currentAggregateState, clonedCommand, services);
@@ -67,14 +61,19 @@ const handleCommand = async function ({
 
     domainEvents = await repository.saveCurrentAggregateState({ currentAggregateState });
   } catch (ex) {
-    if (ex.code === 'ECOMMANDNOTAUTHORIZED') {
-      services.aggregate.publishDomainEvent(`${command.name}Rejected`, {
-        reason: ex.message
-      });
-    } else {
-      services.aggregate.publishDomainEvent(`${command.name}Failed`, {
-        reason: ex.message
-      });
+    switch (ex.code) {
+      case 'ECOMMANDNOTAUTHORIZED':
+      case 'ECOMMANDREJECTED': {
+        services.aggregate.publishDomainEvent(`${command.name}Rejected`, {
+          reason: ex.message
+        });
+        break;
+      }
+      default: {
+        services.aggregate.publishDomainEvent(`${command.name}Failed`, {
+          reason: ex.message
+        });
+      }
     }
 
     domainEvents = [

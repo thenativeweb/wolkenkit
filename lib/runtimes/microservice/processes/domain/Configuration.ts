@@ -5,6 +5,9 @@ export interface Configuration {
   dispatcherPort: number;
   dispatcherRenewInterval: number;
   dispatcherAcknowledgeRetries: number;
+  publisherProtocol: string;
+  publisherHostName: string;
+  publisherPort: number;
   aeonstoreProtocol: string;
   aeonstoreHostName: string;
   aeonstorePort: number;

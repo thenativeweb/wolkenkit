@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/utils/http/FilterHeartbeatsFromJsonStreamTransform';
+import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { PassThrough, pipeline } from 'stream';
+
+const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
   public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
@@ -37,7 +40,8 @@ class Client extends HttpClient {
       passThrough,
       (err): void => {
         if (err) {
-          throw err;
+          // Do not handle errors explicitly. The returned stream will just close.
+          logger.error('An error occured during stream piping.', { err });
         }
       }
     );

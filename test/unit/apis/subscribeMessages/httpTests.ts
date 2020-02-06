@@ -8,7 +8,9 @@ import { sleep } from '../../../../lib/common/utils/sleep';
 
 suite('subscribeMessages/http', (): void => {
   suite('/v2', (): void => {
-    suite('GET /', (): void => {
+    suite('GET /', function (): void {
+      this.timeout(5_000);
+
       let api: Application,
           publishMessage: PublishMessage;
 

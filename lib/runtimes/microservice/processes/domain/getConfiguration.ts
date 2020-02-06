@@ -41,6 +41,21 @@ const getConfiguration = function (): Configuration {
       default: 5,
       schema: { type: 'integer' }
     },
+    PUBLISHER_PROTOCOL: {
+      default: 'http',
+      schema: protocolSchema
+    },
+    PUBLISHER_HOST_NAME: {
+      default: 'publisher',
+      schema: {
+        type: 'string',
+        format: 'hostname'
+      }
+    },
+    PUBLISHER_PORT: {
+      default: 3000,
+      schema: portSchema
+    },
     AEONSTORE_PROTOCOL: {
       default: 'http',
       schema: protocolSchema

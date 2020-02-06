@@ -9,12 +9,13 @@ const fetchCommand = async function ({ dispatcher }: {
     command: CommandWithMetadata<CommandData>;
     token: string;
   }> {
-  const { item, token } = await retry(async (): Promise<{
-    item: CommandWithMetadata<CommandData>;
-    token: string;
-  }> =>
-    await dispatcher.client.awaitCommandWithMetadata()
-  , { retries: Number.POSITIVE_INFINITY, maxTimeout: 1000 });
+  const { item, token } = await retry(
+    async (): Promise<{
+      item: CommandWithMetadata<CommandData>;
+      token: string;
+    }> => await dispatcher.client.awaitCommandWithMetadata(),
+    { retries: Number.POSITIVE_INFINITY, maxTimeout: 1000 }
+  );
 
   return { command: item, token };
 };
