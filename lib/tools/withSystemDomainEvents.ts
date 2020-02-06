@@ -17,11 +17,11 @@ const withSystemDomainEvents: ApplicationEnhancer = (applicationDefinition): App
         const domainEventNameRejected = `${commandName}Rejected`;
 
         if (domainEventNameFailed in clonedApplicationDefinition.domain[contextName][aggregateName].domainEventHandlers) {
-          throw new errors.DomainEventAlreadyExists(`Reserved event name '${domainEventNameFailed}' used in '<app>/build/domain/${contextName}/${aggregateName}'.`);
+          throw new errors.DomainEventAlreadyExists(`Reserved domain event name '${domainEventNameFailed}' used in '<app>/server/domain/${contextName}/${aggregateName}/'.`);
         }
 
         if (domainEventNameRejected in clonedApplicationDefinition.domain[contextName][aggregateName].domainEventHandlers) {
-          throw new errors.DomainEventAlreadyExists(`Reserved event name '${domainEventNameRejected}' used in '<app>/build/domain/${contextName}/${aggregateName}'.`);
+          throw new errors.DomainEventAlreadyExists(`Reserved domain event name '${domainEventNameRejected}' used in '<app>/server/domain/${contextName}/${aggregateName}/'.`);
         }
 
         const domainEventHandler: DomainEventHandler<State, DomainEventData> = {

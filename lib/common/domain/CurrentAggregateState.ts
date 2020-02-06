@@ -8,7 +8,6 @@ import { DomainEventWithState } from '../elements/DomainEventWithState';
 import { errors } from '../errors';
 import { get } from 'lodash';
 import { getLoggerService } from '../services/getLoggerService';
-import { join } from 'path';
 import { Readable } from 'stream';
 import { Snapshot } from '../../stores/domainEventStore/Snapshot';
 import { State } from '../elements/State';
@@ -74,7 +73,7 @@ class CurrentAggregateState<TState extends State> {
 
     const services = {
       logger: getLoggerService({
-        fileName: join(applicationDefinition.rootDirectory, `server/domain/${domainEvent.contextIdentifier.name}/${domainEvent.aggregateIdentifier.name}/`),
+        fileName: `<app>/server/domain/${domainEvent.contextIdentifier.name}/${domainEvent.aggregateIdentifier.name}/`,
         packageManifest: applicationDefinition.packageManifest
       })
     };

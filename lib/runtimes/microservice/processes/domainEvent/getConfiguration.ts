@@ -3,11 +3,13 @@ import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
 import path from 'path';
 import { withCamelCaseKeys } from '../../../../common/utils/withCamelCaseKeys';
 
 const corsSchema = getCorsSchema();
 const portSchema = getPortSchema();
+const protocolSchema = getProtocolSchema();
 
 const getConfiguration = function (): Configuration {
   const environmentVariables = getEnvironmentVariables({
@@ -41,12 +43,23 @@ const getConfiguration = function (): Configuration {
       }],
       schema: getIdentityProviderSchema()
     },
-    PORT_PUBLIC: {
+    PORT: {
       default: 3000,
       schema: portSchema
     },
-    PORT_PRIVATE: {
-      default: 4000,
+    SUBSCRIBE_MESSAGES_PROTOCOL: {
+      default: 'http',
+      schema: protocolSchema
+    },
+    SUBSCRIBE_MESSAGES_HOST_NAME: {
+      default: 'publisher',
+      schema: {
+        type: 'string',
+        format: 'hostname'
+      }
+    },
+    SUBSCRIBE_MESSAGES_PORT: {
+      default: 3000,
       schema: portSchema
     }
   });

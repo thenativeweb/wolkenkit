@@ -1,27 +1,41 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
-import axios from 'axios';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
-import { FilterHeartBeatsFromJsonStreamTransform } from 'lib/common/utils/http/FilterHeartBeatsFromJsonStreamTransform';
-import { flaschenpost } from 'flaschenpost';
+import { PassThrough } from 'stream';
+import { Client as QueryClient } from '../../../apis/queryDomainEventStore/http/v2/Client';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
-import { PassThrough, pipeline } from 'stream';
-
-const logger = flaschenpost.getLogger();
+import { Client as WriteClient } from '../../../apis/writeDomainEventStore/http/v2/Client';
 
 class AeonstoreDomainEventStore implements DomainEventStore {
-  protected aeonstoreBaseUrl: string;
+  protected queryClient: QueryClient;
 
-  protected constructor ({ aeonstoreBaseUrl }: { aeonstoreBaseUrl: string }) {
-    this.aeonstoreBaseUrl = aeonstoreBaseUrl;
+  protected writeClient: WriteClient;
+
+  protected constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+    protocol?: string;
+    hostName: string;
+    port: number;
+    path?: string;
+  }) {
+    const trimmedPath = path.endsWith('/') ? path.slice(0, -1) : path;
+
+    this.queryClient = new QueryClient({
+      protocol, hostName, port, path: `${trimmedPath}/query/v2`
+    });
+    this.writeClient = new WriteClient({
+      protocol, hostName, port, path: `${trimmedPath}/write/v2`
+    });
   }
 
-  public static async create ({ aeonstoreBaseUrl }: {
-    aeonstoreBaseUrl: string;
+  public static async create ({ protocol = 'http', hostName, port, path = '/' }: {
+    protocol?: string;
+    hostName: string;
+    port: number;
+    path?: string;
   }): Promise<AeonstoreDomainEventStore> {
-    return new AeonstoreDomainEventStore({ aeonstoreBaseUrl });
+    return new AeonstoreDomainEventStore({ protocol, hostName, port, path });
   }
 
   /* eslint-disable class-methods-use-this */
@@ -33,17 +47,7 @@ class AeonstoreDomainEventStore implements DomainEventStore {
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
-    const { status, data } = await axios({
-      method: 'get',
-      url: `${this.aeonstoreBaseUrl}/query/v2/last-domain-event?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`,
-      validateStatus: (statusToValidate): boolean => statusToValidate === 200 || statusToValidate === 404
-    });
-
-    if (status === 404) {
-      return undefined;
-    }
-
-    return new DomainEvent(data);
+    return await this.queryClient.getLastDomainEvent({ aggregateIdentifier });
   }
 
   public async getReplayForAggregate ({
@@ -55,73 +59,29 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     fromRevision?: number;
     toRevision?: number;
   }): Promise<PassThrough> {
-    const queryString = `?fromRevision=${fromRevision}&toRevision=${toRevision}`;
-
-    const { data } = await axios({
-      method: 'get',
-      url: `${this.aeonstoreBaseUrl}/query/v2/replay/${aggregateId}${queryString}`,
-      responseType: 'stream'
+    return await this.queryClient.getReplayForAggregate({
+      aggregateId,
+      fromRevision,
+      toRevision
     });
-
-    const passThrough = new PassThrough({ objectMode: true });
-    const heartbeatFilter = new FilterHeartBeatsFromJsonStreamTransform();
-
-    return pipeline(
-      data,
-      heartbeatFilter,
-      passThrough,
-      (err): void => {
-        if (err) {
-          logger.error('Pipeline error occured.', { err });
-        }
-      }
-    );
   }
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
   }): Promise<DomainEvent<TDomainEventData>[]> {
-    try {
-      const { data } = await axios({
-        method: 'post',
-        url: `${this.aeonstoreBaseUrl}/write/v2/store-domain-events`,
-        data: domainEvents
-      });
-
-      const parsedDomainEvents = (data as any[]).map(
-        (domainEvent): DomainEvent<TDomainEventData> => new DomainEvent(domainEvent)
-      );
-
-      return parsedDomainEvents;
-    } catch (ex) {
-      throw new Error(ex.response?.data ?? ex.message);
-    }
+    return await this.writeClient.storeDomainEvents({ domainEvents });
   }
 
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<Snapshot<TState> | undefined> {
-    const { status, data } = await axios({
-      method: 'get',
-      url: `${this.aeonstoreBaseUrl}/query/v2/snapshot?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`,
-      validateStatus: (statusToValidate): boolean => statusToValidate === 200 || statusToValidate === 404
-    });
-
-    if (status === 404) {
-      return undefined;
-    }
-
-    return data;
+    return await this.queryClient.getSnapshot({ aggregateIdentifier });
   }
 
   public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
-    await axios({
-      method: 'post',
-      url: `${this.aeonstoreBaseUrl}/write/v2/store-snapshot`,
-      data: snapshot
-    });
+    await this.writeClient.storeSnapshot({ snapshot });
   }
 
   public async getReplay ({
@@ -131,27 +91,7 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     fromRevisionGlobal?: number;
     toRevisionGlobal?: number;
   }): Promise<PassThrough> {
-    const queryString = `?fromRevisionGlobal=${fromRevisionGlobal}&toRevisionGlobal=${toRevisionGlobal}`;
-
-    const { data } = await axios({
-      method: 'get',
-      url: `${this.aeonstoreBaseUrl}/query/v2/replay${queryString}`,
-      responseType: 'stream'
-    });
-
-    const passThrough = new PassThrough({ objectMode: true });
-    const heartbeatFilter = new FilterHeartBeatsFromJsonStreamTransform();
-
-    return pipeline(
-      data,
-      heartbeatFilter,
-      passThrough,
-      (err): void => {
-        if (err) {
-          logger.error('Pipeline error occured.', { err });
-        }
-      }
-    );
+    return await this.queryClient.getReplay({ fromRevisionGlobal, toRevisionGlobal });
   }
 }
 

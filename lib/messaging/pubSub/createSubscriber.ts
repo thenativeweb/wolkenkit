@@ -21,6 +21,4 @@ const createSubscriber = async function<T extends object> ({
   }
 };
 
-export {
-  createSubscriber
-};
+export { createSubscriber };

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { Dispatcher } from './Dispatcher';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
@@ -13,11 +12,7 @@ const getOnReceiveCommand = function ({ dispatcher }: {
   return async function ({ command }): Promise<void> {
     try {
       await retry(async (): Promise<void> => {
-        await axios({
-          method: 'POST',
-          url: `http://${dispatcher.hostName}:${dispatcher.port}/command/v2`,
-          data: command
-        });
+        await dispatcher.client.postCommand({ command });
       }, { retries: dispatcher.retries, maxTimeout: 1000 });
 
       logger.info('Command sent to dispatcher server.', { command });

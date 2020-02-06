@@ -3,6 +3,7 @@ import { createPool } from '../../utils/sqlServer/createPool';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
+import { errors } from '../../../common/errors';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { PassThrough } from 'stream';
 import { Pool } from 'tarn';
@@ -186,8 +187,14 @@ class SqlServerDomainEventStore implements DomainEventStore {
     fromRevision?: number;
     toRevision?: number;
   }): Promise<PassThrough> {
+    if (fromRevision < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
+    }
+    if (toRevision < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be at least 1.`);
+    }
     if (fromRevision > toRevision) {
-      throw new Error('From revision is greater than to revision.');
+      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
     }
 
     const database = await SqlServerDomainEventStore.getDatabase(this.pool);
@@ -252,7 +259,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
     domainEvents: DomainEvent<TDomainEventData>[];
   }): Promise<DomainEvent<TDomainEventData>[]> {
     if (domainEvents.length === 0) {
-      throw new Error('Domain events are missing.');
+      throw new errors.ParameterInvalid('Domain events are missing.');
     }
 
     const placeholders = [],
@@ -320,7 +327,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
       });
     } catch (ex) {
       if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.includes('_aggregateId_revisionAggregate')) {
-        throw new Error('Aggregate id and revision already exist.');
+        throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
       throw ex;
@@ -415,8 +422,14 @@ class SqlServerDomainEventStore implements DomainEventStore {
     fromRevisionGlobal?: number;
     toRevisionGlobal?: number;
   } = {}): Promise<PassThrough> {
+    if (fromRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
+    }
+    if (toRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
+    }
     if (fromRevisionGlobal > toRevisionGlobal) {
-      throw new Error('From revision global is greater than to revision global.');
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
     }
 
     const database = await SqlServerDomainEventStore.getDatabase(this.pool);

@@ -1,13 +1,11 @@
-import { Application } from 'express';
 import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
 import { CommandData } from '../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../common/elements/CommandWithMetadata';
 import { CorsOrigin } from 'get-cors-origin';
-import { getApiBase } from '../../base/getApiBase';
+import { getV2 } from './v2';
 import { PriorityQueueStore } from '../../../stores/priorityQueueStore/PriorityQueueStore';
-import { streamNdjsonMiddleware } from '../../middlewares/streamNdjson';
 import { Subscriber } from '../../../messaging/pubSub/Subscriber';
-import * as v2 from './v2';
+import express, { Application } from 'express';
 
 const getApi = async function ({
   applicationDefinition,
@@ -15,7 +13,7 @@ const getApi = async function ({
   priorityQueueStore,
   newCommandSubscriber,
   newCommandSubscriberChannel,
-  heartbeatInterval = 90_000
+  heartbeatInterval
 }: {
   applicationDefinition: ApplicationDefinition;
   corsOrigin: CorsOrigin;
@@ -24,35 +22,18 @@ const getApi = async function ({
   newCommandSubscriberChannel: string;
   heartbeatInterval?: number;
 }): Promise<{ api: Application }> {
-  const api = await getApiBase({
-    request: {
-      headers: { cors: { origin: corsOrigin }},
-      body: { parser: { sizeLimit: 100_000 }}
-    },
-    response: {
-      headers: { cache: false }
-    }
+  const api = express();
+
+  const v2 = await getV2({
+    applicationDefinition,
+    corsOrigin,
+    priorityQueueStore,
+    newCommandSubscriber,
+    newCommandSubscriberChannel,
+    heartbeatInterval
   });
 
-  api.get(
-    '/v2/',
-    streamNdjsonMiddleware({ heartbeatInterval }),
-    v2.awaitCommandWithMetadata({
-      priorityQueueStore,
-      newCommandSubscriber,
-      newCommandSubscriberChannel
-    })
-  );
-
-  api.post('/v2/renew-lock', v2.renewLock({
-    applicationDefinition,
-    priorityQueueStore
-  }));
-
-  api.post('/v2/acknowledge', v2.acknowledge({
-    applicationDefinition,
-    priorityQueueStore
-  }));
+  api.use('/v2', v2.api);
 
   return { api };
 };

@@ -38,6 +38,7 @@ suite('command', function (): void {
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
         PORT: String(port),
+        DISPATCHER_PROTOCOL: 'http',
         DISPATCHER_HOST_NAME: 'localhost',
         DISPATCHER_PORT: String(dispatcherPort),
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
@@ -124,9 +125,10 @@ suite('command', function (): void {
         env: {
           APPLICATION_DIRECTORY: applicationDirectory,
           PORT: String(port),
-          DISPATCHER_SERVER_HOSTNAME: 'non-existent',
-          DISPATCHER_SERVER_PORT: String(12345),
-          DISPATCHER_SERVER_DISABLE_RETRIES: String(true),
+          DISPATCHER_PROTOCOL: 'http',
+          DISPATCHER_HOST_NAME: 'non-existent',
+          DISPATCHER_PORT: String(12345),
+          DISPATCHER_RETRIES: String(0),
           IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
         }
       });

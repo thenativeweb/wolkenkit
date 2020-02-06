@@ -34,10 +34,7 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
       }
     });
 
-    await publisher.publish({
-      channel,
-      message
-    });
+    await publisher.publish({ channel, message });
 
     await subscriberCallbackPromise;
   });
@@ -76,10 +73,7 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
       }
     });
 
-    await publisher.publish({
-      channel,
-      message
-    });
+    await publisher.publish({ channel, message });
 
     await Promise.all([ subscriberCallbackPromise, secondSubscriberCallbackPromise ]);
   });
@@ -94,20 +88,9 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
       receivedMessageCount += 1;
     };
 
-    await subscriber.subscribe({
-      channel,
-      callback
-    });
-
-    await subscriber.unsubscribe({
-      channel,
-      callback
-    });
-
-    await publisher.publish({
-      channel,
-      message
-    });
+    await subscriber.subscribe({ channel, callback });
+    await subscriber.unsubscribe({ channel, callback });
+    await publisher.publish({ channel, message });
 
     await new Promise((resolve): void => {
       setTimeout(resolve, 100);

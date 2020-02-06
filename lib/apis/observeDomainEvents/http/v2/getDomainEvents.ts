@@ -6,7 +6,6 @@ import { flaschenpost } from 'flaschenpost';
 import { getAggregatesService } from '../../../../common/services/getAggregatesService';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
-import path from 'path';
 import PQueue from 'p-queue';
 import { prepareForPublication } from './shared/prepareForPublication';
 import { Repository } from '../../../../common/domain/Repository';
@@ -47,7 +46,7 @@ const getDomainEvents = function ({
               aggregates: aggregatesService,
               client: clientService,
               logger: getLoggerService({
-                fileName: path.join(applicationDefinition.rootDirectory, `server/domain/${domainEventWithState.contextIdentifier.name}/${domainEventWithState.aggregateIdentifier.name}/index.js`),
+                fileName: `<app>/server/domain/${domainEventWithState.contextIdentifier.name}/${domainEventWithState.aggregateIdentifier.name}/`,
                 packageManifest: applicationDefinition.packageManifest
               })
             }

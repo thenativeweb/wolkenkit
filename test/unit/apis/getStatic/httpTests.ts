@@ -15,7 +15,7 @@ suite('static/http', (): void => {
     });
 
     test('serves static content.', async (): Promise<void> => {
-      const client = await runAsServer({ app: api });
+      const { client } = await runAsServer({ app: api });
 
       const { status, headers, data } = await client({
         method: 'get',

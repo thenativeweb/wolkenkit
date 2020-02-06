@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { Client as DispatcherClient } from '../../../../apis/handleCommandWithMetadata/http/v2/Client';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
@@ -26,10 +27,16 @@ import { registerExceptionHandler } from '../../../../common/utils/process/regis
       applicationDirectory: configuration.applicationDirectory
     });
 
+    const dispatcherClient = new DispatcherClient({
+      protocol: configuration.dispatcherProtocol,
+      hostName: configuration.dispatcherHostName,
+      port: configuration.dispatcherPort,
+      path: '/command/v2'
+    });
+
     const onReceiveCommand = getOnReceiveCommand({
       dispatcher: {
-        hostName: configuration.dispatcherHostName,
-        port: configuration.dispatcherPort,
+        client: dispatcherClient,
         retries: configuration.dispatcherRetries
       }
     });

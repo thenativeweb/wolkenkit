@@ -13,6 +13,17 @@ suite('getApplicationDescription', (): void => {
       commands: {
         sampleContext: {
           sampleAggregate: {
+            authorize: {
+              documentation: undefined,
+              schema: {
+                type: 'object',
+                properties: {
+                  shouldAuthorize: { type: 'boolean' }
+                },
+                required: [ 'shouldAuthorize' ],
+                additionalProperties: false
+              }
+            },
             execute: {
               documentation: undefined,
               schema: {
@@ -30,6 +41,36 @@ suite('getApplicationDescription', (): void => {
       domainEvents: {
         sampleContext: {
           sampleAggregate: {
+            authorized: {
+              documentation: undefined,
+              schema: {
+                type: 'object',
+                properties: {},
+                additionalProperties: false
+              }
+            },
+            authorizeFailed: {
+              documentation: undefined,
+              schema: {
+                type: 'object',
+                properties: {
+                  reason: { type: 'string' }
+                },
+                required: [ 'reason' ],
+                additionalProperties: false
+              }
+            },
+            authorizeRejected: {
+              documentation: undefined,
+              schema: {
+                type: 'object',
+                properties: {
+                  reason: { type: 'string' }
+                },
+                required: [ 'reason' ],
+                additionalProperties: false
+              }
+            },
             succeeded: {
               documentation: undefined,
               schema: undefined

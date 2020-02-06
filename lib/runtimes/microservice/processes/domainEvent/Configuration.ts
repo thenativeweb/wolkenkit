@@ -5,6 +5,8 @@ export interface Configuration {
   domainEventStoreType: string;
   healthCorsOrigin: string | string[];
   identityProviders: { issuer: string; certificate: string }[];
-  portPublic: number;
-  portPrivate: number;
+  port: number;
+  subscribeMessagesProtocol: string;
+  subscribeMessagesHostName: string;
+  subscribeMessagesPort: number;
 }

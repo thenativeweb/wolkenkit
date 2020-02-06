@@ -5,6 +5,7 @@ import { CurrentAggregateState } from './CurrentAggregateState';
 import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
 import { DomainEventStore } from '../../stores/domainEventStore/DomainEventStore';
+import { DomainEventWithState } from '../elements/DomainEventWithState';
 import { errors } from '../errors';
 import { State } from '../elements/State';
 
@@ -69,14 +70,30 @@ class Repository {
 
   public async saveCurrentAggregateState ({ currentAggregateState }: {
     currentAggregateState: CurrentAggregateState<State>;
-  }): Promise<DomainEvent<DomainEventData>[]> {
+  }): Promise<DomainEventWithState<DomainEventData, State>[]> {
     if (currentAggregateState.unsavedDomainEvents.length === 0) {
       return [];
     }
 
-    const savedDomainEvents = await this.domainEventStore.storeDomainEvents({
-      domainEvents: currentAggregateState.unsavedDomainEvents
+    const domainEventsWithGlobalRevisions = await this.domainEventStore.storeDomainEvents({
+      domainEvents: currentAggregateState.unsavedDomainEvents.map(
+        (domainEvent): DomainEvent<DomainEventData> => domainEvent.withoutState()
+      )
     });
+
+    const savedDomainEvents = currentAggregateState.unsavedDomainEvents.map(
+      (unsavedDomainEvent): DomainEventWithState<DomainEventData, State> => {
+        const revisionGlobal = domainEventsWithGlobalRevisions.find(
+          (domainEvent): boolean => domainEvent.id === unsavedDomainEvent.id
+        )!.metadata.revision.global!;
+
+        const savedDomainEvent = unsavedDomainEvent.withRevisionGlobal({
+          revisionGlobal
+        });
+
+        return savedDomainEvent;
+      }
+    );
 
     return savedDomainEvents;
   }

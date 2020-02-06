@@ -21,6 +21,4 @@ const createPublisher = async function<T extends object> ({
   }
 };
 
-export {
-  createPublisher
-};
+export { createPublisher };

@@ -1,11 +1,9 @@
-import { Application } from 'express';
 import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
 import { CorsOrigin } from 'get-cors-origin';
-import { getApiBase } from '../../base/getApiBase';
-import { getAuthenticationMiddleware } from '../../base/getAuthenticationMiddleware';
+import { getV2 } from './v2';
 import { IdentityProvider } from 'limes';
 import { OnReceiveCommand } from '../OnReceiveCommand';
-import * as v2 from './v2';
+import express, { Application } from 'express';
 
 const getApi = async function ({
   corsOrigin,
@@ -18,28 +16,16 @@ const getApi = async function ({
   applicationDefinition: ApplicationDefinition;
   identityProviders: IdentityProvider[];
 }): Promise<{ api: Application }> {
-  const api = await getApiBase({
-    request: {
-      headers: { cors: { origin: corsOrigin }},
-      body: { parser: { sizeLimit: 100_000 }}
-    },
-    response: {
-      headers: { cache: false }
-    }
-  });
+  const api = express();
 
-  const authenticationMiddleware = await getAuthenticationMiddleware({
+  const v2 = await getV2({
+    corsOrigin,
+    onReceiveCommand,
+    applicationDefinition,
     identityProviders
   });
 
-  api.get('/v2/description', v2.getDescription({
-    applicationDefinition
-  }));
-
-  api.post('/v2/', authenticationMiddleware, v2.postCommand({
-    onReceiveCommand,
-    applicationDefinition
-  }));
+  api.use('/v2', v2.api);
 
   return { api };
 };

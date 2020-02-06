@@ -4,7 +4,7 @@ import { Transform, TransformCallback } from 'stream';
 // Takes in a buffer stream (as returned by APIs using the
 // streamNdjsonMiddleware) and filters out the heartbeat lines and transforms
 // the lines into objects.
-class FilterHeartBeatsFromJsonStreamTransform extends Transform {
+class FilterHeartbeatsFromJsonStreamTransform extends Transform {
   public constructor () {
     super({
       readableObjectMode: true,
@@ -26,5 +26,5 @@ class FilterHeartBeatsFromJsonStreamTransform extends Transform {
 }
 
 export {
-  FilterHeartBeatsFromJsonStreamTransform
+  FilterHeartbeatsFromJsonStreamTransform
 };

@@ -13,7 +13,7 @@ suite('streamNdjson middleware', (): void => {
   });
 
   test('returns the status code 200.', async (): Promise<void> => {
-    const client = await runAsServer({ app });
+    const { client } = await runAsServer({ app });
 
     const { status } = await client({
       method: 'get',
@@ -25,7 +25,7 @@ suite('streamNdjson middleware', (): void => {
   });
 
   test('returns the content-type application/x-ndjson.', async (): Promise<void> => {
-    const client = await runAsServer({ app });
+    const { client } = await runAsServer({ app });
 
     const { headers } = await client({
       method: 'get',
@@ -37,7 +37,7 @@ suite('streamNdjson middleware', (): void => {
   });
 
   test('sends a periodic heartbeat.', async (): Promise<void> => {
-    const client = await runAsServer({ app });
+    const { client } = await runAsServer({ app });
 
     const { data } = await client({
       method: 'get',

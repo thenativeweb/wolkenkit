@@ -18,8 +18,14 @@ const postCommand = function ({ onReceiveCommand, applicationDefinition }: {
 }): RequestHandler {
   return async function (req, res): Promise<void> {
     if (!req.token || !req.user) {
-      res.status(401).end();
-      throw new errors.NotAuthenticatedError('Client information missing in request.');
+      const ex = new errors.NotAuthenticatedError('Client information missing in request.');
+
+      res.status(401).json({
+        code: ex.code,
+        message: ex.message
+      });
+
+      throw ex;
     }
 
     try {
@@ -29,7 +35,12 @@ const postCommand = function ({ onReceiveCommand, applicationDefinition }: {
         throw new errors.RequestMalformed();
       }
     } catch {
-      res.status(415).send('Header content-type must be application/json.');
+      const ex = new errors.RequestMalformed('Header content-type must be application/json.');
+
+      res.status(415).json({
+        code: ex.code,
+        message: ex.message
+      });
 
       return;
     }
@@ -39,7 +50,10 @@ const postCommand = function ({ onReceiveCommand, applicationDefinition }: {
     try {
       validateCommand({ command, applicationDefinition });
     } catch (ex) {
-      res.status(400).send(ex.message);
+      res.status(400).json({
+        code: ex.code,
+        message: ex.message
+      });
 
       return;
     }
@@ -62,7 +76,12 @@ const postCommand = function ({ onReceiveCommand, applicationDefinition }: {
     try {
       await onReceiveCommand({ command: commandWithMetadata });
     } catch {
-      res.status(500).end();
+      const ex = new errors.UnknownError();
+
+      res.status(500).json({
+        code: ex.code,
+        message: ex.message
+      });
 
       return;
     }

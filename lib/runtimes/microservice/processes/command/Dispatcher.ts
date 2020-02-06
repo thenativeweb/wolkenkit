@@ -1,5 +1,6 @@
+import { Client } from '../../../../apis/handleCommandWithMetadata/http/v2/Client';
+
 export interface Dispatcher {
-  hostName: string;
-  port: number;
+  client: Client;
   retries: number;
 }

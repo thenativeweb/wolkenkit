@@ -1,4 +1,5 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
+import { errors } from '../../../../common/errors';
 import { RequestHandler } from 'express-serve-static-core';
 import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
 
@@ -15,7 +16,12 @@ const getLastDomainEvent = function ({
 
       validateAggregateIdentifier({ aggregateIdentifier });
     } catch (ex) {
-      return res.status(400).send(ex.message);
+      const error = new errors.AggregateIdentifierMalformed(ex.message);
+
+      return res.status(400).json({
+        code: error.code,
+        message: error.message
+      });
     }
 
     try {
@@ -27,7 +33,10 @@ const getLastDomainEvent = function ({
 
       res.json(lastDomainEvent);
     } catch (ex) {
-      res.status(400).send(ex.message);
+      return res.status(400).json({
+        code: ex.code ?? 'EUNKNOWNERROR',
+        message: ex.message
+      });
     }
   };
 };

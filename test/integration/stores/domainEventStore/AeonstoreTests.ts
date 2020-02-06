@@ -23,7 +23,8 @@ suite('Aeonstore', (): void => {
       processMap.set(suffix, stopProcess);
 
       const aeonstoreDomainEventStore = await AeonstoreDomainEventStore.create({
-        aeonstoreBaseUrl: `http://localhost:${port}`
+        hostName: 'localhost',
+        port
       });
 
       return aeonstoreDomainEventStore;

@@ -1,16 +1,18 @@
 #!/usr/bin/env node
 
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
+import { DomainEventData } from '../../../../common/elements/DomainEventData';
+import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
+import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
-import { getOnReceiveDomainEvent } from './getOnReceiveDomainEvent';
-import { getPrivateApi } from './getPrivateApi';
-import { getPublicApi } from './getPublicApi';
 import http from 'http';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
+import { State } from '../../../../common/elements/State';
+import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -39,33 +41,33 @@ import { Repository } from '../../../../common/domain/Repository';
       domainEventStore
     });
 
-    const { api: publicApi, publishDomainEvent } = await getPublicApi({
+    const { api, publishDomainEvent } = await getApi({
       configuration,
       applicationDefinition,
       identityProviders,
       repository
     });
 
-    const onReceiveDomainEvent = getOnReceiveDomainEvent({
-      publishDomainEvent
+    const subscribeMessagesClient = new SubscribeMessagesClient({
+      protocol: configuration.subscribeMessagesProtocol,
+      hostName: configuration.subscribeMessagesHostName,
+      port: configuration.subscribeMessagesPort,
+      path: '/subscribe/v2'
     });
 
-    const { api: privateApi } = await getPrivateApi({
-      configuration,
-      applicationDefinition,
-      onReceiveDomainEvent
+    const messages = await subscribeMessagesClient.getMessages();
+
+    const server = http.createServer(api);
+
+    server.listen(configuration.port, (): void => {
+      logger.info('Domain event server started.', { port: configuration.port });
     });
 
-    const privateServer = http.createServer(privateApi);
-    const publicServer = http.createServer(publicApi);
+    for await (const message of messages) {
+      const domainEvent = new DomainEventWithState<DomainEventData, State>(message);
 
-    privateServer.listen(configuration.portPrivate, (): void => {
-      logger.info('Private server started.', { port: configuration.portPrivate });
-    });
-
-    publicServer.listen(configuration.portPublic, (): void => {
-      logger.info('Public server started.', { port: configuration.portPublic });
-    });
+      publishDomainEvent({ domainEvent });
+    }
   } catch (ex) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);

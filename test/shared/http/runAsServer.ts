@@ -5,7 +5,7 @@ import axios, { AxiosInstance } from 'axios';
 
 const runAsServer = async function ({ app }: {
   app: Application;
-}): Promise<AxiosInstance> {
+}): Promise<{ client: AxiosInstance; port: number }> {
   const server = http.createServer(app);
 
   const port = await getAvailablePort();
@@ -24,7 +24,7 @@ const runAsServer = async function ({ app }: {
     baseURL: `http://localhost:${port}`
   });
 
-  return axiosInstance;
+  return { client: axiosInstance, port };
 };
 
 export { runAsServer };

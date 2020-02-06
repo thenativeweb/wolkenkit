@@ -2,13 +2,10 @@ import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import axios from 'axios';
 import { buildCommandWithMetadata } from 'test/shared/buildCommandWithMetadata';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import { getAvailablePort } from '../../../../../lib/common/utils/network/getAvailablePort';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
-import path from 'path';
 import { startProcess } from '../../../../shared/runtime/startProcess';
 import { uuid } from 'uuidv4';
-
-const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
 suite('dispatcher', function (): void {
   this.timeout(10 * 1000);
@@ -16,13 +13,12 @@ suite('dispatcher', function (): void {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   const queueLockExpirationTime = 600;
-  const queuePollInterval = 600;
 
   let port: number,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ port ] = await getAvailablePorts({ count: 1 });
+    port = await getAvailablePort();
 
     stopProcess = await startProcess({
       runtime: 'microservice',
@@ -31,9 +27,7 @@ suite('dispatcher', function (): void {
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
         PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${queueLockExpirationTime}}`,
-        PORT: String(port),
-        IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
-        QUEUE_POLL_INTERVAL: String(queuePollInterval)
+        PORT: String(port)
       }
     });
   });
