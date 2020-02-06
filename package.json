@@ -166,7 +166,7 @@
     "record-stdstreams": "3.0.0",
     "roboter": "11.0.15",
     "run-script-os": "1.0.7",
-    "runfork": "3.0.4",
+    "runfork": "3.0.5",
     "streamtoarray": "3.0.0",
     "wait-for-signals": "1.0.0"
   },
