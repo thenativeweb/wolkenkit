@@ -146,7 +146,7 @@ suite('domain', function (): void {
     stopDomainProcess = undefined;
   });
 
-  suite('GET /health/v2', (): void => {
+  suite('getHealth', (): void => {
     test('is using the health API.', async (): Promise<void> => {
       const healthClient = new HealthClient({
         protocol: 'http',

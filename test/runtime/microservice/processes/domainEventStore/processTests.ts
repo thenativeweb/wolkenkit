@@ -1,19 +1,22 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import axios from 'axios';
 import { buildDomainEvent } from 'test/shared/buildDomainEvent';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
+import { Client as QueryDomainEventStoreClient } from '../../../../../lib/apis/queryDomainEventStore/http/v2/Client';
 import { startProcess } from '../../../../shared/runtime/startProcess';
 import { uuid } from 'uuidv4';
 import { waitForSignals } from 'wait-for-signals';
+import { Client as WriteDomainEventStoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
 
 suite('domain event store', function (): void {
   this.timeout(10_000);
 
   let healthPort: number,
       port: number,
-      stopProcess: (() => Promise<void>) | undefined;
+      queryDomainEventStoreClient: QueryDomainEventStoreClient,
+      stopProcess: (() => Promise<void>) | undefined,
+      writeDomainEventStoreClient: WriteDomainEventStoreClient;
 
   setup(async (): Promise<void> => {
     [ port, healthPort ] = await getAvailablePorts({ count: 2 });
@@ -27,6 +30,20 @@ suite('domain event store', function (): void {
         HEALTH_PORT: String(healthPort)
       }
     });
+
+    queryDomainEventStoreClient = new QueryDomainEventStoreClient({
+      protocol: 'http',
+      hostName: 'localhost',
+      port,
+      path: '/query/v2'
+    });
+
+    writeDomainEventStoreClient = new WriteDomainEventStoreClient({
+      protocol: 'http',
+      hostName: 'localhost',
+      port,
+      path: '/write/v2'
+    });
   });
 
   teardown(async (): Promise<void> => {
@@ -37,7 +54,7 @@ suite('domain event store', function (): void {
     stopProcess = undefined;
   });
 
-  suite('GET /health/v2', (): void => {
+  suite('getHealth', (): void => {
     test('is using the health API.', async (): Promise<void> => {
       const healthClient = new HealthClient({
         protocol: 'http',
@@ -52,7 +69,7 @@ suite('domain event store', function (): void {
     });
   });
 
-  suite('GET /query/v2/replay', (): void => {
+  suite('getReplay', (): void => {
     test('streams all previously stored domain events.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
@@ -65,41 +82,28 @@ suite('domain event store', function (): void {
         }
       });
 
-      const { status: postStatus } = await axios({
-        method: 'post',
-        url: `http://localhost:${port}/write/v2/store-domain-events`,
-        data: [ domainEvent ]
-      });
+      await writeDomainEventStoreClient.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-      assert.that(postStatus).is.equalTo(200);
+      const eventReplay = await queryDomainEventStoreClient.getReplay({});
 
-      const { status: replayStatus, data } = await axios({
-        method: 'get',
-        url: `http://localhost:${port}/query/v2/replay`,
-        responseType: 'stream'
-      });
+      const collector = waitForSignals({ count: 1 });
 
-      const collector = waitForSignals({ count: 2 });
+      eventReplay.pipe(asJsonStream(
+        [
+          async (currentDomainEvent): Promise<void> => {
+            assert.that(currentDomainEvent).is.equalTo(domainEvent);
 
-      assert.that(replayStatus).is.equalTo(200);
-      data.pipe(asJsonStream([
-        async (heartbeat): Promise<void> => {
-          assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
-
-          await collector.signal();
-        },
-        async (currentDomainEvent): Promise<void> => {
-          assert.that(currentDomainEvent).is.equalTo(domainEvent);
-
-          await collector.signal();
-        }
-      ]));
+            await collector.signal();
+          }
+        ],
+        true
+      ));
 
       await collector.promise;
     });
   });
 
-  suite('GET /query/v2/replay/:aggregateId', (): void => {
+  suite('getReplayForAggregate', (): void => {
     test('streams only domain events for the requested aggregate.', async (): Promise<void> => {
       const wrongDomainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
@@ -125,39 +129,28 @@ suite('domain event store', function (): void {
         }
       });
 
-      await axios({
-        method: 'post',
-        url: `http://localhost:${port}/write/v2/store-domain-events`,
-        data: [ wrongDomainEvent, rightDomainEvent ]
-      });
+      await writeDomainEventStoreClient.storeDomainEvents({ domainEvents: [ wrongDomainEvent, rightDomainEvent ]});
 
-      const { status: replayStatus, data } = await axios({
-        method: 'get',
-        url: `http://localhost:${port}/query/v2/replay/${aggregateId}`,
-        responseType: 'stream'
-      });
+      const eventReplay = await queryDomainEventStoreClient.getReplayForAggregate({ aggregateId });
 
-      const collector = waitForSignals({ count: 2 });
+      const collector = waitForSignals({ count: 1 });
 
-      assert.that(replayStatus).is.equalTo(200);
-      data.pipe(asJsonStream([
-        async (heartbeat): Promise<void> => {
-          assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+      eventReplay.pipe(asJsonStream(
+        [
+          async (currentDomainEvent): Promise<void> => {
+            assert.that(currentDomainEvent).is.equalTo(rightDomainEvent);
 
-          await collector.signal();
-        },
-        async (currentDomainEvent): Promise<void> => {
-          assert.that(currentDomainEvent).is.equalTo(rightDomainEvent);
-
-          await collector.signal();
-        }
-      ]));
+            await collector.signal();
+          }
+        ],
+        true
+      ));
 
       await collector.promise;
     });
   });
 
-  suite('GET /query/v2/last-domain-event', (): void => {
+  suite('getLastDomainEvent', (): void => {
     test('returns the last stored domain event.', async (): Promise<void> => {
       const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
       const firstDomainEvent = buildDomainEvent({
@@ -181,25 +174,15 @@ suite('domain event store', function (): void {
         }
       });
 
-      const { status: postStatus } = await axios({
-        method: 'post',
-        url: `http://localhost:${port}/write/v2/store-domain-events`,
-        data: [ firstDomainEvent, secondDomainEvent ]
-      });
+      await writeDomainEventStoreClient.storeDomainEvents({ domainEvents: [ firstDomainEvent, secondDomainEvent ]});
 
-      assert.that(postStatus).is.equalTo(200);
+      const lastDomainEvent = await queryDomainEventStoreClient.getLastDomainEvent({ aggregateIdentifier });
 
-      const { status: getStatus, data } = await axios({
-        method: 'get',
-        url: `http://localhost:${port}/query/v2/last-domain-event?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`
-      });
-
-      assert.that(getStatus).is.equalTo(200);
-      assert.that(data).is.equalTo(secondDomainEvent);
+      assert.that(lastDomainEvent).is.equalTo(secondDomainEvent);
     });
   });
 
-  suite('GET /query/v2/snapshot', (): void => {
+  suite('getSnapshot', (): void => {
     test('returns the previously stored snapshot.', async (): Promise<void> => {
       const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
       const snapshot = {
@@ -208,21 +191,11 @@ suite('domain event store', function (): void {
         state: {}
       };
 
-      const { status: postStatus } = await axios({
-        method: 'post',
-        url: `http://localhost:${port}/write/v2/store-snapshot`,
-        data: snapshot
-      });
+      await writeDomainEventStoreClient.storeSnapshot({ snapshot });
 
-      assert.that(postStatus).is.equalTo(200);
+      const lastSnapshot = await queryDomainEventStoreClient.getSnapshot({ aggregateIdentifier });
 
-      const { status: getStatus, data } = await axios({
-        method: 'get',
-        url: `http://localhost:${port}/query/v2/snapshot?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`
-      });
-
-      assert.that(getStatus).is.equalTo(200);
-      assert.that(data).is.equalTo(snapshot);
+      assert.that(lastSnapshot).is.equalTo(snapshot);
     });
   });
 });

@@ -1,6 +1,5 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import axios from 'axios';
 import { buildDomainEvent } from '../../../../shared/buildDomainEvent';
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
@@ -8,7 +7,9 @@ import { errors } from '../../../../../lib/common/errors';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
+import { Client as ObserveDomainEventsClient } from '../../../../../lib/apis/observeDomainEvents/http/v2/Client';
 import path from 'path';
+import { Client as PublishMessageClient } from '../../../../../lib/apis/publishMessage/http/v2/Client';
 import { startProcess } from '../../../../shared/runtime/startProcess';
 import { uuid } from 'uuidv4';
 
@@ -20,9 +21,11 @@ suite('domain event', function (): void {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   let healthPort: number,
+      observeDomainEventsClient: ObserveDomainEventsClient,
       port: number,
       publisherHealthPort: number,
       publisherPort: number,
+      publishMessageClient: PublishMessageClient,
       stopProcess: (() => Promise<void>) | undefined,
       stopProcessPublisher: (() => Promise<void>) | undefined;
 
@@ -41,6 +44,13 @@ suite('domain event', function (): void {
       }
     });
 
+    publishMessageClient = new PublishMessageClient({
+      protocol: 'http',
+      hostName: 'localhost',
+      port: publisherPort,
+      path: '/publish/v2'
+    });
+
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEvent',
@@ -53,6 +63,13 @@ suite('domain event', function (): void {
         SUBSCRIBE_MESSAGES_HOST_NAME: 'localhost',
         SUBSCRIBE_MESSAGES_PORT: String(publisherPort)
       }
+    });
+
+    observeDomainEventsClient = new ObserveDomainEventsClient({
+      protocol: 'http',
+      hostName: 'localhost',
+      port,
+      path: '/domain-events/v2'
     });
   });
 
@@ -68,7 +85,7 @@ suite('domain event', function (): void {
     stopProcessPublisher = undefined;
   });
 
-  suite('GET /health/v2', (): void => {
+  suite('getHealth', (): void => {
     test('is using the health API.', async (): Promise<void> => {
       const healthClient = new HealthClient({
         protocol: 'http',
@@ -83,7 +100,7 @@ suite('domain event', function (): void {
     });
   });
 
-  suite('GET /domain-events/v2', (): void => {
+  suite('getDomainEvents', (): void => {
     test('does not stream invalid domain events.', async (): Promise<void> => {
       const domainEventWithoutState = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
@@ -97,35 +114,25 @@ suite('domain event', function (): void {
       });
 
       setTimeout(async (): Promise<void> => {
-        const { status } = await axios({
-          method: 'post',
-          url: `http://localhost:${publisherPort}/publish/v2`,
-          data: domainEventWithoutState
-        });
-
-        assert.that(status).is.equalTo(200);
+        await publishMessageClient.postMessage({ message: domainEventWithoutState });
       }, 50);
+
+      const domainEventStream = await observeDomainEventsClient.getDomainEvents({});
 
       await new Promise(async (resolve, reject): Promise<void> => {
         try {
-          const { data } = await axios({
-            method: 'get',
-            url: `http://localhost:${port}/domain-events/v2`,
-            responseType: 'stream'
-          });
+          domainEventStream.pipe(asJsonStream<DomainEvent<any>>(
+            [
+              (): void => {
+                throw new errors.InvalidOperation();
+              }
+            ],
+            true
+          ));
 
-          data.pipe(asJsonStream<DomainEvent<any>>([
-            (receivedEvent): void => {
-              assert.that(receivedEvent).is.equalTo({ name: 'heartbeat' });
-
-              setTimeout((): void => {
-                resolve();
-              }, 100);
-            },
-            (): void => {
-              throw new errors.InvalidOperation();
-            }
-          ]));
+          setTimeout((): void => {
+            resolve();
+          }, 500);
         } catch (ex) {
           reject(ex);
         }
@@ -151,32 +158,22 @@ suite('domain event', function (): void {
       });
 
       setTimeout(async (): Promise<void> => {
-        const { status } = await axios({
-          method: 'post',
-          url: `http://localhost:${publisherPort}/publish/v2`,
-          data: domainEvent
-        });
-
-        assert.that(status).is.equalTo(200);
+        await publishMessageClient.postMessage({ message: domainEvent });
       }, 50);
 
       await new Promise(async (resolve, reject): Promise<void> => {
         try {
-          const { data } = await axios({
-            method: 'get',
-            url: `http://localhost:${port}/domain-events/v2`,
-            responseType: 'stream'
-          });
+          const domainEventStream = await observeDomainEventsClient.getDomainEvents({});
 
-          data.pipe(asJsonStream<DomainEvent<any>>([
-            (receivedEvent): void => {
-              assert.that(receivedEvent).is.equalTo({ name: 'heartbeat' });
-            },
-            (receivedEvent): void => {
-              assert.that(receivedEvent.data).is.equalTo({ strategy: 'succeed' });
-              resolve();
-            }
-          ]));
+          domainEventStream.pipe(asJsonStream<DomainEvent<any>>(
+            [
+              (receivedEvent): void => {
+                assert.that(receivedEvent.data).is.equalTo({ strategy: 'succeed' });
+                resolve();
+              }
+            ],
+            true
+          ));
         } catch (ex) {
           reject(ex);
         }

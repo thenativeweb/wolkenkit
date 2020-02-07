@@ -10,7 +10,6 @@ const startProcess = async function ({ runtime, name, port, env = {}, onExit }: 
   env: NodeJS.ProcessEnv;
   onExit?: (exitCode: number, stdout: string, stderr: string) => void;
 }): Promise<() => Promise<void>> {
-  console.log(`starting process ${runtime}.${name}`);
   const stopProcess = runfork({
     path: path.join(__dirname, '..', '..', '..', 'build', 'lib', 'runtimes', runtime, 'processes', name, 'app.js'),
     env,
@@ -18,10 +17,7 @@ const startProcess = async function ({ runtime, name, port, env = {}, onExit }: 
     onExit
   });
 
-  console.log(`started process ${runtime}.${name}`);
-
   await retry(async (): Promise<void> => {
-    console.log(`probing process ${runtime}.${name}`);
     await axios({
       method: 'get',
       url: `http://localhost:${port}/health/v2`

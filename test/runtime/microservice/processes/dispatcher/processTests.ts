@@ -1,9 +1,9 @@
-import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import axios from 'axios';
+import { Client as AwaitCommandClient } from '../../../../../lib/apis/awaitCommandWithMetadata/http/v2/Client';
 import { buildCommandWithMetadata } from 'test/shared/buildCommandWithMetadata';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
+import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/apis/handleCommandWithMetadata/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { startProcess } from '../../../../shared/runtime/startProcess';
 import { uuid } from 'uuidv4';
@@ -15,7 +15,9 @@ suite('dispatcher', function (): void {
 
   const queueLockExpirationTime = 600;
 
-  let healthPort: number,
+  let awaitCommandClient: AwaitCommandClient,
+      handleCommandWithMetadataClient: HandleCommandWithMetadataClient,
+      healthPort: number,
       port: number,
       stopProcess: (() => Promise<void>) | undefined;
 
@@ -33,6 +35,20 @@ suite('dispatcher', function (): void {
         HEALTH_PORT: String(healthPort)
       }
     });
+
+    awaitCommandClient = new AwaitCommandClient({
+      protocol: 'http',
+      hostName: 'localhost',
+      port,
+      path: '/await-command/v2'
+    });
+
+    handleCommandWithMetadataClient = new HandleCommandWithMetadataClient({
+      protocol: 'http',
+      hostName: 'localhost',
+      port,
+      path: '/handle-command/v2'
+    });
   });
 
   teardown(async (): Promise<void> => {
@@ -43,7 +59,7 @@ suite('dispatcher', function (): void {
     stopProcess = undefined;
   });
 
-  suite('GET /health/v2', (): void => {
+  suite('getHealth', (): void => {
     test('is using the health API.', async (): Promise<void> => {
       const healthClient = new HealthClient({
         protocol: 'http',
@@ -58,7 +74,7 @@ suite('dispatcher', function (): void {
     });
   });
 
-  suite('GET /await-command/v2', (): void => {
+  suite('awaitCommand', (): void => {
     test('delivers a command that is sent to /handle-command/v2.', async (): Promise<void> => {
       const command = buildCommandWithMetadata({
         contextIdentifier: {
@@ -74,34 +90,11 @@ suite('dispatcher', function (): void {
         }
       });
 
-      await axios({
-        method: 'post',
-        url: `http://localhost:${port}/handle-command/v2`,
-        data: command
-      });
+      await handleCommandWithMetadataClient.postCommand({ command });
 
-      const { data } = await axios({
-        method: 'get',
-        url: `http://localhost:${port}/await-command/v2`,
-        responseType: 'stream'
-      });
+      const lock = await awaitCommandClient.awaitCommandWithMetadata();
 
-      await new Promise((resolve, reject): void => {
-        data.on('error', (err: any): void => {
-          reject(err);
-        });
-
-        data.pipe(asJsonStream([
-          (streamElement): void => {
-            assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
-          },
-          (streamElement: any): void => {
-            assert.that(streamElement.item).is.equalTo(command);
-
-            resolve();
-          }
-        ]));
-      });
+      assert.that(lock.item).is.equalTo(command);
     });
   });
 });

@@ -2,12 +2,12 @@ import { assert } from 'assertthat';
 import { Command } from '../../../../../lib/common/elements/Command';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
+import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import path from 'path';
 import { startCatchAllServer } from '../../../../shared/runtime/startCatchAllServer';
 import { startProcess } from '../../../../shared/runtime/startProcess';
 import { uuid } from 'uuidv4';
-import axios, { AxiosError } from 'axios';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
@@ -19,6 +19,7 @@ suite('command', (): void => {
 
     let commandReceivedByDispatcher: object | undefined,
         dispatcherPort: number,
+        handleCommandClient: HandleCommandClient,
         healthPort: number,
         port: number,
         stopProcess: (() => Promise<void>) | undefined;
@@ -49,6 +50,13 @@ suite('command', (): void => {
           IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
         }
       });
+
+      handleCommandClient = new HandleCommandClient({
+        protocol: 'http',
+        hostName: 'localhost',
+        port,
+        path: '/command/v2'
+      });
     });
 
     teardown(async (): Promise<void> => {
@@ -60,7 +68,7 @@ suite('command', (): void => {
       commandReceivedByDispatcher = undefined;
     });
 
-    suite('GET /health/v2', (): void => {
+    suite('getHealth', (): void => {
       test('is using the health API.', async (): Promise<void> => {
         const healthClient = new HealthClient({
           protocol: 'http',
@@ -75,24 +83,7 @@ suite('command', (): void => {
       });
     });
 
-    suite('POST /command/v2', (): void => {
-      test('rejects invalid commands.', async (): Promise<void> => {
-        const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-          name: 'nonExistent',
-          data: {}
-        });
-
-        await assert.that(async (): Promise<void> => {
-          await axios({
-            method: 'post',
-            url: `http://localhost:${port}/command/v2`,
-            data: command
-          });
-        }).is.throwingAsync((ex): boolean => (ex as AxiosError).response!.status === 400);
-      });
-
+    suite('postCommand', (): void => {
       test('sends commands to the dispatcher.', async (): Promise<void> => {
         const command = new Command({
           contextIdentifier: { name: 'sampleContext' },
@@ -101,13 +92,7 @@ suite('command', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const { status } = await axios({
-          method: 'post',
-          url: `http://localhost:${port}/command/v2`,
-          data: command
-        });
-
-        assert.that(status).is.equalTo(200);
+        await handleCommandClient.postCommand({ command });
 
         assert.that(commandReceivedByDispatcher).is.atLeast({
           ...command,
@@ -122,7 +107,7 @@ suite('command', (): void => {
         });
       });
 
-      test('returns 500 if sending the given command to the dispatcher fails.', async (): Promise<void> => {
+      test('fails if sending the given command to the dispatcher fails.', async (): Promise<void> => {
         if (stopProcess) {
           await stopProcess();
         }
@@ -151,12 +136,8 @@ suite('command', (): void => {
         });
 
         await assert.that(async (): Promise<void> => {
-          await axios({
-            method: 'post',
-            url: `http://localhost:${port}/command/v2`,
-            data: command
-          });
-        }).is.throwingAsync((ex): boolean => (ex as AxiosError).response!.status === 500);
+          await handleCommandClient.postCommand({ command });
+        }).is.throwingAsync();
 
         assert.that(commandReceivedByDispatcher).is.undefined();
       });
@@ -170,6 +151,7 @@ suite('command', (): void => {
           dispatcherRetries = 5;
 
     let dispatcherPort: number,
+        handleCommandClient: HandleCommandClient,
         healthPort: number,
         port: number,
         requestCount: number,
@@ -202,6 +184,13 @@ suite('command', (): void => {
           IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
         }
       });
+
+      handleCommandClient = new HandleCommandClient({
+        protocol: 'http',
+        hostName: 'localhost',
+        port,
+        path: '/command/v2'
+      });
     });
 
     teardown(async (): Promise<void> => {
@@ -220,16 +209,10 @@ suite('command', (): void => {
         data: { strategy: 'succeed' }
       });
 
-      const { status } = await axios({
-        method: 'post',
-        url: `http://localhost:${port}/command/v2`,
-        data: command,
-        validateStatus (): boolean {
-          return true;
-        }
-      });
+      await assert.that(
+        async (): Promise<any> => await handleCommandClient.postCommand({ command })
+      ).is.throwingAsync();
 
-      assert.that(status).is.equalTo(500);
       assert.that(requestCount).is.equalTo(dispatcherRetries + 1);
     });
   });
@@ -242,6 +225,7 @@ suite('command', (): void => {
           succeedAfterTries = 3;
 
     let dispatcherPort: number,
+        handleCommandClient: HandleCommandClient,
         healthPort: number,
         port: number,
         requestCount: number,
@@ -277,6 +261,13 @@ suite('command', (): void => {
           IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
         }
       });
+
+      handleCommandClient = new HandleCommandClient({
+        protocol: 'http',
+        hostName: 'localhost',
+        port,
+        path: '/command/v2'
+      });
     });
 
     teardown(async (): Promise<void> => {
@@ -295,16 +286,8 @@ suite('command', (): void => {
         data: { strategy: 'succeed' }
       });
 
-      const { status } = await axios({
-        method: 'post',
-        url: `http://localhost:${port}/command/v2`,
-        data: command,
-        validateStatus (): boolean {
-          return true;
-        }
-      });
+      await handleCommandClient.postCommand({ command });
 
-      assert.that(status).is.equalTo(200);
       assert.that(requestCount).is.equalTo(succeedAfterTries);
     });
   });
