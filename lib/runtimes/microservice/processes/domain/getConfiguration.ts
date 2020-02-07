@@ -71,10 +71,6 @@ const getConfiguration = function (): Configuration {
       default: 3000,
       schema: portSchema
     },
-    AEONSTORE_RETRIES: {
-      default: 5,
-      schema: { type: 'integer' }
-    },
     HEALTH_CORS_ORIGIN: {
       default: '*',
       schema: corsSchema
