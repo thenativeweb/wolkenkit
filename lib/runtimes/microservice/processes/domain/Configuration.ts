@@ -11,7 +11,6 @@ export interface Configuration {
   aeonstoreProtocol: string;
   aeonstoreHostName: string;
   aeonstorePort: number;
-  aeonstoreRetries: number;
   healthCorsOrigin: string | string[];
   port: number;
   concurrentCommands: number;
