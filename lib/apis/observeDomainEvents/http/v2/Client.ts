@@ -2,9 +2,12 @@ import axios from 'axios';
 import { DomainEventDescription } from '../../../../common/application/DomainEventDescription';
 import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/utils/http/FilterHeartbeatsFromJsonStreamTransform';
+import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import qs from 'qs';
 import { PassThrough, pipeline } from 'stream';
+
+const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
   public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
@@ -29,7 +32,9 @@ class Client extends HttpClient {
       return data;
     }
 
-    throw new errors.UnknownError(data.message);
+    logger.error('An unknown error occured.', data);
+
+    throw new errors.UnknownError();
   }
 
   public async getDomainEvents ({ filter = {}}: {
@@ -49,7 +54,9 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      throw new errors.UnknownError(data.message);
+      logger.error('An unknown error occured.');
+
+      throw new errors.UnknownError();
     }
 
     const passThrough = new PassThrough({ objectMode: true });
@@ -61,7 +68,8 @@ class Client extends HttpClient {
       passThrough,
       (err): void => {
         if (err) {
-          throw err;
+          // Do not handle errors explicitly. The returned stream will just close.
+          logger.error('An error occured during stream piping.', { err });
         }
       }
     );
