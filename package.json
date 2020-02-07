@@ -154,7 +154,7 @@
     "@types/node": "13.7.0",
     "@types/pg": "7.14.1",
     "@types/pg-query-stream": "1.0.3",
-    "@types/qs": "6.9.0",
+    "@types/qs": "6.9.1",
     "@types/redis": "2.8.14",
     "@types/require-dir": "1.0.0",
     "@types/shelljs": "0.8.6",
