@@ -47,6 +47,10 @@ const getConfiguration = function (): Configuration {
       default: 3000,
       schema: portSchema
     },
+    HEALTH_PORT: {
+      default: 3000,
+      schema: portSchema
+    },
     SUBSCRIBE_MESSAGES_PROTOCOL: {
       default: 'http',
       schema: protocolSchema

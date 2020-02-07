@@ -2,7 +2,6 @@ import { ApplicationDefinition } from '../../../../common/application/Applicatio
 import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
-import { getApi as getHealthApi } from '../../../../apis/getHealth/http';
 import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
 import { IdentityProvider } from 'limes';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
@@ -23,12 +22,8 @@ const getApi = async function ({
   getOnReceiveCommand: (params: { publishDomainEvent: PublishDomainEvent}) => OnReceiveCommand;
   repository: Repository;
 }): Promise<{ api: Application }> {
-  const { api: healthApi } = await getHealthApi({
-    corsOrigin: getCorsOrigin(configuration.healthCorsOrigin)
-  });
-
   const { api: observeDomainEventsApi, publishDomainEvent } = await getObserveDomainEventsApi({
-    corsOrigin: getCorsOrigin(configuration.domainEventCorsOrigin),
+    corsOrigin: getCorsOrigin(configuration.corsOrigin),
     applicationDefinition,
     identityProviders,
     repository
@@ -37,7 +32,7 @@ const getApi = async function ({
   const onReceiveCommand = getOnReceiveCommand({ publishDomainEvent });
 
   const { api: handleCommandApi } = await getHandleCommandApi({
-    corsOrigin: getCorsOrigin(configuration.commandCorsOrigin),
+    corsOrigin: getCorsOrigin(configuration.corsOrigin),
     onReceiveCommand,
     applicationDefinition,
     identityProviders
@@ -45,7 +40,6 @@ const getApi = async function ({
 
   const api = express();
 
-  api.use('/health', healthApi);
   api.use('/domain-events', observeDomainEventsApi);
   api.use('/command', handleCommandApi);
 

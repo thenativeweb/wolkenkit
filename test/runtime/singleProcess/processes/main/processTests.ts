@@ -2,7 +2,7 @@ import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildCommand } from '../../../../shared/buildCommand';
 import { Client } from '../../../../../lib/apis/getHealth/http/v2/Client';
-import { getAvailablePort } from '../../../../../lib/common/utils/network/getAvailablePort';
+import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
 import { Client as ObserveDomainEventsClient } from '../../../../../lib/apis/observeDomainEvents/http/v2/Client';
@@ -12,22 +12,23 @@ import { uuid } from 'uuidv4';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
-suite.only('main', function (): void {
+suite('main', function (): void {
   this.timeout(10_000);
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   let handleCommandClient: HandleCommandClient,
+      healthPort: number,
       observeDomainEventsClient: ObserveDomainEventsClient,
       port: number,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    port = await getAvailablePort();
+    [ port, healthPort ] = await getAvailablePorts({ count: 2 });
 
     stopProcess = await startProcess({
       runtime: 'singleProcess',
       name: 'main',
-      port,
+      port: healthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
         HEALTH_CORS_ORIGIN: '*',
@@ -35,7 +36,8 @@ suite.only('main', function (): void {
         DOMAIN_EVENT_CORS_ORIGIN: '*',
         DOMAIN_EVENT_STORE_TYPE: 'InMemory',
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
-        PORT: String(port)
+        PORT: String(port),
+        HEALTH_PORT: String(healthPort)
       }
     });
 
@@ -67,7 +69,7 @@ suite.only('main', function (): void {
       const healthClient = new Client({
         protocol: 'http',
         hostName: 'localhost',
-        port,
+        port: healthPort,
         path: '/health/v2'
       });
 

@@ -13,6 +13,7 @@ import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/Publish
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
+import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -67,6 +68,8 @@ import { Repository } from '../../../../common/domain/Repository';
     });
 
     const server = http.createServer(api);
+
+    await runHealthServer({ corsOrigin: configuration.corsOrigin, port: configuration.healthPort });
 
     server.listen(configuration.port, (): void => {
       logger.info('Single process runtime server started.', { port: configuration.port });

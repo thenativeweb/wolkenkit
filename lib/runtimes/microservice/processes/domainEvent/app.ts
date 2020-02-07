@@ -11,6 +11,7 @@ import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import http from 'http';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
+import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
 
@@ -55,15 +56,24 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
       path: '/subscribe/v2'
     });
 
-    const messages = await subscribeMessagesClient.getMessages();
+    const messageStream = await subscribeMessagesClient.getMessages();
 
     const server = http.createServer(api);
 
-    server.listen(configuration.port, (): void => {
-      logger.info('Domain event server started.', { port: configuration.port });
+    await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
+
+    await new Promise((resolve): void => {
+      server.listen(configuration.port, (): void => {
+        resolve();
+      });
     });
 
-    for await (const message of messages) {
+    logger.info(
+      'Domain event server started.',
+      { port: configuration.port, healthPort: configuration.healthPort }
+    );
+
+    for await (const message of messageStream) {
       const domainEvent = new DomainEventWithState<DomainEventData, State>(message);
 
       publishDomainEvent({ domainEvent });

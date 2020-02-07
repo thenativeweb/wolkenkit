@@ -3,6 +3,7 @@ import { assert } from 'assertthat';
 import axios from 'axios';
 import { buildDomainEvent } from 'test/shared/buildDomainEvent';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { startProcess } from '../../../../shared/runtime/startProcess';
 import { uuid } from 'uuidv4';
 import { waitForSignals } from 'wait-for-signals';
@@ -10,18 +11,20 @@ import { waitForSignals } from 'wait-for-signals';
 suite('domain event store', function (): void {
   this.timeout(10_000);
 
-  let port: number,
+  let healthPort: number,
+      port: number,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ port ] = await getAvailablePorts({ count: 1 });
+    [ port, healthPort ] = await getAvailablePorts({ count: 2 });
 
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
-      port,
+      port: healthPort,
       env: {
-        PORT: String(port)
+        PORT: String(port),
+        HEALTH_PORT: String(healthPort)
       }
     });
   });
@@ -36,12 +39,16 @@ suite('domain event store', function (): void {
 
   suite('GET /health/v2', (): void => {
     test('is using the health API.', async (): Promise<void> => {
-      const { status } = await axios({
-        method: 'get',
-        url: `http://localhost:${port}/health/v2`
+      const healthClient = new HealthClient({
+        protocol: 'http',
+        hostName: 'localhost',
+        port: healthPort,
+        path: '/health/v2'
       });
 
-      assert.that(status).is.equalTo(200);
+      await assert.that(
+        async (): Promise<any> => healthClient.getHealth()
+      ).is.not.throwingAsync();
     });
   });
 

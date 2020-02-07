@@ -5,7 +5,6 @@ import { Configuration } from './Configuration';
 import { getApi as getAwaitCommandWithMetadataApi } from '../../../../apis/awaitCommandWithMetadata/http';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getHandleCommandWithMetadataApi } from '../../../../apis/handleCommandWithMetadata/http';
-import { getApi as getHealthApi } from '../../../../apis/getHealth/http';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
@@ -26,10 +25,6 @@ const getApi = async function ({
   newCommandPubSubChannel: string;
   onReceiveCommand: OnReceiveCommand;
 }): Promise<{ api: Application }> {
-  const { api: healthApi } = await getHealthApi({
-    corsOrigin: getCorsOrigin(configuration.healthCorsOrigin)
-  });
-
   const { api: handleCommandApi } = await getHandleCommandWithMetadataApi({
     corsOrigin: getCorsOrigin(configuration.handleCommandCorsOrigin),
     onReceiveCommand,
@@ -46,7 +41,6 @@ const getApi = async function ({
 
   const api = express();
 
-  api.use('/health', healthApi);
   api.use('/handle-command', handleCommandApi);
   api.use('/await-command', awaitCommandWithMetadataApi);
 

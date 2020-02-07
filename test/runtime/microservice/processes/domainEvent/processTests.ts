@@ -7,6 +7,7 @@ import { DomainEventWithState } from '../../../../../lib/common/elements/DomainE
 import { errors } from '../../../../../lib/common/errors';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
+import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import path from 'path';
 import { startProcess } from '../../../../shared/runtime/startProcess';
 import { uuid } from 'uuidv4';
@@ -18,35 +19,39 @@ suite('domain event', function (): void {
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-  let port: number,
-      portPublisher: number,
+  let healthPort: number,
+      port: number,
+      publisherHealthPort: number,
+      publisherPort: number,
       stopProcess: (() => Promise<void>) | undefined,
       stopProcessPublisher: (() => Promise<void>) | undefined;
 
   setup(async function (): Promise<void> {
     this.timeout(60 * 1000);
 
-    [ port, portPublisher ] = await getAvailablePorts({ count: 2 });
+    [ port, healthPort, publisherPort, publisherHealthPort ] = await getAvailablePorts({ count: 4 });
 
     stopProcessPublisher = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
-      port: portPublisher,
+      port: publisherHealthPort,
       env: {
-        PORT: String(portPublisher)
+        PORT: String(publisherPort),
+        HEALTH_PORT: String(publisherHealthPort)
       }
     });
 
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEvent',
-      port,
+      port: healthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
         PORT: String(port),
+        HEALTH_PORT: String(healthPort),
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
         SUBSCRIBE_MESSAGES_HOST_NAME: 'localhost',
-        SUBSCRIBE_MESSAGES_PORT: String(portPublisher)
+        SUBSCRIBE_MESSAGES_PORT: String(publisherPort)
       }
     });
   });
@@ -65,12 +70,16 @@ suite('domain event', function (): void {
 
   suite('GET /health/v2', (): void => {
     test('is using the health API.', async (): Promise<void> => {
-      const { status } = await axios({
-        method: 'get',
-        url: `http://localhost:${port}/health/v2`
+      const healthClient = new HealthClient({
+        protocol: 'http',
+        hostName: 'localhost',
+        port: healthPort,
+        path: '/health/v2'
       });
 
-      assert.that(status).is.equalTo(200);
+      await assert.that(
+        async (): Promise<any> => healthClient.getHealth()
+      ).is.not.throwingAsync();
     });
   });
 
@@ -90,7 +99,7 @@ suite('domain event', function (): void {
       setTimeout(async (): Promise<void> => {
         const { status } = await axios({
           method: 'post',
-          url: `http://localhost:${portPublisher}/publish/v2`,
+          url: `http://localhost:${publisherPort}/publish/v2`,
           data: domainEventWithoutState
         });
 
@@ -144,7 +153,7 @@ suite('domain event', function (): void {
       setTimeout(async (): Promise<void> => {
         const { status } = await axios({
           method: 'post',
-          url: `http://localhost:${portPublisher}/publish/v2`,
+          url: `http://localhost:${publisherPort}/publish/v2`,
           data: domainEvent
         });
 

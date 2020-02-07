@@ -75,8 +75,8 @@ const getConfiguration = function (): Configuration {
       default: '*',
       schema: corsSchema
     },
-    PORT: {
-      default: 3000,
+    HEALTH_PORT: {
+      default: 3001,
       schema: portSchema
     },
     CONCURRENT_COMMANDS: {

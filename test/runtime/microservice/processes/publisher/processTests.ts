@@ -1,24 +1,27 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import axios from 'axios';
-import { getAvailablePort } from '../../../../../lib/common/utils/network/getAvailablePort';
+import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { startProcess } from '../../../../shared/runtime/startProcess';
 
 suite('publisher', function (): void {
   this.timeout(10 * 1000);
 
-  let port: number,
+  let healthPort: number,
+      port: number,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    port = await getAvailablePort();
+    [ port, healthPort ] = await getAvailablePorts({ count: 2 });
 
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
-      port,
+      port: healthPort,
       env: {
-        PORT: String(port)
+        PORT: String(port),
+        HEALTH_PORT: String(healthPort)
       }
     });
   });
@@ -33,12 +36,16 @@ suite('publisher', function (): void {
 
   suite('GET /health/v2', (): void => {
     test('is using the health API.', async (): Promise<void> => {
-      const { status } = await axios({
-        method: 'get',
-        url: `http://localhost:${port}/health/v2`
+      const healthClient = new HealthClient({
+        protocol: 'http',
+        hostName: 'localhost',
+        port: healthPort,
+        path: '/health/v2'
       });
 
-      assert.that(status).is.equalTo(200);
+      await assert.that(
+        async (): Promise<any> => healthClient.getHealth()
+      ).is.not.throwingAsync();
     });
   });
 

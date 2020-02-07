@@ -1,5 +1,9 @@
 import axios from 'axios';
+import { errors } from '../../../../common/errors';
+import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
+
+const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
   public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
@@ -19,13 +23,19 @@ class Client extends HttpClient {
     memoryUsage: { rss: number; maxRss: number; heapTotal: number; heapUsed: number; external: number };
     diskUsage: { read: number; write: number };
   }> {
-    const { data } = await axios({
+    const { status, data } = await axios({
       method: 'get',
       url: `${this.url}/`,
       validateStatus (): boolean {
         return true;
       }
     });
+
+    if (status !== 200) {
+      logger.error('Unknown error occured.', data);
+
+      throw new errors.UnknownError();
+    }
 
     return data;
   }

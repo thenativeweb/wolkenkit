@@ -8,6 +8,7 @@ import { getConfiguration } from './getConfiguration';
 import { getOnReceiveMessage } from './getOnReceiveMessage';
 import http from 'http';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
+import { runHealthServer } from '../../../shared/runHealthServer';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -45,10 +46,15 @@ import { registerExceptionHandler } from '../../../../common/utils/process/regis
       }
     });
 
+    await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
+
     const server = http.createServer(api);
 
     server.listen(configuration.port, (): void => {
-      logger.info('Publisher server started.', { port: configuration.port });
+      logger.info(
+        'Publisher server started.',
+        { port: configuration.port, healthPort: configuration.healthPort }
+      );
     });
   } catch (ex) {
     logger.fatal('An unexpected error occured.', { ex });

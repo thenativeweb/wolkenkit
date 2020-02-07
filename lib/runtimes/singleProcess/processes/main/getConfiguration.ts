@@ -18,15 +18,7 @@ const getConfiguration = function (): Configuration {
         minLength: 1
       }
     },
-    HEALTH_CORS_ORIGIN: {
-      default: '*',
-      schema: corsSchema
-    },
-    COMMAND_CORS_ORIGIN: {
-      default: '*',
-      schema: corsSchema
-    },
-    DOMAIN_EVENT_CORS_ORIGIN: {
+    CORS_ORIGIN: {
       default: '*',
       schema: corsSchema
     },
@@ -47,6 +39,10 @@ const getConfiguration = function (): Configuration {
     },
     PORT: {
       default: 3000,
+      schema: portSchema
+    },
+    HEALTH_PORT: {
+      default: 3001,
       schema: portSchema
     }
   });

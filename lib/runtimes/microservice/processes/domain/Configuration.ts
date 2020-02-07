@@ -12,6 +12,6 @@ export interface Configuration {
   aeonstoreHostName: string;
   aeonstorePort: number;
   healthCorsOrigin: string | string[];
-  port: number;
+  healthPort: number;
   concurrentCommands: number;
 }

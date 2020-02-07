@@ -2,6 +2,7 @@ import { assert } from 'assertthat';
 import { Command } from '../../../../../lib/common/elements/Command';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
+import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import path from 'path';
 import { startCatchAllServer } from '../../../../shared/runtime/startCatchAllServer';
 import { startProcess } from '../../../../shared/runtime/startProcess';
@@ -18,11 +19,12 @@ suite('command', (): void => {
 
     let commandReceivedByDispatcher: object | undefined,
         dispatcherPort: number,
+        healthPort: number,
         port: number,
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, dispatcherPort ] = await getAvailablePorts({ count: 2 });
+      [ port, healthPort, dispatcherPort ] = await getAvailablePorts({ count: 3 });
 
       await startCatchAllServer({
         port: dispatcherPort,
@@ -35,10 +37,11 @@ suite('command', (): void => {
       stopProcess = await startProcess({
         runtime: 'microservice',
         name: 'command',
-        port,
+        port: healthPort,
         env: {
           APPLICATION_DIRECTORY: applicationDirectory,
           PORT: String(port),
+          HEALTH_PORT: String(healthPort),
           DISPATCHER_PROTOCOL: 'http',
           DISPATCHER_HOST_NAME: 'localhost',
           DISPATCHER_PORT: String(dispatcherPort),
@@ -59,12 +62,16 @@ suite('command', (): void => {
 
     suite('GET /health/v2', (): void => {
       test('is using the health API.', async (): Promise<void> => {
-        const { status } = await axios({
-          method: 'get',
-          url: `http://localhost:${port}/health/v2`
+        const healthClient = new HealthClient({
+          protocol: 'http',
+          hostName: 'localhost',
+          port: healthPort,
+          path: '/health/v2'
         });
 
-        assert.that(status).is.equalTo(200);
+        await assert.that(
+          async (): Promise<any> => healthClient.getHealth()
+        ).is.not.throwingAsync();
       });
     });
 
@@ -123,10 +130,11 @@ suite('command', (): void => {
         stopProcess = await startProcess({
           runtime: 'microservice',
           name: 'command',
-          port,
+          port: healthPort,
           env: {
             APPLICATION_DIRECTORY: applicationDirectory,
             PORT: String(port),
+            HEALTH_PORT: String(healthPort),
             DISPATCHER_PROTOCOL: 'http',
             DISPATCHER_HOST_NAME: 'non-existent',
             DISPATCHER_PORT: String(12345),
@@ -162,12 +170,13 @@ suite('command', (): void => {
           dispatcherRetries = 5;
 
     let dispatcherPort: number,
+        healthPort: number,
         port: number,
         requestCount: number,
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, dispatcherPort ] = await getAvailablePorts({ count: 2 });
+      [ port, healthPort, dispatcherPort ] = await getAvailablePorts({ count: 3 });
 
       requestCount = 0;
       await startCatchAllServer({
@@ -181,10 +190,11 @@ suite('command', (): void => {
       stopProcess = await startProcess({
         runtime: 'microservice',
         name: 'command',
-        port,
+        port: healthPort,
         env: {
           APPLICATION_DIRECTORY: applicationDirectory,
           PORT: String(port),
+          HEALTH_PORT: String(healthPort),
           DISPATCHER_PROTOCOL: 'http',
           DISPATCHER_HOST_NAME: 'localhost',
           DISPATCHER_PORT: String(dispatcherPort),
@@ -232,12 +242,13 @@ suite('command', (): void => {
           succeedAfterTries = 3;
 
     let dispatcherPort: number,
+        healthPort: number,
         port: number,
         requestCount: number,
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, dispatcherPort ] = await getAvailablePorts({ count: 2 });
+      [ port, healthPort, dispatcherPort ] = await getAvailablePorts({ count: 3 });
 
       requestCount = 0;
       await startCatchAllServer({
@@ -254,10 +265,11 @@ suite('command', (): void => {
       stopProcess = await startProcess({
         runtime: 'microservice',
         name: 'command',
-        port,
+        port: healthPort,
         env: {
           APPLICATION_DIRECTORY: applicationDirectory,
           PORT: String(port),
+          HEALTH_PORT: String(healthPort),
           DISPATCHER_PROTOCOL: 'http',
           DISPATCHER_HOST_NAME: 'localhost',
           DISPATCHER_PORT: String(dispatcherPort),
