@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { CommandData } from '../../../../common/elements/CommandData';
+import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
@@ -7,10 +9,11 @@ import { getApplicationDefinition } from '../../../../common/application/getAppl
 import { getConfiguration } from './getConfiguration';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
-import { handleCommand } from '../../../../common/domain/handleCommand';
 import http from 'http';
+import { InMemoryPriorityQueueStore } from '../../../../stores/priorityQueueStore/InMemory';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
-import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/PublishDomainEvent';
+import pForever from 'p-forever';
+import { processCommand } from './processCommand';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
@@ -44,28 +47,17 @@ import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const getOnReceiveCommand = function ({ publishDomainEvent }: { publishDomainEvent: PublishDomainEvent }): OnReceiveCommand {
-      const publishDomainEvents: PublishDomainEvents = async function ({ domainEvents }): Promise<void> {
-        for (const domainEvent of domainEvents) {
-          publishDomainEvent({ domainEvent });
-        }
-      };
+    const priorityQueueStore = await InMemoryPriorityQueueStore.create<CommandWithMetadata<CommandData>>({});
 
-      return async ({ command }): Promise<void> => {
-        await handleCommand({
-          command,
-          applicationDefinition,
-          publishDomainEvents,
-          repository
-        });
-      };
+    const onReceiveCommand: OnReceiveCommand = async ({ command }): Promise<void> => {
+      await priorityQueueStore.enqueue({ item: command });
     };
 
-    const { api } = await getApi({
+    const { api, publishDomainEvent } = await getApi({
       configuration,
       applicationDefinition,
       identityProviders,
-      getOnReceiveCommand,
+      onReceiveCommand,
       repository
     });
 
@@ -76,6 +68,26 @@ import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
     server.listen(configuration.port, (): void => {
       logger.info('Single process runtime server started.', { port: configuration.port });
     });
+
+    const publishDomainEvents: PublishDomainEvents = async function ({ domainEvents }): Promise<void> {
+      for (const domainEvent of domainEvents) {
+        publishDomainEvent({ domainEvent });
+      }
+    };
+
+    for (let i = 0; i < configuration.concurrentCommands; i++) {
+      pForever(async (): Promise<void> => {
+        await processCommand({
+          applicationDefinition,
+          repository,
+          priorityQueue: {
+            store: priorityQueueStore,
+            renewalInterval: configuration.commandQueueRenewInterval
+          },
+          publishDomainEvents
+        });
+      });
+    }
   } catch (ex) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);

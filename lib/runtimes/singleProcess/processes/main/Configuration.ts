@@ -9,4 +9,6 @@ export interface Configuration {
   port: number;
   healthPort: number;
   snapshotStrategy: SnapshotStrategyConfiguration;
+  concurrentCommands: number;
+  commandQueueRenewInterval: number;
 }

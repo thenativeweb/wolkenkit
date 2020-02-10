@@ -46,7 +46,17 @@ const getConfiguration = function (): Configuration {
       default: 3001,
       schema: portSchema
     },
-    SNAPSHOT_STRATEGY: getSnapshotStrategySchema()
+    SNAPSHOT_STRATEGY: getSnapshotStrategySchema(),
+    CONCURRENT_COMMANDS: {
+      default: 1,
+      schema: {
+        type: 'number',
+        minimum: 1
+      }
+    },
+    COMMAND_QUEUE_RENEW_INTERVAL: {
+      default: 5_000
+    }
   });
 
   return withCamelCaseKeys(environmentVariables) as Configuration;

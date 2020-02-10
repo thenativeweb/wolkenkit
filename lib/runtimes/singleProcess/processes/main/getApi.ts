@@ -13,23 +13,21 @@ const getApi = async function ({
   configuration,
   applicationDefinition,
   identityProviders,
-  getOnReceiveCommand,
+  onReceiveCommand,
   repository
 }: {
   configuration: Configuration;
   applicationDefinition: ApplicationDefinition;
   identityProviders: IdentityProvider[];
-  getOnReceiveCommand: (params: { publishDomainEvent: PublishDomainEvent}) => OnReceiveCommand;
+  onReceiveCommand: OnReceiveCommand;
   repository: Repository;
-}): Promise<{ api: Application }> {
+}): Promise<{ api: Application; publishDomainEvent: PublishDomainEvent }> {
   const { api: observeDomainEventsApi, publishDomainEvent } = await getObserveDomainEventsApi({
     corsOrigin: getCorsOrigin(configuration.corsOrigin),
     applicationDefinition,
     identityProviders,
     repository
   });
-
-  const onReceiveCommand = getOnReceiveCommand({ publishDomainEvent });
 
   const { api: handleCommandApi } = await getHandleCommandApi({
     corsOrigin: getCorsOrigin(configuration.corsOrigin),
@@ -43,7 +41,7 @@ const getApi = async function ({
   api.use('/domain-events', observeDomainEventsApi);
   api.use('/command', handleCommandApi);
 
-  return { api };
+  return { api, publishDomainEvent };
 };
 
 export { getApi };
