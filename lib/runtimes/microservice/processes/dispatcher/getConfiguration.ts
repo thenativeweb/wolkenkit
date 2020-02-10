@@ -62,6 +62,10 @@ const getConfiguration = function (): Configuration {
       default: 3_000,
       schema: portSchema
     },
+    HEALTH_PORT: {
+      default: 3_001,
+      schema: portSchema
+    },
     MISSED_COMMAND_RECOVERY_INTERVAL: {
       default: 5_000,
       schema: { type: 'number', minimum: 1 }

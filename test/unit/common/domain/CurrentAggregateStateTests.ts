@@ -5,7 +5,6 @@ import { CurrentAggregateState } from '../../../../lib/common/domain/CurrentAggr
 import { CustomError } from 'defekt';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
-import { PassThrough } from 'stream';
 import { State } from '../../../../lib/common/elements/State';
 import { uuid } from 'uuidv4';
 
@@ -229,88 +228,6 @@ suite('CurrentAggregateState', (): void => {
       assert.that(nextState).is.equalTo({
         domainEventNames: [ 'executed' ]
       });
-    });
-  });
-
-  suite('applyDomainEventStream', (): void => {
-    test('applies the given domain events to the state.', async (): Promise<void> => {
-      const domainEventSucceeded = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
-        name: 'succeeded',
-        data: {},
-        metadata: {
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-          revision: { aggregate: 1 }
-        }
-      });
-
-      const domainEventExecuted = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
-        name: 'executed',
-        data: {
-          strategy: 'succeed'
-        },
-        metadata: {
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-          revision: { aggregate: 2 }
-        }
-      });
-
-      const domainEventStream = new PassThrough({ objectMode: true });
-
-      domainEventStream.write(domainEventSucceeded);
-      domainEventStream.write(domainEventExecuted);
-      domainEventStream.end();
-
-      await currentAggregateState.applyDomainEventStream({
-        applicationDefinition,
-        domainEventStream
-      });
-
-      assert.that(currentAggregateState.state).is.equalTo({
-        domainEventNames: [ 'succeeded', 'executed' ]
-      });
-    });
-
-    test('updates the revision.', async (): Promise<void> => {
-      const domainEventSucceeded = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
-        name: 'succeeded',
-        data: {},
-        metadata: {
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-          revision: { aggregate: 1 }
-        }
-      });
-
-      const domainEventExecuted = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
-        name: 'executed',
-        data: {
-          strategy: 'succeed'
-        },
-        metadata: {
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-          revision: { aggregate: 2 }
-        }
-      });
-
-      const domainEventStream = new PassThrough({ objectMode: true });
-
-      domainEventStream.write(domainEventSucceeded);
-      domainEventStream.write(domainEventExecuted);
-      domainEventStream.end();
-
-      await currentAggregateState.applyDomainEventStream({
-        applicationDefinition,
-        domainEventStream
-      });
-
-      assert.that(currentAggregateState.revision).is.equalTo(2);
     });
   });
 });

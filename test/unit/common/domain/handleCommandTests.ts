@@ -7,6 +7,7 @@ import { DomainEventData } from '../../../../lib/common/elements/DomainEventData
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
+import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { handleCommand } from '../../../../lib/common/domain/handleCommand';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
@@ -25,7 +26,11 @@ suite('handleCommand', (): void => {
   setup(async (): Promise<void> => {
     applicationDefinition = await getApplicationDefinition({ applicationDirectory });
     domainEventStore = await InMemoryDomainEventStore.create();
-    repository = new Repository({ applicationDefinition, domainEventStore });
+    repository = new Repository({
+      applicationDefinition,
+      domainEventStore,
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+    });
   });
 
   suite('validation', (): void => {

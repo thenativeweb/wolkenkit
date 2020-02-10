@@ -4,6 +4,7 @@ import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getAggregatesService } from '../../../../lib/common/services/getAggregatesService';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
+import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory/InMemoryDomainEventStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
@@ -23,7 +24,11 @@ suite('getAggregatesService', (): void => {
   setup(async (): Promise<void> => {
     domainEventStore = await InMemoryDomainEventStore.create();
 
-    repository = new Repository({ applicationDefinition, domainEventStore });
+    repository = new Repository({
+      applicationDefinition,
+      domainEventStore,
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+    });
   });
 
   test('returns an AggregatesService if everything is fine.', async (): Promise<void> => {

@@ -1,3 +1,5 @@
+import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
+
 export interface Configuration {
   applicationDirectory: string;
   dispatcherProtocol: string;
@@ -12,6 +14,7 @@ export interface Configuration {
   aeonstoreHostName: string;
   aeonstorePort: number;
   healthCorsOrigin: string | string[];
-  port: number;
+  healthPort: number;
   concurrentCommands: number;
+  snapshotStrategy: SnapshotStrategyConfiguration;
 }

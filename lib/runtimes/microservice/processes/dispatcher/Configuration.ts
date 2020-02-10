@@ -12,5 +12,6 @@ export interface Configuration {
   handleCommandCorsOrigin: string | string[];
   healthCorsOrigin: string | string[];
   port: number;
+  healthPort: number;
   missedCommandRecoveryInterval: number;
 }

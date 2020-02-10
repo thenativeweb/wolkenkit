@@ -4,6 +4,7 @@ import { getEnvironmentVariables } from '../../../../common/utils/process/getEnv
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
+import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
 import path from 'path';
 import { withCamelCaseKeys } from '../../../../common/utils/withCamelCaseKeys';
 
@@ -47,6 +48,10 @@ const getConfiguration = function (): Configuration {
       default: 3000,
       schema: portSchema
     },
+    HEALTH_PORT: {
+      default: 3000,
+      schema: portSchema
+    },
     SUBSCRIBE_MESSAGES_PROTOCOL: {
       default: 'http',
       schema: protocolSchema
@@ -61,6 +66,16 @@ const getConfiguration = function (): Configuration {
     SUBSCRIBE_MESSAGES_PORT: {
       default: 3000,
       schema: portSchema
+    },
+    SNAPSHOT_STRATEGY: {
+      default: {
+        name: 'lowest',
+        configuration: {
+          revisionLimit: 100,
+          durationLimit: 500
+        }
+      },
+      schema: getSnapshotStrategySchema()
     }
   });
 

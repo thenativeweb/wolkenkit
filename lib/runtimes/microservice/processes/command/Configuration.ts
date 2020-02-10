@@ -8,4 +8,5 @@ export interface Configuration {
   healthCorsOrigin: string | string[];
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
+  healthPort: number;
 }

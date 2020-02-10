@@ -3,13 +3,12 @@ import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
-import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
+import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
 import path from 'path';
 import { withCamelCaseKeys } from '../../../../common/utils/withCamelCaseKeys';
 
 const corsSchema = getCorsSchema();
 const portSchema = getPortSchema();
-const protocolSchema = getProtocolSchema();
 
 const getConfiguration = function (): Configuration {
   const environmentVariables = getEnvironmentVariables({
@@ -20,32 +19,17 @@ const getConfiguration = function (): Configuration {
         minLength: 1
       }
     },
-    COMMAND_CORS_ORIGIN: {
+    CORS_ORIGIN: {
       default: '*',
       schema: corsSchema
     },
-    DISPATCHER_PROTOCOL: {
-      default: 'http',
-      schema: protocolSchema
+    DOMAIN_EVENT_STORE_OPTIONS: {
+      default: {},
+      schema: { type: 'object' }
     },
-    DISPATCHER_HOST_NAME: {
-      default: 'dispatcher',
-      schema: {
-        type: 'string',
-        format: 'hostname'
-      }
-    },
-    DISPATCHER_PORT: {
-      default: 3000,
-      schema: portSchema
-    },
-    DISPATCHER_RETRIES: {
-      default: 5,
-      schema: { type: 'integer' }
-    },
-    HEALTH_CORS_ORIGIN: {
-      default: '*',
-      schema: corsSchema
+    DOMAIN_EVENT_STORE_TYPE: {
+      default: 'InMemory',
+      schema: { type: 'string' }
     },
     IDENTITY_PROVIDERS: {
       default: [{
@@ -61,6 +45,17 @@ const getConfiguration = function (): Configuration {
     HEALTH_PORT: {
       default: 3001,
       schema: portSchema
+    },
+    SNAPSHOT_STRATEGY: getSnapshotStrategySchema(),
+    CONCURRENT_COMMANDS: {
+      default: 1,
+      schema: {
+        type: 'number',
+        minimum: 1
+      }
+    },
+    COMMAND_QUEUE_RENEW_INTERVAL: {
+      default: 5_000
     }
   });
 

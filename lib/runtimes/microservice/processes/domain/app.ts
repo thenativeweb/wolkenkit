@@ -5,16 +5,16 @@ import { Client as DispatcherClient } from '../../../../apis/awaitCommandWithMet
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
-import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
-import http from 'http';
+import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { Client as PublisherClient } from '../../../../apis/publishMessage/http/v2/Client';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
+import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
@@ -37,7 +37,8 @@ import { State } from '../../../../common/elements/State';
 
     const repository = new Repository({
       applicationDefinition,
-      domainEventStore
+      domainEventStore,
+      snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
     const dispatcherClient = new DispatcherClient({
@@ -62,15 +63,9 @@ import { State } from '../../../../common/elements/State';
       }
     };
 
-    const { api } = await getApi({
-      configuration
-    });
+    await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
 
-    const server = http.createServer(api);
-
-    server.listen(configuration.port, (): void => {
-      logger.info('Domain server started.', { port: configuration.port });
-    });
+    logger.info('Domain server started.', { healthPort: configuration.healthPort });
 
     for (let i = 0; i < configuration.concurrentCommands; i++) {
       pForever(async (): Promise<void> => {
