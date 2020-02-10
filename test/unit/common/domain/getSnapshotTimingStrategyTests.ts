@@ -3,10 +3,10 @@ import { getSnapshotStrategy } from 'lib/common/domain/getSnapshotStrategy';
 
 suite('getSnapshotStrategy', (): void => {
   suite('lowest', (): void => {
-    test('it returns true if the revision delta exceeds the limit.', async (): Promise<void> => {
+    test('returns true if the revision delta exceeds the limit.', async (): Promise<void> => {
       const configuration = {
-        timestampDelta: 500,
-        revisionDelta: 100
+        durationLimit: 500,
+        revisionLimit: 100
       };
 
       const snapshotStrategy = getSnapshotStrategy({
@@ -14,25 +14,19 @@ suite('getSnapshotStrategy', (): void => {
         configuration
       });
 
-      const lastSnapshotRevision = 1;
-      const lastSnapshotTimestamp = Date.now();
-      const currentRevision = lastSnapshotRevision + 105;
-      const currentTimestamp = lastSnapshotTimestamp + 200;
-
       const shouldCreateSnapshot = snapshotStrategy({
-        lastSnapshotRevision,
-        lastSnapshotTimestamp,
-        currentRevision,
-        currentTimestamp
+        latestSnapshot: undefined,
+        replayDuration: 200,
+        replayedDomainEvents: 105
       });
 
       assert.that(shouldCreateSnapshot).is.true();
     });
 
-    test('it returns true if the time delta exceeds the limit.', async (): Promise<void> => {
+    test('returns true if the time delta exceeds the limit.', async (): Promise<void> => {
       const configuration = {
-        timestampDelta: 500,
-        revisionDelta: 100
+        durationLimit: 500,
+        revisionLimit: 100
       };
 
       const snapshotStrategy = getSnapshotStrategy({
@@ -40,25 +34,19 @@ suite('getSnapshotStrategy', (): void => {
         configuration
       });
 
-      const lastSnapshotRevision = 1;
-      const lastSnapshotTimestamp = Date.now();
-      const currentRevision = lastSnapshotRevision + 50;
-      const currentTimestamp = lastSnapshotTimestamp + 600;
-
       const shouldCreateSnapshot = snapshotStrategy({
-        lastSnapshotRevision,
-        lastSnapshotTimestamp,
-        currentRevision,
-        currentTimestamp
+        latestSnapshot: undefined,
+        replayDuration: 600,
+        replayedDomainEvents: 50
       });
 
       assert.that(shouldCreateSnapshot).is.true();
     });
 
-    test('it returns false if neither exceeds the limit.', async (): Promise<void> => {
+    test('returns false if neither exceeds the limit.', async (): Promise<void> => {
       const configuration = {
-        timestampDelta: 500,
-        revisionDelta: 100
+        durationLimit: 500,
+        revisionLimit: 100
       };
 
       const snapshotStrategy = getSnapshotStrategy({
@@ -66,16 +54,10 @@ suite('getSnapshotStrategy', (): void => {
         configuration
       });
 
-      const lastSnapshotRevision = 1;
-      const lastSnapshotTimestamp = Date.now();
-      const currentRevision = lastSnapshotRevision + 45;
-      const currentTimestamp = lastSnapshotTimestamp + 250;
-
       const shouldCreateSnapshot = snapshotStrategy({
-        lastSnapshotRevision,
-        lastSnapshotTimestamp,
-        currentRevision,
-        currentTimestamp
+        latestSnapshot: undefined,
+        replayDuration: 250,
+        replayedDomainEvents: 45
       });
 
       assert.that(shouldCreateSnapshot).is.false();
@@ -83,9 +65,9 @@ suite('getSnapshotStrategy', (): void => {
   });
 
   suite('revision', (): void => {
-    test('it returns true if the revision delta exceeds the limit.', async (): Promise<void> => {
+    test('returns true if the revision delta exceeds the limit.', async (): Promise<void> => {
       const configuration = {
-        revisionDelta: 100
+        revisionLimit: 100
       };
 
       const snapshotStrategy = getSnapshotStrategy({
@@ -93,24 +75,18 @@ suite('getSnapshotStrategy', (): void => {
         configuration
       });
 
-      const lastSnapshotRevision = 1;
-      const lastSnapshotTimestamp = Date.now();
-      const currentRevision = lastSnapshotRevision + 105;
-      const currentTimestamp = lastSnapshotTimestamp + 200;
-
       const shouldCreateSnapshot = snapshotStrategy({
-        lastSnapshotRevision,
-        lastSnapshotTimestamp,
-        currentRevision,
-        currentTimestamp
+        latestSnapshot: undefined,
+        replayDuration: 200,
+        replayedDomainEvents: 105
       });
 
       assert.that(shouldCreateSnapshot).is.true();
     });
 
-    test(`it returns false if the revision delta doesn't exceed the limit.`, async (): Promise<void> => {
+    test(`returns false if the revision delta doesn't exceed the limit.`, async (): Promise<void> => {
       const configuration = {
-        revisionDelta: 100
+        revisionLimit: 100
       };
 
       const snapshotStrategy = getSnapshotStrategy({
@@ -118,68 +94,50 @@ suite('getSnapshotStrategy', (): void => {
         configuration
       });
 
-      const lastSnapshotRevision = 1;
-      const lastSnapshotTimestamp = Date.now();
-      const currentRevision = lastSnapshotRevision + 37;
-      const currentTimestamp = lastSnapshotTimestamp + 200;
-
       const shouldCreateSnapshot = snapshotStrategy({
-        lastSnapshotRevision,
-        lastSnapshotTimestamp,
-        currentRevision,
-        currentTimestamp
+        latestSnapshot: undefined,
+        replayDuration: 200,
+        replayedDomainEvents: 37
       });
 
       assert.that(shouldCreateSnapshot).is.false();
     });
   });
 
-  suite('timestamp', (): void => {
-    test('it returns true if the timestamp delta exceeds the limit.', async (): Promise<void> => {
+  suite('duration', (): void => {
+    test('returns true if the duration exceeds the limit.', async (): Promise<void> => {
       const configuration = {
-        timestampDelta: 100
+        durationLimit: 100
       };
 
       const snapshotStrategy = getSnapshotStrategy({
-        name: 'timestamp',
+        name: 'duration',
         configuration
       });
 
-      const lastSnapshotRevision = 1;
-      const lastSnapshotTimestamp = Date.now();
-      const currentRevision = lastSnapshotRevision + 105;
-      const currentTimestamp = lastSnapshotTimestamp + 200;
-
       const shouldCreateSnapshot = snapshotStrategy({
-        lastSnapshotRevision,
-        lastSnapshotTimestamp,
-        currentRevision,
-        currentTimestamp
+        latestSnapshot: undefined,
+        replayDuration: 200,
+        replayedDomainEvents: 105
       });
 
       assert.that(shouldCreateSnapshot).is.true();
     });
 
-    test(`it returns false if the timestamp delta doesn't exceed the limit.`, async (): Promise<void> => {
+    test(`returns false if the duration doesn't exceed the limit.`, async (): Promise<void> => {
       const configuration = {
-        timestampDelta: 100
+        durationLimit: 100
       };
 
       const snapshotStrategy = getSnapshotStrategy({
-        name: 'timestamp',
+        name: 'duration',
         configuration
       });
 
-      const lastSnapshotRevision = 1;
-      const lastSnapshotTimestamp = Date.now();
-      const currentRevision = lastSnapshotRevision + 105;
-      const currentTimestamp = lastSnapshotTimestamp + 68;
-
       const shouldCreateSnapshot = snapshotStrategy({
-        lastSnapshotRevision,
-        lastSnapshotTimestamp,
-        currentRevision,
-        currentTimestamp
+        latestSnapshot: undefined,
+        replayDuration: 68,
+        replayedDomainEvents: 105
       });
 
       assert.that(shouldCreateSnapshot).is.false();
@@ -187,21 +145,15 @@ suite('getSnapshotStrategy', (): void => {
   });
 
   suite('never', (): void => {
-    test('it returns false.', async (): Promise<void> => {
+    test('returns false.', async (): Promise<void> => {
       const snapshotStrategy = getSnapshotStrategy({
         name: 'never'
       });
 
-      const lastSnapshotRevision = 1;
-      const lastSnapshotTimestamp = Date.now();
-      const currentRevision = lastSnapshotRevision + 10_000;
-      const currentTimestamp = lastSnapshotTimestamp + 200_000;
-
       const shouldCreateSnapshot = snapshotStrategy({
-        lastSnapshotRevision,
-        lastSnapshotTimestamp,
-        currentRevision,
-        currentTimestamp
+        latestSnapshot: undefined,
+        replayDuration: 200_000,
+        replayedDomainEvents: 10_000
       });
 
       assert.that(shouldCreateSnapshot).is.false();

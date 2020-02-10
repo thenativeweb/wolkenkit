@@ -7,33 +7,25 @@ const getSnapshotStrategy = function (
 ): SnapshotStrategy {
   switch (snapshotStrategyConfiguration.name) {
     case 'lowest': {
-      const timestampDeltaLimit = snapshotStrategyConfiguration.configuration.timestampDelta;
-      const revisionDeltaLimit = snapshotStrategyConfiguration.configuration.revisionDelta;
+      const { durationLimit, revisionLimit } = snapshotStrategyConfiguration.configuration;
 
-      return ({ lastSnapshotRevision, lastSnapshotTimestamp, currentRevision, currentTimestamp }): boolean => {
-        const timestampDelta = currentTimestamp - lastSnapshotTimestamp;
-        const revisionDelta = currentRevision - lastSnapshotRevision;
-
-        return timestampDelta >= timestampDeltaLimit || revisionDelta >= revisionDeltaLimit;
-      };
+      return ({ replayDuration, replayedDomainEvents }): boolean =>
+        replayDuration >= durationLimit || replayedDomainEvents >= revisionLimit;
     }
     case 'revision': {
-      const revisionDeltaLimit = snapshotStrategyConfiguration.configuration.revisionDelta;
+      const { revisionLimit } = snapshotStrategyConfiguration.configuration;
 
-      return ({ lastSnapshotRevision, currentRevision }): boolean => {
-        const revisionDelta = currentRevision - lastSnapshotRevision;
-
-        return revisionDelta >= revisionDeltaLimit;
-      };
+      return ({ replayedDomainEvents }): boolean =>
+        replayedDomainEvents >= revisionLimit;
     }
-    case 'timestamp': {
-      const timestampDeltaLimit = snapshotStrategyConfiguration.configuration.timestampDelta;
+    case 'duration': {
+      const { durationLimit } = snapshotStrategyConfiguration.configuration;
 
-      return ({ lastSnapshotTimestamp, currentTimestamp }): boolean => {
-        const timestampDelta = currentTimestamp - lastSnapshotTimestamp;
-
-        return timestampDelta >= timestampDeltaLimit;
-      };
+      return ({ replayDuration }): boolean =>
+        replayDuration >= durationLimit;
+    }
+    case 'always': {
+      return (): boolean => true;
     }
     case 'never': {
       return (): boolean => false;

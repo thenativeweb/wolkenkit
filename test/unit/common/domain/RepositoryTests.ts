@@ -38,7 +38,7 @@ suite('Repository', (): void => {
     await domainEventStore.destroy();
   });
 
-  suite('loadCurrentAggregateState', (): void => {
+  suite.only('loadCurrentAggregateState', (): void => {
     test('returns the current state of the requested aggregate.', async (): Promise<void> => {
       const domainEventSucceeded = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
@@ -81,7 +81,7 @@ suite('Repository', (): void => {
       repository = new Repository({
         applicationDefinition,
         domainEventStore,
-        snapshotStrategy: getSnapshotStrategy({ name: 'revision', configuration: { revisionDelta: 2 }})
+        snapshotStrategy: getSnapshotStrategy({ name: 'always' })
       });
 
       const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
@@ -129,7 +129,31 @@ suite('Repository', (): void => {
       const latestSnapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
       assert.that(latestSnapshot).is.not.undefined();
-      assert.that(latestSnapshot?.revision).is.equalTo(2);
+      assert.that(latestSnapshot?.revision).is.equalTo(3);
+    });
+
+    test('does not call the snapshot strategy if no domain events have been replayed.', async (): Promise<void> => {
+      let snapshotStrategyCalled = false;
+      const snapshotStrategy = (): boolean => {
+        snapshotStrategyCalled = true;
+
+        return false;
+      };
+
+      repository = new Repository({
+        applicationDefinition,
+        domainEventStore,
+        snapshotStrategy
+      });
+
+      const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
+
+      await repository.loadCurrentAggregateState({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier
+      });
+
+      assert.that(snapshotStrategyCalled).is.false();
     });
   });
 

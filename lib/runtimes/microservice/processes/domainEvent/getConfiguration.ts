@@ -71,8 +71,8 @@ const getConfiguration = function (): Configuration {
       default: {
         name: 'lowest',
         configuration: {
-          revisionDelta: 100,
-          timestampDelta: 500
+          revisionLimit: 100,
+          durationLimit: 500
         }
       },
       schema: getSnapshotStrategySchema()

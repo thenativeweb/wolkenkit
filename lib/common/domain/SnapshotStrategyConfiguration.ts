@@ -2,19 +2,21 @@ export type SnapshotStrategyConfiguration =
   {
     name: 'never';
   } | {
+    name: 'always';
+  } | {
     name: 'lowest';
     configuration: {
-      revisionDelta: number;
-      timestampDelta: number;
+      revisionLimit: number;
+      durationLimit: number;
     };
   } | {
     name: 'revision';
     configuration: {
-      revisionDelta: number;
+      revisionLimit: number;
     };
   } | {
-    name: 'timestamp';
+    name: 'duration';
     configuration: {
-      timestampDelta: number;
+      durationLimit: number;
     };
   };

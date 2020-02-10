@@ -65,8 +65,8 @@ class Repository {
       fromRevision
     });
 
-    let lastSnapshotRevision = fromRevision - 1,
-        lastSnapshotTimestamp = Date.now();
+    const replayStartRevision = fromRevision - 1,
+          replayStartTimestamp = Date.now();
 
     for await (const domainEvent of domainEventStream) {
       currentAggregateState.state = currentAggregateState.applyDomainEvent({
@@ -74,25 +74,23 @@ class Repository {
         domainEvent
       });
       currentAggregateState.revision = domainEvent.metadata.revision.aggregate;
+    }
 
-      const currentRevision = domainEvent.metadata.revision.aggregate;
-      const currentTimestamp = Date.now();
+    const replayDuration = Date.now() - replayStartTimestamp,
+          replayedDomainEvents = currentAggregateState.revision - replayStartRevision;
 
-      if (this.snapshotStrategy({
-        lastSnapshotRevision,
-        lastSnapshotTimestamp,
-        currentRevision,
-        currentTimestamp
+    if (
+      replayedDomainEvents > 0 &&
+      this.snapshotStrategy({
+        latestSnapshot: snapshot,
+        replayDuration,
+        replayedDomainEvents
       })) {
-        await this.domainEventStore.storeSnapshot({ snapshot: {
-          aggregateIdentifier,
-          revision: currentAggregateState.revision,
-          state: currentAggregateState.state
-        }});
-
-        lastSnapshotRevision = currentRevision;
-        lastSnapshotTimestamp = currentTimestamp;
-      }
+      await this.domainEventStore.storeSnapshot({ snapshot: {
+        aggregateIdentifier,
+        revision: currentAggregateState.revision,
+        state: currentAggregateState.state
+      }});
     }
 
     return currentAggregateState;

@@ -13,16 +13,16 @@ const getSnapshotStrategySchema = function (): Schema {
           configuration: {
             type: 'object',
             properties: {
-              revisionDelta: {
+              revisionLimit: {
                 type: 'number',
                 minimum: 1
               },
-              timestampDelta: {
+              durationLimit: {
                 type: 'number',
                 minimum: 1
               }
             },
-            required: [ 'revisionDelta', 'timestampDelta' ],
+            required: [ 'revisionLimit', 'durationLimit' ],
             additionalProperties: false
           }
         },
@@ -39,12 +39,12 @@ const getSnapshotStrategySchema = function (): Schema {
           configuration: {
             type: 'object',
             properties: {
-              revisionDelta: {
+              revisionLimit: {
                 type: 'number',
                 minimum: 1
               }
             },
-            required: [ 'revisionDelta' ],
+            required: [ 'revisionLimit' ],
             additionalProperties: false
           }
         },
@@ -56,21 +56,32 @@ const getSnapshotStrategySchema = function (): Schema {
         properties: {
           name: {
             type: 'string',
-            enum: [ 'timestamp' ]
+            enum: [ 'duration' ]
           },
           configuration: {
             type: 'object',
             properties: {
-              timestampDelta: {
+              durationLimit: {
                 type: 'number',
                 minimum: 1
               }
             },
-            required: [ 'timestampDelta' ],
+            required: [ 'durationLimit' ],
             additionalProperties: false
           }
         },
         required: [ 'name', 'configuration' ],
+        additionalProperties: false
+      },
+      {
+        type: 'object',
+        properties: {
+          name: {
+            type: 'string',
+            enum: [ 'always' ]
+          }
+        },
+        required: [ 'name' ],
         additionalProperties: false
       },
       {
