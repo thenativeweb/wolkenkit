@@ -38,7 +38,7 @@ suite('Repository', (): void => {
     await domainEventStore.destroy();
   });
 
-  suite.only('loadCurrentAggregateState', (): void => {
+  suite('loadCurrentAggregateState', (): void => {
     test('returns the current state of the requested aggregate.', async (): Promise<void> => {
       const domainEventSucceeded = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
