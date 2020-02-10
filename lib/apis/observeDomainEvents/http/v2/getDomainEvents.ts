@@ -34,11 +34,6 @@ const getDomainEvents = function ({
       const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
       const domainEventFilter = req.query || {};
 
-      // TODO: change filter parameter to req.query.filter or something like that
-      // TODO: add parameter `fromRevisionGlobal`
-      // TODO: getReplay since `fromRevisionGlobal` and buffer incoming events in the meantime
-      // TODO: drop events from buffer that are in the replay, then send the buffer
-
       const handleDomainEvent = (domainEventWithState: DomainEventWithState<DomainEventData, State>): void => {
         /* eslint-disable @typescript-eslint/no-floating-promises */
         domainEventQueue.add(async (): Promise<void> => {
