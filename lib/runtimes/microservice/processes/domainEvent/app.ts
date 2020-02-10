@@ -8,6 +8,7 @@ import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
+import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
@@ -39,7 +40,8 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
 
     const repository = new Repository({
       applicationDefinition,
-      domainEventStore
+      domainEventStore,
+      snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
     const { api, publishDomainEvent } = await getApi({

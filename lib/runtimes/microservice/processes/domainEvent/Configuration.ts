@@ -1,3 +1,5 @@
+import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
+
 export interface Configuration {
   applicationDirectory: string;
   domainEventCorsOrigin: string | string[];
@@ -10,4 +12,5 @@ export interface Configuration {
   subscribeMessagesProtocol: string;
   subscribeMessagesHostName: string;
   subscribeMessagesPort: number;
+  snapshotStrategy: SnapshotStrategyConfiguration;
 }

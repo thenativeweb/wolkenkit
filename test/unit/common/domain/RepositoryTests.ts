@@ -7,6 +7,7 @@ import { DomainEventData } from '../../../../lib/common/elements/DomainEventData
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
+import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
 import { Repository } from '../../../../lib/common/domain/Repository';
@@ -26,7 +27,11 @@ suite('Repository', (): void => {
 
     aggregateId = uuid();
     domainEventStore = await InMemoryDomainEventStore.create();
-    repository = new Repository({ applicationDefinition, domainEventStore });
+    repository = new Repository({
+      applicationDefinition,
+      domainEventStore,
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+    });
   });
 
   teardown(async (): Promise<void> => {
@@ -70,6 +75,61 @@ suite('Repository', (): void => {
         domainEventNames: [ 'succeeded', 'executed' ]
       });
       assert.that(currentAggregateState.revision).is.equalTo(2);
+    });
+
+    test('stores a snapshot if the snapshot strategy evaluates to true.', async (): Promise<void> => {
+      repository = new Repository({
+        applicationDefinition,
+        domainEventStore,
+        snapshotStrategy: getSnapshotStrategy({ name: 'revision', configuration: { revisionDelta: 2 }})
+      });
+
+      const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
+
+      const domainEvents = [
+        buildDomainEvent({
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier,
+          name: 'succeeded',
+          data: {},
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            revision: { aggregate: 1 }
+          }
+        }),
+        buildDomainEvent({
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier,
+          name: 'succeeded',
+          data: {},
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            revision: { aggregate: 2 }
+          }
+        }),
+        buildDomainEvent({
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier,
+          name: 'succeeded',
+          data: {},
+          metadata: {
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            revision: { aggregate: 3 }
+          }
+        })
+      ];
+
+      await domainEventStore.storeDomainEvents({ domainEvents });
+
+      await repository.loadCurrentAggregateState({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier
+      });
+
+      const latestSnapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
+
+      assert.that(latestSnapshot).is.not.undefined();
+      assert.that(latestSnapshot?.revision).is.equalTo(2);
     });
   });
 

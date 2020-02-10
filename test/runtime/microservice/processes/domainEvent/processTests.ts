@@ -16,7 +16,7 @@ import { uuid } from 'uuidv4';
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
 suite('domain event', function (): void {
-  this.timeout(10 * 1000);
+  this.timeout(10_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
@@ -61,7 +61,8 @@ suite('domain event', function (): void {
         HEALTH_PORT: String(healthPort),
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
         SUBSCRIBE_MESSAGES_HOST_NAME: 'localhost',
-        SUBSCRIBE_MESSAGES_PORT: String(publisherPort)
+        SUBSCRIBE_MESSAGES_PORT: String(publisherPort),
+        SNAPSHOT_STRATEGY: `{"name":"never"}`
       }
     });
 

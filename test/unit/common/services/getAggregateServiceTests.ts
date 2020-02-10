@@ -7,6 +7,7 @@ import { CurrentAggregateState } from '../../../../lib/common/domain/CurrentAggr
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getAggregateService } from '../../../../lib/common/services/getAggregateService';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
+import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
 import { Repository } from '../../../../lib/common/domain/Repository';
@@ -73,7 +74,11 @@ suite('getAggregateService', (): void => {
 
     domainEventStore = await InMemoryDomainEventStore.create();
 
-    repository = new Repository({ applicationDefinition, domainEventStore });
+    repository = new Repository({
+      applicationDefinition,
+      domainEventStore,
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+    });
 
     currentAggregateState = await repository.loadCurrentAggregateState({
       contextIdentifier: {

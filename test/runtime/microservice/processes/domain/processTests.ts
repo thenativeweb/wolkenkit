@@ -121,7 +121,8 @@ suite('domain', function (): void {
         AEONSTORE_PORT: String(domainEventStorePort),
         AEONSTORE_RETRIES: String(0),
         HEALTH_PORT: String(domainHealthPort),
-        CONCURRENT_COMMANDS: String(1)
+        CONCURRENT_COMMANDS: String(1),
+        SNAPSHOT_STRATEGY: `{"name":"never"}`
       }
     });
   });

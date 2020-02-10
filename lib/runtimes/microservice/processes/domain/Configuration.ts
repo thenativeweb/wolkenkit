@@ -1,3 +1,5 @@
+import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
+
 export interface Configuration {
   applicationDirectory: string;
   dispatcherProtocol: string;
@@ -14,4 +16,5 @@ export interface Configuration {
   healthCorsOrigin: string | string[];
   healthPort: number;
   concurrentCommands: number;
+  snapshotStrategy: SnapshotStrategyConfiguration;
 }

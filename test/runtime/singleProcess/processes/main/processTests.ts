@@ -37,7 +37,8 @@ suite('main', function (): void {
         DOMAIN_EVENT_STORE_TYPE: 'InMemory',
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
         PORT: String(port),
-        HEALTH_PORT: String(healthPort)
+        HEALTH_PORT: String(healthPort),
+        SNAPSHOT_STRATEGY: `{"name":"never"}`
       }
     });
 

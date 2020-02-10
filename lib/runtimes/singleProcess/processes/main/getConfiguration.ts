@@ -3,6 +3,7 @@ import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
 import path from 'path';
 import { withCamelCaseKeys } from '../../../../common/utils/withCamelCaseKeys';
 
@@ -44,7 +45,8 @@ const getConfiguration = function (): Configuration {
     HEALTH_PORT: {
       default: 3001,
       schema: portSchema
-    }
+    },
+    SNAPSHOT_STRATEGY: getSnapshotStrategySchema()
   });
 
   return withCamelCaseKeys(environmentVariables) as Configuration;

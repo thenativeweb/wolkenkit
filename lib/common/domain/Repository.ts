@@ -7,6 +7,7 @@ import { DomainEventData } from '../elements/DomainEventData';
 import { DomainEventStore } from '../../stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../elements/DomainEventWithState';
 import { errors } from '../errors';
+import { SnapshotStrategy } from './SnapshotStrategy';
 import { State } from '../elements/State';
 
 class Repository {
@@ -14,12 +15,16 @@ class Repository {
 
   protected domainEventStore: DomainEventStore;
 
-  public constructor ({ applicationDefinition, domainEventStore }: {
+  protected snapshotStrategy: SnapshotStrategy;
+
+  public constructor ({ applicationDefinition, domainEventStore, snapshotStrategy }: {
     applicationDefinition: ApplicationDefinition;
     domainEventStore: DomainEventStore;
+    snapshotStrategy: SnapshotStrategy;
   }) {
     this.applicationDefinition = applicationDefinition;
     this.domainEventStore = domainEventStore;
+    this.snapshotStrategy = snapshotStrategy;
   }
 
   public async loadCurrentAggregateState <TState extends State> ({ contextIdentifier, aggregateIdentifier }: {
@@ -60,10 +65,35 @@ class Repository {
       fromRevision
     });
 
-    await currentAggregateState.applyDomainEventStream({
-      applicationDefinition: this.applicationDefinition,
-      domainEventStream
-    });
+    let lastSnapshotRevision = fromRevision - 1,
+        lastSnapshotTimestamp = Date.now();
+
+    for await (const domainEvent of domainEventStream) {
+      currentAggregateState.state = currentAggregateState.applyDomainEvent({
+        applicationDefinition: this.applicationDefinition,
+        domainEvent
+      });
+      currentAggregateState.revision = domainEvent.metadata.revision.aggregate;
+
+      const currentRevision = domainEvent.metadata.revision.aggregate;
+      const currentTimestamp = Date.now();
+
+      if (this.snapshotStrategy({
+        lastSnapshotRevision,
+        lastSnapshotTimestamp,
+        currentRevision,
+        currentTimestamp
+      })) {
+        await this.domainEventStore.storeSnapshot({ snapshot: {
+          aggregateIdentifier,
+          revision: currentAggregateState.revision,
+          state: currentAggregateState.state
+        }});
+
+        lastSnapshotRevision = currentRevision;
+        lastSnapshotTimestamp = currentTimestamp;
+      }
+    }
 
     return currentAggregateState;
   }

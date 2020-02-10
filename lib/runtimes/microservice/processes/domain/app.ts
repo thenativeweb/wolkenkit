@@ -7,6 +7,7 @@ import { DomainEventWithState } from '../../../../common/elements/DomainEventWit
 import { flaschenpost } from 'flaschenpost';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
+import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
@@ -36,7 +37,8 @@ import { State } from '../../../../common/elements/State';
 
     const repository = new Repository({
       applicationDefinition,
-      domainEventStore
+      domainEventStore,
+      snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
     const dispatcherClient = new DispatcherClient({

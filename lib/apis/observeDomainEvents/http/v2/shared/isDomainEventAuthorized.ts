@@ -17,6 +17,9 @@ const isDomainEventAuthorized = async function ({
   domainEventHandler: DomainEventHandler<State, DomainEventData>;
   services: Services;
 }): Promise<void> {
+  // TODO: check wether domain event is -rejected/-failed and whether it should
+  // be sent to the current client.
+
   const clonedDomainEvent = cloneDeep(domainEventWithState);
 
   const isAuthorized =

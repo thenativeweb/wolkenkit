@@ -8,7 +8,6 @@ import { DomainEventWithState } from '../elements/DomainEventWithState';
 import { errors } from '../errors';
 import { get } from 'lodash';
 import { getLoggerService } from '../services/getLoggerService';
-import { Readable } from 'stream';
 import { Snapshot } from '../../stores/domainEventStore/Snapshot';
 import { State } from '../elements/State';
 
@@ -84,16 +83,6 @@ class CurrentAggregateState<TState extends State> {
       ...this.state,
       ...newStatePartial
     };
-  }
-
-  public async applyDomainEventStream ({ applicationDefinition, domainEventStream }: {
-    applicationDefinition: ApplicationDefinition;
-    domainEventStream: Readable;
-  }): Promise<void> {
-    for await (const domainEvent of domainEventStream) {
-      this.revision = domainEvent.metadata.revision.aggregate;
-      this.state = this.applyDomainEvent({ applicationDefinition, domainEvent });
-    }
   }
 }
 
