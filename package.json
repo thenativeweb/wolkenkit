@@ -104,7 +104,7 @@
   "dependencies": {
     "axios": "0.19.2",
     "body-parser": "1.19.0",
-    "buntstift": "3.1.0",
+    "buntstift": "4.0.0",
     "common-tags": "1.8.0",
     "compression": "1.7.4",
     "content-type": "1.0.4",
