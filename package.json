@@ -139,7 +139,7 @@
     "validate-value": "7.0.0"
   },
   "devDependencies": {
-    "@types/body-parser": "1.17.1",
+    "@types/body-parser": "1.19.0",
     "@types/common-tags": "1.8.0",
     "@types/compression": "1.7.0",
     "@types/content-type": "1.1.3",
