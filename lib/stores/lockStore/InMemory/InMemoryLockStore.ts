@@ -1,8 +1,7 @@
+import { errors } from '../errors';
 import { Lock } from './Lock';
 import { LockStore } from '../LockStore';
 import { javascript as maxDate } from '../../../common/utils/maxDate';
-import { noop } from 'lodash';
-import { sortKeys } from '../../../common/utils/sortKeys';
 
 class InMemoryLockStore implements LockStore {
   protected maxLockSize: number;
@@ -19,95 +18,79 @@ class InMemoryLockStore implements LockStore {
   public static async create ({ maxLockSize = 2048 }: {
     maxLockSize?: number;
   }): Promise<InMemoryLockStore> {
-    const lockstore = new InMemoryLockStore({ maxLockSize });
-
-    return lockstore;
-  }
-
-  protected getLockName ({ namespace, value }: {
-    namespace: string;
-    value: any;
-  }): string {
-    const serializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
-
-    if (serializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
-    }
-
-    const name = `${namespace}#${serializedValue}`;
-
-    return name;
+    return new InMemoryLockStore({ maxLockSize });
   }
 
   public async acquireLock ({
-    namespace,
-    value,
-    expiresAt = maxDate,
-    onAcquired = noop
+    name,
+    expiresAt = maxDate
   }: {
-    namespace: string;
-    value: any;
+    name: string;
     expiresAt?: number;
-    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
-    const name = this.getLockName({ namespace, value });
+    if (name.length >= this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
+    }
+
+    if (expiresAt - Date.now() < 0) {
+      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
+    }
 
     const isLocked = this.database.locks.some(
       (lock): boolean => lock.name === name && Date.now() < lock.expiresAt
     );
 
     if (isLocked) {
-      throw new Error('Failed to acquire lock.');
+      throw new errors.AcquireLockFailed('Failed to acquire lock.');
     }
 
     const lock = { name, expiresAt };
 
     this.database.locks.push(lock);
-
-    try {
-      await onAcquired();
-    } catch (ex) {
-      await this.releaseLock({ namespace, value });
-
-      throw ex;
-    }
   }
 
-  public async isLocked ({ namespace, value }: {
-    namespace: string;
-    value: any;
+  public async isLocked ({ name }: {
+    name: string;
   }): Promise<boolean> {
-    const name = this.getLockName({ namespace, value });
+    if (name.length >= this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
+    }
 
-    const isLocked = this.database.locks.some(
+    return this.database.locks.some(
       (lock): boolean => lock.name === name && Date.now() < lock.expiresAt
     );
-
-    return isLocked;
   }
 
-  public async renewLock ({ namespace, value, expiresAt }: {
-    namespace: string;
-    value: any;
+  public async renewLock ({ name, expiresAt }: {
+    name: string;
     expiresAt: number;
   }): Promise<void> {
-    const name = this.getLockName({ namespace, value });
+    if (name.length >= this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
+    }
+
+    if (expiresAt - Date.now() < 0) {
+      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
+    }
+
     const existingLock = this.database.locks.find(
       (lock): boolean => lock.name === name && Date.now() < lock.expiresAt
     );
 
     if (!existingLock) {
-      throw new Error('Failed to renew lock.');
+      throw new errors.RenewLockFailed('Failed to renew lock.');
     }
 
     existingLock.expiresAt = expiresAt;
   }
 
-  public async releaseLock ({ namespace, value }: {
-    namespace: string;
-    value: any;
+  public async releaseLock ({ name }: {
+    name: string;
   }): Promise<void> {
-    const name = this.getLockName({ namespace, value });
+    if (name.length >= this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
+    }
+
     const index = this.database.locks.findIndex(
       (lock): boolean => lock.name === name
     );

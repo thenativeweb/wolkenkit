@@ -1,6 +1,6 @@
+import { errors } from '../errors';
 import { LockStore } from '../LockStore';
 import { javascript as maxDate } from '../../../common/utils/maxDate';
-import { noop } from 'lodash';
 import { retry } from 'retry-ignore-abort';
 import { TableNames } from './TableNames';
 import { Client, Pool, PoolClient } from 'pg';
@@ -114,12 +114,11 @@ class PostgresLockStore implements LockStore {
       await retry(async (): Promise<void> => {
         await connection.query(`
           CREATE TABLE IF NOT EXISTS "${tableNames.locks}" (
-            "namespace" VARCHAR(64) NOT NULL,
-            "value" jsonb NOT NULL,
+            "name" VARCHAR(${maxLockSize}) NOT NULL,
             "expiresAt" timestamp NOT NULL,
             "nonce" VARCHAR(64),
 
-            CONSTRAINT "${tableNames.locks}_pk" PRIMARY KEY("namespace", "value")
+            CONSTRAINT "${tableNames.locks}_pk" PRIMARY KEY("name")
           );
         `);
       }, {
@@ -135,20 +134,18 @@ class PostgresLockStore implements LockStore {
   }
 
   public async acquireLock ({
-    namespace,
-    value,
-    expiresAt = maxDate,
-    onAcquired = noop
+    name,
+    expiresAt = maxDate
   }: {
-    namespace: string;
-    value: any;
+    name: any;
     expiresAt?: number;
-    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
-    const serializedValue = JSON.stringify(value);
+    if (name.length >= this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
+    }
 
-    if (serializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (expiresAt - Date.now() < 0) {
+      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
 
     const connection = await PostgresLockStore.getDatabase(this.pool);
@@ -159,10 +156,9 @@ class PostgresLockStore implements LockStore {
         text: `
         SELECT "expiresAt"
           FROM "${this.tableNames.locks}"
-         WHERE "namespace" = $1
-           AND "value" = $2
+         WHERE "name" = $1
       `,
-        values: [ namespace, serializedValue ]
+        values: [ name ]
       });
 
       let newEntry = true;
@@ -173,7 +169,7 @@ class PostgresLockStore implements LockStore {
         const isLocked = Date.now() < entry.expiresAt.getTime();
 
         if (isLocked) {
-          throw new Error('Failed to acquire lock.');
+          throw new errors.AcquireLockFailed('Failed to acquire lock.');
         }
 
         newEntry = false;
@@ -183,45 +179,33 @@ class PostgresLockStore implements LockStore {
 
       if (newEntry) {
         query = `
-        INSERT INTO "${this.tableNames.locks}" ("namespace", "value", "expiresAt", "nonce")
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO "${this.tableNames.locks}" ("name", "expiresAt", "nonce")
+        VALUES ($1, $2, $3)
         `;
       } else {
         query = `
         UPDATE "${this.tableNames.locks}"
-           SET "expiresAt" = $3,
-               "nonce" = $4
-         WHERE "namespace" = $1
-           AND "value" = $2
+           SET "expiresAt" = $2,
+               "nonce" = $3
+         WHERE "name" = $1
         `;
       }
 
       await connection.query({
         name: `acquire ${newEntry ? 'new' : 'existing'} lock`,
         text: query,
-        values: [ namespace, serializedValue, new Date(expiresAt), this.nonce ]
+        values: [ name, new Date(expiresAt), this.nonce ]
       });
-
-      try {
-        await onAcquired();
-      } catch (ex) {
-        await this.releaseLock({ namespace, value });
-
-        throw ex;
-      }
     } finally {
       connection.release();
     }
   }
 
-  public async isLocked ({ namespace, value }: {
-    namespace: string;
-    value: any;
+  public async isLocked ({ name }: {
+    name: any;
   }): Promise<boolean> {
-    const serializedValue = JSON.stringify(value);
-
-    if (serializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (name.length >= this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
     const connection = await PostgresLockStore.getDatabase(this.pool);
@@ -234,10 +218,9 @@ class PostgresLockStore implements LockStore {
         text: `
         SELECT "expiresAt"
           FROM "${this.tableNames.locks}"
-         WHERE "namespace" = $1
-           AND "value" = $2
+         WHERE "name" = $1
       `,
-        values: [ namespace, serializedValue ]
+        values: [ name ]
       });
 
       if (result.rows.length > 0) {
@@ -252,15 +235,16 @@ class PostgresLockStore implements LockStore {
     return isLocked;
   }
 
-  public async renewLock ({ namespace, value, expiresAt }: {
-    namespace: string;
-    value: any;
+  public async renewLock ({ name, expiresAt }: {
+    name: any;
     expiresAt: number;
   }): Promise<void> {
-    const serializedValue = JSON.stringify(value);
+    if (name.length >= this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
+    }
 
-    if (serializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (expiresAt - Date.now() < 0) {
+      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
 
     const connection = await PostgresLockStore.getDatabase(this.pool);
@@ -271,45 +255,40 @@ class PostgresLockStore implements LockStore {
         text: `
         SELECT "expiresAt", "nonce"
           FROM "${this.tableNames.locks}"
-         WHERE "namespace" = $1
-           AND "value" = $2
+         WHERE "name" = $1
       `,
-        values: [ namespace, serializedValue ]
+        values: [ name ]
       });
 
       if (result.rows.length === 0) {
-        throw new Error('Failed to renew lock.');
+        throw new errors.RenewLockFailed('Failed to renew lock.');
       }
 
       const [ entry ] = result.rows;
 
       if (entry.expiresAt.getTime() < Date.now() || this.nonce !== entry.nonce) {
-        throw new Error('Failed to renew lock.');
+        throw new errors.RenewLockFailed('Failed to renew lock.');
       }
 
       await connection.query({
         name: 'renew lock',
         text: `
         UPDATE "${this.tableNames.locks}"
-           SET "expiresAt" = $3
-         WHERE "namespace" = $1
-           AND "value" = $2
+           SET "expiresAt" = $2
+         WHERE "name" = $1
         `,
-        values: [ namespace, serializedValue, new Date(expiresAt) ]
+        values: [ name, new Date(expiresAt) ]
       });
     } finally {
       connection.release();
     }
   }
 
-  public async releaseLock ({ namespace, value }: {
-    namespace: string;
-    value: any;
+  public async releaseLock ({ name }: {
+    name: any;
   }): Promise<void> {
-    const serializedValue = JSON.stringify(value);
-
-    if (serializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (name.length >= this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
     const connection = await PostgresLockStore.getDatabase(this.pool);
@@ -320,10 +299,9 @@ class PostgresLockStore implements LockStore {
         text: `
         SELECT "expiresAt", "nonce"
           FROM "${this.tableNames.locks}"
-         WHERE "namespace" = $1
-           AND "value" = $2
+         WHERE "name" = $1
       `,
-        values: [ namespace, serializedValue ]
+        values: [ name ]
       });
 
       if (result.rows.length === 0) {
@@ -333,17 +311,16 @@ class PostgresLockStore implements LockStore {
       const [ entry ] = result.rows;
 
       if (Date.now() < entry.expiresAt.getTime() && this.nonce !== entry.nonce) {
-        throw new Error('Failed to release lock.');
+        throw new errors.ReleaseLockFailed('Failed to release lock.');
       }
 
       await connection.query({
         name: 'remove lock',
         text: `
         DELETE FROM "${this.tableNames.locks}"
-         WHERE "namespace" = $1
-           AND "value" = $2
+         WHERE "name" = $1
       `,
-        values: [ namespace, serializedValue ]
+        values: [ name ]
       });
     } finally {
       connection.release();

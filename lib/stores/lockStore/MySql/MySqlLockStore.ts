@@ -1,9 +1,8 @@
+import { errors } from '../errors';
 import { LockStore } from '../LockStore';
 import { mySql as maxDate } from '../../../common/utils/maxDate';
-import { noop } from 'lodash';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
-import { sortKeys } from '../../../common/utils/sortKeys';
 import { TableNames } from './TableNames';
 import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
 
@@ -102,12 +101,11 @@ class MySqlLockStore implements LockStore {
     await runQuery({
       connection,
       query: `CREATE TABLE IF NOT EXISTS ${tableNames.locks} (
-        namespace VARCHAR(64) NOT NULL,
-        value VARCHAR(${maxLockSize}) NOT NULL,
+        name VARCHAR(${maxLockSize}) NOT NULL,
         expiresAt DATETIME(3) NOT NULL,
         nonce VARCHAR(64),
 
-        PRIMARY KEY(namespace, value)
+        PRIMARY KEY(name)
       );`
     });
 
@@ -117,23 +115,18 @@ class MySqlLockStore implements LockStore {
   }
 
   public async acquireLock ({
-    namespace,
-    value,
-    expiresAt = maxDate,
-    onAcquired = noop
+    name,
+    expiresAt = maxDate
   }: {
-    namespace: string;
-    value: any;
+    name: any;
     expiresAt?: number;
-    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({
-      object: value,
-      recursive: true
-    }));
+    if (name.length >= this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
+    }
 
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (expiresAt - Date.now() < 0) {
+      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
 
     const connection = await this.getDatabase();
@@ -143,9 +136,8 @@ class MySqlLockStore implements LockStore {
         connection,
         query: `SELECT expiresAt
           FROM ${this.tableNames.locks}
-         WHERE namespace = ?
-           AND value = ?;`,
-        parameters: [ namespace, sortedSerializedValue ]
+         WHERE name = ?;`,
+        parameters: [ name ]
       });
 
       let newEntry = true;
@@ -155,7 +147,7 @@ class MySqlLockStore implements LockStore {
         const isLocked = Date.now() < entry.expiresAt.getTime();
 
         if (isLocked) {
-          throw new Error('Failed to acquire lock.');
+          throw new errors.AcquireLockFailed('Failed to acquire lock.');
         }
 
         newEntry = false;
@@ -165,46 +157,31 @@ class MySqlLockStore implements LockStore {
 
       if (newEntry) {
         query = `
-        INSERT INTO ${this.tableNames.locks} (expiresAt, nonce, namespace, value)
-        VALUES (?, ?, ?, ?);`;
+        INSERT INTO ${this.tableNames.locks} (expiresAt, nonce, name)
+        VALUES (?, ?, ?);`;
       } else {
         query = `
         UPDATE ${this.tableNames.locks}
            SET expiresAt = ?,
                nonce = ?
-         WHERE namespace = ?
-           AND value = ?;`;
+         WHERE name = ?;`;
       }
 
       await runQuery({
         connection,
         query,
-        parameters: [ new Date(expiresAt), this.nonce, namespace, sortedSerializedValue ]
+        parameters: [ new Date(expiresAt), this.nonce, name ]
       });
-
-      try {
-        await onAcquired();
-      } catch (ex) {
-        await this.releaseLock({ namespace, value });
-
-        throw ex;
-      }
     } finally {
       MySqlLockStore.releaseConnection({ connection });
     }
   }
 
-  public async isLocked ({ namespace, value }: {
-    namespace: string;
-    value: any;
+  public async isLocked ({ name }: {
+    name: any;
   }): Promise<boolean> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({
-      object: value,
-      recursive: true
-    }));
-
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (name.length >= this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
     const connection = await this.getDatabase();
@@ -216,9 +193,8 @@ class MySqlLockStore implements LockStore {
         connection,
         query: `SELECT expiresAt
           FROM ${this.tableNames.locks}
-         WHERE namespace = ?
-           AND value = ?;`,
-        parameters: [ namespace, sortedSerializedValue ]
+         WHERE name = ?;`,
+        parameters: [ name ]
       });
 
       if (rows.length > 0) {
@@ -233,18 +209,16 @@ class MySqlLockStore implements LockStore {
     return isLocked;
   }
 
-  public async renewLock ({ namespace, value, expiresAt }: {
-    namespace: string;
-    value: any;
+  public async renewLock ({ name, expiresAt }: {
+    name: any;
     expiresAt: number;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({
-      object: value,
-      recursive: true
-    }));
+    if (name.length >= this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
+    }
 
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (expiresAt - Date.now() < 0) {
+      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
 
     const connection = await this.getDatabase();
@@ -254,45 +228,37 @@ class MySqlLockStore implements LockStore {
         connection,
         query: `SELECT expiresAt, nonce
           FROM ${this.tableNames.locks}
-         WHERE namespace = ?
-           AND value = ?;`,
-        parameters: [ namespace, sortedSerializedValue ]
+         WHERE name = ?;`,
+        parameters: [ name ]
       });
 
       if (rows.length === 0) {
-        throw new Error('Failed to renew lock.');
+        throw new errors.RenewLockFailed('Failed to renew lock.');
       }
 
       const [ entry ] = rows;
 
       if (entry.expiresAt.getTime() < Date.now() || this.nonce !== entry.nonce) {
-        throw new Error('Failed to renew lock.');
+        throw new errors.RenewLockFailed('Failed to renew lock.');
       }
 
       await runQuery({
         connection,
         query: `UPDATE ${this.tableNames.locks}
            SET expiresAt = ?
-         WHERE namespace = ?
-           AND value = ?;`,
-        parameters: [ new Date(expiresAt), namespace, sortedSerializedValue ]
+         WHERE name = ?;`,
+        parameters: [ new Date(expiresAt), name ]
       });
     } finally {
       MySqlLockStore.releaseConnection({ connection });
     }
   }
 
-  public async releaseLock ({ namespace, value }: {
-    namespace: string;
-    value: any;
+  public async releaseLock ({ name }: {
+    name: any;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({
-      object: value,
-      recursive: true
-    }));
-
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (name.length >= this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
     const connection = await this.getDatabase();
@@ -302,9 +268,8 @@ class MySqlLockStore implements LockStore {
         connection,
         query: `SELECT expiresAt, nonce
           FROM ${this.tableNames.locks}
-         WHERE namespace = ?
-           AND value = ?;`,
-        parameters: [ namespace, sortedSerializedValue ]
+         WHERE name = ?;`,
+        parameters: [ name ]
       });
 
       if (rows.length === 0) {
@@ -314,15 +279,14 @@ class MySqlLockStore implements LockStore {
       const [ entry ] = rows;
 
       if (Date.now() < entry.expiresAt.getTime() && this.nonce !== entry.nonce) {
-        throw new Error('Failed to release lock.');
+        throw new errors.ReleaseLockFailed('Failed to release lock.');
       }
 
       await runQuery({
         connection,
         query: `DELETE FROM ${this.tableNames.locks}
-         WHERE namespace = ?
-           AND value = ?;`,
-        parameters: [ namespace, sortedSerializedValue ]
+         WHERE name = ?;`,
+        parameters: [ name ]
       });
     } finally {
       MySqlLockStore.releaseConnection({ connection });

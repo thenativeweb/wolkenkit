@@ -17,8 +17,7 @@ suite('Redis', (): void => {
         listNames: {
           locks: `locks_${suffix}`
         },
-        nonce,
-        requireValidExpiration: false
+        nonce
       });
     },
     maxLockSize
