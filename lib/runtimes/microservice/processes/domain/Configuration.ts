@@ -13,6 +13,8 @@ export interface Configuration {
   aeonstoreProtocol: string;
   aeonstoreHostName: string;
   aeonstorePort: number;
+  lockStoreOptions: object;
+  lockStoreType: string;
   healthCorsOrigin: string | string[];
   healthPort: number;
   concurrentCommands: number;

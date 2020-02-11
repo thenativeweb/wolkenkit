@@ -72,6 +72,14 @@ const getConfiguration = function (): Configuration {
       default: 3000,
       schema: portSchema
     },
+    LOCK_STORE_OPTIONS: {
+      default: {},
+      schema: { type: 'object' }
+    },
+    LOCK_STORE_TYPE: {
+      default: 'InMemory',
+      schema: { type: 'string' }
+    },
     HEALTH_CORS_ORIGIN: {
       default: '*',
       schema: corsSchema

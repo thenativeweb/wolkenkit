@@ -5,6 +5,8 @@ export interface Configuration {
   corsOrigin: string | string[];
   domainEventStoreOptions: object;
   domainEventStoreType: string;
+  lockStoreOptions: object;
+  lockStoreType: string;
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
   healthPort: number;

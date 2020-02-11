@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { AeonstoreDomainEventStore } from '../../../../stores/domainEventStore/Aeonstore';
+import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { Client as DispatcherClient } from '../../../../apis/awaitCommandWithMetadata/http/v2/Client';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
@@ -33,6 +34,11 @@ import { State } from '../../../../common/elements/State';
     const domainEventStore = await AeonstoreDomainEventStore.create({
       hostName: configuration.aeonstoreHostName,
       port: configuration.aeonstorePort
+    });
+
+    const lockStore = await createLockStore({
+      type: configuration.lockStoreType,
+      options: configuration.lockStoreOptions
     });
 
     const repository = new Repository({
@@ -76,6 +82,7 @@ import { State } from '../../../../common/elements/State';
             acknowledgeRetries: configuration.dispatcherAcknowledgeRetries
           },
           applicationDefinition,
+          lockStore,
           repository,
           publishDomainEvents
         });
