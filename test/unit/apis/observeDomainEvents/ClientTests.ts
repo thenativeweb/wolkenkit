@@ -18,7 +18,9 @@ import { Repository } from '../../../../lib/common/domain/Repository';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { uuid } from 'uuidv4';
 
-suite('observeDomainEvents/http/Client', (): void => {
+suite('observeDomainEvents/http/Client', function (): void {
+  this.timeout(5_000);
+
   const identityProviders = [ identityProvider ];
 
   let applicationDefinition: ApplicationDefinition,

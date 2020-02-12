@@ -5,10 +5,31 @@ const getLockService = function ({ lockStore }: {
   lockStore: LockStore;
 }): LockService {
   return {
-    acquireLock: lockStore.acquireLock.bind(lockStore),
-    isLocked: lockStore.isLocked.bind(lockStore),
-    renewLock: lockStore.renewLock.bind(lockStore),
-    releaseLock: lockStore.releaseLock.bind(lockStore)
+    async acquireLock ({ name, expiresAt }: {
+      name: string;
+      expiresAt?: number;
+    }): Promise<void> {
+      return await lockStore.acquireLock({ name, expiresAt });
+    },
+
+    async isLocked ({ name }: {
+      name: string;
+    }): Promise<boolean> {
+      return await lockStore.isLocked({ name });
+    },
+
+    async renewLock ({ name, expiresAt }: {
+      name: string;
+      expiresAt: number;
+    }): Promise<void> {
+      return await lockStore.renewLock({ name, expiresAt });
+    },
+
+    async releaseLock ({ name }: {
+      name: string;
+    }): Promise<void> {
+      return await lockStore.releaseLock({ name });
+    }
   };
 };
 
