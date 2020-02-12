@@ -119,7 +119,7 @@
     "limes": "6.0.1",
     "lodash": "4.17.15",
     "minio": "7.0.13",
-    "mongodb": "3.5.2",
+    "mongodb": "3.5.3",
     "mysql": "2.18.1",
     "nocache": "2.1.0",
     "p-forever": "2.1.0",
