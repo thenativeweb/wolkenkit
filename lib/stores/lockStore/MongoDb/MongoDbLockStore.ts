@@ -119,7 +119,7 @@ class MongoDbLockStore implements LockStore {
     name: any;
     expiresAt?: number;
   }): Promise<void> {
-    if (name.length >= this.maxLockSize) {
+    if (name.length > this.maxLockSize) {
       throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
@@ -152,7 +152,7 @@ class MongoDbLockStore implements LockStore {
   public async isLocked ({ name }: {
     name: any;
   }): Promise<boolean> {
-    if (name.length >= this.maxLockSize) {
+    if (name.length > this.maxLockSize) {
       throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
@@ -167,7 +167,7 @@ class MongoDbLockStore implements LockStore {
     name: any;
     expiresAt: number;
   }): Promise<void> {
-    if (name.length >= this.maxLockSize) {
+    if (name.length > this.maxLockSize) {
       throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
@@ -199,7 +199,7 @@ class MongoDbLockStore implements LockStore {
   public async releaseLock ({ name }: {
     name: any;
   }): Promise<void> {
-    if (name.length >= this.maxLockSize) {
+    if (name.length > this.maxLockSize) {
       throw new errors.LockNameTooLong('Lock name is too long.');
     }
 

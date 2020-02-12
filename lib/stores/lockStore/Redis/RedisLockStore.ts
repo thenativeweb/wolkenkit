@@ -35,7 +35,7 @@ class RedisLockStore implements LockStore {
     name: any;
     list: string;
   }): string {
-    if (name.length >= this.maxLockSize) {
+    if (name.length > this.maxLockSize) {
       throw new errors.LockNameTooLong('Lock name is too long.');
     }
 

@@ -45,7 +45,7 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
 
   suite('acquireLock', (): void => {
     test('throws an error if the name is too long.', async (): Promise<void> => {
-      const exceededName = 'a'.repeat(maxLockSize);
+      const exceededName = 'a'.repeat(maxLockSize + 1);
 
       await assert.that(async (): Promise<void> => {
         await lockStore.acquireLock({ name: exceededName, expiresAt: inFiftyMilliseconds() });
@@ -62,7 +62,7 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
     test('acquires a lock with the maximum accepted size.', async (): Promise<void> => {
       // A JSON serialized string will embed opening and closing quotes
       // Those two characters are part of the lock name.
-      const maxName = 'a'.repeat(maxLockSize - 2);
+      const maxName = 'a'.repeat(maxLockSize - 1);
 
       await lockStore.acquireLock({ name: maxName, expiresAt: inFiftyMilliseconds() });
     });
@@ -116,7 +116,7 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
 
   suite('isLocked', (): void => {
     test('throws an error if the name is too long.', async (): Promise<void> => {
-      const exceededName = 'a'.repeat(maxLockSize);
+      const exceededName = 'a'.repeat(maxLockSize + 1);
 
       await assert.that(async (): Promise<void> => {
         await lockStore.isLocked({ name: exceededName });
@@ -153,7 +153,7 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
 
   suite('renewLock', (): void => {
     test('throws an error if the name is too long.', async (): Promise<void> => {
-      const exceededName = 'a'.repeat(maxLockSize);
+      const exceededName = 'a'.repeat(maxLockSize + 1);
 
       await assert.that(async (): Promise<void> => {
         await lockStore.renewLock({ name: exceededName, expiresAt: inFiftyMilliseconds() });
@@ -233,7 +233,7 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
 
   suite('releaseLock', (): void => {
     test('throws an error if the name is too long.', async (): Promise<void> => {
-      const exceededName = 'a'.repeat(maxLockSize);
+      const exceededName = 'a'.repeat(maxLockSize + 1);
 
       await assert.that(async (): Promise<void> => {
         await lockStore.releaseLock({ name: exceededName });

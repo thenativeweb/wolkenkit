@@ -120,7 +120,7 @@ class MariaDbLockStore implements LockStore {
     name: string;
     expiresAt?: number;
   }): Promise<void> {
-    if (name.length >= this.maxLockSize) {
+    if (name.length > this.maxLockSize) {
       throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
@@ -179,7 +179,7 @@ class MariaDbLockStore implements LockStore {
   public async isLocked ({ name }: {
     name: string;
   }): Promise<boolean> {
-    if (name.length >= this.maxLockSize) {
+    if (name.length > this.maxLockSize) {
       throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
@@ -212,7 +212,7 @@ class MariaDbLockStore implements LockStore {
     name: string;
     expiresAt: number;
   }): Promise<void> {
-    if (name.length >= this.maxLockSize) {
+    if (name.length > this.maxLockSize) {
       throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
@@ -256,7 +256,7 @@ class MariaDbLockStore implements LockStore {
   public async releaseLock ({ name }: {
     name: string;
   }): Promise<void> {
-    if (name.length >= this.maxLockSize) {
+    if (name.length > this.maxLockSize) {
       throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
