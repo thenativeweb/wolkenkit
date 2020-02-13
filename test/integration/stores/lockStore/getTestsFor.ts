@@ -60,8 +60,6 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
     });
 
     test('acquires a lock with the maximum accepted size.', async (): Promise<void> => {
-      // A JSON serialized string will embed opening and closing quotes
-      // Those two characters are part of the lock name.
       const maxName = 'a'.repeat(maxLockSize - 1);
 
       await lockStore.acquireLock({ name: maxName, expiresAt: inFiftyMilliseconds() });
