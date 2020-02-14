@@ -5,6 +5,7 @@ import { fetchCommand } from './fetchCommand';
 import { flaschenpost } from 'flaschenpost';
 import { handleCommand } from '../../../../common/domain/handleCommand';
 import { keepRenewingLock } from './keepRenewingLock';
+import { LockStore } from '../../../../stores/lockStore/LockStore';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { Repository } from '../../../../common/domain/Repository';
 
@@ -13,11 +14,13 @@ const logger = flaschenpost.getLogger();
 const processCommand = async function ({
   dispatcher,
   applicationDefinition,
+  lockStore,
   repository,
   publishDomainEvents
 }: {
   dispatcher: Dispatcher;
   applicationDefinition: ApplicationDefinition;
+  lockStore: LockStore;
   repository: Repository;
   publishDomainEvents: PublishDomainEvents;
 }): Promise<void> {
@@ -27,6 +30,7 @@ const processCommand = async function ({
     const handleCommandPromise = handleCommand({
       command,
       applicationDefinition,
+      lockStore,
       repository,
       publishDomainEvents
     });

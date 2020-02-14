@@ -1,4 +1,4 @@
-export interface LockStore {
+export interface LockService {
   acquireLock: ({ name, expiresAt }: {
     name: string;
     expiresAt?: number;
@@ -16,6 +16,4 @@ export interface LockStore {
   releaseLock: ({ name }: {
     name: string;
   }) => Promise<void>;
-
-  destroy: () => Promise<void>;
 }

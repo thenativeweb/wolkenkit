@@ -4,15 +4,17 @@ import { fetchCommand } from './fetchCommand';
 import { flaschenpost } from 'flaschenpost';
 import { handleCommand } from '../../../../common/domain/handleCommand';
 import { keepRenewingLock } from './keepRenewingLock';
+import { LockStore } from '../../../../stores/lockStore/LockStore';
 import { PriorityQueue } from './PriorityQueue';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { Repository } from '../../../../common/domain/Repository';
 
 const logger = flaschenpost.getLogger();
 
-const processCommand = async function ({ applicationDefinition, repository, priorityQueue, publishDomainEvents }: {
+const processCommand = async function ({ applicationDefinition, repository, lockStore, priorityQueue, publishDomainEvents }: {
   applicationDefinition: ApplicationDefinition;
   repository: Repository;
+  lockStore: LockStore;
   priorityQueue: PriorityQueue;
   publishDomainEvents: PublishDomainEvents;
 }): Promise<void> {
@@ -22,6 +24,7 @@ const processCommand = async function ({ applicationDefinition, repository, prio
     const handleCommandPromise = handleCommand({
       command,
       applicationDefinition,
+      lockStore,
       repository,
       publishDomainEvents
     });

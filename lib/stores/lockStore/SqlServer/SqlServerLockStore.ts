@@ -1,10 +1,9 @@
 import { createPool } from '../../utils/sqlServer/createPool';
+import { errors } from '../errors';
 import { LockStore } from '../LockStore';
 import { sqlServer as maxDate } from '../../../common/utils/maxDate';
-import { noop } from 'lodash';
 import { Pool } from 'tarn';
 import { retry } from 'retry-ignore-abort';
-import { sortKeys } from '../../../common/utils/sortKeys';
 import { TableNames } from './TableNames';
 import { Connection, Request, TYPES } from 'tedious';
 
@@ -81,13 +80,6 @@ class SqlServerLockStore implements LockStore {
       }
     });
 
-    const lockstore = new SqlServerLockStore({
-      pool,
-      tableNames,
-      nonce,
-      maxLockSize
-    });
-
     const connection = await SqlServerLockStore.getDatabase(pool);
 
     const query = `
@@ -96,12 +88,11 @@ class SqlServerLockStore implements LockStore {
       IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.locks}')
         BEGIN
           CREATE TABLE [${tableNames.locks}] (
-            [namespace] NVARCHAR(64) NOT NULL,
-            [value] VARCHAR(${maxLockSize}) NOT NULL,
+            [name] VARCHAR(${maxLockSize}) NOT NULL,
             [expiresAt] DATETIME2(3) NOT NULL,
             [nonce] NVARCHAR(64),
 
-            CONSTRAINT [${tableNames.locks}_pk] PRIMARY KEY([namespace], [value])
+            CONSTRAINT [${tableNames.locks}_pk] PRIMARY KEY([name])
           );
         END
 
@@ -129,24 +120,27 @@ class SqlServerLockStore implements LockStore {
 
     pool.release(connection);
 
-    return lockstore;
+    return new SqlServerLockStore({
+      pool,
+      tableNames,
+      nonce,
+      maxLockSize
+    });
   }
 
   public async acquireLock ({
-    namespace,
-    value,
-    expiresAt = maxDate,
-    onAcquired = noop
+    name,
+    expiresAt = maxDate
   }: {
-    namespace: string;
-    value: any;
+    name: any;
     expiresAt?: number;
-    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
+    if (name.length > this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
+    }
 
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (expiresAt - Date.now() < 0) {
+      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
 
     const database = await SqlServerLockStore.getDatabase(this.pool);
@@ -158,8 +152,7 @@ class SqlServerLockStore implements LockStore {
         const request = new Request(`
           SELECT TOP(1) [expiresAt]
             FROM ${this.tableNames.locks}
-            WHERE [namespace] = @namespace
-              AND [value] = @value
+            WHERE [name] = @name
           ;
         `, (err?: Error): void => {
           if (err) {
@@ -169,8 +162,7 @@ class SqlServerLockStore implements LockStore {
           resolve(lockResult);
         });
 
-        request.addParameter('namespace', TYPES.NVarChar, namespace);
-        request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
+        request.addParameter('name', TYPES.NVarChar, name);
 
         request.once('row', (columns): void => {
           lockResult = {
@@ -187,7 +179,7 @@ class SqlServerLockStore implements LockStore {
         const isLocked = result.expiresAt.getTime() > Date.now();
 
         if (isLocked) {
-          throw new Error('Failed to acquire lock.');
+          throw new errors.AcquireLockFailed('Failed to acquire lock.');
         }
 
         newEntry = false;
@@ -197,16 +189,15 @@ class SqlServerLockStore implements LockStore {
 
       if (newEntry) {
         query = `
-          INSERT INTO [${this.tableNames.locks}] ([namespace], [value], [expiresAt], [nonce])
-          VALUES (@namespace, @value, @expiresAt, @nonce)
+          INSERT INTO [${this.tableNames.locks}] ([name], [expiresAt], [nonce])
+          VALUES (@name, @expiresAt, @nonce)
           ;`;
       } else {
         query = `
         UPDATE [${this.tableNames.locks}]
            SET [expiresAt] = @expiresAt,
                [nonce] = @nonce
-         WHERE [namespace] = @namespace
-           AND [value] = @value
+         WHERE [name] = @name
          ;`;
       }
 
@@ -219,34 +210,22 @@ class SqlServerLockStore implements LockStore {
           resolve();
         });
 
-        request.addParameter('namespace', TYPES.NVarChar, namespace);
-        request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
+        request.addParameter('name', TYPES.NVarChar, name);
         request.addParameter('expiresAt', TYPES.DateTime2, new Date(expiresAt), { precision: 3 });
         request.addParameter('nonce', TYPES.NVarChar, this.nonce);
 
         database.execSql(request);
       });
-
-      try {
-        await onAcquired();
-      } catch (ex) {
-        await this.releaseLock({ namespace, value });
-
-        throw ex;
-      }
     } finally {
       this.pool.release(database);
     }
   }
 
-  public async isLocked ({ namespace, value }: {
-    namespace: string;
-    value: any;
+  public async isLocked ({ name }: {
+    name: any;
   }): Promise<boolean> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
-
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (name.length > this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
     const database = await SqlServerLockStore.getDatabase(this.pool);
@@ -260,8 +239,7 @@ class SqlServerLockStore implements LockStore {
         const request = new Request(`
           SELECT TOP(1) [expiresAt]
             FROM ${this.tableNames.locks}
-            WHERE [namespace] = @namespace
-              AND [value] = @value
+            WHERE [name] = @name
           ;
         `, (err?: Error): void => {
           if (err) {
@@ -271,8 +249,7 @@ class SqlServerLockStore implements LockStore {
           resolve(lockResult);
         });
 
-        request.addParameter('namespace', TYPES.NVarChar, namespace);
-        request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
+        request.addParameter('name', TYPES.NVarChar, name);
 
         request.once('row', (columns): void => {
           lockResult = {
@@ -293,15 +270,16 @@ class SqlServerLockStore implements LockStore {
     return isLocked;
   }
 
-  public async renewLock ({ namespace, value, expiresAt }: {
-    namespace: string;
-    value: any;
+  public async renewLock ({ name, expiresAt }: {
+    name: any;
     expiresAt: number;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
+    if (name.length > this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
+    }
 
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (expiresAt - Date.now() < 0) {
+      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
 
     const database = await SqlServerLockStore.getDatabase(this.pool);
@@ -313,8 +291,7 @@ class SqlServerLockStore implements LockStore {
         const request = new Request(`
           SELECT TOP(1) [expiresAt], [nonce]
             FROM ${this.tableNames.locks}
-            WHERE [namespace] = @namespace
-              AND [value] = @value
+            WHERE [name] = @name
           ;
         `, (err?: Error): void => {
           if (err) {
@@ -324,8 +301,7 @@ class SqlServerLockStore implements LockStore {
           resolve(lockResult);
         });
 
-        request.addParameter('namespace', TYPES.NVarChar, namespace);
-        request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
+        request.addParameter('name', TYPES.NVarChar, name);
 
         request.once('row', (columns): void => {
           lockResult = {
@@ -338,18 +314,17 @@ class SqlServerLockStore implements LockStore {
       });
 
       if (!result) {
-        throw new Error('Failed to renew lock.');
+        throw new errors.RenewLockFailed('Failed to renew lock.');
       }
       if (result.expiresAt.getTime() < Date.now() || this.nonce !== result.nonce) {
-        throw new Error('Failed to renew lock.');
+        throw new errors.RenewLockFailed('Failed to renew lock.');
       }
 
       await new Promise((resolve, reject): void => {
         const request = new Request(`
         UPDATE [${this.tableNames.locks}]
            SET [expiresAt] = @expiresAt
-         WHERE [namespace] = @namespace
-           AND [value] = @value
+         WHERE [name] = @name
          ;`, (err?: Error): void => {
           if (err) {
             return reject(err);
@@ -358,8 +333,7 @@ class SqlServerLockStore implements LockStore {
           resolve();
         });
 
-        request.addParameter('namespace', TYPES.NVarChar, namespace);
-        request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
+        request.addParameter('name', TYPES.NVarChar, name);
         request.addParameter('expiresAt', TYPES.DateTime2, new Date(expiresAt), { precision: 3 });
 
         database.execSql(request);
@@ -369,14 +343,11 @@ class SqlServerLockStore implements LockStore {
     }
   }
 
-  public async releaseLock ({ namespace, value }: {
-    namespace: string;
-    value: any;
+  public async releaseLock ({ name }: {
+    name: any;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({ object: value, recursive: true }));
-
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (name.length > this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
     const database = await SqlServerLockStore.getDatabase(this.pool);
@@ -388,8 +359,7 @@ class SqlServerLockStore implements LockStore {
         const request = new Request(`
           SELECT TOP(1) [expiresAt], [nonce]
             FROM ${this.tableNames.locks}
-            WHERE [namespace] = @namespace
-              AND [value] = @value
+            WHERE [name] = @name
           ;
         `, (err?: Error): void => {
           if (err) {
@@ -399,8 +369,7 @@ class SqlServerLockStore implements LockStore {
           resolve(lockResult);
         });
 
-        request.addParameter('namespace', TYPES.NVarChar, namespace);
-        request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
+        request.addParameter('name', TYPES.NVarChar, name);
 
         request.once('row', (columns): void => {
           lockResult = {
@@ -417,14 +386,13 @@ class SqlServerLockStore implements LockStore {
       }
 
       if (Date.now() < result.expiresAt.getTime() && this.nonce !== result.nonce) {
-        throw new Error('Failed to release lock.');
+        throw new errors.ReleaseLockFailed('Failed to release lock.');
       }
 
       await new Promise((resolve, reject): void => {
         const request = new Request(`
           DELETE FROM [${this.tableNames.locks}]
-           WHERE [namespace] = @namespace
-             AND [value] = @value
+           WHERE [name] = @name
         `, (err?: Error): void => {
           if (err) {
             return reject(err);
@@ -433,8 +401,7 @@ class SqlServerLockStore implements LockStore {
           resolve();
         });
 
-        request.addParameter('namespace', TYPES.NVarChar, namespace);
-        request.addParameter('value', TYPES.NVarChar, sortedSerializedValue);
+        request.addParameter('name', TYPES.NVarChar, name);
 
         database.execSql(request);
       });

@@ -1,8 +1,8 @@
 import { assert } from 'assertthat';
+import { CustomError } from 'defekt';
 import { getShortId } from '../../../shared/getShortId';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { sleep } from '../../../../lib/common/utils/sleep';
-import { uuid } from 'uuidv4';
 
 const inMilliseconds = function ({ ms }: {
   ms: number;
@@ -28,15 +28,13 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
   maxLockSize: number;
 }): void {
   let lockStore: LockStore,
-      namespace: string,
-      suffix: string,
-      value: any;
+      name: string,
+      suffix: string;
 
   setup(async (): Promise<void> => {
     suffix = getShortId();
-    namespace = uuid();
     lockStore = await createLockStore({ suffix });
-    value = { foo: 'bar', baz: 'bam' };
+    name = JSON.stringify({ foo: 'bar', baz: 'bam' });
   });
 
   teardown(async function (): Promise<void> {
@@ -46,171 +44,163 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
   });
 
   suite('acquireLock', (): void => {
-    test('throws an error if the value is too large.', async (): Promise<void> => {
-      const exceededValue = 'a'.repeat(maxLockSize);
+    test('throws an error if the name is too long.', async (): Promise<void> => {
+      const exceededName = 'a'.repeat(maxLockSize + 1);
 
       await assert.that(async (): Promise<void> => {
-        await lockStore.acquireLock({ namespace, value: exceededValue, expiresAt: inFiftyMilliseconds() });
-      }).is.throwingAsync('Lock value is too large.');
+        await lockStore.acquireLock({ name: exceededName, expiresAt: inFiftyMilliseconds() });
+      }).is.throwingAsync(
+        (ex): boolean =>
+          (ex as CustomError).code === 'ELOCKNAMETOOLONG' && ex.message === 'Lock name is too long.'
+      );
     });
 
     test('acquires a lock.', async (): Promise<void> => {
-      await lockStore.acquireLock({ namespace, value });
+      await lockStore.acquireLock({ name });
     });
 
     test('acquires a lock with the maximum accepted size.', async (): Promise<void> => {
-      // A JSON serialized string will embed opening and closing quotes
-      // Those two characters are part of the lock name.
-      const maxValue = 'a'.repeat(maxLockSize - 2);
+      const maxName = 'a'.repeat(maxLockSize);
 
-      await lockStore.acquireLock({ namespace, value: maxValue, expiresAt: inFiftyMilliseconds() });
+      await lockStore.acquireLock({ name: maxName, expiresAt: inFiftyMilliseconds() });
     });
 
-    test('supports locks with different values.', async (): Promise<void> => {
-      const otherValue = { foo: 'baz' };
+    test('supports locks with different names.', async (): Promise<void> => {
+      const otherName = JSON.stringify({ foo: 'baz' });
 
-      await lockStore.acquireLock({ namespace, value });
-      await lockStore.acquireLock({ namespace, value: otherValue });
-    });
-
-    test('supports locks with different namespaces.', async (): Promise<void> => {
-      const otherNamespace = uuid();
-
-      await lockStore.acquireLock({ namespace, value });
-      await lockStore.acquireLock({ namespace: otherNamespace, value });
+      await lockStore.acquireLock({ name });
+      await lockStore.acquireLock({ name: otherName });
     });
 
     test('throws an error if the lock is already in place.', async (): Promise<void> => {
-      await lockStore.acquireLock({ namespace, value });
+      await lockStore.acquireLock({ name });
 
       await assert.that(async (): Promise<void> => {
-        await lockStore.acquireLock({ namespace, value });
-      }).is.throwingAsync('Failed to acquire lock.');
-    });
-
-    test('throws an error also if object keys have different order.', async (): Promise<void> => {
-      const nestedValue = { ...value, nested: { ...value }};
-      const sortedValue = { baz: 'bam', foo: 'bar' };
-      const nestedSortedValue = { ...sortedValue, nested: { ...sortedValue }};
-
-      await lockStore.acquireLock({ namespace, value: nestedValue });
-
-      await assert.that(async (): Promise<void> => {
-        await lockStore.acquireLock({ namespace, value: nestedSortedValue });
-      }).is.throwingAsync('Failed to acquire lock.');
+        await lockStore.acquireLock({ name });
+      }).is.throwingAsync(
+        (ex): boolean =>
+          (ex as CustomError).code === 'EACQUIRELOCKFAILED' && ex.message === 'Failed to acquire lock.'
+      );
     });
 
     test('acquires a lock if the lock is already in place, but has expired.', async (): Promise<void> => {
-      await lockStore.acquireLock({ namespace, value, expiresAt: oneSecondAgo() });
+      await lockStore.acquireLock({ name, expiresAt: inMilliseconds({ ms: 1 }) });
+
+      await sleep({ ms: 10 });
 
       await assert.that(async (): Promise<void> => {
-        await lockStore.acquireLock({ namespace, value });
+        await lockStore.acquireLock({ name });
       }).is.not.throwingAsync();
     });
 
     test('releases the lock after the given expiration.', async (): Promise<void> => {
-      await lockStore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
+      await lockStore.acquireLock({ name, expiresAt: inFiftyMilliseconds() });
       await sleep({ ms: 100 });
 
       await assert.that(async (): Promise<void> => {
-        await lockStore.acquireLock({ namespace, value });
+        await lockStore.acquireLock({ name });
       }).is.not.throwingAsync();
     });
 
-    test('throws an error if the on acquired handler throws an error.', async (): Promise<void> => {
+    test('throws an error if the expiration date is in the past.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
-        await lockStore.acquireLock({
-          namespace,
-          value,
-          async onAcquired (): Promise<void> {
-            throw new Error('On acquired failed.');
-          }
-        });
-      }).is.throwingAsync('On acquired failed.');
-    });
-
-    test('releases the lock if the on acquired handler throws an error.', async (): Promise<void> => {
-      await assert.that(async (): Promise<void> => {
-        await lockStore.acquireLock({
-          namespace,
-          value,
-          async onAcquired (): Promise<void> {
-            throw new Error('On acquired failed.');
-          }
-        });
-      }).is.throwingAsync();
-
-      await assert.that(async (): Promise<void> => {
-        await lockStore.acquireLock({ namespace, value });
-      }).is.not.throwingAsync();
+        await lockStore.acquireLock({ name, expiresAt: oneSecondAgo() });
+      }).is.throwingAsync(
+        (ex): boolean =>
+          (ex as CustomError).code === 'EEXPIRATIONINPAST' && ex.message === 'Cannot acquire a lock in the past.'
+      );
     });
   });
 
   suite('isLocked', (): void => {
-    test('throws an error if the value is too large.', async (): Promise<void> => {
-      const exceededValue = 'a'.repeat(maxLockSize);
+    test('throws an error if the name is too long.', async (): Promise<void> => {
+      const exceededName = 'a'.repeat(maxLockSize + 1);
 
       await assert.that(async (): Promise<void> => {
-        await lockStore.isLocked({ namespace, value: exceededValue });
-      }).is.throwingAsync('Lock value is too large.');
+        await lockStore.isLocked({ name: exceededName });
+      }).is.throwingAsync(
+        (ex): boolean =>
+          (ex as CustomError).code === 'ELOCKNAMETOOLONG' && ex.message === 'Lock name is too long.'
+      );
     });
 
     test('returns false if the given lock does not exist.', async (): Promise<void> => {
-      const isLocked = await lockStore.isLocked({ namespace, value });
+      const isLocked = await lockStore.isLocked({ name });
 
       assert.that(isLocked).is.false();
     });
 
     test('returns true if the given lock exists.', async (): Promise<void> => {
-      await lockStore.acquireLock({ namespace, value });
+      await lockStore.acquireLock({ name });
 
-      const isLocked = await lockStore.isLocked({ namespace, value });
+      const isLocked = await lockStore.isLocked({ name });
 
       assert.that(isLocked).is.true();
     });
 
     test('returns false if the given lock exists, but has expired.', async (): Promise<void> => {
-      await lockStore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
+      await lockStore.acquireLock({ name, expiresAt: inFiftyMilliseconds() });
 
       await sleep({ ms: 100 });
 
-      const isLocked = await lockStore.isLocked({ namespace, value });
+      const isLocked = await lockStore.isLocked({ name });
 
       assert.that(isLocked).is.false();
     });
   });
 
   suite('renewLock', (): void => {
-    test('throws an error if the value is too large.', async (): Promise<void> => {
-      const exceededValue = 'a'.repeat(maxLockSize);
+    test('throws an error if the name is too long.', async (): Promise<void> => {
+      const exceededName = 'a'.repeat(maxLockSize + 1);
 
       await assert.that(async (): Promise<void> => {
-        await lockStore.renewLock({ namespace, value: exceededValue, expiresAt: inFiftyMilliseconds() });
-      }).is.throwingAsync('Lock value is too large.');
+        await lockStore.renewLock({ name: exceededName, expiresAt: inFiftyMilliseconds() });
+      }).is.throwingAsync(
+        (ex): boolean =>
+          (ex as CustomError).code === 'ELOCKNAMETOOLONG' && ex.message === 'Lock name is too long.'
+      );
     });
 
     test('throws an error if the given lock does not exist.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
-        await lockStore.renewLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
-      }).is.throwingAsync('Failed to renew lock.');
+        await lockStore.renewLock({ name, expiresAt: inFiftyMilliseconds() });
+      }).is.throwingAsync(
+        (ex): boolean =>
+          (ex as CustomError).code === 'ERENEWLOCKFAILED' && ex.message === 'Failed to renew lock.'
+      );
     });
 
     test('throws an error if the given lock exists, but has expired.', async (): Promise<void> => {
-      await lockStore.acquireLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
+      await lockStore.acquireLock({ name, expiresAt: inFiftyMilliseconds() });
       await sleep({ ms: 100 });
 
       await assert.that(async (): Promise<void> => {
-        await lockStore.renewLock({ namespace, value, expiresAt: inFiftyMilliseconds() });
-      }).is.throwingAsync('Failed to renew lock.');
+        await lockStore.renewLock({ name, expiresAt: inFiftyMilliseconds() });
+      }).is.throwingAsync(
+        (ex): boolean =>
+          (ex as CustomError).code === 'ERENEWLOCKFAILED' && ex.message === 'Failed to renew lock.'
+      );
+    });
+
+    test('throws an error if the expiration date is in the past.', async (): Promise<void> => {
+      await lockStore.acquireLock({ name, expiresAt: inFiftyMilliseconds() });
+      await sleep({ ms: 20 });
+
+      await assert.that(async (): Promise<void> => {
+        await lockStore.acquireLock({ name, expiresAt: oneSecondAgo() });
+      }).is.throwingAsync(
+        (ex): boolean =>
+          (ex as CustomError).code === 'EEXPIRATIONINPAST' && ex.message === 'Cannot acquire a lock in the past.'
+      );
     });
 
     test('renews the lock.', async function (): Promise<void> {
       this.timeout(3 * 1000);
 
-      await lockStore.acquireLock({ namespace, value, expiresAt: inMilliseconds({ ms: 1000 }) });
+      await lockStore.acquireLock({ name, expiresAt: inMilliseconds({ ms: 1000 }) });
       await sleep({ ms: 750 });
 
-      await lockStore.renewLock({ namespace, value, expiresAt: inMilliseconds({ ms: 1000 }) });
+      await lockStore.renewLock({ name, expiresAt: inMilliseconds({ ms: 1000 }) });
       await sleep({ ms: 750 });
 
       // If renewing didn't work, now 1s + waiting have passed, and the original
@@ -218,7 +208,7 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
       // active and renewing did work. In other words: If you change the times
       // above, make sure to keep the logic.
       await assert.that(async (): Promise<void> => {
-        await lockStore.acquireLock({ namespace, value });
+        await lockStore.acquireLock({ name });
       }).is.throwingAsync();
     });
 
@@ -227,34 +217,40 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
         lockStore = await createLockStore({ suffix, nonce: 'nonce1' });
         const otherLockStore = await createLockStore({ suffix, nonce: 'nonce2' });
 
-        await lockStore.acquireLock({ namespace, value, expiresAt: inMilliseconds({ ms: 100 }) });
+        await lockStore.acquireLock({ name, expiresAt: inMilliseconds({ ms: 100 }) });
 
         await assert.that(async (): Promise<void> => {
-          await otherLockStore.renewLock({ namespace, value, expiresAt: inMilliseconds({ ms: 100 }) });
-        }).is.throwingAsync('Failed to renew lock.');
+          await otherLockStore.renewLock({ name, expiresAt: inMilliseconds({ ms: 100 }) });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as CustomError).code === 'ERENEWLOCKFAILED' && ex.message === 'Failed to renew lock.'
+        );
       });
     }
   });
 
   suite('releaseLock', (): void => {
-    test('throws an error if the value is too large.', async (): Promise<void> => {
-      const exceededValue = 'a'.repeat(maxLockSize);
+    test('throws an error if the name is too long.', async (): Promise<void> => {
+      const exceededName = 'a'.repeat(maxLockSize + 1);
 
       await assert.that(async (): Promise<void> => {
-        await lockStore.releaseLock({ namespace, value: exceededValue });
-      }).is.throwingAsync('Lock value is too large.');
+        await lockStore.releaseLock({ name: exceededName });
+      }).is.throwingAsync(
+        (ex): boolean =>
+          (ex as CustomError).code === 'ELOCKNAMETOOLONG' && ex.message === 'Lock name is too long.'
+      );
     });
 
     test('release the lock.', async (): Promise<void> => {
-      await lockStore.acquireLock({ namespace, value });
-      await lockStore.releaseLock({ namespace, value });
+      await lockStore.acquireLock({ name });
+      await lockStore.releaseLock({ name });
 
-      await lockStore.acquireLock({ namespace, value });
+      await lockStore.acquireLock({ name });
     });
 
     test('does not throw an error if the lock does not exist.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
-        await lockStore.releaseLock({ namespace, value });
+        await lockStore.releaseLock({ name });
       }).is.not.throwingAsync();
     });
 
@@ -263,11 +259,14 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
         lockStore = await createLockStore({ suffix, nonce: 'nonce1' });
         const otherLockStore = await createLockStore({ suffix, nonce: 'nonce2' });
 
-        await lockStore.acquireLock({ namespace, value });
+        await lockStore.acquireLock({ name });
 
         await assert.that(async (): Promise<void> => {
-          await otherLockStore.releaseLock({ namespace, value });
-        }).is.throwingAsync('Failed to release lock.');
+          await otherLockStore.releaseLock({ name });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as CustomError).code === 'ERELEASELOCKFAILED' && ex.message === 'Failed to release lock.'
+        );
       });
     }
   });

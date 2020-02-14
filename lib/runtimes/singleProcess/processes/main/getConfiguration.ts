@@ -31,6 +31,14 @@ const getConfiguration = function (): Configuration {
       default: 'InMemory',
       schema: { type: 'string' }
     },
+    LOCK_STORE_OPTIONS: {
+      default: {},
+      schema: { type: 'object' }
+    },
+    LOCK_STORE_TYPE: {
+      default: 'InMemory',
+      schema: { type: 'string' }
+    },
     IDENTITY_PROVIDERS: {
       default: [{
         issuer: 'https://token.invalid',

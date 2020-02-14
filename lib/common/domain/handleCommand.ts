@@ -9,7 +9,9 @@ import { getAggregateService } from '../services/getAggregateService';
 import { getAggregatesService } from '../services/getAggregatesService';
 import { getClientService } from '../services/getClientService';
 import { getErrorService } from '../services/getErrorService';
+import { getLockService } from '../services/getLockService';
 import { getLoggerService } from '../services/getLoggerService';
+import { LockStore } from '../../stores/lockStore/LockStore';
 import { PublishDomainEvents } from './PublishDomainEvents';
 import { Repository } from './Repository';
 import { State } from '../elements/State';
@@ -18,11 +20,13 @@ import { validateCommandWithMetadata } from '../validators/validateCommandWithMe
 const handleCommand = async function ({
   command,
   applicationDefinition,
+  lockStore,
   repository,
   publishDomainEvents
 }: {
   command: CommandWithMetadata<CommandData>;
   applicationDefinition: ApplicationDefinition;
+  lockStore: LockStore;
   repository: Repository;
   publishDomainEvents: PublishDomainEvents;
 }): Promise<void> {
@@ -38,6 +42,7 @@ const handleCommand = async function ({
     aggregates: getAggregatesService({ applicationDefinition, repository }),
     client: getClientService({ clientMetadata: command.metadata.client }),
     error: getErrorService(),
+    lock: getLockService({ lockStore }),
     logger: getLoggerService({
       fileName: `<app>/server/domain/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/`,
       packageManifest: applicationDefinition.packageManifest

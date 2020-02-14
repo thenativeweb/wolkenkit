@@ -3,6 +3,7 @@
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
+import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
@@ -39,6 +40,11 @@ import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
     const domainEventStore = await createDomainEventStore({
       type: configuration.domainEventStoreType,
       options: configuration.domainEventStoreOptions
+    });
+
+    const lockStore = await createLockStore({
+      type: configuration.lockStoreType,
+      options: configuration.lockStoreOptions
     });
 
     const repository = new Repository({
@@ -80,6 +86,7 @@ import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
         await processCommand({
           applicationDefinition,
           repository,
+          lockStore,
           priorityQueue: {
             store: priorityQueueStore,
             renewalInterval: configuration.commandQueueRenewInterval
