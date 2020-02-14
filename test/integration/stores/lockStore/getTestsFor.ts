@@ -60,7 +60,7 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
     });
 
     test('acquires a lock with the maximum accepted size.', async (): Promise<void> => {
-      const maxName = 'a'.repeat(maxLockSize - 1);
+      const maxName = 'a'.repeat(maxLockSize);
 
       await lockStore.acquireLock({ name: maxName, expiresAt: inFiftyMilliseconds() });
     });
