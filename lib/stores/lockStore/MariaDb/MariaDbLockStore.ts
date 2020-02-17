@@ -131,46 +131,21 @@ class MariaDbLockStore implements LockStore {
     const connection = await this.getDatabase();
 
     try {
-      const [ rows ] = await runQuery({
-        connection,
-        query: `SELECT expiresAt
-          FROM ${this.tableNames.locks}
-         WHERE name = ?;`,
-        parameters: [ name ]
-      });
-
-      let newEntry = true;
-
-      if (rows.length > 0) {
-        const [ entry ] = rows;
-        const isLocked = Date.now() < entry.expiresAt.getTime();
-
-        if (isLocked) {
-          throw new errors.AcquireLockFailed('Failed to acquire lock.');
-        }
-
-        newEntry = false;
-      }
-
-      let query;
-
-      if (newEntry) {
-        query = `
-        INSERT INTO ${this.tableNames.locks} (expiresAt, nonce, name)
-        VALUES (?, ?, ?);`;
-      } else {
-        query = `
-        UPDATE ${this.tableNames.locks}
-           SET expiresAt = ?,
-               nonce = ?
-         WHERE name = ?;`;
-      }
-
       await runQuery({
         connection,
-        query,
-        parameters: [ new Date(expiresAt), this.nonce, name ]
+        query: `DELETE FROM ${this.tableNames.locks} WHERE expiresAt < ?;`,
+        parameters: [ new Date() ]
       });
+
+      try {
+        await runQuery({
+          connection,
+          query: `INSERT INTO ${this.tableNames.locks} (expiresAt, nonce, name) VALUES (?, ?, ?);`,
+          parameters: [ new Date(expiresAt), this.nonce, name ]
+        });
+      } catch {
+        throw new errors.AcquireLockFailed('Failed to acquire lock.');
+      }
     } finally {
       MariaDbLockStore.releaseConnection({ connection });
     }

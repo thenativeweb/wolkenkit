@@ -146,14 +146,11 @@ class SqlServerLockStore implements LockStore {
     const database = await SqlServerLockStore.getDatabase(this.pool);
 
     try {
-      const result: { expiresAt: Date } | undefined = await new Promise((resolve, reject): void => {
+      await new Promise((resolve, reject): void => {
         let lockResult: { expiresAt: Date };
 
         const request = new Request(`
-          SELECT TOP(1) [expiresAt]
-            FROM ${this.tableNames.locks}
-            WHERE [name] = @name
-          ;
+          DELETE FROM ${this.tableNames.locks} WHERE [expiresAt] < @now;
         `, (err?: Error): void => {
           if (err) {
             return reject(err);
@@ -162,7 +159,7 @@ class SqlServerLockStore implements LockStore {
           resolve(lockResult);
         });
 
-        request.addParameter('name', TYPES.NVarChar, name);
+        request.addParameter('now', TYPES.DateTime2, new Date());
 
         request.once('row', (columns): void => {
           lockResult = {
@@ -173,49 +170,30 @@ class SqlServerLockStore implements LockStore {
         database.execSql(request);
       });
 
-      let newEntry = true;
+      try {
+        await new Promise((resolve, reject): void => {
+          const request = new Request(
+            `INSERT INTO [${this.tableNames.locks}] ([name], [expiresAt], [nonce])
+            VALUES (@name, @expiresAt, @nonce)
+          ;`,
+            (err?: Error): void => {
+              if (err) {
+                return reject(err);
+              }
 
-      if (result) {
-        const isLocked = result.expiresAt.getTime() > Date.now();
+              resolve();
+            }
+          );
 
-        if (isLocked) {
-          throw new errors.AcquireLockFailed('Failed to acquire lock.');
-        }
+          request.addParameter('name', TYPES.NVarChar, name);
+          request.addParameter('expiresAt', TYPES.DateTime2, new Date(expiresAt), { precision: 3 });
+          request.addParameter('nonce', TYPES.NVarChar, this.nonce);
 
-        newEntry = false;
-      }
-
-      let query: string;
-
-      if (newEntry) {
-        query = `
-          INSERT INTO [${this.tableNames.locks}] ([name], [expiresAt], [nonce])
-          VALUES (@name, @expiresAt, @nonce)
-          ;`;
-      } else {
-        query = `
-        UPDATE [${this.tableNames.locks}]
-           SET [expiresAt] = @expiresAt,
-               [nonce] = @nonce
-         WHERE [name] = @name
-         ;`;
-      }
-
-      await new Promise((resolve, reject): void => {
-        const request = new Request(query, (err?: Error): void => {
-          if (err) {
-            return reject(err);
-          }
-
-          resolve();
+          database.execSql(request);
         });
-
-        request.addParameter('name', TYPES.NVarChar, name);
-        request.addParameter('expiresAt', TYPES.DateTime2, new Date(expiresAt), { precision: 3 });
-        request.addParameter('nonce', TYPES.NVarChar, this.nonce);
-
-        database.execSql(request);
-      });
+      } catch {
+        throw new errors.AcquireLockFailed('Failed to acquire lock.');
+      }
     } finally {
       this.pool.release(database);
     }

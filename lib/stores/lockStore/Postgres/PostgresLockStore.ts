@@ -151,51 +151,24 @@ class PostgresLockStore implements LockStore {
     const connection = await PostgresLockStore.getDatabase(this.pool);
 
     try {
-      const result = await connection.query({
-        name: 'get entry',
-        text: `
-        SELECT "expiresAt"
-          FROM "${this.tableNames.locks}"
-         WHERE "name" = $1
-      `,
-        values: [ name ]
+      await connection.query({
+        name: 'delete expired locks',
+        text: `DELETE FROM "${this.tableNames.locks}" WHERE "expiresAt" < $1`,
+        values: [ new Date() ]
       });
 
-      let newEntry = true;
-
-      if (result.rows.length > 0) {
-        const [ entry ] = result.rows;
-
-        const isLocked = Date.now() < entry.expiresAt.getTime();
-
-        if (isLocked) {
-          throw new errors.AcquireLockFailed('Failed to acquire lock.');
-        }
-
-        newEntry = false;
-      }
-
-      let query;
-
-      if (newEntry) {
-        query = `
+      try {
+        await connection.query({
+          name: `try to acquire lock`,
+          text: `
         INSERT INTO "${this.tableNames.locks}" ("name", "expiresAt", "nonce")
         VALUES ($1, $2, $3)
-        `;
-      } else {
-        query = `
-        UPDATE "${this.tableNames.locks}"
-           SET "expiresAt" = $2,
-               "nonce" = $3
-         WHERE "name" = $1
-        `;
+        `,
+          values: [ name, new Date(expiresAt), this.nonce ]
+        });
+      } catch {
+        throw new errors.AcquireLockFailed('Failed to acquire lock.');
       }
-
-      await connection.query({
-        name: `acquire ${newEntry ? 'new' : 'existing'} lock`,
-        text: query,
-        values: [ name, new Date(expiresAt), this.nonce ]
-      });
     } finally {
       connection.release();
     }
