@@ -1,6 +1,6 @@
 import { SampleState } from '../SampleState';
 // @ts-ignore
-import { CommandData, CommandHandler, Schema } from 'wolkenkit';
+import { AggregateService, CommandData, CommandHandler, ErrorService, Schema } from 'wolkenkit';
 
 export interface ExecuteData extends CommandData {
   strategy: 'succeed' | 'fail' | 'reject';
@@ -22,7 +22,7 @@ export const execute: CommandHandler<SampleState, ExecuteData> = {
     return true;
   },
 
-  handle (state: any, command: any, { aggregate }: { aggregate: any }): void {
+  handle (state: any, command: any, { aggregate, error }: { aggregate: AggregateService<SampleState>; error: ErrorService }): void {
     const { strategy } = command.data;
 
     if (strategy === 'fail') {
@@ -30,8 +30,7 @@ export const execute: CommandHandler<SampleState, ExecuteData> = {
     }
 
     if (strategy === 'reject') {
-      // Uncomment: throw new errors.CommandRejected('Intentionally rejected execute.');
-      throw new Error('Intentionally rejected execute.');
+      throw new error.CommandRejected('Intentionally rejected execute.');
     }
 
     aggregate.publishDomainEvent('succeeded', {});
