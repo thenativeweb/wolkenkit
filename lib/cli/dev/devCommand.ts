@@ -3,6 +3,7 @@ import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { DevOptions } from './DevOptions';
 import { errors } from '../../common/errors';
+import { getAbsolutePath } from '../../common/utils/path/getAbsolutePath';
 import { getApplicationPackageJson } from '../../common/application/getApplicationPackageJson';
 import { printFooter } from '../printFooter';
 import { processenv } from 'processenv';
@@ -24,10 +25,31 @@ const devCommand = function (): Command<DevOptions> {
         isRequired: false,
         defaultValue: 3000,
         validate: validatePort
+      },
+      {
+        name: 'identity-provider-issuer',
+        alias: 'i',
+        description: 'set the identity provider issuer url',
+        parameterName: 'url',
+        type: 'string',
+        isRequired: false
+      },
+      {
+        name: 'identity-provider-certificate',
+        alias: 'd',
+        description: 'set the identity provider certificate directory',
+        parameterName: 'directory',
+        type: 'string',
+        isRequired: false
       }
     ],
 
-    async handle ({ options: { verbose, port }}): Promise<void> {
+    async handle ({ options: {
+      verbose,
+      port,
+      'identity-provider-issuer': identityProviderIssuer,
+      'identity-provider-certificate': identityProviderCertificate
+    }}): Promise<void> {
       buntstift.configure(
         buntstift.getConfiguration().
           withVerboseMode(verbose)
@@ -42,6 +64,15 @@ const devCommand = function (): Command<DevOptions> {
 
         if (!dependencies?.wolkenkit && !devDependencies?.wolkenkit) {
           throw new errors.ApplicationNotFound();
+        }
+
+        const identityProviders = [];
+
+        if (identityProviderIssuer && identityProviderCertificate) {
+          identityProviders.push({
+            issuer: identityProviderIssuer,
+            certificate: getAbsolutePath({ path: identityProviderCertificate, cwd: process.cwd() })
+          });
         }
 
         buntstift.verbose(`Compiling the '${name}' application...`);
@@ -78,7 +109,7 @@ const devCommand = function (): Command<DevOptions> {
             DOMAIN_EVENT_STORE_OPTIONS: JSON.stringify({}),
             DOMAIN_EVENT_STORE_TYPE: 'InMemory',
             HEALTH_PORT: JSON.stringify(healthPort),
-            IDENTITY_PROVIDERS: JSON.stringify([]),
+            IDENTITY_PROVIDERS: JSON.stringify(identityProviders),
             LOCK_STORE_OPTIONS: JSON.stringify({}),
             LOCK_STORE_TYPE: 'InMemory',
             LOG_LEVEL: 'debug',
