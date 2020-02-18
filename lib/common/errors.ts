@@ -15,6 +15,7 @@ const errors = defekt({
   ContextNotFound: {},
   CorsOriginInvalid: {},
   DatabaseTypeInvalid: {},
+  DirectoryAlreadyExists: {},
   DirectoryNotFound: {},
   DispatchFailed: {},
   DomainEventAlreadyExists: {},
