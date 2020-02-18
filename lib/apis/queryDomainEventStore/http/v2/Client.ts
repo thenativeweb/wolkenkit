@@ -60,7 +60,8 @@ class Client extends HttpClient {
       passThrough,
       (err): void => {
         if (err) {
-          throw err;
+          // Do not handle errors explicitly. The returned stream will just close.
+          logger.error('An error occured during stream piping.', { err });
         }
       }
     );
@@ -105,7 +106,8 @@ class Client extends HttpClient {
       passThrough,
       (err): void => {
         if (err) {
-          throw err;
+          // Do not handle errors explicitly. The returned stream will just close.
+          logger.error('An error occured during stream piping.', { err });
         }
       }
     );

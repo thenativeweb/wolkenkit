@@ -9,22 +9,25 @@ const processMap = new Map<string, () => Promise<void>>();
 suite('Aeonstore', (): void => {
   getTestsFor({
     async createDomainEventStore ({ suffix }: { suffix: string }): Promise<DomainEventStore> {
-      const [ port ] = await getAvailablePorts({ count: 1 });
+      const [ port, healthPort ] = await getAvailablePorts({ count: 2 });
 
       const stopProcess = await startProcess({
         runtime: 'microservice',
         name: 'domainEventStore',
-        port,
+        port: healthPort,
         env: {
-          PORT: String(port)
+          PORT: String(port),
+          HEALTH_PORT: String(healthPort)
         }
       });
 
       processMap.set(suffix, stopProcess);
 
       const aeonstoreDomainEventStore = await AeonstoreDomainEventStore.create({
+        protocol: 'http',
         hostName: 'localhost',
-        port
+        port,
+        path: '/'
       });
 
       return aeonstoreDomainEventStore;

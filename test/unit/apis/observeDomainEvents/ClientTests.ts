@@ -9,6 +9,7 @@ import { DomainEventWithState } from '../../../../lib/common/elements/DomainEven
 import { getApi } from '../../../../lib/apis/observeDomainEvents/http';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
+import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory/InMemoryDomainEventStore';
@@ -17,7 +18,9 @@ import { Repository } from '../../../../lib/common/domain/Repository';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { uuid } from 'uuidv4';
 
-suite('observeDomainEvents/http/Client', (): void => {
+suite('observeDomainEvents/http/Client', function (): void {
+  this.timeout(5_000);
+
   const identityProviders = [ identityProvider ];
 
   let applicationDefinition: ApplicationDefinition,
@@ -29,7 +32,11 @@ suite('observeDomainEvents/http/Client', (): void => {
 
     applicationDefinition = await getApplicationDefinition({ applicationDirectory });
     domainEventStore = await InMemoryDomainEventStore.create();
-    repository = new Repository({ applicationDefinition, domainEventStore });
+    repository = new Repository({
+      applicationDefinition,
+      domainEventStore,
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+    });
   });
 
   teardown(async (): Promise<void> => {

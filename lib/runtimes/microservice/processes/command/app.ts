@@ -9,6 +9,7 @@ import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getOnReceiveCommand } from './getOnReceiveCommand';
 import http from 'http';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
+import { runHealthServer } from '../../../shared/runHealthServer';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -48,10 +49,15 @@ import { registerExceptionHandler } from '../../../../common/utils/process/regis
       onReceiveCommand
     });
 
+    await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
+
     const server = http.createServer(api);
 
     server.listen(configuration.port, (): void => {
-      logger.info('Command server started.', { port: configuration.port });
+      logger.info(
+        'Command server started.',
+        { port: configuration.port, healthPort: configuration.healthPort }
+      );
     });
   } catch (ex) {
     logger.fatal('An unexpected error occured.', { ex });

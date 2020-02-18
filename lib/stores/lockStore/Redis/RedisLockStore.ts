@@ -1,9 +1,8 @@
+import { errors } from '../errors';
 import { ListNames } from './ListNames';
 import { LockStore } from '../LockStore';
 import { javascript as maxDate } from '../../../common/utils/maxDate';
-import { noop } from 'lodash';
 import { retry } from 'retry-ignore-abort';
-import { sortKeys } from '../../../common/utils/sortKeys';
 import redis, { RedisClient } from 'redis';
 
 class RedisLockStore implements LockStore {
@@ -15,53 +14,38 @@ class RedisLockStore implements LockStore {
 
   protected nonce: string;
 
-  protected requireValidExpiration: boolean;
-
   protected constructor ({
     client,
     listNames,
     maxLockSize,
-    nonce,
-    requireValidExpiration
+    nonce
   }: {
     client: RedisClient;
     listNames: ListNames;
     maxLockSize: number;
     nonce: string | null;
-    requireValidExpiration: boolean;
   }) {
     this.client = client;
     this.listNames = listNames;
     this.maxLockSize = maxLockSize;
     this.nonce = nonce ?? 'null';
-    this.requireValidExpiration = requireValidExpiration;
   }
 
-  protected getLockName ({ namespace, value, list }: {
-    namespace: string;
-    value: any;
+  protected getLockName ({ name, list }: {
+    name: any;
     list: string;
   }): string {
-    const sortedSerializedValue = JSON.stringify(sortKeys({
-      object: value,
-      recursive: true
-    }));
-
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (name.length > this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
-    const name = `${list}#${namespace}#${sortedSerializedValue}`;
-
-    return name;
+    return `${list}#${name}`;
   }
 
   protected static getExpiration ({ expiresAt }: {
     expiresAt: number;
   }): number {
-    const expiration = expiresAt - Date.now();
-
-    return expiration;
+    return expiresAt - Date.now();
   }
 
   protected static onUnexpectedError (): never {
@@ -75,7 +59,6 @@ class RedisLockStore implements LockStore {
     database,
     listNames,
     nonce = 'null',
-    requireValidExpiration = true,
     maxLockSize = 2048
   }: {
     hostName: string;
@@ -84,7 +67,6 @@ class RedisLockStore implements LockStore {
     database: string;
     listNames: ListNames;
     nonce?: string | null;
-    requireValidExpiration?: boolean;
     maxLockSize?: number;
   }): Promise<RedisLockStore> {
     const url = `redis://:${password}@${hostName}:${port}/${database}`;
@@ -103,69 +85,47 @@ class RedisLockStore implements LockStore {
 
     client.on('error', RedisLockStore.onUnexpectedError);
 
-    const lockstore = new RedisLockStore({
+    return new RedisLockStore({
       client,
       listNames,
       maxLockSize,
-      nonce,
-      requireValidExpiration
+      nonce
     });
-
-    return lockstore;
   }
 
   public async acquireLock ({
-    namespace,
-    value,
-    expiresAt = maxDate,
-    onAcquired = noop
+    name,
+    expiresAt = maxDate
   }: {
-    namespace: string;
-    value: any;
+    name: any;
     expiresAt?: number;
-    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
-    const key = this.getLockName({ namespace, value, list: this.listNames.locks });
+    const key = this.getLockName({ name, list: this.listNames.locks });
     const expiration = RedisLockStore.getExpiration({ expiresAt });
 
-    let result;
-
     if (expiration < 0) {
-      if (this.requireValidExpiration) {
-        throw new Error('Redis cannot acquire a lock in the past.');
-      }
-
-      result = 'OK';
-    } else {
-      result = await new Promise((resolve, reject): void => {
-        this.client.set(key, this.nonce, 'PX', expiration, 'NX', (err, reply): void => {
-          if (err) {
-            return reject(err);
-          }
-
-          resolve(reply);
-        });
-      });
+      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
+
+    const result = await new Promise((resolve, reject): void => {
+      this.client.set(key, this.nonce, 'PX', expiration, 'NX', (err, reply): void => {
+        if (err) {
+          return reject(err);
+        }
+
+        resolve(reply);
+      });
+    });
 
     if (!result) {
-      throw new Error('Failed to acquire lock.');
-    }
-
-    try {
-      await onAcquired();
-    } catch (ex) {
-      await this.releaseLock({ namespace, value });
-
-      throw ex;
+      throw new errors.AcquireLockFailed('Failed to acquire lock.');
     }
   }
 
-  public async isLocked ({ namespace, value }: {
-    namespace: string;
-    value: any;
+  public async isLocked ({ name }: {
+    name: any;
   }): Promise<boolean> {
-    const key = this.getLockName({ namespace, value, list: this.listNames.locks });
+    const key = this.getLockName({ name, list: this.listNames.locks });
 
     const existingLock = await new Promise((resolve, reject): void => {
       this.client.get(key, (err, reply): void => {
@@ -177,30 +137,35 @@ class RedisLockStore implements LockStore {
       });
     });
 
-    const isLocked = Boolean(existingLock);
-
-    return isLocked;
+    return Boolean(existingLock);
   }
 
-  public async renewLock ({ namespace, value, expiresAt }: {
-    namespace: string;
-    value: any;
+  public async renewLock ({ name, expiresAt }: {
+    name: any;
     expiresAt: number;
   }): Promise<void> {
-    const key = this.getLockName({ namespace, value, list: this.listNames.locks });
+    const key = this.getLockName({ name, list: this.listNames.locks });
     const expiration = RedisLockStore.getExpiration({ expiresAt });
+
+    if (expiration < 0) {
+      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
+    }
+
+    const existingLock = await new Promise((resolve, reject): void => {
+      this.client.get(key, (err, reply): void => {
+        if (err) {
+          return reject(err);
+        }
+
+        resolve(reply);
+      });
+    });
 
     let result;
 
-    if (expiration < 0) {
-      if (this.requireValidExpiration) {
-        throw new Error('Redis cannot renew a lock in the past.');
-      }
-
-      result = 'OK';
-    } else {
-      const existingLock = await new Promise((resolve, reject): void => {
-        this.client.get(key, (err, reply): void => {
+    if (existingLock === this.nonce) {
+      result = await new Promise((resolve, reject): void => {
+        this.client.pexpire(key, expiration, (err, reply): void => {
           if (err) {
             return reject(err);
           }
@@ -208,30 +173,17 @@ class RedisLockStore implements LockStore {
           resolve(reply);
         });
       });
-
-      if (existingLock === this.nonce) {
-        result = await new Promise((resolve, reject): void => {
-          this.client.pexpire(key, expiration, (err, reply): void => {
-            if (err) {
-              return reject(err);
-            }
-
-            resolve(reply);
-          });
-        });
-      }
     }
 
     if (!result) {
-      throw new Error('Failed to renew lock.');
+      throw new errors.RenewLockFailed('Failed to renew lock.');
     }
   }
 
-  public async releaseLock ({ namespace, value }: {
-    namespace: string;
-    value: any;
+  public async releaseLock ({ name }: {
+    name: any;
   }): Promise<void> {
-    const key = this.getLockName({ namespace, value, list: this.listNames.locks });
+    const key = this.getLockName({ name, list: this.listNames.locks });
 
     let result;
 
@@ -261,7 +213,7 @@ class RedisLockStore implements LockStore {
     }
 
     if (!result) {
-      throw new Error('Failed to release lock.');
+      throw new errors.ReleaseLockFailed('Failed to release lock.');
     }
   }
 

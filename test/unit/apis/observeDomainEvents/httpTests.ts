@@ -8,6 +8,7 @@ import { DomainEventWithState } from '../../../../lib/common/elements/DomainEven
 import { getApi } from '../../../../lib/apis/observeDomainEvents/http';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
+import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory/InMemoryDomainEventStore';
@@ -30,7 +31,11 @@ suite('observeDomainEvents/http', (): void => {
 
     applicationDefinition = await getApplicationDefinition({ applicationDirectory });
     domainEventStore = await InMemoryDomainEventStore.create();
-    repository = new Repository({ applicationDefinition, domainEventStore });
+    repository = new Repository({
+      applicationDefinition,
+      domainEventStore,
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+    });
   });
 
   teardown(async (): Promise<void> => {
@@ -451,7 +456,11 @@ suite('observeDomainEvents/http', (): void => {
           });
 
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-          repository = new Repository({ applicationDefinition, domainEventStore });
+          repository = new Repository({
+            applicationDefinition,
+            domainEventStore,
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+          });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
@@ -529,7 +538,11 @@ suite('observeDomainEvents/http', (): void => {
           });
 
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-          repository = new Repository({ applicationDefinition, domainEventStore });
+          repository = new Repository({
+            applicationDefinition,
+            domainEventStore,
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+          });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
@@ -605,7 +618,11 @@ suite('observeDomainEvents/http', (): void => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventAuthorization' });
 
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-          repository = new Repository({ applicationDefinition, domainEventStore });
+          repository = new Repository({
+            applicationDefinition,
+            domainEventStore,
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+          });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
@@ -671,7 +688,11 @@ suite('observeDomainEvents/http', (): void => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventFilter' });
 
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-          repository = new Repository({ applicationDefinition, domainEventStore });
+          repository = new Repository({
+            applicationDefinition,
+            domainEventStore,
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+          });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
@@ -733,7 +754,11 @@ suite('observeDomainEvents/http', (): void => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventFilter' });
 
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-          repository = new Repository({ applicationDefinition, domainEventStore });
+          repository = new Repository({
+            applicationDefinition,
+            domainEventStore,
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+          });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
@@ -809,7 +834,11 @@ suite('observeDomainEvents/http', (): void => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventFilter' });
 
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-          repository = new Repository({ applicationDefinition, domainEventStore });
+          repository = new Repository({
+            applicationDefinition,
+            domainEventStore,
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+          });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
@@ -885,7 +914,11 @@ suite('observeDomainEvents/http', (): void => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventFilter' });
 
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-          repository = new Repository({ applicationDefinition, domainEventStore });
+          repository = new Repository({
+            applicationDefinition,
+            domainEventStore,
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+          });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
@@ -951,7 +984,11 @@ suite('observeDomainEvents/http', (): void => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventMap' });
 
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-          repository = new Repository({ applicationDefinition, domainEventStore });
+          repository = new Repository({
+            applicationDefinition,
+            domainEventStore,
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+          });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
@@ -1014,7 +1051,11 @@ suite('observeDomainEvents/http', (): void => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventMap' });
 
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-          repository = new Repository({ applicationDefinition, domainEventStore });
+          repository = new Repository({
+            applicationDefinition,
+            domainEventStore,
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+          });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
@@ -1090,7 +1131,11 @@ suite('observeDomainEvents/http', (): void => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventMap' });
 
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-          repository = new Repository({ applicationDefinition, domainEventStore });
+          repository = new Repository({
+            applicationDefinition,
+            domainEventStore,
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+          });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
@@ -1166,7 +1211,11 @@ suite('observeDomainEvents/http', (): void => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventMap' });
 
           applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-          repository = new Repository({ applicationDefinition, domainEventStore });
+          repository = new Repository({
+            applicationDefinition,
+            domainEventStore,
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+          });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',

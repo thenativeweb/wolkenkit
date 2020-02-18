@@ -57,6 +57,10 @@ const getConfiguration = function (): Configuration {
     PORT: {
       default: 3000,
       schema: portSchema
+    },
+    HEALTH_PORT: {
+      default: 3001,
+      schema: portSchema
     }
   });
 

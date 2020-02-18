@@ -17,6 +17,10 @@ const getConfiguration = function (): Configuration {
       default: 3000,
       schema: portSchema
     },
+    HEALTH_PORT: {
+      default: 3001,
+      schema: portSchema
+    },
     PUBLISH_CORS_ORIGIN: {
       default: '*',
       schema: corsSchema

@@ -5,4 +5,5 @@ export interface Configuration {
   writeDomainEventsCorsOrigin: string | string[];
   healthCorsOrigin: string | string[];
   port: number;
+  healthPort: number;
 }

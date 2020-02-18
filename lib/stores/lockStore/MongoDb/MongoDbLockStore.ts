@@ -1,10 +1,9 @@
 import { CollectionNames } from './CollectionNames';
+import { errors } from '../errors';
 import { LockStore } from '../LockStore';
 import { javascript as maxDate } from '../../../common/utils/maxDate';
-import { noop } from 'lodash';
 import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
-import { sortKeys } from '../../../common/utils/sortKeys';
 import { Collection, Db, MongoClient } from 'mongodb';
 
 class MongoDbLockStore implements LockStore {
@@ -95,7 +94,15 @@ class MongoDbLockStore implements LockStore {
       locks: db.collection(collectionNames.locks)
     };
 
-    const lockstore = new MongoDbLockStore({
+    await collections.locks.createIndexes([
+      {
+        key: { name: 1 },
+        name: `${collectionNames.locks}_name`,
+        unique: true
+      }
+    ]);
+
+    return new MongoDbLockStore({
       client,
       db,
       nonce,
@@ -103,41 +110,25 @@ class MongoDbLockStore implements LockStore {
       collectionNames,
       collections
     });
-
-    await collections.locks.createIndexes([
-      {
-        key: { namespace: 1, value: 1 },
-        name: `${collectionNames.locks}_namespace_value`,
-        unique: true
-      }
-    ]);
-
-    return lockstore;
   }
 
   public async acquireLock ({
-    namespace,
-    value,
-    expiresAt = maxDate,
-    onAcquired = noop
+    name,
+    expiresAt = maxDate
   }: {
-    namespace: string;
-    value: any;
+    name: any;
     expiresAt?: number;
-    onAcquired? (): void | Promise<void>;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({
-      object: value,
-      recursive: true
-    }));
+    if (name.length > this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
+    }
 
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (expiresAt - Date.now() < 0) {
+      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
 
     const query = {
-      namespace,
-      value: sortedSerializedValue
+      name
     };
     const entry = await this.collections.locks.findOne(query);
 
@@ -145,7 +136,7 @@ class MongoDbLockStore implements LockStore {
       const isLocked = Date.now() < entry.expiresAt.getTime();
 
       if (isLocked) {
-        throw new Error('Failed to acquire lock.');
+        throw new errors.AcquireLockFailed('Failed to acquire lock.');
       }
     }
 
@@ -156,57 +147,36 @@ class MongoDbLockStore implements LockStore {
     };
 
     await this.collections.locks.updateOne(query, { $set }, { upsert: true });
-
-    try {
-      await onAcquired();
-    } catch (ex) {
-      await this.releaseLock({ namespace, value });
-
-      throw ex;
-    }
   }
 
-  public async isLocked ({ namespace, value }: {
-    namespace: string;
-    value: any;
+  public async isLocked ({ name }: {
+    name: any;
   }): Promise<boolean> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({
-      object: value,
-      recursive: true
-    }));
-
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (name.length > this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
-    const query = {
-      namespace,
-      value: sortedSerializedValue
-    };
-    const entry = await this.collections.locks.findOne(query);
+    const entry = await this.collections.locks.findOne({ name });
 
     const isLocked = Boolean(entry) && Date.now() < entry.expiresAt.getTime();
 
     return isLocked;
   }
 
-  public async renewLock ({ namespace, value, expiresAt }: {
-    namespace: string;
-    value: any;
+  public async renewLock ({ name, expiresAt }: {
+    name: any;
     expiresAt: number;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({
-      object: value,
-      recursive: true
-    }));
+    if (name.length > this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
+    }
 
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (expiresAt - Date.now() < 0) {
+      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
 
     const query = {
-      namespace,
-      value: sortedSerializedValue
+      name
     };
     const entry = await this.collections.locks.findOne(query, {
       projection: {
@@ -217,33 +187,23 @@ class MongoDbLockStore implements LockStore {
     });
 
     if (!entry) {
-      throw new Error('Failed to renew lock.');
+      throw new errors.RenewLockFailed('Failed to renew lock.');
     }
     if (entry.expiresAt.getTime() < Date.now() || this.nonce !== entry.nonce) {
-      throw new Error('Failed to renew lock.');
+      throw new errors.RenewLockFailed('Failed to renew lock.');
     }
 
     await this.collections.locks.updateOne(query, { $set: { expiresAt: new Date(expiresAt) }});
   }
 
-  public async releaseLock ({ namespace, value }: {
-    namespace: string;
-    value: any;
+  public async releaseLock ({ name }: {
+    name: any;
   }): Promise<void> {
-    const sortedSerializedValue = JSON.stringify(sortKeys({
-      object: value,
-      recursive: true
-    }));
-
-    if (sortedSerializedValue.length > this.maxLockSize) {
-      throw new Error('Lock value is too large.');
+    if (name.length > this.maxLockSize) {
+      throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
-    const queryGet = {
-      namespace,
-      value: sortedSerializedValue
-    };
-    const entry = await this.collections.locks.findOne(queryGet, {
+    const entry = await this.collections.locks.findOne({ name }, {
       projection: {
         _id: 0,
         expiresAt: 1,
@@ -255,15 +215,10 @@ class MongoDbLockStore implements LockStore {
       return;
     }
     if (Date.now() < entry.expiresAt.getTime() && this.nonce !== entry.nonce) {
-      throw new Error('Failed to release lock.');
+      throw new errors.ReleaseLockFailed('Failed to release lock.');
     }
 
-    const queryRemove = {
-      namespace,
-      value: sortedSerializedValue
-    };
-
-    await this.collections.locks.deleteOne(queryRemove);
+    await this.collections.locks.deleteOne({ name });
   }
 
   public async destroy (): Promise<void> {

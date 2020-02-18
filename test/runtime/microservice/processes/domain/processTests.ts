@@ -4,6 +4,7 @@ import { buildCommandWithMetadata } from '../../../../shared/buildCommandWithMet
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/apis/handleCommandWithMetadata/http/v2/Client';
+import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import path from 'path';
 import { Client as QueryDomainEventStoreClient } from '../../../../../lib/apis/queryDomainEventStore/http/v2/Client';
 import { startProcess } from '../../../../shared/runtime/startProcess';
@@ -13,17 +14,20 @@ import { uuid } from 'uuidv4';
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
 suite('domain', function (): void {
-  this.timeout(10 * 1000);
+  this.timeout(10_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   const queueLockExpirationTime = 600;
   const queuePollInterval = 600;
 
-  let dispatcherPort: number,
+  let dispatcherHealthPort: number,
+      dispatcherPort: number,
+      domainEventStoreHealthPort: number,
       domainEventStorePort: number,
-      domainPort: number,
+      domainHealthPort: number,
       handleCommandWithMetadataClient: HandleCommandWithMetadataClient,
+      publisherHealthPort: number,
       publisherPort: number,
       queryDomainEventStoreClient: QueryDomainEventStoreClient,
       stopDispatcherProcess: (() => Promise<void>) | undefined,
@@ -35,19 +39,23 @@ suite('domain', function (): void {
   setup(async (): Promise<void> => {
     [
       dispatcherPort,
+      dispatcherHealthPort,
       domainEventStorePort,
-      domainPort,
-      publisherPort
-    ] = await getAvailablePorts({ count: 4 });
+      domainEventStoreHealthPort,
+      domainHealthPort,
+      publisherPort,
+      publisherHealthPort
+    ] = await getAvailablePorts({ count: 7 });
 
     stopDispatcherProcess = await startProcess({
       runtime: 'microservice',
       name: 'dispatcher',
-      port: dispatcherPort,
+      port: dispatcherHealthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
         PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${queueLockExpirationTime}}`,
         PORT: String(dispatcherPort),
+        HEALTH_PORT: String(dispatcherHealthPort),
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
         QUEUE_POLL_INTERVAL: String(queuePollInterval)
       }
@@ -63,9 +71,10 @@ suite('domain', function (): void {
     stopDomainEventStoreProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
-      port: domainEventStorePort,
+      port: domainEventStoreHealthPort,
       env: {
-        PORT: String(domainEventStorePort)
+        PORT: String(domainEventStorePort),
+        HEALTH_PORT: String(domainEventStoreHealthPort)
       }
     });
 
@@ -79,9 +88,10 @@ suite('domain', function (): void {
     stopPublisherProcess = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
-      port: publisherPort,
+      port: publisherHealthPort,
       env: {
-        PORT: String(publisherPort)
+        PORT: String(publisherPort),
+        HEALTH_PORT: String(publisherHealthPort)
       }
     });
 
@@ -95,7 +105,7 @@ suite('domain', function (): void {
     stopDomainProcess = await startProcess({
       runtime: 'microservice',
       name: 'domain',
-      port: domainPort,
+      port: domainHealthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
         DISPATCHER_PROTOCOL: 'http',
@@ -110,8 +120,9 @@ suite('domain', function (): void {
         AEONSTORE_HOST_NAME: 'localhost',
         AEONSTORE_PORT: String(domainEventStorePort),
         AEONSTORE_RETRIES: String(0),
-        PORT: String(domainPort),
-        CONCURRENT_COMMANDS: String(1)
+        HEALTH_PORT: String(domainHealthPort),
+        CONCURRENT_COMMANDS: String(1),
+        SNAPSHOT_STRATEGY: `{"name":"never"}`
       }
     });
   });
@@ -134,6 +145,21 @@ suite('domain', function (): void {
     stopDomainEventStoreProcess = undefined;
     stopPublisherProcess = undefined;
     stopDomainProcess = undefined;
+  });
+
+  suite('getHealth', (): void => {
+    test('is using the health API.', async (): Promise<void> => {
+      const healthClient = new HealthClient({
+        protocol: 'http',
+        hostName: 'localhost',
+        port: domainHealthPort,
+        path: '/health/v2'
+      });
+
+      await assert.that(
+        async (): Promise<any> => healthClient.getHealth()
+      ).is.not.throwingAsync();
+    });
   });
 
   suite('authorization', (): void => {
@@ -319,126 +345,6 @@ suite('domain', function (): void {
           true
         ));
       });
-    });
-
-    test('publishes (and does not store) a rejected event if a handler rejects.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: uuid()
-      };
-
-      const command = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
-        aggregateIdentifier,
-        name: 'execute',
-        data: {
-          strategy: 'reject'
-        }
-      });
-
-      const messageStream = await subscribeMessagesClient.getMessages();
-
-      await handleCommandWithMetadataClient.postCommand({ command });
-
-      await new Promise((resolve, reject): void => {
-        messageStream.on('error', (err: any): void => {
-          reject(err);
-        });
-        messageStream.on('close', (): void => {
-          resolve();
-        });
-        messageStream.pipe(asJsonStream(
-          [
-            (data): void => {
-              try {
-                assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
-                  aggregateIdentifier,
-                  name: 'executeRejected',
-                  data: {
-                    reason: 'Intentionally rejected execute.'
-                  }
-                });
-                resolve();
-              } catch (ex) {
-                reject(ex);
-              }
-            },
-            (): void => {
-              reject(new Error('Should only have received one message.'));
-            }
-          ],
-          true
-        ));
-      });
-
-      assert.that(
-        await queryDomainEventStoreClient.getLastDomainEvent({ aggregateIdentifier })
-      ).is.undefined();
-    });
-
-    test('publishes (and does not store) a failed event if a handler throws an unknow exception.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: uuid()
-      };
-
-      const command = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
-        aggregateIdentifier,
-        name: 'execute',
-        data: {
-          strategy: 'fail'
-        }
-      });
-
-      const messageStream = await subscribeMessagesClient.getMessages();
-
-      await handleCommandWithMetadataClient.postCommand({ command });
-
-      await new Promise((resolve, reject): void => {
-        messageStream.on('error', (err: any): void => {
-          reject(err);
-        });
-        messageStream.on('close', (): void => {
-          resolve();
-        });
-        messageStream.pipe(asJsonStream(
-          [
-            (data): void => {
-              try {
-                assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
-                  aggregateIdentifier,
-                  name: 'executeFailed',
-                  data: {
-                    reason: 'Intentionally failed execute.'
-                  }
-                });
-                resolve();
-              } catch (ex) {
-                reject(ex);
-              }
-            },
-            (): void => {
-              reject(new Error('Should only have received one message.'));
-            }
-          ],
-          true
-        ));
-      });
-
-      assert.that(
-        await queryDomainEventStoreClient.getLastDomainEvent({ aggregateIdentifier })
-      ).is.undefined();
     });
   });
 });

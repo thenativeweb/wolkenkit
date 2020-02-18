@@ -7,9 +7,12 @@ import { DomainEventData } from '../../../../lib/common/elements/DomainEventData
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
+import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { handleCommand } from '../../../../lib/common/domain/handleCommand';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
+import { InMemoryLockStore } from '../../../../lib/stores/lockStore/InMemory';
+import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { State } from '../../../../lib/common/elements/State';
 import { uuid } from 'uuidv4';
@@ -20,12 +23,18 @@ suite('handleCommand', (): void => {
 
   let applicationDefinition: ApplicationDefinition,
       domainEventStore: DomainEventStore,
+      lockStore: LockStore,
       repository: Repository;
 
   setup(async (): Promise<void> => {
     applicationDefinition = await getApplicationDefinition({ applicationDirectory });
     domainEventStore = await InMemoryDomainEventStore.create();
-    repository = new Repository({ applicationDefinition, domainEventStore });
+    lockStore = await InMemoryLockStore.create({});
+    repository = new Repository({
+      applicationDefinition,
+      domainEventStore,
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+    });
   });
 
   suite('validation', (): void => {
@@ -49,6 +58,7 @@ suite('handleCommand', (): void => {
       await assert.that(async (): Promise<any> => await handleCommand({
         command,
         applicationDefinition,
+        lockStore,
         repository,
         async publishDomainEvents (): Promise<void> {
           // Intentionally left empty
@@ -107,6 +117,7 @@ suite('handleCommand', (): void => {
       await handleCommand({
         command,
         applicationDefinition,
+        lockStore,
         repository,
         publishDomainEvents
       });
@@ -173,6 +184,7 @@ suite('handleCommand', (): void => {
       await handleCommand({
         command,
         applicationDefinition,
+        lockStore,
         repository,
         publishDomainEvents
       });
@@ -276,6 +288,7 @@ suite('handleCommand', (): void => {
       await handleCommand({
         command,
         applicationDefinition,
+        lockStore,
         repository,
         publishDomainEvents
       });
@@ -332,6 +345,7 @@ suite('handleCommand', (): void => {
       await handleCommand({
         command,
         applicationDefinition,
+        lockStore,
         repository,
         publishDomainEvents
       });

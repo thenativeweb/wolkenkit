@@ -3,7 +3,10 @@ import { Command } from '../../../../common/elements/Command';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandDescription } from '../../../../common/application/CommandDescription';
 import { errors } from '../../../../common/errors';
+import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
+
+const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
   public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
@@ -60,6 +63,8 @@ class Client extends HttpClient {
         throw new errors.CommandNotFound(data.message);
       }
       default: {
+        logger.error('An unknown error occured.', data);
+
         throw new errors.UnknownError();
       }
     }

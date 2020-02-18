@@ -3,6 +3,7 @@ import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
+import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
 import path from 'path';
 import { withCamelCaseKeys } from '../../../../common/utils/withCamelCaseKeys';
 
@@ -71,12 +72,20 @@ const getConfiguration = function (): Configuration {
       default: 3000,
       schema: portSchema
     },
+    LOCK_STORE_OPTIONS: {
+      default: {},
+      schema: { type: 'object' }
+    },
+    LOCK_STORE_TYPE: {
+      default: 'InMemory',
+      schema: { type: 'string' }
+    },
     HEALTH_CORS_ORIGIN: {
       default: '*',
       schema: corsSchema
     },
-    PORT: {
-      default: 3000,
+    HEALTH_PORT: {
+      default: 3001,
       schema: portSchema
     },
     CONCURRENT_COMMANDS: {
@@ -85,6 +94,16 @@ const getConfiguration = function (): Configuration {
         type: 'number',
         minimum: 1
       }
+    },
+    SNAPSHOT_STRATEGY: {
+      default: {
+        name: 'lowest',
+        configuration: {
+          revisionLimit: 100,
+          durationLimit: 500
+        }
+      },
+      schema: getSnapshotStrategySchema()
     }
   });
 

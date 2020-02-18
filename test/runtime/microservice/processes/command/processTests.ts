@@ -2,11 +2,12 @@ import { assert } from 'assertthat';
 import { Command } from '../../../../../lib/common/elements/Command';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
+import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
+import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import path from 'path';
 import { startCatchAllServer } from '../../../../shared/runtime/startCatchAllServer';
 import { startProcess } from '../../../../shared/runtime/startProcess';
 import { uuid } from 'uuidv4';
-import axios, { AxiosError } from 'axios';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
@@ -18,11 +19,13 @@ suite('command', (): void => {
 
     let commandReceivedByDispatcher: object | undefined,
         dispatcherPort: number,
+        handleCommandClient: HandleCommandClient,
+        healthPort: number,
         port: number,
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, dispatcherPort ] = await getAvailablePorts({ count: 2 });
+      [ port, healthPort, dispatcherPort ] = await getAvailablePorts({ count: 3 });
 
       await startCatchAllServer({
         port: dispatcherPort,
@@ -35,16 +38,24 @@ suite('command', (): void => {
       stopProcess = await startProcess({
         runtime: 'microservice',
         name: 'command',
-        port,
+        port: healthPort,
         env: {
           APPLICATION_DIRECTORY: applicationDirectory,
           PORT: String(port),
+          HEALTH_PORT: String(healthPort),
           DISPATCHER_PROTOCOL: 'http',
           DISPATCHER_HOST_NAME: 'localhost',
           DISPATCHER_PORT: String(dispatcherPort),
           DISPATCHER_RETRIES: String(0),
           IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
         }
+      });
+
+      handleCommandClient = new HandleCommandClient({
+        protocol: 'http',
+        hostName: 'localhost',
+        port,
+        path: '/command/v2'
       });
     });
 
@@ -57,35 +68,22 @@ suite('command', (): void => {
       commandReceivedByDispatcher = undefined;
     });
 
-    suite('GET /health/v2', (): void => {
+    suite('getHealth', (): void => {
       test('is using the health API.', async (): Promise<void> => {
-        const { status } = await axios({
-          method: 'get',
-          url: `http://localhost:${port}/health/v2`
+        const healthClient = new HealthClient({
+          protocol: 'http',
+          hostName: 'localhost',
+          port: healthPort,
+          path: '/health/v2'
         });
 
-        assert.that(status).is.equalTo(200);
+        await assert.that(
+          async (): Promise<any> => healthClient.getHealth()
+        ).is.not.throwingAsync();
       });
     });
 
-    suite('POST /command/v2', (): void => {
-      test('rejects invalid commands.', async (): Promise<void> => {
-        const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-          name: 'nonExistent',
-          data: {}
-        });
-
-        await assert.that(async (): Promise<void> => {
-          await axios({
-            method: 'post',
-            url: `http://localhost:${port}/command/v2`,
-            data: command
-          });
-        }).is.throwingAsync((ex): boolean => (ex as AxiosError).response!.status === 400);
-      });
-
+    suite('postCommand', (): void => {
       test('sends commands to the dispatcher.', async (): Promise<void> => {
         const command = new Command({
           contextIdentifier: { name: 'sampleContext' },
@@ -94,13 +92,7 @@ suite('command', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const { status } = await axios({
-          method: 'post',
-          url: `http://localhost:${port}/command/v2`,
-          data: command
-        });
-
-        assert.that(status).is.equalTo(200);
+        await handleCommandClient.postCommand({ command });
 
         assert.that(commandReceivedByDispatcher).is.atLeast({
           ...command,
@@ -115,7 +107,7 @@ suite('command', (): void => {
         });
       });
 
-      test('returns 500 if sending the given command to the dispatcher fails.', async (): Promise<void> => {
+      test('fails if sending the given command to the dispatcher fails.', async (): Promise<void> => {
         if (stopProcess) {
           await stopProcess();
         }
@@ -123,10 +115,11 @@ suite('command', (): void => {
         stopProcess = await startProcess({
           runtime: 'microservice',
           name: 'command',
-          port,
+          port: healthPort,
           env: {
             APPLICATION_DIRECTORY: applicationDirectory,
             PORT: String(port),
+            HEALTH_PORT: String(healthPort),
             DISPATCHER_PROTOCOL: 'http',
             DISPATCHER_HOST_NAME: 'non-existent',
             DISPATCHER_PORT: String(12345),
@@ -143,12 +136,8 @@ suite('command', (): void => {
         });
 
         await assert.that(async (): Promise<void> => {
-          await axios({
-            method: 'post',
-            url: `http://localhost:${port}/command/v2`,
-            data: command
-          });
-        }).is.throwingAsync((ex): boolean => (ex as AxiosError).response!.status === 500);
+          await handleCommandClient.postCommand({ command });
+        }).is.throwingAsync();
 
         assert.that(commandReceivedByDispatcher).is.undefined();
       });
@@ -162,12 +151,14 @@ suite('command', (): void => {
           dispatcherRetries = 5;
 
     let dispatcherPort: number,
+        handleCommandClient: HandleCommandClient,
+        healthPort: number,
         port: number,
         requestCount: number,
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, dispatcherPort ] = await getAvailablePorts({ count: 2 });
+      [ port, healthPort, dispatcherPort ] = await getAvailablePorts({ count: 3 });
 
       requestCount = 0;
       await startCatchAllServer({
@@ -181,16 +172,24 @@ suite('command', (): void => {
       stopProcess = await startProcess({
         runtime: 'microservice',
         name: 'command',
-        port,
+        port: healthPort,
         env: {
           APPLICATION_DIRECTORY: applicationDirectory,
           PORT: String(port),
+          HEALTH_PORT: String(healthPort),
           DISPATCHER_PROTOCOL: 'http',
           DISPATCHER_HOST_NAME: 'localhost',
           DISPATCHER_PORT: String(dispatcherPort),
           DISPATCHER_RETRIES: String(dispatcherRetries),
           IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
         }
+      });
+
+      handleCommandClient = new HandleCommandClient({
+        protocol: 'http',
+        hostName: 'localhost',
+        port,
+        path: '/command/v2'
       });
     });
 
@@ -210,16 +209,10 @@ suite('command', (): void => {
         data: { strategy: 'succeed' }
       });
 
-      const { status } = await axios({
-        method: 'post',
-        url: `http://localhost:${port}/command/v2`,
-        data: command,
-        validateStatus (): boolean {
-          return true;
-        }
-      });
+      await assert.that(
+        async (): Promise<any> => await handleCommandClient.postCommand({ command })
+      ).is.throwingAsync();
 
-      assert.that(status).is.equalTo(500);
       assert.that(requestCount).is.equalTo(dispatcherRetries + 1);
     });
   });
@@ -232,12 +225,14 @@ suite('command', (): void => {
           succeedAfterTries = 3;
 
     let dispatcherPort: number,
+        handleCommandClient: HandleCommandClient,
+        healthPort: number,
         port: number,
         requestCount: number,
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, dispatcherPort ] = await getAvailablePorts({ count: 2 });
+      [ port, healthPort, dispatcherPort ] = await getAvailablePorts({ count: 3 });
 
       requestCount = 0;
       await startCatchAllServer({
@@ -254,16 +249,24 @@ suite('command', (): void => {
       stopProcess = await startProcess({
         runtime: 'microservice',
         name: 'command',
-        port,
+        port: healthPort,
         env: {
           APPLICATION_DIRECTORY: applicationDirectory,
           PORT: String(port),
+          HEALTH_PORT: String(healthPort),
           DISPATCHER_PROTOCOL: 'http',
           DISPATCHER_HOST_NAME: 'localhost',
           DISPATCHER_PORT: String(dispatcherPort),
           DISPATCHER_RETRIES: String(dispatcherRetries),
           IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
         }
+      });
+
+      handleCommandClient = new HandleCommandClient({
+        protocol: 'http',
+        hostName: 'localhost',
+        port,
+        path: '/command/v2'
       });
     });
 
@@ -283,16 +286,8 @@ suite('command', (): void => {
         data: { strategy: 'succeed' }
       });
 
-      const { status } = await axios({
-        method: 'post',
-        url: `http://localhost:${port}/command/v2`,
-        data: command,
-        validateStatus (): boolean {
-          return true;
-        }
-      });
+      await handleCommandClient.postCommand({ command });
 
-      assert.that(status).is.equalTo(200);
       assert.that(requestCount).is.equalTo(succeedAfterTries);
     });
   });
