@@ -6,7 +6,7 @@ import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCom
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import path from 'path';
 import { startCatchAllServer } from '../../../../shared/runtime/startCatchAllServer';
-import { startProcess } from '../../../../shared/runtime/startProcess';
+import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');

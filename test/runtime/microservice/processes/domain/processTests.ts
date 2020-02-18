@@ -7,7 +7,7 @@ import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/ap
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import path from 'path';
 import { Client as QueryDomainEventStoreClient } from '../../../../../lib/apis/queryDomainEventStore/http/v2/Client';
-import { startProcess } from '../../../../shared/runtime/startProcess';
+import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subscribeMessages/http/v2/Client';
 import { uuid } from 'uuidv4';
 

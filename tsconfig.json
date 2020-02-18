@@ -16,6 +16,7 @@
     "./test/**/*.ts"
   ],
   "exclude": [
-    "./build/**/*.ts"
+    "./build/**/*.ts",
+    "./templates/**/*.ts"
   ]
 }

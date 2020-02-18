@@ -2,7 +2,7 @@ import { AeonstoreDomainEventStore } from '../../../../lib/stores/domainEventSto
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getAvailablePorts } from '../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestsFor } from './getTestsFor';
-import { startProcess } from '../../../shared/runtime/startProcess';
+import { startProcess } from '../../../../lib/runtimes/shared/startProcess';
 
 const processMap = new Map<string, () => Promise<void>>();
 

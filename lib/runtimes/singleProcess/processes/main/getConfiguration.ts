@@ -54,7 +54,10 @@ const getConfiguration = function (): Configuration {
       default: 3001,
       schema: portSchema
     },
-    SNAPSHOT_STRATEGY: getSnapshotStrategySchema(),
+    SNAPSHOT_STRATEGY: {
+      default: { name: 'revision', configuration: { revisionLimit: 100 }},
+      schema: getSnapshotStrategySchema()
+    },
     CONCURRENT_COMMANDS: {
       default: 1,
       schema: {

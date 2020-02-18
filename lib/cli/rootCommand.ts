@@ -1,4 +1,5 @@
 import { Command } from 'command-line-interface';
+import { devCommand } from './dev/devCommand';
 import { initCommand } from './init/initCommand';
 import { RootOptions } from './RootOptions';
 
@@ -25,7 +26,8 @@ const rootCommand = function (): Command<RootOptions> {
     },
 
     subcommands: {
-      init: initCommand()
+      init: initCommand(),
+      dev: devCommand()
     }
   };
 };

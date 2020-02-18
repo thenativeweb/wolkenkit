@@ -2,6 +2,7 @@ import { adjustPackageJson } from './adjustPackageJson';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { cp } from 'shelljs';
+import { emojis } from '../emojis';
 import { errors } from '../../common/errors';
 import { exists } from '../../common/utils/fs/exists';
 import { getAbsolutePath } from '../../common/utils/path/getAbsolutePath';
@@ -95,8 +96,6 @@ const initCommand = function (): Command<InitOptions> {
         );
 
         const packageJson = path.join(targetDirectory, 'package.json');
-
-        const emojis = [ '🦄', '🎉', '🌟', '🌈', '😊', '❤️', '💝' ];
 
         buntstift.info(`Initializing the '${name}' application...`);
 
