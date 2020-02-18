@@ -4,13 +4,13 @@ import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
-import { PassThrough } from 'stream';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
 import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
+import { PassThrough, Readable } from 'stream';
 
 class MySqlDomainEventStore implements DomainEventStore {
   protected tableNames: TableNames;
@@ -134,6 +134,8 @@ class MySqlDomainEventStore implements DomainEventStore {
         revisionGlobal SERIAL,
         aggregateId BINARY(16) NOT NULL,
         revisionAggregate INT NOT NULL,
+        causationId VARCHAR(36) NOT NULL,
+        correlationId VARCHAR(36) NOT NULL,
         domainEvent JSON NOT NULL,
 
         PRIMARY KEY(revisionGlobal),
@@ -162,40 +164,55 @@ class MySqlDomainEventStore implements DomainEventStore {
     });
   }
 
-  public async getReplayForAggregate ({
-    aggregateId,
-    fromRevision = 1,
-    toRevision = (2 ** 31) - 1
-  }: {
-    aggregateId: string;
-    fromRevision?: number;
-    toRevision?: number;
-  }): Promise<PassThrough> {
-    if (fromRevision < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
-    }
-    if (toRevision < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be at least 1.`);
-    }
-    if (fromRevision > toRevision) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
-    }
-
+  public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
+    aggregateIdentifier: AggregateIdentifier;
+  }): Promise<DomainEvent<TDomainEventData> | undefined> {
     const connection = await this.getDatabase();
 
+    try {
+      const [ rows ] = await runQuery({
+        connection,
+        query: `SELECT domainEvent, revisionGlobal
+          FROM ${this.tableNames.domainEvents}
+          WHERE aggregateId = UuidToBin(?)
+          ORDER BY revisionAggregate DESC
+          LIMIT 1`,
+        parameters: [ aggregateIdentifier.id ]
+      });
+
+      if (rows.length === 0) {
+        return;
+      }
+
+      let domainEvent = new DomainEvent<TDomainEventData>(JSON.parse(rows[0].domainEvent));
+
+      domainEvent = domainEvent.withRevisionGlobal({
+        revisionGlobal: Number(rows[0].revisionGlobal)
+      });
+
+      return domainEvent;
+    } finally {
+      MySqlDomainEventStore.releaseConnection({ connection });
+    }
+  }
+
+  public async getDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }): Promise<Readable> {
+    const connection = await this.getDatabase();
+
+    const domainEventStream = connection.query(
+      `SELECT domainEvent, revisionGlobal
+          FROM \`${this.tableNames.domainEvents}\`
+          WHERE causationId = ?
+          ORDER BY revisionGlobal ASC`,
+      [ causationId ]
+    );
     const passThrough = new PassThrough({ objectMode: true });
-    const domainEventStream = connection.query(`
-      SELECT domainEvent, revisionGlobal
-        FROM \`${this.tableNames.domainEvents}\`
-        WHERE aggregateId = UuidToBin(?)
-          AND revisionAggregate >= ?
-          AND revisionAggregate <= ?
-        ORDER BY revisionAggregate`,
-    [ aggregateId, fromRevision, toRevision ]);
 
     const unsubscribe = function (): void {
-      // The listeners on domainEventStream should be removed here, but the
-      // mysql typings unfortunately don't support that.
+      // Listeners should be removed here, but the mysql typings don't support
+      // that.
       MySqlDomainEventStore.releaseConnection({ connection });
     };
 
@@ -225,36 +242,50 @@ class MySqlDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
-  public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
-    aggregateIdentifier: AggregateIdentifier;
-  }): Promise<DomainEvent<TDomainEventData> | undefined> {
+  public async getDomainEventsWithCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+    correlationId: string;
+  }): Promise<Readable> {
     const connection = await this.getDatabase();
 
-    try {
-      const [ rows ] = await runQuery({
-        connection,
-        query: `SELECT domainEvent, revisionGlobal
+    const domainEventStream = connection.query(
+      `SELECT domainEvent, revisionGlobal
           FROM \`${this.tableNames.domainEvents}\`
-          WHERE aggregateId = UuidToBin(?)
-          ORDER BY revisionAggregate DESC
-          LIMIT 1`,
-        parameters: [ aggregateIdentifier.id ]
-      });
+          WHERE correlationId = ?
+          ORDER BY revisionGlobal ASC`,
+      [ correlationId ]
+    );
+    const passThrough = new PassThrough({ objectMode: true });
 
-      if (rows.length === 0) {
-        return;
-      }
+    const unsubscribe = function (): void {
+      // Listeners should be removed here, but the mysql typings don't support
+      // that.
+      MySqlDomainEventStore.releaseConnection({ connection });
+    };
 
-      let domainEvent = new DomainEvent<TDomainEventData>(JSON.parse(rows[0].domainEvent));
+    const onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+    const onError = function (err: MysqlError): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+    const onResult = function (row: any): void {
+      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
 
       domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(rows[0].revisionGlobal)
+        revisionGlobal: Number(row.revisionGlobal)
       });
 
-      return domainEvent;
-    } finally {
-      MySqlDomainEventStore.releaseConnection({ connection });
-    }
+      passThrough.write(domainEvent);
+    };
+
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+    domainEventStream.on('result', onResult);
+
+    return passThrough;
   }
 
   public async getReplay ({
@@ -263,7 +294,7 @@ class MySqlDomainEventStore implements DomainEventStore {
   }: {
     fromRevisionGlobal?: number;
     toRevisionGlobal?: number;
-  } = {}): Promise<PassThrough> {
+  } = {}): Promise<Readable> {
     if (fromRevisionGlobal < 1) {
       throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
     }
@@ -288,6 +319,69 @@ class MySqlDomainEventStore implements DomainEventStore {
     const unsubscribe = function (): void {
       // Listeners should be removed here, but the mysql typings don't support
       // that.
+      MySqlDomainEventStore.releaseConnection({ connection });
+    };
+
+    const onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+    const onError = function (err: MysqlError): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+    const onResult = function (row: any): void {
+      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
+
+      domainEvent = domainEvent.withRevisionGlobal({
+        revisionGlobal: Number(row.revisionGlobal)
+      });
+
+      passThrough.write(domainEvent);
+    };
+
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+    domainEventStream.on('result', onResult);
+
+    return passThrough;
+  }
+
+  public async getReplayForAggregate ({
+    aggregateId,
+    fromRevision = 1,
+    toRevision = (2 ** 31) - 1
+  }: {
+    aggregateId: string;
+    fromRevision?: number;
+    toRevision?: number;
+  }): Promise<Readable> {
+    if (fromRevision < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
+    }
+    if (toRevision < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be at least 1.`);
+    }
+    if (fromRevision > toRevision) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
+    }
+
+    const connection = await this.getDatabase();
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const domainEventStream = connection.query(`
+      SELECT domainEvent, revisionGlobal
+        FROM \`${this.tableNames.domainEvents}\`
+        WHERE aggregateId = UuidToBin(?)
+          AND revisionAggregate >= ?
+          AND revisionAggregate <= ?
+        ORDER BY revisionAggregate`,
+    [ aggregateId, fromRevision, toRevision ]);
+
+    const unsubscribe = function (): void {
+      // The listeners on domainEventStream should be removed here, but the
+      // mysql typings unfortunately don't support that.
       MySqlDomainEventStore.releaseConnection({ connection });
     };
 
@@ -360,17 +454,19 @@ class MySqlDomainEventStore implements DomainEventStore {
           placeholders = [];
 
     for (const domainEvent of domainEvents) {
-      placeholders.push('(UuidToBin(?), ?, ?)');
+      placeholders.push('(UuidToBin(?), ?, ?, ?, ?)');
       parameters.push(
         domainEvent.aggregateIdentifier.id,
         domainEvent.metadata.revision.aggregate,
+        domainEvent.metadata.causationId,
+        domainEvent.metadata.correlationId,
         JSON.stringify(domainEvent)
       );
     }
 
     const query = `
       INSERT INTO \`${this.tableNames.domainEvents}\`
-        (aggregateId, revisionAggregate, domainEvent)
+        (aggregateId, revisionAggregate, causationId, correlationId, domainEvent)
       VALUES
         ${placeholders.join(',')};
     `;

@@ -6,11 +6,11 @@ import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { parse } from 'url';
-import { PassThrough } from 'stream';
 import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { Collection, Db, MongoClient } from 'mongodb';
+import { PassThrough, Readable } from 'stream';
 
 class MongoDbDomainEventStore implements DomainEventStore {
   protected client: MongoClient;
@@ -108,6 +108,14 @@ class MongoDbDomainEventStore implements DomainEventStore {
         key: { 'metadata.revision.global': 1 },
         name: `${collectionNames.domainEvents}_revisionGlobal`,
         unique: true
+      },
+      {
+        key: { 'metadata.causationId': 1 },
+        name: `${collectionNames.domainEvents}_causationId`
+      },
+      {
+        key: { 'metadata.correlationId': 1 },
+        name: `${collectionNames.domainEvents}_correlationId`
       }
     ]);
     await collections.snapshots.createIndexes([
@@ -163,6 +171,164 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return new DomainEvent<TDomainEventData>(domainEvents[0]);
   }
 
+  public async getDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }): Promise<Readable> {
+    const domainEventStream = this.collections.domainEvents.find({
+      'metadata.causationId': causationId
+    }, {
+      projection: { _id: 0 },
+      sort: { 'metadata.revision.global': 1 }
+    }).stream();
+
+    const passThrough = new PassThrough({ objectMode: true });
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+
+    onData = function (data: any): void {
+      passThrough.write(new DomainEvent<DomainEventData>(data));
+    };
+
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+
+    return passThrough;
+  }
+
+  public async getDomainEventsWithCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+    correlationId: string;
+  }): Promise<Readable> {
+    const domainEventStream = this.collections.domainEvents.find({
+      'metadata.correlationId': correlationId
+    }, {
+      projection: { _id: 0 },
+      sort: { 'metadata.revision.global': 1 }
+    }).stream();
+
+    const passThrough = new PassThrough({ objectMode: true });
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+
+    onData = function (data: any): void {
+      passThrough.write(new DomainEvent<DomainEventData>(data));
+    };
+
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+
+    return passThrough;
+  }
+
+  public async getReplay ({
+    fromRevisionGlobal = 1,
+    toRevisionGlobal = (2 ** 31) - 1
+  }: {
+    fromRevisionGlobal?: number;
+    toRevisionGlobal?: number;
+  } = {}): Promise<Readable> {
+    if (fromRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
+    }
+    if (toRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
+    }
+    if (fromRevisionGlobal > toRevisionGlobal) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+    }
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const replayStream = this.collections.domainEvents.find({
+      $and: [
+        { 'metadata.revision.global': { $gte: fromRevisionGlobal }},
+        { 'metadata.revision.global': { $lte: toRevisionGlobal }}
+      ]
+    }, {
+      projection: { _id: 0 },
+      sort: { 'metadata.revision.global': 1 }
+    }).stream();
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      replayStream.removeListener('data', onData);
+      replayStream.removeListener('end', onEnd);
+      replayStream.removeListener('error', onError);
+    };
+
+    onData = function (data: any): void {
+      passThrough.write(new DomainEvent<DomainEventData>(data));
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+
+      // In the PostgreSQL eventstore, we call replayStream.end() here. In
+      // MongoDB, this function apparently is not implemented. This note is just
+      // for informational purposes to ensure that you are aware that the two
+      // implementations differ here.
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+
+      // In the PostgreSQL eventstore, we call replayStream.end() here. In
+      // MongoDB, this function apparently is not implemented. This note is just
+      // for informational purposes to ensure that you are aware that the two
+      // implementations differ here.
+    };
+
+    replayStream.on('data', onData);
+    replayStream.on('end', onEnd);
+    replayStream.on('error', onError);
+
+    return passThrough;
+  }
+
   public async getReplayForAggregate ({
     aggregateId,
     fromRevision = 1,
@@ -171,7 +337,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
-  }): Promise<PassThrough> {
+  }): Promise<Readable> {
     if (fromRevision < 1) {
       throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
     }
@@ -305,76 +471,6 @@ class MongoDbDomainEventStore implements DomainEventStore {
       }},
       { upsert: true }
     );
-  }
-
-  public async getReplay ({
-    fromRevisionGlobal = 1,
-    toRevisionGlobal = (2 ** 31) - 1
-  }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
-  } = {}): Promise<PassThrough> {
-    if (fromRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
-    }
-    if (fromRevisionGlobal > toRevisionGlobal) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
-    }
-
-    const passThrough = new PassThrough({ objectMode: true });
-    const replayStream = this.collections.domainEvents.find({
-      $and: [
-        { 'metadata.revision.global': { $gte: fromRevisionGlobal }},
-        { 'metadata.revision.global': { $lte: toRevisionGlobal }}
-      ]
-    }, {
-      projection: { _id: 0 },
-      sort: { 'metadata.revision.global': 1 }
-    }).stream();
-
-    let onData: (data: any) => void,
-        onEnd: () => void,
-        onError: (err: Error) => void;
-
-    const unsubscribe = function (): void {
-      replayStream.removeListener('data', onData);
-      replayStream.removeListener('end', onEnd);
-      replayStream.removeListener('error', onError);
-    };
-
-    onData = function (data: any): void {
-      passThrough.write(new DomainEvent<DomainEventData>(data));
-    };
-
-    onEnd = function (): void {
-      unsubscribe();
-      passThrough.end();
-
-      // In the PostgreSQL eventstore, we call replayStream.end() here. In
-      // MongoDB, this function apparently is not implemented. This note is just
-      // for informational purposes to ensure that you are aware that the two
-      // implementations differ here.
-    };
-
-    onError = function (err: Error): void {
-      unsubscribe();
-      passThrough.emit('error', err);
-      passThrough.end();
-
-      // In the PostgreSQL eventstore, we call replayStream.end() here. In
-      // MongoDB, this function apparently is not implemented. This note is just
-      // for informational purposes to ensure that you are aware that the two
-      // implementations differ here.
-    };
-
-    replayStream.on('data', onData);
-    replayStream.on('end', onEnd);
-    replayStream.on('error', onError);
-
-    return passThrough;
   }
 
   public async destroy (): Promise<void> {

@@ -2,8 +2,8 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
-import { PassThrough } from 'stream';
 import { Client as QueryClient } from '../../../apis/queryDomainEventStore/http/v2/Client';
+import { Readable } from 'stream';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { Client as WriteClient } from '../../../apis/writeDomainEventStore/http/v2/Client';
@@ -38,16 +38,32 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     return new AeonstoreDomainEventStore({ protocol, hostName, port, path });
   }
 
-  /* eslint-disable class-methods-use-this */
-  public async destroy (): Promise<void> {
-    // There is nothing to do here.
-  }
-  /* eslint-disable class-methods-use-this */
-
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
     return await this.queryClient.getLastDomainEvent({ aggregateIdentifier });
+  }
+
+  public async getDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }): Promise<Readable> {
+    return await this.queryClient.getDomainEventsWithCausationId({ causationId });
+  }
+
+  public async getDomainEventsWithCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+    correlationId: string;
+  }): Promise<Readable> {
+    return await this.queryClient.getDomainEventsWithCorrelationId({ correlationId });
+  }
+
+  public async getReplay ({
+    fromRevisionGlobal = 1,
+    toRevisionGlobal = (2 ** 31) - 1
+  }: {
+    fromRevisionGlobal?: number;
+    toRevisionGlobal?: number;
+  }): Promise<Readable> {
+    return await this.queryClient.getReplay({ fromRevisionGlobal, toRevisionGlobal });
   }
 
   public async getReplayForAggregate ({
@@ -58,18 +74,12 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
-  }): Promise<PassThrough> {
+  }): Promise<Readable> {
     return await this.queryClient.getReplayForAggregate({
       aggregateId,
       fromRevision,
       toRevision
     });
-  }
-
-  public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
-    domainEvents: DomainEvent<TDomainEventData>[];
-  }): Promise<DomainEvent<TDomainEventData>[]> {
-    return await this.writeClient.storeDomainEvents({ domainEvents });
   }
 
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
@@ -78,21 +88,23 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     return await this.queryClient.getSnapshot({ aggregateIdentifier });
   }
 
+  public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
+    domainEvents: DomainEvent<TDomainEventData>[];
+  }): Promise<DomainEvent<TDomainEventData>[]> {
+    return await this.writeClient.storeDomainEvents({ domainEvents });
+  }
+
   public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
     await this.writeClient.storeSnapshot({ snapshot });
   }
 
-  public async getReplay ({
-    fromRevisionGlobal = 1,
-    toRevisionGlobal = (2 ** 31) - 1
-  }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
-  }): Promise<PassThrough> {
-    return await this.queryClient.getReplay({ fromRevisionGlobal, toRevisionGlobal });
+  /* eslint-disable class-methods-use-this */
+  public async destroy (): Promise<void> {
+    // There is nothing to do here.
   }
+  /* eslint-disable class-methods-use-this */
 }
 
 export { AeonstoreDomainEventStore };

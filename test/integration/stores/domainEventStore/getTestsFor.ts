@@ -21,16 +21,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       suffix: string;
 
   suite('getLastDomainEvent', function (): void {
-    this.timeout(20 * 1000);
+    this.timeout(20_000);
 
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
     });
 
-    teardown(async function (): Promise<void> {
-      this.timeout(20 * 1000);
-
+    teardown(async (): Promise<void> => {
       await domainEventStore.destroy();
       if (teardownDomainEventStore) {
         await teardownDomainEventStore({ suffix });
@@ -145,17 +143,235 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     });
   });
 
-  suite('getReplayForAggregate', function (): void {
-    this.timeout(5 * 1000);
+  suite('getDomainEventsWithCausationId', function (): void {
+    this.timeout(20_000);
 
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
     });
 
-    teardown(async function (): Promise<void> {
-      this.timeout(20 * 1000);
+    teardown(async (): Promise<void> => {
+      await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
+    });
 
+    test('stream ends immediately if no events with a matching causation id exist.', async (): Promise<void> => {
+      const domainEvent = buildDomainEvent({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'execute',
+        data: {},
+        id: uuid(),
+        metadata: {
+          causationId: uuid(),
+          correlationId: uuid(),
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
+      });
+
+      await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
+
+      const domainEventsWithCausationId = await toArray(await domainEventStore.getDomainEventsWithCausationId({ causationId: uuid() }));
+
+      assert.that(domainEventsWithCausationId).is.equalTo([]);
+    });
+
+    test('returns all domain events with a matching causation id.', async (): Promise<void> => {
+      const causationId = uuid();
+
+      const domainEvent1 = buildDomainEvent({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'execute',
+        data: {},
+        id: uuid(),
+        metadata: {
+          causationId,
+          correlationId: uuid(),
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
+      });
+      const domainEvent2 = buildDomainEvent({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'execute',
+        data: {},
+        id: uuid(),
+        metadata: {
+          causationId,
+          correlationId: uuid(),
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
+      });
+      const domainEvent3 = buildDomainEvent({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'execute',
+        data: {},
+        id: uuid(),
+        metadata: {
+          causationId: uuid(),
+          correlationId: uuid(),
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
+      });
+
+      await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent1, domainEvent2, domainEvent3 ]});
+
+      const domainEventsWithCausationId = await toArray(await domainEventStore.getDomainEventsWithCausationId({ causationId }));
+
+      assert.that(domainEventsWithCausationId.length).is.equalTo(2);
+      assert.that(domainEventsWithCausationId[0].id).is.equalTo(domainEvent1.id);
+      assert.that(domainEventsWithCausationId[1].id).is.equalTo(domainEvent2.id);
+    });
+  });
+
+  suite('getDomainEventsWithCorrelationId', function (): void {
+    this.timeout(20_000);
+
+    setup(async (): Promise<void> => {
+      suffix = getShortId();
+      domainEventStore = await createDomainEventStore({ suffix });
+    });
+
+    teardown(async (): Promise<void> => {
+      await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
+    });
+
+    test('returns an empty array if no events with a matching correlation id exist.', async (): Promise<void> => {
+      const domainEvent = buildDomainEvent({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'execute',
+        data: {},
+        id: uuid(),
+        metadata: {
+          causationId: uuid(),
+          correlationId: uuid(),
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
+      });
+
+      await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
+
+      const domainEventsWithCorrelationId = await toArray(await domainEventStore.getDomainEventsWithCorrelationId({ correlationId: uuid() }));
+
+      assert.that(domainEventsWithCorrelationId).is.equalTo([]);
+    });
+
+    test('returns all domain events with a matching correlation id.', async (): Promise<void> => {
+      const correlationId = uuid();
+
+      const domainEvent1 = buildDomainEvent({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'execute',
+        data: {},
+        id: uuid(),
+        metadata: {
+          causationId: uuid(),
+          correlationId,
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
+      });
+      const domainEvent2 = buildDomainEvent({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'execute',
+        data: {},
+        id: uuid(),
+        metadata: {
+          causationId: uuid(),
+          correlationId,
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
+      });
+      const domainEvent3 = buildDomainEvent({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'execute',
+        data: {},
+        id: uuid(),
+        metadata: {
+          causationId: uuid(),
+          correlationId: uuid(),
+          revision: { aggregate: 1 },
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
+      });
+
+      await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent1, domainEvent2, domainEvent3 ]});
+
+      const domainEventsWithCorrelationId = await toArray(await domainEventStore.getDomainEventsWithCorrelationId({ correlationId }));
+
+      assert.that(domainEventsWithCorrelationId.length).is.equalTo(2);
+      assert.that(domainEventsWithCorrelationId[0].id).is.equalTo(domainEvent1.id);
+      assert.that(domainEventsWithCorrelationId[1].id).is.equalTo(domainEvent2.id);
+    });
+  });
+
+  suite('getReplayForAggregate', function (): void {
+    this.timeout(5_000);
+
+    setup(async (): Promise<void> => {
+      suffix = getShortId();
+      domainEventStore = await createDomainEventStore({ suffix });
+    });
+
+    teardown(async (): Promise<void> => {
       await domainEventStore.destroy();
       if (teardownDomainEventStore) {
         await teardownDomainEventStore({ suffix });
@@ -354,16 +570,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
   });
 
   suite('storeDomainEvents', function (): void {
-    this.timeout(5 * 1000);
+    this.timeout(5_000);
 
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
     });
 
-    teardown(async function (): Promise<void> {
-      this.timeout(20 * 1000);
-
+    teardown(async (): Promise<void> => {
       await domainEventStore.destroy();
       if (teardownDomainEventStore) {
         await teardownDomainEventStore({ suffix });
@@ -541,7 +755,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     });
 
     suite('replay for aggregate order', function (): void {
-      this.timeout(5 * 1000);
+      this.timeout(5_000);
 
       test('assigns the global revision 1 to the first domain event.', async (): Promise<void> => {
         const aggregateIdentifier = {
@@ -741,16 +955,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
   });
 
   suite('getSnapshot', function (): void {
-    this.timeout(5 * 1000);
+    this.timeout(5_000);
 
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
     });
 
-    teardown(async function (): Promise<void> {
-      this.timeout(20 * 1000);
-
+    teardown(async (): Promise<void> => {
       await domainEventStore.destroy();
       if (teardownDomainEventStore) {
         await teardownDomainEventStore({ suffix });
@@ -848,16 +1060,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
   });
 
   suite('storeSnapshot', function (): void {
-    this.timeout(5 * 1000);
+    this.timeout(5_000);
 
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
     });
 
-    teardown(async function (): Promise<void> {
-      this.timeout(20 * 1000);
-
+    teardown(async (): Promise<void> => {
       await domainEventStore.destroy();
       if (teardownDomainEventStore) {
         await teardownDomainEventStore({ suffix });
@@ -966,16 +1176,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
   });
 
   suite('getReplay', function (): void {
-    this.timeout(5 * 1000);
+    this.timeout(5_000);
 
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
     });
 
-    teardown(async function (): Promise<void> {
-      this.timeout(20 * 1000);
-
+    teardown(async (): Promise<void> => {
       await domainEventStore.destroy();
       if (teardownDomainEventStore) {
         await teardownDomainEventStore({ suffix });

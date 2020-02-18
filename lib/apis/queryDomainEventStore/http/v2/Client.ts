@@ -144,6 +144,74 @@ class Client extends HttpClient {
     }
   }
 
+  public async getDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }): Promise<PassThrough> {
+    const { status, data } = await axios({
+      method: 'get',
+      url: `${this.url}/domain-events-with-causation-id?causationId=${causationId}`,
+      responseType: 'stream',
+      validateStatus (): boolean {
+        return true;
+      }
+    });
+
+    if (status !== 200) {
+      logger.error('Unknown error occured.', { error: data, status });
+
+      throw new errors.UnknownError(data.message);
+    }
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
+
+    return pipeline(
+      data,
+      heartbeatFilter,
+      passThrough,
+      (err): void => {
+        if (err) {
+          // Do not handle errors explicitly. The returned stream will just close.
+          logger.error('An error occured during stream piping.', { err });
+        }
+      }
+    );
+  }
+
+  public async getDomainEventsWithCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+    correlationId: string;
+  }): Promise<PassThrough> {
+    const { status, data } = await axios({
+      method: 'get',
+      url: `${this.url}/domain-events-with-correlation-id?correlationId=${correlationId}`,
+      responseType: 'stream',
+      validateStatus (): boolean {
+        return true;
+      }
+    });
+
+    if (status !== 200) {
+      logger.error('Unknown error occured.', { error: data, status });
+
+      throw new errors.UnknownError(data.message);
+    }
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
+
+    return pipeline(
+      data,
+      heartbeatFilter,
+      passThrough,
+      (err): void => {
+        if (err) {
+          // Do not handle errors explicitly. The returned stream will just close.
+          logger.error('An error occured during stream piping.', { err });
+        }
+      }
+    );
+  }
+
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<Snapshot<TState> | undefined> {

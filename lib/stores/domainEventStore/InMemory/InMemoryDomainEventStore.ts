@@ -5,9 +5,9 @@ import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
 import { last } from 'lodash';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
-import { PassThrough } from 'stream';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
+import { PassThrough, Readable } from 'stream';
 
 class InMemoryDomainEventStore implements DomainEventStore {
   protected domainEvents: DomainEvent<DomainEventData>[];
@@ -21,11 +21,6 @@ class InMemoryDomainEventStore implements DomainEventStore {
 
   public static async create (): Promise<InMemoryDomainEventStore> {
     return new InMemoryDomainEventStore();
-  }
-
-  public async destroy (): Promise<void> {
-    this.domainEvents = [];
-    this.snapshots = [];
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
@@ -44,6 +39,65 @@ class InMemoryDomainEventStore implements DomainEventStore {
     return lastDomainEvent as DomainEvent<TDomainEventData>;
   }
 
+  public async getDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }): Promise<Readable> {
+    return Readable.from(
+      this.getStoredDomainEvents<TDomainEventData>().
+        filter((domainEvent): boolean => domainEvent.metadata.causationId === causationId)
+    );
+  }
+
+  public async getDomainEventsWithCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+    correlationId: string;
+  }): Promise<Readable> {
+    return Readable.from(
+      this.getStoredDomainEvents<TDomainEventData>().
+        filter((domainEvent): boolean => domainEvent.metadata.correlationId === correlationId)
+    );
+  }
+
+  public async getReplay ({
+    fromRevisionGlobal = 1,
+    toRevisionGlobal = (2 ** 31) - 1
+  }: {
+    fromRevisionGlobal?: number;
+    toRevisionGlobal?: number;
+  }): Promise<Readable> {
+    if (fromRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
+    }
+    if (toRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
+    }
+    if (fromRevisionGlobal > toRevisionGlobal) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+    }
+
+    const passThrough = new PassThrough({ objectMode: true });
+
+    const storedDomainEvents = this.getStoredDomainEvents().filter(
+      (domainEvent): boolean => {
+        if (!domainEvent.metadata.revision.global) {
+          throw new errors.InvalidOperation('Domain event from domain event store is missing global revision.');
+        }
+
+        return (
+          domainEvent.metadata.revision.global >= fromRevisionGlobal &&
+              domainEvent.metadata.revision.global <= toRevisionGlobal
+        );
+      }
+    );
+
+    for (const domainEvent of storedDomainEvents) {
+      passThrough.write(domainEvent);
+    }
+
+    passThrough.end();
+
+    return passThrough;
+  }
+
   public async getReplayForAggregate ({
     aggregateId,
     fromRevision = 1,
@@ -52,7 +106,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
     aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
-  }): Promise<PassThrough> {
+  }): Promise<Readable> {
     if (fromRevision < 1) {
       throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
     }
@@ -79,6 +133,27 @@ class InMemoryDomainEventStore implements DomainEventStore {
     passThrough.end();
 
     return passThrough;
+  }
+
+  public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
+    aggregateIdentifier: AggregateIdentifier;
+  }): Promise<Snapshot<TState> | undefined> {
+    const storedSnapshots = this.getStoredSnapshots().filter(
+      (snapshot): boolean => snapshot.aggregateIdentifier.id === aggregateIdentifier.id
+    );
+
+    const newestSnapshotRevision = Math.max(
+      ...storedSnapshots.map((snapshot): number => snapshot.revision)
+    );
+
+    const newestSnapshot = storedSnapshots.
+      find((snapshot): boolean => snapshot.revision === newestSnapshotRevision);
+
+    if (!newestSnapshot) {
+      return;
+    }
+
+    return newestSnapshot as Snapshot<TState>;
   }
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
@@ -117,27 +192,6 @@ class InMemoryDomainEventStore implements DomainEventStore {
     return savedDomainEvents;
   }
 
-  public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
-    aggregateIdentifier: AggregateIdentifier;
-  }): Promise<Snapshot<TState> | undefined> {
-    const storedSnapshots = this.getStoredSnapshots().filter(
-      (snapshot): boolean => snapshot.aggregateIdentifier.id === aggregateIdentifier.id
-    );
-
-    const newestSnapshotRevision = Math.max(
-      ...storedSnapshots.map((snapshot): number => snapshot.revision)
-    );
-
-    const newestSnapshot = storedSnapshots.
-      find((snapshot): boolean => snapshot.revision === newestSnapshotRevision);
-
-    if (!newestSnapshot) {
-      return;
-    }
-
-    return newestSnapshot as Snapshot<TState>;
-  }
-
   public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
@@ -149,45 +203,9 @@ class InMemoryDomainEventStore implements DomainEventStore {
     });
   }
 
-  public async getReplay ({
-    fromRevisionGlobal = 1,
-    toRevisionGlobal = (2 ** 31) - 1
-  }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
-  }): Promise<PassThrough> {
-    if (fromRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
-    }
-    if (fromRevisionGlobal > toRevisionGlobal) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
-    }
-
-    const passThrough = new PassThrough({ objectMode: true });
-
-    const storedDomainEvents = this.getStoredDomainEvents().filter(
-      (domainEvent): boolean => {
-        if (!domainEvent.metadata.revision.global) {
-          throw new errors.InvalidOperation('Domain event from domain event store is missing global revision.');
-        }
-
-        return (
-          domainEvent.metadata.revision.global >= fromRevisionGlobal &&
-          domainEvent.metadata.revision.global <= toRevisionGlobal
-        );
-      }
-    );
-
-    for (const domainEvent of storedDomainEvents) {
-      passThrough.write(domainEvent);
-    }
-
-    passThrough.end();
-
-    return passThrough;
+  public async destroy (): Promise<void> {
+    this.domainEvents = [];
+    this.snapshots = [];
   }
 
   protected getStoredDomainEvents <TState extends State> (): DomainEvent<TState>[] {
