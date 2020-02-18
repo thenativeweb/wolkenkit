@@ -28,6 +28,7 @@ suite('main', function (): void {
     stopProcess = await startProcess({
       runtime: 'singleProcess',
       name: 'main',
+      enableDebugMode: false,
       port: healthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,

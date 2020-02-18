@@ -22,6 +22,7 @@ suite('publisher', function (): void {
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
+      enableDebugMode: false,
       port: healthPort,
       env: {
         PORT: String(port),

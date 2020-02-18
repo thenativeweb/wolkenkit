@@ -36,10 +36,18 @@ const devCommand = function (): Command<DevOptions> {
       },
       {
         name: 'identity-provider-certificate',
-        alias: 'd',
+        alias: 'c',
         description: 'set the identity provider certificate directory',
         parameterName: 'directory',
         type: 'string',
+        isRequired: false
+      },
+      {
+        name: 'debug',
+        alias: 'd',
+        description: 'enable the debug mode',
+        type: 'boolean',
+        defaultValue: false,
         isRequired: false
       }
     ],
@@ -48,7 +56,8 @@ const devCommand = function (): Command<DevOptions> {
       verbose,
       port,
       'identity-provider-issuer': identityProviderIssuer,
-      'identity-provider-certificate': identityProviderCertificate
+      'identity-provider-certificate': identityProviderCertificate,
+      debug
     }}): Promise<void> {
       buntstift.configure(
         buntstift.getConfiguration().
@@ -99,6 +108,7 @@ const devCommand = function (): Command<DevOptions> {
         await startProcess({
           runtime: 'singleProcess',
           name: 'main',
+          enableDebugMode: debug,
           port,
           env: {
             ...processenv() as NodeJS.ProcessEnv,

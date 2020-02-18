@@ -170,7 +170,7 @@
     "qs": "6.9.1",
     "record-stdstreams": "3.0.0",
     "roboter": "11.0.21",
-    "runfork": "3.0.5",
+    "runfork": "3.1.0",
     "streamtoarray": "3.0.0",
     "wait-for-signals": "1.0.0"
   },

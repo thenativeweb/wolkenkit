@@ -37,6 +37,7 @@ suite('domain event', function (): void {
     stopProcessPublisher = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
+      enableDebugMode: false,
       port: publisherHealthPort,
       env: {
         PORT: String(publisherPort),
@@ -54,6 +55,7 @@ suite('domain event', function (): void {
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEvent',
+      enableDebugMode: false,
       port: healthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,

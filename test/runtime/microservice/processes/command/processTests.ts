@@ -38,6 +38,7 @@ suite('command', (): void => {
       stopProcess = await startProcess({
         runtime: 'microservice',
         name: 'command',
+        enableDebugMode: false,
         port: healthPort,
         env: {
           APPLICATION_DIRECTORY: applicationDirectory,
@@ -115,6 +116,7 @@ suite('command', (): void => {
         stopProcess = await startProcess({
           runtime: 'microservice',
           name: 'command',
+          enableDebugMode: false,
           port: healthPort,
           env: {
             APPLICATION_DIRECTORY: applicationDirectory,
@@ -172,6 +174,7 @@ suite('command', (): void => {
       stopProcess = await startProcess({
         runtime: 'microservice',
         name: 'command',
+        enableDebugMode: false,
         port: healthPort,
         env: {
           APPLICATION_DIRECTORY: applicationDirectory,
@@ -249,6 +252,7 @@ suite('command', (): void => {
       stopProcess = await startProcess({
         runtime: 'microservice',
         name: 'command',
+        enableDebugMode: false,
         port: healthPort,
         env: {
           APPLICATION_DIRECTORY: applicationDirectory,

@@ -3,14 +3,16 @@ import path from 'path';
 import { retry } from 'retry-ignore-abort';
 import { runfork } from 'runfork';
 
-const startProcess = async function ({ runtime, name, port, env = {}, onExit }: {
+const startProcess = async function ({ runtime, name, enableDebugMode, port, env = {}, onExit }: {
   runtime: string;
   name: string;
+  enableDebugMode: boolean;
   port: number;
   env: NodeJS.ProcessEnv;
   onExit?: (exitCode: number, stdout: string, stderr: string) => void;
 }): Promise<() => Promise<void>> {
   const stopProcess = runfork({
+    nodeArgs: enableDebugMode ? [ '--inspect' ]: [],
     path: path.join(__dirname, '..', '..', '..', 'build', 'lib', 'runtimes', runtime, 'processes', name, 'app.js'),
     env,
     silent: false,

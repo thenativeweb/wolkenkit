@@ -14,6 +14,7 @@ suite('Aeonstore', (): void => {
       const stopProcess = await startProcess({
         runtime: 'microservice',
         name: 'domainEventStore',
+        enableDebugMode: false,
         port: healthPort,
         env: {
           PORT: String(port),

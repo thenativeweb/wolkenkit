@@ -27,6 +27,7 @@ suite('dispatcher', function (): void {
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'dispatcher',
+      enableDebugMode: false,
       port: healthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
