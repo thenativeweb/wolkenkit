@@ -2,18 +2,18 @@ import { adjustPackageJson } from './adjustPackageJson';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { cp } from 'shelljs';
-import { emojis } from '../emojis';
 import { errors } from '../../common/errors';
 import { exists } from '../../common/utils/fs/exists';
 import { getAbsolutePath } from '../../common/utils/path/getAbsolutePath';
 import { InitOptions } from './InitOptions';
+import { map } from 'lodash';
 import path from 'path';
+import { printFooter } from '../printFooter';
 import { templates } from './templates';
 import { validateLanguage } from './validateLanguage';
 import { validateName } from './validateName';
 import { validateTemplate } from './validateTemplate';
 import { validLanguages } from './validLanguages';
-import { map, sample } from 'lodash';
 
 const initCommand = function (): Command<InitOptions> {
   return {
@@ -115,11 +115,7 @@ const initCommand = function (): Command<InitOptions> {
         buntstift.info('  npm install');
         buntstift.info('  npx wolkenkit dev');
         buntstift.newLine();
-        buntstift.info('If you experience any difficulties, please go to:');
-        buntstift.newLine();
-        buntstift.info('  https://docs.wolkenkit.io/latest/getting-started/understanding-wolkenkit/getting-help/');
-        buntstift.newLine();
-        buntstift.info(`Thank you for using wolkenkit ${sample(emojis)}`);
+        printFooter();
       } catch (ex) {
         buntstift.error(`Failed to initialize the '${name}' application.`);
 

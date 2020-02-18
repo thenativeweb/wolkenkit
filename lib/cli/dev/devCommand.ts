@@ -2,11 +2,10 @@ import { buildApplication } from '../../common/application/buildApplication';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { DevOptions } from './DevOptions';
-import { emojis } from '../emojis';
 import fs from 'fs';
 import path from 'path';
+import { printFooter } from '../printFooter';
 import { processenv } from 'processenv';
-import { sample } from 'lodash';
 import { startProcess } from '../../runtimes/shared/startProcess';
 import { validatePort } from './validatePort';
 
@@ -55,11 +54,7 @@ const devCommand = function (): Command<DevOptions> {
         buntstift.info(`  API port     ${port}`);
         buntstift.info(`  Health port  ${healthPort}`);
         buntstift.newLine();
-        buntstift.info('If you experience any difficulties, please go to:');
-        buntstift.newLine();
-        buntstift.info('  https://docs.wolkenkit.io/latest/getting-started/understanding-wolkenkit/getting-help/');
-        buntstift.newLine();
-        buntstift.info(`Thank you for using wolkenkit ${sample(emojis)}`);
+        printFooter();
         buntstift.newLine();
         buntstift.line();
 
