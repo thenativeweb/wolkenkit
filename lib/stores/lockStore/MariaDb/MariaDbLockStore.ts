@@ -99,9 +99,9 @@ class MariaDbLockStore implements LockStore {
 
     await runQuery({
       connection,
-      query: `CREATE TABLE IF NOT EXISTS ${tableNames.locks} (
+      query: `CREATE TABLE IF NOT EXISTS \`${tableNames.locks}\` (
         name VARCHAR(${maxLockSize}) NOT NULL,
-        expiresAt DATETIME(3) NOT NULL,
+        expiresAt BIGINT NOT NULL,
         nonce VARCHAR(64),
 
         PRIMARY KEY(name)
@@ -133,15 +133,15 @@ class MariaDbLockStore implements LockStore {
     try {
       await runQuery({
         connection,
-        query: `DELETE FROM ${this.tableNames.locks} WHERE expiresAt < ?;`,
-        parameters: [ new Date() ]
+        query: `DELETE FROM \`${this.tableNames.locks}\` WHERE expiresAt < ?;`,
+        parameters: [ Date.now() ]
       });
 
       try {
         await runQuery({
           connection,
-          query: `INSERT INTO ${this.tableNames.locks} (expiresAt, nonce, name) VALUES (?, ?, ?);`,
-          parameters: [ new Date(expiresAt), this.nonce, name ]
+          query: `INSERT INTO \`${this.tableNames.locks}\` (expiresAt, nonce, name) VALUES (?, ?, ?);`,
+          parameters: [ expiresAt, this.nonce, name ]
         });
       } catch {
         throw new errors.AcquireLockFailed('Failed to acquire lock.');
@@ -166,7 +166,7 @@ class MariaDbLockStore implements LockStore {
       const [ rows ] = await runQuery({
         connection,
         query: `SELECT expiresAt
-          FROM ${this.tableNames.locks}
+          FROM \`${this.tableNames.locks}\`
          WHERE name = ?;`,
         parameters: [ name ]
       });
@@ -174,7 +174,7 @@ class MariaDbLockStore implements LockStore {
       if (rows.length > 0) {
         const [ entry ] = rows;
 
-        isLocked = Date.now() < entry.expiresAt.getTime();
+        isLocked = Date.now() < entry.expiresAt;
       }
     } finally {
       MariaDbLockStore.releaseConnection({ connection });
@@ -201,7 +201,7 @@ class MariaDbLockStore implements LockStore {
       const [ rows ] = await runQuery({
         connection,
         query: `SELECT expiresAt, nonce
-          FROM ${this.tableNames.locks}
+          FROM \`${this.tableNames.locks}\`
          WHERE name = ?;`,
         parameters: [ name ]
       });
@@ -212,16 +212,16 @@ class MariaDbLockStore implements LockStore {
 
       const [ entry ] = rows;
 
-      if (entry.expiresAt.getTime() < Date.now() || this.nonce !== entry.nonce) {
+      if (entry.expiresAt < Date.now() || this.nonce !== entry.nonce) {
         throw new errors.RenewLockFailed('Failed to renew lock.');
       }
 
       await runQuery({
         connection,
-        query: `UPDATE ${this.tableNames.locks}
+        query: `UPDATE \`${this.tableNames.locks}\`
            SET expiresAt = ?
          WHERE name = ?;`,
-        parameters: [ new Date(expiresAt), name ]
+        parameters: [ expiresAt, name ]
       });
     } finally {
       MariaDbLockStore.releaseConnection({ connection });
@@ -241,7 +241,7 @@ class MariaDbLockStore implements LockStore {
       const [ rows ] = await runQuery({
         connection,
         query: `SELECT expiresAt, nonce
-          FROM ${this.tableNames.locks}
+          FROM \`${this.tableNames.locks}\`
          WHERE name = ?;`,
         parameters: [ name ]
       });
@@ -252,13 +252,13 @@ class MariaDbLockStore implements LockStore {
 
       const [ entry ] = rows;
 
-      if (Date.now() < entry.expiresAt.getTime() && this.nonce !== entry.nonce) {
+      if (Date.now() < entry.expiresAt && this.nonce !== entry.nonce) {
         throw new errors.ReleaseLockFailed('Failed to release lock.');
       }
 
       await runQuery({
         connection,
-        query: `DELETE FROM ${this.tableNames.locks}
+        query: `DELETE FROM \`${this.tableNames.locks}\`
          WHERE name = ?;`,
         parameters: [ name ]
       });

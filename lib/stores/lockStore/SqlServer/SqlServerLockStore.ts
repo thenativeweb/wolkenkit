@@ -89,7 +89,7 @@ class SqlServerLockStore implements LockStore {
         BEGIN
           CREATE TABLE [${tableNames.locks}] (
             [name] VARCHAR(${maxLockSize}) NOT NULL,
-            [expiresAt] DATETIME2(3) NOT NULL,
+            [expiresAt] BIGINT NOT NULL,
             [nonce] NVARCHAR(64),
 
             CONSTRAINT [${tableNames.locks}_pk] PRIMARY KEY([name])
@@ -150,7 +150,7 @@ class SqlServerLockStore implements LockStore {
         let lockResult: { expiresAt: Date };
 
         const request = new Request(`
-          DELETE FROM ${this.tableNames.locks} WHERE [expiresAt] < @now;
+          DELETE FROM [${this.tableNames.locks}] WHERE [expiresAt] < @now;
         `, (err?: Error): void => {
           if (err) {
             return reject(err);
@@ -159,7 +159,7 @@ class SqlServerLockStore implements LockStore {
           resolve(lockResult);
         });
 
-        request.addParameter('now', TYPES.DateTime2, new Date());
+        request.addParameter('now', TYPES.BigInt, Date.now());
 
         request.once('row', (columns): void => {
           lockResult = {
@@ -186,7 +186,7 @@ class SqlServerLockStore implements LockStore {
           );
 
           request.addParameter('name', TYPES.NVarChar, name);
-          request.addParameter('expiresAt', TYPES.DateTime2, new Date(expiresAt), { precision: 3 });
+          request.addParameter('expiresAt', TYPES.BigInt, expiresAt);
           request.addParameter('nonce', TYPES.NVarChar, this.nonce);
 
           database.execSql(request);
@@ -211,12 +211,12 @@ class SqlServerLockStore implements LockStore {
     let isLocked = false;
 
     try {
-      const result: { expiresAt: Date } | undefined = await new Promise((resolve, reject): void => {
-        let lockResult: { expiresAt: Date };
+      const result: { expiresAt: number } | undefined = await new Promise((resolve, reject): void => {
+        let lockResult: { expiresAt: number };
 
         const request = new Request(`
           SELECT TOP(1) [expiresAt]
-            FROM ${this.tableNames.locks}
+            FROM [${this.tableNames.locks}]
             WHERE [name] = @name
           ;
         `, (err?: Error): void => {
@@ -239,7 +239,7 @@ class SqlServerLockStore implements LockStore {
       });
 
       if (result) {
-        isLocked = result.expiresAt.getTime() > Date.now();
+        isLocked = result.expiresAt > Date.now();
       }
     } finally {
       this.pool.release(database);
@@ -263,12 +263,12 @@ class SqlServerLockStore implements LockStore {
     const database = await SqlServerLockStore.getDatabase(this.pool);
 
     try {
-      const result: { expiresAt: Date; nonce: string | null } | undefined = await new Promise((resolve, reject): void => {
-        let lockResult: { expiresAt: Date; nonce: string | null };
+      const result: { expiresAt: number; nonce: string | null } | undefined = await new Promise((resolve, reject): void => {
+        let lockResult: { expiresAt: number; nonce: string | null };
 
         const request = new Request(`
           SELECT TOP(1) [expiresAt], [nonce]
-            FROM ${this.tableNames.locks}
+            FROM [${this.tableNames.locks}]
             WHERE [name] = @name
           ;
         `, (err?: Error): void => {
@@ -294,7 +294,7 @@ class SqlServerLockStore implements LockStore {
       if (!result) {
         throw new errors.RenewLockFailed('Failed to renew lock.');
       }
-      if (result.expiresAt.getTime() < Date.now() || this.nonce !== result.nonce) {
+      if (result.expiresAt < Date.now() || this.nonce !== result.nonce) {
         throw new errors.RenewLockFailed('Failed to renew lock.');
       }
 
@@ -312,7 +312,7 @@ class SqlServerLockStore implements LockStore {
         });
 
         request.addParameter('name', TYPES.NVarChar, name);
-        request.addParameter('expiresAt', TYPES.DateTime2, new Date(expiresAt), { precision: 3 });
+        request.addParameter('expiresAt', TYPES.BigInt, expiresAt);
 
         database.execSql(request);
       });
@@ -331,12 +331,12 @@ class SqlServerLockStore implements LockStore {
     const database = await SqlServerLockStore.getDatabase(this.pool);
 
     try {
-      const result: { expiresAt: Date; nonce: string | null } | undefined = await new Promise((resolve, reject): void => {
-        let lockResult: { expiresAt: Date; nonce: string | null };
+      const result: { expiresAt: number; nonce: string | null } | undefined = await new Promise((resolve, reject): void => {
+        let lockResult: { expiresAt: number; nonce: string | null };
 
         const request = new Request(`
           SELECT TOP(1) [expiresAt], [nonce]
-            FROM ${this.tableNames.locks}
+            FROM [${this.tableNames.locks}]
             WHERE [name] = @name
           ;
         `, (err?: Error): void => {
@@ -363,7 +363,7 @@ class SqlServerLockStore implements LockStore {
         return;
       }
 
-      if (Date.now() < result.expiresAt.getTime() && this.nonce !== result.nonce) {
+      if (Date.now() < result.expiresAt && this.nonce !== result.nonce) {
         throw new errors.ReleaseLockFailed('Failed to release lock.');
       }
 

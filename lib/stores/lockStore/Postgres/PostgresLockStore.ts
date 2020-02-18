@@ -115,7 +115,7 @@ class PostgresLockStore implements LockStore {
         await connection.query(`
           CREATE TABLE IF NOT EXISTS "${tableNames.locks}" (
             "name" VARCHAR(${maxLockSize}) NOT NULL,
-            "expiresAt" timestamp NOT NULL,
+            "expiresAt" BIGINT NOT NULL,
             "nonce" VARCHAR(64),
 
             CONSTRAINT "${tableNames.locks}_pk" PRIMARY KEY("name")
@@ -154,7 +154,7 @@ class PostgresLockStore implements LockStore {
       await connection.query({
         name: 'delete expired locks',
         text: `DELETE FROM "${this.tableNames.locks}" WHERE "expiresAt" < $1`,
-        values: [ new Date() ]
+        values: [ Date.now() ]
       });
 
       try {
@@ -164,7 +164,7 @@ class PostgresLockStore implements LockStore {
         INSERT INTO "${this.tableNames.locks}" ("name", "expiresAt", "nonce")
         VALUES ($1, $2, $3)
         `,
-          values: [ name, new Date(expiresAt), this.nonce ]
+          values: [ name, expiresAt, this.nonce ]
         });
       } catch {
         throw new errors.AcquireLockFailed('Failed to acquire lock.');
@@ -199,7 +199,7 @@ class PostgresLockStore implements LockStore {
       if (result.rows.length > 0) {
         const [ entry ] = result.rows;
 
-        isLocked = Date.now() < entry.expiresAt.getTime();
+        isLocked = Date.now() < entry.expiresAt;
       }
     } finally {
       connection.release();
@@ -239,7 +239,7 @@ class PostgresLockStore implements LockStore {
 
       const [ entry ] = result.rows;
 
-      if (entry.expiresAt.getTime() < Date.now() || this.nonce !== entry.nonce) {
+      if (entry.expiresAt < Date.now() || this.nonce !== entry.nonce) {
         throw new errors.RenewLockFailed('Failed to renew lock.');
       }
 
@@ -250,7 +250,7 @@ class PostgresLockStore implements LockStore {
            SET "expiresAt" = $2
          WHERE "name" = $1
         `,
-        values: [ name, new Date(expiresAt) ]
+        values: [ name, expiresAt ]
       });
     } finally {
       connection.release();
@@ -283,7 +283,7 @@ class PostgresLockStore implements LockStore {
 
       const [ entry ] = result.rows;
 
-      if (Date.now() < entry.expiresAt.getTime() && this.nonce !== entry.nonce) {
+      if (Date.now() < entry.expiresAt && this.nonce !== entry.nonce) {
         throw new errors.ReleaseLockFailed('Failed to release lock.');
       }
 
