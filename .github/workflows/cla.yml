@@ -18,6 +18,6 @@ jobs:
         path-to-signatures: 'cla/signatures.json'
         path-To-cladocument: 'cla/cla.md'
         branch: 'master'
-        whitelist: dependabot-preview[bot]
+        whitelist: goloroden,dependabot-preview[bot]
         empty-commit-flag: false
         blockchain-storage-flag: false
