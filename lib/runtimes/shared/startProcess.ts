@@ -12,7 +12,7 @@ const startProcess = async function ({ runtime, name, enableDebugMode, port, env
   onExit?: (exitCode: number, stdout: string, stderr: string) => void;
 }): Promise<() => Promise<void>> {
   const stopProcess = runfork({
-    nodeArgs: enableDebugMode ? [ '--inspect' ]: [],
+    nodeArgs: enableDebugMode ? [ '--inspect' ] : [],
     path: path.join(__dirname, '..', '..', '..', 'build', 'lib', 'runtimes', runtime, 'processes', name, 'app.js'),
     env,
     silent: false,
