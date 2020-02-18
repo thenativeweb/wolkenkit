@@ -101,7 +101,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
           HEX(SUBSTR(_bin, 11))
         ));
 
-      CREATE TABLE IF NOT EXISTS ${tableNames.domainEvents} (
+      CREATE TABLE IF NOT EXISTS \`${tableNames.domainEvents}\` (
         revisionGlobal SERIAL,
         aggregateId BINARY(16) NOT NULL,
         revisionAggregate INT NOT NULL,
@@ -111,7 +111,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
         UNIQUE (aggregateId, revisionAggregate)
       ) ENGINE=InnoDB;
 
-      CREATE TABLE IF NOT EXISTS ${tableNames.snapshots} (
+      CREATE TABLE IF NOT EXISTS \`${tableNames.snapshots}\` (
         aggregateId BINARY(16) NOT NULL,
         revisionAggregate INT NOT NULL,
         state JSON NOT NULL,
@@ -157,7 +157,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = connection.query(`
       SELECT domainEvent, revisionGlobal
-        FROM ${this.tableNames.domainEvents}
+        FROM \`${this.tableNames.domainEvents}\`
         WHERE aggregateId = UuidToBin(?)
           AND revisionAggregate >= ?
           AND revisionAggregate <= ?
@@ -207,7 +207,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
       const [ rows ]: any[] = await runQuery({
         connection,
         query: `SELECT domainEvent, revisionGlobal
-          FROM ${this.tableNames.domainEvents}
+          FROM \`${this.tableNames.domainEvents}\`
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revisionAggregate DESC
           LIMIT 1`,
@@ -252,7 +252,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = connection.query(`
       SELECT domainEvent, revisionGlobal
-        FROM ${this.tableNames.domainEvents}
+        FROM \`${this.tableNames.domainEvents}\`
         WHERE revisionGlobal >= ?
           AND revisionGlobal <= ?
         ORDER BY revisionGlobal
@@ -301,7 +301,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
       const [ rows ]: any[] = await runQuery({
         connection,
         query: `SELECT state, revisionAggregate
-          FROM ${this.tableNames.snapshots}
+          FROM \`${this.tableNames.snapshots}\`
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revisionAggregate DESC
           LIMIT 1`,
@@ -344,7 +344,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
     }
 
     const query = `
-      INSERT INTO ${this.tableNames.domainEvents}
+      INSERT INTO \`${this.tableNames.domainEvents}\`
         (aggregateId, revisionAggregate, domainEvent)
       VALUES
         ${placeholders.join(',')};
@@ -394,7 +394,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
     try {
       await runQuery({
         connection,
-        query: `INSERT IGNORE INTO ${this.tableNames.snapshots}
+        query: `INSERT IGNORE INTO \`${this.tableNames.snapshots}\`
           (aggregateId, revisionAggregate, state)
           VALUES (UuidToBin(?), ?, ?);`,
         parameters: [

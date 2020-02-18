@@ -143,7 +143,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
 
         const request = new Request(`
           SELECT TOP(1) [domainEvent], [revisionGlobal]
-            FROM ${this.tableNames.domainEvents}
+            FROM [${this.tableNames.domainEvents}]
             WHERE [aggregateId] = @aggregateId
             ORDER BY [revisionAggregate] DESC
           ;
@@ -349,7 +349,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
 
         const request = new Request(`
           SELECT TOP(1) [state], [revisionAggregate]
-            FROM ${this.tableNames.snapshots}
+            FROM [${this.tableNames.snapshots}]
             WHERE [aggregateId] = @aggregateId
             ORDER BY [revisionAggregate] DESC
           ;`, (err: Error | null): void => {
@@ -391,7 +391,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
     try {
       await new Promise((resolve, reject): void => {
         const request = new Request(`
-          IF NOT EXISTS (SELECT TOP(1) * FROM ${this.tableNames.snapshots} WHERE [aggregateId] = @aggregateId and [revisionAggregate] = @revisionAggregate)
+          IF NOT EXISTS (SELECT TOP(1) * FROM [${this.tableNames.snapshots}] WHERE [aggregateId] = @aggregateId and [revisionAggregate] = @revisionAggregate)
             BEGIN
               INSERT INTO [${this.tableNames.snapshots}] ([aggregateId], [revisionAggregate], [state])
               VALUES (@aggregateId, @revisionAggregate, @state);

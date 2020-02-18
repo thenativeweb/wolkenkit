@@ -133,7 +133,7 @@ class MongoDbLockStore implements LockStore {
     const entry = await this.collections.locks.findOne(query);
 
     if (entry) {
-      const isLocked = Date.now() < entry.expiresAt.getTime();
+      const isLocked = Date.now() < entry.expiresAt;
 
       if (isLocked) {
         throw new errors.AcquireLockFailed('Failed to acquire lock.');
@@ -143,7 +143,7 @@ class MongoDbLockStore implements LockStore {
     const $set = {
       ...query,
       nonce: this.nonce,
-      expiresAt: new Date(expiresAt)
+      expiresAt
     };
 
     await this.collections.locks.updateOne(query, { $set }, { upsert: true });
@@ -158,7 +158,7 @@ class MongoDbLockStore implements LockStore {
 
     const entry = await this.collections.locks.findOne({ name });
 
-    const isLocked = Boolean(entry) && Date.now() < entry.expiresAt.getTime();
+    const isLocked = Boolean(entry) && Date.now() < entry.expiresAt;
 
     return isLocked;
   }
@@ -189,11 +189,11 @@ class MongoDbLockStore implements LockStore {
     if (!entry) {
       throw new errors.RenewLockFailed('Failed to renew lock.');
     }
-    if (entry.expiresAt.getTime() < Date.now() || this.nonce !== entry.nonce) {
+    if (entry.expiresAt < Date.now() || this.nonce !== entry.nonce) {
       throw new errors.RenewLockFailed('Failed to renew lock.');
     }
 
-    await this.collections.locks.updateOne(query, { $set: { expiresAt: new Date(expiresAt) }});
+    await this.collections.locks.updateOne(query, { $set: { expiresAt }});
   }
 
   public async releaseLock ({ name }: {
@@ -214,7 +214,7 @@ class MongoDbLockStore implements LockStore {
     if (!entry) {
       return;
     }
-    if (Date.now() < entry.expiresAt.getTime() && this.nonce !== entry.nonce) {
+    if (Date.now() < entry.expiresAt && this.nonce !== entry.nonce) {
       throw new errors.ReleaseLockFailed('Failed to release lock.');
     }
 
