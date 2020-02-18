@@ -83,6 +83,7 @@ import { State } from '../../../../common/elements/State';
           },
           applicationDefinition,
           lockStore,
+          domainEventStore,
           repository,
           publishDomainEvents
         });
