@@ -2,8 +2,8 @@ import { buildApplication } from '../../common/application/buildApplication';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { DevOptions } from './DevOptions';
-import fs from 'fs';
-import path from 'path';
+import { errors } from '../../common/errors';
+import { getApplicationPackageJson } from '../../common/application/getApplicationPackageJson';
 import { printFooter } from '../printFooter';
 import { processenv } from 'processenv';
 import { startProcess } from '../../runtimes/shared/startProcess';
@@ -28,10 +28,6 @@ const devCommand = function (): Command<DevOptions> {
     ],
 
     async handle ({ options: { verbose, port }}): Promise<void> {
-      const healthPort = port + 1;
-
-      const { name } = JSON.parse(await fs.promises.readFile(path.join(process.cwd(), 'package.json'), 'utf8'));
-
       buntstift.configure(
         buntstift.getConfiguration().
           withVerboseMode(verbose)
@@ -39,6 +35,15 @@ const devCommand = function (): Command<DevOptions> {
       const stopWaiting = buntstift.wait();
 
       try {
+        const healthPort = port + 1;
+
+        const { name, dependencies, devDependencies } =
+          await getApplicationPackageJson({ directory: process.cwd() });
+
+        if (!dependencies?.wolkenkit && !devDependencies?.wolkenkit) {
+          throw new errors.ApplicationNotFound();
+        }
+
         buntstift.verbose(`Compiling the '${name}' application...`);
         await buildApplication({
           applicationDirectory: process.cwd()
