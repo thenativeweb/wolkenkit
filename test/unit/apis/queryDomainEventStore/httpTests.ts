@@ -953,6 +953,110 @@ suite('queryDomainEventStore/http', (): void => {
       });
     });
 
+    suite('GET /has-domain-events-with-causation-id', (): void => {
+      test('returns false if no events with a matching causation id exist.', async (): Promise<void> => {
+        const domainEvent = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
+
+        const { client } = await runAsServer({ app: api });
+        const { status, data } = await client({
+          method: 'get',
+          url: `/v2/has-domain-events-with-causation-id?causation-id=${uuid()}`
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(JSON.parse(data)).is.false();
+      });
+
+      test('returns true if events with a matching causation id exist.', async (): Promise<void> => {
+        const causationId = uuid();
+
+        const domainEvent1 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId,
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+        const domainEvent2 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId,
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+        const domainEvent3 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent1, domainEvent2, domainEvent3 ]});
+
+        const { client } = await runAsServer({ app: api });
+        const { status, data } = await client({
+          method: 'get',
+          url: `/v2/has-domain-events-with-causation-id?causation-id=${causationId}`
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(JSON.parse(data)).is.true();
+      });
+    });
+
     suite('GET /domain-events-by-correlation-id', (): void => {
       test('returns an empty array if no events with a matching correlation id exist.', async (): Promise<void> => {
         const domainEvent = buildDomainEvent({

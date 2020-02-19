@@ -15,6 +15,10 @@ export interface DomainEventStore {
     causationId: string;
   }) => Promise<Readable>;
 
+  hasDomainEventsWithCausationId: <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }) => Promise<boolean>;
+
   getDomainEventsByCorrelationId: <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }) => Promise<Readable>;

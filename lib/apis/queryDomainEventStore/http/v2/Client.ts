@@ -22,97 +22,6 @@ class Client extends HttpClient {
     super({ protocol, hostName, port, path });
   }
 
-  public async getReplay ({ fromRevisionGlobal = 1, toRevisionGlobal = (2 ** 31) - 1 }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
-  }): Promise<PassThrough> {
-    if (fromRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < fromRevisionGlobal) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
-    }
-
-    const { status, data } = await axios({
-      method: 'get',
-      url: `${this.url}/replay?fromRevisionGlobal=${fromRevisionGlobal}&toRevisionGlobal=${toRevisionGlobal}`,
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
-    });
-
-    if (status !== 200) {
-      logger.error('An unknown error occured.', { error: data, status });
-
-      throw new errors.UnknownError(data.message);
-    }
-
-    const passThrough = new PassThrough({ objectMode: true });
-    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
-
-    return pipeline(
-      data,
-      heartbeatFilter,
-      passThrough,
-      (err): void => {
-        if (err) {
-          // Do not handle errors explicitly. The returned stream will just close.
-          logger.error('An error occured during stream piping.', { err });
-        }
-      }
-    );
-  }
-
-  public async getReplayForAggregate ({ aggregateId, fromRevision = 1, toRevision = (2 ** 31) - 1 }: {
-    aggregateId: string;
-    fromRevision?: number;
-    toRevision?: number;
-  }): Promise<PassThrough> {
-    if (fromRevision < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
-    }
-    if (toRevision < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be at least 1.`);
-    }
-    if (toRevision < fromRevision) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
-    }
-
-    const { status, data } = await axios({
-      method: 'get',
-      url: `${this.url}/replay/${aggregateId}/?fromRevision=${fromRevision}&toRevision=${toRevision}`,
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
-    });
-
-    if (status !== 200) {
-      logger.error('An unknown error occured.', { error: data, status });
-
-      throw new errors.UnknownError(data.message);
-    }
-
-    const passThrough = new PassThrough({ objectMode: true });
-    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
-
-    return pipeline(
-      data,
-      heartbeatFilter,
-      passThrough,
-      (err): void => {
-        if (err) {
-          // Do not handle errors explicitly. The returned stream will just close.
-          logger.error('An error occured during stream piping.', { err });
-        }
-      }
-    );
-  }
-
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
@@ -178,12 +87,123 @@ class Client extends HttpClient {
     );
   }
 
+  public async hasDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }): Promise<boolean> {
+    const { status, data } = await axios({
+      method: 'get',
+      url: `${this.url}/has-domain-events-with-causation-id?causation-id=${causationId}`,
+      validateStatus (): boolean {
+        return true;
+      }
+    });
+
+    if (status !== 200) {
+      logger.error('An unknown error occured.', { error: data, status });
+
+      throw new errors.UnknownError(data.message);
+    }
+
+    return JSON.parse(data);
+  }
+
   public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<PassThrough> {
     const { status, data } = await axios({
       method: 'get',
       url: `${this.url}/domain-events-by-correlation-id?correlation-id=${correlationId}`,
+      responseType: 'stream',
+      validateStatus (): boolean {
+        return true;
+      }
+    });
+
+    if (status !== 200) {
+      logger.error('An unknown error occured.', { error: data, status });
+
+      throw new errors.UnknownError(data.message);
+    }
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
+
+    return pipeline(
+      data,
+      heartbeatFilter,
+      passThrough,
+      (err): void => {
+        if (err) {
+          // Do not handle errors explicitly. The returned stream will just close.
+          logger.error('An error occured during stream piping.', { err });
+        }
+      }
+    );
+  }
+
+  public async getReplay ({ fromRevisionGlobal = 1, toRevisionGlobal = (2 ** 31) - 1 }: {
+    fromRevisionGlobal?: number;
+    toRevisionGlobal?: number;
+  }): Promise<PassThrough> {
+    if (fromRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
+    }
+    if (toRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
+    }
+    if (toRevisionGlobal < fromRevisionGlobal) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+    }
+
+    const { status, data } = await axios({
+      method: 'get',
+      url: `${this.url}/replay?fromRevisionGlobal=${fromRevisionGlobal}&toRevisionGlobal=${toRevisionGlobal}`,
+      responseType: 'stream',
+      validateStatus (): boolean {
+        return true;
+      }
+    });
+
+    if (status !== 200) {
+      logger.error('An unknown error occured.', { error: data, status });
+
+      throw new errors.UnknownError(data.message);
+    }
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
+
+    return pipeline(
+      data,
+      heartbeatFilter,
+      passThrough,
+      (err): void => {
+        if (err) {
+          // Do not handle errors explicitly. The returned stream will just close.
+          logger.error('An error occured during stream piping.', { err });
+        }
+      }
+    );
+  }
+
+  public async getReplayForAggregate ({ aggregateId, fromRevision = 1, toRevision = (2 ** 31) - 1 }: {
+    aggregateId: string;
+    fromRevision?: number;
+    toRevision?: number;
+  }): Promise<PassThrough> {
+    if (fromRevision < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
+    }
+    if (toRevision < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be at least 1.`);
+    }
+    if (toRevision < fromRevision) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
+    }
+
+    const { status, data } = await axios({
+      method: 'get',
+      url: `${this.url}/replay/${aggregateId}/?fromRevision=${fromRevision}&toRevision=${toRevision}`,
       responseType: 'stream',
       validateStatus (): boolean {
         return true;

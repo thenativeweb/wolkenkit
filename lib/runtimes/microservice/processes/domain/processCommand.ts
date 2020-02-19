@@ -9,7 +9,6 @@ import { keepRenewingLock } from './keepRenewingLock';
 import { LockStore } from '../../../../stores/lockStore/LockStore';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { Repository } from '../../../../common/domain/Repository';
-import { toArray } from 'streamtoarray';
 
 const logger = flaschenpost.getLogger();
 
@@ -30,11 +29,7 @@ const processCommand = async function ({
 }): Promise<void> {
   const { command, token } = await fetchCommand({ dispatcher });
 
-  const domainEventsForCommand = await toArray(
-    await domainEventStore.getDomainEventsByCausationId({ causationId: command.id })
-  );
-
-  if (domainEventsForCommand.length > 0) {
+  if (await domainEventStore.hasDomainEventsWithCausationId({ causationId: command.id })) {
     // The command has already resulted in domain events and thus was processed
     // before and can be skipped.
     await acknowledgeCommand({ command, token, dispatcher });

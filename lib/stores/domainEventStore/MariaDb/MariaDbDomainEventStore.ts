@@ -138,7 +138,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
       const [ rows ]: any[] = await runQuery({
         connection,
         query: `SELECT domainEvent, revisionGlobal
-          FROM ${this.tableNames.domainEvents}
+          FROM \`${this.tableNames.domainEvents}\`
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revisionAggregate DESC
           LIMIT 1`,
@@ -207,6 +207,26 @@ class MariaDbDomainEventStore implements DomainEventStore {
     domainEventStream.on('result', onResult);
 
     return passThrough;
+  }
+
+  public async hasDomainEventsWithCausationId ({ causationId }: {
+    causationId: string;
+  }): Promise<boolean> {
+    const connection = await this.getDatabase();
+
+    try {
+      const [ rows ]: any[] = await runQuery({
+        connection,
+        query: `SELECT COUNT(*) as count
+          FROM \`${this.tableNames.domainEvents}\`
+          WHERE causationId = UuidToBin(?)`,
+        parameters: [ causationId ]
+      });
+
+      return rows[0].count !== 0;
+    } finally {
+      MariaDbDomainEventStore.releaseConnection({ connection });
+    }
   }
 
   public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {

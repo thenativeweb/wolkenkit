@@ -226,6 +226,26 @@ class PostgresDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
+  public async hasDomainEventsWithCausationId ({ causationId }: {
+    causationId: string;
+  }): Promise<boolean> {
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+
+    try {
+      const result = await connection.query({
+        name: 'has domain event with causation id',
+        text: `SELECT COUNT(*) as count
+          FROM "${this.tableNames.domainEvents}"
+          WHERE "causationId" = $1`,
+        values: [ causationId ]
+      });
+
+      return Number(result.rows[0].count) !== 0;
+    } finally {
+      connection.release();
+    }
+  }
+
   public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {

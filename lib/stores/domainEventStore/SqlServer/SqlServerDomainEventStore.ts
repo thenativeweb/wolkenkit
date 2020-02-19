@@ -239,6 +239,43 @@ class SqlServerDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
+  public async hasDomainEventsWithCausationId ({ causationId }: {
+    causationId: string;
+  }): Promise<boolean> {
+    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+
+    try {
+      const result: number | undefined = await new Promise((resolve, reject): void => {
+        let domainEventCount: number;
+
+        const request = new Request(`
+          SELECT COUNT(*) as count
+            FROM [${this.tableNames.domainEvents}]
+            WHERE [causationId] = @causationId
+          ;
+        `, (err: Error | null): void => {
+          if (err) {
+            return reject(err);
+          }
+
+          resolve(domainEventCount);
+        });
+
+        request.once('row', (columns): void => {
+          domainEventCount = JSON.parse(columns[0].value);
+        });
+
+        request.addParameter('causationId', TYPES.UniqueIdentifier, causationId);
+
+        database.execSql(request);
+      });
+
+      return result !== 0;
+    } finally {
+      this.pool.release(database);
+    }
+  }
+
   public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {

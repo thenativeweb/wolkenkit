@@ -50,7 +50,13 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     return await this.queryClient.getDomainEventsByCausationId({ causationId });
   }
 
-  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async hasDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }): Promise<boolean> {
+    return await this.queryClient.hasDomainEventsWithCausationId({ causationId });
+  }
+
+  public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
     return await this.queryClient.getDomainEventsByCorrelationId({ correlationId });

@@ -8,6 +8,7 @@ import { getLastDomainEvent } from './getLastDomainEvent';
 import { getReplay } from './getReplay';
 import { getReplayForAggregate } from './getReplayForAggregate';
 import { getSnapshot } from './getSnapshot';
+import { hasDomainEventsWithCausationId } from './hasDomainEventsWithCausationId';
 
 const getV2 = async function ({
   domainEventStore,
@@ -58,6 +59,13 @@ const getV2 = async function ({
     getDomainEventsByCausationId({
       domainEventStore,
       heartbeatInterval
+    })
+  );
+
+  api.get(
+    '/has-domain-events-with-causation-id',
+    hasDomainEventsWithCausationId({
+      domainEventStore
     })
   );
 

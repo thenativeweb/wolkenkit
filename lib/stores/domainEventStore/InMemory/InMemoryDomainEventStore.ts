@@ -48,6 +48,13 @@ class InMemoryDomainEventStore implements DomainEventStore {
     );
   }
 
+  public async hasDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }): Promise<boolean> {
+    return this.getStoredDomainEvents<TDomainEventData>().
+      some((domainEvent): boolean => domainEvent.metadata.causationId === causationId);
+  }
+
   public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {

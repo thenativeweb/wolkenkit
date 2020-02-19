@@ -215,6 +215,16 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
+  public async hasDomainEventsWithCausationId ({ causationId }: {
+    causationId: string;
+  }): Promise<boolean> {
+    const domainEventCount = await this.collections.domainEvents.count({
+      'metadata.causationId': causationId
+    });
+
+    return domainEventCount !== 0;
+  }
+
   public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
