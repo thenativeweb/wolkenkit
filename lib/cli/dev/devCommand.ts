@@ -19,7 +19,7 @@ const devCommand = function (): Command<DevOptions> {
       {
         name: 'port',
         alias: 'p',
-        description: 'set the port',
+        description: 'set a port',
         parameterName: 'port',
         type: 'number',
         isRequired: false,
@@ -29,7 +29,7 @@ const devCommand = function (): Command<DevOptions> {
       {
         name: 'identity-provider-issuer',
         alias: 'i',
-        description: 'set the identity provider issuer url',
+        description: 'set an identity provider issuer url',
         parameterName: 'url',
         type: 'string',
         isRequired: false
@@ -37,7 +37,7 @@ const devCommand = function (): Command<DevOptions> {
       {
         name: 'identity-provider-certificate',
         alias: 'c',
-        description: 'set the identity provider certificate directory',
+        description: 'set an identity provider certificate directory',
         parameterName: 'directory',
         type: 'string',
         isRequired: false
@@ -45,7 +45,7 @@ const devCommand = function (): Command<DevOptions> {
       {
         name: 'debug',
         alias: 'd',
-        description: 'enable the debug mode',
+        description: 'enable debug mode',
         type: 'boolean',
         defaultValue: false,
         isRequired: false
@@ -98,8 +98,10 @@ const devCommand = function (): Command<DevOptions> {
         buntstift.newLine();
         buntstift.info(`  API port     ${port}`);
         buntstift.info(`  Health port  ${healthPort}`);
+
         buntstift.newLine();
         printFooter();
+
         buntstift.newLine();
         buntstift.line();
 

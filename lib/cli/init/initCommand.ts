@@ -1,4 +1,5 @@
 import { adjustPackageJson } from './adjustPackageJson';
+import { arrayToSentence } from '../../common/utils/arrayToSentence';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { cp } from 'shelljs';
@@ -6,6 +7,7 @@ import { errors } from '../../common/errors';
 import { exists } from '../../common/utils/fs/exists';
 import { getAbsolutePath } from '../../common/utils/path/getAbsolutePath';
 import { InitOptions } from './InitOptions';
+import { languages } from './languages';
 import { map } from 'lodash';
 import path from 'path';
 import { printFooter } from '../printFooter';
@@ -13,7 +15,6 @@ import { templates } from './templates';
 import { validateLanguage } from './validateLanguage';
 import { validateName } from './validateName';
 import { validateTemplate } from './validateTemplate';
-import { validLanguages } from './validLanguages';
 
 const initCommand = function (): Command<InitOptions> {
   return {
@@ -24,7 +25,12 @@ const initCommand = function (): Command<InitOptions> {
       {
         name: 'template',
         alias: 't',
-        description: 'specify the name of a template',
+        description: `select a template, must be ${arrayToSentence({
+          data: templates.map((template): string => template.id),
+          conjunction: 'or',
+          itemPrefix: `'`,
+          itemSuffix: `'`
+        })}`,
         parameterName: 'name',
         type: 'string',
         isRequired: false,
@@ -32,22 +38,27 @@ const initCommand = function (): Command<InitOptions> {
       }, {
         name: 'language',
         alias: 'l',
-        description: 'select a programming language',
+        description: `select a programming language, must be ${arrayToSentence({
+          data: languages.map((language): string => language.id),
+          conjunction: 'or',
+          itemPrefix: `'`,
+          itemSuffix: `'`
+        })}`,
         parameterName: 'name',
         type: 'string',
         isRequired: false,
         validate: validateLanguage
       }, {
-        name: 'out-dir',
-        alias: 'o',
-        description: 'set the output directory',
+        name: 'directory',
+        alias: 'd',
+        description: 'set an output directory',
         parameterName: 'path',
         type: 'string',
         isRequired: false
       }, {
         name: 'name',
         alias: 'n',
-        description: 'set the application name',
+        description: 'set an application name',
         type: 'string',
         isRequired: true,
         defaultOption: true,
@@ -55,7 +66,13 @@ const initCommand = function (): Command<InitOptions> {
       }
     ],
 
-    async handle ({ options: { verbose, template, language, 'out-dir': outDir, name }}): Promise<void> {
+    async handle ({ options: {
+      verbose,
+      template,
+      language,
+      directory,
+      name
+    }}): Promise<void> {
       buntstift.configure(
         buntstift.getConfiguration().
           withVerboseMode(verbose)
@@ -63,7 +80,7 @@ const initCommand = function (): Command<InitOptions> {
       const stopWaiting = buntstift.wait();
 
       try {
-        const targetDirectory = getAbsolutePath({ path: outDir ?? name, cwd: process.cwd() });
+        const targetDirectory = getAbsolutePath({ path: directory ?? name, cwd: process.cwd() });
 
         if (await exists({ path: targetDirectory })) {
           buntstift.info(`The directory '${targetDirectory}' already exists.`);
@@ -84,10 +101,10 @@ const initCommand = function (): Command<InitOptions> {
 
         if (!selectedLanguage) {
           const selectedLanguageName = await buntstift.select('Select a language:',
-            map(validLanguages, 'name'));
+            map(languages, 'name'));
 
-          selectedLanguage = validLanguages.find(
-            (validLanguage): boolean => validLanguage.name === selectedLanguageName
+          selectedLanguage = languages.find(
+            (temp): boolean => temp.name === selectedLanguageName
           )!.id;
         }
 
@@ -114,6 +131,7 @@ const initCommand = function (): Command<InitOptions> {
         buntstift.info(`  cd ${targetDirectory}`);
         buntstift.info('  npm install');
         buntstift.info('  npx wolkenkit dev');
+
         buntstift.newLine();
         printFooter();
       } catch (ex) {

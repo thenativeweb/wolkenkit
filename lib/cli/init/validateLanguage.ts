@@ -1,12 +1,12 @@
 import { arrayToSentence } from '../../common/utils/arrayToSentence';
-import { validLanguages } from './validLanguages';
+import { languages } from './languages';
 
-const validLanguageIds = validLanguages.map((validLanguage): string => validLanguage.id);
+const languageIds = languages.map((language): string => language.id);
 
 const validateLanguage = function (value: string): void {
-  if (!validLanguageIds.includes(value)) {
+  if (!languageIds.includes(value)) {
     throw new Error(`Invalid language '${value}', must be ${arrayToSentence({
-      data: validLanguageIds,
+      data: languageIds,
       conjunction: 'or',
       itemPrefix: `'`,
       itemSuffix: `'`
