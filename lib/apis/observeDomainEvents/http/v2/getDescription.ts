@@ -1,6 +1,6 @@
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
-import { Request, RequestHandler, Response } from 'express-serve-static-core';
+import { Request, RequestHandler, Response } from 'express';
 
 const getDescription = function ({ applicationDefinition }: {
   applicationDefinition: ApplicationDefinition;

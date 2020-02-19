@@ -1,6 +1,6 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
-import { RequestHandler } from 'express-serve-static-core';
+import { RequestHandler } from 'express';
 import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
 
 const getLastDomainEvent = function ({

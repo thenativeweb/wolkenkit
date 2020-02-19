@@ -1,6 +1,6 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { parseGetReplayQueryParameters } from './parameters/parseGetReplayQueryParameters';
-import { RequestHandler } from 'express-serve-static-core';
+import { RequestHandler } from 'express';
 import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { writeLine } from '../../../base/writeLine';
 

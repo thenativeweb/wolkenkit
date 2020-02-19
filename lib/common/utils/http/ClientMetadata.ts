@@ -1,7 +1,7 @@
 import { Claims } from 'limes';
 import { errors } from '../../errors';
 import { isArray } from 'lodash';
-import { Request } from 'express-serve-static-core';
+import { Request } from 'express';
 
 class ClientMetadata {
   public token: string;

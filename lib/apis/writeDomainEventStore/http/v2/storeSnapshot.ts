@@ -1,6 +1,6 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
-import { RequestHandler } from 'express-serve-static-core';
+import { RequestHandler } from 'express';
 import typer from 'content-type';
 import { validateSnapshot } from '../../../../common/validators/validateSnapshot';
 
