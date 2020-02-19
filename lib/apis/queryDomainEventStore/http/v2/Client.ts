@@ -149,7 +149,7 @@ class Client extends HttpClient {
   }): Promise<PassThrough> {
     const { status, data } = await axios({
       method: 'get',
-      url: `${this.url}/domain-events-with-causation-id?causation-id=${causationId}`,
+      url: `${this.url}/domain-events-by-causation-id?causation-id=${causationId}`,
       responseType: 'stream',
       validateStatus (): boolean {
         return true;
@@ -183,7 +183,7 @@ class Client extends HttpClient {
   }): Promise<PassThrough> {
     const { status, data } = await axios({
       method: 'get',
-      url: `${this.url}/domain-events-with-correlation-id?correlation-dd=${correlationId}`,
+      url: `${this.url}/domain-events-by-correlation-id?correlation-id=${correlationId}`,
       responseType: 'stream',
       validateStatus (): boolean {
         return true;

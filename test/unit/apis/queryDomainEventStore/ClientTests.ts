@@ -10,6 +10,7 @@ import { DomainEventStore } from '../../../../lib/stores/domainEventStore/Domain
 import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
+import { toArray } from 'streamtoarray';
 import { uuid } from 'uuidv4';
 
 suite('queryDomainEventStore/http/Client', (): void => {
@@ -704,6 +705,226 @@ suite('queryDomainEventStore/http/Client', (): void => {
         const data = await client.getLastDomainEvent({ aggregateIdentifier });
 
         assert.that(data).is.undefined();
+      });
+    });
+
+    suite('getDomainEventsByCausationId', (): void => {
+      test('stream ends immediately if no events with a matching causation id exist.', async (): Promise<void> => {
+        const domainEvent = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const domainEventsByCausationId = await toArray(await client.getDomainEventsByCausationId({ causationId: uuid() }));
+
+        assert.that(domainEventsByCausationId).is.equalTo([]);
+      });
+
+      test('returns all domain events with a matching causation id.', async (): Promise<void> => {
+        const causationId = uuid();
+
+        const domainEvent1 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId,
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+        const domainEvent2 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId,
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+        const domainEvent3 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent1, domainEvent2, domainEvent3 ]});
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const domainEventsByCausationId = await toArray(await client.getDomainEventsByCausationId({ causationId }));
+
+        assert.that(domainEventsByCausationId.length).is.equalTo(2);
+        assert.that(domainEventsByCausationId[0].id).is.equalTo(domainEvent1.id);
+        assert.that(domainEventsByCausationId[1].id).is.equalTo(domainEvent2.id);
+      });
+    });
+
+    suite('getDomainEventsByCorrelationId', (): void => {
+      test('returns an empty array if no events with a matching correlation id exist.', async (): Promise<void> => {
+        const domainEvent = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const domainEventsByCorrelationId = await toArray(await client.getDomainEventsByCorrelationId({ correlationId: uuid() }));
+
+        assert.that(domainEventsByCorrelationId).is.equalTo([]);
+      });
+
+      test('returns all domain events with a matching correlation id.', async (): Promise<void> => {
+        const correlationId = uuid();
+
+        const domainEvent1 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId,
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+        const domainEvent2 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId,
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+        const domainEvent3 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent1, domainEvent2, domainEvent3 ]});
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const domainEventsByCorrelationId = await toArray(await client.getDomainEventsByCorrelationId({ correlationId }));
+
+        assert.that(domainEventsByCorrelationId.length).is.equalTo(2);
+        assert.that(domainEventsByCorrelationId[0].id).is.equalTo(domainEvent1.id);
+        assert.that(domainEventsByCorrelationId[1].id).is.equalTo(domainEvent2.id);
       });
     });
 

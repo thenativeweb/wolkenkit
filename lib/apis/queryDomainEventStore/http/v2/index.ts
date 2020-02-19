@@ -54,7 +54,7 @@ const getV2 = async function ({
   );
 
   api.get(
-    '/domain-events-with-causation-id',
+    '/domain-events-by-causation-id',
     getDomainEventsByCausationId({
       domainEventStore,
       heartbeatInterval
@@ -62,7 +62,7 @@ const getV2 = async function ({
   );
 
   api.get(
-    '/domain-events-with-correlation-id',
+    '/domain-events-by-correlation-id',
     getDomainEventsByCorrelationId({
       domainEventStore,
       heartbeatInterval
