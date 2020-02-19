@@ -8,7 +8,6 @@ import { DomainEventStore } from '../../../../lib/stores/domainEventStore/Domain
 import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
-import { toArray } from 'streamtoarray';
 import { uuid } from 'uuidv4';
 import { waitForSignals } from 'wait-for-signals';
 
