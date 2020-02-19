@@ -204,7 +204,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     const domainEventStream = connection.query(
       `SELECT domainEvent, revisionGlobal
           FROM \`${this.tableNames.domainEvents}\`
-          WHERE causationId = ?
+          WHERE causationId = UuidToBin(?)
           ORDER BY revisionGlobal ASC`,
       [ causationId ]
     );
@@ -250,7 +250,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     const domainEventStream = connection.query(
       `SELECT domainEvent, revisionGlobal
           FROM \`${this.tableNames.domainEvents}\`
-          WHERE correlationId = ?
+          WHERE correlationId = UuidToBin(?)
           ORDER BY revisionGlobal ASC`,
       [ correlationId ]
     );
@@ -454,7 +454,7 @@ class MySqlDomainEventStore implements DomainEventStore {
           placeholders = [];
 
     for (const domainEvent of domainEvents) {
-      placeholders.push('(UuidToBin(?), ?, ?, ?, ?)');
+      placeholders.push('(UuidToBin(?), ?, UuidToBin(?), UuidToBin(?), ?)');
       parameters.push(
         domainEvent.aggregateIdentifier.id,
         domainEvent.metadata.revision.aggregate,
