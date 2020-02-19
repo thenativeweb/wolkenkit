@@ -110,8 +110,8 @@ class PostgresDomainEventStore implements DomainEventStore {
             "revisionGlobal" bigserial NOT NULL,
             "aggregateId" uuid NOT NULL,
             "revisionAggregate" integer NOT NULL,
-            "causationId" varchar(36) NOT NULL,
-            "correlationId" varchar(36) NOT NULL,
+            "causationId" uuid NOT NULL,
+            "correlationId" uuid NOT NULL,
             "domainEvent" jsonb NOT NULL,
 
             CONSTRAINT "${tableNames.domainEvents}_pk" PRIMARY KEY("revisionGlobal"),

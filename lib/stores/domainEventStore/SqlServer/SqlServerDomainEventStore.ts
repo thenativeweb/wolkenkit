@@ -87,8 +87,8 @@ class SqlServerDomainEventStore implements DomainEventStore {
             [revisionGlobal] BIGINT IDENTITY(1,1),
             [aggregateId] UNIQUEIDENTIFIER NOT NULL,
             [revisionAggregate] INT NOT NULL,
-            [causationId] NVARCHAR(36) NOT NULL,
-            [correlationId] NVARCHAR(36) NOT NULL,
+            [causationId] UNIQUEIDENTIFIER NOT NULL,
+            [correlationId] UNIQUEIDENTIFIER NOT NULL,
             [domainEvent] NVARCHAR(4000) NOT NULL,
 
             CONSTRAINT [${tableNames.domainEvents}_pk] PRIMARY KEY([revisionGlobal]),
@@ -229,7 +229,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
       }
     );
 
-    request.addParameter('causationId', TYPES.NVarChar, causationId);
+    request.addParameter('causationId', TYPES.UniqueIdentifier, causationId);
 
     request.on('error', onError);
     request.on('row', onRow);
@@ -288,7 +288,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
       }
     );
 
-    request.addParameter('correlationId', TYPES.NVarChar, correlationId);
+    request.addParameter('correlationId', TYPES.UniqueIdentifier, correlationId);
 
     request.on('error', onError);
     request.on('row', onRow);
@@ -465,8 +465,8 @@ class SqlServerDomainEventStore implements DomainEventStore {
       const row = [
         { key: `aggregateId${rowId}`, value: domainEvent.aggregateIdentifier.id, type: TYPES.UniqueIdentifier, options: undefined },
         { key: `revisionAggregate${rowId}`, value: domainEvent.metadata.revision.aggregate, type: TYPES.Int, options: undefined },
-        { key: `causationId${rowId}`, value: domainEvent.metadata.causationId, type: TYPES.NVarChar, options: undefined },
-        { key: `correlationId${rowId}`, value: domainEvent.metadata.correlationId, type: TYPES.NVarChar, options: undefined },
+        { key: `causationId${rowId}`, value: domainEvent.metadata.causationId, type: TYPES.UniqueIdentifier, options: undefined },
+        { key: `correlationId${rowId}`, value: domainEvent.metadata.correlationId, type: TYPES.UniqueIdentifier, options: undefined },
         { key: `event${rowId}`, value: JSON.stringify(domainEvent), type: TYPES.NVarChar, options: { length: 4000 }}
       ];
 

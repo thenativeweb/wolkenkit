@@ -10,6 +10,7 @@ import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
 import { toArray } from 'streamtoarray';
 import { uuid } from 'uuidv4';
+import { waitForSignals } from 'wait-for-signals';
 
 suite('queryDomainEventStore/http', (): void => {
   suite('/v2', (): void => {
@@ -823,16 +824,24 @@ suite('queryDomainEventStore/http', (): void => {
         const { client } = await runAsServer({ app: api });
         const { status, data, headers } = await client({
           method: 'get',
-          url: '/v2/replay',
+          url: `/v2/domain-events-by-causation-id?causation-id=${uuid()}`,
           responseType: 'stream'
         });
 
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        const domainEventsByCausationId = await toArray(data);
-
-        assert.that(domainEventsByCausationId).is.equalTo([]);
+        await new Promise((resolve, reject): void => {
+          data.on('data', (stuff: any): void => {
+            try {
+              assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
+            } catch (ex) {
+              reject(ex);
+            }
+          });
+          data.on('error', reject);
+          data.on('end', resolve);
+        });
       });
 
       test('returns all domain events with a matching causation id.', async (): Promise<void> => {
@@ -898,22 +907,54 @@ suite('queryDomainEventStore/http', (): void => {
         const { client } = await runAsServer({ app: api });
         const { status, data, headers } = await client({
           method: 'get',
-          url: '/v2/replay',
+          url: `/v2/domain-events-by-causation-id?causation-id=${causationId}`,
           responseType: 'stream'
         });
 
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        const domainEventsByCausationId = await toArray(data);
+        const collector = waitForSignals({ count: 4 });
 
-        assert.that(domainEventsByCausationId.length).is.equalTo(2);
-        assert.that(domainEventsByCausationId[0].id).is.equalTo(domainEvent1.id);
-        assert.that(domainEventsByCausationId[1].id).is.equalTo(domainEvent2.id);
+        data.on('error', async (ex: Error): Promise<void> => {
+          await collector.fail(ex);
+        });
+        data.on('end', async (): Promise<void> => {
+          await collector.signal();
+        });
+
+        data.pipe(asJsonStream([
+          async (heartbeat): Promise<void> => {
+            try {
+              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          },
+          async (domainEvent): Promise<void> => {
+            try {
+              assert.that(domainEvent).is.atLeast({ id: domainEvent1.id });
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          },
+          async (domainEvent): Promise<void> => {
+            try {
+              assert.that(domainEvent).is.atLeast({ id: domainEvent2.id });
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          }
+        ]));
+
+        await collector.promise;
       });
     });
 
-    suite('getDomainEventsByCorrelationId', (): void => {
+    suite('GET /domain-events-by-correlation-id', (): void => {
       test('returns an empty array if no events with a matching correlation id exist.', async (): Promise<void> => {
         const domainEvent = buildDomainEvent({
           contextIdentifier: {
@@ -939,16 +980,24 @@ suite('queryDomainEventStore/http', (): void => {
         const { client } = await runAsServer({ app: api });
         const { status, data, headers } = await client({
           method: 'get',
-          url: '/v2/replay',
+          url: `/v2/domain-events-by-correlation-id?correlation-id=${uuid()}`,
           responseType: 'stream'
         });
 
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        const domainEventsByCorrelationId = await toArray(data);
-
-        assert.that(domainEventsByCorrelationId).is.equalTo([]);
+        await new Promise((resolve, reject): void => {
+          data.on('data', (stuff: any): void => {
+            try {
+              assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
+            } catch (ex) {
+              reject(ex);
+            }
+          });
+          data.on('error', reject);
+          data.on('end', resolve);
+        });
       });
 
       test('returns all domain events with a matching correlation id.', async (): Promise<void> => {
@@ -1014,18 +1063,50 @@ suite('queryDomainEventStore/http', (): void => {
         const { client } = await runAsServer({ app: api });
         const { status, data, headers } = await client({
           method: 'get',
-          url: '/v2/replay',
+          url: `/v2/domain-events-by-correlation-id?correlation-id=${correlationId}`,
           responseType: 'stream'
         });
 
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        const domainEventsByCorrelationId = await toArray(data);
+        const collector = waitForSignals({ count: 4 });
 
-        assert.that(domainEventsByCorrelationId.length).is.equalTo(2);
-        assert.that(domainEventsByCorrelationId[0].id).is.equalTo(domainEvent1.id);
-        assert.that(domainEventsByCorrelationId[1].id).is.equalTo(domainEvent2.id);
+        data.on('error', async (ex: Error): Promise<void> => {
+          await collector.fail(ex);
+        });
+        data.on('end', async (): Promise<void> => {
+          await collector.signal();
+        });
+
+        data.pipe(asJsonStream([
+          async (heartbeat): Promise<void> => {
+            try {
+              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          },
+          async (domainEvent): Promise<void> => {
+            try {
+              assert.that(domainEvent).is.atLeast({ id: domainEvent1.id });
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          },
+          async (domainEvent): Promise<void> => {
+            try {
+              assert.that(domainEvent).is.atLeast({ id: domainEvent2.id });
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          }
+        ]));
+
+        await collector.promise;
       });
     });
 

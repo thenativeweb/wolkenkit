@@ -134,8 +134,8 @@ class MySqlDomainEventStore implements DomainEventStore {
         revisionGlobal SERIAL,
         aggregateId BINARY(16) NOT NULL,
         revisionAggregate INT NOT NULL,
-        causationId VARCHAR(36) NOT NULL,
-        correlationId VARCHAR(36) NOT NULL,
+        causationId BINARY(16) NOT NULL,
+        correlationId BINARY(16) NOT NULL,
         domainEvent JSON NOT NULL,
 
         PRIMARY KEY(revisionGlobal),
