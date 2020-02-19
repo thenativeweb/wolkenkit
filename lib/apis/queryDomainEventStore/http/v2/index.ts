@@ -2,8 +2,8 @@ import { Application } from 'express';
 import { CorsOrigin } from 'get-cors-origin';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { getApiBase } from '../../../base/getApiBase';
-import { getDomainEventsWithCausationId } from './getDomainEventsWithCausationId';
-import { getDomainEventsWithCorrelationId } from './getDomainEventsWithCorrelationId';
+import { getDomainEventsByCausationId } from './getDomainEventsByCausationId';
+import { getDomainEventsByCorrelationId } from './getDomainEventsByCorrelationId';
 import { getLastDomainEvent } from './getLastDomainEvent';
 import { getReplay } from './getReplay';
 import { getReplayForAggregate } from './getReplayForAggregate';
@@ -55,7 +55,7 @@ const getV2 = async function ({
 
   api.get(
     '/domain-events-with-causation-id',
-    getDomainEventsWithCausationId({
+    getDomainEventsByCausationId({
       domainEventStore,
       heartbeatInterval
     })
@@ -63,7 +63,7 @@ const getV2 = async function ({
 
   api.get(
     '/domain-events-with-correlation-id',
-    getDomainEventsWithCorrelationId({
+    getDomainEventsByCorrelationId({
       domainEventStore,
       heartbeatInterval
     })

@@ -99,7 +99,7 @@ class Client extends HttpClient {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {
-        logger.error('Unknown error occured.', { ex: data, status });
+        logger.error('An unknown error occured.', { ex: data, status });
         throw new errors.UnknownError();
       }
     }
@@ -136,7 +136,7 @@ class Client extends HttpClient {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {
-        logger.error('Unknown error occured.', { ex: data, status });
+        logger.error('An unknown error occured.', { ex: data, status });
         throw new errors.UnknownError();
       }
     }

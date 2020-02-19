@@ -31,7 +31,7 @@ const processCommand = async function ({
   const { command, token } = await fetchCommand({ dispatcher });
 
   const domainEventsForCommand = await toArray(
-    await domainEventStore.getDomainEventsWithCausationId({ causationId: command.id })
+    await domainEventStore.getDomainEventsByCausationId({ causationId: command.id })
   );
 
   if (domainEventsForCommand.length > 0) {

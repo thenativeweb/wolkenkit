@@ -3,7 +3,7 @@ import { RequestHandler } from 'express-serve-static-core';
 import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { writeLine } from '../../../base/writeLine';
 
-const getDomainEventsWithCausationId = function ({
+const getDomainEventsByCausationId = function ({
   domainEventStore,
   heartbeatInterval
 }: {
@@ -19,7 +19,7 @@ const getDomainEventsWithCausationId = function ({
       // No need for a `next`-callback for this middleware.
     });
 
-    const domainEventStream = await domainEventStore.getDomainEventsWithCausationId({ causationId });
+    const domainEventStream = await domainEventStore.getDomainEventsByCausationId({ causationId });
 
     for await (const domainEvent of domainEventStream) {
       writeLine({ res, data: domainEvent });
@@ -29,4 +29,4 @@ const getDomainEventsWithCausationId = function ({
   };
 };
 
-export { getDomainEventsWithCausationId };
+export { getDomainEventsByCausationId };

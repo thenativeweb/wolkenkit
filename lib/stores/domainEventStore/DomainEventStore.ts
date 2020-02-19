@@ -11,11 +11,11 @@ export interface DomainEventStore {
     aggregateIdentifier: AggregateIdentifier;
   }) => Promise<DomainEvent<TDomainEventData> | undefined>;
 
-  getDomainEventsWithCausationId: <TDomainEventData extends DomainEventData> ({ causationId }: {
+  getDomainEventsByCausationId: <TDomainEventData extends DomainEventData> ({ causationId }: {
     causationId: string;
   }) => Promise<Readable>;
 
-  getDomainEventsWithCorrelationId: <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  getDomainEventsByCorrelationId: <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }) => Promise<Readable>;
 

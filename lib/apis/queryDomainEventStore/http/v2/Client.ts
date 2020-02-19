@@ -46,7 +46,7 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('Unknown error occured.', { error: data, status });
+      logger.error('An unknown error occured.', { error: data, status });
 
       throw new errors.UnknownError(data.message);
     }
@@ -92,7 +92,7 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('Unknown error occured.', { error: data, status });
+      logger.error('An unknown error occured.', { error: data, status });
 
       throw new errors.UnknownError(data.message);
     }
@@ -137,14 +137,14 @@ class Client extends HttpClient {
         throw new errors.AggregateIdentifierMalformed(data.message);
       }
       default: {
-        logger.error('Unknown error occured.', { ex: data, status });
+        logger.error('An unknown error occured.', { ex: data, status });
 
         throw new errors.UnknownError(data.message);
       }
     }
   }
 
-  public async getDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
     causationId: string;
   }): Promise<PassThrough> {
     const { status, data } = await axios({
@@ -157,7 +157,7 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('Unknown error occured.', { error: data, status });
+      logger.error('An unknown error occured.', { error: data, status });
 
       throw new errors.UnknownError(data.message);
     }
@@ -178,7 +178,7 @@ class Client extends HttpClient {
     );
   }
 
-  public async getDomainEventsWithCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<PassThrough> {
     const { status, data } = await axios({
@@ -191,7 +191,7 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('Unknown error occured.', { error: data, status });
+      logger.error('An unknown error occured.', { error: data, status });
 
       throw new errors.UnknownError(data.message);
     }
@@ -236,7 +236,7 @@ class Client extends HttpClient {
         throw new errors.AggregateIdentifierMalformed(data.message);
       }
       default: {
-        logger.error('Unknown error occured.', { ex: data, status });
+        logger.error('An unknown error occured.', { ex: data, status });
 
         throw new errors.UnknownError(data.message);
       }

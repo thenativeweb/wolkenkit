@@ -3,7 +3,7 @@ import { RequestHandler } from 'express-serve-static-core';
 import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { writeLine } from '../../../base/writeLine';
 
-const getDomainEventsWithCorrelationId = function ({
+const getDomainEventsByCorrelationId = function ({
   domainEventStore,
   heartbeatInterval
 }: {
@@ -19,7 +19,7 @@ const getDomainEventsWithCorrelationId = function ({
       // No need for a `next`-callback for this middleware.
     });
 
-    const domainEventStream = await domainEventStore.getDomainEventsWithCorrelationId({ correlationId });
+    const domainEventStream = await domainEventStore.getDomainEventsByCorrelationId({ correlationId });
 
     for await (const domainEvent of domainEventStream) {
       writeLine({ res, data: domainEvent });
@@ -29,4 +29,4 @@ const getDomainEventsWithCorrelationId = function ({
   };
 };
 
-export { getDomainEventsWithCorrelationId };
+export { getDomainEventsByCorrelationId };

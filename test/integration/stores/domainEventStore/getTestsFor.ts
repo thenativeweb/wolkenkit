@@ -143,7 +143,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     });
   });
 
-  suite('getDomainEventsWithCausationId', function (): void {
+  suite('getDomainEventsByCausationId', function (): void {
     this.timeout(20_000);
 
     setup(async (): Promise<void> => {
@@ -180,9 +180,9 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
       await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-      const domainEventsWithCausationId = await toArray(await domainEventStore.getDomainEventsWithCausationId({ causationId: uuid() }));
+      const DomainEventsByCausationId = await toArray(await domainEventStore.getDomainEventsByCausationId({ causationId: uuid() }));
 
-      assert.that(domainEventsWithCausationId).is.equalTo([]);
+      assert.that(DomainEventsByCausationId).is.equalTo([]);
     });
 
     test('returns all domain events with a matching causation id.', async (): Promise<void> => {
@@ -245,15 +245,15 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
       await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent1, domainEvent2, domainEvent3 ]});
 
-      const domainEventsWithCausationId = await toArray(await domainEventStore.getDomainEventsWithCausationId({ causationId }));
+      const DomainEventsByCausationId = await toArray(await domainEventStore.getDomainEventsByCausationId({ causationId }));
 
-      assert.that(domainEventsWithCausationId.length).is.equalTo(2);
-      assert.that(domainEventsWithCausationId[0].id).is.equalTo(domainEvent1.id);
-      assert.that(domainEventsWithCausationId[1].id).is.equalTo(domainEvent2.id);
+      assert.that(DomainEventsByCausationId.length).is.equalTo(2);
+      assert.that(DomainEventsByCausationId[0].id).is.equalTo(domainEvent1.id);
+      assert.that(DomainEventsByCausationId[1].id).is.equalTo(domainEvent2.id);
     });
   });
 
-  suite('getDomainEventsWithCorrelationId', function (): void {
+  suite('getDomainEventsByCorrelationId', function (): void {
     this.timeout(20_000);
 
     setup(async (): Promise<void> => {
@@ -290,9 +290,9 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
       await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-      const domainEventsWithCorrelationId = await toArray(await domainEventStore.getDomainEventsWithCorrelationId({ correlationId: uuid() }));
+      const DomainEventsByCorrelationId = await toArray(await domainEventStore.getDomainEventsByCorrelationId({ correlationId: uuid() }));
 
-      assert.that(domainEventsWithCorrelationId).is.equalTo([]);
+      assert.that(DomainEventsByCorrelationId).is.equalTo([]);
     });
 
     test('returns all domain events with a matching correlation id.', async (): Promise<void> => {
@@ -355,11 +355,11 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
       await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent1, domainEvent2, domainEvent3 ]});
 
-      const domainEventsWithCorrelationId = await toArray(await domainEventStore.getDomainEventsWithCorrelationId({ correlationId }));
+      const DomainEventsByCorrelationId = await toArray(await domainEventStore.getDomainEventsByCorrelationId({ correlationId }));
 
-      assert.that(domainEventsWithCorrelationId.length).is.equalTo(2);
-      assert.that(domainEventsWithCorrelationId[0].id).is.equalTo(domainEvent1.id);
-      assert.that(domainEventsWithCorrelationId[1].id).is.equalTo(domainEvent2.id);
+      assert.that(DomainEventsByCorrelationId.length).is.equalTo(2);
+      assert.that(DomainEventsByCorrelationId[0].id).is.equalTo(domainEvent1.id);
+      assert.that(DomainEventsByCorrelationId[1].id).is.equalTo(domainEvent2.id);
     });
   });
 

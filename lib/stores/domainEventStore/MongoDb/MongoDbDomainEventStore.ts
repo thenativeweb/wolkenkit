@@ -171,7 +171,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return new DomainEvent<TDomainEventData>(domainEvents[0]);
   }
 
-  public async getDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
     const domainEventStream = this.collections.domainEvents.find({
@@ -215,7 +215,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
-  public async getDomainEventsWithCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
     const domainEventStream = this.collections.domainEvents.find({

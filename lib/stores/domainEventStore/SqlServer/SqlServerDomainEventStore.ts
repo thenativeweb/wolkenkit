@@ -180,7 +180,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
     }
   }
 
-  public async getDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
     const database = await SqlServerDomainEventStore.getDatabase(this.pool);
@@ -239,7 +239,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
-  public async getDomainEventsWithCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
     const database = await SqlServerDomainEventStore.getDatabase(this.pool);

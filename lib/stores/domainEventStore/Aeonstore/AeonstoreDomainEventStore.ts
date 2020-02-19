@@ -44,16 +44,16 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     return await this.queryClient.getLastDomainEvent({ aggregateIdentifier });
   }
 
-  public async getDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
-    return await this.queryClient.getDomainEventsWithCausationId({ causationId });
+    return await this.queryClient.getDomainEventsByCausationId({ causationId });
   }
 
-  public async getDomainEventsWithCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
-    return await this.queryClient.getDomainEventsWithCorrelationId({ correlationId });
+    return await this.queryClient.getDomainEventsByCorrelationId({ correlationId });
   }
 
   public async getReplay ({

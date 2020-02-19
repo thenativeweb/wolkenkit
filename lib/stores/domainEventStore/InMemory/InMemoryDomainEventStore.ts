@@ -39,7 +39,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
     return lastDomainEvent as DomainEvent<TDomainEventData>;
   }
 
-  public async getDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
     return Readable.from(
@@ -48,7 +48,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
     );
   }
 
-  public async getDomainEventsWithCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
     return Readable.from(
