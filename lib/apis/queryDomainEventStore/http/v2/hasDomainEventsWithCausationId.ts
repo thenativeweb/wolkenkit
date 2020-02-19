@@ -11,7 +11,7 @@ const hasDomainEventsWithCausationId = function ({
 
     const hasDomainEvents = await domainEventStore.hasDomainEventsWithCausationId({ causationId });
 
-    res.json(hasDomainEvents);
+    res.json({ hasDomainEventsWithCausationId: hasDomainEvents });
   };
 };
 

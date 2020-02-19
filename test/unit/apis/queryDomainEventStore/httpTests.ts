@@ -983,7 +983,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(200);
-        assert.that(JSON.parse(data)).is.false();
+        assert.that(data).is.equalTo({ hasDomainEventsWithCausationId: false });
       });
 
       test('returns true if events with a matching causation id exist.', async (): Promise<void> => {
@@ -1053,7 +1053,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(200);
-        assert.that(JSON.parse(data)).is.true();
+        assert.that(data).is.equalTo({ hasDomainEventsWithCausationId: true });
       });
     });
 

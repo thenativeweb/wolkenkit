@@ -104,7 +104,7 @@ class Client extends HttpClient {
       throw new errors.UnknownError(data.message);
     }
 
-    return JSON.parse(data);
+    return data.hasDomainEventsWithCausationId;
   }
 
   public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
