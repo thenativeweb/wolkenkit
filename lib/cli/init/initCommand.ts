@@ -7,6 +7,7 @@ import { createDockerConfiguration } from './createDockerConfiguration';
 import { errors } from '../../common/errors';
 import { exists } from '../../common/utils/fs/exists';
 import { getAbsolutePath } from '../../common/utils/path/getAbsolutePath';
+import { getApplicationRoot } from '../../common/application/getApplicationRoot';
 import { InitOptions } from './InitOptions';
 import { languages } from './languages';
 import { map } from 'lodash';
@@ -110,7 +111,10 @@ const initCommand = function (): Command<InitOptions> {
         }
 
         const sourceDirectory = path.join(
-          __dirname, '..', '..', '..', 'templates', selectedTemplate, selectedLanguage
+          await getApplicationRoot({ directory: __dirname }),
+          'templates',
+          selectedTemplate,
+          selectedLanguage
         );
 
         const packageJson = path.join(targetDirectory, 'package.json');
