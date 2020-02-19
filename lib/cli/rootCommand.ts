@@ -1,8 +1,8 @@
-import { buildCommand } from './build/buildCommand';
 import { Command } from 'command-line-interface';
 import { devCommand } from './dev/devCommand';
 import { initCommand } from './init/initCommand';
 import { RootOptions } from './RootOptions';
+import { runCommand } from './run/runCommand';
 
 const rootCommand = function (): Command<RootOptions> {
   return {
@@ -29,7 +29,7 @@ const rootCommand = function (): Command<RootOptions> {
     subcommands: {
       init: initCommand(),
       dev: devCommand(),
-      build: buildCommand()
+      run: runCommand()
     }
   };
 };

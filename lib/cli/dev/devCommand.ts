@@ -72,6 +72,7 @@ const devCommand = function (): Command<DevOptions> {
           await getApplicationPackageJson({ directory: process.cwd() });
 
         if (!dependencies?.wolkenkit && !devDependencies?.wolkenkit) {
+          buntstift.info('Application not found.');
           throw new errors.ApplicationNotFound();
         }
 
