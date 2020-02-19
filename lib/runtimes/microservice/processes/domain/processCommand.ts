@@ -35,7 +35,7 @@ const processCommand = async function ({
   );
 
   if (domainEventsForCommand.length > 0) {
-    // The command has already resulted in Domain Events and thus was processed
+    // The command has already resulted in domain events and thus was processed
     // before and can be skipped.
     await acknowledgeCommand({ command, token, dispatcher });
 

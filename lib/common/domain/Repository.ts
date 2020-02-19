@@ -103,7 +103,7 @@ class Repository {
       return [];
     }
 
-    const DomainEventsByGlobalRevisions = await this.domainEventStore.storeDomainEvents({
+    const domainEventsByGlobalRevisions = await this.domainEventStore.storeDomainEvents({
       domainEvents: currentAggregateState.unsavedDomainEvents.map(
         (domainEvent): DomainEvent<DomainEventData> => domainEvent.withoutState()
       )
@@ -111,7 +111,7 @@ class Repository {
 
     const savedDomainEvents = currentAggregateState.unsavedDomainEvents.map(
       (unsavedDomainEvent): DomainEventWithState<DomainEventData, State> => {
-        const revisionGlobal = DomainEventsByGlobalRevisions.find(
+        const revisionGlobal = domainEventsByGlobalRevisions.find(
           (domainEvent): boolean => domainEvent.id === unsavedDomainEvent.id
         )!.metadata.revision.global!;
 
