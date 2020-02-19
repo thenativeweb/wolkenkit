@@ -1,12 +1,17 @@
 import fs from 'fs';
+import { getApplicationRoot } from '../../common/application/getApplicationRoot';
+import { PackageManifest } from '../../common/application/PackageManifest';
 import path from 'path';
 import { stripIndent } from 'common-tags';
-import { version } from '../../../package.json';
 
 const createDockerConfiguration = async function ({ directory, name }: {
   directory: string;
   name: string;
 }): Promise<void> {
+  const applicationRoot = await getApplicationRoot({ directory: __dirname });
+  const wolkenkitPackageJsonPath = path.join(applicationRoot, 'package.json');
+  const wolkenkitPackageJson: PackageManifest = JSON.parse(await fs.promises.readFile(wolkenkitPackageJsonPath, 'utf8'));
+
   const dockerConfiguration = [
     {
       fileName: '.dockerignore',
@@ -21,7 +26,7 @@ const createDockerConfiguration = async function ({ directory, name }: {
     {
       fileName: 'Dockerfile',
       content: `
-        FROM thenativeweb/wolkenkit:${version}
+        FROM thenativeweb/wolkenkit:${wolkenkitPackageJson.version}
 
         RUN mkdir /app
         WORKDIR /app

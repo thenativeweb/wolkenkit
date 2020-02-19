@@ -1,12 +1,17 @@
 import fs from 'fs';
+import { getApplicationRoot } from '../../common/application/getApplicationRoot';
 import { PackageManifest } from '../../common/application/PackageManifest';
+import path from 'path';
 import { sortKeys } from '../../common/utils/sortKeys';
-import wolkenkitPackageJson from '../../../package.json';
 
 const adjustPackageJson = async function ({ packageJson, name }: {
   packageJson: string;
   name: string;
 }): Promise<void> {
+  const applicationRoot = await getApplicationRoot({ directory: __dirname });
+  const wolkenkitPackageJsonPath = path.join(applicationRoot, 'package.json');
+  const wolkenkitPackageJson: PackageManifest = JSON.parse(await fs.promises.readFile(wolkenkitPackageJsonPath, 'utf8'));
+
   const content: PackageManifest = JSON.parse(await fs.promises.readFile(packageJson, 'utf8'));
 
   content.name = name;
