@@ -5,6 +5,7 @@ import { DevOptions } from './DevOptions';
 import { errors } from '../../common/errors';
 import { getAbsolutePath } from '../../common/utils/path/getAbsolutePath';
 import { getApplicationPackageJson } from '../../common/application/getApplicationPackageJson';
+import { getApplicationRoot } from '../../common/application/getApplicationRoot';
 import { printFooter } from '../printFooter';
 import { processenv } from 'processenv';
 import { startProcess } from '../../runtimes/shared/startProcess';
@@ -68,6 +69,8 @@ const devCommand = function (): Command<DevOptions> {
       try {
         const healthPort = port + 1;
 
+        const applicationDirectory =
+          await getApplicationRoot({ directory: process.cwd() });
         const { name, dependencies, devDependencies } =
           await getApplicationPackageJson({ directory: process.cwd() });
 
@@ -86,9 +89,7 @@ const devCommand = function (): Command<DevOptions> {
         }
 
         buntstift.verbose(`Compiling the '${name}' application...`);
-        await buildApplication({
-          applicationDirectory: process.cwd()
-        });
+        await buildApplication({ applicationDirectory });
         buntstift.verbose(`Compiled the '${name}' application.`);
         if (verbose) {
           buntstift.newLine();
@@ -115,7 +116,7 @@ const devCommand = function (): Command<DevOptions> {
           port: healthPort,
           env: {
             ...processenv() as NodeJS.ProcessEnv,
-            APPLICATION_DIRECTORY: process.cwd(),
+            APPLICATION_DIRECTORY: applicationDirectory,
             COMMAND_QUEUE_RENEW_INTERVAL: String(5_000),
             CONCURRENT_COMMANDS: String(100),
             CORS_ORIGIN: '*',

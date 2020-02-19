@@ -3,6 +3,7 @@ import { arrayToSentence } from '../../common/utils/arrayToSentence';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { cp } from 'shelljs';
+import { createDockerConfiguration } from './createDockerConfiguration';
 import { errors } from '../../common/errors';
 import { exists } from '../../common/utils/fs/exists';
 import { getAbsolutePath } from '../../common/utils/path/getAbsolutePath';
@@ -123,6 +124,10 @@ const initCommand = function (): Command<InitOptions> {
         buntstift.verbose(`Adjusting ${packageJson}...`);
         await adjustPackageJson({ packageJson, name });
         buntstift.verbose('Adjusted package.json.');
+
+        buntstift.verbose('Creating Docker configuration...');
+        await createDockerConfiguration({ directory: targetDirectory, name });
+        buntstift.verbose('Created Docker configuration.');
 
         buntstift.success(`Initialized the '${name}' application.`);
         buntstift.newLine();
