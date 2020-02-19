@@ -288,7 +288,7 @@ suite('domain', function (): void {
               }
             },
             (): void => {
-              reject(new Error('Should only have received twe messages.'));
+              reject(new Error('Should only have received two messages.'));
             }
           ],
           true
@@ -339,7 +339,122 @@ suite('domain', function (): void {
               }
             },
             (): void => {
-              reject(new Error('Should only have received twe messages.'));
+              reject(new Error('Should only have received two messages.'));
+            }
+          ],
+          true
+        ));
+      });
+    });
+
+    test('handles multiple events in independent aggregates after each other.', async (): Promise<void> => {
+      const command1 = buildCommandWithMetadata({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'execute',
+        data: {
+          strategy: 'succeed'
+        }
+      });
+      const command2 = buildCommandWithMetadata({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'execute',
+        data: {
+          strategy: 'succeed'
+        }
+      });
+
+      const messageStream = await subscribeMessagesClient.getMessages();
+
+      await handleCommandWithMetadataClient.postCommand({ command: command1 });
+      await handleCommandWithMetadataClient.postCommand({ command: command2 });
+
+      await new Promise((resolve, reject): void => {
+        messageStream.on('error', (err: any): void => {
+          reject(err);
+        });
+        messageStream.on('close', (): void => {
+          resolve();
+        });
+        messageStream.pipe(asJsonStream(
+          [
+            (data): void => {
+              try {
+                assert.that(data).is.atLeast({
+                  contextIdentifier: {
+                    name: 'sampleContext'
+                  },
+                  aggregateIdentifier: command1.aggregateIdentifier,
+                  name: 'succeeded',
+                  data: {}
+                });
+                resolve();
+              } catch (ex) {
+                reject(ex);
+              }
+            },
+            (data): void => {
+              try {
+                assert.that(data).is.atLeast({
+                  contextIdentifier: {
+                    name: 'sampleContext'
+                  },
+                  aggregateIdentifier: command1.aggregateIdentifier,
+                  name: 'executed',
+                  data: {
+                    strategy: 'succeed'
+                  }
+                });
+                resolve();
+              } catch (ex) {
+                reject(ex);
+              }
+            },
+            (data): void => {
+              try {
+                assert.that(data).is.atLeast({
+                  contextIdentifier: {
+                    name: 'sampleContext'
+                  },
+                  aggregateIdentifier: command2.aggregateIdentifier,
+                  name: 'succeeded',
+                  data: {}
+                });
+                resolve();
+              } catch (ex) {
+                reject(ex);
+              }
+            },
+            (data): void => {
+              try {
+                assert.that(data).is.atLeast({
+                  contextIdentifier: {
+                    name: 'sampleContext'
+                  },
+                  aggregateIdentifier: command2.aggregateIdentifier,
+                  name: 'executed',
+                  data: {
+                    strategy: 'succeed'
+                  }
+                });
+                resolve();
+              } catch (ex) {
+                reject(ex);
+              }
+            },
+            (): void => {
+              reject(new Error('Should only have received four messages.'));
             }
           ],
           true

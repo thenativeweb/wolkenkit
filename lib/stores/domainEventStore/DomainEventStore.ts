@@ -1,7 +1,7 @@
 import { AggregateIdentifier } from '../../common/elements/AggregateIdentifier';
 import { DomainEvent } from '../../common/elements/DomainEvent';
 import { DomainEventData } from '../../common/elements/DomainEventData';
-import { PassThrough } from 'stream';
+import { Readable } from 'stream';
 import { Snapshot } from './Snapshot';
 import { State } from '../../common/elements/State';
 
@@ -11,11 +11,28 @@ export interface DomainEventStore {
     aggregateIdentifier: AggregateIdentifier;
   }) => Promise<DomainEvent<TDomainEventData> | undefined>;
 
+  getDomainEventsByCausationId: <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }) => Promise<Readable>;
+
+  hasDomainEventsWithCausationId: <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }) => Promise<boolean>;
+
+  getDomainEventsByCorrelationId: <TDomainEventData extends DomainEventData> ({ correlationId }: {
+    correlationId: string;
+  }) => Promise<Readable>;
+
+  getReplay: ({ fromRevisionGlobal, toRevisionGlobal }: {
+    fromRevisionGlobal?: number;
+    toRevisionGlobal?: number;
+  }) => Promise<Readable>;
+
   getReplayForAggregate: ({ aggregateId, fromRevision, toRevision }: {
     aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
-  }) => Promise<PassThrough>;
+  }) => Promise<Readable>;
 
   getSnapshot: <TState extends State> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
@@ -28,11 +45,6 @@ export interface DomainEventStore {
   storeSnapshot: <TState extends State> ({ snapshot }: {
     snapshot: Snapshot<TState>;
   }) => Promise<void>;
-
-  getReplay: ({ fromRevisionGlobal, toRevisionGlobal }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
-  }) => Promise<PassThrough>;
 
   destroy: () => Promise<void>;
 }

@@ -9,6 +9,7 @@ import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
 import { uuid } from 'uuidv4';
+import { waitForSignals } from 'wait-for-signals';
 
 suite('queryDomainEventStore/http', (): void => {
   suite('/v2', (): void => {
@@ -793,6 +794,422 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(404);
+      });
+    });
+
+    suite('GET /domain-events-by-causation-id', (): void => {
+      test('stream ends immediately if no events with a matching causation id exist.', async (): Promise<void> => {
+        const domainEvent = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
+
+        const { client } = await runAsServer({ app: api });
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: `/v2/domain-events-by-causation-id?causation-id=${uuid()}`,
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        await new Promise((resolve, reject): void => {
+          data.on('data', (stuff: any): void => {
+            try {
+              assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
+            } catch (ex) {
+              reject(ex);
+            }
+          });
+          data.on('error', reject);
+          data.on('end', resolve);
+        });
+      });
+
+      test('returns all domain events with a matching causation id.', async (): Promise<void> => {
+        const causationId = uuid();
+
+        const domainEvent1 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId,
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+        const domainEvent2 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId,
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+        const domainEvent3 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent1, domainEvent2, domainEvent3 ]});
+
+        const { client } = await runAsServer({ app: api });
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: `/v2/domain-events-by-causation-id?causation-id=${causationId}`,
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const collector = waitForSignals({ count: 4 });
+
+        data.on('error', async (ex: Error): Promise<void> => {
+          await collector.fail(ex);
+        });
+        data.on('end', async (): Promise<void> => {
+          await collector.signal();
+        });
+
+        data.pipe(asJsonStream([
+          async (heartbeat): Promise<void> => {
+            try {
+              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          },
+          async (domainEvent): Promise<void> => {
+            try {
+              assert.that(domainEvent).is.atLeast({ id: domainEvent1.id });
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          },
+          async (domainEvent): Promise<void> => {
+            try {
+              assert.that(domainEvent).is.atLeast({ id: domainEvent2.id });
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          }
+        ]));
+
+        await collector.promise;
+      });
+    });
+
+    suite('GET /has-domain-events-with-causation-id', (): void => {
+      test('returns false if no events with a matching causation id exist.', async (): Promise<void> => {
+        const domainEvent = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
+
+        const { client } = await runAsServer({ app: api });
+        const { status, data } = await client({
+          method: 'get',
+          url: `/v2/has-domain-events-with-causation-id?causation-id=${uuid()}`
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(data).is.equalTo({ hasDomainEventsWithCausationId: false });
+      });
+
+      test('returns true if events with a matching causation id exist.', async (): Promise<void> => {
+        const causationId = uuid();
+
+        const domainEvent1 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId,
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+        const domainEvent2 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId,
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+        const domainEvent3 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent1, domainEvent2, domainEvent3 ]});
+
+        const { client } = await runAsServer({ app: api });
+        const { status, data } = await client({
+          method: 'get',
+          url: `/v2/has-domain-events-with-causation-id?causation-id=${causationId}`
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(data).is.equalTo({ hasDomainEventsWithCausationId: true });
+      });
+    });
+
+    suite('GET /domain-events-by-correlation-id', (): void => {
+      test('returns an empty array if no events with a matching correlation id exist.', async (): Promise<void> => {
+        const domainEvent = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
+
+        const { client } = await runAsServer({ app: api });
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: `/v2/domain-events-by-correlation-id?correlation-id=${uuid()}`,
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        await new Promise((resolve, reject): void => {
+          data.on('data', (stuff: any): void => {
+            try {
+              assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
+            } catch (ex) {
+              reject(ex);
+            }
+          });
+          data.on('error', reject);
+          data.on('end', resolve);
+        });
+      });
+
+      test('returns all domain events with a matching correlation id.', async (): Promise<void> => {
+        const correlationId = uuid();
+
+        const domainEvent1 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId,
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+        const domainEvent2 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId,
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+        const domainEvent3 = buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {},
+          id: uuid(),
+          metadata: {
+            causationId: uuid(),
+            correlationId: uuid(),
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent1, domainEvent2, domainEvent3 ]});
+
+        const { client } = await runAsServer({ app: api });
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: `/v2/domain-events-by-correlation-id?correlation-id=${correlationId}`,
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const collector = waitForSignals({ count: 4 });
+
+        data.on('error', async (ex: Error): Promise<void> => {
+          await collector.fail(ex);
+        });
+        data.on('end', async (): Promise<void> => {
+          await collector.signal();
+        });
+
+        data.pipe(asJsonStream([
+          async (heartbeat): Promise<void> => {
+            try {
+              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          },
+          async (domainEvent): Promise<void> => {
+            try {
+              assert.that(domainEvent).is.atLeast({ id: domainEvent1.id });
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          },
+          async (domainEvent): Promise<void> => {
+            try {
+              assert.that(domainEvent).is.atLeast({ id: domainEvent2.id });
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          }
+        ]));
+
+        await collector.promise;
       });
     });
 

@@ -4,13 +4,13 @@ import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
-import { PassThrough } from 'stream';
 import QueryStream from 'pg-query-stream';
 import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
 import { Client, Pool, PoolClient } from 'pg';
+import { PassThrough, Readable } from 'stream';
 
 class PostgresDomainEventStore implements DomainEventStore {
   protected pool: Pool;
@@ -110,6 +110,8 @@ class PostgresDomainEventStore implements DomainEventStore {
             "revisionGlobal" bigserial NOT NULL,
             "aggregateId" uuid NOT NULL,
             "revisionAggregate" integer NOT NULL,
+            "causationId" uuid NOT NULL,
+            "correlationId" uuid NOT NULL,
             "domainEvent" jsonb NOT NULL,
 
             CONSTRAINT "${tableNames.domainEvents}_pk" PRIMARY KEY("revisionGlobal"),
@@ -133,12 +135,6 @@ class PostgresDomainEventStore implements DomainEventStore {
     }
 
     return domainEventStore;
-  }
-
-  public async destroy (): Promise<void> {
-    this.disconnectWatcher.removeListener('end', PostgresDomainEventStore.onUnexpectedClose);
-    await this.disconnectWatcher.end();
-    await this.pool.end();
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
@@ -175,6 +171,202 @@ class PostgresDomainEventStore implements DomainEventStore {
     }
   }
 
+  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }): Promise<Readable> {
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+
+    const domainEventStream = connection.query(
+      new QueryStream(
+        `SELECT "domainEvent", "revisionGlobal"
+            FROM "${this.tableNames.domainEvents}"
+            WHERE "causationId" = $1
+            ORDER BY "revisionGlobal" ASC`,
+        [ causationId ]
+      )
+    );
+    const passThrough = new PassThrough({ objectMode: true });
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      connection.release();
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
+    };
+
+    onData = function (data: any): void {
+      let domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
+
+      domainEvent = domainEvent.withRevisionGlobal({
+        revisionGlobal: Number(data.revisionGlobal)
+      });
+
+      passThrough.write(domainEvent);
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+
+    return passThrough;
+  }
+
+  public async hasDomainEventsWithCausationId ({ causationId }: {
+    causationId: string;
+  }): Promise<boolean> {
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+
+    try {
+      const result = await connection.query({
+        name: 'has domain event with causation id',
+        text: `SELECT COUNT(*) as count
+          FROM "${this.tableNames.domainEvents}"
+          WHERE "causationId" = $1`,
+        values: [ causationId ]
+      });
+
+      return Number(result.rows[0].count) !== 0;
+    } finally {
+      connection.release();
+    }
+  }
+
+  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+    correlationId: string;
+  }): Promise<Readable> {
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+
+    const domainEventStream = connection.query(
+      new QueryStream(
+        `SELECT "domainEvent", "revisionGlobal"
+            FROM "${this.tableNames.domainEvents}"
+            WHERE "correlationId" = $1
+            ORDER BY "revisionGlobal" ASC`,
+        [ correlationId ]
+      )
+    );
+    const passThrough = new PassThrough({ objectMode: true });
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      connection.release();
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
+    };
+
+    onData = function (data: any): void {
+      let domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
+
+      domainEvent = domainEvent.withRevisionGlobal({
+        revisionGlobal: Number(data.revisionGlobal)
+      });
+
+      passThrough.write(domainEvent);
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+
+    return passThrough;
+  }
+
+  public async getReplay ({
+    fromRevisionGlobal = 1,
+    toRevisionGlobal = (2 ** 31) - 1
+  } = {}): Promise<Readable> {
+    if (fromRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
+    }
+    if (toRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
+    }
+    if (fromRevisionGlobal > toRevisionGlobal) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+    }
+
+    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const domainEventStream = connection.query(
+      new QueryStream(`
+        SELECT "domainEvent", "revisionGlobal"
+          FROM "${this.tableNames.domainEvents}"
+          WHERE "revisionGlobal" >= $1
+            AND "revisionGlobal" <= $2
+          ORDER BY "revisionGlobal"`,
+      [ fromRevisionGlobal, toRevisionGlobal ])
+    );
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      connection.release();
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
+    };
+
+    onData = function (data: any): void {
+      let domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
+
+      domainEvent = domainEvent.withRevisionGlobal({
+        revisionGlobal: Number(data.revisionGlobal)
+      });
+
+      passThrough.write(domainEvent);
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+
+    return passThrough;
+  }
+
   public async getReplayForAggregate ({
     aggregateId,
     fromRevision = 1,
@@ -183,7 +375,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
-  }): Promise<PassThrough> {
+  }): Promise<Readable> {
     if (fromRevision < 1) {
       throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
     }
@@ -258,12 +450,14 @@ class PostgresDomainEventStore implements DomainEventStore {
           values = [];
 
     for (const [ index, domainEvent ] of domainEvents.entries()) {
-      const base = (3 * index) + 1;
+      const base = (5 * index) + 1;
 
-      placeholders.push(`($${base}, $${base + 1}, $${base + 2})`);
+      placeholders.push(`($${base}, $${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`);
       values.push(
         domainEvent.aggregateIdentifier.id,
         domainEvent.metadata.revision.aggregate,
+        domainEvent.metadata.causationId,
+        domainEvent.metadata.correlationId,
         domainEvent
       );
     }
@@ -272,7 +466,7 @@ class PostgresDomainEventStore implements DomainEventStore {
 
     const text = `
       INSERT INTO "${this.tableNames.domainEvents}"
-        ("aggregateId", "revisionAggregate", "domainEvent")
+        ("aggregateId", "revisionAggregate", "causationId", "correlationId", "domainEvent")
       VALUES
         ${placeholders.join(',')} RETURNING "revisionGlobal";
     `;
@@ -366,70 +560,10 @@ class PostgresDomainEventStore implements DomainEventStore {
     }
   }
 
-  public async getReplay ({
-    fromRevisionGlobal = 1,
-    toRevisionGlobal = (2 ** 31) - 1
-  } = {}): Promise<PassThrough> {
-    if (fromRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
-    }
-    if (fromRevisionGlobal > toRevisionGlobal) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
-    }
-
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
-
-    const passThrough = new PassThrough({ objectMode: true });
-    const domainEventStream = connection.query(
-      new QueryStream(`
-        SELECT "domainEvent", "revisionGlobal"
-          FROM "${this.tableNames.domainEvents}"
-          WHERE "revisionGlobal" >= $1
-            AND "revisionGlobal" <= $2
-          ORDER BY "revisionGlobal"`,
-      [ fromRevisionGlobal, toRevisionGlobal ])
-    );
-
-    let onData: (data: any) => void,
-        onEnd: () => void,
-        onError: (err: Error) => void;
-
-    const unsubscribe = function (): void {
-      connection.release();
-      domainEventStream.removeListener('data', onData);
-      domainEventStream.removeListener('end', onEnd);
-      domainEventStream.removeListener('error', onError);
-    };
-
-    onData = function (data: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(data.revisionGlobal)
-      });
-
-      passThrough.write(domainEvent);
-    };
-
-    onEnd = function (): void {
-      unsubscribe();
-      passThrough.end();
-    };
-
-    onError = function (err: Error): void {
-      unsubscribe();
-      passThrough.emit('error', err);
-      passThrough.end();
-    };
-
-    domainEventStream.on('data', onData);
-    domainEventStream.on('end', onEnd);
-    domainEventStream.on('error', onError);
-
-    return passThrough;
+  public async destroy (): Promise<void> {
+    this.disconnectWatcher.removeListener('end', PostgresDomainEventStore.onUnexpectedClose);
+    await this.disconnectWatcher.end();
+    await this.pool.end();
   }
 }
 

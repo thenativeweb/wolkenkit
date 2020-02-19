@@ -1,6 +1,7 @@
 import { acknowledgeCommand } from './acknowledgeCommand';
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { Dispatcher } from './Dispatcher';
+import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { fetchCommand } from './fetchCommand';
 import { flaschenpost } from 'flaschenpost';
 import { handleCommand } from '../../../../common/domain/handleCommand';
@@ -15,16 +16,26 @@ const processCommand = async function ({
   dispatcher,
   applicationDefinition,
   lockStore,
+  domainEventStore,
   repository,
   publishDomainEvents
 }: {
   dispatcher: Dispatcher;
   applicationDefinition: ApplicationDefinition;
   lockStore: LockStore;
+  domainEventStore: DomainEventStore;
   repository: Repository;
   publishDomainEvents: PublishDomainEvents;
 }): Promise<void> {
   const { command, token } = await fetchCommand({ dispatcher });
+
+  if (await domainEventStore.hasDomainEventsWithCausationId({ causationId: command.id })) {
+    // The command has already resulted in domain events and thus was processed
+    // before and can be skipped.
+    await acknowledgeCommand({ command, token, dispatcher });
+
+    return;
+  }
 
   try {
     const handleCommandPromise = handleCommand({
