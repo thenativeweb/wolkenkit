@@ -11,7 +11,7 @@ const getDomainEventsByCorrelationId = function ({
   heartbeatInterval: number;
 }): RequestHandler {
   return async function (req, res): Promise<any> {
-    const { correlationId } = req.query;
+    const correlationId = req.query['correlation-id'];
 
     const heartbeatMiddleware = streamNdjsonMiddleware({ heartbeatInterval });
 

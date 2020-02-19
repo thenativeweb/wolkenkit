@@ -11,7 +11,7 @@ const getDomainEventsByCausationId = function ({
   heartbeatInterval: number;
 }): RequestHandler {
   return async function (req, res): Promise<any> {
-    const { causationId } = req.query;
+    const causationId = req.query['causation-id'];
 
     const heartbeatMiddleware = streamNdjsonMiddleware({ heartbeatInterval });
 
