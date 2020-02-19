@@ -41,7 +41,7 @@ const createDockerConfiguration = async function ({ directory, name }: {
     {
       fileName: 'docker-compose.single-process.in-memory.yaml',
       content: `
-      version: "3.7"
+      version: '3.7'
       services:
         main:
           build: '.'
@@ -66,8 +66,8 @@ const createDockerConfiguration = async function ({ directory, name }: {
           image: '${name}'
           init: true
           ports:
-          - '3000'
-          - '3001'
+          - '3000:3000'
+          - '3001:3001'
           restart: 'always'
       `
     }
