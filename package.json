@@ -133,6 +133,7 @@
     "processenv": "3.0.1",
     "redis": "3.0.2",
     "retry-ignore-abort": "2.2.3",
+    "runfork": "3.1.0",
     "saslprep": "1.0.3",
     "shelljs": "0.8.3",
     "stream-to-string": "1.2.0",
@@ -170,7 +171,6 @@
     "qs": "6.9.1",
     "record-stdstreams": "3.0.0",
     "roboter": "11.0.21",
-    "runfork": "3.1.0",
     "streamtoarray": "3.0.0",
     "wait-for-signals": "1.0.0"
   },
