@@ -2,7 +2,8 @@
 
 const getInitialState = function () {
   return {
-    domainEventNames: []
+    text: '',
+    likes: 0
   };
 };
 

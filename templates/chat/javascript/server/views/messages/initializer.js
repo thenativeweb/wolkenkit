@@ -8,6 +8,4 @@ const initializer = {
   }
 };
 
-module.exports = {
-  initializer
-};
+module.exports = { initializer };

@@ -1,3 +1,5 @@
+'use strict';
+
 const sampleProjection = {
   selector: 'sampleContext.sampleAggregate.sampleDomainEvent',
 
@@ -19,6 +21,4 @@ const sampleProjection = {
   }
 };
 
-module.exports = {
-  sampleProjection
-};
+module.exports = { sampleProjection };

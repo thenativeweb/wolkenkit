@@ -6,19 +6,20 @@ const all = {
       type: 'object',
       properties: {
         id: { type: 'string' },
-        createdAt: { type: 'number' },
-        updatedAt: { type: 'number' }
+        text: { type: 'string' },
+        likes: { type: 'number' },
+        timestamp: { type: 'number' }
       },
-      required: [ 'id', 'createdAt' ],
+      required: [ 'id', 'text', 'likes', 'timestamp' ],
       additionalProperties: false
     };
   },
 
-  async handle (sampleItems) {
+  async handle (messageItems) {
     const stream = new PassThrough({ objectMode: true });
 
-    for (const item of sampleItems) {
-      stream.write(item);
+    for (const messageItem of messageItems) {
+      stream.write(messageItem);
     }
     stream.end();
 

@@ -1,3 +1,5 @@
+'use strict';
+
 const { all } = require('./queries/all'),
       { initializer } = require('./initializer'),
       { sampleProjection } = require('./projections/sampleProjection');

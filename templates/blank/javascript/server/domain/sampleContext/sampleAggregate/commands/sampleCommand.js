@@ -1,8 +1,11 @@
+'use strict';
+
 const sampleCommand = {
   getSchema () {
     return {
       type: 'object',
       properties: {},
+      required: [],
       additionalProperties: false
     };
   },
@@ -16,6 +19,4 @@ const sampleCommand = {
   }
 };
 
-module.exports = {
-  sampleCommand
-};
+module.exports = { sampleCommand };

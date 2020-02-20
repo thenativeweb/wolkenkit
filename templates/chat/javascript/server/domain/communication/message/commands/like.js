@@ -1,6 +1,6 @@
 'use strict';
 
-const sampleDomainEvent = {
+const like = {
   getSchema () {
     return {
       type: 'object',
@@ -10,15 +10,15 @@ const sampleDomainEvent = {
     };
   },
 
-  handle (state) {
-    return {
-      domainEventNames: [ ...state.domainEventNames, 'sampleDomainEvent' ]
-    };
-  },
-
   isAuthorized () {
     return true;
+  },
+
+  handle (state, command, { aggregate }) {
+    aggregate.publishDomainEvent('liked', {
+      likes: state.likes + 1
+    });
   }
 };
 
-module.exports = { sampleDomainEvent };
+module.exports = { like };

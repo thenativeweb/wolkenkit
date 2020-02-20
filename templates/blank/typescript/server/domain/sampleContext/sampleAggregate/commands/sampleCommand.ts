@@ -1,5 +1,5 @@
 import { SampleState } from '../SampleState';
-import { AggregateService, CommandData, CommandHandler, Schema } from 'wolkenkit';
+import { AggregateService, CommandData, CommandHandler, CommandWithMetadata, Schema } from 'wolkenkit';
 
 export interface SampleCommandData extends CommandData {}
 
@@ -8,6 +8,7 @@ export const sampleCommand: CommandHandler<SampleState, SampleCommandData> = {
     return {
       type: 'object',
       properties: {},
+      required: [],
       additionalProperties: false
     };
   },
@@ -16,7 +17,7 @@ export const sampleCommand: CommandHandler<SampleState, SampleCommandData> = {
     return true;
   },
 
-  handle (state: SampleState, command: SampleCommandData, { aggregate }: { aggregate: AggregateService<SampleState> }): void {
+  handle (state: SampleState, command: CommandWithMetadata<SampleCommandData>, { aggregate }: { aggregate: AggregateService<SampleState> }): void {
     aggregate.publishDomainEvent('sampleEvent', {});
   }
 };

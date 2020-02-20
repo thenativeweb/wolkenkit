@@ -8,6 +8,7 @@ export const sampleDomainEvent: DomainEventHandler<SampleState, SampleDomainEven
     return {
       type: 'object',
       properties: {},
+      required: [],
       additionalProperties: false
     };
   },
