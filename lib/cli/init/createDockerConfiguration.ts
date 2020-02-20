@@ -2,6 +2,7 @@ import fs from 'fs';
 import { getApplicationRoot } from '../../common/application/getApplicationRoot';
 import { PackageManifest } from '../../common/application/PackageManifest';
 import path from 'path';
+import semver from 'semver';
 import { stripIndent } from 'common-tags';
 
 const createDockerConfiguration = async function ({ directory, name }: {
@@ -11,6 +12,7 @@ const createDockerConfiguration = async function ({ directory, name }: {
   const applicationRoot = await getApplicationRoot({ directory: __dirname });
   const wolkenkitPackageJsonPath = path.join(applicationRoot, 'package.json');
   const wolkenkitPackageJson: PackageManifest = JSON.parse(await fs.promises.readFile(wolkenkitPackageJsonPath, 'utf8'));
+  const nodeVersion = semver.minVersion(wolkenkitPackageJson.engines!.node as string);
 
   const dockerConfiguration = [
     {
@@ -18,6 +20,7 @@ const createDockerConfiguration = async function ({ directory, name }: {
       content: `
         **
         !/server/**
+        !/.npmrc
         !/package.json
         !/package-lock.json
         !/tsconfig.json
@@ -26,16 +29,38 @@ const createDockerConfiguration = async function ({ directory, name }: {
     {
       fileName: 'Dockerfile',
       content: `
-        FROM thenativeweb/wolkenkit:${wolkenkitPackageJson.version}
+        FROM node:${nodeVersion}-alpine as build
+
+        RUN apk update && \\
+            apk upgrade && \\
+            apk add git
+
+        RUN mkdir /app
+        WORKDIR /app
+
+        ADD ./package.json ./.npmrc* .
+        RUN npm install
+
+        ADD . .
+        RUN npx wolkenkit build
+
+        FROM node:${nodeVersion}-alpine as deps
+
+        RUN mkdir /app
+        WORKDIR /app
+
+        ADD ./package.json ./.npmrc* .
+        RUN npm install --production
+
+        FROM node:${nodeVersion}-alpine
 
         RUN mkdir /app
         WORKDIR /app
 
         ADD ./package.json ./package.json
-        RUN npm install --production
 
-        ADD . .
-        RUN npx wolkenkit build
+        COPY --from=build /app/build /app/build
+        COPY --from=deps /app/node_modules /app/node_modules
       `
     },
     {

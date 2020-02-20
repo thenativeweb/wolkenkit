@@ -5,6 +5,10 @@ export interface PackageManifest {
 
   description?: string;
 
+  engines?: {
+    node?: string;
+  };
+
   dependencies?: Record<string, string>;
 
   devDependencies?: Record<string, string>;
