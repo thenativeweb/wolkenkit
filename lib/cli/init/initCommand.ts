@@ -11,6 +11,7 @@ import { getApplicationRoot } from '../../common/application/getApplicationRoot'
 import { InitOptions } from './InitOptions';
 import { languages } from './languages';
 import { map } from 'lodash';
+import { nameRegularExpression } from './nameRegularExpression';
 import path from 'path';
 import { printFooter } from '../printFooter';
 import { templates } from './templates';
@@ -62,7 +63,7 @@ const initCommand = function (): Command<InitOptions> {
         alias: 'n',
         description: 'set an application name',
         type: 'string',
-        isRequired: true,
+        isRequired: false,
         defaultOption: true,
         validate: validateName
       }
@@ -82,7 +83,16 @@ const initCommand = function (): Command<InitOptions> {
       const stopWaiting = buntstift.wait();
 
       try {
-        const targetDirectory = getAbsolutePath({ path: directory ?? name, cwd: process.cwd() });
+        let selectedName = name;
+
+        if (!selectedName) {
+          selectedName = await buntstift.ask('Enter the application name:', nameRegularExpression);
+        }
+
+        const targetDirectory = getAbsolutePath({
+          path: directory ?? selectedName,
+          cwd: process.cwd()
+        });
 
         if (await exists({ path: targetDirectory })) {
           buntstift.info(`The directory '${targetDirectory}' already exists.`);
@@ -119,7 +129,7 @@ const initCommand = function (): Command<InitOptions> {
 
         const packageJson = path.join(targetDirectory, 'package.json');
 
-        buntstift.info(`Initializing the '${name}' application...`);
+        buntstift.info(`Initializing the '${selectedName}' application...`);
 
         buntstift.verbose(`Copying files from ${sourceDirectory} to ${targetDirectory}...`);
         cp('-R', sourceDirectory, targetDirectory);
@@ -128,18 +138,18 @@ const initCommand = function (): Command<InitOptions> {
         buntstift.verbose(`Adjusting ${packageJson}...`);
         await adjustPackageJson({
           packageJson,
-          name,
+          name: selectedName,
           addTypeScript: selectedLanguage === 'typescript'
         });
         buntstift.verbose('Adjusted package.json.');
 
         buntstift.verbose('Creating Docker configuration...');
-        await createDockerConfiguration({ directory: targetDirectory, name });
+        await createDockerConfiguration({ directory: targetDirectory, name: selectedName });
         buntstift.verbose('Created Docker configuration.');
 
-        buntstift.success(`Initialized the '${name}' application.`);
+        buntstift.success(`Initialized the '${selectedName}' application.`);
         buntstift.newLine();
-        buntstift.info(`To run the '${name}' application use the following commands:`);
+        buntstift.info(`To run the '${selectedName}' application use the following commands:`);
         buntstift.newLine();
         buntstift.info(`  cd ${targetDirectory}`);
         buntstift.info('  npm install');
@@ -148,7 +158,7 @@ const initCommand = function (): Command<InitOptions> {
         buntstift.newLine();
         printFooter();
       } catch (ex) {
-        buntstift.error(`Failed to initialize the '${name}' application.`);
+        buntstift.error(`Failed to initialize the application.`);
 
         throw ex;
       } finally {

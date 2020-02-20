@@ -1,5 +1,7 @@
+import { nameRegularExpression } from './nameRegularExpression';
+
 const validateName = function (value: string): void {
-  if (!/^[a-z][a-z-]*$/u.test(value)) {
+  if (!nameRegularExpression.test(value)) {
     throw new Error(`Name must only contain lowercase characters and dashes.`);
   }
 };
