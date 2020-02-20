@@ -5,7 +5,6 @@ import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
-import { PassThrough } from 'stream';
 import { Pool } from 'tarn';
 import { retry } from 'retry-ignore-abort';
 import { Row } from './Row';
@@ -13,6 +12,7 @@ import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
 import { ColumnValue, Connection, Request, TYPES } from 'tedious';
+import { PassThrough, Readable } from 'stream';
 
 class SqlServerDomainEventStore implements DomainEventStore {
   protected pool: Pool<Connection>;
@@ -87,6 +87,8 @@ class SqlServerDomainEventStore implements DomainEventStore {
             [revisionGlobal] BIGINT IDENTITY(1,1),
             [aggregateId] UNIQUEIDENTIFIER NOT NULL,
             [revisionAggregate] INT NOT NULL,
+            [causationId] UNIQUEIDENTIFIER NOT NULL,
+            [correlationId] UNIQUEIDENTIFIER NOT NULL,
             [domainEvent] NVARCHAR(4000) NOT NULL,
 
             CONSTRAINT [${tableNames.domainEvents}_pk] PRIMARY KEY([revisionGlobal]),
@@ -178,6 +180,234 @@ class SqlServerDomainEventStore implements DomainEventStore {
     }
   }
 
+  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+    causationId: string;
+  }): Promise<Readable> {
+    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+
+    const passThrough = new PassThrough({ objectMode: true });
+
+    let onError: (err: Error) => void,
+        onRow: (columns: ColumnValue[]) => void,
+        request: Request;
+
+    const unsubscribe = (): void => {
+      this.pool.release(database);
+      request.removeListener('error', onError);
+      request.removeListener('row', onRow);
+    };
+
+    onError = (err: Error): void => {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+
+    onRow = (columns: ColumnValue[]): void => {
+      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
+
+      domainEvent = domainEvent.withRevisionGlobal({
+        revisionGlobal: Number(columns[1].value)
+      });
+
+      passThrough.write(domainEvent);
+    };
+
+    request = new Request(
+      `SELECT [domainEvent], [revisionGlobal]
+            FROM [${this.tableNames.domainEvents}]
+            WHERE [causationId] = @causationId
+            ORDER BY [revisionGlobal] ASC;`
+      , (err: Error | null): void => {
+        unsubscribe();
+
+        if (err) {
+          passThrough.emit('error', err);
+        }
+
+        passThrough.end();
+      }
+    );
+
+    request.addParameter('causationId', TYPES.UniqueIdentifier, causationId);
+
+    request.on('error', onError);
+    request.on('row', onRow);
+
+    database.execSql(request);
+
+    return passThrough;
+  }
+
+  public async hasDomainEventsWithCausationId ({ causationId }: {
+    causationId: string;
+  }): Promise<boolean> {
+    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+
+    try {
+      const result: number | undefined = await new Promise((resolve, reject): void => {
+        let domainEventCount: number;
+
+        const request = new Request(`
+          SELECT COUNT(*) as count
+            FROM [${this.tableNames.domainEvents}]
+            WHERE [causationId] = @causationId
+          ;
+        `, (err: Error | null): void => {
+          if (err) {
+            return reject(err);
+          }
+
+          resolve(domainEventCount);
+        });
+
+        request.once('row', (columns): void => {
+          domainEventCount = JSON.parse(columns[0].value);
+        });
+
+        request.addParameter('causationId', TYPES.UniqueIdentifier, causationId);
+
+        database.execSql(request);
+      });
+
+      return result !== 0;
+    } finally {
+      this.pool.release(database);
+    }
+  }
+
+  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+    correlationId: string;
+  }): Promise<Readable> {
+    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+
+    const passThrough = new PassThrough({ objectMode: true });
+
+    let onError: (err: Error) => void,
+        onRow: (columns: ColumnValue[]) => void,
+        request: Request;
+
+    const unsubscribe = (): void => {
+      this.pool.release(database);
+      request.removeListener('error', onError);
+      request.removeListener('row', onRow);
+    };
+
+    onError = (err: Error): void => {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+
+    onRow = (columns: ColumnValue[]): void => {
+      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
+
+      domainEvent = domainEvent.withRevisionGlobal({
+        revisionGlobal: Number(columns[1].value)
+      });
+
+      passThrough.write(domainEvent);
+    };
+
+    request = new Request(
+      `SELECT [domainEvent], [revisionGlobal]
+            FROM [${this.tableNames.domainEvents}]
+            WHERE [correlationId] = @correlationId
+            ORDER BY [revisionGlobal] ASC;`
+      , (err: Error | null): void => {
+        unsubscribe();
+
+        if (err) {
+          passThrough.emit('error', err);
+        }
+
+        passThrough.end();
+      }
+    );
+
+    request.addParameter('correlationId', TYPES.UniqueIdentifier, correlationId);
+
+    request.on('error', onError);
+    request.on('row', onRow);
+
+    database.execSql(request);
+
+    return passThrough;
+  }
+
+  public async getReplay ({
+    fromRevisionGlobal = 1,
+    toRevisionGlobal = (2 ** 31) - 1
+  }: {
+    fromRevisionGlobal?: number;
+    toRevisionGlobal?: number;
+  } = {}): Promise<Readable> {
+    if (fromRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
+    }
+    if (toRevisionGlobal < 1) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
+    }
+    if (fromRevisionGlobal > toRevisionGlobal) {
+      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+    }
+
+    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+
+    const passThrough = new PassThrough({ objectMode: true });
+
+    let onError: (err: Error) => void,
+        onRow: (columns: ColumnValue[]) => void,
+        request: Request;
+
+    const unsubscribe = (): void => {
+      this.pool.release(database);
+      request.removeListener('error', onError);
+      request.removeListener('row', onRow);
+    };
+
+    onError = (err: Error): void => {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+
+    onRow = (columns: ColumnValue[]): void => {
+      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
+
+      domainEvent = domainEvent.withRevisionGlobal({
+        revisionGlobal: Number(columns[1].value)
+      });
+
+      passThrough.write(domainEvent);
+    };
+
+    request = new Request(`
+      SELECT [domainEvent], [revisionGlobal]
+        FROM [${this.tableNames.domainEvents}]
+        WHERE [revisionGlobal] >= @fromRevisionGlobal
+          AND [revisionGlobal] <= @toRevisionGlobal
+        ORDER BY [revisionGlobal]`, (err: Error | null): void => {
+      unsubscribe();
+
+      if (err) {
+        passThrough.emit('error', err);
+      }
+
+      passThrough.end();
+    });
+
+    request.addParameter('fromRevisionGlobal', TYPES.BigInt, fromRevisionGlobal);
+    request.addParameter('toRevisionGlobal', TYPES.BigInt, toRevisionGlobal);
+
+    request.on('error', onError);
+    request.on('row', onRow);
+
+    database.execSql(request);
+
+    return passThrough;
+  }
+
   public async getReplayForAggregate ({
     aggregateId,
     fromRevision = 1,
@@ -186,7 +416,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
     aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
-  }): Promise<PassThrough> {
+  }): Promise<Readable> {
     if (fromRevision < 1) {
       throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
     }
@@ -272,10 +502,12 @@ class SqlServerDomainEventStore implements DomainEventStore {
       const row = [
         { key: `aggregateId${rowId}`, value: domainEvent.aggregateIdentifier.id, type: TYPES.UniqueIdentifier, options: undefined },
         { key: `revisionAggregate${rowId}`, value: domainEvent.metadata.revision.aggregate, type: TYPES.Int, options: undefined },
+        { key: `causationId${rowId}`, value: domainEvent.metadata.causationId, type: TYPES.UniqueIdentifier, options: undefined },
+        { key: `correlationId${rowId}`, value: domainEvent.metadata.correlationId, type: TYPES.UniqueIdentifier, options: undefined },
         { key: `event${rowId}`, value: JSON.stringify(domainEvent), type: TYPES.NVarChar, options: { length: 4000 }}
       ];
 
-      placeholders.push(`(@${row[0].key}, @${row[1].key}, @${row[2].key})`);
+      placeholders.push(`(@${row[0].key}, @${row[1].key}, @${row[2].key}, @${row[3].key}, @${row[4].key})`);
 
       values.push(...row);
     }
@@ -283,7 +515,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
     const database = await SqlServerDomainEventStore.getDatabase(this.pool);
 
     const text = `
-      INSERT INTO [${this.tableNames.domainEvents}] ([aggregateId], [revisionAggregate], [domainEvent])
+      INSERT INTO [${this.tableNames.domainEvents}] ([aggregateId], [revisionAggregate], [causationId], [correlationId], [domainEvent])
         OUTPUT INSERTED.[revisionGlobal]
       VALUES ${placeholders.join(',')};
     `;
@@ -413,79 +645,6 @@ class SqlServerDomainEventStore implements DomainEventStore {
     } finally {
       this.pool.release(database);
     }
-  }
-
-  public async getReplay ({
-    fromRevisionGlobal = 1,
-    toRevisionGlobal = (2 ** 31) - 1
-  }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
-  } = {}): Promise<PassThrough> {
-    if (fromRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
-    }
-    if (fromRevisionGlobal > toRevisionGlobal) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
-    }
-
-    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
-
-    const passThrough = new PassThrough({ objectMode: true });
-
-    let onError: (err: Error) => void,
-        onRow: (columns: ColumnValue[]) => void,
-        request: Request;
-
-    const unsubscribe = (): void => {
-      this.pool.release(database);
-      request.removeListener('error', onError);
-      request.removeListener('row', onRow);
-    };
-
-    onError = (err: Error): void => {
-      unsubscribe();
-      passThrough.emit('error', err);
-      passThrough.end();
-    };
-
-    onRow = (columns: ColumnValue[]): void => {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(columns[1].value)
-      });
-
-      passThrough.write(domainEvent);
-    };
-
-    request = new Request(`
-      SELECT [domainEvent], [revisionGlobal]
-        FROM [${this.tableNames.domainEvents}]
-        WHERE [revisionGlobal] >= @fromRevisionGlobal
-          AND [revisionGlobal] <= @toRevisionGlobal
-        ORDER BY [revisionGlobal]`, (err: Error | null): void => {
-      unsubscribe();
-
-      if (err) {
-        passThrough.emit('error', err);
-      }
-
-      passThrough.end();
-    });
-
-    request.addParameter('fromRevisionGlobal', TYPES.BigInt, fromRevisionGlobal);
-    request.addParameter('toRevisionGlobal', TYPES.BigInt, toRevisionGlobal);
-
-    request.on('error', onError);
-    request.on('row', onRow);
-
-    database.execSql(request);
-
-    return passThrough;
   }
 
   public async destroy (): Promise<void> {

@@ -48,12 +48,14 @@ const postCommand = function ({ onReceiveCommand, applicationDefinition }: {
 
     try {
       await onReceiveCommand({ command });
-    } catch {
-      const ex = new errors.UnknownError();
+    } catch (ex) {
+      logger.error('An error occured in on receive callback.', { ex });
+
+      const customError = new errors.UnknownError();
 
       res.status(500).json({
-        code: ex.code,
-        message: ex.message
+        code: customError.code,
+        message: customError.message
       });
 
       return;
