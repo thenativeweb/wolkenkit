@@ -44,7 +44,7 @@ const createDockerConfiguration = async function ({ directory, name }: {
         ADD . .
         RUN npx wolkenkit build
 
-        FROM node:${nodeVersion}-alpine as deps
+        FROM node:${nodeVersion}-alpine as dependencies
 
         RUN mkdir /app
         WORKDIR /app
@@ -60,7 +60,7 @@ const createDockerConfiguration = async function ({ directory, name }: {
         ADD ./package.json ./package.json
 
         COPY --from=build /app/build /app/build
-        COPY --from=deps /app/node_modules /app/node_modules
+        COPY --from=dependencies /app/node_modules /app/node_modules
       `
     },
     {
