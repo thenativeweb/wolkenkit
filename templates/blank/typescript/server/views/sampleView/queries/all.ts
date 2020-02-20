@@ -20,11 +20,11 @@ export const all: QueryHandler<SampleViewItem[], AllOptions, AllResultItem> = {
     };
   },
 
-  async handle (sampleItems: any): Promise<Readable> {
+  async handle (sampleItems): Promise<Readable> {
     const stream = new PassThrough({ objectMode: true });
 
-    for (const item of sampleItems) {
-      stream.write(item);
+    for (const sampleItem of sampleItems) {
+      stream.write(sampleItem);
     }
     stream.end();
 

@@ -1,5 +1,7 @@
 'use strict';
 
+const { PassThrough } = require('stream');
+
 const all = {
   getResultItemSchema () {
     return {
@@ -17,8 +19,8 @@ const all = {
   async handle (sampleItems) {
     const stream = new PassThrough({ objectMode: true });
 
-    for (const item of sampleItems) {
-      stream.write(item);
+    for (const sampleItem of sampleItems) {
+      stream.write(sampleItem);
     }
     stream.end();
 

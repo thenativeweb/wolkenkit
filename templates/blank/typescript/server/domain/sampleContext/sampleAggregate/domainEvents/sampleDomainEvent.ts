@@ -13,7 +13,7 @@ export const sampleDomainEvent: DomainEventHandler<SampleState, SampleDomainEven
     };
   },
 
-  handle (state: SampleState): Partial<SampleState> {
+  handle (state): Partial<SampleState> {
     return {
       domainEventNames: [ ...state.domainEventNames, 'sampleDomainEvent' ]
     };

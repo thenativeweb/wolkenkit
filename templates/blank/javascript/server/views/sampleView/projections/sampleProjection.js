@@ -6,7 +6,7 @@ const sampleProjection = {
   async handle (sampleViewItems, domainEvent) {
     const aggregateId = domainEvent.aggregateIdentifier.id;
 
-    const sampleItem = sampleViewItems.find((item) => item.id === aggregateId);
+    const sampleItem = sampleViewItems.find((sampleItem) => sampleItem.id === aggregateId);
 
     if (!sampleItem) {
       sampleViewItems.push({

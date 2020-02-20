@@ -1,8 +1,8 @@
 'use strict';
 
-const { sampleCommand } = require('./commands/sampleCommand'),
-      { sampleDomainEvent } = require('./domainEvents/sampleDomainEvent'),
-      { getInitialState } = require('./SampleState');
+const { getInitialState } = require('./SampleState');
+const { sampleCommand } = require('./commands/sampleCommand');
+const { sampleDomainEvent } = require('./domainEvents/sampleDomainEvent');
 
 const sampleAggregate = {
   getInitialState,

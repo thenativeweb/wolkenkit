@@ -15,7 +15,7 @@ const sampleCommand = {
   },
 
   handle (state, command, { aggregate }) {
-    aggregate.publishDomainEvent('sampleEvent', {});
+    aggregate.publishDomainEvent('sampleDomainEvent', {});
   }
 };
 
