@@ -5,14 +5,13 @@ import path from 'path';
 import shell from 'shelljs';
 
 const appName = 'test-app';
-const rootPath = path.join(__dirname, '..', '..');
-const cliPath = path.join(rootPath, 'build', 'lib', 'bin', 'wolkenkit.js');
+const cliPath = path.join(__dirname, '..', '..', 'build', 'lib', 'bin', 'wolkenkit.js');
 
 suite('build', function (): void {
   this.timeout(30_000);
 
   test('compiles a TypeScript application to JavaScript.', async (): Promise<void> => {
-    const appDirectory = path.join(await isolated(), appName);
+    const appDirectory = await isolated();
 
     const initCommand = `node ${cliPath} init --directory ${appDirectory} --template blank --language typescript ${appName}`;
     const buildCommand = `node ${cliPath} build`;
@@ -37,7 +36,7 @@ suite('build', function (): void {
   });
 
   test('copies a JavaScript application to the build directory.', async (): Promise<void> => {
-    const appDirectory = path.join(await isolated(), appName);
+    const appDirectory = await isolated();
 
     const initCommand = `node ${cliPath} init --directory ${appDirectory} --template blank --language javascript ${appName}`;
     const buildCommand = `node ${cliPath} build`;

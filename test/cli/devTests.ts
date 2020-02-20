@@ -8,14 +8,13 @@ import shell from 'shelljs';
 const sleep = async (ms: number): Promise<any> => new Promise((resolve): any => setTimeout(resolve, ms));
 
 const appName = 'test-app';
-const rootPath = path.join(__dirname, '..', '..');
-const cliPath = path.join(rootPath, 'build', 'lib', 'bin', 'wolkenkit.js');
+const cliPath = path.join(__dirname, '..', '..', 'build', 'lib', 'bin', 'wolkenkit.js');
 
 suite('dev', function (): void {
   this.timeout(30_000);
 
   test('starts the application.', async (): Promise<void> => {
-    const appDirectory = path.join(await isolated(), appName);
+    const appDirectory = await isolated();
     const initCommand = `node ${cliPath} init --directory ${appDirectory} --template blank --language javascript ${appName}`;
 
     shell.exec(initCommand);
