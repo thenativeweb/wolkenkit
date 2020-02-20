@@ -156,7 +156,7 @@
     "@types/minio": "7.0.5",
     "@types/mongodb": "3.3.16",
     "@types/mysql": "2.15.8",
-    "@types/node": "13.7.2",
+    "@types/node": "13.7.4",
     "@types/pg": "7.14.1",
     "@types/pg-query-stream": "1.0.3",
     "@types/qs": "6.9.1",
@@ -170,7 +170,7 @@
     "nodeenv": "3.0.0",
     "qs": "6.9.1",
     "record-stdstreams": "3.0.0",
-    "roboter": "11.0.21",
+    "roboter": "11.0.22",
     "streamtoarray": "3.0.0",
     "wait-for-signals": "1.0.0"
   },
