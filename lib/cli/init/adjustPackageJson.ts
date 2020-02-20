@@ -28,7 +28,7 @@ const adjustPackageJson = async function ({ packageJson, name, addTypeScript }: 
   content.devDependencies = sortKeys({
     object: {
       ...content.devDependencies,
-      typescript: addTypeScript ? roboterPackageJson?.dependencies?.typescript : undefined
+      typescript: addTypeScript ? roboterPackageJson.dependencies!.typescript : undefined
     }
   });
 
