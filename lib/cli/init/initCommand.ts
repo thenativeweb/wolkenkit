@@ -126,7 +126,11 @@ const initCommand = function (): Command<InitOptions> {
         buntstift.verbose('Copied files.');
 
         buntstift.verbose(`Adjusting ${packageJson}...`);
-        await adjustPackageJson({ packageJson, name });
+        await adjustPackageJson({
+          packageJson,
+          name,
+          addTypeScript: selectedLanguage === 'typescript'
+        });
         buntstift.verbose('Adjusted package.json.');
 
         buntstift.verbose('Creating Docker configuration...');
