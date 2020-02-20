@@ -62,7 +62,7 @@ const createDockerConfiguration = async function ({ directory, name }: {
       `
     },
     {
-      fileName: 'docker-compose.single-process.in-memory.yaml',
+      fileName: 'docker-compose.single-process.in-memory.yml',
       content: `
       version: '3.7'
       services:

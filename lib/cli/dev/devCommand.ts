@@ -28,6 +28,15 @@ const devCommand = function (): Command<DevOptions> {
         validate: validatePort
       },
       {
+        name: 'health-port',
+        description: 'set a port for the health endpoint',
+        parameterName: 'port',
+        type: 'number',
+        isRequired: false,
+        defaultValue: 3001,
+        validate: validatePort
+      },
+      {
         name: 'identity-provider-issuer',
         alias: 'i',
         description: 'set an identity provider issuer url',
@@ -56,6 +65,7 @@ const devCommand = function (): Command<DevOptions> {
     async handle ({ options: {
       verbose,
       port,
+      'health-port': optionalHealthPort,
       'identity-provider-issuer': identityProviderIssuer,
       'identity-provider-certificate': identityProviderCertificate,
       debug
@@ -67,7 +77,7 @@ const devCommand = function (): Command<DevOptions> {
       const stopWaiting = buntstift.wait();
 
       try {
-        const healthPort = port + 1;
+        const healthPort = optionalHealthPort ?? port + 1;
 
         const applicationDirectory =
           await getApplicationRoot({ directory: process.cwd() });
