@@ -6,7 +6,7 @@ import { getInitialState, SampleState } from './SampleState';
 const sampleAggregate: Aggregate<SampleState> = {
   getInitialState,
   commandHandlers: {
-    execute: sampleCommand
+    sampleCommand
   },
   domainEventHandlers: {
     sampleDomainEvent

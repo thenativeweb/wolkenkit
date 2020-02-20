@@ -5,7 +5,7 @@ const { sampleCommand } = require('./commands/sampleCommand'),
 const sampleAggregate = {
   getInitialState,
   commandHandlers: {
-    execute: sampleCommand
+    sampleCommand
   },
   domainEventHandlers: {
     sampleDomainEvent
