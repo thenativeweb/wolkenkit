@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getApplicationRoot } from '../../common/application/getApplicationRoot';
 import path from 'path';
 import { retry } from 'retry-ignore-abort';
 import { runfork } from 'runfork';
@@ -11,9 +12,11 @@ const startProcess = async function ({ runtime, name, enableDebugMode, port, env
   env: NodeJS.ProcessEnv;
   onExit?: (exitCode: number, stdout: string, stderr: string) => void;
 }): Promise<() => Promise<void>> {
+  const applicationRoot = await getApplicationRoot({ directory: __dirname });
+
   const stopProcess = runfork({
     nodeArgs: enableDebugMode ? [ '--inspect' ] : [],
-    path: path.join(__dirname, '..', '..', '..', 'build', 'lib', 'runtimes', runtime, 'processes', name, 'app.js'),
+    path: path.join(applicationRoot, 'build', 'lib', 'runtimes', runtime, 'processes', name, 'app.js'),
     env,
     silent: false,
     onExit
