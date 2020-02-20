@@ -21,7 +21,7 @@ wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and
 To initialize a new application, run the following command:
 
 ```shell
-$ npx wolkenkit@4.0.0-internal.12 init <name>
+$ npx wolkenkit@4.0.0-internal.13 init <name>
 ```
 
 Then, change into the newly created application directory, and install its dependencies:
