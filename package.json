@@ -1,6 +1,6 @@
 {
   "name": "wolkenkit",
-  "version": "4.0.0-internal.8",
+  "version": "4.0.0-internal.9",
   "description": "wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and Node.js.",
   "contributors": [
     {
