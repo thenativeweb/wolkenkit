@@ -3,6 +3,7 @@ import { getApplicationRoot } from '../../common/application/getApplicationRoot'
 import { PackageManifest } from '../../common/application/PackageManifest';
 import path from 'path';
 import { sortKeys } from '../../common/utils/sortKeys';
+import { versions } from '../../versions';
 
 const adjustPackageJson = async function ({ packageJson, name, addTypeScript }: {
   packageJson: string;
@@ -12,8 +13,6 @@ const adjustPackageJson = async function ({ packageJson, name, addTypeScript }: 
   const applicationRoot = await getApplicationRoot({ directory: __dirname });
   const wolkenkitPackageJsonPath = path.join(applicationRoot, 'package.json');
   const wolkenkitPackageJson: PackageManifest = JSON.parse(await fs.promises.readFile(wolkenkitPackageJsonPath, 'utf8'));
-  const roboterPackageJsonPath = path.join(applicationRoot, 'node_modules', 'roboter', 'package.json');
-  const roboterPackageJson: PackageManifest = JSON.parse(await fs.promises.readFile(roboterPackageJsonPath, 'utf8'));
 
   const content: PackageManifest = JSON.parse(await fs.promises.readFile(packageJson, 'utf8'));
 
@@ -28,7 +27,7 @@ const adjustPackageJson = async function ({ packageJson, name, addTypeScript }: 
   content.devDependencies = sortKeys({
     object: {
       ...content.devDependencies,
-      typescript: addTypeScript ? roboterPackageJson.dependencies!.typescript : undefined
+      typescript: addTypeScript ? versions.typescript : undefined
     }
   });
 

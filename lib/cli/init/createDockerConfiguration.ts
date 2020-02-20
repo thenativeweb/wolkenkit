@@ -1,19 +1,12 @@
 import fs from 'fs';
-import { getApplicationRoot } from '../../common/application/getApplicationRoot';
-import { PackageManifest } from '../../common/application/PackageManifest';
 import path from 'path';
-import semver from 'semver';
 import { stripIndent } from 'common-tags';
+import { versions } from '../../versions';
 
 const createDockerConfiguration = async function ({ directory, name }: {
   directory: string;
   name: string;
 }): Promise<void> {
-  const applicationRoot = await getApplicationRoot({ directory: __dirname });
-  const wolkenkitPackageJsonPath = path.join(applicationRoot, 'package.json');
-  const wolkenkitPackageJson: PackageManifest = JSON.parse(await fs.promises.readFile(wolkenkitPackageJsonPath, 'utf8'));
-  const nodeVersion = semver.minVersion(wolkenkitPackageJson.engines!.node as string);
-
   const dockerConfiguration = [
     {
       fileName: '.dockerignore',
@@ -29,7 +22,8 @@ const createDockerConfiguration = async function ({ directory, name }: {
     {
       fileName: 'Dockerfile',
       content: `
-        FROM node:${nodeVersion}-alpine as build
+        # Build application to compile TypeScript if needed.
+        FROM node:${versions.nodejs}-alpine as build
 
         RUN apk update && \\
             apk upgrade && \\
@@ -44,7 +38,9 @@ const createDockerConfiguration = async function ({ directory, name }: {
         ADD . .
         RUN npx wolkenkit build
 
-        FROM node:${nodeVersion}-alpine as dependencies
+
+        # Install production dependencies.
+        FROM node:${versions.nodejs}-alpine as dependencies
 
         RUN mkdir /app
         WORKDIR /app
@@ -52,12 +48,14 @@ const createDockerConfiguration = async function ({ directory, name }: {
         ADD ./package.json ./.npmrc* .
         RUN npm install --production
 
-        FROM node:${nodeVersion}-alpine
+
+        # Bundle the built application with the production dependencies.
+        FROM node:${versions.nodejs}-alpine
 
         RUN mkdir /app
         WORKDIR /app
 
-        ADD ./package.json ./package.json
+        ADD ./package.json .
 
         COPY --from=build /app/build /app/build
         COPY --from=dependencies /app/node_modules /app/node_modules
