@@ -18,12 +18,8 @@ suite('build', function (): void {
     const buildCommand = `node ${cliPath} build`;
 
     shell.exec(initCommand);
-    shell.exec('npm install', {
-      cwd: appDirectory
-    });
-    shell.exec(buildCommand, {
-      cwd: appDirectory
-    });
+    shell.exec('npm install', { cwd: appDirectory });
+    shell.exec(buildCommand, { cwd: appDirectory });
 
     assert.that(await exists({ path: path.join(appDirectory, 'build', 'domain', 'sampleContext', 'sampleAggregate', 'index.js') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'build', 'domain', 'sampleContext', 'sampleAggregate', 'SampleState.js') })).is.true();
@@ -43,12 +39,8 @@ suite('build', function (): void {
     const buildCommand = `node ${cliPath} build`;
 
     shell.exec(initCommand);
-    shell.exec('npm install', {
-      cwd: appDirectory
-    });
-    shell.exec(buildCommand, {
-      cwd: appDirectory
-    });
+    shell.exec('npm install', { cwd: appDirectory });
+    shell.exec(buildCommand, { cwd: appDirectory });
 
     assert.that(await exists({ path: path.join(appDirectory, 'build', 'domain', 'sampleContext', 'sampleAggregate', 'index.js') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'build', 'domain', 'sampleContext', 'sampleAggregate', 'SampleState.js') })).is.true();
