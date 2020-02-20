@@ -102,7 +102,7 @@
     "wolkenkit": "build/lib/bin/wolkenkit.js"
   },
   "engines": {
-    "node": ">=12.15.0"
+    "node": ">=12.16.1"
   },
   "dependencies": {
     "axios": "0.19.2",
