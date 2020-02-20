@@ -13,10 +13,9 @@ export const all: QueryHandler<SampleViewItem[], AllOptions, AllResultItem> = {
       properties: {
         id: { type: 'string' },
         createdAt: { type: 'number' },
-        updatedAt: { type: 'number' },
-        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+        updatedAt: { type: 'number' }
       },
-      required: [ 'id', 'createdAt', 'strategy' ],
+      required: [ 'id', 'createdAt' ],
       additionalProperties: false
     };
   },

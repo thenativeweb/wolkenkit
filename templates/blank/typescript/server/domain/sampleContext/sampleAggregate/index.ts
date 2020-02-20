@@ -1,17 +1,15 @@
 import { Aggregate } from 'wolkenkit';
-import { execute } from './commands/execute';
-import { executed } from './domainEvents/executed';
-import { succeeded } from './domainEvents/succeeded';
+import { sampleCommand } from './commands/sampleCommand';
+import { sampleDomainEvent } from './domainEvents/sampleDomainEvent';
 import { getInitialState, SampleState } from './SampleState';
 
 const sampleAggregate: Aggregate<SampleState> = {
   getInitialState,
   commandHandlers: {
-    execute
+    execute: sampleCommand
   },
   domainEventHandlers: {
-    succeeded,
-    executed
+    sampleDomainEvent
   }
 };
 

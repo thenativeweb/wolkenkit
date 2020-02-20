@@ -1,9 +1,9 @@
-import { ExecutedData } from '../../../domain/sampleContext/sampleAggregate/domainEvents/executed';
 import { ProjectionHandler } from 'wolkenkit';
+import { SampleDomainEventData } from '../../../domain/sampleContext/sampleAggregate/domainEvents/sampleDomainEvent';
 import { SampleViewItem } from '../SampleViewItem';
 
-export const executed: ProjectionHandler<SampleViewItem[], ExecutedData> = {
-  selector: 'sampleContext.sampleAggregate.executed',
+export const sampleProjection: ProjectionHandler<SampleViewItem[], SampleDomainEventData> = {
+  selector: 'sampleContext.sampleAggregate.sampleDomainEvent',
 
   async handle (sampleViewItems: any, domainEvent: any): Promise<void> {
     const aggregateId = domainEvent.aggregateIdentifier.id;
@@ -13,8 +13,7 @@ export const executed: ProjectionHandler<SampleViewItem[], ExecutedData> = {
     if (!sampleItem) {
       sampleViewItems.push({
         id: aggregateId,
-        createdAt: domainEvent.metadata.timestamp,
-        strategy: domainEvent.data.strategy
+        createdAt: domainEvent.metadata.timestamp
       });
 
       return;

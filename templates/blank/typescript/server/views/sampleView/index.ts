@@ -1,13 +1,13 @@
 import { all } from './queries/all';
-import { executed } from './projections/executed';
 import { initializer } from './initializer';
+import { sampleProjection } from './projections/sampleProjection';
 import { SampleViewItem } from './SampleViewItem';
 import { View } from 'wolkenkit';
 
 const sampleView: View<SampleViewItem[]> = {
   initializer,
   projectionHandlers: {
-    executed
+    sampleProjection
   },
   queryHandlers: {
     all
