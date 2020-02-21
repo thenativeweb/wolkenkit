@@ -3,7 +3,7 @@
   "parserOptions": {
     "project": [
       "./tsconfig.json",
-      "./websites/documentation/tsconfig.json"
+      "./websites/**/tsconfig.json"
     ]
   }
 }
