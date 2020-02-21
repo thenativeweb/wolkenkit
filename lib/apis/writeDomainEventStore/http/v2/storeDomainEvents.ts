@@ -3,7 +3,7 @@ import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { RequestHandler } from 'express-serve-static-core';
+import { RequestHandler } from 'express';
 import typer from 'content-type';
 
 const storeDomainEvents = function ({

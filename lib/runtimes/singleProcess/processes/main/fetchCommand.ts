@@ -17,7 +17,7 @@ const fetchCommand = async function ({ priorityQueue }: {
       const lock = await priorityQueue.store.lockNext();
 
       if (lock === undefined) {
-        throw new Error('Nothing in queue..');
+        throw new Error('Command queue is empty.');
       }
 
       return lock;

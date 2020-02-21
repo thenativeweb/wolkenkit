@@ -3,7 +3,7 @@ import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
-import { RequestHandler } from 'express-serve-static-core';
+import { RequestHandler } from 'express';
 import typer from 'content-type';
 import { validateItemIdentifier } from '../../../../common/validators/validateItemIdentifier';
 

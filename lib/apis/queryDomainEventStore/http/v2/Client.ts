@@ -66,7 +66,7 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.', { error: data, status });
+      logger.error('An unknown error occured.', { ex: data, status });
 
       throw new errors.UnknownError(data.message);
     }

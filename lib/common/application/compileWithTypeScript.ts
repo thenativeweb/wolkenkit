@@ -18,7 +18,7 @@ const compileWithTypeScript = async function ({
     npx tsc
       --module CommonJS
       --noEmitOnError
-      --outDir ${targetDirectory}
+      --outDir '${targetDirectory}'
   `, { cwd: sourceDirectory });
 
   if (code !== 0) {

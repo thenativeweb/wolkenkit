@@ -3,7 +3,7 @@ import { assert } from 'assertthat';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Client as PublishMessageClient } from '../../../../../lib/apis/publishMessage/http/v2/Client';
-import { startProcess } from '../../../../shared/runtime/startProcess';
+import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subscribeMessages/http/v2/Client';
 import { waitForSignals } from 'wait-for-signals';
 
@@ -22,6 +22,7 @@ suite('publisher', function (): void {
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
+      enableDebugMode: false,
       port: healthPort,
       env: {
         PORT: String(port),

@@ -7,7 +7,7 @@ import { getTestApplicationDirectory } from '../../../../shared/applications/get
 import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
 import { Client as ObserveDomainEventsClient } from '../../../../../lib/apis/observeDomainEvents/http/v2/Client';
 import path from 'path';
-import { startProcess } from '../../../../shared/runtime/startProcess';
+import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
@@ -28,6 +28,7 @@ suite('main', function (): void {
     stopProcess = await startProcess({
       runtime: 'singleProcess',
       name: 'main',
+      enableDebugMode: false,
       port: healthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,

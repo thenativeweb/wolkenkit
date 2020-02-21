@@ -4,7 +4,7 @@ import { buildDomainEvent } from 'test/shared/buildDomainEvent';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Client as QueryDomainEventStoreClient } from '../../../../../lib/apis/queryDomainEventStore/http/v2/Client';
-import { startProcess } from '../../../../shared/runtime/startProcess';
+import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 import { waitForSignals } from 'wait-for-signals';
 import { Client as WriteDomainEventStoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
@@ -24,6 +24,7 @@ suite('domain event store', function (): void {
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
+      enableDebugMode: false,
       port: healthPort,
       env: {
         PORT: String(port),

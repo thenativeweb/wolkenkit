@@ -1,7 +1,7 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { isUuid } from 'uuidv4';
 import { parseGetReplayForAggregateQueryParameters } from './parameters/parseGetReplayForAggregateQueryParameters';
-import { RequestHandler } from 'express-serve-static-core';
+import { RequestHandler } from 'express';
 import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { writeLine } from '../../../base/writeLine';
 

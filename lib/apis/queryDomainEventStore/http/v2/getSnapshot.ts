@@ -1,5 +1,5 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
-import { RequestHandler } from 'express-serve-static-core';
+import { RequestHandler } from 'express';
 import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
 
 const getSnapshot = function ({

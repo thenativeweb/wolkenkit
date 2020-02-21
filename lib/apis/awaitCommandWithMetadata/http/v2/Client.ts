@@ -100,6 +100,7 @@ class Client extends HttpClient {
       }
       default: {
         logger.error('An unknown error occured.', { ex: data, status });
+
         throw new errors.UnknownError();
       }
     }
@@ -137,6 +138,7 @@ class Client extends HttpClient {
       }
       default: {
         logger.error('An unknown error occured.', { ex: data, status });
+
         throw new errors.UnknownError();
       }
     }

@@ -1,7 +1,7 @@
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { merge } from 'lodash';
-import { RequestHandler } from 'express-serve-static-core';
+import { RequestHandler } from 'express';
 import { hasAccess, isValid } from './isAuthorized';
 
 const logger = flaschenpost.getLogger();

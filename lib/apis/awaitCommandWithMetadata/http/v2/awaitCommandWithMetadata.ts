@@ -2,10 +2,9 @@ import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { flaschenpost } from 'flaschenpost';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
-import { RequestHandler } from 'express-serve-static-core';
-import { Response } from 'express';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { writeLine } from '../../../../apis/base/writeLine';
+import { RequestHandler, Response } from 'express';
 
 const logger = flaschenpost.getLogger();
 

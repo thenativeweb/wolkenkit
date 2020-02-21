@@ -19,17 +19,6 @@ update_configs:
     version_requirement_updates: "increase_versions"
 
   - package_manager: "docker"
-    directory: "/docker/wolkenkit"
-    update_schedule: "daily"
-    default_assignees:
-    - "goloroden"
-    - "yeldiRium"
-    default_labels:
-    - "Dependencies"
-    commit_message:
-      prefix: "fix"
-
-  - package_manager: "docker"
     directory: "/docker/wolkenkit-mariadb"
     update_schedule: "daily"
     default_assignees:
@@ -75,17 +64,6 @@ update_configs:
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-postgres"
-    update_schedule: "daily"
-    default_assignees:
-    - "goloroden"
-    - "yeldiRium"
-    default_labels:
-    - "Dependencies"
-    commit_message:
-      prefix: "fix"
-
-  - package_manager: "docker"
-    directory: "/docker/wolkenkit-proxy"
     update_schedule: "daily"
     default_assignees:
     - "goloroden"

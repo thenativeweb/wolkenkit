@@ -32,7 +32,7 @@ class Client extends HttpClient {
       return data;
     }
 
-    logger.error('An unknown error occured.', data);
+    logger.error('An unknown error occured.', { ex: data, status });
 
     throw new errors.UnknownError();
   }
@@ -54,7 +54,7 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.');
+      logger.error('An unknown error occured.', { ex: data, status });
 
       throw new errors.UnknownError();
     }

@@ -146,7 +146,7 @@ suite('getAggregateService', (): void => {
       }).is.throwing(`Failed to publish unknown domain event '${unknownDomainEventName}' in '${contextName}.${aggregateName}'.`);
     });
 
-    test(`throws an error if the published domain event's data does not match its schema`, async (): Promise<void> => {
+    test(`throws an error if the published domain event's data does not match its schema.`, async (): Promise<void> => {
       assert.that((): void => {
         aggregateService.publishDomainEvent(domainEventName, { foo: 'bar' });
       }).is.throwing('Missing required property: strategy (at data.strategy).');

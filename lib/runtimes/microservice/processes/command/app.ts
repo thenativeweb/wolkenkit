@@ -32,7 +32,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       protocol: configuration.dispatcherProtocol,
       hostName: configuration.dispatcherHostName,
       port: configuration.dispatcherPort,
-      path: '/command/v2'
+      path: '/handle-command/v2'
     });
 
     const onReceiveCommand = getOnReceiveCommand({
