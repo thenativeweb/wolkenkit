@@ -12,11 +12,8 @@ const createDockerConfiguration = async function ({ directory, name }: {
       filePath: [ '.dockerignore' ],
       content: `
         **
-        !/deployment
         !/server/**
-        !/.dockerignore
         !/.npmrc
-        !/Dockerfile
         !/package.json
         !/package-lock.json
         !/tsconfig.json
