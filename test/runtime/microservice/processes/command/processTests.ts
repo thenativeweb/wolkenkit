@@ -19,6 +19,7 @@ suite('command', (): void => {
 
     let commandReceivedByDispatcher: object | undefined,
         dispatcherPort: number,
+        endpointCommandWasSentTo: string | undefined,
         handleCommandClient: HandleCommandClient,
         healthPort: number,
         port: number,
@@ -30,6 +31,7 @@ suite('command', (): void => {
       await startCatchAllServer({
         port: dispatcherPort,
         onRequest (req, res): void {
+          endpointCommandWasSentTo = req.path;
           commandReceivedByDispatcher = req.body;
           res.status(200).end();
         }
@@ -85,7 +87,7 @@ suite('command', (): void => {
     });
 
     suite('postCommand', (): void => {
-      test('sends commands to the dispatcher.', async (): Promise<void> => {
+      test('sends commands to the right endpoint at the dispatcher.', async (): Promise<void> => {
         const command = new Command({
           contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -95,6 +97,7 @@ suite('command', (): void => {
 
         await handleCommandClient.postCommand({ command });
 
+        assert.that(endpointCommandWasSentTo).is.equalTo('/handle-command/v2/');
         assert.that(commandReceivedByDispatcher).is.atLeast({
           ...command,
           metadata: {
