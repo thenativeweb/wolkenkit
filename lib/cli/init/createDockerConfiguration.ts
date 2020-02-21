@@ -1,4 +1,8 @@
 import fs from 'fs';
+import { getMicroserviceInMemoryManifest } from './docker-compose/getMicroserviceInMemoryManifest';
+import { getMicroservicePostgresManifest } from './docker-compose/getMicroservicePostgresManifest';
+import { getSingleProcessInMemoryManifest } from './docker-compose/getSingleProcessInMemoryManifest';
+import { getSingleProcessPostgresManifest } from './docker-compose/getSingleProcessPostgresManifest';
 import path from 'path';
 import { stripIndent } from 'common-tags';
 import { versions } from '../../versions';
@@ -62,97 +66,20 @@ const createDockerConfiguration = async function ({ directory, name }: {
       `
     },
     {
+      filePath: [ 'deployment', 'docker-compose', 'docker-compose.microservice.in-memory.yml' ],
+      content: getMicroserviceInMemoryManifest({ appName: name })
+    },
+    {
+      filePath: [ 'deployment', 'docker-compose', 'docker-compose.microservice.postgres.yml' ],
+      content: getMicroservicePostgresManifest({ appName: name })
+    },
+    {
       filePath: [ 'deployment', 'docker-compose', 'docker-compose.single-process.in-memory.yml' ],
-      content: `
-      version: '3.7'
-      services:
-        main:
-          build: '../..'
-          command: 'node ./node_modules/wolkenkit/build/lib/runtimes/singleProcess/processes/main/app.js'
-          environment:
-            APPLICATION_DIRECTORY: '/app'
-            COMMAND_QUEUE_RENEW_INTERVAL: '${String(5_000)}'
-            CONCURRENT_COMMANDS: '${String(100)}'
-            CORS_ORIGIN: '*'
-            DOMAIN_EVENT_STORE_OPTIONS: '${JSON.stringify({})}'
-            DOMAIN_EVENT_STORE_TYPE: 'InMemory'
-            HEALTH_PORT: '3001'
-            IDENTITY_PROVIDERS: '${JSON.stringify([])}'
-            LOCK_STORE_OPTIONS: '${JSON.stringify({})}'
-            LOCK_STORE_TYPE: 'InMemory'
-            LOG_LEVEL: 'debug'
-            PORT: '3000'
-            SNAPSHOT_STRATEGY: '${JSON.stringify({ name: 'revision', configuration: { revisionLimit: 100 }})}'
-          image: '${name}'
-          init: true
-          ports:
-            - '3000:3000'
-            - '3001:3001'
-          restart: 'always'
-      `
+      content: getSingleProcessInMemoryManifest({ appName: name })
     },
     {
       filePath: [ 'deployment', 'docker-compose', 'docker-compose.single-process.postgres.yml' ],
-      content: `
-      version: '3.7'
-      services:
-        main:
-          build: '../..'
-          command: 'node ./node_modules/wolkenkit/build/lib/runtimes/singleProcess/processes/main/app.js'
-          environment:
-            APPLICATION_DIRECTORY: '/app'
-            COMMAND_QUEUE_RENEW_INTERVAL: '${String(5_000)}'
-            CONCURRENT_COMMANDS: '${String(100)}'
-            CORS_ORIGIN: '*'
-            DOMAIN_EVENT_STORE_OPTIONS: '${JSON.stringify({
-    hostName: 'postgres',
-    port: 5432,
-    userName: 'wolkenkit',
-    password: 'please-replace-this',
-    database: 'wolkenkit',
-    tableNames: {
-      domainEvents: 'domainevents',
-      snapshots: 'snapshots'
-    }
-  })}'
-            DOMAIN_EVENT_STORE_TYPE: 'Postgres'
-            HEALTH_PORT: '3001'
-            IDENTITY_PROVIDERS: '${JSON.stringify([])}'
-            LOCK_STORE_OPTIONS: '${JSON.stringify({
-    hostName: 'postgres',
-    port: 5432,
-    userName: 'wolkenkit',
-    password: 'please-replace-this',
-    database: 'wolkenkit',
-    tableNames: {
-      locks: 'locks'
-    }
-  })}'
-            LOCK_STORE_TYPE: 'Postgres'
-            LOG_LEVEL: 'debug'
-            PORT: '3000'
-            SNAPSHOT_STRATEGY: '${JSON.stringify({ name: 'revision', configuration: { revisionLimit: 100 }})}'
-          image: '${name}'
-          init: true
-          ports:
-            - '3000:3000'
-            - '3001:3001'
-          restart: 'always'
-
-        postgres:
-          image: 'postgres:12.2-alpine'
-          environment:
-            POSTGRES_DB: 'wolkenkit'
-            POSTGRES_USER: 'wolkenkit'
-            POSTGRES_PASSWORD: 'please-replace-this'
-            PGDATA: '/var/lib/postgresql/data'
-          restart: 'always'
-          volumes:
-            - 'postgres:/var/lib/postgresql/data'
-
-      volumes:
-        postgres:
-      `
+      content: getSingleProcessPostgresManifest({ appName: name })
     }
   ];
 

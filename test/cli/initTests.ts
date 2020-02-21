@@ -19,7 +19,10 @@ suite('init', function (): void {
 
         shell.exec(initCommand);
 
+        assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/docker-compose.microservice.in-memory.yml') })).is.true();
+        assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/docker-compose.microservice.postgres.yml') })).is.true();
         assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/docker-compose.single-process.in-memory.yml') })).is.true();
+        assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/docker-compose.single-process.postgres.yml') })).is.true();
         assert.that(await exists({ path: path.join(appDirectory, '.dockerignore') })).is.true();
         assert.that(await exists({ path: path.join(appDirectory, 'Dockerfile') })).is.true();
         assert.that(await exists({ path: path.join(appDirectory, 'package.json') })).is.true();
@@ -41,8 +44,11 @@ suite('init', function (): void {
 
         shell.exec(initCommand);
 
-        assert.that(await exists({ path: path.join(appDirectory, '.dockerignore') })).is.true();
+        assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/docker-compose.microservice.in-memory.yml') })).is.true();
+        assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/docker-compose.microservice.postgres.yml') })).is.true();
         assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/docker-compose.single-process.in-memory.yml') })).is.true();
+        assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/docker-compose.single-process.postgres.yml') })).is.true();
+        assert.that(await exists({ path: path.join(appDirectory, '.dockerignore') })).is.true();
         assert.that(await exists({ path: path.join(appDirectory, 'Dockerfile') })).is.true();
         assert.that(await exists({ path: path.join(appDirectory, 'package.json') })).is.true();
         assert.that(await exists({ path: path.join(appDirectory, 'tsconfig.json') })).is.true();
