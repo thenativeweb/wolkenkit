@@ -3,3 +3,7 @@
 
 # Test applications outside of the main typescript project
 test/shared/applications/typescript/
+
+# Next.js build output
+websites/**/.next
+websites/**/out
