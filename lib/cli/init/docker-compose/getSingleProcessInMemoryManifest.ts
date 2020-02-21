@@ -26,7 +26,7 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
   const identityProviders = JSON.stringify([]);
 
   return `
-    version: '${versions['docker-compose']}'
+    version: '${versions.infrastructure['docker-compose']}'
 
     services:
       main:

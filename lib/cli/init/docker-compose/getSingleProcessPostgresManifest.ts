@@ -52,7 +52,7 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
   const identityProviders = JSON.stringify([]);
 
   return `
-    version: '${versions['docker-compose']}'
+    version: '${versions.infrastructure['docker-compose']}'
 
     services:
       main:
@@ -85,7 +85,7 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
           start_period: 30s
 
       postgres:
-        image: 'postgres:${versions.docker.postgres}'
+        image: 'postgres:${versions.dockerImages.postgres}'
         environment:
           POSTGRES_DB: '${postgresOptions.database}'
           POSTGRES_USER: '${postgresOptions.userName}'

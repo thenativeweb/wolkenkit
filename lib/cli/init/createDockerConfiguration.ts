@@ -27,7 +27,7 @@ const createDockerConfiguration = async function ({ directory, name }: {
       filePath: [ 'Dockerfile' ],
       content: `
         # Build application to compile TypeScript if needed.
-        FROM node:${versions.nodejs}-alpine as build
+        FROM node:${versions.infrastructure.nodejs}-alpine as build
 
         RUN apk update && \\
             apk upgrade && \\
@@ -44,7 +44,7 @@ const createDockerConfiguration = async function ({ directory, name }: {
 
 
         # Install production dependencies.
-        FROM node:${versions.nodejs}-alpine as dependencies
+        FROM node:${versions.infrastructure.nodejs}-alpine as dependencies
 
         RUN mkdir /app
         WORKDIR /app
@@ -54,7 +54,7 @@ const createDockerConfiguration = async function ({ directory, name }: {
 
 
         # Bundle the built application with the production dependencies.
-        FROM node:${versions.nodejs}-alpine
+        FROM node:${versions.infrastructure.nodejs}-alpine
 
         RUN mkdir /app
         WORKDIR /app
