@@ -3,7 +3,7 @@ import { CommandWithMetadata } from '../../../../common/elements/CommandWithMeta
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
-import { RequestHandler } from 'express-serve-static-core';
+import { RequestHandler } from 'express';
 import typer from 'content-type';
 import { validateCommandWithMetadata } from '../../../../common/validators/validateCommandWithMetadata';
 

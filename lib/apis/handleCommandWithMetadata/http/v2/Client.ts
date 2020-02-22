@@ -2,7 +2,10 @@ import axios from 'axios';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
+import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
+
+const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
   public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
@@ -44,6 +47,8 @@ class Client extends HttpClient {
         throw new errors.CommandNotFound(data.message);
       }
       default: {
+        logger.error('An unknown error occured.', { ex: data, status });
+
         throw new errors.UnknownError();
       }
     }

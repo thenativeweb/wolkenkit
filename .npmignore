@@ -1,7 +1,7 @@
-.dependabot
-.github
-assets
-docker
-lib
-test
-websites
+/.dependabot
+/.github
+/assets
+/docker
+/lib
+/test
+/websites

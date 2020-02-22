@@ -2,8 +2,11 @@ import axios from 'axios';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { errors } from '../../../../common/errors';
+import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { State } from '../../../../common/elements/State';
+
+const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
   public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
@@ -45,6 +48,8 @@ class Client extends HttpClient {
         throw new errors.DomainEventNotFound(data.message);
       }
       default: {
+        logger.error('An unknown error occured.', { ex: data, status });
+
         throw new errors.UnknownError();
       }
     }

@@ -3,7 +3,7 @@ import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { isUuid } from 'uuidv4';
 import { merge } from 'lodash';
-import { RequestHandler } from 'express-serve-static-core';
+import { RequestHandler } from 'express';
 import { SpecificAuthorizationOption } from './isAuthorized/AuthorizationOptions';
 import { getDefaults, hasAccess, isValid } from './isAuthorized';
 

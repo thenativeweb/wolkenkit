@@ -1,6 +1,6 @@
 {
   "name": "wolkenkit",
-  "version": "3.1.1",
+  "version": "4.0.0-ctp.1",
   "description": "wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and Node.js.",
   "contributors": [
     {
@@ -98,19 +98,22 @@
   ],
   "main": "build/lib/wolkenkit.js",
   "types": "build/lib/wolkenkit.d.ts",
+  "bin": {
+    "wolkenkit": "build/lib/bin/wolkenkit.js"
+  },
   "engines": {
-    "node": ">=12.13.0"
+    "node": ">=12.16.1"
   },
   "dependencies": {
     "axios": "0.19.2",
     "body-parser": "1.19.0",
     "buntstift": "4.0.0",
+    "command-line-interface": "3.5.1",
     "common-tags": "1.8.0",
     "compression": "1.7.4",
     "content-type": "1.0.4",
     "cors": "2.8.5",
     "defekt": "5.0.1",
-    "eslint": "6.8.0",
     "express": "4.17.1",
     "flaschenpost": "4.0.2",
     "get-cors-origin": "4.0.1",
@@ -118,23 +121,25 @@
     "isolated": "3.0.0",
     "limes": "6.0.2",
     "lodash": "4.17.15",
-    "minio": "7.0.13",
+    "minio": "7.0.14",
     "mongodb": "3.5.3",
     "mysql": "2.18.1",
     "nocache": "2.1.0",
     "p-forever": "2.1.0",
     "p-queue": "6.3.0",
     "partof": "3.0.0",
-    "pg": "7.18.1",
-    "pg-query-stream": "3.0.2",
+    "pg": "7.18.2",
+    "pg-query-stream": "3.0.3",
     "processenv": "3.0.1",
     "redis": "3.0.2",
     "retry-ignore-abort": "2.2.3",
+    "runfork": "3.1.0",
     "saslprep": "1.0.3",
     "shelljs": "0.8.3",
     "stream-to-string": "1.2.0",
     "tarn": "2.0.0",
     "tedious": "8.0.1",
+    "untildify": "4.0.0",
     "uuidv4": "6.0.2",
     "validate-value": "7.0.0"
   },
@@ -151,7 +156,7 @@
     "@types/minio": "7.0.5",
     "@types/mongodb": "3.3.16",
     "@types/mysql": "2.15.8",
-    "@types/node": "13.7.2",
+    "@types/node": "13.7.4",
     "@types/pg": "7.14.1",
     "@types/pg-query-stream": "1.0.3",
     "@types/qs": "6.9.1",
@@ -171,17 +176,10 @@
     "react": "16.12.0",
     "react-dom": "16.12.0",
     "record-stdstreams": "3.0.0",
-    "roboter": "11.0.21",
-    "run-script-os": "1.0.7",
-    "runfork": "3.1.0",
+    "roboter": "11.0.23",
     "streamtoarray": "3.0.0",
     "thenativeweb-ux": "3.2.2",
     "wait-for-signals": "1.0.0"
-  },
-  "scripts": {
-    "build": "run-script-os",
-    "build:darwin:linux": "node bin/build.js --color",
-    "build:win32": "node bin\\build.js --color"
   },
   "repository": {
     "type": "git",

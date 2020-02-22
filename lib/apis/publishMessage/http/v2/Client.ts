@@ -1,6 +1,9 @@
 import axios from 'axios';
 import { errors } from '../../../../common/errors';
+import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
+
+const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
   public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
@@ -30,6 +33,8 @@ class Client extends HttpClient {
 
     switch (data.code) {
       default: {
+        logger.error('An unknown error occured.', { ex: data, status });
+
         throw new errors.UnknownError();
       }
     }

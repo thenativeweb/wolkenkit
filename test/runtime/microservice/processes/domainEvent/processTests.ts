@@ -10,7 +10,7 @@ import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v
 import { Client as ObserveDomainEventsClient } from '../../../../../lib/apis/observeDomainEvents/http/v2/Client';
 import path from 'path';
 import { Client as PublishMessageClient } from '../../../../../lib/apis/publishMessage/http/v2/Client';
-import { startProcess } from '../../../../shared/runtime/startProcess';
+import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
@@ -37,6 +37,7 @@ suite('domain event', function (): void {
     stopProcessPublisher = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
+      enableDebugMode: false,
       port: publisherHealthPort,
       env: {
         PORT: String(publisherPort),
@@ -54,6 +55,7 @@ suite('domain event', function (): void {
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEvent',
+      enableDebugMode: false,
       port: healthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,

@@ -1,9 +1,12 @@
 # Build artefacts
 /build/
 
-# Test applications outside of the main typescript project
-test/shared/applications/typescript/
+# Test applications
+/test/shared/applications/typescript/
+
+# Application templates
+/templates/
 
 # Next.js build output
-websites/**/.next
-websites/**/out
+/websites/**/.next
+/websites/**/out

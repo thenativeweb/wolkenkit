@@ -5,7 +5,7 @@ import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAv
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/apis/handleCommandWithMetadata/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
-import { startProcess } from '../../../../shared/runtime/startProcess';
+import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 
 suite('dispatcher', function (): void {
@@ -27,6 +27,7 @@ suite('dispatcher', function (): void {
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'dispatcher',
+      enableDebugMode: false,
       port: healthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,

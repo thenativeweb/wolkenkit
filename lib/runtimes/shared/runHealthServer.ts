@@ -22,7 +22,7 @@ const runHealthServer = async function ({ corsOrigin, port }: {
 
   return new Promise((resolve): void => {
     server.listen(port, (): void => {
-      logger.info('Running health server.', { healthPort: port });
+      logger.info('Health server started.', { healthPort: port });
 
       resolve();
     });

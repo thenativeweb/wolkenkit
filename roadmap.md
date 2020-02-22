@@ -10,7 +10,6 @@ The items on this list are what we have in mind for the next versions of wolkenk
 ## Backend
 
 - Self-describing APIs
-- Event store as a service
 - Domain testing
 - Merge-conflicts
 - Versioning

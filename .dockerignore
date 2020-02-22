@@ -1,7 +1,7 @@
-.dependabot
-.git
-.github
-assets
-build
-node_modules
-test
+/.dependabot
+/.git
+/.github
+/assets
+/build
+/node_modules
+/test

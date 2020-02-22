@@ -7,7 +7,7 @@ import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/ap
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import path from 'path';
 import { Client as QueryDomainEventStoreClient } from '../../../../../lib/apis/queryDomainEventStore/http/v2/Client';
-import { startProcess } from '../../../../shared/runtime/startProcess';
+import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subscribeMessages/http/v2/Client';
 import { uuid } from 'uuidv4';
 
@@ -50,6 +50,7 @@ suite('domain', function (): void {
     stopDispatcherProcess = await startProcess({
       runtime: 'microservice',
       name: 'dispatcher',
+      enableDebugMode: false,
       port: dispatcherHealthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
@@ -71,6 +72,7 @@ suite('domain', function (): void {
     stopDomainEventStoreProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
+      enableDebugMode: false,
       port: domainEventStoreHealthPort,
       env: {
         PORT: String(domainEventStorePort),
@@ -88,6 +90,7 @@ suite('domain', function (): void {
     stopPublisherProcess = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
+      enableDebugMode: false,
       port: publisherHealthPort,
       env: {
         PORT: String(publisherPort),
@@ -105,6 +108,7 @@ suite('domain', function (): void {
     stopDomainProcess = await startProcess({
       runtime: 'microservice',
       name: 'domain',
+      enableDebugMode: false,
       port: domainHealthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
