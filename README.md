@@ -38,6 +38,38 @@ $ npx wolkenkit dev
 
 *Please note that the local development mode processes all data in-memory only, so any data will be lost when the application is closed.*
 
+### Sending commands and receiving domain events
+
+To send commands or receive domain events, the current version only offers an HTTP interface. By default, wolkenkit provides three endpoints in local development mode:
+
+- `http://localhost:3000/command/v2` for sending commands
+- `http://localhost:3000/domain-events/v2` for receiving domain events
+- `http://localhost:3001/health/v2` for fetching health data
+
+*Please note that a future version of wolkenkit is going to include support for other formats and protocols, including GraphQL.*
+
+To send a command, send a `POST` request with the following JSON data structure in the body to the command endpoint of the runtime. Of course, the specific names of the context, the aggregate and the command itself, as well as the aggregate id and the command's data depend on the domain you have modeled:
+
+```json
+{
+  "contextIdentifier": {
+    "name": "communication"
+  },
+  "aggregateIdentifier": {
+    "name": "message",
+    "id": "ff7cd4eb-8ce0-4511-995a-2f9e9ce245fa"
+  },
+  "name": "send",
+  "data": {
+    "text": "Hello, world!"
+  }
+}
+```
+
+To receive domain events, send a `GET` request to the domain events endpoint of the runtime. The response is a stream of newline-separated JSON objects, using `application/x-ndjson` as its content-type. From time to time, a `heartbeat` will be sent by the server as well, which you may want to filter.
+
+For details on the commands and domain events, and their data, see the sample application you have initialized.
+
 ### Packaging the application into a Docker image
 
 To package the application into a Docker image, change to the application directory and run the following command. Assign a custom tag to name the Docker image:
