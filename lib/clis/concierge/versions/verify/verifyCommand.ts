@@ -3,7 +3,7 @@ import { Command } from 'command-line-interface';
 import fs from 'fs';
 import { getApplicationRoot } from '../../../../common/application/getApplicationRoot';
 import { getBaseImageVersionFromDockerfile } from './getBaseImageVersionFromDockerfile';
-import { minVersion } from 'semver';
+import { getVersionNumber } from './getVersionNumber';
 import { PackageManifest } from '../../../../common/application/PackageManifest';
 import path from 'path';
 import { validateMode } from './validateMode';
@@ -39,6 +39,7 @@ const verifyCommand = function (): Command<VerifyOptions> {
         const applicationRoot = await getApplicationRoot({ directory: __dirname });
 
         const nodejsDockerfile = path.join(applicationRoot, 'docker', 'wolkenkit-nodejs', 'Dockerfile');
+        const postgresDockerfile = path.join(applicationRoot, 'docker', 'wolkenkit-postgres', 'Dockerfile');
 
         const roboterPackageJsonPath = path.join(applicationRoot, 'node_modules', 'roboter', 'package.json');
         const roboterPackageJson: PackageManifest = JSON.parse(await fs.promises.readFile(roboterPackageJsonPath, 'utf8'));
@@ -46,29 +47,48 @@ const verifyCommand = function (): Command<VerifyOptions> {
         const wolkenkitPackageJsonPath = path.join(applicationRoot, 'package.json');
         const wolkenkitPackageJson: PackageManifest = JSON.parse(await fs.promises.readFile(wolkenkitPackageJsonPath, 'utf8'));
 
-        const currentVersions: Record<string, { source: string; version: string }[]> = {};
+        const currentVersions: Record<string, { source: string; version: string }[]> = {
+          nodejs: [
+            {
+              source: path.relative(applicationRoot, nodejsDockerfile),
+              version: getVersionNumber({
+                version: await getBaseImageVersionFromDockerfile({ dockerfilePath: nodejsDockerfile })
+              })
+            },
+            {
+              source: path.relative(applicationRoot, wolkenkitPackageJsonPath),
+              version: getVersionNumber({
+                version: wolkenkitPackageJson.engines!.node!
+              })
+            }
+          ],
 
-        currentVersions.nodejs = [
-          {
-            source: path.relative(applicationRoot, nodejsDockerfile),
-            version: await getBaseImageVersionFromDockerfile({ dockerfilePath: nodejsDockerfile })
-          },
-          {
-            source: path.relative(applicationRoot, wolkenkitPackageJsonPath),
-            version: minVersion(wolkenkitPackageJson.engines!.node!)!.version
-          }
-        ];
+          postgres: [
+            {
+              source: path.relative(applicationRoot, postgresDockerfile),
+              version: getVersionNumber({
+                version: await getBaseImageVersionFromDockerfile({ dockerfilePath: postgresDockerfile })
+              })
+            },
+            {
+              source: 'lib/version.ts',
+              version: getVersionNumber({
+                version: versions.dockerImages.postgres
+              })
+            }
+          ],
 
-        currentVersions.typescript = [
-          {
-            source: path.relative(applicationRoot, roboterPackageJsonPath),
-            version: roboterPackageJson.dependencies!.typescript
-          },
-          {
-            source: 'lib/version.ts',
-            version: versions.packages.typescript
-          }
-        ];
+          typescript: [
+            {
+              source: path.relative(applicationRoot, roboterPackageJsonPath),
+              version: roboterPackageJson.dependencies!.typescript
+            },
+            {
+              source: 'lib/version.ts',
+              version: versions.packages.typescript
+            }
+          ]
+        };
 
         let foundInconsistentVersions = false;
 

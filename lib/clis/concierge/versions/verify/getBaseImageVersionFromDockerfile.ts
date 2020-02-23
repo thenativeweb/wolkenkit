@@ -12,13 +12,13 @@ const getBaseImageVersionFromDockerfile = async function ({ dockerfilePath }: {
     throw new errors.InvalidOperation(`FROM statement is missing in '${dockerfilePath}'.`);
   }
 
-  const versions = /\d+\.\d+\.\d+/u.exec(from);
+  const [ , version ] = from.split(':');
 
-  if (!versions || versions.length === 0) {
+  if (!version) {
     throw new errors.InvalidOperation(`Failed to extract version from '${dockerfilePath}'.`);
   }
 
-  return versions[0];
+  return version;
 };
 
 export { getBaseImageVersionFromDockerfile };
