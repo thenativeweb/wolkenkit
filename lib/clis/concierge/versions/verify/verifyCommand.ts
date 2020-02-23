@@ -90,6 +90,8 @@ const verifyCommand = function (): Command<VerifyOptions> {
           ]
         };
 
+        buntstift.info(`Verifying versions...`);
+
         let foundInconsistentVersions = false;
 
         for (const [ name, currentVersionsByName ] of Object.entries(currentVersions)) {
