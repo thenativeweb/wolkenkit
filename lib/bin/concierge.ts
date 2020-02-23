@@ -2,7 +2,7 @@
 
 import { buntstift } from 'buntstift';
 import { getHandlers } from '../clis/getHandlers';
-import { rootCommand } from '../clis/wolkenkit/rootCommand';
+import { rootCommand } from '../clis/concierge/rootCommand';
 import { runCli } from 'command-line-interface';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */

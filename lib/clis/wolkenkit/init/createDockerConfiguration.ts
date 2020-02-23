@@ -5,7 +5,7 @@ import { getSingleProcessInMemoryManifest } from './docker-compose/getSingleProc
 import { getSingleProcessPostgresManifest } from './docker-compose/getSingleProcessPostgresManifest';
 import path from 'path';
 import { stripIndent } from 'common-tags';
-import { versions } from '../../versions';
+import { versions } from '../../../versions';
 
 const createDockerConfiguration = async function ({ directory, name }: {
   directory: string;
