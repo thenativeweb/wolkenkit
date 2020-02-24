@@ -7,6 +7,7 @@ import {
   classNames,
   createUseStyles,
   Footer,
+  getLanguageFromUrl,
   HorizontalBar,
   Link,
   MobileToggle,
@@ -26,11 +27,22 @@ import React, { FunctionComponent, ReactElement, useCallback, useEffect, useStat
 
 const useStyles = createUseStyles<Theme, DocumentationClassNames>(styles);
 
-const Documentation: FunctionComponent = ({ children }): ReactElement => {
+const Documentation: FunctionComponent = ({ children }): ReactElement | null => {
   const router = useRouter();
   const classes = useStyles();
   const device = useDevice();
-  const pageTree = new PageTree({ items: navigation });
+
+  const language = getLanguageFromUrl(router.asPath);
+  const items = navigation[language];
+
+  if (!Array.isArray(items)) {
+    return null;
+  }
+
+  const pageTree = new PageTree({
+    items,
+    basePath: `/${language}`
+  });
   const isMobile = device === 'xs';
 
   const [ isNavigationVisible, setIsNavigationVisible ] = useState(true);
