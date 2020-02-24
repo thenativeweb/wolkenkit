@@ -170,7 +170,7 @@
     "nodeenv": "3.0.0",
     "qs": "6.9.1",
     "record-stdstreams": "3.0.0",
-    "roboter": "11.0.23",
+    "roboter": "11.0.24",
     "streamtoarray": "3.0.0",
     "wait-for-signals": "1.0.0"
   },
