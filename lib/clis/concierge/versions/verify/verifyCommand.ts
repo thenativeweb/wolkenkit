@@ -2,7 +2,7 @@ import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import fs from 'fs';
 import { getApplicationRoot } from '../../../../common/application/getApplicationRoot';
-import { getBaseImageVersionFromDockerfile } from './getBaseImageVersionFromDockerfile';
+import { getBaseImageVersionsFromDockerfile } from './getBaseImageVersionsFromDockerfile';
 import { getVersionNumber } from './getVersionNumber';
 import { PackageManifest } from '../../../../common/application/PackageManifest';
 import path from 'path';
@@ -49,12 +49,13 @@ const verifyCommand = function (): Command<VerifyOptions> {
 
         const currentVersions: Record<string, { source: string; version: string }[]> = {
           nodejs: [
-            {
-              source: path.relative(applicationRoot, nodejsDockerfile),
-              version: getVersionNumber({
-                version: await getBaseImageVersionFromDockerfile({ dockerfilePath: nodejsDockerfile })
-              })
-            },
+            ...(await getBaseImageVersionsFromDockerfile({
+              dockerfilePath: nodejsDockerfile,
+              baseImage: 'node'
+            })).map((imageVersion): { source: string; version: string } => ({
+              source: `${path.relative(applicationRoot, nodejsDockerfile)}#${imageVersion.line}`,
+              version: getVersionNumber({ version: imageVersion.version })
+            })),
             {
               source: path.relative(applicationRoot, wolkenkitPackageJsonPath),
               version: getVersionNumber({
@@ -64,12 +65,13 @@ const verifyCommand = function (): Command<VerifyOptions> {
           ],
 
           postgres: [
-            {
-              source: path.relative(applicationRoot, postgresDockerfile),
-              version: getVersionNumber({
-                version: await getBaseImageVersionFromDockerfile({ dockerfilePath: postgresDockerfile })
-              })
-            },
+            ...(await getBaseImageVersionsFromDockerfile({
+              dockerfilePath: postgresDockerfile,
+              baseImage: 'postgres'
+            })).map((imageVersion): { source: string; version: string } => ({
+              source: `${path.relative(applicationRoot, nodejsDockerfile)}#${imageVersion.line}`,
+              version: getVersionNumber({ version: imageVersion.version })
+            })),
             {
               source: 'lib/version.ts',
               version: getVersionNumber({
