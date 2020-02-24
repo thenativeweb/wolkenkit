@@ -140,7 +140,7 @@
     "tarn": "2.0.0",
     "tedious": "8.0.1",
     "untildify": "4.0.0",
-    "uuidv4": "6.0.2",
+    "uuidv4": "6.0.3",
     "validate-value": "7.0.0"
   },
   "devDependencies": {
@@ -176,7 +176,7 @@
     "react": "16.12.0",
     "react-dom": "16.12.0",
     "record-stdstreams": "3.0.0",
-    "roboter": "11.0.23",
+    "roboter": "11.0.24",
     "streamtoarray": "3.0.0",
     "thenativeweb-ux": "3.2.2",
     "wait-for-signals": "1.0.0"
