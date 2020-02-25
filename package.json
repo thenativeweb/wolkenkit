@@ -115,7 +115,7 @@
     "cors": "2.8.5",
     "defekt": "5.0.1",
     "express": "4.17.1",
-    "flaschenpost": "4.0.2",
+    "flaschenpost": "4.0.3",
     "get-cors-origin": "4.0.1",
     "is-typescript": "4.0.0",
     "isolated": "3.0.0",
