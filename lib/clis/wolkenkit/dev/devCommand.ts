@@ -1,14 +1,14 @@
-import { buildApplication } from '../../common/application/buildApplication';
+import { buildApplication } from '../../../common/application/buildApplication';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { DevOptions } from './DevOptions';
-import { errors } from '../../common/errors';
-import { getAbsolutePath } from '../../common/utils/path/getAbsolutePath';
-import { getApplicationPackageJson } from '../../common/application/getApplicationPackageJson';
-import { getApplicationRoot } from '../../common/application/getApplicationRoot';
+import { errors } from '../../../common/errors';
+import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
+import { getApplicationPackageJson } from '../../../common/application/getApplicationPackageJson';
+import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
 import { printFooter } from '../printFooter';
 import { processenv } from 'processenv';
-import { startProcess } from '../../runtimes/shared/startProcess';
+import { startProcess } from '../../../runtimes/shared/startProcess';
 import { validatePort } from './validatePort';
 
 const devCommand = function (): Command<DevOptions> {

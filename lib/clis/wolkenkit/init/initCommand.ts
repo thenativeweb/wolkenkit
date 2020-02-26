@@ -1,13 +1,13 @@
 import { adjustPackageJson } from './adjustPackageJson';
-import { arrayToSentence } from '../../common/utils/arrayToSentence';
+import { arrayToSentence } from '../../../common/utils/arrayToSentence';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { cp } from 'shelljs';
 import { createDockerConfiguration } from './createDockerConfiguration';
-import { errors } from '../../common/errors';
-import { exists } from '../../common/utils/fs/exists';
-import { getAbsolutePath } from '../../common/utils/path/getAbsolutePath';
-import { getApplicationRoot } from '../../common/application/getApplicationRoot';
+import { errors } from '../../../common/errors';
+import { exists } from '../../../common/utils/fs/exists';
+import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
+import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
 import { InitOptions } from './InitOptions';
 import { languages } from './languages';
 import { map } from 'lodash';
@@ -158,7 +158,7 @@ const initCommand = function (): Command<InitOptions> {
         buntstift.newLine();
         printFooter();
       } catch (ex) {
-        buntstift.error(`Failed to initialize the application.`);
+        buntstift.error('Failed to initialize the application.');
 
         throw ex;
       } finally {

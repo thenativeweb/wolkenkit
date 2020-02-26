@@ -1,4 +1,4 @@
-import { versions } from '../../../versions';
+import { versions } from '../../../../versions';
 
 const getMicroserviceInMemoryManifest = function ({ appName }: {
   appName: string;

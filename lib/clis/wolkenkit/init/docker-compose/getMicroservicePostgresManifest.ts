@@ -1,4 +1,4 @@
-import { versions } from '../../../versions';
+import { versions } from '../../../../versions';
 
 const getMicroservicePostgresManifest = function ({ appName }: {
   appName: string;

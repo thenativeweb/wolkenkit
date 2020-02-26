@@ -4,7 +4,7 @@ const versions = {
     'docker-compose': '3.7'
   },
   packages: {
-    typescript: '3.7.5'
+    typescript: '3.8.2'
   },
   dockerImages: {
     postgres: '12.2-alpine'
