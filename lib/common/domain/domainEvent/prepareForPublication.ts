@@ -1,14 +1,14 @@
-import { ApplicationDefinition } from '../../../../../common/application/ApplicationDefinition';
-import { DomainEvent } from '../../../../../common/elements/DomainEvent';
-import { DomainEventData } from '../../../../../common/elements/DomainEventData';
-import { DomainEventWithState } from '../../../../../common/elements/DomainEventWithState';
+import { ApplicationDefinition } from '../../application/ApplicationDefinition';
+import { DomainEvent } from '../../elements/DomainEvent';
+import { DomainEventData } from '../../elements/DomainEventData';
+import { DomainEventWithState } from '../../elements/DomainEventWithState';
 import { filterDomainEvent } from './filterDomainEvent';
 import { isDomainEventAuthorized } from './isDomainEventAuthorized';
 import { mapDomainEvent } from './mapDomainEvent';
 import { partOf } from 'partof';
-import { Repository } from '../../../../../common/domain/Repository';
+import { Repository } from '../Repository';
 import { Services } from './Services';
-import { State } from '../../../../../common/elements/State';
+import { State } from '../../elements/State';
 
 const prepareForPublication = async function ({
   domainEventWithState,

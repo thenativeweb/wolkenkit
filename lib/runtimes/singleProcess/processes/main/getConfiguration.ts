@@ -19,6 +19,14 @@ const getConfiguration = function (): Configuration {
         minLength: 1
       }
     },
+    REST_API: {
+      default: true,
+      schema: { type: 'boolean' }
+    },
+    GRAPHQL_API: {
+      default: false,
+      schema: { type: 'boolean' }
+    },
     CORS_ORIGIN: {
       default: '*',
       schema: corsSchema

@@ -1,8 +1,10 @@
+import { ApolloServer } from 'apollo-server-express';
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
 import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
+import { getApi as getSubscribeDomainEventsApi } from '../../../../apis/graphql/subscribeDomainEvents/http';
 import { IdentityProvider } from 'limes';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/PublishDomainEvent';
@@ -21,27 +23,60 @@ const getApi = async function ({
   identityProviders: IdentityProvider[];
   onReceiveCommand: OnReceiveCommand;
   repository: Repository;
-}): Promise<{ api: Application; publishDomainEvent: PublishDomainEvent }> {
-  const { api: observeDomainEventsApi, publishDomainEvent } = await getObserveDomainEventsApi({
-    corsOrigin: getCorsOrigin(configuration.corsOrigin),
-    applicationDefinition,
-    identityProviders,
-    repository
-  });
-
-  const { api: handleCommandApi } = await getHandleCommandApi({
-    corsOrigin: getCorsOrigin(configuration.corsOrigin),
-    onReceiveCommand,
-    applicationDefinition,
-    identityProviders
-  });
-
+}): Promise<{ api: Application; publishDomainEvent: PublishDomainEvent; graphqlServer: undefined | ApolloServer }> {
   const api = express();
+  const corsOrigin = getCorsOrigin(configuration.corsOrigin);
 
-  api.use('/domain-events', observeDomainEventsApi);
-  api.use('/command', handleCommandApi);
+  let graphqlServer: undefined | ApolloServer,
+      publishDomainEventToGraphqlApi: undefined | PublishDomainEvent,
+      publishDomainEventToRestApi: undefined | PublishDomainEvent;
 
-  return { api, publishDomainEvent };
+  if (configuration.restApi) {
+    const { api: observeDomainEventsApi, publishDomainEvent } = await getObserveDomainEventsApi({
+      corsOrigin,
+      applicationDefinition,
+      identityProviders,
+      repository
+    });
+
+    publishDomainEventToRestApi = publishDomainEvent;
+
+    const { api: handleCommandApi } = await getHandleCommandApi({
+      corsOrigin,
+      onReceiveCommand,
+      applicationDefinition,
+      identityProviders
+    });
+
+    api.use('/domain-events', observeDomainEventsApi);
+    api.use('/command', handleCommandApi);
+  }
+
+  if (configuration.graphqlApi) {
+    const { api: subscribeDomainEventsApi, publishDomainEvent, graphqlServer: server } = await getSubscribeDomainEventsApi({
+      corsOrigin,
+      applicationDefinition,
+      identityProviders,
+      repository
+    });
+
+    publishDomainEventToGraphqlApi = publishDomainEvent;
+    graphqlServer = server;
+
+    api.use('/graphql', subscribeDomainEventsApi);
+  }
+
+  // eslint-disable-next-line unicorn/consistent-function-scoping
+  const publishDomainEvent: PublishDomainEvent = ({ domainEvent }): void => {
+    if (publishDomainEventToGraphqlApi) {
+      publishDomainEventToGraphqlApi({ domainEvent });
+    }
+    if (publishDomainEventToRestApi) {
+      publishDomainEventToRestApi({ domainEvent });
+    }
+  };
+
+  return { api, graphqlServer, publishDomainEvent };
 };
 
 export { getApi };

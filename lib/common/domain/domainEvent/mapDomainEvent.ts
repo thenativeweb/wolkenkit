@@ -1,9 +1,9 @@
 import { cloneDeep } from 'lodash';
-import { DomainEventData } from '../../../../../common/elements/DomainEventData';
-import { DomainEventHandler } from '../../../../../common/elements/DomainEventHandler';
-import { DomainEventWithState } from '../../../../../common/elements/DomainEventWithState';
+import { DomainEventData } from '../../elements/DomainEventData';
+import { DomainEventHandler } from '../../elements/DomainEventHandler';
+import { DomainEventWithState } from '../../elements/DomainEventWithState';
 import { Services } from './Services';
-import { State } from '../../../../../common/elements/State';
+import { State } from '../../elements/State';
 
 const mapDomainEvent = async function ({
   domainEventWithState,

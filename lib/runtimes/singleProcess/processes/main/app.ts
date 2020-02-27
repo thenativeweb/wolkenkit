@@ -59,7 +59,7 @@ import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
       await priorityQueueStore.enqueue({ item: command });
     };
 
-    const { api, publishDomainEvent } = await getApi({
+    const { api, graphqlServer, publishDomainEvent } = await getApi({
       configuration,
       applicationDefinition,
       identityProviders,
@@ -68,6 +68,9 @@ import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
     });
 
     const server = http.createServer(api);
+
+    // eslint-disable-next-line no-unused-expressions
+    graphqlServer?.installSubscriptionHandlers(server);
 
     await runHealthServer({ corsOrigin: configuration.corsOrigin, port: configuration.healthPort });
 
