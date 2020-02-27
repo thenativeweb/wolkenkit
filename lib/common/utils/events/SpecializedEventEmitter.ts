@@ -32,6 +32,11 @@ class SpecializedEventEmitter<TEventData> {
   public asyncIterator (): AsyncIterator<[TEventData]> {
     return on(this.eventEmitter, SpecializedEventEmitter.eventName);
   }
+
+  // eslint-disable-next-line @typescript-eslint/member-naming
+  public [Symbol.asyncIterator] (): AsyncIterator<[TEventData]> {
+    return on(this.eventEmitter, SpecializedEventEmitter.eventName);
+  }
 }
 
 export { SpecializedEventEmitter };

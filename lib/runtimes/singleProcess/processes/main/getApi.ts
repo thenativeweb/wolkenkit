@@ -2,9 +2,9 @@ import { ApolloServer } from 'apollo-server-express';
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
+import { getApi as getGraphqlApi } from '../../../../apis/graphql/http';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
 import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
-import { getApi as getSubscribeDomainEventsApi } from '../../../../apis/graphql/subscribeDomainEvents/http';
 import { IdentityProvider } from 'limes';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/PublishDomainEvent';
@@ -31,7 +31,7 @@ const getApi = async function ({
       publishDomainEventToGraphqlApi: undefined | PublishDomainEvent,
       publishDomainEventToRestApi: undefined | PublishDomainEvent;
 
-  if (configuration.restApi) {
+  if (configuration.httpApi) {
     const { api: observeDomainEventsApi, publishDomainEvent } = await getObserveDomainEventsApi({
       corsOrigin,
       applicationDefinition,
@@ -52,18 +52,25 @@ const getApi = async function ({
     api.use('/command', handleCommandApi);
   }
 
-  if (configuration.graphqlApi) {
-    const { api: subscribeDomainEventsApi, publishDomainEvent, graphqlServer: server } = await getSubscribeDomainEventsApi({
+  if (configuration.graphqlApi !== false) {
+    const { api: handleCommandGraphqlApi, graphqlServer: server, publishDomainEvent } = await getGraphqlApi({
       corsOrigin,
       applicationDefinition,
       identityProviders,
-      repository
+      handleCommand: {
+        onReceiveCommand
+      },
+      observeDomainEvents: {
+        repository,
+        webSocketEndpoint: configuration.graphqlApi.endpoint
+      },
+      playground: configuration.graphqlApi.playground
     });
 
-    publishDomainEventToGraphqlApi = publishDomainEvent;
     graphqlServer = server;
+    publishDomainEventToGraphqlApi = publishDomainEvent;
 
-    api.use('/graphql', subscribeDomainEventsApi);
+    api.use('/graphql', handleCommandGraphqlApi);
   }
 
   // eslint-disable-next-line unicorn/consistent-function-scoping

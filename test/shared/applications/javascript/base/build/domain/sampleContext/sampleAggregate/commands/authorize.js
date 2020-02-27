@@ -13,11 +13,11 @@ const authorize = {
   },
 
   isAuthorized (state, command) {
-    return command.shouldAuthorize;
+    return command.data.shouldAuthorize;
   },
 
   handle (state, command, { aggregate }) {
-    aggregate.publishDomainEvent('authorized');
+    aggregate.publishDomainEvent('authorized', {});
   }
 };
 

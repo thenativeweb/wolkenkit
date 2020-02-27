@@ -1,10 +1,12 @@
 import { regex } from 'uuidv4';
-import { Schema } from '../elements/Schema';
-import { Value } from 'validate-value';
+import { Schema } from '../../../../common/elements/Schema';
 
 const uuidRegex = regex.v4.toString().slice(1, -1);
 
-const getSchema = function (): Schema {
+// This is a modified copy of the core schema in lib/common/schemas/getCommandSchema.
+// This version replaces the data object with a string.
+// This needs to be kept relatively in sync with the above mentioned schema.
+const getCommandSchema = function (): Schema {
   return {
     type: 'object',
     properties: {
@@ -27,10 +29,8 @@ const getSchema = function (): Schema {
       },
       name: { type: 'string', minLength: 1, format: 'alphanumeric' },
       data: {
-        type: 'object',
-        properties: {},
-        required: [],
-        additionalProperties: true
+        type: 'string',
+        description: `The command's payload as a json string.`
       }
     },
     required: [
@@ -43,8 +43,4 @@ const getSchema = function (): Schema {
   };
 };
 
-const getCommandSchema = function (): Value {
-  return new Value(getSchema());
-};
-
-export { getCommandSchema, getSchema };
+export { getCommandSchema };

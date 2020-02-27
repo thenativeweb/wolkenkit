@@ -15,11 +15,7 @@ const getTypeDefinitions = function (): string {
     ${domainEventGraphQL.typeDefinitions.join('\n')}
     
     type Subscription {
-      domainEvents: ${domainEventGraphQL.typeName}
-    }
-    
-    type Query {
-      _: Boolean
+      domainEvents (filter: String): ${domainEventGraphQL.typeName}
     }
   `;
 };

@@ -2,8 +2,8 @@ import { SnapshotStrategyConfiguration } from '../../../../common/domain/Snapsho
 
 export interface Configuration {
   applicationDirectory: string;
-  restApi: boolean;
-  graphqlApi: boolean;
+  httpApi: boolean;
+  graphqlApi: false | { endpoint: string; playground: boolean };
   corsOrigin: string | string[];
   domainEventStoreOptions: object;
   domainEventStoreType: string;

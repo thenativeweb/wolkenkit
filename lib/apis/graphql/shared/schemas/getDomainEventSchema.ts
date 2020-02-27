@@ -3,6 +3,10 @@ import { Schema } from '../../../../common/elements/Schema';
 
 const uuidRegex = regex.v4.toString().slice(1, -1);
 
+// This is a modified copy of the core schema in lib/common/schemas/getDomainEventSchema.
+// This version does not contain the initiator's claims and replaces the data
+// object with a string.
+// This needs to be kept relatively in sync with the above mentioned schema.
 const getDomainEventSchema = function (): Schema {
   return {
     type: 'object',
