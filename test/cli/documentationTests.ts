@@ -2,8 +2,8 @@ import { assert } from 'assertthat';
 import axios from 'axios';
 import { getAvailablePort } from '../../lib/common/utils/network/getAvailablePort';
 import path from 'path';
+import { retry } from 'retry-ignore-abort';
 import shell from 'shelljs';
-import { sleep } from '../../lib/common/utils/sleep';
 
 const rootPath = path.join(__dirname, '..', '..');
 const cliPath = path.join(rootPath, 'build', 'lib', 'bin', 'wolkenkit.js');
@@ -17,14 +17,14 @@ suite('documentation', function (): void {
 
     const childProcess = shell.exec(documentationCommand, { async: true });
 
-    await sleep({ ms: 2000 });
-
     await assert.that(async (): Promise<void> => {
-      await axios({
-        method: 'get',
-        url: `http://localhost:${port}/`,
-        validateStatus: (status): boolean => status === 200
-      });
+      await retry(async (): Promise<void> => {
+        await axios({
+          method: 'get',
+          url: `http://localhost:${port}/`,
+          validateStatus: (status): boolean => status === 200
+        });
+      }, { maxTimeout: 100, retries: 20 });
     }).is.not.throwingAsync();
 
     childProcess.kill();
