@@ -1,4 +1,4 @@
-import { arrayToSentence } from '../../common/utils/arrayToSentence';
+import { arrayToSentence } from '../../../common/utils/arrayToSentence';
 import { templates } from './templates';
 
 const templateIds = templates.map((template): string => template.id);

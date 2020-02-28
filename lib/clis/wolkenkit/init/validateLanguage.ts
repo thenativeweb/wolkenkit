@@ -1,4 +1,4 @@
-import { arrayToSentence } from '../../common/utils/arrayToSentence';
+import { arrayToSentence } from '../../../common/utils/arrayToSentence';
 import { languages } from './languages';
 
 const languageIds = languages.map((language): string => language.id);

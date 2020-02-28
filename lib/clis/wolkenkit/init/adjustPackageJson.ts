@@ -1,9 +1,9 @@
 import fs from 'fs';
-import { getApplicationRoot } from '../../common/application/getApplicationRoot';
-import { PackageManifest } from '../../common/application/PackageManifest';
+import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
+import { PackageManifest } from '../../../common/application/PackageManifest';
 import path from 'path';
-import { sortKeys } from '../../common/utils/sortKeys';
-import { versions } from '../../versions';
+import { sortKeys } from '../../../common/utils/sortKeys';
+import { versions } from '../../../versions';
 
 const adjustPackageJson = async function ({ packageJson, name, addTypeScript }: {
   packageJson: string;
