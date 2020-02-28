@@ -1,7 +1,6 @@
 import { assert } from 'assertthat';
 import axios from 'axios';
 import { getAvailablePort } from '../../lib/common/utils/network/getAvailablePort';
-import { isolated } from 'isolated';
 import path from 'path';
 import shell from 'shelljs';
 import { sleep } from '../../lib/common/utils/sleep';
