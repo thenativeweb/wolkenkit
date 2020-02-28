@@ -27,7 +27,7 @@ const runCommand = function (): Command<RunOptions> {
 
         stopWaiting();
 
-        exec('npx next', { cwd: documentationDirectory });
+        exec('npx next dev --port 4000', { cwd: documentationDirectory });
       } catch (ex) {
         buntstift.error('Failed to run the documentation.');
 
