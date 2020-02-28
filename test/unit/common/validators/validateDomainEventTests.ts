@@ -1,6 +1,6 @@
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from 'test/shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { CustomError } from 'defekt';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';

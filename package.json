@@ -182,7 +182,8 @@
   },
   "scripts": {
     "concierge": "npx ts-node lib/bin/concierge.ts",
-    "postdeps": "npm run concierge versions verify"
+    "postdeps": "npm run concierge versions verify",
+    "postbuild": "npm run concierge documentation build"
   },
   "repository": {
     "type": "git",
