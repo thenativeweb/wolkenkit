@@ -181,7 +181,8 @@
     "wait-for-signals": "1.0.0"
   },
   "scripts": {
-    "postdeps": "npx ts-node ./lib/bin/concierge.ts versions verify"
+    "concierge": "npx ts-node lib/bin/concierge.ts",
+    "postdeps": "npm run concierge versions verify"
   },
   "repository": {
     "type": "git",

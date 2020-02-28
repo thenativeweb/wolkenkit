@@ -5,7 +5,7 @@ type Navigation = Record<Language, PageTreeItem []>;
 
 /* eslint-disable object-property-newline */
 const navigation: Navigation = {
-  'en-US': [
+  'en-us': [
     { title: 'Introduction', children: [
       { title: 'What is wolkenkit?', children: [
         { title: 'Overview', keywords: [ 'CQRS', 'event-sourcing', 'framework', 'Node.js', 'JavaScript', 'TypeScript' ]},

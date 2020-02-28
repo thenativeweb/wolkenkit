@@ -1,4 +1,5 @@
 import { Command } from 'command-line-interface';
+import { documentationCommand } from './documentation/documentationCommand';
 import { RootOptions } from './RootOptions';
 import { versionsCommand } from './versions/versionsCommand';
 
@@ -25,6 +26,7 @@ const rootCommand = function (): Command<RootOptions> {
     },
 
     subcommands: {
+      documentation: documentationCommand(),
       versions: versionsCommand()
     }
   };
