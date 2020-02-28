@@ -63,7 +63,7 @@ const documentationCommand = function (): Command<DocumentationOptions> {
           });
         });
       } catch (ex) {
-        buntstift.error('Failed to run the application.');
+        buntstift.error('Failed to run the documentation.');
 
         throw ex;
       } finally {
