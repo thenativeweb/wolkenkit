@@ -1,6 +1,6 @@
 import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateIdentifier';
 import { Application } from 'express';
-import { asJsonStream } from 'test/shared/http/asJsonStream';
+import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { Client } from '../../../../lib/apis/writeDomainEventStore/http/v2/Client';

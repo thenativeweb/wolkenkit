@@ -1,5 +1,5 @@
 import { assert } from 'assertthat';
-import { getSnapshotStrategy } from 'lib/common/domain/getSnapshotStrategy';
+import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 
 suite('getSnapshotStrategy', (): void => {
   suite('lowest', (): void => {

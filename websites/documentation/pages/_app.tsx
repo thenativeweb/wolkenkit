@@ -1,4 +1,3 @@
-import { Documentation } from '../layouts/Documentation';
 import { theme } from '../theme';
 import { NextApp, Website } from 'thenativeweb-ux';
 import React, { ReactElement } from 'react';
@@ -12,9 +11,7 @@ class CustomApp extends NextApp {
         useNotifications={ true }
         useDialogs={ true }
       >
-        <Documentation>
-          <Component { ...pageProps } />
-        </Documentation>
+        <Component { ...pageProps } />
       </Website>
     ), theme);
   }

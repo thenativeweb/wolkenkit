@@ -1,5 +1,5 @@
 import { assert } from 'assertthat';
-import { getPromiseStatus } from 'lib/common/utils/getPromiseStatus';
+import { getPromiseStatus } from '../../../../lib/common/utils/getPromiseStatus';
 
 suite('getPromiseStatus', (): void => {
   test(`returns 'resolved' for a resolved promise.`, async (): Promise<void> => {

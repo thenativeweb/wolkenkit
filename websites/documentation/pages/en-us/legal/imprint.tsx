@@ -1,9 +1,10 @@
 /* eslint-disable react/jsx-child-element-spacing */
+import { Documentation } from '../../../layouts/Documentation';
 import { Headline, Paragraph } from 'thenativeweb-ux';
-import React, { Fragment, ReactElement } from 'react';
+import React, { ReactElement } from 'react';
 
 export default (): ReactElement => (
-  <Fragment>
+  <Documentation>
     <Headline level='1'>
       Imprint
     </Headline>
@@ -50,6 +51,6 @@ export default (): ReactElement => (
     <Paragraph>
       Read our privacy policy
     </Paragraph>
-  </Fragment>
+  </Documentation>
 );
 /* eslint-enable react/jsx-child-element-spacing */
