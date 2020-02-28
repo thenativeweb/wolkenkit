@@ -140,7 +140,7 @@ const Documentation: FunctionComponent = ({ children }): ReactElement | null => 
 
         { children }
 
-        <Footer yearOfCreation={ 2017 } />
+        <Footer yearOfCreation={ 2016 } />
       </div>
     </div>
   );
