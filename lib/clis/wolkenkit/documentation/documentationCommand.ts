@@ -14,7 +14,7 @@ const logger = flaschenpost.getLogger();
 const documentationCommand = function (): Command<DocumentationOptions> {
   return {
     name: 'documentation',
-    description: 'Run the wolkenkit documentation.',
+    description: 'Start the wolkenkit documentation.',
 
     optionDefinitions: [
       {
@@ -40,8 +40,8 @@ const documentationCommand = function (): Command<DocumentationOptions> {
       const stopWaiting = buntstift.wait();
 
       try {
-        buntstift.info(`Running the documentation...`);
-        buntstift.info(`To stop the documentation, press <Ctrl>+<C>.`);
+        buntstift.info('Starting the documentation...');
+        buntstift.info('To stop the documentation, press <Ctrl>+<C>.');
         buntstift.newLine();
         buntstift.info(`  Port  ${port}`);
 
@@ -63,7 +63,7 @@ const documentationCommand = function (): Command<DocumentationOptions> {
           });
         });
       } catch (ex) {
-        buntstift.error('Failed to run the documentation.');
+        buntstift.error('Failed to start the documentation.');
 
         throw ex;
       } finally {

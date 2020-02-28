@@ -1,11 +1,10 @@
 import { assert } from 'assertthat';
 import axios from 'axios';
-import { getAvailablePorts } from 'lib/common/utils/network/getAvailablePorts';
+import { getAvailablePorts } from '../../lib/common/utils/network/getAvailablePorts';
 import { isolated } from 'isolated';
 import path from 'path';
+import { retry } from 'retry-ignore-abort';
 import shell from 'shelljs';
-
-const sleep = async (ms: number): Promise<any> => new Promise((resolve): any => setTimeout(resolve, ms));
 
 const appName = 'test-app';
 const rootPath = path.join(__dirname, '..', '..');
@@ -28,13 +27,15 @@ suite('dev', function (): void {
       async: true
     });
 
-    await sleep(2000);
-
-    await assert.that(async (): Promise<any> => await axios({
-      method: 'get',
-      url: `http://localhost:${healthPort}/health/v2`,
-      validateStatus: (status): boolean => status === 200
-    })).is.not.throwingAsync();
+    await assert.that(async (): Promise<void> => {
+      await retry(async (): Promise<void> => {
+        await axios({
+          method: 'get',
+          url: `http://localhost:${healthPort}/health/v2`,
+          validateStatus: (status): boolean => status === 200
+        });
+      }, { maxTimeout: 100, retries: 20 });
+    }).is.not.throwingAsync();
 
     childProcess.kill();
   });

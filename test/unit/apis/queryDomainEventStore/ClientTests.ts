@@ -1,10 +1,10 @@
 import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateIdentifier';
 import { Application } from 'express';
-import { asJsonStream } from 'test/shared/http/asJsonStream';
+import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { Client } from '../../../../lib/apis/queryDomainEventStore/http/v2/Client';
-import { createDomainEventStore } from 'lib/stores/domainEventStore/createDomainEventStore';
+import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
