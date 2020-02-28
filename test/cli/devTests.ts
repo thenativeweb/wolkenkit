@@ -34,7 +34,7 @@ suite('dev', function (): void {
           url: `http://localhost:${healthPort}/health/v2`,
           validateStatus: (status): boolean => status === 200
         });
-      }, { maxTimeout: 100, retries: 20 });
+      }, { minTimeout: 100, maxTimeout: 100, retries: 20 });
     }).is.not.throwingAsync();
 
     childProcess.kill();
