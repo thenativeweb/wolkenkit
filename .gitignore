@@ -1,8 +1,10 @@
 # Node.js folders
-node_modules/
+/node_modules/
 
 # Build artefacts
 /build/
+/websites/**/.next
+/websites/**/out
 
 # OS generated files and folders
 .DS_Store

@@ -6,3 +6,7 @@
 
 # Application templates
 /templates/
+
+# Next.js build output
+/websites/**/.next
+/websites/**/out
