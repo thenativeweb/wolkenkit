@@ -1,12 +1,11 @@
-import { Styles } from 'jss';
-import { createUseStyles, Headline, Theme } from 'thenativeweb-ux';
+import { ComponentClassNames, createUseStyles, Headline, Theme } from 'thenativeweb-ux';
 import React, { FunctionComponent, ReactElement } from 'react';
 
 type NewsClassNames =
   'News' |
   'Items';
 
-const useStyles = createUseStyles<Theme, NewsClassNames>((theme: Theme): Styles => ({
+const useStyles = createUseStyles<Theme, NewsClassNames>((theme: Theme): ComponentClassNames<NewsClassNames> => ({
   News: {
     display: 'flex',
     flexDirection: 'column',

@@ -1,3 +1,3 @@
-import { redirect } from '../components/redirect';
+import { createRedirect } from 'thenativeweb-ux';
 
-export default redirect('/en-US');
+export default createRedirect('/en-us');

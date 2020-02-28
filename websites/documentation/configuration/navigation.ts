@@ -1,12 +1,11 @@
+import { Language } from '../types/Language';
 import { PageTreeItem } from 'thenativeweb-ux';
-
-export type Language = 'en-US' | string;
 
 type Navigation = Record<Language, PageTreeItem []>;
 
 /* eslint-disable object-property-newline */
 const navigation: Navigation = {
-  'en-US': [
+  'en-us': [
     { title: 'Getting started', children: [
       { title: 'Understanding wolkenkit', children: [
         { title: 'Why wolkenkit?' },

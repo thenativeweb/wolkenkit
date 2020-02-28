@@ -1,6 +1,5 @@
 import { Date } from '../Date';
-import { Styles } from 'jss';
-import { createUseStyles, Theme } from 'thenativeweb-ux';
+import { ComponentClassNames, createUseStyles, Theme } from 'thenativeweb-ux';
 import React, { FunctionComponent, ReactElement } from 'react';
 
 type NewsItemClassNames =
@@ -8,7 +7,7 @@ type NewsItemClassNames =
   'Title' |
   'Date';
 
-const useStyles = createUseStyles<Theme, NewsItemClassNames>((theme: Theme): Styles => ({
+const useStyles = createUseStyles<Theme, NewsItemClassNames>((theme: Theme): ComponentClassNames<NewsItemClassNames> => ({
   NewsItem: {
     padding: `${theme.space(3)}px 0`,
     maxWidth: theme.components.Paragraph.maxWidth,

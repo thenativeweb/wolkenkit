@@ -1,5 +1,4 @@
-import { Styles } from 'jss';
-import { Theme } from 'thenativeweb-ux';
+import { ComponentClassNames, Theme } from 'thenativeweb-ux';
 
 export type DocumentationClassNames =
 'Documentation' |
@@ -14,7 +13,7 @@ const navigationPanelWidthXs = '100%';
 const navigationPanelWidthSm = '200px';
 const navigationPanelWidthMd = '300px';
 
-const styles = (theme: Theme): Styles<DocumentationClassNames> => ({
+const styles = (theme: Theme): ComponentClassNames<DocumentationClassNames> => ({
   Documentation: {
     background: theme.color.brand.white
   },

@@ -169,7 +169,6 @@
     "@types/supertest": "2.0.8",
     "@types/tedious": "4.0.0",
     "assertthat": "5.1.0",
-    "jss": "10.0.2",
     "next": "9.2.2",
     "nodeenv": "3.0.0",
     "qs": "6.9.1",
@@ -178,7 +177,7 @@
     "record-stdstreams": "3.0.0",
     "roboter": "11.1.0",
     "streamtoarray": "3.0.0",
-    "thenativeweb-ux": "3.2.3",
+    "thenativeweb-ux": "3.3.1",
     "wait-for-signals": "1.0.0"
   },
   "scripts": {
