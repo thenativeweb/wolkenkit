@@ -5,64 +5,28 @@ type Navigation = Record<Language, PageTreeItem []>;
 
 /* eslint-disable object-property-newline */
 const navigation: Navigation = {
-  'en-us': [
-    { title: 'Getting started', children: [
-      { title: 'Understanding wolkenkit', children: [
-        { title: 'Why wolkenkit?' },
-        { title: 'Use Cases' },
-        { title: 'Core concepts' },
-        { title: 'Data flow' },
-        { title: 'Architecture' },
-        { title: 'Getting help' }
+  'en-US': [
+    { title: 'Introduction', children: [
+      { title: 'What is wolkenkit?', children: [
+        { title: 'Overview', keywords: [ 'CQRS', 'event-sourcing', 'framework', 'Node.js', 'JavaScript', 'TypeScript' ]},
+        { title: 'Primary features', keywords: [ 'scalability', 'scale', 'learn', 'past', 'insights', 'http', 'graphql' ]},
+        { title: 'Basic architecture', keywords: [ 'runtime', 'process' ]},
+        { title: 'Compatibility to databases', keywords: [ 'PostgreSQL', 'MariaDB', 'MySQL', 'SQL Server', 'MongoDB', 'in-memory' ]},
+        { title: 'Use cases' }
       ]},
-      { title: 'Installing wolkenkit', children: [
-        { title: 'Veryfing system requirements' },
-        { title: 'Installing on macOS' },
-        { title: 'Installing on Linux' },
-        { title: 'Installing on Windows' }
+      { title: 'wolkenkit vs other software', children: [
+        { title: 'Axon' },
+        { title: 'Meteor' },
+        { title: 'Firebase' },
+        { title: 'Hoodie' },
+        { title: 'Parse' },
+        { title: 'Custom solutions' }
       ]},
-      { title: 'Creating your first application', children: [
-        { title: 'Setting the objective' },
-        { title: 'Creating the application' }
-      ]},
-      { title: 'Updating wolkenkit', children: [
-        { title: 'Changelog' },
-        { title: 'Updating an application' }
-      ]},
-      { title: 'Contributing to wolkenkit', children: [
-        { title: 'Overview' },
-        { title: 'Developing ideas for contributions' },
-        { title: 'Submitting a contribution' },
-        { title: 'Sponsoring development' }
+      { title: 'Core concepts', children: [
+        { title: 'CQRS', keywords: [ 'cqs', 'command', 'query', 'separation', 'read', 'write', 'model', 'side', 'projection', 'cap' ]},
+        { title: 'Event-sourcing', keywords: [ 'event-store', 'eventstore', 'replay', 'state', 'delta', 'history', 'fact', 'snapshot' ]},
+        { title: 'Domain-driven design (DDD)', keywords: [ 'command', 'event', 'aggregate', 'bounded', 'context', 'domain' ]}
       ]}
-    ]},
-    { title: 'Guides', children: [
-      { title: 'Creating an application from scratch', children: [
-        { title: 'Why wolkenkit?' },
-        { title: 'Use Cases' },
-        { title: 'Core concpets' },
-        { title: 'Data flow' },
-        { title: 'Architecture' },
-        { title: 'Getting help' }
-      ]}
-    ]},
-    { title: 'Reference', children: []},
-    { title: 'Media', children: [
-      { title: 'Online resources', children: [
-        { title: 'Articles' },
-        { title: 'Blog posts' },
-        { title: 'Videos' }
-      ]},
-      { title: 'Sample Applications', children: [
-        { title: 'wolkenkit-boards' },
-        { title: 'wolkenkit-geocaching' },
-        { title: 'wolkenkit-nevercompletedgame' },
-        { title: 'wolkenkit-template-chat' },
-        { title: 'wolkenkit-todomvc' }
-      ]}
-    ]},
-    { title: 'Legal', children: [
-      { title: 'Imprint' }
     ]}
   ]
 };
