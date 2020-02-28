@@ -5,5 +5,5 @@
 /build
 /node_modules
 /test
-/websites/**/.next
-/websites/**/out
+/websites/documentation/.next
+/websites/documentation/out
