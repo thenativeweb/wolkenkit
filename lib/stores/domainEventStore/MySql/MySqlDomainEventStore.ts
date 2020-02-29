@@ -138,8 +138,10 @@ class MySqlDomainEventStore implements DomainEventStore {
         correlationId BINARY(16) NOT NULL,
         domainEvent JSON NOT NULL,
 
-        PRIMARY KEY(revisionGlobal),
+        PRIMARY KEY (revisionGlobal),
         UNIQUE (aggregateId, revisionAggregate)
+        INDEX (causationId)
+        INDEX (correlationId)
       ) ENGINE=InnoDB;
 
       CREATE TABLE IF NOT EXISTS \`${tableNames.snapshots}\` (
@@ -147,7 +149,7 @@ class MySqlDomainEventStore implements DomainEventStore {
         revisionAggregate INT NOT NULL,
         state JSON NOT NULL,
 
-        PRIMARY KEY(aggregateId, revisionAggregate)
+        PRIMARY KEY (aggregateId, revisionAggregate)
       ) ENGINE=InnoDB;
     `;
 
