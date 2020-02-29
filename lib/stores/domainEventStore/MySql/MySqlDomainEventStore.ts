@@ -139,9 +139,9 @@ class MySqlDomainEventStore implements DomainEventStore {
         domainEvent JSON NOT NULL,
 
         PRIMARY KEY (revisionGlobal),
-        UNIQUE (aggregateId, revisionAggregate)
-        INDEX idxCausationId (causationId)
-        INDEX idxCorrelationId (correlationId)
+        UNIQUE (aggregateId, revisionAggregate),
+        INDEX (causationId),
+        INDEX (correlationId)
       ) ENGINE=InnoDB;
 
       CREATE TABLE IF NOT EXISTS \`${tableNames.snapshots}\` (
