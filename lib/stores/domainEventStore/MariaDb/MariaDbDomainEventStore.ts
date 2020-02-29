@@ -111,8 +111,8 @@ class MariaDbDomainEventStore implements DomainEventStore {
 
         PRIMARY KEY (revisionGlobal),
         UNIQUE (aggregateId, revisionAggregate)
-        INDEX (causationId)
-        INDEX (correlationId)
+        INDEX idxCausationId (causationId)
+        INDEX idxCorrelationId (correlationId)
       ) ENGINE=InnoDB;
 
       CREATE TABLE IF NOT EXISTS \`${tableNames.snapshots}\` (
