@@ -173,7 +173,7 @@
     "nodeenv": "3.0.0",
     "qs": "6.9.1",
     "react": "16.12.0",
-    "react-dom": "16.12.0",
+    "react-dom": "16.13.0",
     "record-stdstreams": "3.0.0",
     "roboter": "11.1.2",
     "streamtoarray": "3.0.0",
