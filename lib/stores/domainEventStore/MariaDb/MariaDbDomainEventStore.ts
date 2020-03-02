@@ -105,12 +105,14 @@ class MariaDbDomainEventStore implements DomainEventStore {
         revisionGlobal SERIAL,
         aggregateId BINARY(16) NOT NULL,
         revisionAggregate INT NOT NULL,
-        causationId VARCHAR(36) NOT NULL,
-        correlationId VARCHAR(36) NOT NULL,
+        causationId BINARY(16) NOT NULL,
+        correlationId BINARY(16) NOT NULL,
         domainEvent JSON NOT NULL,
 
-        PRIMARY KEY(revisionGlobal),
-        UNIQUE (aggregateId, revisionAggregate)
+        PRIMARY KEY (revisionGlobal),
+        UNIQUE (aggregateId, revisionAggregate),
+        INDEX (causationId),
+        INDEX (correlationId)
       ) ENGINE=InnoDB;
 
       CREATE TABLE IF NOT EXISTS \`${tableNames.snapshots}\` (
@@ -118,7 +120,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
         revisionAggregate INT NOT NULL,
         state JSON NOT NULL,
 
-        PRIMARY KEY(aggregateId, revisionAggregate)
+        PRIMARY KEY (aggregateId, revisionAggregate)
       ) ENGINE=InnoDB;
     `;
 

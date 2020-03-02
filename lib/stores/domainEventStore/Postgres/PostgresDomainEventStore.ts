@@ -114,7 +114,7 @@ class PostgresDomainEventStore implements DomainEventStore {
             "correlationId" uuid NOT NULL,
             "domainEvent" jsonb NOT NULL,
 
-            CONSTRAINT "${tableNames.domainEvents}_pk" PRIMARY KEY("revisionGlobal"),
+            CONSTRAINT "${tableNames.domainEvents}_pk" PRIMARY KEY ("revisionGlobal"),
             CONSTRAINT "${tableNames.domainEvents}_aggregateId_revisionAggregate" UNIQUE ("aggregateId", "revisionAggregate")
           );
           CREATE TABLE IF NOT EXISTS "${tableNames.snapshots}" (
@@ -122,7 +122,7 @@ class PostgresDomainEventStore implements DomainEventStore {
             "revisionAggregate" integer NOT NULL,
             "state" jsonb NOT NULL,
 
-            CONSTRAINT "${tableNames.snapshots}_pk" PRIMARY KEY("aggregateId", "revisionAggregate")
+            CONSTRAINT "${tableNames.snapshots}_pk" PRIMARY KEY ("aggregateId", "revisionAggregate")
           );
         `);
       }, {
