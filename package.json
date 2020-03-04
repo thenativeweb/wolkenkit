@@ -175,7 +175,7 @@
     "react": "16.13.0",
     "react-dom": "16.13.0",
     "record-stdstreams": "3.0.0",
-    "roboter": "11.1.2",
+    "roboter": "11.1.4",
     "streamtoarray": "3.0.0",
     "thenativeweb-ux": "3.4.1",
     "wait-for-signals": "1.1.0"
