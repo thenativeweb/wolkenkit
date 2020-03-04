@@ -177,7 +177,7 @@
     "record-stdstreams": "3.0.0",
     "roboter": "11.1.2",
     "streamtoarray": "3.0.0",
-    "thenativeweb-ux": "3.4.1",
+    "thenativeweb-ux": "3.4.3",
     "wait-for-signals": "1.1.0"
   },
   "scripts": {
