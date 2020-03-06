@@ -1,10 +1,10 @@
-import { Documentation } from '../../layouts/Documentation';
+import { DocumentationPage } from '../../layouts/DocumentationPage';
 import { News } from '../../components/News';
 import { NewsItem } from '../../components/NewsItem';
 import React, { ReactElement } from 'react';
 
 export default (): ReactElement => (
-  <Documentation>
+  <DocumentationPage>
     <News>
       <NewsItem
         title='Released wolkenkit 3.1.0 🦄'
@@ -236,5 +236,5 @@ export default (): ReactElement => (
 
       </NewsItem>
     </News>
-  </Documentation>
+  </DocumentationPage>
 );
