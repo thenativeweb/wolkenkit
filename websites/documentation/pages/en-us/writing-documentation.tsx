@@ -1,10 +1,10 @@
-import { Documentation } from '../../layouts/Documentation';
+import { DocumentationPage } from '../../layouts/DocumentationPage';
 import Hint from '../../components/Hint';
 import { Code, Headline, Paragraph } from 'thenativeweb-ux';
 import React, { ReactElement } from 'react';
 
 export default (): ReactElement => (
-  <Documentation>
+  <DocumentationPage>
     <Headline level='1'>
       Writing Documentation
     </Headline>
@@ -110,5 +110,5 @@ export default (): ReactElement => (
         Use this type…
       </Paragraph>
     </Hint>
-  </Documentation>
+  </DocumentationPage>
 );
