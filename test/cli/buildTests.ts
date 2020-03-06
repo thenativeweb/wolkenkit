@@ -4,7 +4,6 @@ import { isolated } from 'isolated';
 import path from 'path';
 import shell from 'shelljs';
 
-const appName = 'test-app';
 const rootPath = path.join(__dirname, '..', '..');
 const cliPath = path.join(rootPath, 'build', 'lib', 'bin', 'wolkenkit.js');
 
@@ -12,10 +11,11 @@ suite('build', function (): void {
   this.timeout(30_000);
 
   test('compiles a TypeScript application to JavaScript.', async (): Promise<void> => {
+    const appName = 'test-app';
     const appDirectory = path.join(await isolated(), appName);
 
-    const initCommand = `node ${cliPath} init --directory ${appDirectory} --template blank --language typescript ${appName}`;
-    const buildCommand = `node ${cliPath} build`;
+    const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language typescript ${appName}`;
+    const buildCommand = `node ${cliPath} --verbose build`;
 
     shell.exec(initCommand);
     shell.exec('npm install', { cwd: appDirectory });
@@ -33,10 +33,11 @@ suite('build', function (): void {
   });
 
   test('copies a JavaScript application to the build directory.', async (): Promise<void> => {
+    const appName = 'test-app';
     const appDirectory = path.join(await isolated(), appName);
 
-    const initCommand = `node ${cliPath} init --directory ${appDirectory} --template blank --language javascript ${appName}`;
-    const buildCommand = `node ${cliPath} build`;
+    const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
+    const buildCommand = `node ${cliPath} --verbose build`;
 
     shell.exec(initCommand);
     shell.exec('npm install', { cwd: appDirectory });

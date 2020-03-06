@@ -2,7 +2,6 @@ import { adjustPackageJson } from './adjustPackageJson';
 import { arrayToSentence } from '../../../common/utils/arrayToSentence';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
-import { cp } from 'shelljs';
 import { createDockerConfiguration } from './createDockerConfiguration';
 import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
@@ -18,6 +17,7 @@ import { templates } from './templates';
 import { validateLanguage } from './validateLanguage';
 import { validateName } from './validateName';
 import { validateTemplate } from './validateTemplate';
+import { cp, mkdir } from 'shelljs';
 
 const initCommand = function (): Command<InitOptions> {
   return {
@@ -90,7 +90,7 @@ const initCommand = function (): Command<InitOptions> {
         }
 
         const targetDirectory = getAbsolutePath({
-          path: directory ?? selectedName,
+          path: directory ?? selectedName.replace(/\//gu, path.sep),
           cwd: process.cwd()
         });
 
@@ -132,7 +132,8 @@ const initCommand = function (): Command<InitOptions> {
         buntstift.info(`Initializing the '${selectedName}' application...`);
 
         buntstift.verbose(`Copying files from ${sourceDirectory} to ${targetDirectory}...`);
-        cp('-R', sourceDirectory, targetDirectory);
+        mkdir('-p', targetDirectory);
+        cp('-R', path.join(sourceDirectory, '*'), targetDirectory);
         buntstift.verbose('Copied files.');
 
         buntstift.verbose(`Adjusting ${packageJson}...`);
