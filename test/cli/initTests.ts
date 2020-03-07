@@ -28,8 +28,8 @@ suite('init', function (): void {
     assert.that(packageJson.name).is.equalTo(appName);
   });
 
-  test('supports numbers in application names.', async (): Promise<void> => {
-    const appName = 'test-app-42';
+  test('sets the application name in the package.json file even when a scope is used.', async (): Promise<void> => {
+    const appName = '@scope/test-app';
     const appDirectory = path.join(await isolated(), appName);
 
     const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
@@ -44,8 +44,8 @@ suite('init', function (): void {
     assert.that(packageJson.name).is.equalTo(appName);
   });
 
-  test('supports scopes in application names.', async (): Promise<void> => {
-    const appName = '@scope/test-app';
+  test('supports numbers in application names.', async (): Promise<void> => {
+    const appName = 'test-app-42';
     const appDirectory = path.join(await isolated(), appName);
 
     const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
@@ -53,11 +53,17 @@ suite('init', function (): void {
     const { code } = shell.exec(initCommand);
 
     assert.that(code).is.equalTo(0);
+  });
 
-    const packageJsonPath = path.join(appDirectory, 'package.json');
-    const packageJson: PackageManifest = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf8'));
+  test('is able to deal with special characters such as spaces in the path to the application.', async (): Promise<void> => {
+    const appName = 'test-app';
+    const appDirectory = path.join(await isolated(), 'something with spaces', appName);
 
-    assert.that(packageJson.name).is.equalTo(appName);
+    const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
+
+    const { code } = shell.exec(initCommand);
+
+    assert.that(code).is.equalTo(0);
   });
 
   test('throws an error if the application directory already exists.', async (): Promise<void> => {
