@@ -15,12 +15,12 @@ suite('dev', function (): void {
 
   test('starts the application.', async (): Promise<void> => {
     const appDirectory = path.join(await isolated(), appName);
-    const initCommand = `node ${cliPath} init --directory ${appDirectory} --template blank --language javascript ${appName}`;
+    const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
 
     shell.exec(initCommand);
 
     const [ port, healthPort ] = await getAvailablePorts({ count: 2 });
-    const devCommand = `node ${cliPath} dev --port ${port} --health-port ${healthPort}`;
+    const devCommand = `node ${cliPath} --verbose dev --port ${port} --health-port ${healthPort}`;
 
     const childProcess = shell.exec(devCommand, {
       cwd: appDirectory,

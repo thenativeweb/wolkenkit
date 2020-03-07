@@ -12,13 +12,15 @@ const cliPath = path.join(rootPath, 'build', 'lib', 'bin', 'wolkenkit.js');
 suite('init', function (): void {
   this.timeout(30_000);
 
-  test('sets the application name.', async (): Promise<void> => {
+  test('sets the application name in the package.json file.', async (): Promise<void> => {
     const appName = 'test-app';
     const appDirectory = path.join(await isolated(), appName);
 
     const initCommand = `node ${cliPath} init --directory ${appDirectory} --template blank --language javascript ${appName}`;
 
-    shell.exec(initCommand);
+    const { code } = shell.exec(initCommand);
+
+    assert.that(code).is.equalTo(0);
 
     const packageJsonPath = path.join(appDirectory, 'package.json');
     const packageJson: PackageManifest = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf8'));
@@ -26,13 +28,15 @@ suite('init', function (): void {
     assert.that(packageJson.name).is.equalTo(appName);
   });
 
-  test('supports numbers.', async (): Promise<void> => {
+  test('supports numbers in application names.', async (): Promise<void> => {
     const appName = 'test-app-42';
     const appDirectory = path.join(await isolated(), appName);
 
     const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
 
-    shell.exec(initCommand);
+    const { code } = shell.exec(initCommand);
+
+    assert.that(code).is.equalTo(0);
 
     const packageJsonPath = path.join(appDirectory, 'package.json');
     const packageJson: PackageManifest = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf8'));
@@ -40,13 +44,15 @@ suite('init', function (): void {
     assert.that(packageJson.name).is.equalTo(appName);
   });
 
-  test('supports scopes.', async (): Promise<void> => {
+  test('supports scopes in application names.', async (): Promise<void> => {
     const appName = '@scope/test-app';
     const appDirectory = path.join(await isolated(), appName);
 
     const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
 
-    shell.exec(initCommand);
+    const { code } = shell.exec(initCommand);
+
+    assert.that(code).is.equalTo(0);
 
     const packageJsonPath = path.join(appDirectory, 'package.json');
     const packageJson: PackageManifest = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf8'));
@@ -54,13 +60,41 @@ suite('init', function (): void {
     assert.that(packageJson.name).is.equalTo(appName);
   });
 
-  test('creates all expected files for the JavaScript blank template.', async (): Promise<void> => {
+  test('throws an error if the application directory already exists.', async (): Promise<void> => {
+    const appName = 'test-app';
+    const appDirectory = await isolated();
+
+    const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
+
+    const { code, stderr } = shell.exec(initCommand);
+
+    assert.that(code).is.equalTo(1);
+    assert.that(stderr.includes('Failed to initialize the application.')).is.true();
+  });
+
+  test('does not throw an error if the application scope directory already exists.', async (): Promise<void> => {
+    const appName = '@scope/test-app';
+    const rootDirectory = await isolated();
+    const appDirectory = path.join(rootDirectory, appName);
+
+    await fs.promises.mkdir(path.join(rootDirectory, '@scope'));
+
+    const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
+
+    const { code } = shell.exec(initCommand);
+
+    assert.that(code).is.equalTo(0);
+  });
+
+  test('initializes a JavaScript application with the desired template.', async (): Promise<void> => {
     const appName = 'test-app';
     const appDirectory = path.join(await isolated(), appName);
 
     const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
 
-    shell.exec(initCommand);
+    const { code } = shell.exec(initCommand);
+
+    assert.that(code).is.equalTo(0);
 
     assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/docker-compose.microservice.in-memory.yml') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/docker-compose.microservice.postgres.yml') })).is.true();
@@ -79,13 +113,15 @@ suite('init', function (): void {
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'queries', 'all.js') })).is.true();
   });
 
-  test('creates all expected files for the TypeScript blank template.', async (): Promise<void> => {
+  test('initializes a TypeScript application with the desired template.', async (): Promise<void> => {
     const appName = 'test-app';
     const appDirectory = path.join(await isolated(), appName);
 
     const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language typescript ${appName}`;
 
-    shell.exec(initCommand);
+    const { code } = shell.exec(initCommand);
+
+    assert.that(code).is.equalTo(0);
 
     assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/docker-compose.microservice.in-memory.yml') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/docker-compose.microservice.postgres.yml') })).is.true();
