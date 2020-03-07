@@ -156,7 +156,7 @@
     "@types/minio": "7.0.5",
     "@types/mongodb": "3.5.2",
     "@types/mysql": "2.15.9",
-    "@types/node": "13.7.7",
+    "@types/node": "13.9.0",
     "@types/pg": "7.14.1",
     "@types/pg-query-stream": "1.0.3",
     "@types/qs": "6.9.1",
@@ -177,7 +177,7 @@
     "record-stdstreams": "3.0.0",
     "roboter": "11.1.2",
     "streamtoarray": "3.0.0",
-    "thenativeweb-ux": "3.4.3",
+    "thenativeweb-ux": "3.5.0",
     "wait-for-signals": "1.1.0"
   },
   "scripts": {
