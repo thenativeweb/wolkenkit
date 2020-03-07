@@ -59,7 +59,7 @@ suite('init', function (): void {
     const appName = 'test-app';
     const appDirectory = path.join(await isolated(), 'something with spaces', appName);
 
-    const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
+    const initCommand = `node ${cliPath} --verbose init --directory '${appDirectory}' --template blank --language javascript ${appName}`;
 
     const { code } = shell.exec(initCommand);
 
