@@ -13,11 +13,18 @@ const authorize = {
   },
 
   isAuthorized (state, command) {
-    return command.shouldAuthorize;
+    // Reject authorization if we cannot see the state properties.
+    // That allows to verify that `handleCommand` passes the state value
+    // instead of the `CurrentAggregateState` wrapper object.
+    if (!Object.prototype.hasOwnProperty.call(state, 'domainEventNames')) {
+      return false;
+    }
+
+    return command.data.shouldAuthorize;
   },
 
   handle (state, command, { aggregate }) {
-    aggregate.publishDomainEvent('authorized');
+    aggregate.publishDomainEvent('authorized', {});
   }
 };
 
