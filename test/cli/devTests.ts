@@ -15,12 +15,12 @@ suite('dev', function (): void {
 
   test('starts the application.', async (): Promise<void> => {
     const appDirectory = path.join(await isolated(), appName);
-    const initCommand = `node ${cliPath} init --directory ${appDirectory} --template blank --language javascript ${appName}`;
+    const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
 
     shell.exec(initCommand);
 
     const [ port, healthPort ] = await getAvailablePorts({ count: 2 });
-    const devCommand = `node ${cliPath} dev --port ${port} --health-port ${healthPort}`;
+    const devCommand = `node ${cliPath} --verbose dev --port ${port} --health-port ${healthPort}`;
 
     const childProcess = shell.exec(devCommand, {
       cwd: appDirectory,
@@ -34,7 +34,7 @@ suite('dev', function (): void {
           url: `http://localhost:${healthPort}/health/v2`,
           validateStatus: (status): boolean => status === 200
         });
-      }, { minTimeout: 100, maxTimeout: 100, retries: 20 });
+      }, { minTimeout: 500, maxTimeout: 500, retries: 20 });
     }).is.not.throwingAsync();
 
     childProcess.kill();
