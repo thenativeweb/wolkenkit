@@ -169,7 +169,7 @@
     "@types/supertest": "2.0.8",
     "@types/tedious": "4.0.0",
     "assertthat": "5.1.0",
-    "next": "9.2.2",
+    "next": "9.3.0",
     "nodeenv": "3.0.0",
     "qs": "6.9.1",
     "react": "16.13.0",
