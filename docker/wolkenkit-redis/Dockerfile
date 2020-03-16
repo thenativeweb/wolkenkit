@@ -1,2 +1,2 @@
-FROM redis:5.0.7-alpine
+FROM redis:5.0.8-alpine
 LABEL maintainer="the native web <hello@thenativeweb.io>"
