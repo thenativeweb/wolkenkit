@@ -129,7 +129,7 @@ suite('handleCommand', (): void => {
       ).is.undefined();
     });
 
-    test(`passes the correct state to the authorize handler.`, async (): Promise<void> => {
+    test('passes the correct state to the isAuthorized handler.', async (): Promise<void> => {
       const aggregateIdentifier = {
         name: 'sampleAggregate',
         id: uuid()
