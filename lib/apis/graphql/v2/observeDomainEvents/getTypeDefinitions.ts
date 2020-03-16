@@ -1,6 +1,6 @@
-import { getDomainEventSchema } from '../../../shared/schemas/getDomainEventSchema';
+import { getDomainEventSchema } from '../../shared/schemas/getDomainEventSchema';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
-import { Schema } from '../../../../../common/elements/Schema';
+import { Schema } from '../../../../common/elements/Schema';
 import { stripIndent } from 'common-tags';
 
 const getTypeDefinitions = function (): string {

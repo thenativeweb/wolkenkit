@@ -1,8 +1,8 @@
-import { ApplicationDefinition } from '../../../../../common/application/ApplicationDefinition';
-import { ClientMetadata } from '../../../../../common/utils/http/ClientMetadata';
+import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { getCommandResolver } from './getCommandResolver';
 import { IResolverObject } from 'graphql-tools';
-import { OnReceiveCommand } from '../../../OnReceiveCommand';
+import { OnReceiveCommand } from '../../OnReceiveCommand';
 
 const getMutationResolvers = function ({ applicationDefinition, onReceiveCommand }: {
   applicationDefinition: ApplicationDefinition;

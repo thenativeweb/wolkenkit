@@ -1,11 +1,11 @@
-import { ApolloServer } from 'apollo-server-express';
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
-import { getApi as getGraphqlApi } from '../../../../apis/graphql/http';
+import { getApi as getGraphqlApi } from '../../../../apis/graphql';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
 import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
 import { IdentityProvider } from 'limes';
+import { InitializeGraphQlOnServer } from '../../../../apis/graphql/InitializeGraphQlOnServer';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
@@ -23,11 +23,15 @@ const getApi = async function ({
   identityProviders: IdentityProvider[];
   onReceiveCommand: OnReceiveCommand;
   repository: Repository;
-}): Promise<{ api: Application; publishDomainEvent: PublishDomainEvent; graphqlServer: undefined | ApolloServer }> {
+}): Promise<{
+    api: Application;
+    publishDomainEvent: PublishDomainEvent;
+    initializeGraphQlOnServer: InitializeGraphQlOnServer | undefined;
+  }> {
   const api = express();
   const corsOrigin = getCorsOrigin(configuration.corsOrigin);
 
-  let graphqlServer: undefined | ApolloServer,
+  let initializeGraphQlOnServer: undefined | InitializeGraphQlOnServer,
       publishDomainEventToGraphqlApi: undefined | PublishDomainEvent,
       publishDomainEventToRestApi: undefined | PublishDomainEvent;
 
@@ -53,7 +57,7 @@ const getApi = async function ({
   }
 
   if (configuration.graphqlApi !== false) {
-    const { api: handleCommandGraphqlApi, graphqlServer: server, publishDomainEvent } = await getGraphqlApi({
+    const { api: graphqlApi, publishDomainEvent, initializeGraphQlOnServer: initializeGraphql } = await getGraphqlApi({
       corsOrigin,
       applicationDefinition,
       identityProviders,
@@ -62,15 +66,15 @@ const getApi = async function ({
       },
       observeDomainEvents: {
         repository,
-        webSocketEndpoint: configuration.graphqlApi.endpoint
+        webSocketEndpoint: '/graphql/v2/'
       },
       playground: configuration.graphqlApi.playground
     });
 
-    graphqlServer = server;
+    initializeGraphQlOnServer = initializeGraphql;
     publishDomainEventToGraphqlApi = publishDomainEvent;
 
-    api.use('/graphql', handleCommandGraphqlApi);
+    api.use('/graphql', graphqlApi);
   }
 
   // eslint-disable-next-line unicorn/consistent-function-scoping
@@ -83,7 +87,7 @@ const getApi = async function ({
     }
   };
 
-  return { api, graphqlServer, publishDomainEvent };
+  return { api, initializeGraphQlOnServer, publishDomainEvent };
 };
 
 export { getApi };

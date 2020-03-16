@@ -3,12 +3,14 @@ import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
 import path from 'path';
 import { withCamelCaseKeys } from '../../../../common/utils/withCamelCaseKeys';
 
 const corsSchema = getCorsSchema();
 const portSchema = getPortSchema();
+const protocolSchema = getProtocolSchema();
 
 const getConfiguration = function (): Configuration {
   const environmentVariables = getEnvironmentVariables({
@@ -19,23 +21,9 @@ const getConfiguration = function (): Configuration {
         minLength: 1
       }
     },
-    HTTP_API: {
-      default: true,
-      schema: { type: 'boolean' }
-    },
-    GRAPHQL_API: {
+    GRAPHQL_PLAYGROUND: {
       default: false,
-      schema: {
-        oneOf: [
-          { type: 'boolean', enum: [ 'false' ]},
-          {
-            type: 'object',
-            properties: {
-              playground: { type: 'boolean' }
-            }
-          }
-        ]
-      }
+      schema: { type: 'boolean' }
     },
     CORS_ORIGIN: {
       default: '*',
@@ -46,14 +34,6 @@ const getConfiguration = function (): Configuration {
       schema: { type: 'object' }
     },
     DOMAIN_EVENT_STORE_TYPE: {
-      default: 'InMemory',
-      schema: { type: 'string' }
-    },
-    LOCK_STORE_OPTIONS: {
-      default: {},
-      schema: { type: 'object' }
-    },
-    LOCK_STORE_TYPE: {
       default: 'InMemory',
       schema: { type: 'string' }
     },
@@ -69,19 +49,24 @@ const getConfiguration = function (): Configuration {
       default: 3001,
       schema: portSchema
     },
+    SUBSCRIBE_MESSAGES_PROTOCOL: {
+      default: 'http',
+      schema: protocolSchema
+    },
+    SUBSCRIBE_MESSAGES_HOST_NAME: {
+      default: 'publisher',
+      schema: {
+        type: 'string',
+        format: 'hostname'
+      }
+    },
+    SUBSCRIBE_MESSAGES_PORT: {
+      default: 3000,
+      schema: portSchema
+    },
     SNAPSHOT_STRATEGY: {
       default: { name: 'revision', configuration: { revisionLimit: 100 }},
       schema: getSnapshotStrategySchema()
-    },
-    CONCURRENT_COMMANDS: {
-      default: 1,
-      schema: {
-        type: 'number',
-        minimum: 1
-      }
-    },
-    COMMAND_QUEUE_RENEW_INTERVAL: {
-      default: 5_000
     }
   });
 

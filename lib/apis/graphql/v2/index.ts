@@ -1,24 +1,26 @@
 import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
-import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
+import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
+import { ClientMetadata } from '../../../common/utils/http/ClientMetadata';
 import { CorsOrigin } from 'get-cors-origin';
-import { DomainEventData } from '../../../../common/elements/DomainEventData';
-import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
-import { getApiBase } from '../../../base/getApiBase';
-import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
+import { DomainEventData } from '../../../common/elements/DomainEventData';
+import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
+import { getApiBase } from '../../base/getApiBase';
+import { getAuthenticationMiddleware } from '../../base/getAuthenticationMiddleware';
 import { getTypeDefinitions as getHandleCommandTypeDefinitions } from './handleCommand/getTypeDefinitions';
 import { getMutationResolvers } from './handleCommand/getMutationResolvers';
 import { getTypeDefinitions as getObserveDomainEventsTypeDefinitions } from './observeDomainEvents/getTypeDefinitions';
 import { getSubscriptionOptions } from './observeDomainEvents/getSubscriptionOptions';
 import { getSubscriptionResolvers } from './observeDomainEvents/getSubscriptionResolvers';
 import { IdentityProvider } from 'limes';
-import { OnReceiveCommand } from '../../OnReceiveCommand';
-import { PublishDomainEvent } from '../../PublishDomainEvent';
-import { Repository } from '../../../../common/domain/Repository';
-import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
-import { State } from '../../../../common/elements/State';
+import { InitializeGraphQlOnServer } from '../InitializeGraphQlOnServer';
+import { OnReceiveCommand } from '../OnReceiveCommand';
+import { PublishDomainEvent } from '../PublishDomainEvent';
+import { Repository } from '../../../common/domain/Repository';
+import { Server } from 'http';
+import { SpecializedEventEmitter } from '../../../common/utils/events/SpecializedEventEmitter';
+import { State } from '../../../common/elements/State';
 import { stripIndent } from 'common-tags';
-import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
+import { validateDomainEventWithState } from '../../../common/validators/validateDomainEventWithState';
 import { ApolloServer, gql } from 'apollo-server-express';
 
 const getV2 = async function ({
@@ -37,13 +39,13 @@ const getV2 = async function ({
   playground: boolean;
 }): Promise<{
     api: Application;
-    graphqlServer: ApolloServer;
     publishDomainEvent?: PublishDomainEvent;
+    initializeGraphQlOnServer: InitializeGraphQlOnServer;
   }> {
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
-      body: { parser: false }
+      body: { parser: { sizeLimit: 100_000 }}
     },
     response: {
       headers: { cache: false }
@@ -110,7 +112,8 @@ const getV2 = async function ({
     subscriptions: observeDomainEvents !== false ?
       getSubscriptionOptions({
         identityProviders,
-        webSocketEndpoint: observeDomainEvents.webSocketEndpoint
+        webSocketEndpoint: observeDomainEvents.webSocketEndpoint,
+        issuerForAnonymousTokens: 'https://token.invalid'
       }) :
       undefined,
     introspection: true,
@@ -123,9 +126,18 @@ const getV2 = async function ({
       false
   });
 
-  graphqlServer.applyMiddleware({ app: api });
+  graphqlServer.applyMiddleware({
+    app: api,
+    path: '/'
+  });
 
-  return { api, graphqlServer, publishDomainEvent };
+  const initializeGraphQlOnServer = async ({ server }: {
+    server: Server;
+  }): Promise<void> => {
+    graphqlServer.installSubscriptionHandlers(server);
+  };
+
+  return { api, publishDomainEvent, initializeGraphQlOnServer };
 };
 
 export { getV2 };

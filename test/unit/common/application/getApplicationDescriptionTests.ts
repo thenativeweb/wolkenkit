@@ -13,6 +13,21 @@ suite('getApplicationDescription', (): void => {
       commands: {
         sampleContext: {
           sampleAggregate: {
+            authenticate: {
+              documentation: undefined,
+              schema: {
+                type: 'object',
+                properties: {
+                  allowAnonymous: {
+                    type: 'boolean'
+                  }
+                },
+                required: [
+                  'allowAnonymous'
+                ],
+                additionalProperties: false
+              }
+            },
             authorize: {
               documentation: undefined,
               schema: {
@@ -41,11 +56,68 @@ suite('getApplicationDescription', (): void => {
       domainEvents: {
         sampleContext: {
           sampleAggregate: {
+            authenticated: {
+              documentation: undefined,
+              schema: {
+                type: 'object',
+                properties: {},
+                additionalProperties: false
+              }
+            },
             authorized: {
               documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {},
+                additionalProperties: false
+              }
+            },
+            succeeded: {
+              documentation: undefined,
+              schema: {
+                type: 'object',
+                properties: {},
+                additionalProperties: false
+              }
+            },
+            executed: {
+              documentation: undefined,
+              schema: {
+                type: 'object',
+                properties: {
+                  strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                },
+                required: [ 'strategy' ],
+                additionalProperties: false
+              }
+            },
+            authenticateFailed: {
+              documentation: undefined,
+              schema: {
+                type: 'object',
+                properties: {
+                  reason: {
+                    type: 'string'
+                  }
+                },
+                required: [
+                  'reason'
+                ],
+                additionalProperties: false
+              }
+            },
+            authenticateRejected: {
+              documentation: undefined,
+              schema: {
+                type: 'object',
+                properties: {
+                  reason: {
+                    type: 'string'
+                  }
+                },
+                required: [
+                  'reason'
+                ],
                 additionalProperties: false
               }
             },
@@ -68,21 +140,6 @@ suite('getApplicationDescription', (): void => {
                   reason: { type: 'string' }
                 },
                 required: [ 'reason' ],
-                additionalProperties: false
-              }
-            },
-            succeeded: {
-              documentation: undefined,
-              schema: undefined
-            },
-            executed: {
-              documentation: undefined,
-              schema: {
-                type: 'object',
-                properties: {
-                  strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
-                },
-                required: [ 'strategy' ],
                 additionalProperties: false
               }
             },

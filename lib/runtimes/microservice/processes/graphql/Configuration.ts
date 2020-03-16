@@ -2,17 +2,15 @@ import { SnapshotStrategyConfiguration } from '../../../../common/domain/Snapsho
 
 export interface Configuration {
   applicationDirectory: string;
-  httpApi: boolean;
-  graphqlApi: false | { playground: boolean };
+  graphqlPlayground: boolean;
   corsOrigin: string | string[];
   domainEventStoreOptions: object;
   domainEventStoreType: string;
-  lockStoreOptions: object;
-  lockStoreType: string;
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
   healthPort: number;
+  subscribeMessagesProtocol: string;
+  subscribeMessagesHostName: string;
+  subscribeMessagesPort: number;
   snapshotStrategy: SnapshotStrategyConfiguration;
-  concurrentCommands: number;
-  commandQueueRenewInterval: number;
 }

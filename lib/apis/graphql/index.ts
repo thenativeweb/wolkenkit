@@ -1,11 +1,11 @@
-import { ApolloServer } from 'apollo-server-express';
-import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
+import { ApplicationDefinition } from '../../common/application/ApplicationDefinition';
 import { CorsOrigin } from 'get-cors-origin';
 import { getV2 } from './v2';
 import { IdentityProvider } from 'limes';
-import { OnReceiveCommand } from '../OnReceiveCommand';
-import { PublishDomainEvent } from '../PublishDomainEvent';
-import { Repository } from '../../../common/domain/Repository';
+import { InitializeGraphQlOnServer } from './InitializeGraphQlOnServer';
+import { OnReceiveCommand } from './OnReceiveCommand';
+import { PublishDomainEvent } from './PublishDomainEvent';
+import { Repository } from '../../common/domain/Repository';
 import express, { Application } from 'express';
 
 const getApi = async function ({
@@ -24,8 +24,8 @@ const getApi = async function ({
   playground: boolean;
 }): Promise<{
     api: Application;
-    graphqlServer: ApolloServer;
     publishDomainEvent?: PublishDomainEvent;
+    initializeGraphQlOnServer: InitializeGraphQlOnServer;
   }> {
   const api = express();
 
@@ -42,8 +42,8 @@ const getApi = async function ({
 
   return {
     api,
-    graphqlServer: v2.graphqlServer,
-    publishDomainEvent: v2.publishDomainEvent
+    publishDomainEvent: v2.publishDomainEvent,
+    initializeGraphQlOnServer: v2.initializeGraphQlOnServer
   };
 };
 

@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../../../../common/application/ApplicationDefinition';
+import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { stripIndent } from 'common-tags';
 
@@ -21,6 +21,14 @@ const getTypeDefinitions = function ({ applicationDefinition }: {
         // eslint-disable-next-line @typescript-eslint/unbound-method
         if (!commandHandler.getSchema) {
           throw new Error(`Schema in command '${contextName}.${aggregateName}.${commandName}' is missing, but required for GraphQL.`);
+        }
+
+        const schema = commandHandler.getSchema();
+
+        if (schema.type === 'object' && Object.keys(schema.properties as object).length === 0) {
+          aggregateSchema += `  ${commandName}: CommandId\n`;
+
+          continue;
         }
 
         const typeDefs = getGraphqlFromJsonSchema({

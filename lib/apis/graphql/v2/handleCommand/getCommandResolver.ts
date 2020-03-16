@@ -1,15 +1,15 @@
-import { AggregateIdentifier } from '../../../../../common/elements/AggregateIdentifier';
-import { ApplicationDefinition } from '../../../../../common/application/ApplicationDefinition';
-import { ClientMetadata } from '../../../../../common/utils/http/ClientMetadata';
+import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
+import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { cloneDeep } from 'lodash';
-import { Command } from '../../../../../common/elements/Command';
-import { CommandWithMetadata } from '../../../../../common/elements/CommandWithMetadata';
-import { ContextIdentifier } from '../../../../../common/elements/ContextIdentifier';
+import { Command } from '../../../../common/elements/Command';
+import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
+import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { flaschenpost } from 'flaschenpost';
 import { IFieldResolver } from 'graphql-tools';
-import { OnReceiveCommand } from '../../../OnReceiveCommand';
+import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { uuid } from 'uuidv4';
-import { validateCommand } from '../../../../../common/validators/validateCommand';
+import { validateCommand } from '../../../../common/validators/validateCommand';
 
 const logger = flaschenpost.getLogger();
 
@@ -31,7 +31,7 @@ const getCommandResolver = function ({
       contextIdentifier,
       aggregateIdentifier,
       name: commandName,
-      data: cloneDeep(data)
+      data: data === undefined ? {} : cloneDeep(data)
     });
 
     validateCommand({ command, applicationDefinition });

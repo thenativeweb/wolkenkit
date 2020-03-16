@@ -3,7 +3,8 @@
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
-import { createLockStore } from '../../../../stores/lockStore/createLockStore';
+import { DomainEventData } from '../../../../common/elements/DomainEventData';
+import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
@@ -13,12 +14,11 @@ import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrate
 import http from 'http';
 import { InMemoryPriorityQueueStore } from '../../../../stores/priorityQueueStore/InMemory';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
-import pForever from 'p-forever';
-import { processCommand } from './processCommand';
-import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
-import { runHealthServer } from '../../../shared/runHealthServer';
+import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
+import { State } from '../../../../common/elements/State';
+import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -40,11 +40,6 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const domainEventStore = await createDomainEventStore({
       type: configuration.domainEventStoreType,
       options: configuration.domainEventStoreOptions
-    });
-
-    const lockStore = await createLockStore({
-      type: configuration.lockStoreType,
-      options: configuration.lockStoreOptions
     });
 
     const repository = new Repository({
@@ -71,31 +66,32 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     await initializeGraphQlOnServer?.({ server });
 
-    await runHealthServer({ corsOrigin: configuration.corsOrigin, port: configuration.healthPort });
-
-    server.listen(configuration.port, (): void => {
-      logger.info('Single process runtime server started.', { port: configuration.port });
+    const subscribeMessagesClient = new SubscribeMessagesClient({
+      protocol: configuration.subscribeMessagesProtocol,
+      hostName: configuration.subscribeMessagesHostName,
+      port: configuration.subscribeMessagesPort,
+      path: '/subscribe/v2'
     });
 
-    const publishDomainEvents: PublishDomainEvents = async function ({ domainEvents }): Promise<void> {
-      for (const domainEvent of domainEvents) {
-        publishDomainEvent({ domainEvent });
-      }
-    };
+    const messageStream = await subscribeMessagesClient.getMessages();
 
-    for (let i = 0; i < configuration.concurrentCommands; i++) {
-      pForever(async (): Promise<void> => {
-        await processCommand({
-          applicationDefinition,
-          repository,
-          lockStore,
-          priorityQueue: {
-            store: priorityQueueStore,
-            renewalInterval: configuration.commandQueueRenewInterval
-          },
-          publishDomainEvents
-        });
+    await runHealthServer({ corsOrigin: configuration.corsOrigin, port: configuration.healthPort });
+
+    await new Promise((resolve): void => {
+      server.listen(configuration.port, (): void => {
+        resolve();
       });
+    });
+
+    logger.info(
+      'Graphql server started.',
+      { port: configuration.port, healthPort: configuration.healthPort }
+    );
+
+    for await (const message of messageStream) {
+      const domainEvent = new DomainEventWithState<DomainEventData, State>(message);
+
+      publishDomainEvent({ domainEvent });
     }
   } catch (ex) {
     logger.fatal('An unexpected error occured.', { ex });
