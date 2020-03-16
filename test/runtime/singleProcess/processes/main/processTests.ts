@@ -239,7 +239,7 @@ suite('main', function (): void {
 
       const collector = waitForSignals({ count: 2 });
 
-      observable.subscribe(async (message): Promise<void> => {
+      observable.subscribe(async (): Promise<void> => {
         await collector.signal();
       });
 

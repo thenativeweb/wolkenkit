@@ -23,6 +23,7 @@ suite('getTypeDefinitions', (): void => {
                   };
                 },
                 async handle (): Promise<void> {
+                  // Intentionally left empty.
                 },
                 async isAuthorized (): Promise<boolean> {
                   return true;
@@ -54,8 +55,6 @@ suite('getTypeDefinitions', (): void => {
           _: Boolean
       }
     `;
-
-    console.log(typeDefinitions);
 
     assert.that((): void => {
       // eslint-disable-next-line no-new

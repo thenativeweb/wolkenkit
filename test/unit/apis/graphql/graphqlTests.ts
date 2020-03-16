@@ -1,5 +1,4 @@
 import { ApolloClient } from 'apollo-client';
-import { ApolloServer } from 'apollo-server-express';
 import { Application } from 'express';
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { assert } from 'assertthat';
