@@ -101,9 +101,10 @@ const getV2 = async function ({
       connection
     }): { clientMetadata: ClientMetadata } {
       if (observeDomainEvents !== false && connection) {
-        // If observeDomainEvents is true, the subscription options below will
-        // add the clientMetadata to the connection context on WebSocket
-        // connection.
+        // If observeDomainEvents is true, the value returned here will be added
+        // to the connection context when a WebSocket connection is initialized.
+        // This way the clientMetadata is available in the subscription
+        // resolvers.
         return connection.context;
       }
 
