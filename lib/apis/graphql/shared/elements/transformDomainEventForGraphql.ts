@@ -5,22 +5,15 @@ const transformDomainEventForGraphql = function ({ domainEvent }: {
   domainEvent: DomainEvent<DomainEventData>;
 }): any {
   return {
-    contextIdentifier: domainEvent.contextIdentifier,
-    aggregateIdentifier: domainEvent.aggregateIdentifier,
-    name: domainEvent.name,
-    id: domainEvent.id,
+    ...domainEvent,
     data: JSON.stringify(domainEvent.data),
     metadata: {
-      causationId: domainEvent.metadata.causationId,
-      correlationId: domainEvent.metadata.correlationId,
-      timestamp: domainEvent.metadata.timestamp,
-      revision: domainEvent.metadata.revision,
+      ...domainEvent.metadata,
       initiator: {
         user: {
           id: domainEvent.metadata.initiator.user.id
         }
-      },
-      tags: domainEvent.metadata.tags
+      }
     }
   };
 };
