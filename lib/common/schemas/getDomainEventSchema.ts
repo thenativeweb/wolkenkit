@@ -1,10 +1,11 @@
 import { regex } from 'uuidv4';
+import { Schema } from '../elements/Schema';
 import { Value } from 'validate-value';
 
 const uuidRegex = regex.v4.toString().slice(1, -1);
 
-const getDomainEventSchema = function (): Value {
-  return new Value({
+const getSchema = function (): Schema {
+  return {
     type: 'object',
     properties: {
       contextIdentifier: {
@@ -97,7 +98,11 @@ const getDomainEventSchema = function (): Value {
       'metadata'
     ],
     additionalProperties: false
-  });
+  };
 };
 
-export { getDomainEventSchema };
+const getDomainEventSchema = function (): Value {
+  return new Value(getSchema());
+};
+
+export { getDomainEventSchema, getSchema };
