@@ -13,6 +13,13 @@ const authorize = {
   },
 
   isAuthorized (state, command) {
+    // Reject authorization if we cannot see the state properties. That allows
+    // to verify that `handleCommand` passes the state value instead of the
+    // `CurrentAggregateState` wrapper object.
+    if (!state.domainEventNames) {
+      return false;
+    }
+
     return command.data.shouldAuthorize;
   },
 

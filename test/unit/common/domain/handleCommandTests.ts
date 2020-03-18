@@ -128,6 +128,61 @@ suite('handleCommand', (): void => {
         await domainEventStore.getLastDomainEvent({ aggregateIdentifier })
       ).is.undefined();
     });
+
+    test('passes the correct state to the isAuthorized handler.', async (): Promise<void> => {
+      const aggregateIdentifier = {
+        name: 'sampleAggregate',
+        id: uuid()
+      };
+
+      const command = buildCommandWithMetadata({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier,
+        name: 'authorize',
+        data: {
+          shouldAuthorize: true
+        }
+      });
+
+      const collector = waitForSignals({ count: 1 });
+
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      const publishDomainEvents = async ({ domainEvents }: {
+        domainEvents: DomainEventWithState<DomainEventData, State>[];
+      }): Promise<void> => {
+        try {
+          assert.that(domainEvents.length).is.equalTo(1);
+          assert.that(domainEvents[0]).is.atLeast({
+            contextIdentifier: {
+              name: 'sampleContext'
+            },
+            aggregateIdentifier,
+            name: 'authorized',
+            data: {}
+          });
+
+          await collector.signal();
+        } catch (ex) {
+          await collector.fail(ex);
+        }
+      };
+
+      await handleCommand({
+        command,
+        applicationDefinition,
+        lockStore,
+        repository,
+        publishDomainEvents
+      });
+
+      await collector.promise;
+
+      assert.that(
+        await domainEventStore.getLastDomainEvent({ aggregateIdentifier })
+      ).is.not.undefined();
+    });
   });
 
   suite('handling', (): void => {

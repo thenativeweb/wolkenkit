@@ -56,7 +56,7 @@ const handleCommand = async function ({
   try {
     const clonedCommand = cloneDeep(command);
 
-    const isAuthorized = await commandHandler.isAuthorized(currentAggregateState, clonedCommand, services);
+    const isAuthorized = await commandHandler.isAuthorized(currentAggregateState.state, clonedCommand, services);
 
     if (!isAuthorized) {
       throw new errors.CommandNotAuthorized();
