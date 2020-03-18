@@ -5,7 +5,7 @@ import { stripIndent } from 'common-tags';
 
 const getTypeDefinitions = function (): string {
   const domainEventSchema: Schema = getDomainEventSchemaForGraphql();
-  const domainEventGraphQL = getGraphqlFromJsonSchema({
+  const domainEventGraphQl = getGraphqlFromJsonSchema({
     schema: domainEventSchema,
     rootName: 'DomainEvent',
     direction: 'output'

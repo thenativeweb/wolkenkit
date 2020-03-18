@@ -32,7 +32,7 @@ const getSubscriptionResolvers = function ({ applicationDefinition, repository, 
             filter = JSON.parse(jsonFilter);
           }
         } catch {
-          throw new errors.ParameterInvalid('Filter must be a valid json object.');
+          throw new errors.ParameterInvalid('Filter must be a valid JSON object.');
         }
 
         for await (const [ domainEvent ] of domainEventEmitter) {

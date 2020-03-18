@@ -48,7 +48,7 @@ const getExpectedApplicationDefinition = ({ applicationDirectory, packageName }:
 });
 
 suite('buildApplication', function (): void {
-  this.timeout(30 * 1000);
+  this.timeout(30_000);
 
   test('builds a JavaScript application.', async (): Promise<void> => {
     const applicationDirectory = await isolated();

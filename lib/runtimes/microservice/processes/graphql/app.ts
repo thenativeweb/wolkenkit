@@ -84,7 +84,7 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
     });
 
     logger.info(
-      'Graphql server started.',
+      'GraphQL server started.',
       { port: configuration.port, healthPort: configuration.healthPort }
     );
 
