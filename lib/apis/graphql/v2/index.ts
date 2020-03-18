@@ -29,14 +29,14 @@ const getV2 = async function ({
   identityProviders,
   handleCommand,
   observeDomainEvents,
-  playground
+  enableIntegratedClient
 }: {
   corsOrigin: CorsOrigin;
   applicationDefinition: ApplicationDefinition;
   identityProviders: IdentityProvider[];
   handleCommand: false | { onReceiveCommand: OnReceiveCommand };
   observeDomainEvents: false | { repository: Repository; webSocketEndpoint: string };
-  playground: boolean;
+  enableIntegratedClient: boolean;
 }): Promise<{
     api: Application;
     publishDomainEvent?: PublishDomainEvent;
@@ -117,7 +117,7 @@ const getV2 = async function ({
       }) :
       undefined,
     introspection: true,
-    playground: playground ?
+    playground: enableIntegratedClient ?
       {
         subscriptionEndpoint: observeDomainEvents !== false ?
           observeDomainEvents.webSocketEndpoint :

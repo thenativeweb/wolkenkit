@@ -35,7 +35,7 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
         environment:
           APPLICATION_DIRECTORY: '/app'
           HTTP_API: true
-          GRAPHQL_API: '{"playground":false}'
+          GRAPHQL_API: '{"enableIntegratedClient":false}'
           COMMAND_QUEUE_RENEW_INTERVAL: ${5_000}
           CONCURRENT_COMMANDS: ${100}
           CORS_ORIGIN: '*'

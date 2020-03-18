@@ -31,7 +31,7 @@ const getConfiguration = function (): Configuration {
           {
             type: 'object',
             properties: {
-              playground: { type: 'boolean' }
+              enableIntegratedClient: { type: 'boolean' }
             }
           }
         ]

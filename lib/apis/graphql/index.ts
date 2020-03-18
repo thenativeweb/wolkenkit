@@ -14,14 +14,14 @@ const getApi = async function ({
   identityProviders,
   handleCommand,
   observeDomainEvents,
-  playground
+  enableIntegratedClient
 }: {
   corsOrigin: CorsOrigin;
   applicationDefinition: ApplicationDefinition;
   identityProviders: IdentityProvider[];
   handleCommand: false | { onReceiveCommand: OnReceiveCommand };
   observeDomainEvents: false | { repository: Repository; webSocketEndpoint: string };
-  playground: boolean;
+  enableIntegratedClient: boolean;
 }): Promise<{
     api: Application;
     publishDomainEvent?: PublishDomainEvent;
@@ -35,7 +35,7 @@ const getApi = async function ({
     identityProviders,
     handleCommand,
     observeDomainEvents,
-    playground
+    enableIntegratedClient
   });
 
   api.use('/v2', v2.api);

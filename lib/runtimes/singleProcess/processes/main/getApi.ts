@@ -68,7 +68,7 @@ const getApi = async function ({
         repository,
         webSocketEndpoint: '/graphql/v2/'
       },
-      playground: configuration.graphqlApi.playground
+      enableIntegratedClient: configuration.graphqlApi.enableIntegratedClient
     });
 
     initializeGraphQlOnServer = initializeGraphql;

@@ -218,7 +218,7 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/graphql/app.js'
         environment:
           APPLICATION_DIRECTORY: '/app'
-          GRAPHQL_PLAYGROUND: false
+          ENABLE_INTEGRATED_CLIENT: false
           CORS_ORIGIN: '*'
           DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
           DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'

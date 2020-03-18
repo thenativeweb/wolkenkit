@@ -51,7 +51,7 @@ suite('main', function (): void {
         HEALTH_PORT: String(healthPort),
         SNAPSHOT_STRATEGY: `{"name":"never"}`,
         HTTP_API: String(true),
-        GRAPHQL_API: `{"playground":false}`
+        GRAPHQL_API: `{"enableIntegratedClient":false}`
       }
     });
 

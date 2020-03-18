@@ -58,7 +58,7 @@ suite('main', function (): void {
       port: healthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
-        GRAPHQL_PLAYGROUND: String(false),
+        ENABLE_INTEGRATED_CLIENT: String(false),
         CORS_ORIGIN: '*',
         DOMAIN_EVENT_STORE_TYPE: 'InMemory',
         PORT: String(port),

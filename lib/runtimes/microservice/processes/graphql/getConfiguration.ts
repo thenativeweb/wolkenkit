@@ -21,7 +21,7 @@ const getConfiguration = function (): Configuration {
         minLength: 1
       }
     },
-    GRAPHQL_PLAYGROUND: {
+    ENABLE_INTEGRATED_CLIENT: {
       default: false,
       schema: { type: 'boolean' }
     },

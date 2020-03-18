@@ -40,7 +40,7 @@ const getApi = async function ({
       repository,
       webSocketEndpoint: '/graphql/v2/'
     },
-    playground: configuration.graphqlPlayground
+    enableIntegratedClient: configuration.enableIntegratedClient
   });
 
   api.use('/graphql', handleCommandGraphqlApi);

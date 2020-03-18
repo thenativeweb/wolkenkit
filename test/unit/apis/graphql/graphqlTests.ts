@@ -74,7 +74,7 @@ suite('graphql', function (): void {
         webSocketEndpoint: '/v2/',
         repository
       },
-      playground: false
+      enableIntegratedClient: false
     }));
 
     const server = http.createServer(api);
