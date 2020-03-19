@@ -123,7 +123,7 @@
     "graphql": "14.6.0",
     "graphql-tools": "4.0.7",
     "is-typescript": "4.0.0",
-    "isolated": "3.0.0",
+    "isolated": "3.0.1",
     "limes": "6.0.2",
     "lodash": "4.17.15",
     "minio": "7.0.15",
