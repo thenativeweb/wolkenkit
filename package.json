@@ -105,7 +105,7 @@
     "node": ">=12.16.1"
   },
   "dependencies": {
-    "apollo-server-express": "2.10.1",
+    "apollo-server-express": "2.11.0",
     "axios": "0.19.2",
     "body-parser": "1.19.0",
     "buntstift": "4.0.3",
@@ -186,12 +186,12 @@
     "react": "16.13.0",
     "react-dom": "16.13.0",
     "record-stdstreams": "3.0.0",
-    "roboter": "11.1.2",
+    "roboter": "11.1.14",
     "streamtoarray": "3.0.0",
     "subscriptions-transport-ws": "0.9.16",
     "thenativeweb-ux": "3.7.1",
     "wait-for-signals": "1.1.0",
-    "ws": "7.2.1"
+    "ws": "7.2.3"
   },
   "scripts": {
     "concierge": "npx ts-node lib/bin/concierge.ts",

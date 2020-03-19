@@ -12,6 +12,7 @@ const asJsonStream = function <TItem> (handleJson: ((item: TItem) => void)[], ob
       if (objectMode) {
         data = chunk;
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         data = JSON.parse(chunk.toString());
       }
 
