@@ -18,7 +18,7 @@ import { processCommand } from './processCommand';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
-import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
+import { runHealthServer } from '../../../shared/runHealthServer';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -59,7 +59,7 @@ import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
       await priorityQueueStore.enqueue({ item: command });
     };
 
-    const { api, publishDomainEvent } = await getApi({
+    const { api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
       configuration,
       applicationDefinition,
       identityProviders,
@@ -68,6 +68,8 @@ import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
     });
 
     const server = http.createServer(api);
+
+    await initializeGraphQlOnServer?.({ server });
 
     await runHealthServer({ corsOrigin: configuration.corsOrigin, port: configuration.healthPort });
 

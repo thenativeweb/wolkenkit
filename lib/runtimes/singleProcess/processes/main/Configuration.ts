@@ -2,6 +2,8 @@ import { SnapshotStrategyConfiguration } from '../../../../common/domain/Snapsho
 
 export interface Configuration {
   applicationDirectory: string;
+  httpApi: boolean;
+  graphqlApi: false | { enableIntegratedClient: boolean };
   corsOrigin: string | string[];
   domainEventStoreOptions: object;
   domainEventStoreType: string;

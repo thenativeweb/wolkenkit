@@ -19,6 +19,24 @@ const getConfiguration = function (): Configuration {
         minLength: 1
       }
     },
+    HTTP_API: {
+      default: true,
+      schema: { type: 'boolean' }
+    },
+    GRAPHQL_API: {
+      default: false,
+      schema: {
+        oneOf: [
+          { type: 'boolean', enum: [ 'false' ]},
+          {
+            type: 'object',
+            properties: {
+              enableIntegratedClient: { type: 'boolean' }
+            }
+          }
+        ]
+      }
+    },
     CORS_ORIGIN: {
       default: '*',
       schema: corsSchema
@@ -40,10 +58,7 @@ const getConfiguration = function (): Configuration {
       schema: { type: 'string' }
     },
     IDENTITY_PROVIDERS: {
-      default: [{
-        issuer: 'https://token.invalid',
-        certificate: path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io')
-      }],
+      default: [],
       schema: getIdentityProviderSchema()
     },
     PORT: {

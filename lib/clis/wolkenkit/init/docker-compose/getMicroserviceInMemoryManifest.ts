@@ -6,14 +6,16 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
   const ports = {
     public: {
       command: 3000,
-      domainEvents: 3001
+      domainEvents: 3001,
+      graphql: 3002
     },
     private: {
       command: 3000,
       dispatcher: 3000,
       domainEvents: 3000,
       aeonstore: 3000,
-      publisher: 3000
+      publisher: 3000,
+      graphql: 3000
     },
     health: {
       command: 3001,
@@ -21,7 +23,8 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
       domain: 3001,
       domainEvents: 3001,
       aeonstore: 3001,
-      publisher: 3001
+      publisher: 3001,
+      graphql: 3001
     }
   };
 
@@ -205,6 +208,34 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
         restart: 'always'
         healthcheck:
           test: ["CMD", "curl", "-f", "http://localhost:${ports.health.publisher}"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
+
+      graphql:
+        build: '../..
+        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/graphql/app.js'
+        environment:
+          APPLICATION_DIRECTORY: '/app'
+          ENABLE_INTEGRATED_CLIENT: false
+          CORS_ORIGIN: '*'
+          DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
+          DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'
+          IDENTITY_PROVIDERS: '${identityProviders}'
+          PORT: ${ports.private.graphql}
+          HEALTH_PORT: ${ports.health.graphql}
+          SUBSCRIBE_MESSAGES_PROTOCOL: 'http'
+          SUBSCRIBE_MESSAGES_HOST_NAME: 'publisher'
+          SUBSCRIBE_MESSAGES_PORT: '${ports.private.publisher}'
+          SNAPSHOT_STRATEGY: '${snapshotStrategy}'
+        image: '${appName}'
+        init: true
+        ports:
+          - '${ports.public.graphql}:${ports.private.graphql}'
+        restart: 'always'
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.graphql}"]
           interval: 30s
           timeout: 10s
           retries: 3

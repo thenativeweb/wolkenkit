@@ -32,6 +32,7 @@ const errors = defekt({
   ExecutableNotFound: {},
   FileAlreadyExists: {},
   FileNotFound: {},
+  GraphQlError: {},
   IdentifierMismatch: {},
   InvalidOperation: {},
   ItemAlreadyExists: {},

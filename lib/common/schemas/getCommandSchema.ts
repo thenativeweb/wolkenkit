@@ -1,10 +1,12 @@
 import { regex } from 'uuidv4';
+import { Schema } from '../elements/Schema';
 import { Value } from 'validate-value';
 
+// eslint-disable-next-line @typescript-eslint/no-base-to-string
 const uuidRegex = regex.v4.toString().slice(1, -1);
 
-const getCommandSchema = function (): Value {
-  return new Value({
+const getSchema = function (): Schema {
+  return {
     type: 'object',
     properties: {
       contextIdentifier: {
@@ -39,7 +41,11 @@ const getCommandSchema = function (): Value {
       'data'
     ],
     additionalProperties: false
-  });
+  };
 };
 
-export { getCommandSchema };
+const getCommandSchema = function (): Value {
+  return new Value(getSchema());
+};
+
+export { getCommandSchema, getSchema };

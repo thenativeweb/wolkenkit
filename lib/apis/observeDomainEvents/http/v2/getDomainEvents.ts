@@ -7,7 +7,7 @@ import { getAggregatesService } from '../../../../common/services/getAggregatesS
 import { getClientService } from '../../../../common/services/getClientService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import PQueue from 'p-queue';
-import { prepareForPublication } from './shared/prepareForPublication';
+import { prepareForPublication } from '../../../../common/domain/domainEvent/prepareForPublication';
 import { Repository } from '../../../../common/domain/Repository';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';

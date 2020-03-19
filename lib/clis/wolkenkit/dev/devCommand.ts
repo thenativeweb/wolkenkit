@@ -126,6 +126,8 @@ const devCommand = function (): Command<DevOptions> {
           env: {
             ...processenv() as NodeJS.ProcessEnv,
             APPLICATION_DIRECTORY: applicationDirectory,
+            HTTP_API: String(true),
+            GRAPHQL_API: JSON.stringify({ enableIntegratedClient: true }),
             COMMAND_QUEUE_RENEW_INTERVAL: String(5_000),
             CONCURRENT_COMMANDS: String(100),
             CORS_ORIGIN: '*',

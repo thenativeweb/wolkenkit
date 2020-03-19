@@ -1,6 +1,7 @@
 import { regex } from 'uuidv4';
 import { Value } from 'validate-value';
 
+// eslint-disable-next-line @typescript-eslint/no-base-to-string
 const uuidRegex = regex.v4.toString().slice(1, -1);
 
 const getItemIdentifierSchema = function (): Value {
