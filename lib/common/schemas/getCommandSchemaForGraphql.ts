@@ -6,7 +6,7 @@ const getCommandSchemaForGraphql = function (): Schema {
 
   commandSchema.properties!.data = {
     type: 'string',
-    description: `The command's payload as a json string.`
+    description: `The command's payload as a JSON string.`
   };
 
   return commandSchema;
