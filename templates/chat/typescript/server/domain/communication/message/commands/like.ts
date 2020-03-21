@@ -2,9 +2,7 @@ import { LikedData } from '../domainEvents/liked';
 import { MessageState } from '../MessageState';
 import { CommandData, CommandHandler, Schema } from 'wolkenkit';
 
-export interface LikeData extends CommandData {
-  text: string;
-}
+export interface LikeData extends CommandData {}
 
 export const like: CommandHandler<MessageState, LikeData> = {
   getSchema (): Schema {
