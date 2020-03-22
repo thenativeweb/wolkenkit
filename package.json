@@ -186,7 +186,7 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "record-stdstreams": "3.0.0",
-    "roboter": "11.1.14",
+    "roboter": "11.1.15",
     "streamtoarray": "3.0.0",
     "subscriptions-transport-ws": "0.9.16",
     "thenativeweb-ux": "3.7.2",
