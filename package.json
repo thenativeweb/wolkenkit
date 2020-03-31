@@ -145,7 +145,7 @@
     "tarn": "2.0.0",
     "tedious": "8.2.0",
     "untildify": "4.0.0",
-    "uuidv4": "6.0.6",
+    "uuidv4": "6.0.7",
     "validate-value": "7.0.0"
   },
   "devDependencies": {
