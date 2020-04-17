@@ -127,7 +127,7 @@
     "limes": "6.0.2",
     "lodash": "4.17.15",
     "minio": "7.0.15",
-    "mongodb": "3.5.5",
+    "mongodb": "3.5.6",
     "mysql": "2.18.1",
     "nocache": "2.1.0",
     "p-forever": "2.1.0",
