@@ -133,7 +133,7 @@
     "p-forever": "2.1.0",
     "p-queue": "6.3.0",
     "partof": "3.0.0",
-    "pg": "8.0.2",
+    "pg": "8.0.3",
     "pg-query-stream": "3.0.7",
     "processenv": "3.0.1",
     "redis": "3.0.2",
