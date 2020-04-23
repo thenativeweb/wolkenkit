@@ -153,7 +153,7 @@ suite('getApplicationDefinition', (): void => {
       is.throwingAsync(`View definition '<app>/build/views/invalidView' is malformed: Object 'initializer' is missing.`);
   });
 
-  test.only('throws an appropriate error if any file in the application contains a syntax error.', async (): Promise<void> => {
+  test('throws an appropriate error if any file in the application contains a syntax error.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withSyntaxError' });
 
     await assert.
