@@ -1,6 +1,6 @@
 'use strict';
 
-// Intentionaly syntax error for testing.
+// The syntax is intentionally broken here for testing.
 const execute
   getSchema () {
     return {
