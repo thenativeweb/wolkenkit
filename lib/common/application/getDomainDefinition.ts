@@ -41,7 +41,7 @@ const getDomainDefinition = async function ({ domainDirectory }: {
         }
 
         if (ex instanceof SyntaxError) {
-          throw new errors.ApplicationMalformed(`Synax error occured in '<app>/build/domain/${contextName}/${aggregateName}'.`, { cause: ex });
+          throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/domain/${contextName}/${aggregateName}'.`, { cause: ex });
         }
 
         // But throw an error if the entry is a directory without importable content.
