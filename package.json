@@ -159,7 +159,7 @@
     "@types/json-schema": "7.0.4",
     "@types/lodash": "4.14.150",
     "@types/minio": "7.0.5",
-    "@types/mongodb": "3.5.11",
+    "@types/mongodb": "3.5.12",
     "@types/mysql": "2.15.10",
     "@types/node": "13.13.2",
     "@types/pg": "7.14.3",
