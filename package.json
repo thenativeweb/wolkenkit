@@ -140,7 +140,7 @@
     "retry-ignore-abort": "2.2.3",
     "runfork": "3.1.0",
     "saslprep": "1.0.3",
-    "shelljs": "0.8.3",
+    "shelljs": "0.8.4",
     "stream-to-string": "1.2.0",
     "tarn": "3.0.0",
     "tedious": "8.3.0",
