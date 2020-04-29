@@ -2,6 +2,7 @@ import { adjustPackageJson } from './adjustPackageJson';
 import { arrayToSentence } from '../../../common/utils/arrayToSentence';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
+import { createDeploymentManifests } from '../createDeployment/createDeploymentManifests';
 import { createDockerConfiguration } from './createDockerConfiguration';
 import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
@@ -145,8 +146,12 @@ const initCommand = function (): Command<InitOptions> {
         buntstift.verbose('Adjusted package.json.');
 
         buntstift.verbose('Creating Docker configuration...');
-        await createDockerConfiguration({ directory: targetDirectory, name: selectedName });
+        await createDockerConfiguration({ directory: targetDirectory });
         buntstift.verbose('Created Docker configuration.');
+
+        buntstift.verbose('Creating deployment manifests...');
+        await createDeploymentManifests({ directory: path.join(targetDirectory, 'deployment'), name: selectedName });
+        buntstift.verbose('Created deployment manifests.');
 
         buntstift.success(`Initialized the '${selectedName}' application.`);
         buntstift.newLine();
