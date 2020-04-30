@@ -5,11 +5,8 @@ import { Command } from 'command-line-interface';
 import { createDeploymentManifests } from './createDeploymentManifests';
 import { CreateDeploymentOptions } from './CreateDeploymentOptions';
 import { exists } from '../../../common/utils/fs/exists';
-import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
-import { nameRegularExpression } from '../init/nameRegularExpression';
+import fs from 'fs';
 import path from 'path';
-import shell from 'shelljs';
-import { validateName } from '../init/validateName';
 
 const createDeploymentCommand = function (): Command<CreateDeploymentOptions> {
   return {
@@ -18,85 +15,56 @@ const createDeploymentCommand = function (): Command<CreateDeploymentOptions> {
 
     optionDefinitions: [
       {
-        name: 'directory',
-        alias: 'd',
-        description: 'a directory containing a wolkenkit application',
-        parameterName: 'path',
-        type: 'string',
-        isRequired: false
-      }, {
         name: 'deployment-directory',
-        description: 'the name of the directory in which to create the deployment manifests',
+        description: 'the directory in which to create the deployment manifests',
         type: 'string',
+        parameterName: 'path',
         isRequired: false,
-        defaultValue: 'deployment'
-      }, {
-        name: 'force',
-        alias: 'f',
-        description: 'overwrite an existing deployment directory',
-        type: 'boolean',
-        isRequired: false,
-        defaultValue: false
-      }, {
-        name: 'name',
-        alias: 'n',
-        description: 'set an application name',
-        type: 'string',
-        isRequired: false,
-        defaultOption: true,
-        validate: validateName
+        defaultValue: './deployment'
       }
     ],
 
     async handle ({ options: {
       verbose,
-      directory,
-      'deployment-directory': deploymentDirectory,
-      force,
-      name
+      'deployment-directory': deploymentDirectory
     }}): Promise<void> {
       buntstift.configure(
         buntstift.getConfiguration().
           withVerboseMode(verbose)
       );
-      const stopWaiting = buntstift.wait();
 
       try {
-        let selectedName = name;
+        const appDirectory = process.cwd();
+        let applicationName;
 
-        if (!selectedName) {
-          selectedName = await buntstift.ask('Enter the application name:', nameRegularExpression);
-        }
+        try {
+          const packageJsonPath = path.join(appDirectory, 'package.json');
+          const packageJsonContent = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
 
-        const appDirectory = getAbsolutePath({
-          path: directory ?? selectedName.replace(/\//gu, path.sep),
-          cwd: process.cwd()
-        });
-
-        const targetDirectory = path.join(appDirectory, deploymentDirectory);
-
-        const targetDirectoryExists = await exists({ path: targetDirectory });
-
-        if (targetDirectoryExists && !force) {
-          buntstift.info(`Could not create deployment manifests since the deployment directory ${targetDirectory} already exists.`);
-          buntstift.info('Use the --force flag to overwrite the directory.');
+          applicationName = packageJsonContent.name;
+        } catch {
+          buntstift.info('Failed to create deployment manifests.');
+          buntstift.info('Please run the create-deployment command in a wolkenkit application directory.');
 
           return process.exit(1);
         }
 
-        if (targetDirectoryExists) {
-          shell.rm('rf', targetDirectory);
+        const targetDirectory = path.resolve(appDirectory, deploymentDirectory);
+
+        if (await exists({ path: targetDirectory })) {
+          buntstift.info(`Failed to create deployment manifests since the deployment directory ${targetDirectory} already exists.`);
+          buntstift.info('Pass a different directory via --deployment-directory or delete the current directory first.');
+
+          return process.exit(1);
         }
 
         buntstift.info('Creating deployment manifests...');
-        await createDeploymentManifests({ directory: targetDirectory, name: selectedName });
+        await createDeploymentManifests({ directory: targetDirectory, name: applicationName });
         buntstift.info('Created deployment manifests.');
       } catch (ex) {
         buntstift.error('Failed to create deployment manifests.');
 
         throw ex;
-      } finally {
-        stopWaiting();
       }
     }
   };
