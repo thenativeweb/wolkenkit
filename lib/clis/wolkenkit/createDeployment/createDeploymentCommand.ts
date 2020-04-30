@@ -10,8 +10,8 @@ import path from 'path';
 
 const createDeploymentCommand = function (): Command<CreateDeploymentOptions> {
   return {
-    name: 'init',
-    description: 'Initialize a new application.',
+    name: 'create-deployment',
+    description: 'Create deployment manifests for a wolkenkit application.',
 
     optionDefinitions: [
       {
