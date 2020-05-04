@@ -102,7 +102,7 @@
     "wolkenkit": "build/lib/bin/wolkenkit.js"
   },
   "engines": {
-    "node": ">=12.16.1"
+    "node": ">=14.1.0"
   },
   "dependencies": {
     "apollo-server-express": "2.11.0",
