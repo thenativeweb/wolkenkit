@@ -182,7 +182,7 @@
     "next": "9.3.6",
     "node-fetch": "2.6.0",
     "nodeenv": "3.0.0",
-    "qs": "6.9.3",
+    "qs": "6.9.4",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "record-stdstreams": "3.0.0",
