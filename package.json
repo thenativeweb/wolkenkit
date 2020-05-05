@@ -119,7 +119,7 @@
     "express-graphql": "0.9.0",
     "flaschenpost": "4.0.9",
     "get-cors-origin": "4.0.1",
-    "get-graphql-from-jsonschema": "5.0.0",
+    "get-graphql-from-jsonschema": "5.0.1",
     "graphql": "14.6.0",
     "graphql-tools": "5.0.0",
     "is-typescript": "4.0.0",
