@@ -191,7 +191,7 @@
     "subscriptions-transport-ws": "0.9.16",
     "thenativeweb-ux": "5.2.10",
     "wait-for-signals": "1.1.0",
-    "ws": "7.2.5"
+    "ws": "7.3.0"
   },
   "scripts": {
     "concierge": "npx ts-node lib/bin/concierge.ts",
