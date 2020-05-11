@@ -165,7 +165,7 @@
     "@types/pg": "7.14.3",
     "@types/pg-query-stream": "1.0.3",
     "@types/qs": "6.9.2",
-    "@types/react": "16.9.34",
+    "@types/react": "16.9.35",
     "@types/react-dom": "16.9.8",
     "@types/redis": "2.8.20",
     "@types/require-dir": "1.0.0",
