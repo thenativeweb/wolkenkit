@@ -16,7 +16,7 @@ const createDeploymentCommand = function (): Command<CreateDeploymentOptions> {
     optionDefinitions: [
       {
         name: 'deployment-directory',
-        description: 'the directory in which to create the deployment manifests',
+        description: 'set a deployment directory',
         type: 'string',
         parameterName: 'path',
         isRequired: false,
@@ -34,11 +34,11 @@ const createDeploymentCommand = function (): Command<CreateDeploymentOptions> {
       );
 
       try {
-        const appDirectory = process.cwd();
+        const applicationDirectory = process.cwd();
         let applicationName;
 
         try {
-          const packageJsonPath = path.join(appDirectory, 'package.json');
+          const packageJsonPath = path.join(applicationDirectory, 'package.json');
           const packageJsonContent = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
 
           applicationName = packageJsonContent.name;
@@ -49,7 +49,7 @@ const createDeploymentCommand = function (): Command<CreateDeploymentOptions> {
           return process.exit(1);
         }
 
-        const targetDirectory = path.resolve(appDirectory, deploymentDirectory);
+        const targetDirectory = path.resolve(applicationDirectory, deploymentDirectory);
 
         if (await exists({ path: targetDirectory })) {
           buntstift.info(`Failed to create deployment manifests since the deployment directory ${targetDirectory} already exists.`);

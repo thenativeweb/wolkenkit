@@ -7,7 +7,7 @@ import shell from 'shelljs';
 const rootPath = path.join(__dirname, '..', '..');
 const cliPath = path.join(rootPath, 'build', 'lib', 'bin', 'wolkenkit.js');
 
-suite('init', function (): void {
+suite('create-deployment', function (): void {
   this.timeout(30_000);
 
   test('fails if it is not run in a directory containing a wolkenkit application.', async (): Promise<void> => {
