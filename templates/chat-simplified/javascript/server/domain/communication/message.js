@@ -1,7 +1,7 @@
 'use strict';
 
 const message = {
-  getInitialState: function () {
+  getInitialState () {
     return {
       text: '',
       likes: 0
@@ -50,7 +50,7 @@ const message = {
         return true;
       },
 
-      handle (state, _command, { aggregate }): void {
+      handle (state, _command, { aggregate }) {
         aggregate.publishDomainEvent('liked', {
           likes: state.likes + 1
         });
