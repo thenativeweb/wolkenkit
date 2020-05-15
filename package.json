@@ -170,7 +170,7 @@
     "@types/redis": "2.8.21",
     "@types/require-dir": "1.0.0",
     "@types/shelljs": "0.8.7",
-    "@types/sinon": "9.0.0",
+    "@types/sinon": "9.0.1",
     "@types/supertest": "2.0.9",
     "@types/tedious": "4.0.0",
     "apollo-cache-inmemory": "1.6.6",
