@@ -1,6 +1,6 @@
 # wolkenkit
 
-wolkenkit is an open-source CQRS and event-sourcing framework for JavaScript and Node.js.
+wolkenkit is a CQRS and event-sourcing framework based on Node.js. It empowers you to build and run scalable distributed web and cloud services that process and store streams of domain events. It supports JavaScript and TypeScript, and is available under an open-source license. Additionally, there are also enterprise add-ons. Since it works especially well in conjunction with domain-driven design (DDD), wolkenkit is the perfect backend framework to shape, build, and run web and cloud APIs.
 
 **BEWARE: This README.md refers to the wolkenkit 4.0 community technology preview (CTP) 1. If you are looking for the latest stable release of wolkenkit, see the [wolkenkit documentation](https://docs.wolkenkit.io/).**
 
