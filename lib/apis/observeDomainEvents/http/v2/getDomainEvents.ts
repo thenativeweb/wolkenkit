@@ -32,7 +32,7 @@ const getDomainEvents = function ({
       const domainEventQueue = new PQueue({ concurrency: 1 });
 
       const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
-      const domainEventFilter = req.query || {};
+      const domainEventFilter = req.query;
 
       const handleDomainEvent = (domainEventWithState: DomainEventWithState<DomainEventData, State>): void => {
         /* eslint-disable @typescript-eslint/no-floating-promises */
