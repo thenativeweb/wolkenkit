@@ -11,7 +11,7 @@ const getSnapshot = function ({
     let aggregateIdentifier;
 
     try {
-      aggregateIdentifier = JSON.parse(req.query.aggregateIdentifier);
+      aggregateIdentifier = JSON.parse(req.query.aggregateIdentifier as string);
 
       validateAggregateIdentifier({ aggregateIdentifier });
     } catch (ex) {
