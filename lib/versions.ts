@@ -7,7 +7,7 @@ const versions = {
     typescript: '3.9.2'
   },
   dockerImages: {
-    postgres: '12.2-alpine'
+    postgres: '12.3-alpine'
   }
 };
 
