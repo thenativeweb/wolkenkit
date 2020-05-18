@@ -32,6 +32,7 @@ suite('compileApplication', function (): void {
     const expectedJavascript = `${stripIndent`
       "use strict";
       exports.__esModule = true;
+      exports.add = void 0;
       exports.add = function (left, right) {
           return left + right;
       };
@@ -63,6 +64,7 @@ suite('compileApplication', function (): void {
     const expectedJavascript = `${stripIndent`
       "use strict";
       exports.__esModule = true;
+      exports.add = void 0;
       exports.add = function (left, right) {
           return left + right;
       };
