@@ -62,6 +62,4 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
       `;
 };
 
-export {
-  getSingleProcessInMemoryManifest
-};
+export { getSingleProcessInMemoryManifest };
