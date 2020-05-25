@@ -9,6 +9,7 @@ import { keepRenewingLock } from './keepRenewingLock';
 import { LockStore } from '../../../../stores/lockStore/LockStore';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { Repository } from '../../../../common/domain/Repository';
+import { shouldRetryCommand } from '../../../../common/domain/shouldRetryCommand';
 
 const logger = flaschenpost.getLogger();
 
@@ -35,6 +36,12 @@ const processCommand = async function ({
     await acknowledgeCommand({ command, token, dispatcher });
 
     return;
+  }
+
+  const retry = await shouldRetryCommand({ command, applicationDefinition });
+
+  if (!retry) {
+    await acknowledgeCommand({ command, token, defer: true, dispatcher });
   }
 
   try {

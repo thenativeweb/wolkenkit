@@ -8,6 +8,7 @@ import { LockStore } from '../../../../stores/lockStore/LockStore';
 import { PriorityQueue } from './PriorityQueue';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { Repository } from '../../../../common/domain/Repository';
+import { shouldRetryCommand } from '../../../../common/domain/shouldRetryCommand';
 
 const logger = flaschenpost.getLogger();
 
@@ -19,6 +20,12 @@ const processCommand = async function ({ applicationDefinition, repository, lock
   publishDomainEvents: PublishDomainEvents;
 }): Promise<void> {
   const { command, token } = await fetchCommand({ priorityQueue });
+
+  const retry = await shouldRetryCommand({ command, applicationDefinition });
+
+  if (!retry) {
+    await acknowledgeCommand({ command, token, defer: true, priorityQueue });
+  }
 
   try {
     const handleCommandPromise = handleCommand({
