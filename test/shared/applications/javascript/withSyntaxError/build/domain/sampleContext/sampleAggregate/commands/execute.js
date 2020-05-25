@@ -17,7 +17,7 @@ const execute
     return true;
   },
 
-  handle (state, command, { aggregate }) {
+  handle (state, command, { aggregate, error }) {
     const { strategy } = command.data;
 
     if (strategy === 'fail') {
@@ -25,8 +25,7 @@ const execute
     }
 
     if (strategy === 'reject') {
-      // Uncomment: throw new errors.CommandRejected('Intentionally rejected execute.');
-      throw new Error('Intentionally rejected execute.');
+      throw new error.CommandRejected('Intentionally rejected execute.');
     }
 
     aggregate.publishDomainEvent('succeeded', {});

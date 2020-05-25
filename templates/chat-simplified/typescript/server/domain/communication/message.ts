@@ -38,7 +38,7 @@ const message: Aggregate<MessageState> = {
 
   commandHandlers: {
     send: {
-      getSchema () {
+      getSchema (): Schema {
         return {
           type: 'object',
           properties: {
@@ -49,11 +49,11 @@ const message: Aggregate<MessageState> = {
         };
       },
 
-      isAuthorized () {
+      isAuthorized (): boolean {
         return true;
       },
 
-      handle (_state, command, { aggregate, error }) {
+      handle (_state, command, { aggregate, error }): void {
         if (!command.data.text) {
           throw new error.CommandRejected('Text is missing.');
         }
