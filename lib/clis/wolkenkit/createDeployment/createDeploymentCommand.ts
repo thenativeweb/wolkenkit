@@ -4,6 +4,7 @@ import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { createDeploymentManifests } from './createDeploymentManifests';
 import { CreateDeploymentOptions } from './CreateDeploymentOptions';
+import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
 import fs from 'fs';
 import path from 'path';
@@ -16,11 +17,12 @@ const createDeploymentCommand = function (): Command<CreateDeploymentOptions> {
     optionDefinitions: [
       {
         name: 'deployment-directory',
+        alias: 'd',
         description: 'set a deployment directory',
         type: 'string',
         parameterName: 'path',
         isRequired: false,
-        defaultValue: './deployment'
+        defaultValue: `.${path.sep}deployment`
       }
     ],
 
@@ -32,6 +34,7 @@ const createDeploymentCommand = function (): Command<CreateDeploymentOptions> {
         buntstift.getConfiguration().
           withVerboseMode(verbose)
       );
+      const stopWaiting = buntstift.wait();
 
       try {
         const applicationDirectory = process.cwd();
@@ -43,19 +46,15 @@ const createDeploymentCommand = function (): Command<CreateDeploymentOptions> {
 
           applicationName = packageJsonContent.name;
         } catch {
-          buntstift.info('Failed to create deployment manifests.');
-          buntstift.info('Please run the create-deployment command in a wolkenkit application directory.');
-
-          return process.exit(1);
+          buntstift.info('Application not found.');
+          throw new errors.ApplicationNotFound();
         }
 
         const targetDirectory = path.resolve(applicationDirectory, deploymentDirectory);
 
         if (await exists({ path: targetDirectory })) {
-          buntstift.info(`Failed to create deployment manifests since the deployment directory ${targetDirectory} already exists.`);
-          buntstift.info('Pass a different directory via --deployment-directory or delete the current directory first.');
-
-          return process.exit(1);
+          buntstift.info(`The directory '${targetDirectory}' already exists.`);
+          throw new errors.DirectoryAlreadyExists();
         }
 
         buntstift.info('Creating deployment manifests...');
@@ -65,6 +64,8 @@ const createDeploymentCommand = function (): Command<CreateDeploymentOptions> {
         buntstift.error('Failed to create deployment manifests.');
 
         throw ex;
+      } finally {
+        stopWaiting();
       }
     }
   };

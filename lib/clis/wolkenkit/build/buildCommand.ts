@@ -5,7 +5,6 @@ import { Command } from 'command-line-interface';
 import { errors } from '../../../common/errors';
 import { getApplicationPackageJson } from '../../../common/application/getApplicationPackageJson';
 import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
-import { printFooter } from '../printFooter';
 
 const buildCommand = function (): Command<BuildOptions> {
   return {
@@ -37,9 +36,6 @@ const buildCommand = function (): Command<BuildOptions> {
         buntstift.info(`Building the '${name}' application...`);
         await buildApplication({ applicationDirectory });
         buntstift.success(`Built the '${name}' application.`);
-
-        buntstift.newLine();
-        printFooter();
       } catch (ex) {
         buntstift.error('Failed to build the application.');
 

@@ -10,19 +10,18 @@ const cliPath = path.join(rootPath, 'build', 'lib', 'bin', 'wolkenkit.js');
 suite('create-deployment', function (): void {
   this.timeout(30_000);
 
-  test('fails if it is not run in a directory containing a wolkenkit application.', async (): Promise<void> => {
+  test('fails if not run in a directory containing a wolkenkit application.', async (): Promise<void> => {
     const appDirectory = await isolated();
 
     const createDeploymentCommand = `node ${cliPath} create-deployment`;
 
-    const { code, stdout } = shell.exec(createDeploymentCommand, { cwd: appDirectory });
+    const { code, stderr } = shell.exec(createDeploymentCommand, { cwd: appDirectory });
 
     assert.that(code).is.equalTo(1);
-    assert.that(stdout).is.containing('Failed to create deployment manifests.');
-    assert.that(stdout).is.containing('Please run the create-deployment command in a wolkenkit application directory.');
+    assert.that(stderr).is.containing('Failed to create deployment manifests.');
   });
 
-  test('fails if a deployment directory already exists.', async (): Promise<void> => {
+  test('fails if the deployment directory already exists.', async (): Promise<void> => {
     const appName = 'test-app';
     const appDirectory = path.join(await isolated(), appName);
 
@@ -32,11 +31,10 @@ suite('create-deployment', function (): void {
 
     const createDeploymentCommand = `node ${cliPath} create-deployment`;
 
-    const { code, stdout } = shell.exec(createDeploymentCommand, { cwd: appDirectory });
+    const { code, stderr } = shell.exec(createDeploymentCommand, { cwd: appDirectory });
 
     assert.that(code).is.equalTo(1);
-    assert.that(stdout).is.containing(`Failed to create deployment manifests since the deployment directory ${path.join(appDirectory, 'deployment')} already exists.`);
-    assert.that(stdout).is.containing('Pass a different directory via --deployment-directory or delete the current directory first.');
+    assert.that(stderr).is.containing('Failed to create deployment manifests.');
   });
 
   test('creates deployment manifests in the deployment directory.', async (): Promise<void> => {
