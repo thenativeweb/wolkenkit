@@ -34,7 +34,7 @@ const sleep = async function (ms: number): Promise<void> {
 };
 
 suite('graphql', function (): void {
-  this.timeout(5_000);
+  this.timeout(15_000);
 
   const identityProviders = [ identityProvider ];
   let api: Application,
@@ -419,6 +419,210 @@ suite('graphql', function (): void {
       await sleep(100);
 
       publishDomainEvent!({ domainEvent });
+
+      await collector.promise;
+    });
+
+    test('publishes rejected/failed events to their initiator.', async (): Promise<void> => {
+      const collector = waitForSignals({ count: 2 });
+
+      const aggregateId = uuid();
+      const domainEvent1 = new DomainEventWithState({
+        ...buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'authenticateFailed',
+          data: { reason: 'some reason' },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
+          }
+        }),
+        state: {
+          previous: { domainEventNames: []},
+          next: { domainEventNames: [ 'succeeded' ]}
+        }
+      });
+      const domainEvent2 = new DomainEventWithState({
+        ...buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'authenticateRejected',
+          data: { reason: 'some reason' },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
+          }
+        }),
+        state: {
+          previous: { domainEventNames: []},
+          next: { domainEventNames: [ 'succeeded' ]}
+        }
+      });
+
+      const query = gql`
+        subscription {
+          domainEvents {
+            contextIdentifier {
+              name
+            }
+            aggregateIdentifier {
+              name
+              id
+            }
+            name
+            id
+            data
+          }
+        }
+      `;
+
+      const subscriptionClient = new SubscriptionClient(
+        `ws://localhost:${port}/v2/`,
+        {
+          connectionParams: {
+            'x-anonymous-id': 'jane.doe'
+          }
+        },
+        ws
+      );
+      const link = new WebSocketLink(subscriptionClient);
+      const cache = new InMemoryCache();
+
+      client = new ApolloClient<NormalizedCacheObject>({
+        link,
+        cache
+      });
+      const observable = client.subscribe({
+        query
+      });
+
+      observable.subscribe(async (message): Promise<void> => {
+        if (collector.getCount() === 0) {
+          assert.that(message.data.domainEvents.name).is.equalTo('authenticateFailed');
+          await collector.signal();
+        } else if (collector.getCount() === 1) {
+          assert.that(message.data.domainEvents.name).is.equalTo('authenticateRejected');
+          await collector.signal();
+        } else {
+          await collector.fail();
+        }
+      });
+
+      await sleep(100);
+
+      publishDomainEvent!({ domainEvent: domainEvent1 });
+      publishDomainEvent!({ domainEvent: domainEvent2 });
+
+      await collector.promise;
+    });
+
+    test('does not publish rejected/failed events to other clients than the initiator.', async (): Promise<void> => {
+      const aggregateId = uuid();
+      const domainEvent1 = new DomainEventWithState({
+        ...buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'authenticateFailed',
+          data: { reason: 'some reason' },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
+          }
+        }),
+        state: {
+          previous: { domainEventNames: []},
+          next: { domainEventNames: [ 'succeeded' ]}
+        }
+      });
+      const domainEvent2 = new DomainEventWithState({
+        ...buildDomainEvent({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'authenticateRejected',
+          data: { reason: 'some reason' },
+          metadata: {
+            revision: { aggregate: 1 },
+            initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
+          }
+        }),
+        state: {
+          previous: { domainEventNames: []},
+          next: { domainEventNames: [ 'succeeded' ]}
+        }
+      });
+
+      const query = gql`
+        subscription {
+          domainEvents {
+            contextIdentifier {
+              name
+            }
+            aggregateIdentifier {
+              name
+              id
+            }
+            name
+            id
+            data
+          }
+        }
+      `;
+
+      const subscriptionClient = new SubscriptionClient(
+        `ws://localhost:${port}/v2/`,
+        {
+          connectionParams: {
+            'x-anonymous-id': 'john.doe'
+          }
+        },
+        ws
+      );
+      const link = new WebSocketLink(subscriptionClient);
+      const cache = new InMemoryCache();
+
+      client = new ApolloClient<NormalizedCacheObject>({
+        link,
+        cache
+      });
+      const observable = client.subscribe({
+        query
+      });
+
+      const collector = waitForSignals({ count: 1 });
+
+      observable.subscribe(async (): Promise<void> => {
+        await collector.fail();
+      });
+
+      await sleep(100);
+
+      publishDomainEvent!({ domainEvent: domainEvent1 });
+      publishDomainEvent!({ domainEvent: domainEvent2 });
+
+      setTimeout(async (): Promise<void> => {
+        await collector.signal();
+      }, 200);
 
       await collector.promise;
     });
