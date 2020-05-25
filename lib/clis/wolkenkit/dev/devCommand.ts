@@ -6,7 +6,6 @@ import { errors } from '../../../common/errors';
 import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
 import { getApplicationPackageJson } from '../../../common/application/getApplicationPackageJson';
 import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
-import { printFooter } from '../printFooter';
 import { processenv } from 'processenv';
 import { startProcess } from '../../../runtimes/shared/startProcess';
 import { validatePort } from './validatePort';
@@ -105,15 +104,11 @@ const devCommand = function (): Command<DevOptions> {
         }
 
         buntstift.info(`Starting the '${name}' application...`);
-        buntstift.info(`To stop the '${name}' application, press <Ctrl>+<C>.`);
         buntstift.newLine();
         buntstift.info(`  API port     ${port}`);
         buntstift.info(`  Health port  ${healthPort}`);
-
         buntstift.newLine();
-        printFooter();
-
-        buntstift.newLine();
+        buntstift.info(`To stop the '${name}' application, press <Ctrl>+<C>.`);
         buntstift.line();
 
         stopWaiting();

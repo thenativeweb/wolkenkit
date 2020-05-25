@@ -6,7 +6,6 @@ import { getApplicationRoot } from '../../../common/application/getApplicationRo
 import { getApi as getStaticApi } from '../../../apis/getStatic/http';
 import http from 'http';
 import path from 'path';
-import { printFooter } from '../printFooter';
 import { validatePort } from './validatePort';
 
 const logger = flaschenpost.getLogger();
@@ -41,7 +40,6 @@ const documentationCommand = function (): Command<DocumentationOptions> {
 
       try {
         buntstift.info('Starting the documentation...');
-        buntstift.info('To stop the documentation, press <Ctrl>+<C>.');
         buntstift.newLine();
         buntstift.info(`  Port  ${port}`);
 
@@ -54,8 +52,7 @@ const documentationCommand = function (): Command<DocumentationOptions> {
 
         http.createServer(staticApi).listen(port, (): void => {
           buntstift.newLine();
-          printFooter();
-          buntstift.newLine();
+          buntstift.info('To stop the documentation, press <Ctrl>+<C>.');
           buntstift.line();
           logger.info('Documentation server started.', {
             port,
