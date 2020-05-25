@@ -18,6 +18,7 @@ import { Repository } from '../../../../lib/common/domain/Repository';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { uuid } from 'uuidv4';
+import { waitForSignals } from 'wait-for-signals';
 
 suite('observeDomainEvents/http', (): void => {
   const identityProviders = [ identityProvider ];
@@ -359,6 +360,155 @@ suite('observeDomainEvents/http', (): void => {
             }
           ]));
         });
+      });
+
+      test('delivers rejected/failed events to their initiator.', async (): Promise<void> => {
+        const failed = new DomainEventWithState({
+          ...buildDomainEvent({
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'authenticateFailed',
+            data: { reason: 'test' },
+            metadata: {
+              revision: { aggregate: 1 },
+              initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
+            }
+          }),
+          state: { previous: {}, next: {}}
+        });
+        const rejected = new DomainEventWithState({
+          ...buildDomainEvent({
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'authenticateRejected',
+            data: { reason: 'test' },
+            metadata: {
+              revision: { aggregate: 2 },
+              initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
+            }
+          }),
+          state: { previous: {}, next: {}}
+        });
+
+        setTimeout(async (): Promise<void> => {
+          publishDomainEvent({ domainEvent: failed });
+          publishDomainEvent({ domainEvent: rejected });
+        }, 100);
+
+        const { client } = await runAsServer({ app: api });
+
+        const { data } = await client({
+          method: 'get',
+          url: '/v2/',
+          headers: {
+            'x-anonymous-id': 'jane.doe'
+          },
+          responseType: 'stream'
+        });
+
+        const collector = waitForSignals({ count: 2 });
+
+        data.on('error', async (err: any): Promise<void> => {
+          await collector.fail(err);
+        });
+
+        data.on('close', async (): Promise<void> => {
+          await collector.fail();
+        });
+
+        data.pipe(asJsonStream([
+          (streamElement): void => {
+            assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+          },
+          async (streamElement: any): Promise<void> => {
+            try {
+              assert.that(streamElement.name).is.equalTo('authenticateFailed');
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          },
+          async (streamElement: any): Promise<void> => {
+            try {
+              assert.that(streamElement.name).is.equalTo('authenticateRejected');
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          }
+        ]));
+
+        await collector.promise;
+      });
+
+      test('does not deliver rejected/failed events to other clients than the initiator.', async (): Promise<void> => {
+        const failed = new DomainEventWithState({
+          ...buildDomainEvent({
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'authenticateFailed',
+            data: { reason: 'test' },
+            metadata: {
+              revision: { aggregate: 1 },
+              initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
+            }
+          }),
+          state: { previous: {}, next: {}}
+        });
+        const rejected = new DomainEventWithState({
+          ...buildDomainEvent({
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'authenticateRejected',
+            data: { reason: 'test' },
+            metadata: {
+              revision: { aggregate: 2 },
+              initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
+            }
+          }),
+          state: { previous: {}, next: {}}
+        });
+
+        setTimeout(async (): Promise<void> => {
+          publishDomainEvent({ domainEvent: failed });
+          publishDomainEvent({ domainEvent: rejected });
+        }, 100);
+
+        const { client } = await runAsServer({ app: api });
+
+        const { data } = await client({
+          method: 'get',
+          url: '/v2/',
+          headers: {
+            'x-anonymous-id': 'john.doe'
+          },
+          responseType: 'stream'
+        });
+
+        const collector = waitForSignals({ count: 1 });
+
+        data.on('error', async (err: any): Promise<void> => {
+          await collector.fail(err);
+        });
+
+        data.on('close', async (): Promise<void> => {
+          await collector.fail();
+        });
+
+        data.pipe(asJsonStream([
+          (streamElement): void => {
+            assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+          },
+          async (): Promise<void> => {
+            await collector.fail();
+          }
+        ]));
+
+        setTimeout(async (): Promise<void> => {
+          await collector.signal();
+        }, 200);
+
+        await collector.promise;
       });
 
       test('removes state before delivery.', async (): Promise<void> => {
