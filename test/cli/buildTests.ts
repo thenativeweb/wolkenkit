@@ -8,7 +8,7 @@ const rootPath = path.join(__dirname, '..', '..');
 const cliPath = path.join(rootPath, 'build', 'lib', 'bin', 'wolkenkit.js');
 
 suite('build', function (): void {
-  this.timeout(30_000);
+  this.timeout(60_000);
 
   test('compiles a TypeScript application to JavaScript.', async (): Promise<void> => {
     const appName = 'test-app';
