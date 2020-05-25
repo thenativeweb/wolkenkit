@@ -243,6 +243,4 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
   `;
 };
 
-export {
-  getMicroserviceInMemoryManifest
-};
+export { getMicroserviceInMemoryManifest };
