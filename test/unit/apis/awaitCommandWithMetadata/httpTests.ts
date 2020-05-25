@@ -225,6 +225,109 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
       });
 
+      test(`delivers a new command if the previous one's acknowledgement was deferred and its timeout has expired.`, async function (): Promise<void> {
+        this.timeout(5_000);
+
+        const aggregateId = uuid();
+        const { client } = await runAsServer({ app: api });
+
+        const commandOne = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+        const commandTwo = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+
+        await priorityQueueStore.enqueue({ item: commandOne });
+        await priorityQueueStore.enqueue({ item: commandTwo });
+        await newCommandPublisher.publish({
+          channel: newCommandSubscriberChannel,
+          message: {}
+        });
+
+        const { data: dataFirstTry } = await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        const { item, token } = await new Promise((resolve, reject): void => {
+          dataFirstTry.on('error', (err: any): void => {
+            reject(err);
+          });
+
+          dataFirstTry.pipe(asJsonStream([
+            (streamElement): void => {
+              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+            },
+            (streamElement: any): void => {
+              assert.that(streamElement.item).is.equalTo(commandOne);
+              assert.that(isUuid(streamElement.token)).is.true();
+
+              resolve(streamElement);
+            }
+          ]));
+        });
+
+        const commandWithMetadata = new CommandWithMetadata(item);
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/acknowledge',
+          headers: { 'content-type': 'application/json' },
+          data: {
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            token,
+            defer: true
+          },
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(200);
+
+        await sleep({ ms: 1.25 * expirationTime });
+
+        const { data: dataSecondTry } = await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        await new Promise((resolve, reject): void => {
+          dataSecondTry.on('error', (err: any): void => {
+            reject(err);
+          });
+
+          dataSecondTry.pipe(asJsonStream([
+            (streamElement): void => {
+              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+            },
+            (streamElement: any): void => {
+              assert.that(streamElement.item).is.equalTo(commandTwo);
+              assert.that(isUuid(streamElement.token)).is.true();
+
+              resolve();
+            }
+          ]));
+        });
+      });
+
       test('delivers commands in different aggregates in parallel.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
@@ -580,6 +683,194 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
 
         const commandWithMetadata = new CommandWithMetadata(item);
+
+        await client({
+          method: 'post',
+          url: '/v2/acknowledge',
+          headers: { 'content-type': 'application/json' },
+          data: {
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            token
+          }
+        });
+
+        const { data: secondLockData } = await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        await new Promise((resolve, reject): void => {
+          secondLockData.on('error', (err: any): void => {
+            reject(err);
+          });
+
+          secondLockData.pipe(asJsonStream([
+            (streamElement): void => {
+              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+            },
+            (streamElement: any): void => {
+              assert.that(streamElement.item).is.equalTo(commandTwo);
+
+              resolve();
+            }
+          ]));
+        });
+      });
+
+      test('defers removing the item from the queue.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const aggregateId = uuid();
+        const commandOne = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+        const commandTwo = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+
+        await priorityQueueStore.enqueue({ item: commandOne });
+        await priorityQueueStore.enqueue({ item: commandTwo });
+
+        const { data: firstLockData } = await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        const { item, token } = await new Promise((resolve, reject): void => {
+          firstLockData.on('error', (err: any): void => {
+            reject(err);
+          });
+
+          firstLockData.pipe(asJsonStream([
+            (streamElement): void => {
+              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+            },
+            (streamElement: any): void => {
+              resolve(streamElement);
+            }
+          ]));
+        });
+
+        const commandWithMetadata = new CommandWithMetadata(item);
+
+        await client({
+          method: 'post',
+          url: '/v2/acknowledge',
+          headers: { 'content-type': 'application/json' },
+          data: {
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            token,
+            defer: true
+          }
+        });
+
+        await sleep({ ms: expirationTime * 1.25 });
+
+        const { data: secondLockData } = await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        await new Promise((resolve, reject): void => {
+          secondLockData.on('error', (err: any): void => {
+            reject(err);
+          });
+
+          secondLockData.pipe(asJsonStream([
+            (streamElement): void => {
+              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+            },
+            (streamElement: any): void => {
+              assert.that(streamElement.item).is.equalTo(commandTwo);
+
+              resolve();
+            }
+          ]));
+        });
+      });
+
+      test('removes the item from the queue even if its acknowledgement was deferred before.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const aggregateId = uuid();
+        const commandOne = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+        const commandTwo = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+
+        await priorityQueueStore.enqueue({ item: commandOne });
+        await priorityQueueStore.enqueue({ item: commandTwo });
+
+        const { data: firstLockData } = await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        const { item, token } = await new Promise((resolve, reject): void => {
+          firstLockData.on('error', (err: any): void => {
+            reject(err);
+          });
+
+          firstLockData.pipe(asJsonStream([
+            (streamElement): void => {
+              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+            },
+            (streamElement: any): void => {
+              resolve(streamElement);
+            }
+          ]));
+        });
+
+        const commandWithMetadata = new CommandWithMetadata(item);
+
+        await client({
+          method: 'post',
+          url: '/v2/acknowledge',
+          headers: { 'content-type': 'application/json' },
+          data: {
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            token,
+            defer: true
+          }
+        });
 
         await client({
           method: 'post',

@@ -20,6 +20,8 @@ export interface CommandHandler<TState extends State, TCommandData extends Comma
     logger: LoggerService;
   }): boolean | Promise<boolean>;
 
+  retry? (): boolean | Promise<boolean>;
+
   handle (state: TState, command: CommandWithMetadata<TCommandData>, services: {
     aggregate: AggregateService<TState>;
     aggregates: AggregatesService;

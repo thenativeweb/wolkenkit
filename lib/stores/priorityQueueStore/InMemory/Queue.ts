@@ -7,4 +7,5 @@ export interface Queue<TItem> {
     token: string;
   };
   items: TItem[];
+  isAlreadyAcknowledged: boolean;
 }

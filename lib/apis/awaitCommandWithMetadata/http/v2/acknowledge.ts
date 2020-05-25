@@ -32,7 +32,7 @@ const acknowledge = function ({
       return;
     }
 
-    const { itemIdentifier, token } = req.body;
+    const { itemIdentifier, token, defer } = req.body;
 
     try {
       validateItemIdentifier({ itemIdentifier, applicationDefinition });
@@ -48,7 +48,7 @@ const acknowledge = function ({
     }
 
     try {
-      await priorityQueueStore.acknowledge({ itemIdentifier, token });
+      await priorityQueueStore.acknowledge({ itemIdentifier, token, defer });
 
       res.status(200).end();
     } catch (ex) {

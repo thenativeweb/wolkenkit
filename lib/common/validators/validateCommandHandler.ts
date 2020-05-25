@@ -33,6 +33,12 @@ const validateCommandHandler = function ({ commandHandler }: {
       throw new errors.CommandHandlerMalformed(`Property 'getSchema' is not a function.`);
     }
   }
+
+  if (commandHandler.retry) {
+    if (!isFunction(commandHandler.retry)) {
+      throw new errors.CommandHandlerMalformed(`Property 'retry' is not a function.`);
+    }
+  }
 };
 
 export { validateCommandHandler };

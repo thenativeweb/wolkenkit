@@ -196,7 +196,8 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     if (!queue) {
       queue = {
         aggregateIdentifier: item.aggregateIdentifier,
-        items: []
+        items: [],
+        isAlreadyAcknowledged: false
       };
 
       this.queues.push(queue);
@@ -230,6 +231,15 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     }
 
     const item = queue.items[0];
+
+    if (queue.lock && Date.now() > queue.lock.until && queue.isAlreadyAcknowledged) {
+      const itemIdentifier = item.getItemIdentifier();
+      const { token } = queue.lock;
+
+      this.acknowledgeInternal({ itemIdentifier, token, defer: false });
+
+      return this.lockNextInternal();
+    }
 
     const until = Date.now() + this.expirationTime;
     const token = uuid();
@@ -267,11 +277,18 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     );
   }
 
-  protected acknowledgeInternal ({ itemIdentifier, token }: {
+  protected acknowledgeInternal ({ itemIdentifier, token, defer }: {
     itemIdentifier: ItemIdentifier;
     token: string;
+    defer: boolean;
   }): void {
     const queue = this.getQueueIfLocked({ itemIdentifier, token });
+
+    queue.isAlreadyAcknowledged = defer;
+
+    if (defer) {
+      return;
+    }
 
     queue.items.shift();
 
@@ -285,12 +302,13 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     this.removeInternal({ aggregateIdentifier: queue.aggregateIdentifier });
   }
 
-  public async acknowledge ({ itemIdentifier, token }: {
+  public async acknowledge ({ itemIdentifier, token, defer = false }: {
     itemIdentifier: ItemIdentifier;
     token: string;
+    defer?: boolean;
   }): Promise<void> {
     await this.functionCallQueue.add(
-      async (): Promise<void> => this.acknowledgeInternal({ itemIdentifier, token })
+      async (): Promise<void> => this.acknowledgeInternal({ itemIdentifier, token, defer })
     );
   }
 

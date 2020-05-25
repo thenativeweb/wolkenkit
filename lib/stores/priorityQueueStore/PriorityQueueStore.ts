@@ -17,6 +17,7 @@ export interface PriorityQueueStore<TItem extends CommandWithMetadata<CommandDat
   acknowledge ({ itemIdentifier, token }: {
     itemIdentifier: ItemIdentifier;
     token: string;
+    defer?: boolean;
   }): Promise<void>;
 
   destroy (): Promise<void>;

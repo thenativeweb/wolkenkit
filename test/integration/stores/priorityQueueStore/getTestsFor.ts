@@ -185,6 +185,24 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
       assert.that(firstNextToken).is.not.equalTo(secondNextToken);
     });
+
+    test('returns undefined if the queue of the enqueued items has a deferred acknowledgement which is still locked.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({ item: commands.firstAggregate.secondCommand });
+
+      const { item, token } = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        itemIdentifier: item.getItemIdentifier(),
+        token
+      });
+
+      await priorityQueueStore.lockNext();
+
+      const nextCommand = await priorityQueueStore.lockNext();
+
+      assert.that(nextCommand).is.undefined();
+    });
   });
 
   suite('renewLock', (): void => {
@@ -320,6 +338,47 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       await priorityQueueStore.enqueue({ item: commands.firstAggregate.secondCommand });
 
       const { token } = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        itemIdentifier: commands.firstAggregate.firstCommand.getItemIdentifier(),
+        token
+      });
+
+      const { item: nextCommand } = (await priorityQueueStore.lockNext())!;
+
+      assert.that(nextCommand).is.equalTo(commands.firstAggregate.secondCommand);
+    });
+
+    test('defers acknowledging the item.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({ item: commands.firstAggregate.secondCommand });
+
+      const { token } = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        itemIdentifier: commands.firstAggregate.firstCommand.getItemIdentifier(),
+        token,
+        defer: true
+      });
+
+      await sleep({ ms: expirationTime * 1.25 });
+
+      const { item: nextCommand } = (await priorityQueueStore.lockNext())!;
+
+      assert.that(nextCommand).is.equalTo(commands.firstAggregate.secondCommand);
+    });
+
+    test('acknowledges the item even if its acknowledgement was already deferred.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({ item: commands.firstAggregate.secondCommand });
+
+      const { token } = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        itemIdentifier: commands.firstAggregate.firstCommand.getItemIdentifier(),
+        token,
+        defer: true
+      });
 
       await priorityQueueStore.acknowledge({
         itemIdentifier: commands.firstAggregate.firstCommand.getItemIdentifier(),

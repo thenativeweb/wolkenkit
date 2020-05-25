@@ -106,14 +106,15 @@ class Client extends HttpClient {
     }
   }
 
-  public async acknowledge ({ itemIdentifier, token }: {
+  public async acknowledge ({ itemIdentifier, token, defer }: {
     itemIdentifier: ItemIdentifier;
     token: string;
+    defer?: boolean;
   }): Promise<void> {
     const { status, data } = await axios({
       method: 'post',
       url: `${this.url}/acknowledge`,
-      data: { itemIdentifier, token },
+      data: { itemIdentifier, token, defer },
       validateStatus (): boolean {
         return true;
       }

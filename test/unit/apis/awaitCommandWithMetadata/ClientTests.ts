@@ -408,6 +408,112 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
         // fetch a command.
         await client.awaitCommandWithMetadata();
       });
+
+      test('defers removing the item from the queue.', async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const aggregateId = uuid();
+        const commandOne = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+        const commandTwo = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+
+        await priorityQueueStore.enqueue({ item: commandOne });
+        await priorityQueueStore.enqueue({ item: commandTwo });
+
+        const { item, token } = await client.awaitCommandWithMetadata();
+
+        const commandWithMetadata = new CommandWithMetadata(item);
+
+        await client.acknowledge({
+          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          token,
+          defer: true
+        });
+
+        await sleep({ ms: expirationTime * 1.25 });
+
+        // This should resolve. A timeout in this test means, that this can not
+        // fetch a command.
+        await client.awaitCommandWithMetadata();
+      });
+
+      test('removes the item from the queue even if its acknowledgement was deferred before.', async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const aggregateId = uuid();
+        const commandOne = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+        const commandTwo = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+
+        await priorityQueueStore.enqueue({ item: commandOne });
+        await priorityQueueStore.enqueue({ item: commandTwo });
+
+        const { item, token } = await client.awaitCommandWithMetadata();
+
+        const commandWithMetadata = new CommandWithMetadata(item);
+
+        await client.acknowledge({
+          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          token,
+          defer: true
+        });
+        await client.acknowledge({
+          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          token
+        });
+
+        // This should resolve. A timeout in this test means, that this can not
+        // fetch a command.
+        await client.awaitCommandWithMetadata();
+      });
     });
   });
 });
