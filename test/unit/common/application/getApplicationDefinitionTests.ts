@@ -79,14 +79,12 @@ suite('getApplicationDefinition', (): void => {
         sampleContext: {
           sampleAggregate: {
             domainEventHandlers: {
-              authenticatedFailed: {},
-              authenticatedRejected: {},
-              authorizedFailed: {},
-              authorizedRejected: {},
-              executedFailed: {},
-              executedRejected: {},
-              succeededFailed: {},
-              succeededRejected: {}
+              authenticateFailed: {},
+              authenticateRejected: {},
+              authorizeFailed: {},
+              authorizeRejected: {},
+              executeFailed: {},
+              executeRejected: {}
             }
           }
         }
@@ -96,7 +94,7 @@ suite('getApplicationDefinition', (): void => {
     const userId = uuid();
 
     assert.that(
-      applicationDefinition.domain.sampleContext.sampleAggregate.domainEventHandlers.authenticatedFailed.isAuthorized(
+      applicationDefinition.domain.sampleContext.sampleAggregate.domainEventHandlers.authenticateFailed.isAuthorized(
         {},
         { metadata: { initiator: { user: { id: userId }}}} as DomainEventWithState<any, any>,
         { client: { user: { id: userId }}} as Services
@@ -104,7 +102,7 @@ suite('getApplicationDefinition', (): void => {
     ).is.true();
 
     assert.that(
-      applicationDefinition.domain.sampleContext.sampleAggregate.domainEventHandlers.authenticatedFailed.isAuthorized(
+      applicationDefinition.domain.sampleContext.sampleAggregate.domainEventHandlers.authenticateFailed.isAuthorized(
         {},
         { metadata: { initiator: { user: { id: userId }}}} as DomainEventWithState<any, any>,
         { client: { user: { id: uuid() }}} as Services
