@@ -62,7 +62,7 @@ suite('buildApplication', function (): void {
     assert.that(actualApplicationDefinition).is.atLeast(expectedApplicationDefinition);
   });
 
-  test.only('builds a TypeScript application.', async (): Promise<void> => {
+  test('builds a TypeScript application.', async (): Promise<void> => {
     const applicationDirectory = await isolated();
     const wolkenkitDirectory = path.join(__dirname, '..', '..', '..', '..');
 
