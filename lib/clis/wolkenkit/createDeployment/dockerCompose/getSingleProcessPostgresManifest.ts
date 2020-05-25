@@ -102,6 +102,4 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
   `;
 };
 
-export {
-  getSingleProcessPostgresManifest
-};
+export { getSingleProcessPostgresManifest };

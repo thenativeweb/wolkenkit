@@ -283,6 +283,4 @@ const getMicroservicePostgresManifest = function ({ appName }: {
   `;
 };
 
-export {
-  getMicroservicePostgresManifest
-};
+export { getMicroservicePostgresManifest };

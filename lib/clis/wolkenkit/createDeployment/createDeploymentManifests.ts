@@ -12,19 +12,19 @@ const createDeploymentManifests = async function ({ directory, name }: {
 }): Promise<void> {
   const deploymentFiles = [
     {
-      filePath: [ 'docker-compose', 'docker-compose.microservice.in-memory.yml' ],
+      filePath: [ 'docker-compose', 'microservice.in-memory.yml' ],
       content: getMicroserviceInMemoryManifest({ appName: name })
     },
     {
-      filePath: [ 'docker-compose', 'docker-compose.microservice.postgres.yml' ],
+      filePath: [ 'docker-compose', 'microservice.postgres.yml' ],
       content: getMicroservicePostgresManifest({ appName: name })
     },
     {
-      filePath: [ 'docker-compose', 'docker-compose.single-process.in-memory.yml' ],
+      filePath: [ 'docker-compose', 'single-process.in-memory.yml' ],
       content: getSingleProcessInMemoryManifest({ appName: name })
     },
     {
-      filePath: [ 'docker-compose', 'docker-compose.single-process.postgres.yml' ],
+      filePath: [ 'docker-compose', 'single-process.postgres.yml' ],
       content: getSingleProcessPostgresManifest({ appName: name })
     }
   ];
