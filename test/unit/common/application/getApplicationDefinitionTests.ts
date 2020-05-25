@@ -1,10 +1,13 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
+import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import fs from 'fs';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { isolated } from 'isolated';
 import path from 'path';
+import { Services } from '../../../../lib/common/domain/domainEvent/Services';
+import { uuid } from 'uuidv4';
 
 suite('getApplicationDefinition', (): void => {
   test('throws an error if a non-existent directory is given.', async (): Promise<void> => {
@@ -65,6 +68,48 @@ suite('getApplicationDefinition', (): void => {
         }
       }
     });
+  });
+
+  test('adds system events and handlers.', async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
+    const applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+
+    assert.that(applicationDefinition).is.atLeast({
+      domain: {
+        sampleContext: {
+          sampleAggregate: {
+            domainEventHandlers: {
+              authenticatedFailed: {},
+              authenticatedRejected: {},
+              authorizedFailed: {},
+              authorizedRejected: {},
+              executedFailed: {},
+              executedRejected: {},
+              succeededFailed: {},
+              succeededRejected: {}
+            }
+          }
+        }
+      }
+    });
+
+    const userId = uuid();
+
+    assert.that(
+      applicationDefinition.domain.sampleContext.sampleAggregate.domainEventHandlers.authenticatedFailed.isAuthorized(
+        {},
+        { metadata: { initiator: { user: { id: userId }}}} as DomainEventWithState<any, any>,
+        { client: { user: { id: userId }}} as Services
+      )
+    ).is.true();
+
+    assert.that(
+      applicationDefinition.domain.sampleContext.sampleAggregate.domainEventHandlers.authenticatedFailed.isAuthorized(
+        {},
+        { metadata: { initiator: { user: { id: userId }}}} as DomainEventWithState<any, any>,
+        { client: { user: { id: uuid() }}} as Services
+      )
+    ).is.false();
   });
 
   test('applies aggregate enhancers.', async (): Promise<void> => {
