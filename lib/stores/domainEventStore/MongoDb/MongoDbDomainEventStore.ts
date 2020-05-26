@@ -377,23 +377,41 @@ class MongoDbDomainEventStore implements DomainEventStore {
       throw new errors.ParameterInvalid('Domain events are missing.');
     }
 
-    try {
-      for (const domainEvent of domainEvents) {
-        const savedDomainEvent = new DomainEvent<TDomainEventData>({
-          ...domainEvent,
-          data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
-        });
-
-        await this.collections.domainEvents.insertOne(savedDomainEvent, {
-          forceServerObjectId: true
-        });
+    /* eslint-disable id-length */
+    const session = this.client.startSession({
+      defaultTransactionOptions: {
+        readPreference: 'primary',
+        readConcern: {
+          level: 'local'
+        },
+        writeConcern: {
+          w: 'majority'
+        }
       }
+    });
+    /* eslint-enable id-length */
+
+    try {
+      await session.withTransaction(async (): Promise<void> => {
+        for (const domainEvent of domainEvents) {
+          const savedDomainEvent = new DomainEvent<TDomainEventData>({
+            ...domainEvent,
+            data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
+          });
+
+          await this.collections.domainEvents.insertOne(savedDomainEvent, {
+            forceServerObjectId: true
+          });
+        }
+      });
     } catch (ex) {
       if (ex.code === 11000 && ex.message.includes('_aggregateId_revision')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
       throw ex;
+    } finally {
+      session.endSession();
     }
   }
 
