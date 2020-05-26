@@ -3,19 +3,19 @@ import { LoggerService } from '../services/LoggerService';
 import { Readable } from 'stream';
 import { Schema } from './Schema';
 
-export interface QueryHandler<TDatabaseView, TQueryOptions, TQueryResultItem> {
+export interface QueryHandler<TQueryOptions, TQueryResultItem, TInfrastructure> {
   getDocumentation? (): string;
 
   getOptionsSchema? (): Schema;
 
   getResultItemSchema? (): Schema;
 
-  handle (databaseView: TDatabaseView, queryOptions: TQueryOptions, services: {
+  handle (queryOptions: TQueryOptions, infrastructure: TInfrastructure, services: {
     client: ClientService;
     logger: LoggerService;
-  }): Readable | Promise<Readable>;
+  }): Readable | Promise<Readable> | TQueryResultItem | Promise<TQueryResultItem>;
 
-  isAuthorized (databaseViewItem: TQueryResultItem, services: {
+  isAuthorized (infrastructure: TInfrastructure, services: {
     client: ClientService;
     logger: LoggerService;
   }): boolean | Promise<boolean>;
