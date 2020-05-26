@@ -15,19 +15,19 @@ const getApplicationDefinition = async function ({ applicationDirectory }: {
   }
 
   const packageManifestPath = path.join(applicationDirectory, 'package.json');
-  const buildDirectory = path.join(applicationDirectory, 'build');
+  const serverDirectory = path.join(applicationDirectory, 'build', 'server');
 
   if (!await exists({ path: packageManifestPath })) {
     throw new errors.FileNotFound(`File '<app>/package.json' not found.`);
   }
-  if (!await exists({ path: buildDirectory })) {
+  if (!await exists({ path: serverDirectory })) {
     throw new errors.DirectoryNotFound(`Directory '<app>/build' not found.`);
   }
 
   const packageManifest = (await import(packageManifestPath)).default;
 
-  const domainDirectory = path.join(buildDirectory, 'domain');
-  const viewsDirectory = path.join(buildDirectory, 'views');
+  const domainDirectory = path.join(serverDirectory, 'domain');
+  const viewsDirectory = path.join(serverDirectory, 'views');
 
   const domainDefinition = await getDomainDefinition({ domainDirectory });
   const viewsDefinition = await getViewsDefinition({ viewsDirectory });
