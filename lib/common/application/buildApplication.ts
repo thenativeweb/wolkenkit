@@ -21,8 +21,8 @@ const buildApplication = async function ({ applicationDirectory, buildDirectoryO
     return;
   }
 
-  shell.mkdir('-p', buildDirectory);
-  shell.cp('-r', `${serverDirectory}/*`, buildDirectory);
+  shell.mkdir('-p', path.join(buildDirectory, 'server'));
+  shell.cp('-r', `${serverDirectory}/*`, path.join(buildDirectory, 'server'));
 };
 
 export { buildApplication };
