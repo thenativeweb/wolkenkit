@@ -1,59 +1,84 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
+import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
 import { RequestHandler } from 'express';
 import typer from 'content-type';
 import { validateSnapshot } from '../../../../common/validators/validateSnapshot';
+import { Value } from 'validate-value';
 
-const storeSnapshot = function ({
-  domainEventStore
-}: {
-  domainEventStore: DomainEventStore;
-}): RequestHandler {
-  return async function (req, res): Promise<any> {
-    let contentType: typer.ParsedMediaType;
+const storeSnapshot = {
+  description: 'Stores a snapshot.',
+  path: 'store-snapshot',
 
-    try {
-      contentType = typer.parse(req);
-    } catch {
-      const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
+  request: {
+    body: getSnapshotSchema()
+  },
+  response: {
+    statusCodes: [ 200, 400, 415 ],
 
-      return res.status(415).json({
-        code: ex.code,
-        message: ex.message
-      });
-    }
+    body: { type: 'object' }
+  },
 
-    if (contentType.type !== 'application/json') {
-      const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
+  getHandler ({
+    domainEventStore
+  }: {
+    domainEventStore: DomainEventStore;
+  }): RequestHandler {
+    const requestBodySchema = new Value(storeSnapshot.request.body),
+          responseBodySchema = new Value(storeSnapshot.response.body);
 
-      return res.status(415).json({
-        code: ex.code,
-        message: ex.message
-      });
-    }
+    return async function (req, res): Promise<any> {
+      let contentType: typer.ParsedMediaType;
 
-    const snapshot = req.body;
+      try {
+        contentType = typer.parse(req);
+      } catch {
+        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-    try {
-      validateSnapshot({ snapshot });
-    } catch (ex) {
-      return res.status(400).json({
-        code: ex.code ?? 'EUNKNOWNERROR',
-        message: ex.message
-      });
-    }
+        return res.status(415).json({
+          code: ex.code,
+          message: ex.message
+        });
+      }
 
-    try {
-      await domainEventStore.storeSnapshot({ snapshot });
-    } catch (ex) {
-      return res.status(400).json({
-        code: ex.code ?? 'EUNKNOWNERROR',
-        message: ex.message
-      });
-    }
+      if (contentType.type !== 'application/json') {
+        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-    res.status(200).end();
-  };
+        return res.status(415).json({
+          code: ex.code,
+          message: ex.message
+        });
+      }
+
+      const snapshot = req.body;
+
+      try {
+        requestBodySchema.validate(snapshot);
+
+        validateSnapshot({ snapshot });
+      } catch (ex) {
+        return res.status(400).json({
+          code: ex.code ?? 'EUNKNOWNERROR',
+          message: ex.message
+        });
+      }
+
+      try {
+        await domainEventStore.storeSnapshot({ snapshot });
+
+        const response = {};
+
+        responseBodySchema.validate(response);
+
+        res.status(200).json(response);
+      } catch (ex) {
+        return res.status(400).json({
+          code: ex.code ?? 'EUNKNOWNERROR',
+          message: ex.message
+        });
+      }
+    };
+  }
 };
 
 export { storeSnapshot };

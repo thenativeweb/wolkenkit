@@ -32,54 +32,54 @@ const getV2 = async function ({
   });
 
   api.get(
-    '/replay',
-    getReplay({
+    `/${getReplay.path}`,
+    getReplay.getHandler({
       domainEventStore,
       heartbeatInterval
     })
   );
 
   api.get(
-    '/replay/:aggregateId',
-    getReplayForAggregate({
+    `/${getReplayForAggregate.path}`,
+    getReplayForAggregate.getHandler({
       domainEventStore,
       heartbeatInterval
     })
   );
 
   api.get(
-    '/last-domain-event',
-    getLastDomainEvent({
+    `/${getLastDomainEvent.path}`,
+    getLastDomainEvent.getHandler({
       domainEventStore
     })
   );
 
   api.get(
-    '/domain-events-by-causation-id',
-    getDomainEventsByCausationId({
+    `/${getDomainEventsByCausationId.path}`,
+    getDomainEventsByCausationId.getHandler({
       domainEventStore,
       heartbeatInterval
     })
   );
 
   api.get(
-    '/has-domain-events-with-causation-id',
-    hasDomainEventsWithCausationId({
+    `/${hasDomainEventsWithCausationId.path}`,
+    hasDomainEventsWithCausationId.getHandler({
       domainEventStore
     })
   );
 
   api.get(
-    '/domain-events-by-correlation-id',
-    getDomainEventsByCorrelationId({
+    `/${getDomainEventsByCorrelationId.path}`,
+    getDomainEventsByCorrelationId.getHandler({
       domainEventStore,
       heartbeatInterval
     })
   );
 
   api.get(
-    '/snapshot',
-    getSnapshot({
+    `/${getSnapshot.path}`,
+    getSnapshot.getHandler({
       domainEventStore
     })
   );

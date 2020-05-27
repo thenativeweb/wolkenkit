@@ -41,11 +41,11 @@ const getV2 = async function ({
     exposedHeaders: [ 'content-length', 'content-type', 'content-disposition', 'x-metadata' ]
   }));
 
-  api.get('/file/:id', authenticationMiddleware, getFile({ fileStore }));
-  api.post('/add-file', authenticationMiddleware, postAddFile({ addFileAuthorizationOptions, fileStore }));
-  api.post('/remove-file', authenticationMiddleware, postRemoveFile({ fileStore }));
-  api.post('/transfer-ownership', authenticationMiddleware, postTransferOwnership({ fileStore }));
-  api.post('/authorize', authenticationMiddleware, postAuthorize({ fileStore }));
+  api.get(`/${getFile.path}`, authenticationMiddleware, getFile.getHandler({ fileStore }));
+  api.post(`/${postAddFile.path}`, authenticationMiddleware, postAddFile.getHandler({ addFileAuthorizationOptions, fileStore }));
+  api.post(`/${postRemoveFile.path}`, authenticationMiddleware, postRemoveFile.getHandler({ fileStore }));
+  api.post(`/{${postTransferOwnership.path}`, authenticationMiddleware, postTransferOwnership.getHandler({ fileStore }));
+  api.post(`/${postAuthorize.path}`, authenticationMiddleware, postAuthorize.getHandler({ fileStore }));
 
   return { api };
 };

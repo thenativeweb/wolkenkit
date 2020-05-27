@@ -23,9 +23,9 @@ const getV2 = async function ({ corsOrigin, heartbeatInterval = 90_000 }: {
   const messageEmitter = new SpecializedEventEmitter<object>();
 
   api.get(
-    '/',
+    `/${getMessages.path}`,
     streamNdjsonMiddleware({ heartbeatInterval }),
-    getMessages({ messageEmitter })
+    getMessages.getHandler({ messageEmitter })
   );
 
   const publishMessage: PublishMessage = function ({ message }): void {

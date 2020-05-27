@@ -24,15 +24,15 @@ const getV2 = async function ({
   });
 
   api.post(
-    '/store-domain-events',
-    storeDomainEvents({
+    `/${storeDomainEvents.path}`,
+    storeDomainEvents.getHandler({
       domainEventStore
     })
   );
 
   api.post(
-    '/store-snapshot',
-    storeSnapshot({
+    `/${storeSnapshot.path}`,
+    storeSnapshot.getHandler({
       domainEventStore
     })
   );

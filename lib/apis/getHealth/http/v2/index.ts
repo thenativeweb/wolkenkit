@@ -16,7 +16,7 @@ const getV2 = async function ({ corsOrigin }: {
     }
   });
 
-  api.get('/', getHealth());
+  api.get(`/${getHealth.path}`, getHealth.getHandler());
 
   return { api };
 };

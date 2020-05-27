@@ -24,7 +24,7 @@ const getV2 = async function ({
     }
   });
 
-  api.post('/', postCommand({
+  api.post(`/${postCommand.path}`, postCommand.getHandler({
     onReceiveCommand,
     applicationDefinition
   }));

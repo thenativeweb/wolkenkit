@@ -1,66 +1,90 @@
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { flaschenpost } from 'flaschenpost';
+import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
+import { jsonSchema } from 'uuidv4';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
-import { writeLine } from '../../../../apis/base/writeLine';
+import { Value } from 'validate-value';
+import { writeLine } from '../../../base/writeLine';
 import { RequestHandler, Response } from 'express';
 
 const logger = flaschenpost.getLogger();
 
-const maybeHandleLock = async function ({
-  priorityQueueStore,
-  res
-}: {
-  priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
-  res: Response;
-}): Promise<boolean> {
-  const nextLock = await priorityQueueStore.lockNext();
-
-  if (nextLock !== undefined) {
-    logger.info('Locked priority queue item.', nextLock);
-
-    writeLine({ res, data: nextLock });
-    res.end();
-
-    return true;
-  }
-
-  return false;
-};
-
-const awaitCommandWithMetadata = function ({
-  priorityQueueStore,
-  newCommandSubscriber,
-  newCommandSubscriberChannel
-}: {
-  priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
-  newCommandSubscriber: Subscriber<object>;
-  newCommandSubscriberChannel: string;
-}): RequestHandler {
-  return async function (req, res): Promise<void> {
-    const instantSuccess = await maybeHandleLock({ priorityQueueStore, res });
-
-    if (instantSuccess) {
-      return;
+const awaitCommandWithMetadata = {
+  description: 'Sends the next available command.',
+  path: '',
+  request: {},
+  response: {
+    statusCodes: [],
+    stream: true,
+    body: {
+      type: 'object',
+      properties: {
+        item: getCommandWithMetadataSchema(),
+        token: jsonSchema.v4
+      },
+      required: [ 'item', 'token' ],
+      additionalProperties: false
     }
+  },
 
-    const callback = async function (): Promise<void> {
-      const success = await maybeHandleLock({ priorityQueueStore, res });
+  getHandler ({
+    priorityQueueStore,
+    newCommandSubscriber,
+    newCommandSubscriberChannel
+  }: {
+    priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
+    newCommandSubscriber: Subscriber<object>;
+    newCommandSubscriberChannel: string;
+  }): RequestHandler {
+    const responseBodySchema = new Value(awaitCommandWithMetadata.response.body);
 
-      if (success) {
-        await newCommandSubscriber.unsubscribe({
-          channel: newCommandSubscriberChannel,
-          callback
-        });
+    const maybeHandleLock = async function ({
+      res
+    }: {
+      res: Response;
+    }): Promise<boolean> {
+      const nextLock = await priorityQueueStore.lockNext();
+
+      if (nextLock !== undefined) {
+        logger.info('Locked priority queue item.', nextLock);
+
+        responseBodySchema.validate(nextLock);
+
+        writeLine({ res, data: nextLock });
+        res.end();
+
+        return true;
       }
+
+      return false;
     };
 
-    await newCommandSubscriber.subscribe({
-      channel: newCommandSubscriberChannel,
-      callback
-    });
-  };
+    return async function (req, res): Promise<void> {
+      const instantSuccess = await maybeHandleLock({ res });
+
+      if (instantSuccess) {
+        return;
+      }
+
+      const callback = async function (): Promise<void> {
+        const success = await maybeHandleLock({ res });
+
+        if (success) {
+          await newCommandSubscriber.unsubscribe({
+            channel: newCommandSubscriberChannel,
+            callback
+          });
+        }
+      };
+
+      await newCommandSubscriber.subscribe({
+        channel: newCommandSubscriberChannel,
+        callback
+      });
+    };
+  }
 };
 
 export { awaitCommandWithMetadata };

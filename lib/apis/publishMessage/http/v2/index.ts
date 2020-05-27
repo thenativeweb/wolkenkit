@@ -18,7 +18,7 @@ const getV2 = async function ({ corsOrigin, onReceiveMessage }: {
     }
   });
 
-  api.post('/', postMessage({ onReceiveMessage }));
+  api.post(`/${postMessage.path}`, postMessage.getHandler({ onReceiveMessage }));
 
   return { api };
 };

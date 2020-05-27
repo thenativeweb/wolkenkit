@@ -33,11 +33,11 @@ const getV2 = async function ({
     identityProviders
   });
 
-  api.get('/description', getDescription({
+  api.get(`/${getDescription.path}`, getDescription.getHandler({
     applicationDefinition
   }));
 
-  api.post('/', authenticationMiddleware, postCommand({
+  api.post(`/${postCommand.path}`, authenticationMiddleware, postCommand.getHandler({
     onReceiveCommand,
     applicationDefinition
   }));

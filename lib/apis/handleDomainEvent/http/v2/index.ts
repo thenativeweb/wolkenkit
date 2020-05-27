@@ -24,7 +24,7 @@ const getV2 = async function ({
     }
   });
 
-  api.post('/', postDomainEvent({
+  api.post(`/${postDomainEvent.path}`, postDomainEvent.getHandler({
     onReceiveDomainEvent,
     applicationDefinition
   }));

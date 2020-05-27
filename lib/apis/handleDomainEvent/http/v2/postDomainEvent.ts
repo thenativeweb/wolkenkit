@@ -3,68 +3,103 @@ import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
+import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
 import { OnReceiveDomainEvent } from '../../OnReceiveDomainEvent';
 import { RequestHandler } from 'express';
 import { State } from '../../../../common/elements/State';
 import typer from 'content-type';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
+import { Value } from 'validate-value';
 
 const logger = flaschenpost.getLogger();
 
-const postDomainEvent = function ({ onReceiveDomainEvent, applicationDefinition }: {
-  onReceiveDomainEvent: OnReceiveDomainEvent;
-  applicationDefinition: ApplicationDefinition;
-}): RequestHandler {
-  return async function (req, res): Promise<void> {
-    let contentType: typer.ParsedMediaType;
+const postDomainEvent = {
+  description: 'Accepts a domain event for further processing.',
+  path: '',
 
-    try {
-      contentType = typer.parse(req);
+  request: {
+    body: getDomainEventWithStateSchema()
+  },
+  response: {
+    statusCodes: [ 200, 400, 415 ],
+    body: { type: 'object' }
+  },
 
-      if (contentType.type !== 'application/json') {
-        throw new errors.RequestMalformed();
+  getHandler ({ onReceiveDomainEvent, applicationDefinition }: {
+    onReceiveDomainEvent: OnReceiveDomainEvent;
+    applicationDefinition: ApplicationDefinition;
+  }): RequestHandler {
+    const requestBodySchema = new Value(postDomainEvent.request.body),
+          responseBodySchema = new Value(postDomainEvent.response.body);
+
+    return async function (req, res): Promise<void> {
+      let contentType: typer.ParsedMediaType;
+
+      try {
+        contentType = typer.parse(req);
+
+        if (contentType.type !== 'application/json') {
+          throw new errors.RequestMalformed();
+        }
+      } catch {
+        const ex = new errors.RequestMalformed('Header content-type must be application/json.');
+
+        res.status(415).json({
+          code: ex.code,
+          message: ex.message
+        });
+
+        return;
       }
-    } catch {
-      const ex = new errors.RequestMalformed('Header content-type must be application/json.');
 
-      res.status(415).json({
-        code: ex.code,
-        message: ex.message
-      });
+      try {
+        requestBodySchema.validate(req.body);
+      } catch (ex) {
+        const error = new errors.DomainEventMalformed(ex.message);
 
-      return;
-    }
+        res.status(400).json({
+          code: error.code,
+          message: error.message
+        });
 
-    const domainEvent = new DomainEventWithState<DomainEventData, State>(req.body);
+        return;
+      }
 
-    try {
-      validateDomainEventWithState({ domainEvent, applicationDefinition });
-    } catch (ex) {
-      res.status(400).json({
-        code: ex.code,
-        message: ex.message
-      });
+      const domainEvent = new DomainEventWithState<DomainEventData, State>(req.body);
 
-      return;
-    }
+      try {
+        validateDomainEventWithState({ domainEvent, applicationDefinition });
+      } catch (ex) {
+        res.status(400).json({
+          code: ex.code,
+          message: ex.message
+        });
 
-    logger.info('Domain event received.', { domainEvent });
+        return;
+      }
 
-    try {
-      await onReceiveDomainEvent({ domainEvent });
-    } catch {
-      const ex = new errors.UnknownError();
+      logger.info('Domain event received.', { domainEvent });
 
-      res.status(500).json({
-        code: ex.code,
-        message: ex.message
-      });
+      try {
+        await onReceiveDomainEvent({ domainEvent });
 
-      return;
-    }
+        const response = {};
 
-    res.status(200).end();
-  };
+        responseBodySchema.validate(response);
+
+        res.status(200).json(response);
+      } catch (ex) {
+        logger.error('Unknown error occured.', { ex });
+
+        const error = new errors.UnknownError();
+
+        res.status(500).json({
+          code: error.code,
+          message: error.message
+        });
+      }
+    };
+  }
 };
 
 export { postDomainEvent };

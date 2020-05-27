@@ -1,15 +1,33 @@
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
+import { Value } from 'validate-value';
 import { Request, RequestHandler, Response } from 'express';
 
-const getDescription = function ({ applicationDefinition }: {
-  applicationDefinition: ApplicationDefinition;
-}): RequestHandler {
-  const applicationDescription = getApplicationDescription({ applicationDefinition });
+const getDescription = {
+  description: `Returns a description of the application's domain events`,
+  path: 'description',
 
-  return function (_req: Request, res: Response): void {
-    res.send(applicationDescription.domainEvents);
-  };
+  request: {},
+  response: {
+    statusCodes: [ 200 ],
+    body: {}
+  },
+
+  getHandler ({ applicationDefinition }: {
+    applicationDefinition: ApplicationDefinition;
+  }): RequestHandler {
+    const responseBodySchema = new Value(getDescription.response.body);
+
+    const applicationDescription = getApplicationDescription({ applicationDefinition });
+
+    return function (_req: Request, res: Response): void {
+      const response = applicationDescription.domainEvents;
+
+      responseBodySchema.validate(response);
+
+      res.send(response);
+    };
+  }
 };
 
 export { getDescription };

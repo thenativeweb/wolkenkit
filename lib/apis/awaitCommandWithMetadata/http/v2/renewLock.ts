@@ -2,82 +2,119 @@ import { ApplicationDefinition } from '../../../../common/application/Applicatio
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
+import { flaschenpost } from 'flaschenpost';
+import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
+import { jsonSchema } from 'uuidv4';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { RequestHandler } from 'express';
 import typer from 'content-type';
 import { validateItemIdentifier } from '../../../../common/validators/validateItemIdentifier';
+import { Value } from 'validate-value';
 
-const renewLock = function ({
-  applicationDefinition,
-  priorityQueueStore
-}: {
-  applicationDefinition: ApplicationDefinition;
-  priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
-}): RequestHandler {
-  return async function (req, res): Promise<void> {
-    try {
-      const contentType = typer.parse(req);
+const logger = flaschenpost.getLogger();
 
-      if (contentType.type !== 'application/json') {
-        throw new errors.RequestMalformed();
+const renewLock = {
+  description: 'Renews the timeout of a locked item in the queue.',
+  path: 'renew-lock',
+
+  request: {
+    body: {
+      type: 'object',
+      properties: {
+        itemIdentifier: getItemIdentifierSchema(),
+        token: jsonSchema.v4
+      },
+      required: [ 'itemIdentifier', 'token' ],
+      additionalProperties: false
+    }
+  },
+  response: {
+    statusCodes: [],
+    body: { type: 'object' }
+  },
+
+  getHandler ({
+    applicationDefinition,
+    priorityQueueStore
+  }: {
+    applicationDefinition: ApplicationDefinition;
+    priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
+  }): RequestHandler {
+    const requestBodySchema = new Value(renewLock.request.body),
+          responseBodySchema = new Value(renewLock.response.body);
+
+    return async function (req, res): Promise<void> {
+      try {
+        const contentType = typer.parse(req);
+
+        if (contentType.type !== 'application/json') {
+          throw new errors.RequestMalformed();
+        }
+      } catch {
+        const error = new errors.ContentTypeMismatch('Header content-type must be application/json.');
+
+        res.status(415).json({
+          code: error.code,
+          message: error.message
+        });
+
+        return;
       }
-    } catch {
-      const error = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-      res.status(415).json({
-        code: error.code,
-        message: error.message
-      });
+      try {
+        requestBodySchema.validate(req.body);
+        validateItemIdentifier({ itemIdentifier: req.body.itemIdentifier, applicationDefinition });
+      } catch (ex) {
+        const error = new errors.ItemIdentifierMalformed(ex.message);
 
-      return;
-    }
+        res.status(400).json({
+          code: error.code,
+          message: error.message
+        });
 
-    const { itemIdentifier, token } = req.body;
+        return;
+      }
 
-    try {
-      validateItemIdentifier({ itemIdentifier, applicationDefinition });
-    } catch (ex) {
-      const error = new errors.ItemIdentifierMalformed(ex.message);
+      const { itemIdentifier, token } = req.body;
 
-      res.status(400).json({
-        code: error.code,
-        message: error.message
-      });
+      try {
+        await priorityQueueStore.renewLock({ itemIdentifier, token });
 
-      return;
-    }
+        const response = {};
 
-    try {
-      await priorityQueueStore.renewLock({ itemIdentifier, token });
+        responseBodySchema.validate(response);
 
-      res.status(200).end();
-    } catch (ex) {
-      switch (ex.code) {
-        case 'ETOKENMISMATCH': {
-          res.status(403).json({
-            code: ex.code,
-            message: ex.message
-          });
+        res.status(200).json(response);
+      } catch (ex) {
+        switch (ex.code) {
+          case 'ETOKENMISMATCH': {
+            res.status(403).json({
+              code: ex.code,
+              message: ex.message
+            });
 
-          return;
-        }
-        case 'EITEMNOTFOUND': {
-          res.status(404).json({
-            code: ex.code,
-            message: ex.message
-          });
+            return;
+          }
+          case 'EITEMNOTFOUND': {
+            res.status(404).json({
+              code: ex.code,
+              message: ex.message
+            });
 
-          return;
-        }
-        default: {
-          res.status(400).json({
-            code: ex.code ?? 'EUNKNOWNERROR',
-            message: ex.message
-          });
+            return;
+          }
+          default: {
+            logger.error('Unknown error occured.', { ex });
+
+            res.status(500).json({
+              code: ex.code ?? 'EUNKNOWNERROR',
+              message: ex.message
+            });
+          }
         }
       }
-    }
-  };
+    };
+  }
 };
 
 export { renewLock };

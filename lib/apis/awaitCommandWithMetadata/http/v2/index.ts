@@ -37,21 +37,21 @@ const getV2 = async function ({
   });
 
   api.get(
-    '/',
+    `/${awaitCommandWithMetadata.path}`,
     streamNdjsonMiddleware({ heartbeatInterval }),
-    awaitCommandWithMetadata({
+    awaitCommandWithMetadata.getHandler({
       priorityQueueStore,
       newCommandSubscriber,
       newCommandSubscriberChannel
     })
   );
 
-  api.post('/renew-lock', renewLock({
+  api.post(`/${renewLock.path}`, renewLock.getHandler({
     applicationDefinition,
     priorityQueueStore
   }));
 
-  api.post('/acknowledge', acknowledge({
+  api.post(`/${acknowledge.path}`, acknowledge.getHandler({
     applicationDefinition,
     priorityQueueStore
   }));
