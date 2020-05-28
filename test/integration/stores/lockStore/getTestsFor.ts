@@ -84,9 +84,9 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
     });
 
     test('acquires a lock if the lock is already in place, but has expired.', async (): Promise<void> => {
-      await lockStore.acquireLock({ name, expiresAt: inMilliseconds({ ms: 1 }) });
+      await lockStore.acquireLock({ name, expiresAt: inMilliseconds({ ms: 100 }) });
 
-      await sleep({ ms: 10 });
+      await sleep({ ms: 150 });
 
       await assert.that(async (): Promise<void> => {
         await lockStore.acquireLock({ name });
