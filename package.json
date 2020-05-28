@@ -116,7 +116,6 @@
     "cors": "2.8.5",
     "defekt": "5.0.1",
     "express": "4.17.1",
-    "express-graphql": "0.9.0",
     "flaschenpost": "4.0.13",
     "get-cors-origin": "4.0.1",
     "get-graphql-from-jsonschema": "5.0.1",
