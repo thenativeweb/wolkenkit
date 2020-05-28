@@ -3,7 +3,7 @@ import { flaschenpost } from 'flaschenpost';
 import { hasAccess } from './isAuthorized';
 import { pipeline as pipelineCallback } from 'stream';
 import { promisify } from 'util';
-import { RequestHandler } from 'express';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const pipeline = promisify(pipelineCallback);
 const logger = flaschenpost.getLogger();
@@ -18,7 +18,7 @@ const getFile = {
     stream: true
   },
 
-  getHandler ({ fileStore }: { fileStore: FileStore }): RequestHandler {
+  getHandler ({ fileStore }: { fileStore: FileStore }): WolkenkitRequestHandler {
     return async function (req, res): Promise<any> {
       const { id } = req.params;
       const { user } = req;

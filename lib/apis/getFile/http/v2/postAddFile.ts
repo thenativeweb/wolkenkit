@@ -3,8 +3,8 @@ import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { isUuid } from 'uuidv4';
 import { merge } from 'lodash';
-import { RequestHandler } from 'express';
 import { SpecificAuthorizationOption } from './isAuthorized/AuthorizationOptions';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { getDefaults, hasAccess, isValid } from './isAuthorized';
 
 const logger = flaschenpost.getLogger();
@@ -21,7 +21,7 @@ const postAddFile = {
   getHandler ({ addFileAuthorizationOptions, fileStore }: {
     addFileAuthorizationOptions: SpecificAuthorizationOption;
     fileStore: FileStore;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const rawAuthorizationOptions = merge({}, getDefaults(), {
       commands: {
         addFile: addFileAuthorizationOptions

@@ -1,10 +1,9 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
-import { parseJsonQueryParameters } from '../../../base/parseJsonQueryParameters';
-import { RequestHandler } from 'express';
 import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
@@ -34,7 +33,7 @@ const getSnapshot = {
     domainEventStore
   }: {
     domainEventStore: DomainEventStore;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const querySchema = new Value(getSnapshot.request.query),
           responseBodySchema = new Value(getSnapshot.response.body);
 
@@ -42,11 +41,9 @@ const getSnapshot = {
       let aggregateIdentifier;
 
       try {
-        const query = parseJsonQueryParameters(req.query);
+        querySchema.validate(req.query);
 
-        querySchema.validate(query);
-
-        ({ aggregateIdentifier } = query);
+        ({ aggregateIdentifier } = req.query);
 
         validateAggregateIdentifier({ aggregateIdentifier });
       } catch (ex) {

@@ -1,9 +1,8 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { flaschenpost } from 'flaschenpost';
 import { jsonSchema } from 'uuidv4';
-import { parseJsonQueryParameters } from '../../../base/parseJsonQueryParameters';
-import { RequestHandler } from 'express-serve-static-core';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
@@ -38,7 +37,7 @@ const hasDomainEventsWithCausationId = {
     domainEventStore
   }: {
     domainEventStore: DomainEventStore;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const querySchema = new Value(hasDomainEventsWithCausationId.request.query),
           responseBodySchema = new Value(hasDomainEventsWithCausationId.response.body);
 
@@ -46,9 +45,7 @@ const hasDomainEventsWithCausationId = {
       let causationId;
 
       try {
-        const query = parseJsonQueryParameters(req.query);
-
-        querySchema.validate(query);
+        querySchema.validate(req.query);
 
         causationId = req.query['causation-id'] as string;
       } catch (ex) {

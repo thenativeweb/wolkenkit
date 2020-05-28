@@ -4,10 +4,11 @@ import { flaschenpost } from 'flaschenpost';
 import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
 import { jsonSchema } from 'uuidv4';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
+import { Response } from 'express';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
-import { RequestHandler, Response } from 'express';
 
 const logger = flaschenpost.getLogger();
 
@@ -37,7 +38,7 @@ const awaitCommandWithMetadata = {
     priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
     newCommandSubscriber: Subscriber<object>;
     newCommandSubscriberChannel: string;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const responseBodySchema = new Value(awaitCommandWithMetadata.response.body);
 
     const maybeHandleLock = async function ({

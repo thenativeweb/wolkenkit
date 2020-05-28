@@ -12,8 +12,9 @@ import { Repository } from '../../../../common/domain/Repository';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
-import { Request, RequestHandler, Response } from 'express';
+import { Request, Response } from 'express';
 
 const logger = flaschenpost.getLogger();
 
@@ -38,7 +39,7 @@ const getDomainEvents = {
     domainEventEmitter: SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>;
     applicationDefinition: ApplicationDefinition;
     repository: Repository;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const responseBodySchema = new Value(getDomainEvents.response.body);
 
     const aggregatesService = getAggregatesService({ applicationDefinition, repository });

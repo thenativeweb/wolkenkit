@@ -1,8 +1,9 @@
 import { flaschenpost } from 'flaschenpost';
 import PQueue from 'p-queue';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
-import { Request, RequestHandler, Response } from 'express';
+import { Request, Response } from 'express';
 
 const logger = flaschenpost.getLogger();
 
@@ -18,7 +19,7 @@ const getMessages = {
 
   getHandler ({ messageEmitter }: {
     messageEmitter: SpecializedEventEmitter<object>;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     return async function (_req: Request, res: Response): Promise<void> {
       try {
         const messageQueue = new PQueue({ concurrency: 1 });

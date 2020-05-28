@@ -1,5 +1,5 @@
 import { flaschenpost } from 'flaschenpost';
-import { RequestHandler } from 'express';
+import { WolkenkitRequestHandler } from '../base/WolkenkitRequestHandler';
 import { writeLine } from '../base/writeLine';
 
 const logger = flaschenpost.getLogger();
@@ -13,7 +13,7 @@ const streamNdjsonMiddleware = function ({
   heartbeatInterval
 }: {
   heartbeatInterval: number;
-}): RequestHandler {
+}): WolkenkitRequestHandler {
   return async function (req, res, next): Promise<void> {
     try {
       let heartbeatIntervalId: NodeJS.Timeout;

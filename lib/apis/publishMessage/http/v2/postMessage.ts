@@ -1,9 +1,9 @@
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { OnReceiveMessage } from '../../OnReceiveMessage';
-import { RequestHandler } from 'express';
 import typer from 'content-type';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
@@ -21,7 +21,7 @@ const postMessage = {
 
   getHandler ({ onReceiveMessage }: {
     onReceiveMessage: OnReceiveMessage;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(postMessage.response.body),
           responseBodySchema = new Value(postMessage.response.body);
 

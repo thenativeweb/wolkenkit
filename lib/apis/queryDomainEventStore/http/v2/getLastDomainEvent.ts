@@ -3,10 +3,9 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { parseJsonQueryParameters } from '../../../base/parseJsonQueryParameters';
-import { RequestHandler } from 'express';
 import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
@@ -34,7 +33,7 @@ const getLastDomainEvent = {
     domainEventStore
   }: {
     domainEventStore: DomainEventStore;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const querySchema = new Value(getLastDomainEvent.request.query),
           responseBodySchema = new Value(getLastDomainEvent.response.body);
 
@@ -42,9 +41,7 @@ const getLastDomainEvent = {
       let aggregateIdentifier;
 
       try {
-        const query = parseJsonQueryParameters(req.query);
-
-        querySchema.validate(query);
+        querySchema.validate(req.query);
 
         aggregateIdentifier = JSON.parse(req.query.aggregateIdentifier as string);
 

@@ -1,4 +1,4 @@
-import { RequestHandler } from 'express';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const getHealth = {
   description: 'Returns service health information.',
@@ -63,7 +63,7 @@ const getHealth = {
     }
   },
 
-  getHandler (): RequestHandler {
+  getHandler (): WolkenkitRequestHandler {
     return function (_req, res): void {
       const { arch, platform, version, pid } = process;
       const { userCPUTime, systemCPUTime, maxRSS, fsRead, fsWrite } = process.resourceUsage();

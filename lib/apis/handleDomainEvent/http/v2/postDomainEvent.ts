@@ -5,11 +5,11 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
 import { OnReceiveDomainEvent } from '../../OnReceiveDomainEvent';
-import { RequestHandler } from 'express';
 import { State } from '../../../../common/elements/State';
 import typer from 'content-type';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
@@ -28,7 +28,7 @@ const postDomainEvent = {
   getHandler ({ onReceiveDomainEvent, applicationDefinition }: {
     onReceiveDomainEvent: OnReceiveDomainEvent;
     applicationDefinition: ApplicationDefinition;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(postDomainEvent.request.body),
           responseBodySchema = new Value(postDomainEvent.response.body);
 

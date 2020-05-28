@@ -3,9 +3,9 @@ import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { RequestHandler } from 'express';
 import typer from 'content-type';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const storeDomainEvents = {
   description: 'Stores domain events.',
@@ -30,7 +30,7 @@ const storeDomainEvents = {
     domainEventStore
   }: {
     domainEventStore: DomainEventStore;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(storeDomainEvents.request.body),
           responseBodySchema = new Value(storeDomainEvents.response.body);
 

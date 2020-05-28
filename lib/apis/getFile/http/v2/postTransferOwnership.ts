@@ -1,7 +1,7 @@
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { hasAccess } from './isAuthorized';
-import { RequestHandler } from 'express';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
@@ -16,7 +16,7 @@ const postTransferOwnership = {
 
   getHandler: ({ fileStore }: {
     fileStore: FileStore;
-  }): RequestHandler => async function (req, res): Promise<any> {
+  }): WolkenkitRequestHandler => async function (req, res): Promise<any> {
     let metadata;
 
     try {

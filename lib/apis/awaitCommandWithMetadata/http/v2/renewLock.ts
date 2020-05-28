@@ -6,10 +6,10 @@ import { flaschenpost } from 'flaschenpost';
 import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
 import { jsonSchema } from 'uuidv4';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
-import { RequestHandler } from 'express';
 import typer from 'content-type';
 import { validateItemIdentifier } from '../../../../common/validators/validateItemIdentifier';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
@@ -39,7 +39,7 @@ const renewLock = {
   }: {
     applicationDefinition: ApplicationDefinition;
     priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(renewLock.request.body),
           responseBodySchema = new Value(renewLock.response.body);
 

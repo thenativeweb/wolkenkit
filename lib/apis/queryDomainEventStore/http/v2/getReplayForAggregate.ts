@@ -1,10 +1,9 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { isUuid } from 'uuidv4';
-import { parseJsonQueryParameters } from '../../../base/parseJsonQueryParameters';
-import { RequestHandler } from 'express';
 import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 
 const getReplayForAggregate = {
@@ -35,7 +34,7 @@ const getReplayForAggregate = {
   }: {
     domainEventStore: DomainEventStore;
     heartbeatInterval: number;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const querySchema = new Value(getReplayForAggregate.request.query),
           responseBodySchema = new Value(getReplayForAggregate.response.body);
 
@@ -44,10 +43,8 @@ const getReplayForAggregate = {
           toRevision: number | undefined;
 
       try {
-        const query = parseJsonQueryParameters(req.query);
-
-        querySchema.validate(query);
-        ({ fromRevision, toRevision } = query);
+        querySchema.validate(req.query);
+        ({ fromRevision, toRevision } = req.query);
 
         if (fromRevision && toRevision && fromRevision > toRevision) {
           return res.status(400).send(`Query parameter 'toRevision' must be greater or equal to 'fromRevision'.`);

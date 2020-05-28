@@ -5,10 +5,10 @@ import { flaschenpost } from 'flaschenpost';
 import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
 import { jsonSchema } from 'uuidv4';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
-import { RequestHandler } from 'express';
 import typer from 'content-type';
 import { validateCommandWithMetadata } from '../../../../common/validators/validateCommandWithMetadata';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
@@ -35,7 +35,7 @@ const postCommand = {
   getHandler ({ onReceiveCommand, applicationDefinition }: {
     onReceiveCommand: OnReceiveCommand;
     applicationDefinition: ApplicationDefinition;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(postCommand.request.body),
           responseBodySchema = new Value(postCommand.response.body);
 

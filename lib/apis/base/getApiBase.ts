@@ -1,11 +1,14 @@
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { GetApiBaseParameters } from './GetApiBaseParameters';
+import { jsonQueryParserMiddleware } from './jsonQueryParserMiddleware';
 import nocache from 'nocache';
 import express, { Application } from 'express';
 
 const getApiBase = async function ({ request, response }: GetApiBaseParameters): Promise<Application> {
   const api = express();
+
+  api.use(jsonQueryParserMiddleware);
 
   if (request.headers.cors) {
     api.options('*', cors({

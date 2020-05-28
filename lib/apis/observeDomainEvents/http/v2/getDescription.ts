@@ -1,7 +1,8 @@
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
 import { Value } from 'validate-value';
-import { Request, RequestHandler, Response } from 'express';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { Request, Response } from 'express';
 
 const getDescription = {
   description: `Returns a description of the application's domain events`,
@@ -15,7 +16,7 @@ const getDescription = {
 
   getHandler ({ applicationDefinition }: {
     applicationDefinition: ApplicationDefinition;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const responseBodySchema = new Value(getDescription.response.body);
 
     const applicationDescription = getApplicationDescription({ applicationDefinition });

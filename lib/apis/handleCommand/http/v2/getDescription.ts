@@ -1,8 +1,8 @@
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
 import { getCommandsDescriptionSchema } from '../../../../common/schemas/getCommandsDescriptionSchema';
-import { RequestHandler } from 'express';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const getDescription = {
   description: `Returns a description of the application's commands.`,
@@ -16,7 +16,7 @@ const getDescription = {
 
   getHandler ({ applicationDefinition }: {
     applicationDefinition: ApplicationDefinition;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const responseBodySchema = new Value(getDescription.response.body);
 
     const applicationDescription = getApplicationDescription({ applicationDefinition });

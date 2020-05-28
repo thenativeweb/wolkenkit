@@ -1,9 +1,8 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { parseJsonQueryParameters } from '../../../base/parseJsonQueryParameters';
-import { RequestHandler } from 'express';
 import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 
 const getReplay = {
@@ -34,7 +33,7 @@ const getReplay = {
   }: {
     domainEventStore: DomainEventStore;
     heartbeatInterval: number;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const querySchema = new Value(getReplay.request.query),
           responseBodySchema = new Value(getReplay.response.body);
 
@@ -43,10 +42,8 @@ const getReplay = {
           toRevisionGlobal: number | undefined;
 
       try {
-        const query = parseJsonQueryParameters(req.query);
-
-        querySchema.validate(query);
-        ({ fromRevisionGlobal, toRevisionGlobal } = query);
+        querySchema.validate(req.query);
+        ({ fromRevisionGlobal, toRevisionGlobal } = req.query);
 
         if (fromRevisionGlobal && toRevisionGlobal && fromRevisionGlobal > toRevisionGlobal) {
           return res.status(400).send(`Query parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);

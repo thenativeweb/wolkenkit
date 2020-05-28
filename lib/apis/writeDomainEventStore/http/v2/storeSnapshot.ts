@@ -1,10 +1,10 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
 import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
-import { RequestHandler } from 'express';
 import typer from 'content-type';
 import { validateSnapshot } from '../../../../common/validators/validateSnapshot';
 import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const storeSnapshot = {
   description: 'Stores a snapshot.',
@@ -23,7 +23,7 @@ const storeSnapshot = {
     domainEventStore
   }: {
     domainEventStore: DomainEventStore;
-  }): RequestHandler {
+  }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(storeSnapshot.request.body),
           responseBodySchema = new Value(storeSnapshot.response.body);
 
