@@ -29,7 +29,8 @@ const getV2 = async function ({
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
-      body: { parser: { sizeLimit: 100_000 }}
+      body: { parser: { sizeLimit: 100_000 }},
+      query: { parser: { useJson: true }}
     },
     response: {
       headers: { cache: false }

@@ -43,7 +43,7 @@ const getLastDomainEvent = {
       try {
         querySchema.validate(req.query);
 
-        aggregateIdentifier = JSON.parse(req.query.aggregateIdentifier as string);
+        ({ aggregateIdentifier } = req.query);
 
         validateAggregateIdentifier({ aggregateIdentifier });
       } catch (ex) {

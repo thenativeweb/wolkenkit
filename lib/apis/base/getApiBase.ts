@@ -8,7 +8,9 @@ import express, { Application } from 'express';
 const getApiBase = async function ({ request, response }: GetApiBaseParameters): Promise<Application> {
   const api = express();
 
-  api.use(jsonQueryParserMiddleware);
+  if (request.query.parser.useJson) {
+    api.use(jsonQueryParserMiddleware);
+  }
 
   if (request.headers.cors) {
     api.options('*', cors({

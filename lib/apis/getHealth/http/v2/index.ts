@@ -9,7 +9,8 @@ const getV2 = async function ({ corsOrigin }: {
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
-      body: { parser: false }
+      body: { parser: false },
+      query: { parser: { useJson: false }}
     },
     response: {
       headers: { cache: false }
