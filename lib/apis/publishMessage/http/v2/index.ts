@@ -11,14 +11,15 @@ const getV2 = async function ({ corsOrigin, onReceiveMessage }: {
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
-      body: { parser: { sizeLimit: 100_000 }}
+      body: { parser: { sizeLimit: 100_000 }},
+      query: { parser: { useJson: true }}
     },
     response: {
       headers: { cache: false }
     }
   });
 
-  api.post('/', postMessage({ onReceiveMessage }));
+  api.post(`/${postMessage.path}`, postMessage.getHandler({ onReceiveMessage }));
 
   return { api };
 };

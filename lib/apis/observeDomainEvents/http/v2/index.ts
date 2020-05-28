@@ -31,7 +31,8 @@ const getV2 = async function ({
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
-      body: { parser: false }
+      body: { parser: false },
+      query: { parser: { useJson: true }}
     },
     response: {
       headers: { cache: false }
@@ -45,15 +46,15 @@ const getV2 = async function ({
   const domainEventEmitter =
     new SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>();
 
-  api.get('/description', getDescription({
+  api.get(`/${getDescription.path}`, getDescription.getHandler({
     applicationDefinition
   }));
 
   api.get(
-    '/',
+    `/${getDomainEvents.path}`,
     authenticationMiddleware,
     streamNdjsonMiddleware({ heartbeatInterval }),
-    getDomainEvents({
+    getDomainEvents.getHandler({
       applicationDefinition,
       domainEventEmitter,
       repository
