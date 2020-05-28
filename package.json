@@ -105,7 +105,7 @@
     "node": ">=14.3.0"
   },
   "dependencies": {
-    "apollo-server-express": "2.13.1",
+    "apollo-server-express": "2.14.1",
     "axios": "0.19.2",
     "body-parser": "1.19.0",
     "buntstift": "4.0.4",
@@ -126,7 +126,7 @@
     "limes": "6.0.2",
     "lodash": "4.17.15",
     "minio": "7.0.16",
-    "mongodb": "3.5.7",
+    "mongodb": "3.5.8",
     "mysql": "2.18.1",
     "nocache": "2.1.0",
     "p-forever": "2.1.0",
@@ -172,7 +172,7 @@
     "apollo-link-ws": "1.0.20",
     "assertthat": "5.1.1",
     "graphql-tag": "2.10.3",
-    "next": "9.4.3",
+    "next": "9.4.4",
     "node-fetch": "2.6.0",
     "nodeenv": "3.0.0",
     "react": "16.13.1",
