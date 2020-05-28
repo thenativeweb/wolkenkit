@@ -61,8 +61,6 @@ const getDomainEvents = {
         const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
         const domainEventFilter = req.query.filter as object;
 
-        console.log('filter', { domainEventFilter });
-
         const handleDomainEvent = (domainEventWithState: DomainEventWithState<DomainEventData, State>): void => {
           /* eslint-disable @typescript-eslint/no-floating-promises */
           domainEventQueue.add(async (): Promise<void> => {
