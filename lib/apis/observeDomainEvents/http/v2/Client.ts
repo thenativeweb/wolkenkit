@@ -4,7 +4,6 @@ import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/utils/http/FilterHeartbeatsFromJsonStreamTransform';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
-import qs from 'qs';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
