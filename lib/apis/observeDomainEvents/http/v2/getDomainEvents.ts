@@ -15,6 +15,7 @@ import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import { Request, Response } from 'express';
+import {getDomainEventSchema} from "../../../../common/schemas/getDomainEventSchema";
 
 const logger = flaschenpost.getLogger();
 
@@ -28,7 +29,7 @@ const getDomainEvents = {
   response: {
     statusCodes: [],
     stream: true,
-    body: {}
+    body: getDomainEventSchema()
   },
 
   getHandler ({

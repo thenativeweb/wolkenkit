@@ -45,7 +45,7 @@ class Client extends HttpClient {
       url: this.url,
       params: filter,
       paramsSerializer (params): string {
-        return qs.stringify(params);
+        return JSON.stringify(params);
       },
       responseType: 'stream',
       validateStatus (): boolean {
