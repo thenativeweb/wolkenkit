@@ -266,6 +266,11 @@ suite('observeDomainEvents/http', (): void => {
           method: 'get',
           url: '/v2/',
           params: { name: 'executed' },
+          paramsSerializer (params): string {
+            return Object.entries(params).
+            map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
+            join('&');
+          },
           responseType: 'stream'
         });
 
