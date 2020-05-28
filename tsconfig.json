@@ -3,7 +3,7 @@
     "baseUrl": ".",
     "declaration": true,
     "esModuleInterop": true,
-    "lib": [ "ES2019" ],
+    "lib": [ "dom", "ES2019" ],
     "module": "CommonJS",
     "outDir": "build",
     "resolveJsonModule": false,
