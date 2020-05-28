@@ -13,10 +13,13 @@ const jsonQueryParserMiddleware: RequestHandler = function (req, res, next): voi
     for (const queryPart of queryParts) {
       const [ key, value ] = queryPart.split('=');
 
+      const decodedKey = decodeURIComponent(key),
+            decodedValue = decodeURIComponent(value);
+
       try {
-        parsedQuery[key] = JSON.parse(value);
+        parsedQuery[decodedKey] = JSON.parse(decodedValue);
       } catch {
-        parsedQuery[key] = value;
+        parsedQuery[decodedKey] = decodedValue;
       }
     }
   }
