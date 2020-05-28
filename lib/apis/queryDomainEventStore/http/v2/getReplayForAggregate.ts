@@ -8,7 +8,7 @@ import { Value } from 'validate-value';
 import { writeLine } from '../../../base/writeLine';
 
 const getReplayForAggregate = {
-  description: `Streams a replay of an aggregate's events, optionally starting and ending at given revisions.`,
+  description: `Streams a replay of an aggregate's domain events, optionally starting and ending at given revisions.`,
   path: 'replay/:aggregateId',
 
   request: {
@@ -23,7 +23,7 @@ const getReplayForAggregate = {
     }
   },
   response: {
-    statusCodes: [ 200 ],
+    statusCodes: [ 200, 400 ],
 
     stream: true,
     body: getDomainEventSchema()

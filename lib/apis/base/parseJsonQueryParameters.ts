@@ -2,11 +2,11 @@ const parseJsonQueryParameters = function (query: any): any {
   const parsedQuery: any = {};
 
   // eslint-disable-next-line guard-for-in
-  for (const key in query) {
+  for (const [ key, value ] of Object.entries(query)) {
     try {
-      parsedQuery[key] = JSON.parse(query[key]);
+      parsedQuery[key] = JSON.parse(value);
     } catch {
-      parsedQuery[key] = query[key];
+      parsedQuery[key] = value;
     }
   }
 

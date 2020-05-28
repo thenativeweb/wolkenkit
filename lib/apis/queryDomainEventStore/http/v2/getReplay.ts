@@ -7,7 +7,7 @@ import { Value } from 'validate-value';
 import { writeLine } from '../../../base/writeLine';
 
 const getReplay = {
-  description: 'Streams a replay of all events, optionally starting and ending at given revisions.',
+  description: 'Streams a replay of all domain events, optionally starting and ending at given revisions.',
   path: 'replay',
 
   request: {
@@ -22,7 +22,7 @@ const getReplay = {
     }
   },
   response: {
-    statusCodes: [ 200 ],
+    statusCodes: [ 200, 400 ],
 
     stream: true,
     body: getDomainEventSchema()

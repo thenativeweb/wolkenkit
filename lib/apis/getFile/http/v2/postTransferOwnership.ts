@@ -6,7 +6,7 @@ import { RequestHandler } from 'express';
 const logger = flaschenpost.getLogger();
 
 const postTransferOwnership = {
-  description: 'Transfer ownership of a file.',
+  description: 'Transfers ownership of a file.',
   path: 'transfer-ownership',
 
   request: {},

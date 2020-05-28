@@ -8,7 +8,7 @@ import { Value } from 'validate-value';
 const logger = flaschenpost.getLogger();
 
 const postMessage = {
-  description: 'Publish a message.',
+  description: 'Publishes a message.',
   path: '',
 
   request: {

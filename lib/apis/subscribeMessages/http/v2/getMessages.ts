@@ -7,7 +7,7 @@ import { Request, RequestHandler, Response } from 'express';
 const logger = flaschenpost.getLogger();
 
 const getMessages = {
-  description: 'Subscribe to messages.',
+  description: 'Subscribes to messages.',
   path: '',
 
   request: {},

@@ -7,7 +7,7 @@ import { hasAccess, isValid } from './isAuthorized';
 const logger = flaschenpost.getLogger();
 
 const postAuthorize = {
-  description: 'Set authorization configuration for file.',
+  description: 'Sets authorization configuration for file.',
   path: 'authorize',
 
   request: {},
