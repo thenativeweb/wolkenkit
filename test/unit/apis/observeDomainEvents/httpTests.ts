@@ -265,7 +265,7 @@ suite('observeDomainEvents/http', (): void => {
         const { data } = await client({
           method: 'get',
           url: '/v2/',
-          params: { name: 'executed' },
+          params: { filter: { name: 'executed' }},
           paramsSerializer (params): string {
             return Object.entries(params).
               map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
@@ -334,10 +334,10 @@ suite('observeDomainEvents/http', (): void => {
         const { data } = await client({
           method: 'get',
           url: '/v2/',
-          params: {
+          params: { filter: {
             contextIdentifier: { name: 'sampleContext' },
             name: 'executed'
-          },
+          }},
           paramsSerializer (params): string {
             return Object.entries(params).
               map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
