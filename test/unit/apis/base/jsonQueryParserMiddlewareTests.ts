@@ -2,7 +2,7 @@ import { assert } from 'assertthat';
 import { jsonQueryParserMiddleware } from '../../../../lib/apis/base/jsonQueryParserMiddleware';
 import { Request, Response } from 'express';
 
-suite.only('jsonQueryParserMiddleware', (): void => {
+suite('jsonQueryParserMiddleware', (): void => {
   test('adds an empty object to the request if no query string is present.', async (): Promise<void> => {
     const request = {
       originalUrl: 'https://localhost/'
