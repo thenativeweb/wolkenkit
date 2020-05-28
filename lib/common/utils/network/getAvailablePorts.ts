@@ -20,7 +20,7 @@ const lockPort = async function (): Promise<number> {
       reject(err);
     });
 
-    server.listen(0, '0.0.0.0');
+    server.listen(0);
   });
 };
 
