@@ -12,6 +12,11 @@ export interface GetApiBaseParameters {
         sizeLimit: number;
       } | false;
     };
+    query: {
+      parser: {
+        useJson: boolean;
+      };
+    };
   };
   response: {
     headers: {

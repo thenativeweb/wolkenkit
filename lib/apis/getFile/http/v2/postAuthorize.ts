@@ -1,56 +1,66 @@
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { merge } from 'lodash';
-import { RequestHandler } from 'express';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { hasAccess, isValid } from './isAuthorized';
 
 const logger = flaschenpost.getLogger();
 
-const postAuthorize = ({ fileStore }: {
-  fileStore: FileStore;
-}): RequestHandler => async function (req, res): Promise<any> {
-  let metadata;
+const postAuthorize = {
+  description: 'Sets authorization configuration for file.',
+  path: 'authorize',
 
-  try {
-    metadata = JSON.parse(req.headers['x-metadata'] as string);
-  } catch {
-    return res.status(400).send('Header x-metadata is malformed.');
-  }
+  request: {},
+  response: {
+    statusCodes: [ 200, 400, 401, 404 ]
+  },
 
-  if (!metadata.id) {
-    return res.status(400).send('Id is missing.');
-  }
-  if (!metadata.isAuthorized) {
-    return res.status(400).send('Is authorized is missing.');
-  }
+  getHandler: ({ fileStore }: {
+    fileStore: FileStore;
+  }): WolkenkitRequestHandler => async function (req, res): Promise<any> {
+    let metadata;
 
-  const { id } = metadata;
-  const { user } = req;
-
-  try {
-    const { isAuthorized } = await fileStore.getMetadata({ id });
-
-    if (!hasAccess({ user, to: 'commands.authorize', authorizationOptions: isAuthorized })) {
-      return res.status(401).end();
+    try {
+      metadata = JSON.parse(req.headers['x-metadata'] as string);
+    } catch {
+      return res.status(400).send('Header x-metadata is malformed.');
     }
 
-    const newIsAuthorized = merge({}, isAuthorized, metadata.isAuthorized, { owner: isAuthorized.owner });
-
-    if (!isValid(newIsAuthorized)) {
-      return res.status(400).send('Is authorized is malformed.');
+    if (!metadata.id) {
+      return res.status(400).send('Id is missing.');
+    }
+    if (!metadata.isAuthorized) {
+      return res.status(400).send('Is authorized is missing.');
     }
 
-    await fileStore.authorize({ id, isAuthorized: newIsAuthorized });
+    const { id } = metadata;
+    const { user } = req;
 
-    res.status(200).end();
-  } catch (ex) {
-    logger.error('Failed to authorize.', { id, err: ex });
+    try {
+      const { isAuthorized } = await fileStore.getMetadata({ id });
 
-    if (ex.code === 'EFILENOTFOUND') {
-      return res.status(404).end();
+      if (!hasAccess({ user, to: 'commands.authorize', authorizationOptions: isAuthorized })) {
+        return res.status(401).end();
+      }
+
+      const newIsAuthorized = merge({}, isAuthorized, metadata.isAuthorized, { owner: isAuthorized.owner });
+
+      if (!isValid(newIsAuthorized)) {
+        return res.status(400).send('Is authorized is malformed.');
+      }
+
+      await fileStore.authorize({ id, isAuthorized: newIsAuthorized });
+
+      res.status(200).end();
+    } catch (ex) {
+      logger.error('Failed to authorize.', { id, err: ex });
+
+      if (ex.code === 'EFILENOTFOUND') {
+        return res.status(404).end();
+      }
+
+      res.status(500).end();
     }
-
-    res.status(500).end();
   }
 };
 
