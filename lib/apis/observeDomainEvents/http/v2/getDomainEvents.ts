@@ -59,7 +59,7 @@ const getDomainEvents = {
         const domainEventQueue = new PQueue({ concurrency: 1 });
 
         const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
-        const domainEventFilter = req.query.filter as object;
+        const domainEventFilter = (req.query.filter ?? {}) as object;
 
         const handleDomainEvent = (domainEventWithState: DomainEventWithState<DomainEventData, State>): void => {
           /* eslint-disable @typescript-eslint/no-floating-promises */
