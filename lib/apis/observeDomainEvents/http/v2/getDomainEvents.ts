@@ -24,7 +24,13 @@ const getDomainEvents = {
   path: '',
 
   request: {
-    body: {}
+    query: {
+      type: 'object',
+      properties: {
+        filter: { type: 'object' }
+      },
+      additionalProperties: false
+    }
   },
   response: {
     statusCodes: [],
@@ -41,16 +47,21 @@ const getDomainEvents = {
     applicationDefinition: ApplicationDefinition;
     repository: Repository;
   }): WolkenkitRequestHandler {
-    const responseBodySchema = new Value(getDomainEvents.response.body);
+    const querySchema = new Value(getDomainEvents.request.query),
+          responseBodySchema = new Value(getDomainEvents.response.body);
 
     const aggregatesService = getAggregatesService({ applicationDefinition, repository });
 
     return async function (req: Request, res: Response): Promise<void> {
       try {
+        querySchema.validate(req.query);
+
         const domainEventQueue = new PQueue({ concurrency: 1 });
 
         const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
-        const domainEventFilter = req.query;
+        const domainEventFilter = req.query.filter as object;
+
+        console.log('filter', { domainEventFilter });
 
         const handleDomainEvent = (domainEventWithState: DomainEventWithState<DomainEventData, State>): void => {
           /* eslint-disable @typescript-eslint/no-floating-promises */

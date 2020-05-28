@@ -334,7 +334,9 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed'
           },
           paramsSerializer (params): string {
-            return JSON.stringify(params);
+            return Object.entries(params).
+              map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
+              join('&');
           },
           responseType: 'stream'
         });
