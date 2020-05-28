@@ -1,12 +1,11 @@
 import { assert } from 'assertthat';
-import { createReadStream } from 'fs-extra';
 import { CustomError } from 'defekt';
 import { FileStore } from '../../../../lib/stores/fileStore/FileStore';
 import { OwnedAuthorizationOptions } from '../../../../lib/apis/getFile/http/v2/isAuthorized/AuthorizationOptions';
 import path from 'path';
-import { ReadStream } from 'fs';
 import streamToString from 'stream-to-string';
 import { uuid } from 'uuidv4';
+import { createReadStream, ReadStream } from 'fs';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createFileStore }: {
