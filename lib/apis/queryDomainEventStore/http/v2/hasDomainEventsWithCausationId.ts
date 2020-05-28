@@ -1,18 +1,76 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
-import { RequestHandler } from 'express-serve-static-core';
+import { flaschenpost } from 'flaschenpost';
+import { jsonSchema } from 'uuidv4';
+import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
-const hasDomainEventsWithCausationId = function ({
-  domainEventStore
-}: {
-  domainEventStore: DomainEventStore;
-}): RequestHandler {
-  return async function (req, res): Promise<any> {
-    const causationId = req.query['causation-id'] as string;
+const logger = flaschenpost.getLogger();
 
-    const hasDomainEvents = await domainEventStore.hasDomainEventsWithCausationId({ causationId });
+const hasDomainEventsWithCausationId = {
+  description: 'Checks wether domain events with a given causation id exist.',
+  path: 'has-domain-events-with-causation-id',
 
-    res.json({ hasDomainEventsWithCausationId: hasDomainEvents });
-  };
+  request: {
+    query: {
+      type: 'object',
+      properties: {
+        'causation-id': jsonSchema.v4
+      },
+      required: [ 'causation-id' ],
+      additionalProperties: false
+    }
+  },
+  response: {
+    statusCodes: [ 200 ],
+
+    body: {
+      type: 'object',
+      properties: {
+        hasDomainEventsWithCausationId: { type: 'boolean' }
+      },
+      required: [ 'hasDomainEventsWithCausationId' ],
+      additionalProperties: false
+    }
+  },
+
+  getHandler ({
+    domainEventStore
+  }: {
+    domainEventStore: DomainEventStore;
+  }): WolkenkitRequestHandler {
+    const querySchema = new Value(hasDomainEventsWithCausationId.request.query),
+          responseBodySchema = new Value(hasDomainEventsWithCausationId.response.body);
+
+    return async function (req, res): Promise<any> {
+      let causationId;
+
+      try {
+        querySchema.validate(req.query);
+
+        causationId = req.query['causation-id'] as string;
+      } catch (ex) {
+        res.status(400).end();
+
+        return;
+      }
+
+      try {
+        const hasDomainEvents = await domainEventStore.hasDomainEventsWithCausationId({ causationId }),
+              response = { hasDomainEventsWithCausationId: hasDomainEvents };
+
+        responseBodySchema.validate(response);
+
+        res.json(response);
+      } catch (ex) {
+        logger.error('Unknown error occured.', { ex });
+
+        return res.status(400).json({
+          code: ex.code ?? 'EUNKNOWNERROR',
+          message: ex.message
+        });
+      }
+    };
+  }
 };
 
 export { hasDomainEventsWithCausationId };

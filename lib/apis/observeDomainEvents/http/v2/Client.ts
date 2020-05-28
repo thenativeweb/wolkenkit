@@ -4,7 +4,6 @@ import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/utils/http/FilterHeartbeatsFromJsonStreamTransform';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
-import qs from 'qs';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -43,9 +42,11 @@ class Client extends HttpClient {
     const { data, status } = await axios({
       method: 'get',
       url: this.url,
-      params: filter,
+      params: { filter },
       paramsSerializer (params): string {
-        return qs.stringify(params);
+        return Object.entries(params).
+          map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
+          join('&');
       },
       responseType: 'stream',
       validateStatus (): boolean {

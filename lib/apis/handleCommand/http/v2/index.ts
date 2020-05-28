@@ -22,7 +22,8 @@ const getV2 = async function ({
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
-      body: { parser: { sizeLimit: 100_000 }}
+      body: { parser: { sizeLimit: 100_000 }},
+      query: { parser: { useJson: true }}
     },
     response: {
       headers: { cache: false }
@@ -33,11 +34,11 @@ const getV2 = async function ({
     identityProviders
   });
 
-  api.get('/description', getDescription({
+  api.get(`/${getDescription.path}`, getDescription.getHandler({
     applicationDefinition
   }));
 
-  api.post('/', authenticationMiddleware, postCommand({
+  api.post(`/${postCommand.path}`, authenticationMiddleware, postCommand.getHandler({
     onReceiveCommand,
     applicationDefinition
   }));

@@ -289,7 +289,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Query parameter 'fromRevisionGlobal' must be at least 1.`);
+        assert.that(data).is.equalTo(`Value 0 is less than minimum 1 (at value.fromRevisionGlobal).`);
       });
 
       test('returns 400 if the parameter fromRevisionGlobal is not a number.', async (): Promise<void> => {
@@ -302,7 +302,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Query parameter 'fromRevisionGlobal' must be a number.`);
+        assert.that(data).is.equalTo(`Invalid type: string should be number (at value.fromRevisionGlobal).`);
       });
 
       test('returns 400 if the parameter toRevisionGlobal is less than 1.', async (): Promise<void> => {
@@ -315,7 +315,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Query parameter 'toRevisionGlobal' must be at least 1.`);
+        assert.that(data).is.equalTo(`Value 0 is less than minimum 1 (at value.toRevisionGlobal).`);
       });
 
       test('returns 400 if the parameter toRevisionGlobal is not a number.', async (): Promise<void> => {
@@ -328,7 +328,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Query parameter 'toRevisionGlobal' must be a number.`);
+        assert.that(data).is.equalTo(`Invalid type: string should be number (at value.toRevisionGlobal).`);
       });
 
       test(`returns 400 if the parameter 'fromRevisionGlobal' is greater than 'toRevisionGlobal'.`, async (): Promise<void> => {
@@ -630,7 +630,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Query parameter 'fromRevision' must be at least 1.`);
+        assert.that(data).is.equalTo(`Value 0 is less than minimum 1 (at value.fromRevision).`);
       });
 
       test('returns 400 if the parameter fromRevision is not a number.', async (): Promise<void> => {
@@ -643,7 +643,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Query parameter 'fromRevision' must be a number.`);
+        assert.that(data).is.equalTo(`Invalid type: string should be number (at value.fromRevision).`);
       });
 
       test('returns 400 if the parameter toRevision is less than 1.', async (): Promise<void> => {
@@ -656,7 +656,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Query parameter 'toRevision' must be at least 1.`);
+        assert.that(data).is.equalTo(`Value 0 is less than minimum 1 (at value.toRevision).`);
       });
 
       test('returns 400 if the parameter toRevision is not a number.', async (): Promise<void> => {
@@ -669,7 +669,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Query parameter 'toRevision' must be a number.`);
+        assert.that(data).is.equalTo(`Invalid type: string should be number (at value.toRevision).`);
       });
 
       test(`returns 400 if the parameter 'fromRevision' is greater than 'toRevision'.`, async (): Promise<void> => {

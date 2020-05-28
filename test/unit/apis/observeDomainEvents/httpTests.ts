@@ -13,7 +13,6 @@ import { getTestApplicationDirectory } from '../../../shared/applications/getTes
 import { identityProvider } from '../../../shared/identityProvider';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory/InMemoryDomainEventStore';
 import { PublishDomainEvent } from '../../../../lib/apis/observeDomainEvents/PublishDomainEvent';
-import qs from 'qs';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
@@ -266,7 +265,12 @@ suite('observeDomainEvents/http', (): void => {
         const { data } = await client({
           method: 'get',
           url: '/v2/',
-          params: { name: 'executed' },
+          params: { filter: { name: 'executed' }},
+          paramsSerializer (params): string {
+            return Object.entries(params).
+              map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
+              join('&');
+          },
           responseType: 'stream'
         });
 
@@ -330,12 +334,14 @@ suite('observeDomainEvents/http', (): void => {
         const { data } = await client({
           method: 'get',
           url: '/v2/',
-          params: {
+          params: { filter: {
             contextIdentifier: { name: 'sampleContext' },
             name: 'executed'
-          },
+          }},
           paramsSerializer (params): string {
-            return qs.stringify(params);
+            return Object.entries(params).
+              map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
+              join('&');
           },
           responseType: 'stream'
         });

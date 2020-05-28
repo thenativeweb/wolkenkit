@@ -8,6 +8,7 @@ import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { Snapshot } from '../../../../stores/domainEventStore/Snapshot';
 import { State } from '../../../../common/elements/State';
+import { toArray } from 'streamtoarray';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -165,7 +166,7 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.', { error: data, status });
+      logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
 
       throw new errors.UnknownError(data.message);
     }

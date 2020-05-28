@@ -1,9 +1,9 @@
-import { RequestHandler } from 'express';
+import { WolkenkitRequestHandler } from './WolkenkitRequestHandler';
 import { IdentityProvider, Limes } from 'limes';
 
 const getAuthenticationMiddleware = async function ({ identityProviders }: {
   identityProviders: IdentityProvider[];
-}): Promise<RequestHandler> {
+}): Promise<WolkenkitRequestHandler> {
   const limes = new Limes({ identityProviders });
 
   const authenticationMiddleware = limes.verifyTokenMiddleware({
