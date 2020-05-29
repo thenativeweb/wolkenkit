@@ -377,6 +377,11 @@ class MongoDbDomainEventStore implements DomainEventStore {
       throw new errors.ParameterInvalid('Domain events are missing.');
     }
 
+    const sanitizedDomainEvents = domainEvents.map((domainEvent): DomainEvent<TDomainEventData> => new DomainEvent<TDomainEventData>({
+      ...domainEvent,
+      data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
+    }));
+
     /* eslint-disable id-length */
     const session = this.client.startSession({
       defaultTransactionOptions: {
@@ -393,16 +398,9 @@ class MongoDbDomainEventStore implements DomainEventStore {
 
     try {
       await session.withTransaction(async (): Promise<void> => {
-        for (const domainEvent of domainEvents) {
-          const savedDomainEvent = new DomainEvent<TDomainEventData>({
-            ...domainEvent,
-            data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
-          });
-
-          await this.collections.domainEvents.insertOne(savedDomainEvent, {
-            forceServerObjectId: true
-          });
-        }
+        await this.collections.domainEvents.insertMany(sanitizedDomainEvents, {
+          forceServerObjectId: true
+        });
       });
     } catch (ex) {
       if (ex.code === 11000 && ex.message.includes('_aggregateId_revision')) {
