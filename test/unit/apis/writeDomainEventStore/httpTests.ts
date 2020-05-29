@@ -68,10 +68,7 @@ suite('writeDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(200);
-        assert.that(data).is.equalTo([
-          firstDomainEvent,
-          secondDomainEvent
-        ]);
+        assert.that(data).is.equalTo({});
 
         const domainEventReplay = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
 
