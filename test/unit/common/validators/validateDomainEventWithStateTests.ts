@@ -62,25 +62,6 @@ suite('validateDomainEventWithState', (): void => {
     );
   });
 
-  test('throws an error if the aggregate revision is greater than the global revision.', async (): Promise<void> => {
-    assert.that((): void => {
-      validateDomainEventWithState({
-        domainEvent: new DomainEventWithState({
-          ...domainEvent,
-          metadata: {
-            ...domainEvent.metadata,
-            revision: 5
-          }
-        }),
-        applicationDefinition
-      });
-    }).is.throwing(
-      (ex): boolean =>
-        (ex as CustomError).code === 'EDOMAINEVENTMALFORMED' &&
-        ex.message === 'Aggregate revision must be less than global revision.'
-    );
-  });
-
   test(`throws an error if the domainEvent's context doesn't exist in the application definition.`, async (): Promise<void> => {
     assert.that((): void => {
       validateDomainEventWithState({
