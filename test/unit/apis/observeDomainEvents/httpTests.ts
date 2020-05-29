@@ -112,6 +112,19 @@ suite('observeDomainEvents/http', (): void => {
         }));
       });
 
+      test('returns a 400 if the query is malformed.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'get',
+          url: '/v2/?foo=bar',
+          responseType: 'stream',
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(400);
+      });
+
       test('delivers a single domain event.', async (): Promise<void> => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({

@@ -1,6 +1,6 @@
 import { flaschenpost } from 'flaschenpost';
-import { WolkenkitRequestHandler } from '../base/WolkenkitRequestHandler';
-import { writeLine } from '../base/writeLine';
+import { WolkenkitRequestHandler } from './WolkenkitRequestHandler';
+import { writeLine } from './writeLine';
 
 const logger = flaschenpost.getLogger();
 
@@ -9,12 +9,13 @@ const heartbeat = { name: 'heartbeat' };
 // The streamNdjson middleware initializes a long-lived connection with the
 // content type `application/x-ndjson` and sends a periodic heartbeat every
 // `heartbeatInterval` milliseconds.
-const streamNdjsonMiddleware = function ({
-  heartbeatInterval
-}: {
-  heartbeatInterval: number;
-}): WolkenkitRequestHandler {
-  return async function (req, res, next): Promise<void> {
+const streamNdjsonMiddleware: WolkenkitRequestHandler = async function (
+  req,
+  res,
+  next
+): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/unbound-method,no-param-reassign
+  res.startStream = function ({ heartbeatInterval }): void {
     try {
       let heartbeatIntervalId: NodeJS.Timeout;
 
@@ -53,6 +54,8 @@ const streamNdjsonMiddleware = function ({
       throw ex;
     }
   };
+
+  next();
 };
 
 export { streamNdjsonMiddleware };

@@ -1,7 +1,6 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { jsonSchema } from 'uuidv4';
-import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -34,16 +33,19 @@ const getDomainEventsByCausationId = {
     domainEventStore: DomainEventStore;
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
-    const responseBodySchema = new Value(getDomainEventsByCausationId.response.body);
+    const querySchema = new Value(getDomainEventsByCausationId.request.query),
+          responseBodySchema = new Value(getDomainEventsByCausationId.response.body);
 
     return async function (req, res): Promise<any> {
+      try {
+        querySchema.validate(req.query);
+      } catch (ex) {
+        res.status(400).end(ex.message);
+      }
+
       const causationId = req.query['causation-id'] as string;
 
-      const heartbeatMiddleware = streamNdjsonMiddleware({ heartbeatInterval });
-
-      await heartbeatMiddleware(req, res, (): void => {
-        // No need for a `next`-callback for this middleware.
-      });
+      res.startStream({ heartbeatInterval });
 
       const domainEventStream = await domainEventStore.getDomainEventsByCausationId({ causationId });
 

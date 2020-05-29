@@ -1,7 +1,6 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { isUuid } from 'uuidv4';
-import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -39,18 +38,17 @@ const getReplayForAggregate = {
           responseBodySchema = new Value(getReplayForAggregate.response.body);
 
     return async function (req, res): Promise<any> {
-      let fromRevision: number | undefined,
-          toRevision: number | undefined;
-
       try {
         querySchema.validate(req.query);
-        ({ fromRevision, toRevision } = req.query);
-
-        if (fromRevision && toRevision && fromRevision > toRevision) {
-          return res.status(400).send(`Query parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
-        }
       } catch (ex) {
         return res.status(400).send(ex.message);
+      }
+
+      const fromRevision = req.query.fromRevision as number,
+            toRevision = req.query.toRevision as number;
+
+      if (fromRevision && toRevision && fromRevision > toRevision) {
+        return res.status(400).send(`Query parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
       }
 
       const { aggregateId } = req.params;
@@ -59,11 +57,7 @@ const getReplayForAggregate = {
         return res.status(400).end('Aggregate id must be a uuid.');
       }
 
-      const heartbeatMiddleware = streamNdjsonMiddleware({ heartbeatInterval });
-
-      await heartbeatMiddleware(req, res, (): void => {
-        // No need for a `next`-callback for this middleware.
-      });
+      res.startStream({ heartbeatInterval });
 
       const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId, fromRevision, toRevision });
 

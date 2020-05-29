@@ -12,7 +12,6 @@ import { PublishDomainEvent } from '../../PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
-import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
 
 const getV2 = async function ({
@@ -53,11 +52,11 @@ const getV2 = async function ({
   api.get(
     `/${getDomainEvents.path}`,
     authenticationMiddleware,
-    streamNdjsonMiddleware({ heartbeatInterval }),
     getDomainEvents.getHandler({
       applicationDefinition,
       domainEventEmitter,
-      repository
+      repository,
+      heartbeatInterval
     })
   );
 
