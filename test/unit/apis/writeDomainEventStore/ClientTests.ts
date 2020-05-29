@@ -68,17 +68,12 @@ suite('writeDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        const events = await client.storeDomainEvents({
+        await client.storeDomainEvents({
           domainEvents: [
             firstDomainEvent,
             secondDomainEvent
           ]
         });
-
-        assert.that(events).is.equalTo([
-          firstDomainEvent,
-          secondDomainEvent
-        ]);
 
         const domainEventReplay = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
 
