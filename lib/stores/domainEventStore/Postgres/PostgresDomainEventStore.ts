@@ -448,7 +448,7 @@ class PostgresDomainEventStore implements DomainEventStore {
         values
       });
     } catch (ex) {
-      if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", "revision")')) {
+      if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", revision)')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
