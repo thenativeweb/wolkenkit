@@ -78,7 +78,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       assert.that(nextCommand).is.equalTo(commands.firstAggregate.firstCommand);
     });
 
-    test('throws an error if the given command has already been enqueued.', async (): Promise<void> => {
+    test('enqueues the same command twice if told so.', async (): Promise<void> => {
       await priorityQueueStore.enqueue({
         item: commands.firstAggregate.firstCommand,
         discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
@@ -91,9 +91,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
           discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
           priority: commands.firstAggregate.firstCommand.metadata.timestamp
         });
-      }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'EITEMALREADYEXISTS' &&
-        ex.message === `Item 'sampleContext.sampleAggregate.${commands.firstAggregate.firstCommand.aggregateIdentifier.id}.execute.${commands.firstAggregate.firstCommand.id}' already exists.`);
+      }).is.not.throwingAsync();
     });
 
     test('enqueues multiple commands for the same aggregate.', async (): Promise<void> => {
