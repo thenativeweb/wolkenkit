@@ -8,7 +8,6 @@ import { CorsOrigin } from 'get-cors-origin';
 import { getApiBase } from '../../../base/getApiBase';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { renewLock } from './renewLock';
-import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 
 const getV2 = async function ({
@@ -39,11 +38,11 @@ const getV2 = async function ({
 
   api.get(
     `/${awaitCommandWithMetadata.path}`,
-    streamNdjsonMiddleware({ heartbeatInterval }),
     awaitCommandWithMetadata.getHandler({
       priorityQueueStore,
       newCommandSubscriber,
-      newCommandSubscriberChannel
+      newCommandSubscriberChannel,
+      heartbeatInterval
     })
   );
 

@@ -3,14 +3,11 @@ import cors from 'cors';
 import { GetApiBaseParameters } from './GetApiBaseParameters';
 import { jsonQueryParserMiddleware } from './jsonQueryParserMiddleware';
 import nocache from 'nocache';
+import { streamNdjsonMiddleware } from './streamNdjsonMiddleware';
 import express, { Application } from 'express';
 
 const getApiBase = async function ({ request, response }: GetApiBaseParameters): Promise<Application> {
   const api = express();
-
-  if (request.query.parser.useJson) {
-    api.use(jsonQueryParserMiddleware);
-  }
 
   if (request.headers.cors) {
     api.options('*', cors({
@@ -29,9 +26,15 @@ const getApiBase = async function ({ request, response }: GetApiBaseParameters):
     api.use(nocache());
   }
 
+  if (request.query.parser.useJson) {
+    api.use(jsonQueryParserMiddleware);
+  }
+
   if (request.body.parser) {
     api.use(bodyParser.json({ limit: request.body.parser.sizeLimit }));
   }
+
+  api.use(streamNdjsonMiddleware);
 
   return api;
 };

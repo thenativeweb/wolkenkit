@@ -1,7 +1,7 @@
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { runAsServer } from '../../../shared/http/runAsServer';
-import { streamNdjsonMiddleware } from '../../../../lib/apis/middlewares/streamNdjson';
+import { streamNdjsonMiddleware } from '../../../../lib/apis/base/streamNdjsonMiddleware';
 import express, { Application } from 'express';
 
 suite('streamNdjson middleware', (): void => {
@@ -9,7 +9,10 @@ suite('streamNdjson middleware', (): void => {
 
   setup(async (): Promise<void> => {
     app = express();
-    app.get('/', streamNdjsonMiddleware({ heartbeatInterval: 1000 }));
+    app.use(streamNdjsonMiddleware);
+    app.get('/', (req): void => {
+      req.startStream({ heartbeatInterval: 1000 });
+    });
   });
 
   test('returns the status code 200.', async (): Promise<void> => {

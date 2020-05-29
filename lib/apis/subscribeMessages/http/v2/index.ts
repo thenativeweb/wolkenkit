@@ -4,7 +4,6 @@ import { getApiBase } from '../../../base/getApiBase';
 import { getMessages } from './getMessages';
 import { PublishMessage } from '../../PublishMessage';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
-import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 
 const getV2 = async function ({ corsOrigin, heartbeatInterval = 90_000 }: {
   corsOrigin: CorsOrigin;
@@ -25,8 +24,10 @@ const getV2 = async function ({ corsOrigin, heartbeatInterval = 90_000 }: {
 
   api.get(
     `/${getMessages.path}`,
-    streamNdjsonMiddleware({ heartbeatInterval }),
-    getMessages.getHandler({ messageEmitter })
+    getMessages.getHandler({
+      messageEmitter,
+      heartbeatInterval
+    })
   );
 
   const publishMessage: PublishMessage = function ({ message }): void {

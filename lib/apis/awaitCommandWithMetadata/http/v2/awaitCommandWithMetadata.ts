@@ -15,9 +15,11 @@ const logger = flaschenpost.getLogger();
 const awaitCommandWithMetadata = {
   description: 'Sends the next available command.',
   path: '',
+
   request: {},
   response: {
-    statusCodes: [],
+    statusCodes: [ 200 ],
+
     stream: true,
     body: {
       type: 'object',
@@ -33,11 +35,13 @@ const awaitCommandWithMetadata = {
   getHandler ({
     priorityQueueStore,
     newCommandSubscriber,
-    newCommandSubscriberChannel
+    newCommandSubscriberChannel,
+    heartbeatInterval
   }: {
     priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
     newCommandSubscriber: Subscriber<object>;
     newCommandSubscriberChannel: string;
+    heartbeatInterval: number;
   }): WolkenkitRequestHandler {
     const responseBodySchema = new Value(awaitCommandWithMetadata.response.body);
 
@@ -63,6 +67,8 @@ const awaitCommandWithMetadata = {
     };
 
     return async function (req, res): Promise<void> {
+      req.startStream({ heartbeatInterval });
+
       const instantSuccess = await maybeHandleLock({ res });
 
       if (instantSuccess) {

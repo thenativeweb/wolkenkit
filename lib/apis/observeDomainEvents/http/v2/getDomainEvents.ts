@@ -2,6 +2,7 @@ import { ApplicationDefinition } from '../../../../common/application/Applicatio
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
+import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregatesService } from '../../../../common/services/getAggregatesService';
 import { getClientService } from '../../../../common/services/getClientService';
@@ -41,11 +42,13 @@ const getDomainEvents = {
   getHandler ({
     domainEventEmitter,
     applicationDefinition,
-    repository
+    repository,
+    heartbeatInterval
   }: {
     domainEventEmitter: SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>;
     applicationDefinition: ApplicationDefinition;
     repository: Repository;
+    heartbeatInterval: number;
   }): WolkenkitRequestHandler {
     const querySchema = new Value(getDomainEvents.request.query),
           responseBodySchema = new Value(getDomainEvents.response.body);
@@ -55,13 +58,19 @@ const getDomainEvents = {
     return async function (req: Request, res: Response): Promise<void> {
       try {
         querySchema.validate(req.query);
+      } catch (ex) {
+        res.status(400).end(ex.message);
+      }
 
-        const domainEventQueue = new PQueue({ concurrency: 1 });
+      const domainEventQueue = new PQueue({ concurrency: 1 });
 
+      let handleDomainEvent: (domainEventWithState: DomainEventWithState<DomainEventData, State>) => void;
+
+      try {
         const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
         const domainEventFilter = (req.query.filter ?? {}) as object;
 
-        const handleDomainEvent = (domainEventWithState: DomainEventWithState<DomainEventData, State>): void => {
+        handleDomainEvent = (domainEventWithState): void => {
           /* eslint-disable @typescript-eslint/no-floating-promises */
           domainEventQueue.add(async (): Promise<void> => {
             const domainEvent = await prepareForPublication({
@@ -89,6 +98,21 @@ const getDomainEvents = {
           });
           /* eslint-enable @typescript-eslint/no-floating-promises */
         };
+      } catch (ex) {
+        logger.error('Unknown error occured.', { ex });
+
+        const error = new errors.UnknownError();
+
+        res.status(500).json({
+          code: error.code,
+          message: error.message
+        });
+
+        return;
+      }
+
+      try {
+        req.startStream({ heartbeatInterval });
 
         res.connection.once('close', (): void => {
           domainEventEmitter.off(handleDomainEvent);
@@ -107,7 +131,7 @@ const getDomainEvents = {
           return;
         }
 
-        logger.error('An unexpected error occured.', { ex });
+        logger.error('Unknown error occured.', { ex });
 
         throw ex;
       }

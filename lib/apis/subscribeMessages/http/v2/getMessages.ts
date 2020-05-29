@@ -14,13 +14,18 @@ const getMessages = {
   request: {},
   response: {
     statusCodes: [ 200 ],
-    stream: true
+
+    stream: true,
+    body: {}
   },
 
-  getHandler ({ messageEmitter }: {
+  getHandler ({ messageEmitter, heartbeatInterval }: {
     messageEmitter: SpecializedEventEmitter<object>;
+    heartbeatInterval: number;
   }): WolkenkitRequestHandler {
-    return async function (_req: Request, res: Response): Promise<void> {
+    return async function (req: Request, res: Response): Promise<void> {
+      req.startStream({ heartbeatInterval });
+
       try {
         const messageQueue = new PQueue({ concurrency: 1 });
 

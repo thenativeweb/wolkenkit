@@ -1,6 +1,5 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -37,20 +36,15 @@ const getReplay = {
           responseBodySchema = new Value(getReplay.response.body);
 
     return async function (req, res): Promise<any> {
-      let fromTimestamp: number | undefined;
-
       try {
         querySchema.validate(req.query);
-        ({ fromTimestamp } = req.query);
       } catch (ex) {
         return res.status(400).send(ex.message);
       }
 
-      const heartbeatMiddleware = streamNdjsonMiddleware({ heartbeatInterval });
+      const fromTimestamp = req.query.fromTimestamp as number;
 
-      await heartbeatMiddleware(req, res, (): void => {
-        // No need for a `next`-callback for this middleware.
-      });
+      req.startStream({ heartbeatInterval });
 
       const domainEventStream = await domainEventStore.getReplay({ fromTimestamp });
 
