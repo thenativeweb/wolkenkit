@@ -110,7 +110,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
 
         PRIMARY KEY (aggregateId, revision),
         INDEX (causationId),
-        INDEX (correlationId)
+        INDEX (correlationId),
         INDEX (timestamp)
       ) ENGINE=InnoDB;
 
