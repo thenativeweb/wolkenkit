@@ -10,7 +10,7 @@ suite('streamNdjson middleware', (): void => {
   setup(async (): Promise<void> => {
     app = express();
     app.use(streamNdjsonMiddleware);
-    app.get('/', (req): void => {
+    app.get('/', (_req, res): void => {
       res.startStream({ heartbeatInterval: 1000 });
     });
   });
