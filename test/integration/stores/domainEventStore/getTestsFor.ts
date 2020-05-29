@@ -248,8 +248,9 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       const domainEventsByCausationId = await toArray(await domainEventStore.getDomainEventsByCausationId({ causationId }));
 
       assert.that(domainEventsByCausationId.length).is.equalTo(2);
-      assert.that(domainEventsByCausationId[0].id).is.equalTo(domainEvent1.id);
-      assert.that(domainEventsByCausationId[1].id).is.equalTo(domainEvent2.id);
+      assert.that(domainEventsByCausationId.find((domainEvent): boolean => domainEvent.id === domainEvent1.id)).is.not.undefined();
+      assert.that(domainEventsByCausationId.find((domainEvent): boolean => domainEvent.id === domainEvent2.id)).is.not.undefined();
+      assert.that(domainEventsByCausationId.find((domainEvent): boolean => domainEvent.id === domainEvent3.id)).is.undefined();
     });
   });
 
@@ -466,8 +467,9 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       const domainEventsByCorrelationId = await toArray(await domainEventStore.getDomainEventsByCorrelationId({ correlationId }));
 
       assert.that(domainEventsByCorrelationId.length).is.equalTo(2);
-      assert.that(domainEventsByCorrelationId[0].id).is.equalTo(domainEvent1.id);
-      assert.that(domainEventsByCorrelationId[1].id).is.equalTo(domainEvent2.id);
+      assert.that(domainEventsByCorrelationId.find((domainEvent): boolean => domainEvent.id === domainEvent1.id)).is.not.undefined();
+      assert.that(domainEventsByCorrelationId.find((domainEvent): boolean => domainEvent.id === domainEvent2.id)).is.not.undefined();
+      assert.that(domainEventsByCorrelationId.find((domainEvent): boolean => domainEvent.id === domainEvent3.id)).is.undefined();
     });
   });
 
