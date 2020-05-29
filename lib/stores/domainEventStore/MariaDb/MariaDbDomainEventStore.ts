@@ -415,7 +415,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
           placeholders = [];
 
     for (const domainEvent of domainEvents) {
-      placeholders.push('(UuidToBin(?), ?, UuidToBin(?), UuidToBin(?), ?)');
+      placeholders.push('(UuidToBin(?), ?, UuidToBin(?), UuidToBin(?), ?, ?)');
       parameters.push(
         domainEvent.aggregateIdentifier.id,
         domainEvent.metadata.revision,
