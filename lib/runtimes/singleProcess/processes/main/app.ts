@@ -56,7 +56,11 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const priorityQueueStore = await InMemoryPriorityQueueStore.create<CommandWithMetadata<CommandData>>({});
 
     const onReceiveCommand: OnReceiveCommand = async ({ command }): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: command });
+      await priorityQueueStore.enqueue({
+        item: command,
+        discriminator: command.aggregateIdentifier.id,
+        priority: command.metadata.timestamp
+      });
     };
 
     const { api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({

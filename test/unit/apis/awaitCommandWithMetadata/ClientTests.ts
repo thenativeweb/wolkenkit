@@ -75,7 +75,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           data: {}
         });
 
-        await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await priorityQueueStore.enqueue({
+          item: commandWithMetadata,
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          priority: commandWithMetadata.metadata.timestamp
+        });
         await newCommandPublisher.publish({
           channel: newCommandSubscriberChannel,
           message: {}
@@ -152,7 +156,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           data: {}
         });
 
-        await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await priorityQueueStore.enqueue({
+          item: commandWithMetadata,
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          priority: commandWithMetadata.metadata.timestamp
+        });
         await newCommandPublisher.publish({
           channel: newCommandSubscriberChannel,
           message: {}
@@ -186,7 +194,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           data: {}
         });
 
-        await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await priorityQueueStore.enqueue({
+          item: commandWithMetadata,
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          priority: commandWithMetadata.metadata.timestamp
+        });
         await newCommandPublisher.publish({
           channel: newCommandSubscriberChannel,
           message: {}
@@ -223,7 +235,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           data: {}
         });
 
-        await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await priorityQueueStore.enqueue({
+          item: commandWithMetadata,
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          priority: commandWithMetadata.metadata.timestamp
+        });
         await newCommandPublisher.publish({
           channel: newCommandSubscriberChannel,
           message: {}
@@ -309,7 +325,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           data: {}
         });
 
-        await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await priorityQueueStore.enqueue({
+          item: commandWithMetadata,
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          priority: commandWithMetadata.metadata.timestamp
+        });
         await newCommandPublisher.publish({
           channel: newCommandSubscriberChannel,
           message: {}
@@ -343,7 +363,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           data: {}
         });
 
-        await priorityQueueStore.enqueue({ item: commandWithMetadata });
+        await priorityQueueStore.enqueue({
+          item: commandWithMetadata,
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          priority: commandWithMetadata.metadata.timestamp
+        });
         await newCommandPublisher.publish({
           channel: newCommandSubscriberChannel,
           message: {}
@@ -392,8 +416,16 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           data: {}
         });
 
-        await priorityQueueStore.enqueue({ item: commandOne });
-        await priorityQueueStore.enqueue({ item: commandTwo });
+        await priorityQueueStore.enqueue({
+          item: commandOne,
+          discriminator: commandOne.aggregateIdentifier.id,
+          priority: commandOne.metadata.timestamp
+        });
+        await priorityQueueStore.enqueue({
+          item: commandTwo,
+          discriminator: commandTwo.aggregateIdentifier.id,
+          priority: commandTwo.metadata.timestamp
+        });
 
         const { item, token } = await client.awaitCommandWithMetadata();
 

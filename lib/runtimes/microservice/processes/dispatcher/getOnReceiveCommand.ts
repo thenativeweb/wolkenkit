@@ -19,7 +19,11 @@ const getOnReceiveCommand = function ({
   return async function ({ command }): Promise<void> {
     logger.debug('Received command, enqueueing it.', { command });
 
-    await priorityQueueStore.enqueue({ item: command });
+    await priorityQueueStore.enqueue({
+      item: command,
+      discriminator: command.aggregateIdentifier.id,
+      priority: command.metadata.timestamp
+    });
     await newCommandPublisher.publish({
       channel: newCommandPubSubChannel,
       message: {}
