@@ -3,6 +3,7 @@ import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
+import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import QueryStream from 'pg-query-stream';
 import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
@@ -427,7 +428,7 @@ class PostgresDomainEventStore implements DomainEventStore {
         domainEvent.metadata.causationId,
         domainEvent.metadata.correlationId,
         domainEvent.metadata.timestamp,
-        domainEvent
+        omitDeepBy(domainEvent, (value): boolean => value === undefined)
       );
     }
 
@@ -506,7 +507,7 @@ class PostgresDomainEventStore implements DomainEventStore {
         values: [
           snapshot.aggregateIdentifier.id,
           snapshot.revision,
-          snapshot.state
+          omitDeepBy(snapshot.state, (value): boolean => value === undefined)
         ]
       });
     } finally {

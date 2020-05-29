@@ -4,6 +4,7 @@ import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
 import { last } from 'lodash';
+import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { PassThrough, Readable } from 'stream';
@@ -165,14 +166,24 @@ class InMemoryDomainEventStore implements DomainEventStore {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
-      this.storeDomainEventAtDatabase({ domainEvent });
+      const savedDomainEvent = new DomainEvent<TDomainEventData>({
+        ...domainEvent,
+        data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
+      });
+
+      this.storeDomainEventAtDatabase({ domainEvent: savedDomainEvent });
     }
   }
 
   public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
-    this.storeSnapshotAtDatabase({ snapshot });
+    this.storeSnapshotAtDatabase({
+      snapshot: {
+        ...snapshot,
+        state: omitDeepBy(snapshot.state, (value): boolean => value === undefined)
+      }
+    });
   }
 
   public async destroy (): Promise<void> {

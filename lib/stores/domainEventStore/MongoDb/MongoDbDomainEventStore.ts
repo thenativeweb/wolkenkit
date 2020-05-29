@@ -4,6 +4,7 @@ import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
+import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
@@ -378,7 +379,12 @@ class MongoDbDomainEventStore implements DomainEventStore {
 
     try {
       for (const domainEvent of domainEvents) {
-        await this.collections.domainEvents.insertOne(domainEvent, {
+        const savedDomainEvent = new DomainEvent<TDomainEventData>({
+          ...domainEvent,
+          data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
+        });
+
+        await this.collections.domainEvents.insertOne(savedDomainEvent, {
           forceServerObjectId: true
         });
       }
@@ -417,7 +423,10 @@ class MongoDbDomainEventStore implements DomainEventStore {
   }): Promise<void> {
     await this.collections.snapshots.updateOne(
       { aggregateIdentifier: snapshot.aggregateIdentifier },
-      { $set: snapshot },
+      { $set: {
+        ...snapshot,
+        state: omitDeepBy(snapshot.state, (value): boolean => value === undefined)
+      }},
       { upsert: true }
     );
   }
