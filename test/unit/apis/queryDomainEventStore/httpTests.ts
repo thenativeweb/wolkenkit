@@ -142,6 +142,7 @@ suite('queryDomainEventStore/http', (): void => {
           data: {},
           metadata: {
             revision: 1,
+            timestamp: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -154,6 +155,7 @@ suite('queryDomainEventStore/http', (): void => {
           data: {},
           metadata: {
             revision: 2,
+            timestamp: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -166,6 +168,7 @@ suite('queryDomainEventStore/http', (): void => {
           data: {},
           metadata: {
             revision: 3,
+            timestamp: 3,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
