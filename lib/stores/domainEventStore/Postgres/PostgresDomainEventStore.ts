@@ -421,7 +421,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     for (const [ index, domainEvent ] of domainEvents.entries()) {
       const base = (6 * index) + 1;
 
-      placeholders.push(`($${base}, $${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}), $${base + 5})`);
+      placeholders.push(`($${base}, $${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`);
       values.push(
         domainEvent.aggregateIdentifier.id,
         domainEvent.metadata.revision,
