@@ -5,7 +5,10 @@ import { DomainEventData } from '../../common/elements/DomainEventData';
 import { ItemIdentifier } from '../../common/elements/ItemIdentifier';
 
 export interface PriorityQueueStore<TItem extends CommandWithMetadata<CommandData> | DomainEvent<DomainEventData>> {
-  enqueue ({ item }: { item: TItem }): Promise<void>;
+  enqueue ({ item, discriminator }: {
+    item: TItem;
+    discriminator: string;
+  }): Promise<void>;
 
   lockNext (): Promise<{ item: TItem; token: string } | undefined>;
 

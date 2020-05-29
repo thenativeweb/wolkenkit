@@ -1,4 +1,3 @@
-import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
 import { CommandData } from '../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../common/elements/CommandWithMetadata';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
@@ -66,7 +65,7 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
   }
 
   protected repairUp ({ queue }: { queue: Queue<TItem> }): void {
-    const index = this.index.get(queue.aggregateIdentifier.id);
+    const index = this.index.get(queue.discriminator);
 
     if (index === undefined) {
       throw new errors.InvalidOperation();
@@ -87,14 +86,14 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
 
     this.queues[parentIndex] = queue;
     this.queues[index] = parentQueue;
-    this.index.set(queue.aggregateIdentifier.id, parentIndex);
-    this.index.set(parentQueue.aggregateIdentifier.id, index);
+    this.index.set(queue.discriminator, parentIndex);
+    this.index.set(parentQueue.discriminator, index);
 
     this.repairUp({ queue });
   }
 
   protected repairDown ({ queue }: { queue: Queue<TItem> }): void {
-    const index = this.index.get(queue.aggregateIdentifier.id);
+    const index = this.index.get(queue.discriminator);
 
     if (index === undefined) {
       throw new errors.InvalidOperation();
@@ -127,24 +126,24 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     if (leftChildQueuePriority <= rightChildQueuePriority) {
       this.queues[leftChildIndex] = queue;
       this.queues[index] = leftChildQueue;
-      this.index.set(queue.aggregateIdentifier.id, leftChildIndex);
-      this.index.set(leftChildQueue.aggregateIdentifier.id, index);
+      this.index.set(queue.discriminator, leftChildIndex);
+      this.index.set(leftChildQueue.discriminator, index);
 
       this.repairDown({ queue });
     } else {
       this.queues[rightChildIndex] = queue;
       this.queues[index] = rightChildQueue;
-      this.index.set(queue.aggregateIdentifier.id, rightChildIndex);
-      this.index.set(rightChildQueue!.aggregateIdentifier.id, index);
+      this.index.set(queue.discriminator, rightChildIndex);
+      this.index.set(rightChildQueue!.discriminator, index);
 
       this.repairDown({ queue });
     }
   }
 
-  protected removeInternal ({ aggregateIdentifier }: {
-    aggregateIdentifier: AggregateIdentifier;
+  protected removeInternal ({ discriminator }: {
+    discriminator: string;
   }): void {
-    const queueIndex = this.index.get(aggregateIdentifier.id);
+    const queueIndex = this.index.get(discriminator);
 
     if (queueIndex === undefined) {
       throw new errors.InvalidOperation();
@@ -152,14 +151,14 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
 
     const lastQueue = this.queues.pop()!;
 
-    this.index.delete(lastQueue.aggregateIdentifier.id);
+    this.index.delete(lastQueue.discriminator);
 
     if (queueIndex >= this.queues.length) {
       return;
     }
 
     this.queues[queueIndex] = lastQueue;
-    this.index.set(lastQueue.aggregateIdentifier.id, queueIndex);
+    this.index.set(lastQueue.discriminator, queueIndex);
 
     this.repairDown({ queue: lastQueue });
   }
@@ -189,18 +188,21 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     return queue;
   }
 
-  protected enqueueInternal ({ item }: { item: TItem }): void {
-    const queueIndex = this.index.get(item.aggregateIdentifier.id) ?? this.queues.length;
+  protected enqueueInternal ({ item, discriminator }: {
+    item: TItem;
+    discriminator: string;
+  }): void {
+    const queueIndex = this.index.get(discriminator) ?? this.queues.length;
     let queue = this.queues[queueIndex];
 
     if (!queue) {
       queue = {
-        aggregateIdentifier: item.aggregateIdentifier,
+        discriminator,
         items: []
       };
 
       this.queues.push(queue);
-      this.index.set(queue.aggregateIdentifier.id, queueIndex);
+      this.index.set(discriminator, queueIndex);
     }
 
     if (queue.items.find((queueItem): boolean => queueItem.id === item.id)) {
@@ -212,9 +214,12 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
     this.repairUp({ queue });
   }
 
-  public async enqueue ({ item }: { item: TItem }): Promise<void> {
+  public async enqueue ({ item, discriminator }: {
+    item: TItem;
+    discriminator: string;
+  }): Promise<void> {
     await this.functionCallQueue.add(
-      async (): Promise<void> => this.enqueueInternal({ item })
+      async (): Promise<void> => this.enqueueInternal({ item, discriminator })
     );
   }
 
@@ -282,7 +287,7 @@ class InMemoryPriorityQueueStore<TItem extends CommandWithMetadata<CommandData> 
       return;
     }
 
-    this.removeInternal({ aggregateIdentifier: queue.aggregateIdentifier });
+    this.removeInternal({ discriminator: queue.discriminator });
   }
 
   public async acknowledge ({ itemIdentifier, token }: {

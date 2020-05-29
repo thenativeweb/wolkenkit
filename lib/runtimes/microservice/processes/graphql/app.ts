@@ -51,7 +51,10 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
     const priorityQueueStore = await InMemoryPriorityQueueStore.create<CommandWithMetadata<CommandData>>({});
 
     const onReceiveCommand: OnReceiveCommand = async ({ command }): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: command });
+      await priorityQueueStore.enqueue({
+        item: command,
+        discriminator: command.aggregateIdentifier.id
+      });
     };
 
     const { api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({

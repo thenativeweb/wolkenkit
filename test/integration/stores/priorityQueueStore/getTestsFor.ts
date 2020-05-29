@@ -67,7 +67,10 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
   suite('enqueue', (): void => {
     test('enqueues the given command.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
 
       const { item: nextCommand } = (await priorityQueueStore.lockNext())!;
 
@@ -75,28 +78,46 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('throws an error if the given command has already been enqueued.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
 
       await assert.that(async (): Promise<void> => {
-        await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+        await priorityQueueStore.enqueue({
+          item: commands.firstAggregate.firstCommand,
+          discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+        });
       }).is.throwingAsync((ex): boolean =>
         (ex as CustomError).code === 'EITEMALREADYEXISTS' &&
         ex.message === `Item 'sampleContext.sampleAggregate.${commands.firstAggregate.firstCommand.aggregateIdentifier.id}.execute.${commands.firstAggregate.firstCommand.id}' already exists.`);
     });
 
     test('enqueues multiple commands for the same aggregate.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
 
       await assert.that(async (): Promise<void> => {
-        await priorityQueueStore.enqueue({ item: commands.firstAggregate.secondCommand });
+        await priorityQueueStore.enqueue({
+          item: commands.firstAggregate.secondCommand,
+          discriminator: commands.firstAggregate.secondCommand.aggregateIdentifier.id
+        });
       }).is.not.throwingAsync();
     });
 
     test('enqueues commands for multiple aggregates.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
 
       await assert.that(async (): Promise<void> => {
-        await priorityQueueStore.enqueue({ item: commands.secondAggregate.firstCommand });
+        await priorityQueueStore.enqueue({
+          item: commands.secondAggregate.firstCommand,
+          discriminator: commands.secondAggregate.firstCommand.aggregateIdentifier.id
+        });
       }).is.not.throwingAsync();
     });
   });
@@ -109,7 +130,10 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('returns a previously enqueued item.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
 
       const { item: nextCommand } = (await priorityQueueStore.lockNext())!;
 
@@ -117,8 +141,14 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('returns undefined if the queue of the enqueued items is locked.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.secondCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.secondCommand,
+        discriminator: commands.firstAggregate.secondCommand.aggregateIdentifier.id
+      });
 
       await priorityQueueStore.lockNext();
 
@@ -128,8 +158,14 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('returns enqueued items for independent aggregates.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
-      await priorityQueueStore.enqueue({ item: commands.secondAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
+      await priorityQueueStore.enqueue({
+        item: commands.secondAggregate.firstCommand,
+        discriminator: commands.secondAggregate.firstCommand.aggregateIdentifier.id
+      });
 
       const { item: firstNextCommand } = (await priorityQueueStore.lockNext())!;
       const { item: secondNextCommand } = (await priorityQueueStore.lockNext())!;
@@ -139,10 +175,22 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('returns undefined if all queues of the enqueued items are locked.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.secondCommand });
-      await priorityQueueStore.enqueue({ item: commands.secondAggregate.firstCommand });
-      await priorityQueueStore.enqueue({ item: commands.secondAggregate.secondCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.secondCommand,
+        discriminator: commands.firstAggregate.secondCommand.aggregateIdentifier.id
+      });
+      await priorityQueueStore.enqueue({
+        item: commands.secondAggregate.firstCommand,
+        discriminator: commands.secondAggregate.firstCommand.aggregateIdentifier.id
+      });
+      await priorityQueueStore.enqueue({
+        item: commands.secondAggregate.secondCommand,
+        discriminator: commands.secondAggregate.secondCommand.aggregateIdentifier.id
+      });
 
       await priorityQueueStore.lockNext();
       await priorityQueueStore.lockNext();
@@ -153,7 +201,10 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('returns a previously locked item if its lock has expired.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
 
       const { item: firstNextCommand } = (await priorityQueueStore.lockNext())!;
 
@@ -165,8 +216,14 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('returns different tokens for each queue.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
-      await priorityQueueStore.enqueue({ item: commands.secondAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
+      await priorityQueueStore.enqueue({
+        item: commands.secondAggregate.firstCommand,
+        discriminator: commands.secondAggregate.firstCommand.aggregateIdentifier.id
+      });
 
       const { token: firstNextToken } = (await priorityQueueStore.lockNext())!;
       const { token: secondNextToken } = (await priorityQueueStore.lockNext())!;
@@ -175,7 +232,10 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('returns different tokens for a re-locked item whose lock had expired.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
 
       const { token: firstNextToken } = (await priorityQueueStore.lockNext())!;
 
@@ -200,7 +260,10 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('throws an error if the given item is not in a locked queue.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
 
       await assert.that(async (): Promise<void> => {
         await priorityQueueStore.renewLock({
@@ -213,7 +276,10 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('throws an error if the given token does not match.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
       await priorityQueueStore.lockNext();
 
       await assert.that(async (): Promise<void> => {
@@ -227,8 +293,14 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('throws an error if the given item is not the first in the locked queue.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.secondCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.secondCommand,
+        discriminator: commands.firstAggregate.secondCommand.aggregateIdentifier.id
+      });
 
       const { token } = (await priorityQueueStore.lockNext())!;
 
@@ -243,7 +315,10 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('renews the lock.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
 
       const { token } = (await priorityQueueStore.lockNext())!;
 
@@ -273,7 +348,10 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('throws an error if the given item is not in a locked queue.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
 
       await assert.that(async (): Promise<void> => {
         await priorityQueueStore.acknowledge({
@@ -286,7 +364,10 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('throws an error if the given token does not match.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
       await priorityQueueStore.lockNext();
 
       await assert.that(async (): Promise<void> => {
@@ -300,8 +381,14 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('throws an error if the given item is not the first in the locked queue.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.secondCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.secondCommand,
+        discriminator: commands.firstAggregate.secondCommand.aggregateIdentifier.id
+      });
 
       const { token } = (await priorityQueueStore.lockNext())!;
 
@@ -316,8 +403,14 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('acknowledges the item.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.firstCommand });
-      await priorityQueueStore.enqueue({ item: commands.firstAggregate.secondCommand });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id
+      });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.secondCommand,
+        discriminator: commands.firstAggregate.secondCommand.aggregateIdentifier.id
+      });
 
       const { token } = (await priorityQueueStore.lockNext())!;
 
