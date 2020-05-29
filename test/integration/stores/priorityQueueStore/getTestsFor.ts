@@ -274,7 +274,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         });
       }).is.throwingAsync((ex): boolean =>
         (ex as CustomError).code === 'EITEMNOTFOUND' &&
-        ex.message === `Item 'sampleContext.sampleAggregate.${commands.firstAggregate.firstCommand.aggregateIdentifier.id}.execute.${commands.firstAggregate.firstCommand.id}' not found.`);
+        ex.message === `Item for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}' not found.`);
     });
 
     test('throws an error if the given item is not in a locked queue.', async (): Promise<void> => {
@@ -291,7 +291,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         });
       }).is.throwingAsync((ex): boolean =>
         (ex as CustomError).code === 'EITEMNOTLOCKED' &&
-        ex.message === `Item 'sampleContext.sampleAggregate.${commands.firstAggregate.firstCommand.aggregateIdentifier.id}.execute.${commands.firstAggregate.firstCommand.id}' not locked.`);
+        ex.message === `Item for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}' not locked.`);
     });
 
     test('throws an error if the given token does not match.', async (): Promise<void> => {
@@ -309,31 +309,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         });
       }).is.throwingAsync((ex): boolean =>
         (ex as CustomError).code === 'ETOKENMISMATCH' &&
-        ex.message === `Token mismatch for item 'sampleContext.sampleAggregate.${commands.firstAggregate.firstCommand.aggregateIdentifier.id}.execute.${commands.firstAggregate.firstCommand.id}'.`);
-    });
-
-    test('throws an error if the given item is not the first in the locked queue.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({
-        item: commands.firstAggregate.firstCommand,
-        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
-        priority: commands.firstAggregate.firstCommand.metadata.timestamp
-      });
-      await priorityQueueStore.enqueue({
-        item: commands.firstAggregate.secondCommand,
-        discriminator: commands.firstAggregate.secondCommand.aggregateIdentifier.id,
-        priority: commands.firstAggregate.secondCommand.metadata.timestamp
-      });
-
-      const { token } = (await priorityQueueStore.lockNext())!;
-
-      await assert.that(async (): Promise<void> => {
-        await priorityQueueStore.renewLock({
-          discriminator: commands.firstAggregate.secondCommand.aggregateIdentifier.id,
-          token
-        });
-      }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'EITEMNOTFOUND' &&
-        ex.message === `Item 'sampleContext.sampleAggregate.${commands.firstAggregate.secondCommand.aggregateIdentifier.id}.execute.${commands.firstAggregate.secondCommand.id}' not found.`);
+        ex.message === `Token mismatch for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}'.`);
     });
 
     test('renews the lock.', async (): Promise<void> => {
@@ -367,7 +343,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         });
       }).is.throwingAsync((ex): boolean =>
         (ex as CustomError).code === 'EITEMNOTFOUND' &&
-        ex.message === `Item 'sampleContext.sampleAggregate.${commands.firstAggregate.firstCommand.aggregateIdentifier.id}.execute.${commands.firstAggregate.firstCommand.id}' not found.`);
+        ex.message === `Item for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}' not found.`);
     });
 
     test('throws an error if the given item is not in a locked queue.', async (): Promise<void> => {
@@ -384,7 +360,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         });
       }).is.throwingAsync((ex): boolean =>
         (ex as CustomError).code === 'EITEMNOTLOCKED' &&
-        ex.message === `Item 'sampleContext.sampleAggregate.${commands.firstAggregate.firstCommand.aggregateIdentifier.id}.execute.${commands.firstAggregate.firstCommand.id}' not locked.`);
+        ex.message === `Item for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}' not locked.`);
     });
 
     test('throws an error if the given token does not match.', async (): Promise<void> => {
@@ -402,31 +378,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         });
       }).is.throwingAsync((ex): boolean =>
         (ex as CustomError).code === 'ETOKENMISMATCH' &&
-        ex.message === `Token mismatch for item 'sampleContext.sampleAggregate.${commands.firstAggregate.firstCommand.aggregateIdentifier.id}.execute.${commands.firstAggregate.firstCommand.id}'.`);
-    });
-
-    test('throws an error if the given item is not the first in the locked queue.', async (): Promise<void> => {
-      await priorityQueueStore.enqueue({
-        item: commands.firstAggregate.firstCommand,
-        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
-        priority: commands.firstAggregate.firstCommand.metadata.timestamp
-      });
-      await priorityQueueStore.enqueue({
-        item: commands.firstAggregate.secondCommand,
-        discriminator: commands.firstAggregate.secondCommand.aggregateIdentifier.id,
-        priority: commands.firstAggregate.secondCommand.metadata.timestamp
-      });
-
-      const { token } = (await priorityQueueStore.lockNext())!;
-
-      await assert.that(async (): Promise<void> => {
-        await priorityQueueStore.acknowledge({
-          discriminator: commands.firstAggregate.secondCommand.aggregateIdentifier.id,
-          token
-        });
-      }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'EITEMNOTFOUND' &&
-        ex.message === `Item 'sampleContext.sampleAggregate.${commands.firstAggregate.secondCommand.aggregateIdentifier.id}.execute.${commands.firstAggregate.secondCommand.id}' not found.`);
+        ex.message === `Token mismatch for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}'.`);
     });
 
     test('acknowledges the item.', async (): Promise<void> => {
