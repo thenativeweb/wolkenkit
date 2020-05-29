@@ -39,18 +39,8 @@ const getSchema = function (): Schema {
         properties: {
           causationId: { type: 'string', pattern: uuidRegex },
           correlationId: { type: 'string', pattern: uuidRegex },
-          timestamp: { type: 'number' },
-          revision: {
-            type: 'object',
-            properties: {
-              aggregate: { type: 'number', minimum: 1 },
-              global: {
-                anyOf: [{ type: 'number', minimum: 1 }, { type: 'null' }]
-              }
-            },
-            required: [ 'aggregate' ],
-            additionalProperties: false
-          },
+          timestamp: { type: 'number', minimum: 0 },
+          revision: { type: 'number', minimum: 1 },
           initiator: {
             type: 'object',
             properties: {

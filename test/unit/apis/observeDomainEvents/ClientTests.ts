@@ -101,7 +101,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -150,7 +150,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'succeeded',
             data: {},
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -163,7 +163,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -218,7 +218,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'succeeded',
             data: {},
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -231,7 +231,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -282,7 +282,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'succeeded',
             data: {},
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -295,7 +295,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -349,7 +349,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),

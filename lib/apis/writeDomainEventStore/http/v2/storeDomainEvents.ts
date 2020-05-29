@@ -20,15 +20,10 @@ const storeDomainEvents = {
   response: {
     statusCodes: [ 200, 400, 415 ],
 
-    body: {
-      type: 'array',
-      items: getDomainEventSchema()
-    }
+    body: { type: 'object' }
   },
 
-  getHandler ({
-    domainEventStore
-  }: {
+  getHandler ({ domainEventStore }: {
     domainEventStore: DomainEventStore;
   }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(storeDomainEvents.request.body),
@@ -106,11 +101,13 @@ const storeDomainEvents = {
       }
 
       try {
-        const storedDomainEvents = await domainEventStore.storeDomainEvents({ domainEvents });
+        await domainEventStore.storeDomainEvents({ domainEvents });
 
-        responseBodySchema.validate(storedDomainEvents);
+        const response = {};
 
-        res.json(storedDomainEvents);
+        responseBodySchema.validate(response);
+
+        res.status(200).json(response);
       } catch (ex) {
         return res.status(400).json({
           code: ex.code ?? 'EUNKNOWNERROR',

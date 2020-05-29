@@ -142,23 +142,16 @@ class Client extends HttpClient {
     );
   }
 
-  public async getReplay ({ fromRevisionGlobal = 1, toRevisionGlobal = (2 ** 31) - 1 }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
+  public async getReplay ({ fromTimestamp = 0 }: {
+    fromTimestamp?: number;
   }): Promise<PassThrough> {
-    if (fromRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < fromRevisionGlobal) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+    if (fromTimestamp < 0) {
+      throw new errors.ParameterInvalid(`Parameter 'fromTimestamp' must be at least 0.`);
     }
 
     const { status, data } = await axios({
       method: 'get',
-      url: `${this.url}/replay?fromRevisionGlobal=${fromRevisionGlobal}&toRevisionGlobal=${toRevisionGlobal}`,
+      url: `${this.url}/replay?fromTimestamp=${fromTimestamp}`,
       responseType: 'stream',
       validateStatus (): boolean {
         return true;
@@ -265,6 +258,4 @@ class Client extends HttpClient {
   }
 }
 
-export {
-  Client
-};
+export { Client };

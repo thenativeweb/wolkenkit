@@ -68,7 +68,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -80,7 +80,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -127,7 +127,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
       });
 
-      test('returns a stream that sends a heartbeat and then all domain events that match the given revision constraints.', async (): Promise<void> => {
+      test('returns a stream that sends a heartbeat and then all domain events that match the given timestamp constraint.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
           id: uuid()
@@ -141,7 +141,8 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
+            timestamp: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -153,7 +154,8 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
+            timestamp: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -165,7 +167,8 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 3, global: 3 },
+            revision: 3,
+            timestamp: 3,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -176,7 +179,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         const { status, data, headers } = await client({
           method: 'get',
-          url: '/v2/replay?fromRevisionGlobal=2&toRevisionGlobal=2',
+          url: '/v2/replay?fromTimestamp=3',
           responseType: 'stream'
         });
 
@@ -201,147 +204,37 @@ suite('queryDomainEventStore/http', (): void => {
               counter += 1;
             },
             (domainEvent): void => {
-              assert.that(domainEvent).is.equalTo(secondDomainEvent);
+              assert.that(domainEvent).is.equalTo(thirdDomainEvent);
               counter += 1;
             }
           ]));
         });
       });
 
-      test('closes the stream once the given to-revision-global is reached.', async (): Promise<void> => {
-        const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: uuid()
-        };
-
-        const firstDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
-          aggregateIdentifier,
-          name: 'succeeded',
-          data: {},
-          metadata: {
-            revision: { aggregate: 1, global: null },
-            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-          }
-        });
-        const secondDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
-          aggregateIdentifier,
-          name: 'succeeded',
-          data: {},
-          metadata: {
-            revision: { aggregate: 2, global: null },
-            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-          }
-        });
-
-        await domainEventStore.storeDomainEvents({ domainEvents: [ firstDomainEvent, secondDomainEvent ]});
-
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data, headers } = await client({
-          method: 'get',
-          url: '/v2/replay?toRevisionGlobal=1',
-          responseType: 'stream'
-        });
-
-        assert.that(status).is.equalTo(200);
-        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
-
-        await new Promise(async (resolve, reject): Promise<void> => {
-          let counter = 0;
-
-          data.on('error', reject);
-          data.on('end', (): void => {
-            if (counter === 2) {
-              resolve();
-            } else {
-              reject(new Error('Did not receive the expected amount of messages.'));
-            }
-          });
-
-          data.pipe(asJsonStream([
-            (heartbeat): void => {
-              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
-              counter += 1;
-            },
-            (): void => {
-              counter += 1;
-            },
-            (): void => {
-              reject(new Error('Should not have received more than one event.'));
-            }
-          ]));
-        });
-      });
-
-      test('returns 400 if the parameter fromRevisionGlobal is less than 1.', async (): Promise<void> => {
+      test('returns 400 if the parameter fromTimestamp is less than 0.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
-          url: '/v2/replay?fromRevisionGlobal=0',
+          url: '/v2/replay?fromTimestamp=-1',
           validateStatus: (): boolean => true
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Value 0 is less than minimum 1 (at value.fromRevisionGlobal).`);
+        assert.that(data).is.equalTo(`Value -1 is less than minimum 0 (at value.fromTimestamp).`);
       });
 
-      test('returns 400 if the parameter fromRevisionGlobal is not a number.', async (): Promise<void> => {
+      test('returns 400 if the parameter fromTimestamp is not a number.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
-          url: '/v2/replay?fromRevisionGlobal=foo',
+          url: '/v2/replay?fromTimestamp=foo',
           validateStatus: (): boolean => true
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Invalid type: string should be number (at value.fromRevisionGlobal).`);
-      });
-
-      test('returns 400 if the parameter toRevisionGlobal is less than 1.', async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'get',
-          url: '/v2/replay?toRevisionGlobal=0',
-          validateStatus: (): boolean => true
-        });
-
-        assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Value 0 is less than minimum 1 (at value.toRevisionGlobal).`);
-      });
-
-      test('returns 400 if the parameter toRevisionGlobal is not a number.', async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'get',
-          url: '/v2/replay?toRevisionGlobal=foo',
-          validateStatus: (): boolean => true
-        });
-
-        assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Invalid type: string should be number (at value.toRevisionGlobal).`);
-      });
-
-      test(`returns 400 if the parameter 'fromRevisionGlobal' is greater than 'toRevisionGlobal'.`, async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'get',
-          url: '/v2/replay?fromRevisionGlobal=4&toRevisionGlobal=2',
-          validateStatus: (): boolean => true
-        });
-
-        assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Query parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+        assert.that(data).is.equalTo(`Invalid type: string should be number (at value.fromTimestamp).`);
       });
     });
 
@@ -364,7 +257,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -409,7 +302,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -421,7 +314,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -482,7 +375,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -494,7 +387,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -506,7 +399,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 3, global: 3 },
+            revision: 3,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -563,7 +456,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: null },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -575,7 +468,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: null },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -701,7 +594,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -733,7 +626,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -745,7 +638,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -813,7 +706,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -860,7 +753,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId,
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -878,7 +771,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId,
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -896,7 +789,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -969,7 +862,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1003,7 +896,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId,
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1021,7 +914,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId,
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1039,7 +932,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1073,7 +966,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1120,7 +1013,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId,
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1138,7 +1031,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId,
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1156,7 +1049,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });

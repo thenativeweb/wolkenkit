@@ -64,7 +64,8 @@ const handleCommand = async function ({
 
     await commandHandler.handle(currentAggregateState.state, clonedCommand, services);
 
-    domainEvents = await repository.saveCurrentAggregateState({ currentAggregateState });
+    await repository.saveCurrentAggregateState({ currentAggregateState });
+    domainEvents = currentAggregateState.unsavedDomainEvents;
   } catch (ex) {
     switch (ex.code) {
       case 'ECOMMANDNOTAUTHORIZED':

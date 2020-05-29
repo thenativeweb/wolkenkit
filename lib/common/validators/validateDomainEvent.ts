@@ -20,13 +20,6 @@ const validateDomainEvent = function <TDomainEventData extends DomainEventData> 
     throw new errors.DomainEventMalformed(ex.message);
   }
 
-  if (
-    domainEvent.metadata.revision.global !== null &&
-    domainEvent.metadata.revision.aggregate > domainEvent.metadata.revision.global
-  ) {
-    throw new errors.DomainEventMalformed('Aggregate revision must be less than global revision.');
-  }
-
   const contextDefinitions = applicationDefinition.domain;
 
   const {

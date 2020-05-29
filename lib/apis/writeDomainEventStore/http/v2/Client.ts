@@ -21,7 +21,7 @@ class Client extends HttpClient {
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
-  }): Promise<DomainEvent<TDomainEventData>[]> {
+  }): Promise<void> {
     const { status, data } = await axios({
       method: 'post',
       url: `${this.url}/store-domain-events`,
@@ -32,7 +32,7 @@ class Client extends HttpClient {
     });
 
     if (status === 200) {
-      return data.map((domainEvent: any): DomainEvent<DomainEventData> => new DomainEvent(domainEvent));
+      return;
     }
 
     switch (data.code) {
@@ -50,7 +50,6 @@ class Client extends HttpClient {
       }
       default: {
         logger.error('An unknown error occured.', { ex: data, status });
-
         throw new errors.UnknownError(data.message);
       }
     }
@@ -81,13 +80,10 @@ class Client extends HttpClient {
       }
       default: {
         logger.error('An unknown error occured.', { ex: data, status });
-
         throw new errors.UnknownError(data.message);
       }
     }
   }
 }
 
-export {
-  Client
-};
+export { Client };

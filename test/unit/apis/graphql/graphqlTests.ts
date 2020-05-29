@@ -180,7 +180,7 @@ suite('graphql', function (): void {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         }),
@@ -254,7 +254,7 @@ suite('graphql', function (): void {
           name: 'authenticated',
           data: {},
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         }),
@@ -275,7 +275,7 @@ suite('graphql', function (): void {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         }),
@@ -342,7 +342,7 @@ suite('graphql', function (): void {
           name: 'authenticated',
           data: {},
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         }),
@@ -439,7 +439,7 @@ suite('graphql', function (): void {
           name: 'authenticateFailed',
           data: { reason: 'some reason' },
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
           }
         }),
@@ -460,7 +460,7 @@ suite('graphql', function (): void {
           name: 'authenticateRejected',
           data: { reason: 'some reason' },
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
           }
         }),
@@ -541,7 +541,7 @@ suite('graphql', function (): void {
           name: 'authenticateFailed',
           data: { reason: 'some reason' },
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
           }
         }),
@@ -562,7 +562,7 @@ suite('graphql', function (): void {
           name: 'authenticateRejected',
           data: { reason: 'some reason' },
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
           }
         }),

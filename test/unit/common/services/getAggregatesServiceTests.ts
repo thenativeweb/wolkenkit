@@ -56,7 +56,7 @@ suite('getAggregatesService', (): void => {
         data: {},
         metadata: {
           initiator: { user },
-          revision: { aggregate: 1 }
+          revision: 1
         }
       });
 

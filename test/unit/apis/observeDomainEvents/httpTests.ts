@@ -120,7 +120,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -168,7 +168,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'succeeded',
             data: {},
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -181,7 +181,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -235,7 +235,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'succeeded',
             data: {},
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -248,7 +248,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -304,7 +304,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'succeeded',
             data: {},
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -317,7 +317,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -376,7 +376,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'authenticateFailed',
             data: { reason: 'test' },
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
             }
           }),
@@ -389,7 +389,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'authenticateRejected',
             data: { reason: 'test' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
             }
           }),
@@ -455,7 +455,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'authenticateFailed',
             data: { reason: 'test' },
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
             }
           }),
@@ -468,7 +468,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'authenticateRejected',
             data: { reason: 'test' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
             }
           }),
@@ -525,7 +525,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -573,7 +573,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -634,7 +634,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'authorizationDenied',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -647,7 +647,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
-                revision: { aggregate: 2 },
+                revision: 2,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -716,7 +716,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'authorizationFailed',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -729,7 +729,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
-                revision: { aggregate: 2 },
+                revision: 2,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -796,7 +796,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'authorizationWithMutation',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -866,7 +866,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'filterPassed',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -932,7 +932,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'filterDenied',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -945,7 +945,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
-                revision: { aggregate: 2 },
+                revision: 2,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1012,7 +1012,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'filterFailed',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1025,7 +1025,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
-                revision: { aggregate: 2 },
+                revision: 2,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1092,7 +1092,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'filterWithMutation',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1162,7 +1162,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'mapApplied',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1229,7 +1229,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'mapToUndefined',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1242,7 +1242,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
-                revision: { aggregate: 2 },
+                revision: 2,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1309,7 +1309,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'mapFailed',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1322,7 +1322,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
-                revision: { aggregate: 2 },
+                revision: 2,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1389,7 +1389,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'mapWithMutation',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),

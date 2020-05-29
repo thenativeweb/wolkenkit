@@ -22,10 +22,7 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
     causationId?: string;
     correlationId?: string;
     timestamp?: number;
-    revision: {
-      aggregate: number;
-      global?: number | null;
-    };
+    revision: number;
     initiator: Initiator;
     tags?: string[];
   };
@@ -40,10 +37,7 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
       causationId: metadata.causationId ?? uuid(),
       correlationId: metadata.correlationId ?? uuid(),
       timestamp: metadata.timestamp ?? Date.now(),
-      revision: {
-        aggregate: metadata.revision.aggregate,
-        global: metadata.revision.global ?? null
-      },
+      revision: metadata.revision,
       initiator: metadata.initiator,
       tags: metadata.tags ?? []
     }

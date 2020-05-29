@@ -25,7 +25,7 @@ suite('validateDomainEventWithState', (): void => {
       },
       metadata: {
         initiator: { user },
-        revision: { aggregate: 1 }
+        revision: 1
       }
     }),
     state: {
@@ -59,28 +59,6 @@ suite('validateDomainEventWithState', (): void => {
       (ex): boolean =>
         (ex as CustomError).code === 'EDOMAINEVENTMALFORMED' &&
         ex.message === 'String is too short (0 chars), minimum 1 (at domainEvent.name).'
-    );
-  });
-
-  test('throws an error if the aggregate revision is greater than the global revision.', async (): Promise<void> => {
-    assert.that((): void => {
-      validateDomainEventWithState({
-        domainEvent: new DomainEventWithState({
-          ...domainEvent,
-          metadata: {
-            ...domainEvent.metadata,
-            revision: {
-              aggregate: 5,
-              global: 2
-            }
-          }
-        }),
-        applicationDefinition
-      });
-    }).is.throwing(
-      (ex): boolean =>
-        (ex as CustomError).code === 'EDOMAINEVENTMALFORMED' &&
-        ex.message === 'Aggregate revision must be less than global revision.'
     );
   });
 
