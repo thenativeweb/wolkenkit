@@ -57,7 +57,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -68,7 +68,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'joined',
         data: { participant: 'Jane Doe' },
         metadata: {
-          revision: { aggregate: 2 },
+          revision: 2,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -81,7 +81,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
       assert.that(domainEvent).is.not.undefined();
       assert.that(domainEvent!.name).is.equalTo('joined');
-      assert.that(domainEvent!.metadata.revision.aggregate).is.equalTo(2);
+      assert.that(domainEvent!.metadata.revision).is.equalTo(2);
     });
 
     test('correctly handles null, undefined and empty arrays.', async (): Promise<void> => {
@@ -100,7 +100,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
           participants: []
         },
         metadata: {
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -127,7 +127,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
           tags: [ 'gdpr' ]
         }
@@ -173,7 +173,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         metadata: {
           causationId: uuid(),
           correlationId: uuid(),
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -202,7 +202,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         metadata: {
           causationId,
           correlationId: uuid(),
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -220,7 +220,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         metadata: {
           causationId,
           correlationId: uuid(),
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -238,7 +238,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         metadata: {
           causationId: uuid(),
           correlationId: uuid(),
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -283,7 +283,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         metadata: {
           causationId: uuid(),
           correlationId: uuid(),
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -312,7 +312,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         metadata: {
           causationId,
           correlationId: uuid(),
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -330,7 +330,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         metadata: {
           causationId,
           correlationId: uuid(),
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -348,7 +348,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         metadata: {
           causationId: uuid(),
           correlationId: uuid(),
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -391,7 +391,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         metadata: {
           causationId: uuid(),
           correlationId: uuid(),
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -420,7 +420,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         metadata: {
           causationId: uuid(),
           correlationId,
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -438,7 +438,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         metadata: {
           causationId: uuid(),
           correlationId,
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -456,7 +456,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         metadata: {
           causationId: uuid(),
           correlationId: uuid(),
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -510,7 +510,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -521,7 +521,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'joined',
         data: { participant: 'Jane Doe' },
         metadata: {
-          revision: { aggregate: 2 },
+          revision: 2,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -550,7 +550,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -561,7 +561,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'joined',
         data: { participant: 'Jane Doe' },
         metadata: {
-          revision: { aggregate: 2 },
+          revision: 2,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -592,7 +592,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -603,7 +603,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'joined',
         data: { participant: 'Jane Doe' },
         metadata: {
-          revision: { aggregate: 2 },
+          revision: 2,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -634,7 +634,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
           tags: [ 'gdpr' ]
         }
@@ -712,7 +712,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -723,7 +723,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'joined',
         data: { participant: 'Jane Doe' },
         metadata: {
-          revision: { aggregate: 2 },
+          revision: 2,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -754,7 +754,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -766,45 +766,6 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       }).is.throwingAsync(
         (ex): boolean => (ex as CustomError).code === 'EREVISIONALREADYEXISTS' && ex.message === 'Aggregate id and revision already exist.'
       );
-    });
-
-    test('returns domain events with updated global revisions.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        id: uuid(),
-        name: 'peerGroup'
-      };
-
-      const domainEventStarted = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
-        aggregateIdentifier,
-        name: 'started',
-        data: { initiator: 'Jane Doe', destination: 'Riva' },
-        metadata: {
-          revision: { aggregate: 1 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        }
-      });
-
-      const domainEventJoined = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
-        aggregateIdentifier,
-        name: 'joined',
-        data: { participant: 'Jane Doe' },
-        metadata: {
-          revision: { aggregate: 2 },
-          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-        }
-      });
-
-      const storedDomainEvents = await domainEventStore.storeDomainEvents<DomainEventData>({
-        domainEvents: [ domainEventStarted, domainEventJoined ]
-      });
-
-      assert.that(storedDomainEvents.length).is.equalTo(2);
-      assert.that(storedDomainEvents[0].name).is.equalTo('started');
-      assert.that(storedDomainEvents[0].metadata.revision.global).is.equalTo(1);
-      assert.that(storedDomainEvents[1].name).is.equalTo('joined');
-      assert.that(storedDomainEvents[1].metadata.revision.global).is.equalTo(2);
     });
 
     test('correctly handles undefined and null.', async (): Promise<void> => {
@@ -819,7 +780,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'started',
         data: { initiator: null, destination: undefined },
         metadata: {
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -845,7 +806,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
         metadata: {
-          revision: { aggregate: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
           tags: [ 'gdpr' ]
         }
@@ -877,7 +838,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
           name: 'started',
           data: { initiator: 'Jane Doe', destination: 'Riva' },
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -903,7 +864,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
           name: 'started',
           data: { initiator: 'Jane Doe', destination: 'Riva' },
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -914,7 +875,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
           name: 'joined',
           data: { participant: 'Jane Doe' },
           metadata: {
-            revision: { aggregate: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -943,7 +904,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
           name: 'started',
           data: { initiator: 'Jane Doe', destination: 'Riva' },
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -954,7 +915,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
           name: 'joined',
           data: { participant: 'Jane Doe' },
           metadata: {
-            revision: { aggregate: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -980,7 +941,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
           name: 'started',
           data: { initiator: 'Jane Doe', destination: 'Riva' },
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -994,7 +955,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
           name: 'started',
           data: { initiator: 'Jane Doe', destination: 'Riva' },
           metadata: {
-            revision: { aggregate: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1013,51 +974,6 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
         assert.that(aggregateDomainEvents2.length).is.equalTo(1);
         assert.that(aggregateDomainEvents2[0].metadata.revision.global).is.equalTo(2);
-      });
-
-      test('returns the stored domain events enriched by their global revisions.', async (): Promise<void> => {
-        const aggregateIdentifier = {
-          id: uuid(),
-          name: 'peerGroup'
-        };
-
-        const domainEvent = buildDomainEvent({
-          contextIdentifier: { name: 'planning' },
-          aggregateIdentifier,
-          name: 'started',
-          data: { initiator: 'Jane Doe', destination: 'Riva' },
-          metadata: {
-            revision: { aggregate: 1 },
-            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-          }
-        });
-
-        const storedDomainEvents = await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
-
-        assert.that(storedDomainEvents.length).is.equalTo(1);
-        assert.that(storedDomainEvents[0].metadata.revision.global).is.equalTo(1);
-      });
-
-      test('does not change the domain events that were given as arguments.', async (): Promise<void> => {
-        const aggregateIdentifier = {
-          id: uuid(),
-          name: 'peerGroup'
-        };
-
-        const domainEvent = buildDomainEvent({
-          contextIdentifier: { name: 'planning' },
-          aggregateIdentifier,
-          name: 'started',
-          data: { initiator: 'Jane Doe', destination: 'Riva' },
-          metadata: {
-            revision: { aggregate: 1 },
-            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
-          }
-        });
-
-        await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
-
-        assert.that(domainEvent.metadata.revision.global).is.null();
       });
     });
   });
@@ -1318,7 +1234,8 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
           name: 'started',
           data: { initiator: 'Jane Doe', destination: 'Riva' },
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
+            timestamp: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
             tags: [ 'gdpr' ]
           }
@@ -1330,7 +1247,8 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
           name: 'joined',
           data: { participant: 'Jane Doe' },
           metadata: {
-            revision: { aggregate: 2 },
+            revision: 2,
+            timestamp: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
             tags: [ 'gdpr' ]
           }
@@ -1342,7 +1260,8 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
           name: 'joined',
           data: { participant: 'Jennifer Doe' },
           metadata: {
-            revision: { aggregate: 3 },
+            revision: 3,
+            timestamp: 3,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
             tags: [ 'gdpr' ]
           }
@@ -1355,54 +1274,31 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
       test('returns all domain events if no options are given.', async (): Promise<void> => {
         const replayStream = await domainEventStore.getReplay({});
-        const replayEvents = await toArray(replayStream);
+        const replayEvents = await toArray(replayStream) as DomainEvent<DomainEventData>[];
 
         assert.that(replayEvents.length).is.equalTo(3);
         assert.that(replayEvents[0].name).is.equalTo('started');
-        assert.that(replayEvents[0].metadata.revision.global).is.equalTo(1);
+        assert.that(replayEvents[0].metadata.revision).is.equalTo(1);
         assert.that(replayEvents[1].name).is.equalTo('joined');
-        assert.that(replayEvents[1].metadata.revision.global).is.equalTo(2);
+        assert.that(replayEvents[1].metadata.revision).is.equalTo(2);
         assert.that(replayEvents[2].name).is.equalTo('joined');
-        assert.that(replayEvents[2].metadata.revision.global).is.equalTo(3);
+        assert.that(replayEvents[2].metadata.revision).is.equalTo(3);
       });
 
-      test('returns all domain events from the given global revision.', async (): Promise<void> => {
-        const replayStream = await domainEventStore.getReplay({ fromRevisionGlobal: 2 });
-        const replayEvents = await toArray(replayStream);
+      test('returns all domain events from the given timestamp.', async (): Promise<void> => {
+        const replayStream = await domainEventStore.getReplay({ fromTimestamp: 2 });
+        const replayEvents = await toArray(replayStream) as DomainEvent<DomainEventData>[];
 
         assert.that(replayEvents.length).is.equalTo(2);
         assert.that(replayEvents[0].name).is.equalTo('joined');
-        assert.that(replayEvents[0].metadata.revision.global).is.equalTo(2);
+        assert.that(replayEvents[0].metadata.revision).is.equalTo(2);
         assert.that(replayEvents[1].name).is.equalTo('joined');
-        assert.that(replayEvents[1].metadata.revision.global).is.equalTo(3);
-      });
-
-      test('returns all domain events to the given global revision.', async (): Promise<void> => {
-        const replayStream = await domainEventStore.getReplay({ toRevisionGlobal: 2 });
-        const replayEvents = await toArray(replayStream);
-
-        assert.that(replayEvents.length).is.equalTo(2);
-        assert.that(replayEvents[0].name).is.equalTo('started');
-        assert.that(replayEvents[0].metadata.revision.global).is.equalTo(1);
-        assert.that(replayEvents[1].name).is.equalTo('joined');
-        assert.that(replayEvents[1].metadata.revision.global).is.equalTo(2);
-      });
-
-      test('returns all domain events between the given global revisions.', async (): Promise<void> => {
-        const replayStream = await domainEventStore.getReplay({
-          fromRevisionGlobal: 2,
-          toRevisionGlobal: 2
-        });
-        const replayEvents = await toArray(replayStream);
-
-        assert.that(replayEvents.length).is.equalTo(1);
-        assert.that(replayEvents[0].name).is.equalTo('joined');
-        assert.that(replayEvents[0].metadata.revision.global).is.equalTo(2);
+        assert.that(replayEvents[1].metadata.revision).is.equalTo(3);
       });
 
       test('supports tags.', async (): Promise<void> => {
         const replayStream = await domainEventStore.getReplay({});
-        const replayEvents = await toArray(replayStream);
+        const replayEvents = await toArray(replayStream) as DomainEvent<DomainEventData>[];
 
         assert.that(replayEvents[0].metadata.tags).is.equalTo([ 'gdpr' ]);
         assert.that(replayEvents[1].metadata.tags).is.equalTo([ 'gdpr' ]);
@@ -1410,27 +1306,11 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       });
     });
 
-    test('throws an error if the parameter fromRevisionGlobal is less than 1.', async (): Promise<void> => {
+    test('throws an error if the parameter fromTimestamp is less than 0.', async (): Promise<void> => {
       await assert.that(
-        async (): Promise<any> => await domainEventStore.getReplay({ fromRevisionGlobal: 0 })
+        async (): Promise<any> => await domainEventStore.getReplay({ fromTimestamp: -1 })
       ).is.throwingAsync(
-        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'fromRevisionGlobal' must be at least 1.`
-      );
-    });
-
-    test('throws an error if the parameter toRevisionGlobal is less than 1.', async (): Promise<void> => {
-      await assert.that(
-        async (): Promise<any> => await domainEventStore.getReplay({ toRevisionGlobal: 0 })
-      ).is.throwingAsync(
-        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'toRevisionGlobal' must be at least 1.`
-      );
-    });
-
-    test(`throws an error if the parameter 'fromRevisionGlobal' is greater than 'toRevisionGlobal'.`, async (): Promise<void> => {
-      await assert.that(
-        async (): Promise<any> => await domainEventStore.getReplay({ fromRevisionGlobal: 5, toRevisionGlobal: 3 })
-      ).is.throwingAsync(
-        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`
+        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'fromTimestamp' must be at least 0.`
       );
     });
   });

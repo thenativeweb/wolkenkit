@@ -114,7 +114,7 @@ suite('handleDomainEvent/http', (): void => {
             id: uuid(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 1, global: 1 }
+              revision: 1
             }
           }),
           state: { previous: {}, next: {}}
@@ -149,7 +149,7 @@ suite('handleDomainEvent/http', (): void => {
             id: uuid(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 1, global: 1 }
+              revision: 1
             }
           }),
           state: { previous: {}, next: {}}
@@ -184,7 +184,7 @@ suite('handleDomainEvent/http', (): void => {
             id: uuid(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 1, global: 1 }
+              revision: 1
             }
           }),
           state: { previous: {}, next: {}}
@@ -219,7 +219,7 @@ suite('handleDomainEvent/http', (): void => {
             id: uuid(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 1, global: 1 }
+              revision: 1
             }
           }),
           state: { previous: {}, next: {}}
@@ -254,7 +254,7 @@ suite('handleDomainEvent/http', (): void => {
             id: uuid(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 1, global: 1 }
+              revision: 1
             }
           }),
           state: { previous: {}, next: {}}
@@ -281,7 +281,7 @@ suite('handleDomainEvent/http', (): void => {
             id: uuid(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 1, global: 1 }
+              revision: 1
             }
           }),
           state: { previous: {}, next: {}}
@@ -322,7 +322,7 @@ suite('handleDomainEvent/http', (): void => {
             id: uuid(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 1, global: 1 }
+              revision: 1
             }
           }),
           state: { previous: {}, next: {}}
@@ -357,7 +357,7 @@ suite('handleDomainEvent/http', (): void => {
             id: uuid(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 1, global: 1 }
+              revision: 1
             }
           }),
           state: { previous: {}, next: {}}

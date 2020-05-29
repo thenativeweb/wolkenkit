@@ -3,7 +3,6 @@ import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
-import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { Snapshot } from '../Snapshot';
@@ -133,23 +132,24 @@ class MySqlDomainEventStore implements DomainEventStore {
       CREATE TABLE IF NOT EXISTS \`${tableNames.domainEvents}\` (
         revisionGlobal SERIAL,
         aggregateId BINARY(16) NOT NULL,
-        revisionAggregate INT NOT NULL,
+        revision INT NOT NULL,
         causationId BINARY(16) NOT NULL,
         correlationId BINARY(16) NOT NULL,
+        timestamp BIGINT NOT NULL,
         domainEvent JSON NOT NULL,
 
-        PRIMARY KEY (revisionGlobal),
-        UNIQUE (aggregateId, revisionAggregate),
+        PRIMARY KEY (aggregateId, revision),
         INDEX (causationId),
-        INDEX (correlationId)
+        INDEX (correlationId),
+        INDEX (timestamp)
       ) ENGINE=InnoDB;
 
       CREATE TABLE IF NOT EXISTS \`${tableNames.snapshots}\` (
         aggregateId BINARY(16) NOT NULL,
-        revisionAggregate INT NOT NULL,
+        revision INT NOT NULL,
         state JSON NOT NULL,
 
-        PRIMARY KEY (aggregateId, revisionAggregate)
+        PRIMARY KEY (aggregateId, revision)
       ) ENGINE=InnoDB;
     `;
 
@@ -174,10 +174,10 @@ class MySqlDomainEventStore implements DomainEventStore {
     try {
       const [ rows ] = await runQuery({
         connection,
-        query: `SELECT domainEvent, revisionGlobal
+        query: `SELECT domainEvent
           FROM \`${this.tableNames.domainEvents}\`
           WHERE aggregateId = UuidToBin(?)
-          ORDER BY revisionAggregate DESC
+          ORDER BY revision DESC
           LIMIT 1`,
         parameters: [ aggregateIdentifier.id ]
       });
@@ -186,11 +186,7 @@ class MySqlDomainEventStore implements DomainEventStore {
         return;
       }
 
-      let domainEvent = new DomainEvent<TDomainEventData>(JSON.parse(rows[0].domainEvent));
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(rows[0].revisionGlobal)
-      });
+      const domainEvent = new DomainEvent<TDomainEventData>(JSON.parse(rows[0].domainEvent));
 
       return domainEvent;
     } finally {
@@ -204,10 +200,9 @@ class MySqlDomainEventStore implements DomainEventStore {
     const connection = await this.getDatabase();
 
     const domainEventStream = connection.query(
-      `SELECT domainEvent, revisionGlobal
+      `SELECT domainEvent
           FROM \`${this.tableNames.domainEvents}\`
-          WHERE causationId = UuidToBin(?)
-          ORDER BY revisionGlobal ASC`,
+          WHERE causationId = UuidToBin(?)`,
       [ causationId ]
     );
     const passThrough = new PassThrough({ objectMode: true });
@@ -228,11 +223,7 @@ class MySqlDomainEventStore implements DomainEventStore {
       passThrough.end();
     };
     const onResult = function (row: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(row.revisionGlobal)
-      });
+      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
 
       passThrough.write(domainEvent);
     };
@@ -252,13 +243,13 @@ class MySqlDomainEventStore implements DomainEventStore {
     try {
       const [ rows ] = await runQuery({
         connection,
-        query: `SELECT COUNT(*) as count
+        query: `SELECT 1
           FROM \`${this.tableNames.domainEvents}\`
           WHERE causationId = UuidToBin(?)`,
         parameters: [ causationId ]
       });
 
-      return rows[0].count !== 0;
+      return rows.length !== 0;
     } finally {
       MySqlDomainEventStore.releaseConnection({ connection });
     }
@@ -270,10 +261,9 @@ class MySqlDomainEventStore implements DomainEventStore {
     const connection = await this.getDatabase();
 
     const domainEventStream = connection.query(
-      `SELECT domainEvent, revisionGlobal
+      `SELECT domainEvent
           FROM \`${this.tableNames.domainEvents}\`
-          WHERE correlationId = UuidToBin(?)
-          ORDER BY revisionGlobal ASC`,
+          WHERE correlationId = UuidToBin(?)`,
       [ correlationId ]
     );
     const passThrough = new PassThrough({ objectMode: true });
@@ -294,11 +284,7 @@ class MySqlDomainEventStore implements DomainEventStore {
       passThrough.end();
     };
     const onResult = function (row: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(row.revisionGlobal)
-      });
+      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
 
       passThrough.write(domainEvent);
     };
@@ -311,32 +297,23 @@ class MySqlDomainEventStore implements DomainEventStore {
   }
 
   public async getReplay ({
-    fromRevisionGlobal = 1,
-    toRevisionGlobal = (2 ** 31) - 1
+    fromTimestamp = 0
   }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
+    fromTimestamp?: number;
   } = {}): Promise<Readable> {
-    if (fromRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
-    }
-    if (fromRevisionGlobal > toRevisionGlobal) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+    if (fromTimestamp < 0) {
+      throw new errors.ParameterInvalid(`Parameter 'fromTimestamp' must be at least 0.`);
     }
 
     const connection = await this.getDatabase();
 
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = connection.query(`
-      SELECT domainEvent, revisionGlobal
+      SELECT domainEvent
         FROM \`${this.tableNames.domainEvents}\`
-        WHERE revisionGlobal >= ?
-          AND revisionGlobal <= ?
-        ORDER BY revisionGlobal
-      `, [ fromRevisionGlobal, toRevisionGlobal ]);
+        WHERE timestamp >= ?
+        ORDER BY aggregateId ASC, revision ASC
+      `, [ fromTimestamp ]);
 
     const unsubscribe = function (): void {
       // Listeners should be removed here, but the mysql typings don't support
@@ -354,11 +331,7 @@ class MySqlDomainEventStore implements DomainEventStore {
       passThrough.end();
     };
     const onResult = function (row: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(row.revisionGlobal)
-      });
+      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
 
       passThrough.write(domainEvent);
     };
@@ -393,12 +366,12 @@ class MySqlDomainEventStore implements DomainEventStore {
 
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = connection.query(`
-      SELECT domainEvent, revisionGlobal
+      SELECT domainEvent
         FROM \`${this.tableNames.domainEvents}\`
         WHERE aggregateId = UuidToBin(?)
-          AND revisionAggregate >= ?
-          AND revisionAggregate <= ?
-        ORDER BY revisionAggregate`,
+          AND revision >= ?
+          AND revision <= ?
+        ORDER BY revision`,
     [ aggregateId, fromRevision, toRevision ]);
 
     const unsubscribe = function (): void {
@@ -417,11 +390,7 @@ class MySqlDomainEventStore implements DomainEventStore {
       passThrough.end();
     };
     const onResult = function (row: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(row.revisionGlobal)
-      });
+      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
 
       passThrough.write(domainEvent);
     };
@@ -441,10 +410,10 @@ class MySqlDomainEventStore implements DomainEventStore {
     try {
       const [ rows ] = await runQuery({
         connection,
-        query: `SELECT state, revisionAggregate
+        query: `SELECT state, revision
           FROM \`${this.tableNames.snapshots}\`
           WHERE aggregateId = UuidToBin(?)
-          ORDER BY revisionAggregate DESC
+          ORDER BY revision DESC
           LIMIT 1`,
         parameters: [ aggregateIdentifier.id ]
       });
@@ -455,7 +424,7 @@ class MySqlDomainEventStore implements DomainEventStore {
 
       return {
         aggregateIdentifier,
-        revision: rows[0].revisionAggregate,
+        revision: rows[0].revision,
         state: JSON.parse(rows[0].state)
       };
     } finally {
@@ -465,7 +434,7 @@ class MySqlDomainEventStore implements DomainEventStore {
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
-  }): Promise<DomainEvent<TDomainEventData>[]> {
+  }): Promise<void> {
     if (domainEvents.length === 0) {
       throw new errors.ParameterInvalid('Domain events are missing.');
     }
@@ -476,46 +445,26 @@ class MySqlDomainEventStore implements DomainEventStore {
           placeholders = [];
 
     for (const domainEvent of domainEvents) {
-      placeholders.push('(UuidToBin(?), ?, UuidToBin(?), UuidToBin(?), ?)');
+      placeholders.push('(UuidToBin(?), ?, UuidToBin(?), UuidToBin(?), ?, ?)');
       parameters.push(
         domainEvent.aggregateIdentifier.id,
-        domainEvent.metadata.revision.aggregate,
+        domainEvent.metadata.revision,
         domainEvent.metadata.causationId,
         domainEvent.metadata.correlationId,
+        domainEvent.metadata.timestamp,
         JSON.stringify(domainEvent)
       );
     }
 
     const query = `
       INSERT INTO \`${this.tableNames.domainEvents}\`
-        (aggregateId, revisionAggregate, causationId, correlationId, domainEvent)
+        (aggregateId, revision, causationId, correlationId, timestamp, domainEvent)
       VALUES
         ${placeholders.join(',')};
     `;
 
-    const savedDomainEvents = [];
-
     try {
       await runQuery({ connection, query, parameters });
-
-      const [ rows ] = await runQuery({
-        connection,
-        query: 'SELECT LAST_INSERT_ID() AS revisionGlobal;'
-      });
-
-      // We only get the ID of the first inserted row, but since it's all in a
-      // single INSERT statement, the database guarantees that the global
-      // revisions are sequential, so we easily calculate them by ourselves.
-      for (const [ index, domainEvent ] of domainEvents.entries()) {
-        const savedDomainEvent = new DomainEvent<TDomainEventData>({
-          ...domainEvent.withRevisionGlobal({
-            revisionGlobal: Number(rows[0].revisionGlobal) + index
-          }),
-          data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
-        });
-
-        savedDomainEvents.push(savedDomainEvent);
-      }
     } catch (ex) {
       if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'aggregateId\'')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
@@ -525,8 +474,6 @@ class MySqlDomainEventStore implements DomainEventStore {
     } finally {
       MySqlDomainEventStore.releaseConnection({ connection });
     }
-
-    return savedDomainEvents;
   }
 
   public async storeSnapshot ({ snapshot }: {
@@ -538,7 +485,7 @@ class MySqlDomainEventStore implements DomainEventStore {
       await runQuery({
         connection,
         query: `INSERT IGNORE INTO \`${this.tableNames.snapshots}\`
-          (aggregateId, revisionAggregate, state)
+          (aggregateId, revision, state)
           VALUES (UuidToBin(?), ?, ?);`,
         parameters: [
           snapshot.aggregateIdentifier.id,

@@ -175,7 +175,7 @@ suite('main', function (): void {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         }),

@@ -130,8 +130,7 @@ suite('getAggregateService', (): void => {
       assert.that(generatedDomainEvent.metadata.causationId).is.equalTo(command.id);
       assert.that(generatedDomainEvent.metadata.correlationId).is.equalTo(command.metadata.correlationId);
       assert.that(generatedDomainEvent.metadata.initiator).is.equalTo(command.metadata.initiator);
-      assert.that(generatedDomainEvent.metadata.revision.aggregate).is.equalTo(1);
-      assert.that(generatedDomainEvent.metadata.revision.global).is.null();
+      assert.that(generatedDomainEvent.metadata.revision).is.equalTo(1);
       assert.that(generatedDomainEvent.data).is.equalTo(domainEventData);
       assert.that(generatedDomainEvent.state.previous).is.equalTo(previousAggregateState);
       assert.that(generatedDomainEvent.state.next).is.equalTo(nextState);

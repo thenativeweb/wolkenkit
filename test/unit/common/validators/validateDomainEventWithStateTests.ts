@@ -25,7 +25,7 @@ suite('validateDomainEventWithState', (): void => {
       },
       metadata: {
         initiator: { user },
-        revision: { aggregate: 1 }
+        revision: 1
       }
     }),
     state: {
@@ -69,10 +69,7 @@ suite('validateDomainEventWithState', (): void => {
           ...domainEvent,
           metadata: {
             ...domainEvent.metadata,
-            revision: {
-              aggregate: 5,
-              global: 2
-            }
+            revision: 5
           }
         }),
         applicationDefinition

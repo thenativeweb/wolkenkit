@@ -111,7 +111,7 @@ suite('domain event', function (): void {
         name: 'nonExistent',
         data: {},
         metadata: {
-          revision: { aggregate: 1, global: null },
+          revision: 1,
           initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
         }
       });
@@ -150,7 +150,7 @@ suite('domain event', function (): void {
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
-            revision: { aggregate: 1, global: null },
+            revision: 1,
             initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
           }
         }),

@@ -42,26 +42,6 @@ class DomainEventWithState<TDomainEventData extends DomainEventData, TState> ext
     this.state = state;
   }
 
-  public withRevisionGlobal ({ revisionGlobal }: {
-    revisionGlobal: number;
-  }): DomainEventWithState<TDomainEventData, TState> {
-    return new DomainEventWithState({
-      contextIdentifier: this.contextIdentifier,
-      aggregateIdentifier: this.aggregateIdentifier,
-      name: this.name,
-      data: this.data,
-      id: this.id,
-      metadata: {
-        ...this.metadata,
-        revision: {
-          ...this.metadata.revision,
-          global: revisionGlobal
-        }
-      },
-      state: this.state
-    });
-  }
-
   public withoutState (): DomainEvent<TDomainEventData> {
     return new DomainEvent(this);
   }

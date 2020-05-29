@@ -42,7 +42,7 @@ suite('writeDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -54,7 +54,7 @@ suite('writeDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });

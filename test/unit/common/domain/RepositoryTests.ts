@@ -47,7 +47,7 @@ suite('Repository', (): void => {
         data: {},
         metadata: {
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-          revision: { aggregate: 1 }
+          revision: 1
         }
       });
 
@@ -58,7 +58,7 @@ suite('Repository', (): void => {
         data: { strategy: 'succeed' },
         metadata: {
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-          revision: { aggregate: 2 }
+          revision: 2
         }
       });
 
@@ -94,7 +94,7 @@ suite('Repository', (): void => {
           data: {},
           metadata: {
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-            revision: { aggregate: 1 }
+            revision: 1
           }
         }),
         buildDomainEvent({
@@ -104,7 +104,7 @@ suite('Repository', (): void => {
           data: {},
           metadata: {
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-            revision: { aggregate: 2 }
+            revision: 2
           }
         }),
         buildDomainEvent({
@@ -114,7 +114,7 @@ suite('Repository', (): void => {
           data: {},
           metadata: {
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-            revision: { aggregate: 3 }
+            revision: 3
           }
         })
       ];
@@ -194,7 +194,7 @@ suite('Repository', (): void => {
             },
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 1 }
+              revision: 1
             }
           }),
           state: {
@@ -239,7 +239,7 @@ suite('Repository', (): void => {
             data: {},
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 1 }
+              revision: 1
             }
           }),
           state: {
@@ -263,7 +263,7 @@ suite('Repository', (): void => {
             },
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 2 }
+              revision: 2
             }
           }),
           state: {
@@ -292,81 +292,6 @@ suite('Repository', (): void => {
       assert.that(domainEvents[1].data).is.equalTo({
         strategy: 'succeed'
       });
-    });
-
-    test('returns an empty list if there are no unsaved domain events.', async (): Promise<void> => {
-      const currentAggregateState = new CurrentAggregateState({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
-        initialState: applicationDefinition.domain.sampleContext.sampleAggregate.getInitialState()
-      });
-
-      const savedDomainEvents =
-        await repository.saveCurrentAggregateState({ currentAggregateState });
-
-      assert.that(savedDomainEvents.length).is.equalTo(0);
-    });
-
-    test('returns the saved domain events.', async (): Promise<void> => {
-      const currentAggregateState = new CurrentAggregateState({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
-        initialState: applicationDefinition.domain.sampleContext.sampleAggregate.getInitialState()
-      });
-
-      currentAggregateState.unsavedDomainEvents.push(
-        new DomainEventWithState({
-          ...buildDomainEvent({
-            contextIdentifier: currentAggregateState.contextIdentifier,
-            aggregateIdentifier: currentAggregateState.aggregateIdentifier,
-            name: 'succeeded',
-            data: {},
-            metadata: {
-              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 1 }
-            }
-          }),
-          state: {
-            previous: {
-              domainEventNames: []
-            },
-            next: {
-              domainEventNames: [ 'succeeded' ]
-            }
-          }
-        })
-      );
-      currentAggregateState.unsavedDomainEvents.push(
-        new DomainEventWithState({
-          ...buildDomainEvent({
-            contextIdentifier: currentAggregateState.contextIdentifier,
-            aggregateIdentifier: currentAggregateState.aggregateIdentifier,
-            name: 'executed',
-            data: {
-              strategy: 'succeed'
-            },
-            metadata: {
-              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: { aggregate: 2 }
-            }
-          }),
-          state: {
-            previous: {
-              domainEventNames: [ 'succeeded' ]
-            },
-            next: {
-              domainEventNames: [ 'succeeded', 'executed' ]
-            }
-          }
-        })
-      );
-
-      const savedDomainEvents =
-        await repository.saveCurrentAggregateState({ currentAggregateState });
-
-      assert.that(savedDomainEvents.length).is.equalTo(2);
-      assert.that(savedDomainEvents[0].metadata.revision.global).is.equalTo(1);
-      assert.that(savedDomainEvents[1].metadata.revision.global).is.equalTo(2);
     });
   });
 });

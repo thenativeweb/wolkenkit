@@ -13,8 +13,7 @@ const getReplay = {
     query: {
       type: 'object',
       properties: {
-        fromRevisionGlobal: { type: 'number', minimum: 1 },
-        toRevisionGlobal: { type: 'number', minimum: 1 }
+        fromTimestamp: { type: 'number', minimum: 0 }
       },
       required: [],
       additionalProperties: false
@@ -38,16 +37,11 @@ const getReplay = {
           responseBodySchema = new Value(getReplay.response.body);
 
     return async function (req, res): Promise<any> {
-      let fromRevisionGlobal: number | undefined,
-          toRevisionGlobal: number | undefined;
+      let fromTimestamp: number | undefined;
 
       try {
         querySchema.validate(req.query);
-        ({ fromRevisionGlobal, toRevisionGlobal } = req.query);
-
-        if (fromRevisionGlobal && toRevisionGlobal && fromRevisionGlobal > toRevisionGlobal) {
-          return res.status(400).send(`Query parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
-        }
+        ({ fromTimestamp } = req.query);
       } catch (ex) {
         return res.status(400).send(ex.message);
       }
@@ -58,7 +52,7 @@ const getReplay = {
         // No need for a `next`-callback for this middleware.
       });
 
-      const domainEventStream = await domainEventStore.getReplay({ fromRevisionGlobal, toRevisionGlobal });
+      const domainEventStream = await domainEventStore.getReplay({ fromTimestamp });
 
       for await (const domainEvent of domainEventStream) {
         responseBodySchema.validate(domainEvent);

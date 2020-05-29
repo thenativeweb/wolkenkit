@@ -143,7 +143,7 @@ suite('CurrentAggregateState', (): void => {
         },
         metadata: {
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-          revision: { aggregate: 1 }
+          revision: 1
         }
       });
 
@@ -162,7 +162,7 @@ suite('CurrentAggregateState', (): void => {
         },
         metadata: {
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-          revision: { aggregate: 1 }
+          revision: 1
         }
       });
 
@@ -181,7 +181,7 @@ suite('CurrentAggregateState', (): void => {
         },
         metadata: {
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-          revision: { aggregate: 1 }
+          revision: 1
         }
       });
 
@@ -200,7 +200,7 @@ suite('CurrentAggregateState', (): void => {
         },
         metadata: {
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-          revision: { aggregate: 1 }
+          revision: 1
         }
       });
 
@@ -219,7 +219,7 @@ suite('CurrentAggregateState', (): void => {
         },
         metadata: {
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-          revision: { aggregate: 1 }
+          revision: 1
         }
       });
 

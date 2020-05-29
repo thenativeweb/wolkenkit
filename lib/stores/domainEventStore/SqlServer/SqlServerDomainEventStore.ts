@@ -4,7 +4,6 @@ import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
-import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { Pool } from 'tarn';
 import { retry } from 'retry-ignore-abort';
 import { Row } from './Row';
@@ -84,15 +83,14 @@ class SqlServerDomainEventStore implements DomainEventStore {
       IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.domainEvents}')
         BEGIN
           CREATE TABLE [${tableNames.domainEvents}] (
-            [revisionGlobal] BIGINT IDENTITY(1,1),
             [aggregateId] UNIQUEIDENTIFIER NOT NULL,
-            [revisionAggregate] INT NOT NULL,
+            [revision] INT NOT NULL,
             [causationId] UNIQUEIDENTIFIER NOT NULL,
             [correlationId] UNIQUEIDENTIFIER NOT NULL,
+            [timestamp] BIGINT NOT NULL,
             [domainEvent] NVARCHAR(4000) NOT NULL,
 
-            CONSTRAINT [${tableNames.domainEvents}_pk] PRIMARY KEY([revisionGlobal]),
-            CONSTRAINT [${tableNames.domainEvents}_aggregateId_revisionAggregate] UNIQUE ([aggregateId], [revisionAggregate])
+            CONSTRAINT [${tableNames.domainEvents}_pk] PRIMARY KEY([aggregateId], [revision])
           );
         END
 
@@ -100,10 +98,10 @@ class SqlServerDomainEventStore implements DomainEventStore {
         BEGIN
           CREATE TABLE [${tableNames.snapshots}] (
             [aggregateId] UNIQUEIDENTIFIER NOT NULL,
-            [revisionAggregate] INT NOT NULL,
+            [revision] INT NOT NULL,
             [state] NVARCHAR(4000) NOT NULL,
 
-            CONSTRAINT [${tableNames.snapshots}_pk] PRIMARY KEY([aggregateId], [revisionAggregate])
+            CONSTRAINT [${tableNames.snapshots}_pk] PRIMARY KEY([aggregateId], [revision])
           );
         END
 
@@ -144,10 +142,10 @@ class SqlServerDomainEventStore implements DomainEventStore {
         let resultDomainEvent: DomainEvent<TDomainEventData>;
 
         const request = new Request(`
-          SELECT TOP(1) [domainEvent], [revisionGlobal]
+          SELECT TOP(1) [domainEvent]
             FROM [${this.tableNames.domainEvents}]
             WHERE [aggregateId] = @aggregateId
-            ORDER BY [revisionAggregate] DESC
+            ORDER BY [revision] DESC
           ;
         `, (err: Error | null): void => {
           if (err) {
@@ -159,10 +157,6 @@ class SqlServerDomainEventStore implements DomainEventStore {
 
         request.once('row', (columns): void => {
           resultDomainEvent = new DomainEvent<TDomainEventData>(JSON.parse(columns[0].value));
-
-          resultDomainEvent = resultDomainEvent.withRevisionGlobal({
-            revisionGlobal: Number(columns[1].value)
-          });
         });
 
         request.addParameter('aggregateId', TYPES.UniqueIdentifier, aggregateIdentifier.id);
@@ -204,20 +198,15 @@ class SqlServerDomainEventStore implements DomainEventStore {
     };
 
     onRow = (columns: ColumnValue[]): void => {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(columns[1].value)
-      });
+      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
 
       passThrough.write(domainEvent);
     };
 
     request = new Request(
-      `SELECT [domainEvent], [revisionGlobal]
-            FROM [${this.tableNames.domainEvents}]
-            WHERE [causationId] = @causationId
-            ORDER BY [revisionGlobal] ASC;`
+      `SELECT [domainEvent]
+        FROM [${this.tableNames.domainEvents}]
+        WHERE [causationId] = @causationId;`
       , (err: Error | null): void => {
         unsubscribe();
 
@@ -245,11 +234,11 @@ class SqlServerDomainEventStore implements DomainEventStore {
     const database = await SqlServerDomainEventStore.getDatabase(this.pool);
 
     try {
-      const result: number | undefined = await new Promise((resolve, reject): void => {
-        let domainEventCount: number;
+      const result: boolean = await new Promise((resolve, reject): void => {
+        let hasDomainEvents = false;
 
         const request = new Request(`
-          SELECT COUNT(*) as count
+          SELECT 1
             FROM [${this.tableNames.domainEvents}]
             WHERE [causationId] = @causationId
           ;
@@ -258,11 +247,11 @@ class SqlServerDomainEventStore implements DomainEventStore {
             return reject(err);
           }
 
-          resolve(domainEventCount);
+          resolve(hasDomainEvents);
         });
 
-        request.once('row', (columns): void => {
-          domainEventCount = JSON.parse(columns[0].value);
+        request.once('row', (): void => {
+          hasDomainEvents = true;
         });
 
         request.addParameter('causationId', TYPES.UniqueIdentifier, causationId);
@@ -270,7 +259,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
         database.execSql(request);
       });
 
-      return result !== 0;
+      return result;
     } finally {
       this.pool.release(database);
     }
@@ -300,20 +289,15 @@ class SqlServerDomainEventStore implements DomainEventStore {
     };
 
     onRow = (columns: ColumnValue[]): void => {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(columns[1].value)
-      });
+      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
 
       passThrough.write(domainEvent);
     };
 
     request = new Request(
-      `SELECT [domainEvent], [revisionGlobal]
-            FROM [${this.tableNames.domainEvents}]
-            WHERE [correlationId] = @correlationId
-            ORDER BY [revisionGlobal] ASC;`
+      `SELECT [domainEvent]
+        FROM [${this.tableNames.domainEvents}]
+        WHERE [correlationId] = @correlationId;`
       , (err: Error | null): void => {
         unsubscribe();
 
@@ -336,20 +320,12 @@ class SqlServerDomainEventStore implements DomainEventStore {
   }
 
   public async getReplay ({
-    fromRevisionGlobal = 1,
-    toRevisionGlobal = (2 ** 31) - 1
+    fromTimestamp = 0
   }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
+    fromTimestamp?: number;
   } = {}): Promise<Readable> {
-    if (fromRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
-    }
-    if (fromRevisionGlobal > toRevisionGlobal) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+    if (fromTimestamp < 0) {
+      throw new errors.ParameterInvalid(`Parameter 'fromTimestamp' must be at least 0.`);
     }
 
     const database = await SqlServerDomainEventStore.getDatabase(this.pool);
@@ -373,21 +349,16 @@ class SqlServerDomainEventStore implements DomainEventStore {
     };
 
     onRow = (columns: ColumnValue[]): void => {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(columns[1].value)
-      });
+      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
 
       passThrough.write(domainEvent);
     };
 
     request = new Request(`
-      SELECT [domainEvent], [revisionGlobal]
+      SELECT [domainEvent]
         FROM [${this.tableNames.domainEvents}]
-        WHERE [revisionGlobal] >= @fromRevisionGlobal
-          AND [revisionGlobal] <= @toRevisionGlobal
-        ORDER BY [revisionGlobal]`, (err: Error | null): void => {
+        WHERE [timestamp] >= @fromTimestamp
+        ORDER BY [aggregateId], [revision]`, (err: Error | null): void => {
       unsubscribe();
 
       if (err) {
@@ -397,8 +368,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
       passThrough.end();
     });
 
-    request.addParameter('fromRevisionGlobal', TYPES.BigInt, fromRevisionGlobal);
-    request.addParameter('toRevisionGlobal', TYPES.BigInt, toRevisionGlobal);
+    request.addParameter('fromTimestamp', TYPES.BigInt, fromTimestamp);
 
     request.on('error', onError);
     request.on('row', onRow);
@@ -448,22 +418,18 @@ class SqlServerDomainEventStore implements DomainEventStore {
     };
 
     onRow = (columns: ColumnValue[]): void => {
-      let domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(columns[1].value)
-      });
+      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
 
       passThrough.write(domainEvent);
     };
 
     request = new Request(`
-      SELECT [domainEvent], [revisionAggregate]
+      SELECT [domainEvent]
         FROM [${this.tableNames.domainEvents}]
         WHERE [aggregateId] = @aggregateId
-          AND [revisionAggregate] >= @fromRevision
-          AND [revisionAggregate] <= @toRevision
-        ORDER BY [revisionAggregate]`, (err: Error | null): void => {
+          AND [revision] >= @fromRevision
+          AND [revision] <= @toRevision
+        ORDER BY [revision]`, (err: Error | null): void => {
       unsubscribe();
 
       if (err) {
@@ -487,7 +453,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
-  }): Promise<DomainEvent<TDomainEventData>[]> {
+  }): Promise<void> {
     if (domainEvents.length === 0) {
       throw new errors.ParameterInvalid('Domain events are missing.');
     }
@@ -495,19 +461,18 @@ class SqlServerDomainEventStore implements DomainEventStore {
     const placeholders = [],
           values: Row[] = [];
 
-    let resultCount = 0;
-
     for (const [ index, domainEvent ] of domainEvents.entries()) {
       const rowId = index + 1;
       const row = [
         { key: `aggregateId${rowId}`, value: domainEvent.aggregateIdentifier.id, type: TYPES.UniqueIdentifier, options: undefined },
-        { key: `revisionAggregate${rowId}`, value: domainEvent.metadata.revision.aggregate, type: TYPES.Int, options: undefined },
+        { key: `revision${rowId}`, value: domainEvent.metadata.revision, type: TYPES.Int, options: undefined },
         { key: `causationId${rowId}`, value: domainEvent.metadata.causationId, type: TYPES.UniqueIdentifier, options: undefined },
         { key: `correlationId${rowId}`, value: domainEvent.metadata.correlationId, type: TYPES.UniqueIdentifier, options: undefined },
+        { key: `timestamp${rowId}`, value: domainEvent.metadata.timestamp, type: TYPES.BigInt, options: undefined },
         { key: `event${rowId}`, value: JSON.stringify(domainEvent), type: TYPES.NVarChar, options: { length: 4000 }}
       ];
 
-      placeholders.push(`(@${row[0].key}, @${row[1].key}, @${row[2].key}, @${row[3].key}, @${row[4].key})`);
+      placeholders.push(`(@${row[0].key}, @${row[1].key}, @${row[2].key}, @${row[3].key}, @${row[4].key}, @${row[5].key})`);
 
       values.push(...row);
     }
@@ -515,20 +480,13 @@ class SqlServerDomainEventStore implements DomainEventStore {
     const database = await SqlServerDomainEventStore.getDatabase(this.pool);
 
     const text = `
-      INSERT INTO [${this.tableNames.domainEvents}] ([aggregateId], [revisionAggregate], [causationId], [correlationId], [domainEvent])
-        OUTPUT INSERTED.[revisionGlobal]
+      INSERT INTO [${this.tableNames.domainEvents}] ([aggregateId], [revision], [causationId], [correlationId], [timestamp], [domainEvent])
       VALUES ${placeholders.join(',')};
     `;
 
-    const savedDomainEvents: DomainEvent<TDomainEventData>[] = [];
-
     try {
       await new Promise((resolve, reject): void => {
-        let onRow: (columns: ColumnValue[]) => void;
-
         const request = new Request(text, (err: Error | null): void => {
-          request.removeListener('row', onRow);
-
           if (err) {
             return reject(err);
           }
@@ -540,25 +498,10 @@ class SqlServerDomainEventStore implements DomainEventStore {
           request.addParameter(value.key, value.type, value.value, value.options);
         }
 
-        onRow = (columns: ColumnValue[]): void => {
-          const domainEvent = domainEvents[resultCount];
-          const savedDomainEvent = new DomainEvent<TDomainEventData>({
-            ...domainEvent.withRevisionGlobal({
-              revisionGlobal: Number(columns[0].value)
-            }),
-            data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
-          });
-
-          savedDomainEvents.push(savedDomainEvent);
-          resultCount += 1;
-        };
-
-        request.on('row', onRow);
-
         database.execSql(request);
       });
     } catch (ex) {
-      if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.includes('_aggregateId_revisionAggregate')) {
+      if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.includes('_aggregateId_revision')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
@@ -566,8 +509,6 @@ class SqlServerDomainEventStore implements DomainEventStore {
     } finally {
       this.pool.release(database);
     }
-
-    return savedDomainEvents;
   }
 
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
@@ -580,10 +521,10 @@ class SqlServerDomainEventStore implements DomainEventStore {
         let resultRow: Snapshot<TState>;
 
         const request = new Request(`
-          SELECT TOP(1) [state], [revisionAggregate]
+          SELECT TOP(1) [state], [revision]
             FROM [${this.tableNames.snapshots}]
             WHERE [aggregateId] = @aggregateId
-            ORDER BY [revisionAggregate] DESC
+            ORDER BY [revision] DESC
           ;`, (err: Error | null): void => {
           if (err) {
             return reject(err);
@@ -623,10 +564,10 @@ class SqlServerDomainEventStore implements DomainEventStore {
     try {
       await new Promise((resolve, reject): void => {
         const request = new Request(`
-          IF NOT EXISTS (SELECT TOP(1) * FROM [${this.tableNames.snapshots}] WHERE [aggregateId] = @aggregateId and [revisionAggregate] = @revisionAggregate)
+          IF NOT EXISTS (SELECT TOP(1) * FROM [${this.tableNames.snapshots}] WHERE [aggregateId] = @aggregateId and [revision] = @revision)
             BEGIN
-              INSERT INTO [${this.tableNames.snapshots}] ([aggregateId], [revisionAggregate], [state])
-              VALUES (@aggregateId, @revisionAggregate, @state);
+              INSERT INTO [${this.tableNames.snapshots}] ([aggregateId], [revision], [state])
+              VALUES (@aggregateId, @revision, @state);
             END
           `, (err: Error | null): void => {
           if (err) {
@@ -637,7 +578,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
         });
 
         request.addParameter('aggregateId', TYPES.UniqueIdentifier, snapshot.aggregateIdentifier.id);
-        request.addParameter('revisionAggregate', TYPES.Int, snapshot.revision);
+        request.addParameter('revision', TYPES.Int, snapshot.revision);
         request.addParameter('state', TYPES.NVarChar, JSON.stringify(snapshot.state), { length: 4000 });
 
         database.execSql(request);

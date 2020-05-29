@@ -4,7 +4,6 @@ import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
 import { last } from 'lodash';
-import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { PassThrough, Readable } from 'stream';
@@ -65,35 +64,18 @@ class InMemoryDomainEventStore implements DomainEventStore {
   }
 
   public async getReplay ({
-    fromRevisionGlobal = 1,
-    toRevisionGlobal = (2 ** 31) - 1
+    fromTimestamp = 0
   }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
+    fromTimestamp?: number;
   }): Promise<Readable> {
-    if (fromRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
-    }
-    if (fromRevisionGlobal > toRevisionGlobal) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+    if (fromTimestamp < 0) {
+      throw new errors.ParameterInvalid(`Parameter 'fromTimestamp' must be at least 0.`);
     }
 
     const passThrough = new PassThrough({ objectMode: true });
 
     const storedDomainEvents = this.getStoredDomainEvents().filter(
-      (domainEvent): boolean => {
-        if (!domainEvent.metadata.revision.global) {
-          throw new errors.InvalidOperation('Domain event from domain event store is missing global revision.');
-        }
-
-        return (
-          domainEvent.metadata.revision.global >= fromRevisionGlobal &&
-              domainEvent.metadata.revision.global <= toRevisionGlobal
-        );
-      }
+      (domainEvent): boolean => domainEvent.metadata.timestamp >= fromTimestamp
     );
 
     for (const domainEvent of storedDomainEvents) {
@@ -129,8 +111,8 @@ class InMemoryDomainEventStore implements DomainEventStore {
     const storedDomainEvents = this.getStoredDomainEvents().filter(
       (domainEvent): boolean =>
         domainEvent.aggregateIdentifier.id === aggregateId &&
-        domainEvent.metadata.revision.aggregate >= fromRevision &&
-        domainEvent.metadata.revision.aggregate <= toRevision
+        domainEvent.metadata.revision >= fromRevision &&
+        domainEvent.metadata.revision <= toRevision
     );
 
     for (const domainEvent of storedDomainEvents) {
@@ -165,49 +147,32 @@ class InMemoryDomainEventStore implements DomainEventStore {
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
-  }): Promise<DomainEvent<TDomainEventData>[]> {
+  }): Promise<void> {
     if (domainEvents.length === 0) {
       throw new errors.ParameterInvalid('Domain events are missing.');
     }
 
     const storedDomainEvents = this.getStoredDomainEvents();
-    const savedDomainEvents = [];
 
     for (const domainEvent of domainEvents) {
       const alreadyExists = storedDomainEvents.some(
         (eventInDatabase): boolean =>
           domainEvent.aggregateIdentifier.id === eventInDatabase.aggregateIdentifier.id &&
-          domainEvent.metadata.revision.aggregate === eventInDatabase.metadata.revision.aggregate
+          domainEvent.metadata.revision === eventInDatabase.metadata.revision
       );
 
       if (alreadyExists) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
-      const savedDomainEvent = new DomainEvent<TDomainEventData>({
-        ...domainEvent.withRevisionGlobal({
-          revisionGlobal: storedDomainEvents.length + 1
-        }),
-        data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
-      });
-
-      savedDomainEvents.push(savedDomainEvent);
-
-      this.storeDomainEventAtDatabase({ domainEvent: savedDomainEvent });
+      this.storeDomainEventAtDatabase({ domainEvent });
     }
-
-    return savedDomainEvents;
   }
 
   public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
-    this.storeSnapshotAtDatabase({
-      snapshot: {
-        ...snapshot,
-        state: omitDeepBy(snapshot.state, (value): boolean => value === undefined)
-      }
-    });
+    this.storeSnapshotAtDatabase({ snapshot });
   }
 
   public async destroy (): Promise<void> {

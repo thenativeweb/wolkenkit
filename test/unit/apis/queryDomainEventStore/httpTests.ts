@@ -68,7 +68,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -80,7 +80,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -141,7 +141,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -153,7 +153,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -165,7 +165,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 3, global: 3 },
+            revision: 3,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -222,7 +222,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: null },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -234,7 +234,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: null },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -364,7 +364,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -409,7 +409,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -421,7 +421,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -482,7 +482,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -494,7 +494,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -506,7 +506,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 3, global: 3 },
+            revision: 3,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -563,7 +563,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: null },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -575,7 +575,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: null },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -701,7 +701,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -733,7 +733,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -745,7 +745,7 @@ suite('queryDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -813,7 +813,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -860,7 +860,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId,
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -878,7 +878,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId,
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -896,7 +896,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -969,7 +969,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1003,7 +1003,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId,
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1021,7 +1021,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId,
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1039,7 +1039,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1073,7 +1073,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1120,7 +1120,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId,
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1138,7 +1138,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId,
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -1156,7 +1156,7 @@ suite('queryDomainEventStore/http', (): void => {
           metadata: {
             causationId: uuid(),
             correlationId: uuid(),
-            revision: { aggregate: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });

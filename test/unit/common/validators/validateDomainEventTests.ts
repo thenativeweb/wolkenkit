@@ -24,7 +24,7 @@ suite('validateDomainEvent', (): void => {
     },
     metadata: {
       initiator: { user },
-      revision: { aggregate: 1 }
+      revision: 1
     }
   });
 
@@ -63,10 +63,7 @@ suite('validateDomainEvent', (): void => {
           ...domainEvent,
           metadata: {
             ...domainEvent.metadata,
-            revision: {
-              aggregate: 5,
-              global: 2
-            }
+            revision: 5
           }
         }),
         applicationDefinition
