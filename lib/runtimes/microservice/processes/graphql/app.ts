@@ -53,7 +53,8 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
     const onReceiveCommand: OnReceiveCommand = async ({ command }): Promise<void> => {
       await priorityQueueStore.enqueue({
         item: command,
-        discriminator: command.aggregateIdentifier.id
+        discriminator: command.aggregateIdentifier.id,
+        priority: command.metadata.timestamp
       });
     };
 

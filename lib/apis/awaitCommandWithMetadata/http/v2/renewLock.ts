@@ -78,7 +78,10 @@ const renewLock = {
       const { itemIdentifier, token } = req.body;
 
       try {
-        await priorityQueueStore.renewLock({ itemIdentifier, token });
+        await priorityQueueStore.renewLock({
+          discriminator: itemIdentifier.aggregateIdentifier.id,
+          token
+        });
 
         const response = {};
 
@@ -90,7 +93,7 @@ const renewLock = {
           case 'ETOKENMISMATCH': {
             res.status(403).json({
               code: ex.code,
-              message: ex.message
+              message: `Token mismatch for item '${itemIdentifier.contextIdentifier.name}.${itemIdentifier.aggregateIdentifier.name}.${itemIdentifier.aggregateIdentifier.id}.${itemIdentifier.name}.${itemIdentifier.id}'.`
             });
 
             return;

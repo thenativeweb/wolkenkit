@@ -8,7 +8,7 @@ const acknowledgeCommand = async function ({ command, token, priorityQueue }: {
   priorityQueue: PriorityQueue;
 }): Promise<void> {
   await priorityQueue.store.acknowledge({
-    itemIdentifier: command.getItemIdentifier(),
+    discriminator: command.aggregateIdentifier.id,
     token
   });
 };

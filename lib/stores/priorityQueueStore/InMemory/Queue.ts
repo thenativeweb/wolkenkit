@@ -4,5 +4,5 @@ export interface Queue<TItem> {
     until: number;
     token: string;
   };
-  items: TItem[];
+  items: { item: TItem; priority: number }[];
 }

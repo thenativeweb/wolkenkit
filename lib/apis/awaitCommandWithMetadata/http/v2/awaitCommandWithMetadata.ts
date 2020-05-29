@@ -62,7 +62,7 @@ const awaitCommandWithMetadata = {
       return false;
     };
 
-    return async function (req, res): Promise<void> {
+    return async function (_req, res): Promise<void> {
       const instantSuccess = await maybeHandleLock({ res });
 
       if (instantSuccess) {
