@@ -436,7 +436,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
     try {
       await runQuery({ connection, query, parameters });
     } catch (ex) {
-      if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'aggregateId\'')) {
+      if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
