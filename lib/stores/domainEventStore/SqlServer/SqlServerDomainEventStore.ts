@@ -501,7 +501,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
         database.execSql(request);
       });
     } catch (ex) {
-      if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.includes('_aggregateId_revision')) {
+      if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.startsWith('Violation of PRIMARY KEY constraint')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
