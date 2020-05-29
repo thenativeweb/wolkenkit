@@ -24,7 +24,7 @@ const getMessages = {
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
     return async function (req: Request, res: Response): Promise<void> {
-      req.startStream({ heartbeatInterval });
+      res.startStream({ heartbeatInterval });
 
       try {
         const messageQueue = new PQueue({ concurrency: 1 });

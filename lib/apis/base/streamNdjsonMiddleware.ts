@@ -15,7 +15,7 @@ const streamNdjsonMiddleware: WolkenkitRequestHandler = async function (
   next
 ): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/unbound-method,no-param-reassign
-  req.startStream = function ({ heartbeatInterval }): void {
+  res.startStream = function ({ heartbeatInterval }): void {
     try {
       let heartbeatIntervalId: NodeJS.Timeout;
 

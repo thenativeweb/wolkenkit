@@ -45,7 +45,7 @@ const getDomainEventsByCausationId = {
 
       const causationId = req.query['causation-id'] as string;
 
-      req.startStream({ heartbeatInterval });
+      res.startStream({ heartbeatInterval });
 
       const domainEventStream = await domainEventStore.getDomainEventsByCausationId({ causationId });
 

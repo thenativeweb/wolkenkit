@@ -45,7 +45,7 @@ const getDomainEventsByCorrelationId = {
 
       const correlationId = req.query['correlation-id'] as string;
 
-      req.startStream({ heartbeatInterval });
+      res.startStream({ heartbeatInterval });
 
       const domainEventStream = await domainEventStore.getDomainEventsByCorrelationId({ correlationId });
 

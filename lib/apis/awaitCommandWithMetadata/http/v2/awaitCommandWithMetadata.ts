@@ -67,7 +67,7 @@ const awaitCommandWithMetadata = {
     };
 
     return async function (req, res): Promise<void> {
-      req.startStream({ heartbeatInterval });
+      res.startStream({ heartbeatInterval });
 
       const instantSuccess = await maybeHandleLock({ res });
 

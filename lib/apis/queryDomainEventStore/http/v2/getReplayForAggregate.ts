@@ -57,7 +57,7 @@ const getReplayForAggregate = {
         return res.status(400).end('Aggregate id must be a uuid.');
       }
 
-      req.startStream({ heartbeatInterval });
+      res.startStream({ heartbeatInterval });
 
       const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId, fromRevision, toRevision });
 

@@ -112,7 +112,7 @@ const getDomainEvents = {
       }
 
       try {
-        req.startStream({ heartbeatInterval });
+        res.startStream({ heartbeatInterval });
 
         res.connection.once('close', (): void => {
           domainEventEmitter.off(handleDomainEvent);

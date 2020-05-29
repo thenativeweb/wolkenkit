@@ -44,7 +44,7 @@ const getReplay = {
 
       const fromTimestamp = req.query.fromTimestamp as number;
 
-      req.startStream({ heartbeatInterval });
+      res.startStream({ heartbeatInterval });
 
       const domainEventStream = await domainEventStore.getReplay({ fromTimestamp });
 
