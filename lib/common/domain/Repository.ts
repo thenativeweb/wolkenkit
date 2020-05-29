@@ -72,7 +72,7 @@ class Repository {
         applicationDefinition: this.applicationDefinition,
         domainEvent
       });
-      currentAggregateState.revision = domainEvent.metadata.revision.aggregate;
+      currentAggregateState.revision = domainEvent.metadata.revision;
     }
 
     const replayDuration = Date.now() - replayStartTimestamp,
