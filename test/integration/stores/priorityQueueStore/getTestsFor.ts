@@ -405,6 +405,91 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       assert.that(nextCommand).is.equalTo(commands.firstAggregate.secondCommand);
     });
   });
+
+  suite('defer', (): void => {
+    test('throws an error if the given item is not enqueued.', async (): Promise<void> => {
+      await assert.that(async (): Promise<void> => {
+        await priorityQueueStore.defer({
+          discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
+          token: 'non-existent',
+          priority: commands.firstAggregate.firstCommand.metadata.timestamp
+        });
+      }).is.throwingAsync((ex): boolean =>
+        (ex as CustomError).code === 'EITEMNOTFOUND' &&
+        ex.message === `Item for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}' not found.`);
+    });
+
+    test('throws an error if the given item is not in a locked queue.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+
+      await assert.that(async (): Promise<void> => {
+        await priorityQueueStore.defer({
+          discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
+          token: 'non-existent',
+          priority: commands.firstAggregate.firstCommand.metadata.timestamp
+        });
+      }).is.throwingAsync((ex): boolean =>
+        (ex as CustomError).code === 'EITEMNOTLOCKED' &&
+        ex.message === `Item for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}' not locked.`);
+    });
+
+    test('throws an error if the given token does not match.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+      await priorityQueueStore.lockNext();
+
+      await assert.that(async (): Promise<void> => {
+        await priorityQueueStore.defer({
+          discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
+          token: 'wrong-token',
+          priority: commands.firstAggregate.firstCommand.metadata.timestamp
+        });
+      }).is.throwingAsync((ex): boolean =>
+        (ex as CustomError).code === 'ETOKENMISMATCH' &&
+        ex.message === `Token mismatch for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}'.`);
+    });
+
+    test('defers the item.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.secondCommand,
+        discriminator: commands.firstAggregate.secondCommand.aggregateIdentifier.id,
+        priority: commands.firstAggregate.secondCommand.metadata.timestamp
+      });
+
+      const { token } = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.defer({
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
+        token,
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp + 1
+      });
+
+      const { item: nextCommand, token: nextToken } = (await priorityQueueStore.lockNext())!;
+
+      assert.that(nextCommand).is.equalTo(commands.firstAggregate.secondCommand);
+
+      await priorityQueueStore.acknowledge({
+        discriminator: commands.firstAggregate.secondCommand.aggregateIdentifier.id,
+        token: nextToken
+      });
+
+      const { item: commandAfterNextCommand } = (await priorityQueueStore.lockNext())!;
+
+      assert.that(commandAfterNextCommand).is.equalTo(commands.firstAggregate.firstCommand);
+    });
+  });
 };
 /* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 

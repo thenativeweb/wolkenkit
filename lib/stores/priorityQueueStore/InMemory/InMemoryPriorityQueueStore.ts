@@ -286,6 +286,29 @@ class InMemoryPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     );
   }
 
+  protected deferInternal ({ discriminator, token, priority }: {
+    discriminator: string;
+    token: string;
+    priority: number;
+  }): void {
+    const queue = this.getQueueIfLocked({ discriminator, token });
+
+    const [{ item }] = queue.items;
+
+    this.acknowledgeInternal({ discriminator, token });
+    this.enqueueInternal({ item, discriminator, priority });
+  }
+
+  public async defer ({ discriminator, token, priority }: {
+    discriminator: string;
+    token: string;
+    priority: number;
+  }): Promise<void> {
+    await this.functionCallQueue.add(
+      async (): Promise<void> => this.deferInternal({ discriminator, token, priority })
+    );
+  }
+
   protected destroyInternal (): void {
     this.queues = [];
     this.index = new Map();
