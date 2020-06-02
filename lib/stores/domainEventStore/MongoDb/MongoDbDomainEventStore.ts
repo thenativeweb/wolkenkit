@@ -53,20 +53,15 @@ class MongoDbDomainEventStore implements DomainEventStore {
   }): Promise<MongoDbDomainEventStore> {
     const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
 
-    /* eslint-disable id-length */
     const client = await retry(async (): Promise<MongoClient> => {
       const connection = await MongoClient.connect(
         url,
-        {
-          w: 1,
-          useNewUrlParser: true,
-          useUnifiedTopology: true
-        }
+        // eslint-disable-next-line id-length
+        { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
       );
 
       return connection;
     });
-    /* eslint-enable id-length */
 
     const { pathname } = parse(url);
 
@@ -377,23 +372,34 @@ class MongoDbDomainEventStore implements DomainEventStore {
       throw new errors.ParameterInvalid('Domain events are missing.');
     }
 
-    try {
-      for (const domainEvent of domainEvents) {
-        const savedDomainEvent = new DomainEvent<TDomainEventData>({
-          ...domainEvent,
-          data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
-        });
+    const sanitizedDomainEvents = domainEvents.map((domainEvent): DomainEvent<TDomainEventData> => new DomainEvent<TDomainEventData>({
+      ...domainEvent,
+      data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
+    }));
 
-        await this.collections.domainEvents.insertOne(savedDomainEvent, {
+    const session = this.client.startSession({
+      defaultTransactionOptions: {
+        readPreference: 'primary',
+        readConcern: { level: 'local' },
+        // eslint-disable-next-line id-length
+        writeConcern: { w: 'majority' }
+      }
+    });
+
+    try {
+      await session.withTransaction(async (): Promise<void> => {
+        await this.collections.domainEvents.insertMany(sanitizedDomainEvents, {
           forceServerObjectId: true
         });
-      }
+      });
     } catch (ex) {
       if (ex.code === 11000 && ex.message.includes('_aggregateId_revision')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
       throw ex;
+    } finally {
+      session.endSession();
     }
   }
 

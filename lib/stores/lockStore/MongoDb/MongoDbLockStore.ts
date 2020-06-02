@@ -64,20 +64,15 @@ class MongoDbLockStore implements LockStore {
   }): Promise<MongoDbLockStore> {
     const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
 
-    /* eslint-disable id-length */
     const client = await retry(async (): Promise<MongoClient> => {
       const connection = await MongoClient.connect(
         url,
-        {
-          w: 1,
-          useNewUrlParser: true,
-          useUnifiedTopology: true
-        }
+        // eslint-disable-next-line id-length
+        { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
       );
 
       return connection;
     });
-    /* eslint-enable id-length */
 
     const { pathname } = parse(url);
 
@@ -127,26 +122,40 @@ class MongoDbLockStore implements LockStore {
       throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
 
-    const query = {
-      name
-    };
-    const entry = await this.collections.locks.findOne(query);
-
-    if (entry) {
-      const isLocked = Date.now() < entry.expiresAt;
-
-      if (isLocked) {
-        throw new errors.AcquireLockFailed('Failed to acquire lock.');
+    const session = this.client.startSession({
+      defaultTransactionOptions: {
+        readPreference: 'primary',
+        readConcern: { level: 'local' },
+        // eslint-disable-next-line id-length
+        writeConcern: { w: 'majority' }
       }
+    });
+
+    const query = { name };
+
+    try {
+      await session.withTransaction(async (): Promise<void> => {
+        const entry = await this.collections.locks.findOne(query);
+
+        if (entry) {
+          const isLocked = Date.now() < entry.expiresAt;
+
+          if (isLocked) {
+            throw new errors.AcquireLockFailed('Failed to acquire lock.');
+          }
+        }
+
+        const $set = {
+          ...query,
+          nonce: this.nonce,
+          expiresAt
+        };
+
+        await this.collections.locks.updateOne(query, { $set }, { upsert: true });
+      });
+    } finally {
+      session.endSession();
     }
-
-    const $set = {
-      ...query,
-      nonce: this.nonce,
-      expiresAt
-    };
-
-    await this.collections.locks.updateOne(query, { $set }, { upsert: true });
   }
 
   public async isLocked ({ name }: {
@@ -175,25 +184,35 @@ class MongoDbLockStore implements LockStore {
       throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
 
-    const query = {
-      name
-    };
-    const entry = await this.collections.locks.findOne(query, {
-      projection: {
-        _id: 0,
-        expiresAt: 1,
-        nonce: 1
+    const session = this.client.startSession({
+      defaultTransactionOptions: {
+        readPreference: 'primary',
+        readConcern: { level: 'local' },
+        // eslint-disable-next-line id-length
+        writeConcern: { w: 'majority' }
       }
     });
 
-    if (!entry) {
-      throw new errors.RenewLockFailed('Failed to renew lock.');
-    }
-    if (entry.expiresAt < Date.now() || this.nonce !== entry.nonce) {
-      throw new errors.RenewLockFailed('Failed to renew lock.');
-    }
+    const query = { name };
 
-    await this.collections.locks.updateOne(query, { $set: { expiresAt }});
+    try {
+      await session.withTransaction(async (): Promise<void> => {
+        const entry = await this.collections.locks.findOne(query, {
+          projection: { _id: 0, expiresAt: 1, nonce: 1 }
+        });
+
+        if (!entry) {
+          throw new errors.RenewLockFailed('Failed to renew lock.');
+        }
+        if (entry.expiresAt < Date.now() || this.nonce !== entry.nonce) {
+          throw new errors.RenewLockFailed('Failed to renew lock.');
+        }
+
+        await this.collections.locks.updateOne(query, { $set: { expiresAt }});
+      });
+    } finally {
+      session.endSession();
+    }
   }
 
   public async releaseLock ({ name }: {
@@ -203,22 +222,33 @@ class MongoDbLockStore implements LockStore {
       throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
-    const entry = await this.collections.locks.findOne({ name }, {
-      projection: {
-        _id: 0,
-        expiresAt: 1,
-        nonce: 1
+    const session = this.client.startSession({
+      defaultTransactionOptions: {
+        readPreference: 'primary',
+        readConcern: { level: 'local' },
+        // eslint-disable-next-line id-length
+        writeConcern: { w: 'majority' }
       }
     });
 
-    if (!entry) {
-      return;
-    }
-    if (Date.now() < entry.expiresAt && this.nonce !== entry.nonce) {
-      throw new errors.ReleaseLockFailed('Failed to release lock.');
-    }
+    try {
+      await session.withTransaction(async (): Promise<void> => {
+        const entry = await this.collections.locks.findOne({ name }, {
+          projection: { _id: 0, expiresAt: 1, nonce: 1 }
+        });
 
-    await this.collections.locks.deleteOne({ name });
+        if (!entry) {
+          return;
+        }
+        if (Date.now() < entry.expiresAt && this.nonce !== entry.nonce) {
+          throw new errors.ReleaseLockFailed('Failed to release lock.');
+        }
+
+        await this.collections.locks.deleteOne({ name });
+      });
+    } finally {
+      session.endSession();
+    }
   }
 
   public async destroy (): Promise<void> {
