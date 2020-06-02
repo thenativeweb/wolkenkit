@@ -7,6 +7,8 @@ import typer from 'content-type';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
+const domainEventSchema = new Value(getDomainEventSchema());
+
 const storeDomainEvents = {
   description: 'Stores domain events.',
   path: 'store-domain-events',
@@ -85,8 +87,6 @@ const storeDomainEvents = {
 
       try {
         domainEvents = req.body.map((domainEvent): DomainEvent<DomainEventData> => new DomainEvent(domainEvent));
-
-        const domainEventSchema = getDomainEventSchema();
 
         domainEvents.forEach((domainEvent): void => {
           domainEventSchema.validate(domainEvent, { valueName: 'domainEvent' });

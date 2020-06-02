@@ -1,11 +1,7 @@
-import { regex } from 'uuidv4';
+import { jsonSchema } from 'uuidv4';
 import { Schema } from '../elements/Schema';
-import { Value } from 'validate-value';
 
-// eslint-disable-next-line @typescript-eslint/no-base-to-string
-const uuidRegex = regex.v4.toString().slice(1, -1);
-
-const getSchema = function (): Schema {
+const getCommandSchema = function (): Schema {
   return {
     type: 'object',
     properties: {
@@ -21,7 +17,7 @@ const getSchema = function (): Schema {
         type: 'object',
         properties: {
           name: { type: 'string', minLength: 1, format: 'alphanumeric' },
-          id: { type: 'string', pattern: uuidRegex }
+          id: jsonSchema.v4 as Schema
         },
         required: [ 'name', 'id' ],
         additionalProperties: false
@@ -44,8 +40,4 @@ const getSchema = function (): Schema {
   };
 };
 
-const getCommandSchema = function (): Value {
-  return new Value(getSchema());
-};
-
-export { getCommandSchema, getSchema };
+export { getCommandSchema };

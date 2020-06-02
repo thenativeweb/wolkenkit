@@ -14,7 +14,6 @@ suite('getApplicationDescription', (): void => {
         sampleContext: {
           sampleAggregate: {
             authenticate: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -29,7 +28,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             authorize: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -40,7 +38,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             execute: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -57,7 +54,6 @@ suite('getApplicationDescription', (): void => {
         sampleContext: {
           sampleAggregate: {
             authenticated: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {},
@@ -65,7 +61,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             authorized: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {},
@@ -73,7 +68,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             succeeded: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {},
@@ -81,7 +75,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             executed: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -92,7 +85,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             authenticateFailed: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -107,7 +99,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             authenticateRejected: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -122,7 +113,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             authorizeFailed: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -133,7 +123,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             authorizeRejected: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -144,7 +133,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             executeFailed: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -155,7 +143,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             executeRejected: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {

@@ -45,22 +45,6 @@ suite('validateCommandWithMetadata', (): void => {
     }).is.not.throwing();
   });
 
-  test('throws an error if the command does not match the commandWithMetadata schema.', async (): Promise<void> => {
-    assert.that((): void => {
-      validateCommandWithMetadata({
-        command: ({
-          ...command,
-          name: ''
-        }) as any,
-        applicationDefinition
-      });
-    }).is.throwing(
-      (ex): boolean =>
-        (ex as CustomError).code === 'ECOMMANDMALFORMED' &&
-        ex.message === 'String is too short (0 chars), minimum 1 (at command.name).'
-    );
-  });
-
   test(`throws an error if the command's context doesn't exist in the application definition.`, async (): Promise<void> => {
     assert.that((): void => {
       validateCommandWithMetadata({

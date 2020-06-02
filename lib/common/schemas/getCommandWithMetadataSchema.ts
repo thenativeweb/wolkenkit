@@ -1,11 +1,8 @@
-import { regex } from 'uuidv4';
-import { Value } from 'validate-value';
+import { jsonSchema } from 'uuidv4';
+import { Schema } from '../elements/Schema';
 
-// eslint-disable-next-line @typescript-eslint/no-base-to-string
-const uuidRegex = regex.v4.toString().slice(1, -1);
-
-const getCommandWithMetadataSchema = function (): Value {
-  return new Value({
+const getCommandWithMetadataSchema = function (): Schema {
+  return {
     type: 'object',
     properties: {
       contextIdentifier: {
@@ -20,7 +17,7 @@ const getCommandWithMetadataSchema = function (): Value {
         type: 'object',
         properties: {
           name: { type: 'string', minLength: 1, format: 'alphanumeric' },
-          id: { type: 'string', pattern: uuidRegex }
+          id: jsonSchema.v4 as Schema
         },
         required: [ 'name', 'id' ],
         additionalProperties: false
@@ -32,12 +29,12 @@ const getCommandWithMetadataSchema = function (): Value {
         required: [],
         additionalProperties: true
       },
-      id: { type: 'string', pattern: uuidRegex },
+      id: jsonSchema.v4 as Schema,
       metadata: {
         type: 'object',
         properties: {
-          causationId: { type: 'string', pattern: uuidRegex },
-          correlationId: { type: 'string', pattern: uuidRegex },
+          causationId: jsonSchema.v4 as Schema,
+          correlationId: jsonSchema.v4 as Schema,
           timestamp: { type: 'number' },
           client: {
             type: 'object',
@@ -107,7 +104,7 @@ const getCommandWithMetadataSchema = function (): Value {
       'metadata'
     ],
     additionalProperties: false
-  });
+  };
 };
 
 export { getCommandWithMetadataSchema };

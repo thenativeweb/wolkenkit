@@ -5,13 +5,18 @@ import { cloneDeep } from 'lodash';
 import { Command } from '../../../../common/elements/Command';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
+import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
+import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
 import { IFieldResolver } from 'graphql-tools';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { uuid } from 'uuidv4';
 import { validateCommand } from '../../../../common/validators/validateCommand';
+import { Value } from 'validate-value';
 
 const logger = flaschenpost.getLogger();
+
+const commandSchema = new Value(getCommandSchema());
 
 const getCommandResolver = function ({
   contextIdentifier,
@@ -34,6 +39,11 @@ const getCommandResolver = function ({
       data: data === undefined ? {} : cloneDeep(data)
     });
 
+    try {
+      commandSchema.validate(command, { valueName: 'command' });
+    } catch (ex) {
+      throw new errors.CommandMalformed(ex.message);
+    }
     validateCommand({ command, applicationDefinition });
 
     const commandId = uuid();

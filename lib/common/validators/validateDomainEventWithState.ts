@@ -1,8 +1,7 @@
-import { ApplicationDefinition } from '../../../lib/common/application/ApplicationDefinition';
+import { ApplicationDefinition } from '../application/ApplicationDefinition';
 import { DomainEventData } from '../elements/DomainEventData';
 import { DomainEventWithState } from '../elements/DomainEventWithState';
 import { errors } from '../errors';
-import { getDomainEventWithStateSchema } from '../schemas/getDomainEventWithStateSchema';
 import { Value } from 'validate-value';
 
 const validateDomainEventWithState = function <TDomainEventData extends DomainEventData, TState> ({
@@ -12,14 +11,6 @@ const validateDomainEventWithState = function <TDomainEventData extends DomainEv
   domainEvent: DomainEventWithState<TDomainEventData, TState>;
   applicationDefinition: ApplicationDefinition;
 }): void {
-  const schema = getDomainEventWithStateSchema();
-
-  try {
-    schema.validate(domainEvent, { valueName: 'domainEvent' });
-  } catch (ex) {
-    throw new errors.DomainEventMalformed(ex.message);
-  }
-
   const contextDefinitions = applicationDefinition.domain;
 
   const {

@@ -2,7 +2,6 @@ import { ApplicationDefinition } from '../application/ApplicationDefinition';
 import { Command } from '../elements/Command';
 import { CommandData } from '../elements/CommandData';
 import { errors } from '../errors';
-import { getCommandSchema } from '../schemas/getCommandSchema';
 import { Value } from 'validate-value';
 
 const validateCommand = function <TCommandData extends CommandData> ({
@@ -12,14 +11,6 @@ const validateCommand = function <TCommandData extends CommandData> ({
   command: Command<TCommandData>;
   applicationDefinition: ApplicationDefinition;
 }): void {
-  const schemaCommand = getCommandSchema();
-
-  try {
-    schemaCommand.validate(command, { valueName: 'command' });
-  } catch (ex) {
-    throw new errors.CommandMalformed(ex.message);
-  }
-
   const contextDefinitions = applicationDefinition.domain;
 
   const {

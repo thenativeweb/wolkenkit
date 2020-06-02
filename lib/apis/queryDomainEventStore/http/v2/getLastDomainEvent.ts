@@ -3,7 +3,6 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
@@ -38,14 +37,10 @@ const getLastDomainEvent = {
           responseBodySchema = new Value(getLastDomainEvent.response.body);
 
     return async function (req, res): Promise<any> {
-      let aggregateIdentifier;
+      const { aggregateIdentifier } = req.query;
 
       try {
         querySchema.validate(req.query);
-
-        ({ aggregateIdentifier } = req.query);
-
-        validateAggregateIdentifier({ aggregateIdentifier });
       } catch (ex) {
         const error = new errors.AggregateIdentifierMalformed(ex.message);
 

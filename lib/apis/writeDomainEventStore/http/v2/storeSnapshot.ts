@@ -2,7 +2,6 @@ import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEven
 import { errors } from '../../../../common/errors';
 import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
 import typer from 'content-type';
-import { validateSnapshot } from '../../../../common/validators/validateSnapshot';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
@@ -54,12 +53,12 @@ const storeSnapshot = {
 
       try {
         requestBodySchema.validate(snapshot);
-
-        validateSnapshot({ snapshot });
       } catch (ex) {
+        const error = new errors.SnapshotMalformed(ex.message);
+
         return res.status(400).json({
-          code: ex.code ?? 'EUNKNOWNERROR',
-          message: ex.message
+          code: error.code,
+          message: error.message
         });
       }
 

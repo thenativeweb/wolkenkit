@@ -35,6 +35,7 @@ const getDomainEvents = {
   },
   response: {
     statusCodes: [],
+
     stream: true,
     body: getDomainEventSchema()
   },
@@ -60,6 +61,8 @@ const getDomainEvents = {
         querySchema.validate(req.query);
       } catch (ex) {
         res.status(400).end(ex.message);
+
+        return;
       }
 
       const domainEventQueue = new PQueue({ concurrency: 1 });

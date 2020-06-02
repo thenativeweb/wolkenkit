@@ -668,7 +668,7 @@ suite('queryDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: 'EAGGREGATEIDENTIFIERMALFORMED',
-          message: 'Missing required property: name (at aggregateIdentifier.name).'
+          message: 'Missing required property: name (at value.aggregateIdentifier.name).'
         });
       });
 
@@ -1179,7 +1179,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo('Missing required property: name (at aggregateIdentifier.name).');
+        assert.that(data).is.equalTo('Missing required property: name (at value.aggregateIdentifier.name).');
       });
 
       test('returns 404 if no snapshot exists for the given aggregate identifier.', async (): Promise<void> => {

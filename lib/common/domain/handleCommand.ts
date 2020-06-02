@@ -8,6 +8,7 @@ import { errors } from '../errors';
 import { getAggregateService } from '../services/getAggregateService';
 import { getAggregatesService } from '../services/getAggregatesService';
 import { getClientService } from '../services/getClientService';
+import { getCommandWithMetadataSchema } from '../schemas/getCommandWithMetadataSchema';
 import { getErrorService } from '../services/getErrorService';
 import { getLockService } from '../services/getLockService';
 import { getLoggerService } from '../services/getLoggerService';
@@ -16,6 +17,9 @@ import { PublishDomainEvents } from './PublishDomainEvents';
 import { Repository } from './Repository';
 import { State } from '../elements/State';
 import { validateCommandWithMetadata } from '../validators/validateCommandWithMetadata';
+import { Value } from 'validate-value';
+
+const commandWithMetadataSchema = new Value(getCommandWithMetadataSchema());
 
 const handleCommand = async function ({
   command,
@@ -30,6 +34,11 @@ const handleCommand = async function ({
   repository: Repository;
   publishDomainEvents: PublishDomainEvents;
 }): Promise<void> {
+  try {
+    commandWithMetadataSchema.validate(command, { valueName: 'command' });
+  } catch (ex) {
+    throw new errors.CommandMalformed(ex.message);
+  }
   validateCommandWithMetadata({ command, applicationDefinition });
 
   const currentAggregateState = await repository.loadCurrentAggregateState({

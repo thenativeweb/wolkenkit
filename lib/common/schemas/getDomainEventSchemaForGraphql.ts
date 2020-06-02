@@ -1,8 +1,8 @@
-import { getSchema } from './getDomainEventSchema';
+import { getDomainEventSchema } from './getDomainEventSchema';
 import { Schema } from '../elements/Schema';
 
 const getDomainEventSchemaForGraphql = function (): Schema {
-  const domainEventSchema = getSchema();
+  const domainEventSchema = getDomainEventSchema();
 
   domainEventSchema.properties!.data = {
     type: 'string',

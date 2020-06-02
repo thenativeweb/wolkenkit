@@ -1,11 +1,7 @@
-import { regex } from 'uuidv4';
+import { jsonSchema } from 'uuidv4';
 import { Schema } from '../elements/Schema';
-import { Value } from 'validate-value';
 
-// eslint-disable-next-line @typescript-eslint/no-base-to-string
-const uuidRegex = regex.v4.toString().slice(1, -1);
-
-const getSchema = function (): Schema {
+const getDomainEventSchema = function (): Schema {
   return {
     type: 'object',
     properties: {
@@ -21,7 +17,7 @@ const getSchema = function (): Schema {
         type: 'object',
         properties: {
           name: { type: 'string', minLength: 1, format: 'alphanumeric' },
-          id: { type: 'string', pattern: uuidRegex }
+          id: jsonSchema.v4 as Schema
         },
         required: [ 'name', 'id' ],
         additionalProperties: false
@@ -33,12 +29,12 @@ const getSchema = function (): Schema {
         required: [],
         additionalProperties: true
       },
-      id: { type: 'string', pattern: uuidRegex },
+      id: jsonSchema.v4 as Schema,
       metadata: {
         type: 'object',
         properties: {
-          causationId: { type: 'string', pattern: uuidRegex },
-          correlationId: { type: 'string', pattern: uuidRegex },
+          causationId: jsonSchema.v4 as Schema,
+          correlationId: jsonSchema.v4 as Schema,
           timestamp: { type: 'number', minimum: 0 },
           revision: { type: 'number', minimum: 1 },
           initiator: {
@@ -92,8 +88,4 @@ const getSchema = function (): Schema {
   };
 };
 
-const getDomainEventSchema = function (): Value {
-  return new Value(getSchema());
-};
-
-export { getDomainEventSchema, getSchema };
+export { getDomainEventSchema };
