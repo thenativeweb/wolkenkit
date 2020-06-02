@@ -64,6 +64,7 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/command/app.js'
         environment:
+          NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
           COMMAND_CORS_ORIGIN: '*'
           DISPATCHER_PROTOCOL: 'http'
@@ -90,6 +91,7 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/dispatcher/app.js'
         environment:
+          NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
           PRIORITY_QUEUE_STORE_TYPE: '${priorityQueueStoreType}'
           PRIORITY_QUEUE_STORE_OPTIONS: '${priorityQueueStoreOptions}'
@@ -115,6 +117,7 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domain/app.js'
         environment:
+          NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
           DISPATCHER_PROTOCOL: 'http'
           DISPATCHER_HOST_NAME: 'dispatcher'
@@ -147,6 +150,7 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEvent/app.js'
         environment:
+          NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
           DOMAIN_EVENT_CORS_ORIGIN: '*'
           DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
@@ -175,6 +179,7 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEventStore/app.js'
         environment:
+          NODE_ENV: 'production'
           DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'
           DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
           QUERY_DOMAIN_EVENT_CORS_ORIGIN: '*'
@@ -196,6 +201,7 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/publisher/app.js'
         environment:
+          NODE_ENV: 'production'
           HEALTH_CORS_ORIGIN: '*'
           PORT: ${ports.private.publisher}
           HEALTH_PORT: ${ports.health.publisher}
@@ -217,6 +223,7 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
         build: '../..
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/graphql/app.js'
         environment:
+          NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
           ENABLE_INTEGRATED_CLIENT: false
           CORS_ORIGIN: '*'

@@ -33,6 +33,7 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/singleProcess/processes/main/app.js'
         environment:
+          NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
           HTTP_API: true
           GRAPHQL_API: '{"enableIntegratedClient":false}'
