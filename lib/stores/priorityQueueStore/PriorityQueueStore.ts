@@ -20,5 +20,11 @@ export interface PriorityQueueStore<TItem> {
     token: string;
   }): Promise<void>;
 
+  defer ({ discriminator, token, priority }: {
+    discriminator: string;
+    token: string;
+    priority: number;
+  }): Promise<void>;
+
   destroy (): Promise<void>;
 }

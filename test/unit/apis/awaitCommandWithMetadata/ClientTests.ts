@@ -441,5 +441,200 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
         await client.awaitCommandWithMetadata();
       });
     });
+
+    suite('defer', (): void => {
+      test('throws an item identifier malformed error if the item identifier is malformed.', async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<any> => await client.defer({
+          itemIdentifier: {} as any,
+          token: uuid(),
+          priority: Date.now()
+        })).is.throwingAsync(
+          (ex): boolean => (ex as CustomError).code === 'EITEMIDENTIFIERMALFORMED' &&
+            ex.message === 'Missing required property: contextIdentifier (at itemIdentifier.contextIdentifier).'
+        );
+      });
+
+      test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<any> => client.defer({
+          itemIdentifier: {
+            contextIdentifier: {
+              name: 'sampleContext'
+            },
+            aggregateIdentifier: {
+              name: 'sampleAggregate',
+              id: uuid()
+            },
+            id: uuid(),
+            name: 'foo'
+          },
+          token: uuid(),
+          priority: Date.now()
+        })).is.throwingAsync(
+          (ex): boolean => (ex as CustomError).code === 'EITEMNOTFOUND'
+        );
+      });
+
+      test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const commandWithMetadata = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {}
+        });
+
+        await priorityQueueStore.enqueue({
+          item: commandWithMetadata,
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          priority: commandWithMetadata.metadata.timestamp
+        });
+        await newCommandPublisher.publish({
+          channel: newCommandSubscriberChannel,
+          message: {}
+        });
+
+        await assert.that(async (): Promise<any> => client.defer({
+          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          token: uuid(),
+          priority: Date.now()
+        })).is.throwingAsync(
+          (ex): boolean => (ex as CustomError).code === 'EITEMNOTLOCKED'
+        );
+      });
+
+      test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const commandWithMetadata = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {}
+        });
+
+        await priorityQueueStore.enqueue({
+          item: commandWithMetadata,
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          priority: commandWithMetadata.metadata.timestamp
+        });
+        await newCommandPublisher.publish({
+          channel: newCommandSubscriberChannel,
+          message: {}
+        });
+
+        await client.awaitCommandWithMetadata();
+
+        await assert.that(async (): Promise<any> => client.defer({
+          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          token: uuid(),
+          priority: Date.now()
+        })).is.throwingAsync(
+          (ex): boolean => (ex as CustomError).code === 'ETOKENMISMATCH' &&
+            ex.message === `Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`
+        );
+      });
+
+      test('removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const aggregateId = uuid();
+        const commandOne = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+        const commandTwo = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+
+        await priorityQueueStore.enqueue({
+          item: commandOne,
+          discriminator: commandOne.aggregateIdentifier.id,
+          priority: commandOne.metadata.timestamp
+        });
+        await priorityQueueStore.enqueue({
+          item: commandTwo,
+          discriminator: commandTwo.aggregateIdentifier.id,
+          priority: commandTwo.metadata.timestamp
+        });
+
+        const { item, token } = await client.awaitCommandWithMetadata();
+
+        const commandWithMetadata = new CommandWithMetadata(item);
+
+        await client.defer({
+          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          token,
+          priority: Date.now()
+        });
+
+        const { item: nextItem, token: nextToken } = await client.awaitCommandWithMetadata();
+
+        const nextCommandWithMetadata = new CommandWithMetadata(nextItem);
+
+        await client.acknowledge({
+          itemIdentifier: nextCommandWithMetadata.getItemIdentifier(),
+          token: nextToken
+        });
+
+        // This should resolve. A timeout in this test means, that this can not
+        // fetch a command.
+        await client.awaitCommandWithMetadata();
+      });
+    });
   });
 });

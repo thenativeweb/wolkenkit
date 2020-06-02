@@ -5,6 +5,7 @@ import { awaitCommandWithMetadata } from './awaitCommandWithMetadata';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { CorsOrigin } from 'get-cors-origin';
+import { defer } from './defer';
 import { getApiBase } from '../../../base/getApiBase';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { renewLock } from './renewLock';
@@ -52,6 +53,11 @@ const getV2 = async function ({
   }));
 
   api.post(`/${acknowledge.path}`, acknowledge.getHandler({
+    applicationDefinition,
+    priorityQueueStore
+  }));
+
+  api.post(`/${defer.path}`, defer.getHandler({
     applicationDefinition,
     priorityQueueStore
   }));

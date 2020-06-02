@@ -143,8 +143,45 @@ class Client extends HttpClient {
       }
     }
   }
+
+  public async defer ({ itemIdentifier, token, priority }: {
+    itemIdentifier: ItemIdentifier;
+    token: string;
+    priority: number;
+  }): Promise<void> {
+    const { status, data } = await axios({
+      method: 'post',
+      url: `${this.url}/defer`,
+      data: { itemIdentifier, token, priority },
+      validateStatus (): boolean {
+        return true;
+      }
+    });
+
+    if (status === 200) {
+      return;
+    }
+
+    switch (data.code) {
+      case 'ETOKENMISMATCH': {
+        throw new errors.TokenMismatch(data.message);
+      }
+      case 'EITEMIDENTIFIERMALFORMED': {
+        throw new errors.ItemIdentifierMalformed(data.message);
+      }
+      case 'EITEMNOTFOUND': {
+        throw new errors.ItemNotFound(data.message);
+      }
+      case 'EITEMNOTLOCKED': {
+        throw new errors.ItemNotLocked(data.message);
+      }
+      default: {
+        logger.error('An unknown error occured.', { ex: data, status });
+
+        throw new errors.UnknownError();
+      }
+    }
+  }
 }
 
-export {
-  Client
-};
+export { Client };

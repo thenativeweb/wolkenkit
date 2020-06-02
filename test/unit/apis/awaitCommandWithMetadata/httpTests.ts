@@ -651,5 +651,242 @@ suite('awaitCommandWithMetadata/http', (): void => {
         });
       });
     });
+
+    suite('POST /defer', (): void => {
+      test('returns a 400 status code if an invalid item identifier is sent.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/defer',
+          headers: { 'content-type': 'application/json' },
+          data: {
+            itemIdentifier: {},
+            token: uuid(),
+            priority: Date.now()
+          },
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'EITEMIDENTIFIERMALFORMED',
+          message: 'Missing required property: contextIdentifier (at itemIdentifier.contextIdentifier).'
+        });
+      });
+
+      test('returns a 403 status code if an unknown token is sent.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const commandWithMetadata = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {}
+        });
+
+        await priorityQueueStore.enqueue({
+          item: commandWithMetadata,
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          priority: commandWithMetadata.metadata.timestamp
+        });
+        await newCommandPublisher.publish({
+          channel: newCommandSubscriberChannel,
+          message: {}
+        });
+
+        await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/defer',
+          headers: { 'content-type': 'application/json' },
+          data: {
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            token: uuid(),
+            priority: Date.now()
+          },
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(403);
+        assert.that(data).is.equalTo({
+          code: 'ETOKENMISMATCH',
+          message: `Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`
+        });
+      });
+
+      test('returns a 400 status code if an invalid priority is sent.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const commandWithMetadata = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: uuid()
+          },
+          name: 'execute',
+          data: {}
+        });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/defer',
+          headers: { 'content-type': 'application/json' },
+          data: {
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            token: uuid(),
+            priority: -1
+          },
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'EREQUESTMALFORMED',
+          message: 'Value -1 is less than minimum 0 (at value.priority).'
+        });
+      });
+
+      test('defers the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const aggregateId = uuid();
+        const commandOne = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+        const commandTwo = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier: {
+            name: 'sampleAggregate',
+            id: aggregateId
+          },
+          name: 'execute',
+          data: {}
+        });
+
+        await priorityQueueStore.enqueue({
+          item: commandOne,
+          discriminator: commandOne.aggregateIdentifier.id,
+          priority: commandOne.metadata.timestamp
+        });
+        await priorityQueueStore.enqueue({
+          item: commandTwo,
+          discriminator: commandTwo.aggregateIdentifier.id,
+          priority: commandTwo.metadata.timestamp
+        });
+
+        const { data: firstLockData } = await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        const { item, token } = await new Promise((resolve, reject): void => {
+          firstLockData.on('error', (err: any): void => {
+            reject(err);
+          });
+
+          firstLockData.pipe(asJsonStream([
+            (streamElement): void => {
+              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+            },
+            (streamElement: any): void => {
+              resolve(streamElement);
+            }
+          ]));
+        });
+
+        const commandWithMetadata = new CommandWithMetadata(item);
+
+        await client({
+          method: 'post',
+          url: '/v2/defer',
+          headers: { 'content-type': 'application/json' },
+          data: {
+            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            token,
+            priority: Date.now()
+          }
+        });
+
+        const { data: secondLockData } = await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        const { item: nextItem, token: nextToken } = await new Promise((resolve, reject): void => {
+          secondLockData.on('error', (err: any): void => {
+            reject(err);
+          });
+
+          secondLockData.pipe(asJsonStream([
+            (streamElement): void => {
+              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+            },
+            (streamElement: any): void => {
+              resolve(streamElement);
+            }
+          ]));
+        });
+
+        const nextCommandWithMetadata = new CommandWithMetadata(nextItem);
+
+        await client({
+          method: 'post',
+          url: '/v2/acknowledge',
+          headers: { 'content-type': 'application/json' },
+          data: {
+            itemIdentifier: nextCommandWithMetadata.getItemIdentifier(),
+            token: nextToken
+          }
+        });
+
+        const { data: thirdLockData } = await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        await new Promise((resolve, reject): void => {
+          thirdLockData.on('error', (err: any): void => {
+            reject(err);
+          });
+
+          thirdLockData.pipe(asJsonStream([
+            (streamElement): void => {
+              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+            },
+            (streamElement: any): void => {
+              assert.that(streamElement.item).is.equalTo(commandOne);
+
+              resolve();
+            }
+          ]));
+        });
+      });
+    });
   });
 });
