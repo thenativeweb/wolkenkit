@@ -166,6 +166,9 @@ class Client extends HttpClient {
       case 'ETOKENMISMATCH': {
         throw new errors.TokenMismatch(data.message);
       }
+      case 'EREQUESTMALFORMED': {
+        throw new errors.RequestMalformed(data.message);
+      }
       case 'EITEMIDENTIFIERMALFORMED': {
         throw new errors.ItemIdentifierMalformed(data.message);
       }

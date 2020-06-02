@@ -670,8 +670,8 @@ suite('awaitCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EITEMIDENTIFIERMALFORMED',
-          message: 'Missing required property: contextIdentifier (at itemIdentifier.contextIdentifier).'
+          code: 'EREQUESTMALFORMED',
+          message: 'Missing required property: contextIdentifier (at value.itemIdentifier.contextIdentifier).'
         });
       });
 
