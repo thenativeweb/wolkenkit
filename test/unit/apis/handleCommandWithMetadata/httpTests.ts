@@ -98,7 +98,7 @@ suite('handleCommandWithMetadata/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: 'ECOMMANDMALFORMED',
-          message: 'Invalid type: undefined should be object (at command.metadata).'
+          message: 'Missing required property: contextIdentifier (at value.contextIdentifier).'
         });
       });
 

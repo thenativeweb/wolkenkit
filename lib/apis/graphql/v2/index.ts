@@ -4,8 +4,10 @@ import { ClientMetadata } from '../../../common/utils/http/ClientMetadata';
 import { CorsOrigin } from 'get-cors-origin';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
+import { errors } from '../../../common/errors';
 import { getApiBase } from '../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../base/getAuthenticationMiddleware';
+import { getDomainEventWithStateSchema } from '../../../common/schemas/getDomainEventWithStateSchema';
 import { getTypeDefinitions as getHandleCommandTypeDefinitions } from './handleCommand/getTypeDefinitions';
 import { getMutationResolvers } from './handleCommand/getMutationResolvers';
 import { getTypeDefinitions as getObserveDomainEventsTypeDefinitions } from './observeDomainEvents/getTypeDefinitions';
@@ -21,7 +23,10 @@ import { SpecializedEventEmitter } from '../../../common/utils/events/Specialize
 import { State } from '../../../common/elements/State';
 import { stripIndent } from 'common-tags';
 import { validateDomainEventWithState } from '../../../common/validators/validateDomainEventWithState';
+import { Value } from 'validate-value';
 import { ApolloServer, gql } from 'apollo-server-express';
+
+const domainEventWithStateSchema = new Value(getDomainEventWithStateSchema());
 
 const getV2 = async function ({
   corsOrigin,
@@ -82,6 +87,11 @@ const getV2 = async function ({
     });
 
     publishDomainEvent = function ({ domainEvent }): void {
+      try {
+        domainEventWithStateSchema.validate(domainEvent, { valueName: 'domainEvent' });
+      } catch (ex) {
+        throw new errors.DomainEventMalformed(ex.message);
+      }
       validateDomainEventWithState({ domainEvent, applicationDefinition });
 
       domainEventEmitter.emit(domainEvent);

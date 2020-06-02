@@ -3,16 +3,21 @@ import { ApplicationDefinition } from '../../../../common/application/Applicatio
 import { CorsOrigin } from 'get-cors-origin';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
+import { errors } from '../../../../common/errors';
 import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
 import { getDescription } from './getDescription';
 import { getDomainEvents } from './getDomainEvents';
+import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
 import { IdentityProvider } from 'limes';
 import { PublishDomainEvent } from '../../PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
+import { Value } from 'validate-value';
+
+const domainEventWithStateSchema = new Value(getDomainEventWithStateSchema());
 
 const getV2 = async function ({
   corsOrigin,
@@ -61,6 +66,11 @@ const getV2 = async function ({
   );
 
   const publishDomainEvent: PublishDomainEvent = function ({ domainEvent }): void {
+    try {
+      domainEventWithStateSchema.validate(domainEvent, { valueName: 'domainEvent' });
+    } catch (ex) {
+      throw new errors.DomainEventMalformed(ex.message);
+    }
     validateDomainEventWithState({ domainEvent, applicationDefinition });
 
     domainEventEmitter.emit(domainEvent);

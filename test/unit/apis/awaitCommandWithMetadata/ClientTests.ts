@@ -106,7 +106,7 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           token: uuid()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === 'EITEMIDENTIFIERMALFORMED' &&
-            ex.message === 'Missing required property: contextIdentifier (at itemIdentifier.contextIdentifier).'
+            ex.message === 'Missing required property: contextIdentifier (at value.itemIdentifier.contextIdentifier).'
         );
       });
 
@@ -275,7 +275,7 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           token: uuid()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === 'EITEMIDENTIFIERMALFORMED' &&
-            ex.message === 'Missing required property: contextIdentifier (at itemIdentifier.contextIdentifier).'
+            ex.message === 'Missing required property: contextIdentifier (at value.itemIdentifier.contextIdentifier).'
         );
       });
 

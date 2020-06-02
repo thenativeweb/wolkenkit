@@ -28,22 +28,6 @@ suite('validateItemIdentifier', (): void => {
     }).is.not.throwing();
   });
 
-  test('throws an error if the item identifier does not match the item identifier schema.', async (): Promise<void> => {
-    assert.that((): void => {
-      validateItemIdentifier({
-        itemIdentifier: {
-          ...itemIdentifier,
-          name: ''
-        },
-        applicationDefinition
-      });
-    }).is.throwing(
-      (ex): boolean =>
-        (ex as CustomError).code === 'EITEMIDENTIFIERMALFORMED' &&
-        ex.message === 'String is too short (0 chars), minimum 1 (at itemIdentifier.name).'
-    );
-  });
-
   test(`throws an error if the item identifier's context doesn't exist in the application definition.`, async (): Promise<void> => {
     assert.that((): void => {
       validateItemIdentifier({

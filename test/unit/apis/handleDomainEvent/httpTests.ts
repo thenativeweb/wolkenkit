@@ -100,7 +100,7 @@ suite('handleDomainEvent/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: 'EDOMAINEVENTMALFORMED',
-          message: 'Invalid type: undefined should be object (at domainEvent.state).'
+          message: 'Missing required property: contextIdentifier (at value.contextIdentifier).'
         });
       });
 

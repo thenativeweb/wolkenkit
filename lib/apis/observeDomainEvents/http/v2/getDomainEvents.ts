@@ -35,6 +35,7 @@ const getDomainEvents = {
   },
   response: {
     statusCodes: [],
+
     stream: true,
     body: getDomainEventSchema()
   },

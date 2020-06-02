@@ -1,7 +1,7 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
-import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
+import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
@@ -24,9 +24,7 @@ const getSnapshot = {
   response: {
     statusCodes: [ 200, 400, 404 ],
 
-    body: {
-
-    }
+    body: getSnapshotSchema()
   },
 
   getHandler ({
@@ -38,14 +36,10 @@ const getSnapshot = {
           responseBodySchema = new Value(getSnapshot.response.body);
 
     return async function (req, res): Promise<any> {
-      let aggregateIdentifier;
+      const { aggregateIdentifier } = req.query;
 
       try {
         querySchema.validate(req.query);
-
-        ({ aggregateIdentifier } = req.query);
-
-        validateAggregateIdentifier({ aggregateIdentifier });
       } catch (ex) {
         return res.status(400).send(ex.message);
       }

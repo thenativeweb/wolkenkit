@@ -46,22 +46,6 @@ suite('validateDomainEventWithState', (): void => {
     }).is.not.throwing();
   });
 
-  test('throws an error if the domain event does not match the domainEvent schema.', async (): Promise<void> => {
-    assert.that((): void => {
-      validateDomainEventWithState({
-        domainEvent: new DomainEventWithState({
-          ...domainEvent,
-          name: ''
-        }),
-        applicationDefinition
-      });
-    }).is.throwing(
-      (ex): boolean =>
-        (ex as CustomError).code === 'EDOMAINEVENTMALFORMED' &&
-        ex.message === 'String is too short (0 chars), minimum 1 (at domainEvent.name).'
-    );
-  });
-
   test(`throws an error if the domainEvent's context doesn't exist in the application definition.`, async (): Promise<void> => {
     assert.that((): void => {
       validateDomainEventWithState({

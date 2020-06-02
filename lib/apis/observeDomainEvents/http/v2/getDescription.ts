@@ -1,5 +1,6 @@
 import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
+import { getDomainEventsDescriptionSchema } from '../../../../common/schemas/getDomainEventsDescriptionSchema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { Request, Response } from 'express';
@@ -11,7 +12,7 @@ const getDescription = {
   request: {},
   response: {
     statusCodes: [ 200 ],
-    body: {}
+    body: getDomainEventsDescriptionSchema()
   },
 
   getHandler ({ applicationDefinition }: {
