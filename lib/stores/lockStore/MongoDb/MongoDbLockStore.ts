@@ -64,20 +64,15 @@ class MongoDbLockStore implements LockStore {
   }): Promise<MongoDbLockStore> {
     const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
 
-    /* eslint-disable id-length */
     const client = await retry(async (): Promise<MongoClient> => {
       const connection = await MongoClient.connect(
         url,
-        {
-          w: 1,
-          useNewUrlParser: true,
-          useUnifiedTopology: true
-        }
+        // eslint-disable-next-line id-length
+        { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
       );
 
       return connection;
     });
-    /* eslint-enable id-length */
 
     const { pathname } = parse(url);
 
@@ -127,23 +122,16 @@ class MongoDbLockStore implements LockStore {
       throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
 
-    /* eslint-disable id-length */
     const session = this.client.startSession({
       defaultTransactionOptions: {
         readPreference: 'primary',
-        readConcern: {
-          level: 'local'
-        },
-        writeConcern: {
-          w: 'majority'
-        }
+        readConcern: { level: 'local' },
+        // eslint-disable-next-line id-length
+        writeConcern: { w: 'majority' }
       }
     });
-    /* eslint-enable id-length */
 
-    const query = {
-      name
-    };
+    const query = { name };
 
     try {
       await session.withTransaction(async (): Promise<void> => {
@@ -196,32 +184,21 @@ class MongoDbLockStore implements LockStore {
       throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
     }
 
-    /* eslint-disable id-length */
     const session = this.client.startSession({
       defaultTransactionOptions: {
         readPreference: 'primary',
-        readConcern: {
-          level: 'local'
-        },
-        writeConcern: {
-          w: 'majority'
-        }
+        readConcern: { level: 'local' },
+        // eslint-disable-next-line id-length
+        writeConcern: { w: 'majority' }
       }
     });
-    /* eslint-enable id-length */
 
-    const query = {
-      name
-    };
+    const query = { name };
 
     try {
       await session.withTransaction(async (): Promise<void> => {
         const entry = await this.collections.locks.findOne(query, {
-          projection: {
-            _id: 0,
-            expiresAt: 1,
-            nonce: 1
-          }
+          projection: { _id: 0, expiresAt: 1, nonce: 1 }
         });
 
         if (!entry) {
@@ -245,28 +222,19 @@ class MongoDbLockStore implements LockStore {
       throw new errors.LockNameTooLong('Lock name is too long.');
     }
 
-    /* eslint-disable id-length */
     const session = this.client.startSession({
       defaultTransactionOptions: {
         readPreference: 'primary',
-        readConcern: {
-          level: 'local'
-        },
-        writeConcern: {
-          w: 'majority'
-        }
+        readConcern: { level: 'local' },
+        // eslint-disable-next-line id-length
+        writeConcern: { w: 'majority' }
       }
     });
-    /* eslint-enable id-length */
 
     try {
       await session.withTransaction(async (): Promise<void> => {
         const entry = await this.collections.locks.findOne({ name }, {
-          projection: {
-            _id: 0,
-            expiresAt: 1,
-            nonce: 1
-          }
+          projection: { _id: 0, expiresAt: 1, nonce: 1 }
         });
 
         if (!entry) {

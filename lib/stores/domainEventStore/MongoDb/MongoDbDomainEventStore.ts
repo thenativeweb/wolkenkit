@@ -53,20 +53,15 @@ class MongoDbDomainEventStore implements DomainEventStore {
   }): Promise<MongoDbDomainEventStore> {
     const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
 
-    /* eslint-disable id-length */
     const client = await retry(async (): Promise<MongoClient> => {
       const connection = await MongoClient.connect(
         url,
-        {
-          w: 1,
-          useNewUrlParser: true,
-          useUnifiedTopology: true
-        }
+        // eslint-disable-next-line id-length
+        { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
       );
 
       return connection;
     });
-    /* eslint-enable id-length */
 
     const { pathname } = parse(url);
 
@@ -382,19 +377,14 @@ class MongoDbDomainEventStore implements DomainEventStore {
       data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
     }));
 
-    /* eslint-disable id-length */
     const session = this.client.startSession({
       defaultTransactionOptions: {
         readPreference: 'primary',
-        readConcern: {
-          level: 'local'
-        },
-        writeConcern: {
-          w: 'majority'
-        }
+        readConcern: { level: 'local' },
+        // eslint-disable-next-line id-length
+        writeConcern: { w: 'majority' }
       }
     });
-    /* eslint-enable id-length */
 
     try {
       await session.withTransaction(async (): Promise<void> => {
