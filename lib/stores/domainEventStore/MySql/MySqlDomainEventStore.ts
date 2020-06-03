@@ -130,7 +130,6 @@ class MySqlDomainEventStore implements DomainEventStore {
 
     const query = `
       CREATE TABLE IF NOT EXISTS \`${tableNames.domainEvents}\` (
-        revisionGlobal SERIAL,
         aggregateId BINARY(16) NOT NULL,
         revision INT NOT NULL,
         causationId BINARY(16) NOT NULL,

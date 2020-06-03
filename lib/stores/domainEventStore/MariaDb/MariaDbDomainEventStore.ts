@@ -335,7 +335,7 @@ class MariaDbDomainEventStore implements DomainEventStore {
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = connection.query(`
       SELECT domainEvent
-        FROM ${this.tableNames.domainEvents}
+        FROM \`${this.tableNames.domainEvents}\`
         WHERE aggregateId = UuidToBin(?)
           AND revision >= ?
           AND revision <= ?
