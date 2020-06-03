@@ -282,9 +282,9 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
             WHERE discriminator = ?;
           UPDATE \`${this.tableNames.priorityQueue}\`
             SET indexInPriorityQueue = ?
-            WHERE indexInPriorityQueue = -1;
+            WHERE discriminator = ?;
       `,
-        parameters: [ leftChildQueue.discriminator, leftChildQueue.index, queue.discriminator, queue.index ]
+        parameters: [ leftChildQueue.discriminator, leftChildQueue.index, queue.discriminator, queue.index, leftChildQueue.discriminator ]
       });
 
       await this.repairDown({ connection, discriminator: queue.discriminator });
@@ -300,9 +300,9 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
             WHERE discriminator = ?;
           UPDATE \`${this.tableNames.priorityQueue}\`
             SET indexInPriorityQueue = ?
-            WHERE indexInPriorityQueue = -1;
+            WHERE discriminator = ?;
       `,
-        parameters: [ rightChildQueue!.discriminator, rightChildQueue!.index, queue.discriminator, queue.index ]
+        parameters: [ rightChildQueue!.discriminator, rightChildQueue!.index, queue.discriminator, queue.index, rightChildQueue!.discriminator ]
       });
 
       await this.repairDown({ connection, discriminator: queue.discriminator });
@@ -354,7 +354,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
             pq.indexInPriorityQueue AS indexInPriorityQueue,
             i.priority AS priority,
             pq.lockUntil AS lockUntil,
-            CASE WHEN ISNULL(pq.lockToken) THEN NULL ELSE UuidFromBin(pq.lockToken) END AS lockToken
+            CASE WHEN pq.lockToken IS NULL THEN NULL ELSE UuidFromBin(pq.lockToken) END AS lockToken
           FROM \`${this.tableNames.priorityQueue}\` AS pq
           JOIN \`${this.tableNames.items}\` AS i
             ON pq.discriminator = i.discriminator
@@ -376,7 +376,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     if (rows[0].lockUntil) {
       queue.lock = {
         until: rows[0].lockUntil,
-        token: rows[0].lockToken
+        token: rows[0].lockToken.toString()
       };
     }
 
@@ -394,7 +394,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
             pq.discriminator AS discriminator,
             i.priority AS priority,
             pq.lockUntil AS lockUntil,
-            CASE WHEN ISNULL(pq.lockToken) THEN NULL ELSE UuidFromBin(pq.lockToken) END AS lockToken
+            CASE WHEN pq.lockToken IS NULL THEN NULL ELSE UuidFromBin(pq.lockToken) END AS lockToken
           FROM \`${this.tableNames.priorityQueue}\` AS pq
           JOIN \`${this.tableNames.items}\` AS i
             ON pq.discriminator = i.discriminator
@@ -416,7 +416,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     if (rows[0].lockUntil) {
       queue.lock = {
         until: rows[0].lockUntil,
-        token: rows[0].lockToken
+        token: rows[0].lockToken.toString()
       };
     }
 
