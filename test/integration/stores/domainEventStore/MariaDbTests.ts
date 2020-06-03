@@ -1,14 +1,14 @@
 import { connectionOptions } from '../../../shared/containers/connectionOptions';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getTestsFor } from './getTestsFor';
-import { MariaDbDomainEventStore } from '../../../../lib/stores/domainEventStore/MariaDb';
+import { MySqlDomainEventStore } from '../../../../lib/stores/domainEventStore/MySql';
 
 suite('MariaDb', (): void => {
   getTestsFor({
     async createDomainEventStore ({ suffix }: {
       suffix: string;
     }): Promise<DomainEventStore> {
-      return await MariaDbDomainEventStore.create({
+      return await MySqlDomainEventStore.create({
         ...connectionOptions.mariaDb,
         tableNames: {
           domainEvents: `domainevents_${suffix}`,

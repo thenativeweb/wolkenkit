@@ -1,7 +1,7 @@
 import { connectionOptions } from '../../../shared/containers/connectionOptions';
 import { getTestsFor } from './getTestsFor';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
-import { MariaDbLockStore } from '../../../../lib/stores/lockStore/MariaDb';
+import { MySqlLockStore } from '../../../../lib/stores/lockStore/MySql';
 
 const maxLockSize = 2048;
 
@@ -11,7 +11,7 @@ suite('MariaDb', (): void => {
       suffix: string;
       nonce?: string;
     }): Promise<LockStore> {
-      return await MariaDbLockStore.create({
+      return await MySqlLockStore.create({
         ...connectionOptions.mariaDb,
         maxLockSize,
         tableNames: {

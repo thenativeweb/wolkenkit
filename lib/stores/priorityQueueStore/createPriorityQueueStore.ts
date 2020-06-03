@@ -11,6 +11,9 @@ const createPriorityQueueStore = async function<TItem> ({ type, options }: {
     case 'InMemory': {
       return await InMemoryPriorityQueueStore.create(options);
     }
+    case 'MariaDb': {
+      return await MySqlPriorityQueueStore.create(options);
+    }
     case 'MySql': {
       return await MySqlPriorityQueueStore.create(options);
     }
