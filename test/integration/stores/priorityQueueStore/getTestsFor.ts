@@ -60,7 +60,6 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
   setup(async (): Promise<void> => {
     suffix = getShortId();
-    console.log('setting up new priority queue store instance', { suffix });
     priorityQueueStore = await createPriorityQueueStore({ suffix, expirationTime });
   });
 

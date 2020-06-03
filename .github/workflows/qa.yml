@@ -30,4 +30,4 @@ jobs:
         npm ci
     - name: Run roboter
       run: |
-        npx roboter test --type integration
+        npx roboter

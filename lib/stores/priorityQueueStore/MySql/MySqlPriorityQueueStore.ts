@@ -347,7 +347,6 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     connection: PoolConnection;
     discriminator: string;
   }): Promise<Queue | undefined> {
-    console.log('##### get queue by discriminator', { discriminator });
     const [ rows ] = await runQuery({
       connection,
       query: `
@@ -355,7 +354,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
             pq.indexInPriorityQueue AS indexInPriorityQueue,
             i.priority AS priority,
             pq.lockUntil AS lockUntil,
-            UuidFromBin(pq.lockToken) AS lockToken
+            CASE WHEN ISNULL(pq.lockToken) THEN NULL ELSE UuidFromBin(pq.lockToken) END AS lockToken
           FROM \`${this.tableNames.priorityQueue}\` AS pq
           JOIN \`${this.tableNames.items}\` AS i
             ON pq.discriminator = i.discriminator
@@ -363,7 +362,6 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       `,
       parameters: [ discriminator ]
     });
-    console.log('##### get queue by discriminator | first database result', { rows });
 
     if (rows.length === 0) {
       return;
@@ -382,8 +380,6 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       };
     }
 
-    console.log('##### get queue by discriminator | parsed result', { queue });
-
     return queue;
   }
 
@@ -398,7 +394,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
             pq.discriminator AS discriminator,
             i.priority AS priority,
             pq.lockUntil AS lockUntil,
-            UuidFromBin(pq.lockToken) AS lockToken
+            CASE WHEN ISNULL(pq.lockToken) THEN NULL ELSE UuidFromBin(pq.lockToken) END AS lockToken
           FROM \`${this.tableNames.priorityQueue}\` AS pq
           JOIN \`${this.tableNames.items}\` AS i
             ON pq.discriminator = i.discriminator
@@ -454,10 +450,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     discriminator: string;
     token: string;
   }): Promise<Queue> {
-    console.log('#### get queue if locked', { discriminator, token });
     const queue = await this.getQueueByDiscriminator({ connection, discriminator });
-
-    console.log('#### got queue if locked | got queue', { queue });
 
     if (!queue) {
       throw new errors.ItemNotFound(`Item for discriminator '${discriminator}' not found.`);
@@ -602,11 +595,8 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     discriminator: string;
     token: string;
   }): Promise<void> {
-    console.log('### renew lock internal start', { discriminator, token });
     const queue = await this.getQueueIfLocked({ connection, discriminator, token });
-    console.log('### renew lock internal | got queue', { queue });
     const newUntil = Date.now() + this.expirationTime;
-    console.log('### renew lock inetrnal | new until', { newUntil });
 
     await runQuery({
       connection,
