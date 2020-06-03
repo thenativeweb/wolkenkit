@@ -1,5 +1,3 @@
-import { CommandData } from '../../../../lib/common/elements/CommandData';
-import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { connectionOptions } from '../../../shared/containers/connectionOptions';
 import { getTestsFor } from './getTestsFor';
 import { MySqlPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/MySql';
@@ -10,13 +8,17 @@ suite.only('MySql', (): void => {
     async createPriorityQueueStore ({ suffix, expirationTime }: {
       suffix: string;
       expirationTime: number;
-    }): Promise<PriorityQueueStore<CommandWithMetadata<CommandData>>> {
+    }): Promise<PriorityQueueStore<any>> {
+      const tableNames = {
+        items: `items_${suffix}`,
+        priorityQueue: `priorityQueue_${suffix}`
+      };
+
+      console.log('create new mysql priority queue store instance', { suffix, tableNames });
+
       return await MySqlPriorityQueueStore.create({
         ...connectionOptions.mySql,
-        tableNames: {
-          items: `items_${suffix}`,
-          priorityQueue: `priorityQueue_${suffix}`
-        },
+        tableNames,
         expirationTime
       });
     }
