@@ -5,7 +5,7 @@ import { getTestsFor } from './getTestsFor';
 import { MySqlPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/MySql';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 
-suite('MySql', (): void => {
+suite.only('MySql', (): void => {
   getTestsFor({
     async createPriorityQueueStore ({ suffix, expirationTime }: {
       suffix: string;
