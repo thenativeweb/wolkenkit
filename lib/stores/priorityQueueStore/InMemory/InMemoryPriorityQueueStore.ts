@@ -18,7 +18,7 @@ class InMemoryPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
 
   /* eslint-disable class-methods-use-this */
   protected getPriority ({ queue }: { queue: Queue<TItem> }): number {
-    if (queue.lock) {
+    if (queue.lock && queue.lock.until > Date.now()) {
       return Number.MAX_SAFE_INTEGER;
     }
 

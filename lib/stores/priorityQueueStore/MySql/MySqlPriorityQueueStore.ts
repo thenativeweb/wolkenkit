@@ -22,7 +22,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   protected functionCallQueue: PQueue;
 
   protected static getPriority ({ queue }: { queue: Queue }): number {
-    if (!queue.lock) {
+    if (queue.lock && queue.lock.until > Date.now()) {
       return Number.MAX_SAFE_INTEGER;
     }
 
@@ -239,7 +239,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }): Promise<void> {
     const queue = await this.getQueueByDiscriminator({ connection, discriminator });
 
-    if (queue === undefined) {
+    if (!queue) {
       throw new errors.InvalidOperation();
     }
 
@@ -274,15 +274,15 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       await runQuery({
         connection,
         query: `
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET indexInPriorityQueue = -1
-          WHERE discriminator = ?;
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET indexInPriorityQueue = ?
-          WHERE discriminator = ?;
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET indexInPriorityQueue = ?
-          WHERE indexInPriorityQueue = -1;
+          UPDATE \`${this.tableNames.priorityQueue}\`
+            SET indexInPriorityQueue = -1
+            WHERE discriminator = ?;
+          UPDATE \`${this.tableNames.priorityQueue}\`
+            SET indexInPriorityQueue = ?
+            WHERE discriminator = ?;
+          UPDATE \`${this.tableNames.priorityQueue}\`
+            SET indexInPriorityQueue = ?
+            WHERE indexInPriorityQueue = -1;
       `,
         parameters: [ leftChildQueue.discriminator, leftChildQueue.index, queue.discriminator, queue.index ]
       });
@@ -292,14 +292,17 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       await runQuery({
         connection,
         query: `
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET indexInPriorityQueue = ?
-          WHERE discriminator = ?;
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET indexInPriorityQueue = ?
-          WHERE discriminator = ?;
+          UPDATE \`${this.tableNames.priorityQueue}\`
+            SET indexInPriorityQueue = -1
+            WHERE discriminator = ?;
+          UPDATE \`${this.tableNames.priorityQueue}\`
+            SET indexInPriorityQueue = ?
+            WHERE discriminator = ?;
+          UPDATE \`${this.tableNames.priorityQueue}\`
+            SET indexInPriorityQueue = ?
+            WHERE indexInPriorityQueue = -1;
       `,
-        parameters: [ queue.index, rightChildQueue!.discriminator, rightChildQueue!.index, queue.discriminator ]
+        parameters: [ rightChildQueue!.discriminator, rightChildQueue!.index, queue.discriminator, queue.index ]
       });
 
       await this.repairDown({ connection, discriminator: queue.discriminator });
@@ -391,7 +394,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
             pq.discriminator AS discriminator,
             i.priority AS priority,
             pq.lockUntil AS lockUntil,
-            pq.lockToken AS lockToken
+            UuidFromBin(pq.lockToken) AS lockToken
           FROM \`${this.tableNames.priorityQueue}\` AS pq
           JOIN \`${this.tableNames.items}\` AS i
             ON pq.discriminator = i.discriminator
@@ -406,7 +409,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
 
     const queue: Queue = {
       discriminator: rows[0].discriminator,
-      index: rows[0].indexInPriorityQueue,
+      index: indexInPriorityQueue,
       priority: rows[0].priority
     };
 
