@@ -1,7 +1,6 @@
 import { DomainEventStore } from './DomainEventStore';
 import { errors } from '../../common/errors';
 import { InMemoryDomainEventStore } from './InMemory';
-import { MariaDbDomainEventStore } from './MariaDb';
 import { MongoDbDomainEventStore } from './MongoDb';
 import { MySqlDomainEventStore } from './MySql';
 import { PostgresDomainEventStore } from './Postgres';
@@ -16,7 +15,7 @@ const createDomainEventStore = async function ({ type, options }: {
       return InMemoryDomainEventStore.create();
     }
     case 'MariaDb': {
-      return MariaDbDomainEventStore.create(options);
+      return MySqlDomainEventStore.create(options);
     }
     case 'MongoDb': {
       return MongoDbDomainEventStore.create(options);

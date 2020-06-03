@@ -1,7 +1,6 @@
 import { errors } from '../../common/errors';
 import { InMemoryLockStore } from './InMemory';
 import { LockStore } from './LockStore';
-import { MariaDbLockStore } from './MariaDb';
 import { MongoDbLockStore } from './MongoDb';
 import { MySqlLockStore } from './MySql';
 import { PostgresLockStore } from './Postgres';
@@ -17,7 +16,7 @@ const createLockStore = async function ({ type, options }: {
       return InMemoryLockStore.create({});
     }
     case 'MariaDb': {
-      return MariaDbLockStore.create(options);
+      return MySqlLockStore.create(options);
     }
     case 'MongoDb': {
       return MongoDbLockStore.create(options);

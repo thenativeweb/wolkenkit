@@ -36,16 +36,16 @@ class MySqlDomainEventStore implements DomainEventStore {
   }
 
   protected async getDatabase (): Promise<PoolConnection> {
-    const database = await retry(async (): Promise<PoolConnection> => new Promise((resolve, reject): void => {
-      this.pool.getConnection((err: MysqlError | null, poolConnection): void => {
-        if (err) {
-          reject(err);
+    const database = await retry(async (): Promise<PoolConnection> =>
+      new Promise((resolve, reject): void => {
+        this.pool.getConnection((err: MysqlError | null, poolConnection): void => {
+          if (err) {
+            return reject(err);
+          }
 
-          return;
-        }
-        resolve(poolConnection);
-      });
-    }));
+          resolve(poolConnection);
+        });
+      }));
 
     return database;
   }
@@ -68,10 +68,11 @@ class MySqlDomainEventStore implements DomainEventStore {
       multipleStatements: true
     });
 
-    pool.on('connection', (connection: PoolConnection): void => {
-      connection.on('error', (err: Error): never => {
+    pool.on('connection', (connection): void => {
+      connection.on('error', (err): never => {
         throw err;
       });
+
       connection.on('end', MySqlDomainEventStore.onUnexpectedClose);
     });
 
@@ -79,7 +80,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     const connection = await domainEventStore.getDatabase();
 
     const createUuidToBinFunction = `
-      CREATE FUNCTION UuidToBin(_uuid BINARY(36))
+      CREATE FUNCTION UuidToBin(_uuid CHAR(36))
         RETURNS BINARY(16)
         RETURN UNHEX(CONCAT(
           SUBSTR(_uuid, 15, 4),
@@ -105,7 +106,7 @@ class MySqlDomainEventStore implements DomainEventStore {
 
     const createUuidFromBinFunction = `
       CREATE FUNCTION UuidFromBin(_bin BINARY(16))
-        RETURNS BINARY(36)
+        RETURNS CHAR(36)
         RETURN LCASE(CONCAT_WS('-',
           HEX(SUBSTR(_bin,  5, 4)),
           HEX(SUBSTR(_bin,  3, 2)),
@@ -130,7 +131,6 @@ class MySqlDomainEventStore implements DomainEventStore {
 
     const query = `
       CREATE TABLE IF NOT EXISTS \`${tableNames.domainEvents}\` (
-        revisionGlobal SERIAL,
         aggregateId BINARY(16) NOT NULL,
         revision INT NOT NULL,
         causationId BINARY(16) NOT NULL,
@@ -296,9 +296,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     return passThrough;
   }
 
-  public async getReplay ({
-    fromTimestamp = 0
-  }: {
+  public async getReplay ({ fromTimestamp = 0 }: {
     fromTimestamp?: number;
   } = {}): Promise<Readable> {
     if (fromTimestamp < 0) {

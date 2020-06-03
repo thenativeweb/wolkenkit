@@ -342,7 +342,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         ex.message === `Token mismatch for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}'.`);
     });
 
-    test('renews the lock.', async (): Promise<void> => {
+    test.only('renews the lock.', async (): Promise<void> => {
       await priorityQueueStore.enqueue({
         item: commands.firstAggregate.firstCommand,
         discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
