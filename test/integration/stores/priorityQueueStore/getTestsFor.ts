@@ -53,7 +53,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     }
   };
 
-  let priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
+  let priorityQueueStore: PriorityQueueStore<any>;
 
   setup(async (): Promise<void> => {
     priorityQueueStore = await createPriorityQueueStore({ expirationTime });
@@ -262,6 +262,32 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       const { token: secondNextToken } = (await priorityQueueStore.lockNext())!;
 
       assert.that(firstNextToken).is.not.equalTo(secondNextToken);
+    });
+
+    test(`returns an item if a locked queue's until timestamp is lower than all other priorities.`, async (): Promise<void> => {
+      const item1 = { id: uuid() },
+            item2 = { id: uuid() };
+
+      await priorityQueueStore.enqueue({
+        item: item1,
+        discriminator: 'queue1',
+        priority: Date.now()
+      });
+
+      await priorityQueueStore.enqueue({
+        item: item2,
+        discriminator: 'queue2',
+        priority: Date.now() + (2 * expirationTime)
+      });
+
+      const firstLockResult = await priorityQueueStore.lockNext();
+
+      assert.that(firstLockResult!.item).is.equalTo(item1);
+
+      const secondLockResult = await priorityQueueStore.lockNext();
+
+      assert.that(secondLockResult).is.not.undefined();
+      assert.that(secondLockResult!.item).is.equalTo(item2);
     });
   });
 
