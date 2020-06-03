@@ -1,4 +1,7 @@
 import { errors } from '../../../common/errors';
+import { getIndexOfLeftChild } from '../common/getIndexOfLeftChild';
+import { getIndexOfParent } from '../common/getIndexOfParent';
+import { getIndexOfRightChild } from '../common/getIndexOfRightChild';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
@@ -13,27 +16,9 @@ class InMemoryPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
 
   protected functionCallQueue: PQueue;
 
-  protected static getIndexOfLeftChild ({ index }: { index: number }): number {
-    return (2 * index) + 1;
-  }
-
-  protected static getIndexOfRightChild ({ index }: { index: number }): number {
-    return (2 * index) + 2;
-  }
-
-  protected static getIndexOfParent ({ index }: { index: number }): number {
-    const isLeftChild = index % 2 === 1;
-
-    if (isLeftChild) {
-      return (index - 1) / 2;
-    }
-
-    return (index - 2) / 2;
-  }
-
   /* eslint-disable class-methods-use-this */
   protected getPriority ({ queue }: { queue: Queue<TItem> }): number {
-    if (queue.lock) {
+    if (queue.lock && queue.lock.until > Date.now()) {
       return Number.MAX_SAFE_INTEGER;
     }
 
@@ -66,7 +51,7 @@ class InMemoryPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       return;
     }
 
-    const parentIndex = InMemoryPriorityQueueStore.getIndexOfParent({ index });
+    const parentIndex = getIndexOfParent({ index });
     const parentQueue = this.queues[parentIndex]!;
 
     const queuePriority = this.getPriority({ queue });
@@ -91,8 +76,8 @@ class InMemoryPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       throw new errors.InvalidOperation();
     }
 
-    const leftChildIndex = InMemoryPriorityQueueStore.getIndexOfLeftChild({ index });
-    const rightChildIndex = InMemoryPriorityQueueStore.getIndexOfRightChild({ index });
+    const leftChildIndex = getIndexOfLeftChild({ index });
+    const rightChildIndex = getIndexOfRightChild({ index });
 
     if (leftChildIndex >= this.queues.length) {
       return;

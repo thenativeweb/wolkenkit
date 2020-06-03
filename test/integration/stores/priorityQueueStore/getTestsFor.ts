@@ -3,13 +3,15 @@ import { buildCommandWithMetadata } from '../../../shared/buildCommandWithMetada
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { CustomError } from 'defekt';
+import { getShortId } from '../../../shared/getShortId';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { uuid } from 'uuidv4';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createPriorityQueueStore }: {
-  createPriorityQueueStore ({ expirationTime }: {
+  createPriorityQueueStore ({ suffix, expirationTime }: {
+    suffix: string;
     expirationTime: number;
   }): Promise<PriorityQueueStore<CommandWithMetadata<CommandData>>>;
 }): void {
@@ -53,10 +55,12 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     }
   };
 
-  let priorityQueueStore: PriorityQueueStore<any>;
+  let priorityQueueStore: PriorityQueueStore<any>,
+      suffix: string;
 
   setup(async (): Promise<void> => {
-    priorityQueueStore = await createPriorityQueueStore({ expirationTime });
+    suffix = getShortId();
+    priorityQueueStore = await createPriorityQueueStore({ suffix, expirationTime });
   });
 
   teardown(async function (): Promise<void> {
