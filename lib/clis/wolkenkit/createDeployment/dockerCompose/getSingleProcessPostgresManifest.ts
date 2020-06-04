@@ -41,6 +41,20 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
     }
   });
 
+  const priorityQueueStoreType = 'InMemory';
+  const priorityQueueStoreOptions = JSON.stringify({
+    hostName: 'postgres',
+    port: postgresOptions.port,
+    userName: postgresOptions.userName,
+    password: postgresOptions.password,
+    database: postgresOptions.database,
+    tableNames: {
+      items: 'items',
+      priorityQueue: 'priorityQueue'
+    },
+    expirationTime: 30000
+  });
+
   const snapshotStrategy = JSON.stringify({
     name: 'lowest',
     configuration: {
@@ -66,12 +80,14 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
           COMMAND_QUEUE_RENEW_INTERVAL: ${5_000}
           CONCURRENT_COMMANDS: ${100}
           CORS_ORIGIN: '*'
-          DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
           DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'
+          DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
+          LOCK_STORE_TYPE: '${lockStoreType}'
+          LOCK_STORE_OPTIONS: '${lockStoreOptions}'
+          PRIORITY_QUEUE_STORE_TYPE: '${priorityQueueStoreType}'
+          PRIORITY_QUEUE_STORE_OPTIONS: '${priorityQueueStoreOptions}'
           HEALTH_PORT: ${ports.health}
           IDENTITY_PROVIDERS: '${identityProviders}'
-          LOCK_STORE_OPTIONS: '${lockStoreOptions}'
-          LOCK_STORE_TYPE: '${lockStoreType}'
           LOG_LEVEL: 'debug'
           PORT: ${ports.private}
           SNAPSHOT_STRATEGY: '${snapshotStrategy}'

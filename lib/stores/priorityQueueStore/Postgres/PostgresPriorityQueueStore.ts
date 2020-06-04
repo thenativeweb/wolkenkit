@@ -6,16 +6,17 @@ import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
 import { retry } from 'retry-ignore-abort';
-import { runQuery } from '../../utils/mySql/runQuery';
 import { TableNames } from './TableNames';
 import { uuid } from 'uuidv4';
-import { withTransaction } from '../../utils/mySql/withTransaction';
-import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
+import { withTransaction } from '../../utils/postgres/withTransaction';
+import { Client, Pool, PoolClient } from 'pg';
 
-class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
+class PostgresPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   protected tableNames: TableNames;
 
   protected pool: Pool;
+
+  protected disconnectWatcher: Client;
 
   protected expirationTime: number;
 
@@ -33,35 +34,25 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  protected static releaseConnection ({ connection }: {
-    connection: PoolConnection;
-  }): void {
-    (connection as any).removeListener('end', MySqlPriorityQueueStore.onUnexpectedClose);
-    connection.release();
-  }
+  protected async getDatabase (): Promise<PoolClient> {
+    const database = await retry(async (): Promise<PoolClient> => {
+      const connection = await this.pool.connect();
 
-  protected async getDatabase (): Promise<PoolConnection> {
-    const database = await retry(async (): Promise<PoolConnection> => new Promise((resolve, reject): void => {
-      this.pool.getConnection((err: MysqlError | null, poolConnection): void => {
-        if (err) {
-          reject(err);
-
-          return;
-        }
-        resolve(poolConnection);
-      });
-    }));
+      return connection;
+    });
 
     return database;
   }
 
-  protected constructor ({ tableNames, pool, expirationTime }: {
+  protected constructor ({ tableNames, pool, disconnectWatcher, expirationTime }: {
     tableNames: TableNames;
     pool: Pool;
+    disconnectWatcher: Client;
     expirationTime: number;
   }) {
     this.tableNames = tableNames;
     this.pool = pool;
+    this.disconnectWatcher = disconnectWatcher;
     this.expirationTime = expirationTime;
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
@@ -72,6 +63,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     userName,
     password,
     database,
+    encryptConnection = false,
     tableNames,
     expirationTime = 15_000
   }: {
@@ -80,140 +72,150 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     userName: string;
     password: string;
     database: string;
+    encryptConnection?: boolean;
     tableNames: TableNames;
     expirationTime?: number;
-  }): Promise<MySqlPriorityQueueStore<TItem>> {
-    const pool = createPool({
+  }): Promise<PostgresPriorityQueueStore<TItem>> {
+    const pool = new Pool({
       host: hostName,
       port,
       user: userName,
       password,
       database,
-      connectTimeout: 0,
-      multipleStatements: true
+      ssl: encryptConnection
     });
 
-    pool.on('connection', (connection: PoolConnection): void => {
-      connection.on('error', (err: Error): never => {
-        throw err;
-      });
-      connection.on('end', MySqlPriorityQueueStore.onUnexpectedClose);
+    pool.on('error', (err: Error): never => {
+      throw err;
     });
 
-    const priorityQueueStore = new MySqlPriorityQueueStore<TItem>({ tableNames, pool, expirationTime });
+    const disconnectWatcher = new Client({
+      host: hostName,
+      port,
+      user: userName,
+      password,
+      database,
+      ssl: encryptConnection
+    });
+
+    disconnectWatcher.on('end', PostgresPriorityQueueStore.onUnexpectedClose);
+    disconnectWatcher.on('error', (err): never => {
+      throw err;
+    });
+
+    await new Promise((resolve, reject): void => {
+      try {
+        disconnectWatcher.connect(resolve);
+      } catch (ex) {
+        reject(ex);
+      }
+    });
+
+    const priorityQueueStore = new PostgresPriorityQueueStore<TItem>({
+      pool,
+      tableNames,
+      disconnectWatcher,
+      expirationTime
+    });
+
     const connection = await priorityQueueStore.getDatabase();
 
-    const createUuidToBinFunction = `
-      CREATE FUNCTION UuidToBin(_uuid CHAR(36))
-        RETURNS BINARY(16)
-        RETURN UNHEX(CONCAT(
-          SUBSTR(_uuid, 15, 4),
-          SUBSTR(_uuid, 10, 4),
-          SUBSTR(_uuid, 1, 8),
-          SUBSTR(_uuid, 20, 4),
-          SUBSTR(_uuid, 25)
-        ));
-    `;
-
     try {
-      await runQuery({ connection, query: createUuidToBinFunction });
-    } catch (ex) {
-      // If the function already exists, we can ignore this error; otherwise
-      // rethrow it. Generally speaking, this should be done using a SQL clause
-      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
-      // there is a ready-made function UUID_TO_BIN, but this is only available
-      // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidToBin already exists')) {
-        throw ex;
-      }
+      await retry(async (): Promise<void> => {
+        await connection.query({
+          name: 'create items table',
+          text: `
+            CREATE TABLE IF NOT EXISTS "${tableNames.items}"
+            (
+              "discriminator" varchar(100) NOT NULL,
+              "indexInQueue" integer NOT NULL,
+              "priority" bigint NOT NULL,
+              "item" jsonb NOT NULL,
+      
+              CONSTRAINT "${tableNames.items}_pk" PRIMARY KEY ("discriminator", "indexInQueue")
+            );
+          `
+        });
+        await connection.query({
+          name: 'create index on items table',
+          text: `
+            CREATE INDEX IF NOT EXISTS "${tableNames.items}_index_discriminator" ON "${tableNames.items}" ("discriminator");
+          `
+        });
+        await connection.query({
+          name: 'create priority queue table',
+          text: `
+            CREATE TABLE IF NOT EXISTS "${tableNames.priorityQueue}"
+            (
+              "discriminator" varchar(100) NOT NULL,
+              "indexInPriorityQueue" integer NOT NULL,
+              "lockUntil" bigint,
+              "lockToken" uuid,
+      
+              CONSTRAINT "${tableNames.priorityQueue}_pk" PRIMARY KEY ("discriminator")
+            );
+          `
+        });
+        await connection.query({
+          name: 'create index on priority queue table',
+          text: `
+            CREATE UNIQUE INDEX IF NOT EXISTS "${tableNames.items}_index_indexInPriorityQueue" ON "${tableNames.priorityQueue}" ("indexInPriorityQueue");
+          `
+        });
+      }, {
+        retries: 3,
+        minTimeout: 100,
+        factor: 1
+      });
+    } finally {
+      connection.release();
     }
-
-    const createUuidFromBinFunction = `
-      CREATE FUNCTION UuidFromBin(_bin BINARY(16))
-        RETURNS CHAR(36)
-        RETURN LCASE(CONCAT_WS('-',
-          HEX(SUBSTR(_bin,  5, 4)),
-          HEX(SUBSTR(_bin,  3, 2)),
-          HEX(SUBSTR(_bin,  1, 2)),
-          HEX(SUBSTR(_bin,  9, 2)),
-          HEX(SUBSTR(_bin, 11))
-        ));
-    `;
-
-    try {
-      await runQuery({ connection, query: createUuidFromBinFunction });
-    } catch (ex) {
-      // If the function already exists, we can ignore this error; otherwise
-      // rethrow it. Generally speaking, this should be done using a SQL clause
-      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
-      // there is a ready-made function BIN_TO_UUID, but this is only available
-      // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidFromBin already exists')) {
-        throw ex;
-      }
-    }
-
-    const query = `
-      CREATE TABLE IF NOT EXISTS \`${tableNames.items}\`
-      (
-        discriminator VARCHAR(100) NOT NULL,
-        indexInQueue INT NOT NULL,
-        priority BIGINT NOT NULL,
-        item JSON NOT NULL,
-
-        PRIMARY KEY (discriminator, indexInQueue),
-        INDEX (discriminator)
-      ) ENGINE=InnoDB;
-
-      CREATE TABLE IF NOT EXISTS \`${tableNames.priorityQueue}\`
-      (
-        discriminator VARCHAR(100) NOT NULL,
-        indexInPriorityQueue INT NOT NULL,
-        lockUntil BIGINT,
-        lockToken BINARY(16),
-
-        PRIMARY KEY (discriminator),
-        UNIQUE INDEX (indexInPriorityQueue)
-      ) ENGINE=InnoDB;
-    `;
-
-    await runQuery({ connection, query });
-
-    MySqlPriorityQueueStore.releaseConnection({ connection });
 
     return priorityQueueStore;
   }
 
   public async destroy (): Promise<void> {
-    await new Promise((resolve): void => {
-      this.pool.end(resolve);
-    });
+    this.disconnectWatcher.removeListener('end', PostgresPriorityQueueStore.onUnexpectedClose);
+    await this.disconnectWatcher.end();
+    await this.pool.end();
   }
 
   protected async swapPositionsInPriorityQueue ({ connection, firstQueue, secondQueue }: {
-    connection: PoolConnection;
+    connection: PoolClient;
     firstQueue: Queue;
     secondQueue: Queue;
   }): Promise<void> {
-    await runQuery({
-      connection,
-      query: `
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET indexInPriorityQueue = -1
-          WHERE discriminator = ?;
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET indexInPriorityQueue = ?
-          WHERE discriminator = ?;
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET indexInPriorityQueue = ?
-          WHERE discriminator = ?;
+    await connection.query({
+      name: 'swap positions in priority queue - first to temp',
+      text: `
+        UPDATE "${this.tableNames.priorityQueue}"
+          SET "indexInPriorityQueue" = -1
+          WHERE "discriminator" = $1;
       `,
-      parameters: [ firstQueue.discriminator, firstQueue.index, secondQueue.discriminator, secondQueue.index, firstQueue.discriminator ]
+      values: [ firstQueue.discriminator ]
+    });
+    await connection.query({
+      name: 'swap positions in priority queue - second to first',
+      text: `
+        UPDATE "${this.tableNames.priorityQueue}"
+          SET "indexInPriorityQueue" = $1
+          WHERE "discriminator" = $2;
+      `,
+      values: [ firstQueue.index, secondQueue.discriminator ]
+    });
+    await connection.query({
+      name: 'swap positions in priority queue - first to second',
+      text: `
+        UPDATE "${this.tableNames.priorityQueue}"
+          SET "indexInPriorityQueue" = $1
+          WHERE "discriminator" = $2;
+      `,
+      values: [ secondQueue.index, firstQueue.discriminator ]
     });
   }
 
   protected async repairUp ({ connection, discriminator }: {
-    connection: PoolConnection;
+    connection: PoolClient;
     discriminator: string;
   }): Promise<void> {
     const queue = await this.getQueueByDiscriminator({ connection, discriminator });
@@ -229,8 +231,8 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     const parentIndex = getIndexOfParent({ index: queue.index });
     const parentQueue = (await this.getQueueByIndexInPriorityQueue({ connection, indexInPriorityQueue: parentIndex }))!;
 
-    const queuePriority = MySqlPriorityQueueStore.getPriority({ queue });
-    const parentQueuePriority = MySqlPriorityQueueStore.getPriority({ queue: parentQueue });
+    const queuePriority = PostgresPriorityQueueStore.getPriority({ queue });
+    const parentQueuePriority = PostgresPriorityQueueStore.getPriority({ queue: parentQueue });
 
     if (parentQueuePriority <= queuePriority) {
       return;
@@ -246,7 +248,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }
 
   protected async repairDown ({ connection, discriminator }: {
-    connection: PoolConnection;
+    connection: PoolClient;
     discriminator: string;
   }): Promise<void> {
     const queue = await this.getQueueByDiscriminator({ connection, discriminator });
@@ -268,11 +270,11 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
 
     const rightChildQueue = await this.getQueueByIndexInPriorityQueue({ connection, indexInPriorityQueue: rightChildIndex });
 
-    const queuePriority = MySqlPriorityQueueStore.getPriority({ queue });
+    const queuePriority = PostgresPriorityQueueStore.getPriority({ queue });
 
-    const leftChildQueuePriority = MySqlPriorityQueueStore.getPriority({ queue: leftChildQueue });
+    const leftChildQueuePriority = PostgresPriorityQueueStore.getPriority({ queue: leftChildQueue });
     const rightChildQueuePriority = rightChildQueue ?
-      MySqlPriorityQueueStore.getPriority({ queue: rightChildQueue }) :
+      PostgresPriorityQueueStore.getPriority({ queue: rightChildQueue }) :
       Number.MAX_SAFE_INTEGER;
 
     if (
@@ -302,7 +304,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }
 
   protected async removeInternal ({ connection, discriminator }: {
-    connection: PoolConnection;
+    connection: PoolClient;
     discriminator: string;
   }): Promise<void> {
     const queue = await this.getQueueByDiscriminator({ connection, discriminator });
@@ -311,48 +313,60 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       throw new errors.InvalidOperation();
     }
 
-    const [ results ] = await runQuery({
-      connection,
-      query: `
-        DELETE FROM \`${this.tableNames.priorityQueue}\`
-          WHERE discriminator = ?;
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET indexInPriorityQueue = ?
-          ORDER BY indexInPriorityQueue DESC
-          LIMIT 1;
-        SELECT discriminator FROM \`${this.tableNames.priorityQueue}\`
-          WHERE indexInPriorityQueue = ?;
+    await connection.query({
+      name: 'remove queue from priority queue',
+      text: `
+        DELETE FROM "${this.tableNames.priorityQueue}"
+          WHERE "discriminator" = $1;
+          `,
+      values: [ queue.discriminator ]
+    });
+    const { rowCount } = await connection.query({
+      name: 'move last queue in priority queue to index of removed queue',
+      text: `
+        UPDATE "${this.tableNames.priorityQueue}"
+          SET "indexInPriorityQueue" = $1
+          WHERE "indexInPriorityQueue" = MAX("indexInPriorityQueue");
       `,
-      parameters: [ queue.discriminator, queue.index, queue.index ]
+      values: [ queue.index ]
     });
 
     // If the update did not change any rows, we removed the last queue and
     // don't have to repair.
-    if (results[1].changedRows === 0) {
+    if (rowCount === 0) {
       return;
     }
 
-    await this.repairDown({ connection, discriminator: results[2][0].discriminator });
+    const { rows: [{ discriminator: movedQueueDiscriminator }] } = await connection.query({
+      name: 'get discriminator of moved queue',
+      text: `
+        SELECT "discriminator" FROM "${this.tableNames.priorityQueue}"
+          WHERE "indexInPriorityQueue" = $1;
+      `,
+      values: [ queue.index ]
+    });
+
+    await this.repairDown({ connection, discriminator: movedQueueDiscriminator });
   }
 
   protected async getQueueByDiscriminator ({ connection, discriminator }: {
-    connection: PoolConnection;
+    connection: PoolClient;
     discriminator: string;
   }): Promise<Queue | undefined> {
-    const [ rows ] = await runQuery({
-      connection,
-      query: `
+    const { rows } = await connection.query({
+      name: 'get queue by discriminator',
+      text: `
         SELECT 
-            pq.indexInPriorityQueue AS indexInPriorityQueue,
-            i.priority AS priority,
-            pq.lockUntil AS lockUntil,
-            CASE WHEN pq.lockToken IS NULL THEN NULL ELSE UuidFromBin(pq.lockToken) END AS lockToken
-          FROM \`${this.tableNames.priorityQueue}\` AS pq
-          JOIN \`${this.tableNames.items}\` AS i
-            ON pq.discriminator = i.discriminator
-          WHERE pq.discriminator = ? AND i.indexInQueue = 0;
+            pq."indexInPriorityQueue" AS "indexInPriorityQueue",
+            i."priority" AS "priority",
+            pq."lockUntil" AS "lockUntil",
+            pq."lockToken" AS "lockToken"
+          FROM "${this.tableNames.priorityQueue}" AS pq
+          JOIN "${this.tableNames.items}" AS i
+            ON pq."discriminator" = i."discriminator"
+          WHERE pq."discriminator" = $1 AND i."indexInQueue" = 0;
       `,
-      parameters: [ discriminator ]
+      values: [ discriminator ]
     });
 
     if (rows.length === 0) {
@@ -376,23 +390,23 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }
 
   protected async getQueueByIndexInPriorityQueue ({ connection, indexInPriorityQueue }: {
-    connection: PoolConnection;
+    connection: PoolClient;
     indexInPriorityQueue: number;
   }): Promise<Queue | undefined> {
-    const [ rows ] = await runQuery({
-      connection,
-      query: `
+    const { rows } = await connection.query({
+      name: 'get queue by index in priority queue',
+      text: `
         SELECT 
-            pq.discriminator AS discriminator,
-            i.priority AS priority,
-            pq.lockUntil AS lockUntil,
-            CASE WHEN pq.lockToken IS NULL THEN NULL ELSE UuidFromBin(pq.lockToken) END AS lockToken
-          FROM \`${this.tableNames.priorityQueue}\` AS pq
-          JOIN \`${this.tableNames.items}\` AS i
-            ON pq.discriminator = i.discriminator
-          WHERE pq.indexInPriorityQueue = ? AND i.indexInQueue = 0;
+            pq."discriminator" AS "discriminator",
+            i."priority" AS "priority",
+            pq."lockUntil" AS "lockUntil",
+            pq."lockToken" AS "lockToken"
+          FROM "${this.tableNames.priorityQueue}" AS pq
+          JOIN "${this.tableNames.items}" AS i
+            ON pq."discriminator" = i."discriminator"
+          WHERE pq."indexInPriorityQueue" = $1 AND i."indexInQueue" = 0;
       `,
-      parameters: [ indexInPriorityQueue ]
+      values: [ indexInPriorityQueue ]
     });
 
     if (rows.length === 0) {
@@ -416,29 +430,29 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }
 
   protected async getFirstItemInQueue ({ connection, discriminator }: {
-    connection: PoolConnection;
+    connection: PoolClient;
     discriminator: string;
   }): Promise<TItem> {
-    const [[{ item }]] = await runQuery({
-      connection,
-      query: `
-        SELECT item FROM \`${this.tableNames.items}\`
-          WHERE discriminator = ?
-          ORDER BY indexInQueue ASC
+    const { rows: [{ item }] } = await connection.query({
+      name: 'get first item in queue',
+      text: `
+        SELECT "item" FROM "${this.tableNames.items}"
+          WHERE "discriminator" = $1
+          ORDER BY "indexInQueue" ASC
           LIMIT 1
       `,
-      parameters: [ discriminator ]
+      values: [ discriminator ]
     });
 
     if (!item) {
       throw new errors.InvalidOperation();
     }
 
-    return JSON.parse(item);
+    return item;
   }
 
   protected async getQueueIfLocked ({ connection, discriminator, token }: {
-    connection: PoolConnection;
+    connection: PoolClient;
     discriminator: string;
     token: string;
   }): Promise<Queue> {
@@ -459,52 +473,61 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }
 
   protected async enqueueInternal ({ connection, item, discriminator, priority }: {
-    connection: PoolConnection;
+    connection: PoolClient;
     item: TItem;
     discriminator: string;
     priority: number;
   }): Promise<void> {
-    const [[{ nextIndexInQueue }]] = await runQuery({
-      connection,
-      query: `
-        SELECT COALESCE(MAX(indexInQueue) + 1, 0) as nextIndexInQueue FROM \`${this.tableNames.items}\` WHERE discriminator = ?;
+    const { rows: [{ nextIndexInQueue }] } = await connection.query({
+      name: 'get next index in queue',
+      text: `
+        SELECT COALESCE(MAX("indexInQueue") + 1, 0) AS "nextIndexInQueue"
+          FROM "${this.tableNames.items}"
+          WHERE "discriminator" = $1;
       `,
-      parameters: [ discriminator ]
+      values: [ discriminator ]
     });
 
-    await runQuery({
-      connection,
-      query: `
-        INSERT INTO \`${this.tableNames.items}\` (discriminator, indexInQueue, priority, item)
-          VALUES (?, ?, ?, ?);
+    await connection.query({
+      name: 'insert item into queue',
+      text: `
+        INSERT INTO "${this.tableNames.items}"
+          ("discriminator", "indexInQueue", "priority", "item")
+          VALUES ($1, $2, $3, $4);
       `,
-      parameters: [ discriminator, nextIndexInQueue, priority, JSON.stringify(item) ]
+      values: [ discriminator, nextIndexInQueue, priority, item ]
     });
 
-    try {
-      const [[{ nextIndexInPriorityQueue }]] = await runQuery({
-        connection,
-        query: `
-          SELECT COALESCE(MAX(indexInPriorityQueue) + 1, 0) as nextIndexInPriorityQueue FROM \`${this.tableNames.priorityQueue}\`;
-        `,
-        parameters: [ discriminator ]
-      });
+    const { rows } = await connection.query({
+      name: 'check if discriminator already exists in priority queue',
+      text: `
+        SELECT * FROM "${this.tableNames.priorityQueue}"
+          WHERE "discriminator" = $1;
+      `,
+      values: [ discriminator ]
+    });
 
-      await runQuery({
-        connection,
-        query: `
-          INSERT INTO \`${this.tableNames.priorityQueue}\` (discriminator, indexInPriorityQueue)
-            VALUES (?, ?);
-        `,
-        parameters: [ discriminator, nextIndexInPriorityQueue ]
-      });
-    } catch (ex) {
-      if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
-        return;
-      }
-
-      throw ex;
+    if (rows.length > 0) {
+      return;
     }
+
+    const { rows: [{ nextIndexInPriorityQueue }] } = await connection.query({
+      name: 'get next index in priority queue',
+      text: `
+        SELECT COALESCE(MAX("indexInPriorityQueue") + 1, 0) AS "nextIndexInPriorityQueue"
+          FROM "${this.tableNames.priorityQueue}";
+      `
+    });
+
+    await connection.query({
+      name: 'insert queue into priority queue',
+      text: `
+        INSERT INTO "${this.tableNames.priorityQueue}"
+          ("discriminator", "indexInPriorityQueue")
+          VALUES ($1, $2);
+      `,
+      values: [ discriminator, nextIndexInPriorityQueue ]
+    });
 
     await this.repairUp({ connection, discriminator });
   }
@@ -517,12 +540,12 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     await this.functionCallQueue.add(
       async (): Promise<void> => {
         await withTransaction({
-          getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
+          getConnection: async (): Promise<PoolClient> => await this.getDatabase(),
           fn: async ({ connection }): Promise<void> => {
             await this.enqueueInternal({ connection, item, discriminator, priority });
           },
           async releaseConnection ({ connection }): Promise<void> {
-            MySqlPriorityQueueStore.releaseConnection({ connection });
+            connection.release();
           }
         });
       }
@@ -530,17 +553,17 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }
 
   protected async lockNextInternal ({ connection }: {
-    connection: PoolConnection;
+    connection: PoolClient;
   }): Promise<{ item: TItem; token: string } | undefined> {
-    const [ rows ] = await runQuery({
-      connection,
-      query: `
-        SELECT discriminator FROM \`${this.tableNames.priorityQueue}\`
-          WHERE lockUntil IS NULL OR lockUntil <= ?
-          ORDER BY indexInPriorityQueue ASC
+    const { rows } = await connection.query({
+      name: 'get next unlocked queue in priority queue',
+      text: `
+        SELECT "discriminator" FROM "${this.tableNames.priorityQueue}"
+          WHERE "lockUntil" IS NULL OR "lockUntil" <= $1
+          ORDER BY "indexInPriorityQueue" ASC
           LIMIT 1
       `,
-      parameters: [ Date.now() ]
+      values: [ Date.now() ]
     });
 
     if (rows.length === 0) {
@@ -554,14 +577,14 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     const until = Date.now() + this.expirationTime;
     const token = uuid();
 
-    await runQuery({
-      connection,
-      query: `
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET lockUntil = ?, lockToken = UuidToBin(?)
-          WHERE discriminator = ?
+    await connection.query({
+      name: 'lock queue',
+      text: `
+        UPDATE "${this.tableNames.priorityQueue}"
+          SET "lockUntil" = $1, "lockToken" = $2
+          WHERE "discriminator" = $3
       `,
-      parameters: [ until, token, discriminator ]
+      values: [ until, token, discriminator ]
     });
 
     await this.repairDown({ connection, discriminator });
@@ -572,32 +595,32 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   public async lockNext (): Promise<{ item: TItem; token: string } | undefined> {
     return await this.functionCallQueue.add(
       async (): Promise<{ item: TItem; token: string } | undefined> => await withTransaction({
-        getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
+        getConnection: async (): Promise<PoolClient> => await this.getDatabase(),
         fn: async ({ connection }): Promise<{ item: TItem; token: string } | undefined> =>
           await this.lockNextInternal({ connection }),
         async releaseConnection ({ connection }): Promise<void> {
-          MySqlPriorityQueueStore.releaseConnection({ connection });
+          connection.release();
         }
       })
     );
   }
 
   protected async renewLockInternal ({ connection, discriminator, token }: {
-    connection: PoolConnection;
+    connection: PoolClient;
     discriminator: string;
     token: string;
   }): Promise<void> {
     const queue = await this.getQueueIfLocked({ connection, discriminator, token });
     const newUntil = Date.now() + this.expirationTime;
 
-    await runQuery({
-      connection,
-      query: `
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET lockUntil = ?
-          WHERE discriminator = ?;
+    await connection.query({
+      name: 'renew lock on queue',
+      text: `
+        UPDATE "${this.tableNames.priorityQueue}"
+          SET "lockUntil" = $1
+          WHERE "discriminator" = $2;
       `,
-      parameters: [ newUntil, queue.discriminator ]
+      values: [ newUntil, queue.discriminator ]
     });
 
     await this.repairDown({ connection, discriminator: queue.discriminator });
@@ -610,12 +633,12 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     await this.functionCallQueue.add(
       async (): Promise<void> => {
         await withTransaction({
-          getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
+          getConnection: async (): Promise<PoolClient> => await this.getDatabase(),
           fn: async ({ connection }): Promise<void> => {
             await this.renewLockInternal({ connection, discriminator, token });
           },
           async releaseConnection ({ connection }): Promise<void> {
-            MySqlPriorityQueueStore.releaseConnection({ connection });
+            connection.release();
           }
         });
       }
@@ -623,35 +646,41 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }
 
   protected async acknowledgeInternal ({ connection, discriminator, token }: {
-    connection: PoolConnection;
+    connection: PoolClient;
     discriminator: string;
     token: string;
   }): Promise<void> {
     const queue = await this.getQueueIfLocked({ connection, discriminator, token });
 
-    const [ results ] = await runQuery({
-      connection,
-      query: `
-        DELETE FROM \`${this.tableNames.items}\`
-          WHERE discriminator = ? AND indexInQueue = 0;
-        UPDATE \`${this.tableNames.items}\`
-          SET indexInQueue = indexInQueue - 1
-          WHERE discriminator = ?
-          ORDER BY indexInQueue ASC;
+    await connection.query({
+      name: 'remove item from queue',
+      text: `
+        DELETE FROM "${this.tableNames.items}"
+          WHERE "discriminator" = $1 AND "indexInQueue" = 0;
       `,
-      parameters: [ queue.discriminator, queue.discriminator ]
+      values: [ queue.discriminator ]
     });
 
-    if (results[1].changedRows > 0) {
+    const { rowCount } = await connection.query({
+      name: 'update indexes of items in queue',
+      text: `
+        UPDATE "${this.tableNames.items}"
+          SET "indexInQueue" = "indexInQueue" - 1
+          WHERE "discriminator" = $1;
+      `,
+      values: [ queue.discriminator ]
+    });
+
+    if (rowCount > 0) {
       // If the indexes of any item were changed, i.e. if there are still items in the queue...
-      await runQuery({
-        connection,
-        query: `
-          UPDATE \`${this.tableNames.priorityQueue}\`
-            SET lockUntil = NULL, lockToken = NULL
-            WHERE discriminator = ?;
+      await connection.query({
+        name: 'reset lock on queue',
+        text: `
+          UPDATE "${this.tableNames.priorityQueue}"
+            SET "lockUntil" = NULL, "lockToken" = NULL
+            WHERE "discriminator" = $1;
         `,
-        parameters: [ queue.discriminator ]
+        values: [ queue.discriminator ]
       });
 
       await this.repairDown({ connection, discriminator: queue.discriminator });
@@ -669,12 +698,12 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     await this.functionCallQueue.add(
       async (): Promise<void> => {
         await withTransaction({
-          getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
+          getConnection: async (): Promise<PoolClient> => await this.getDatabase(),
           fn: async ({ connection }): Promise<void> => {
             await this.acknowledgeInternal({ connection, discriminator, token });
           },
           async releaseConnection ({ connection }): Promise<void> {
-            MySqlPriorityQueueStore.releaseConnection({ connection });
+            connection.release();
           }
         });
       }
@@ -682,7 +711,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }
 
   protected async deferInternal ({ connection, discriminator, token, priority }: {
-    connection: PoolConnection;
+    connection: PoolClient;
     discriminator: string;
     token: string;
     priority: number;
@@ -703,12 +732,12 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     await this.functionCallQueue.add(
       async (): Promise<void> => {
         await withTransaction({
-          getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
+          getConnection: async (): Promise<PoolClient> => await this.getDatabase(),
           fn: async ({ connection }): Promise<void> => {
             await this.deferInternal({ connection, discriminator, token, priority });
           },
           async releaseConnection ({ connection }): Promise<void> {
-            MySqlPriorityQueueStore.releaseConnection({ connection });
+            connection.release();
           }
         });
       }
@@ -716,4 +745,4 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }
 }
 
-export { MySqlPriorityQueueStore };
+export { PostgresPriorityQueueStore };

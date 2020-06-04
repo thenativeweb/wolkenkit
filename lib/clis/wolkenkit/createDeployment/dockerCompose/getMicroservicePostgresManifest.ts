@@ -62,6 +62,15 @@ const getMicroservicePostgresManifest = function ({ appName }: {
 
   const priorityQueueStoreType = 'InMemory';
   const priorityQueueStoreOptions = JSON.stringify({
+    hostName: 'postgres',
+    port: postgresOptions.port,
+    userName: postgresOptions.userName,
+    password: postgresOptions.password,
+    database: postgresOptions.database,
+    tableNames: {
+      items: 'items',
+      priorityQueue: 'priorityQueue'
+    },
     expirationTime: 30000
   });
 
