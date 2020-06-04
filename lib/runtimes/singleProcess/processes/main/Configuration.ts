@@ -9,6 +9,8 @@ export interface Configuration {
   domainEventStoreType: string;
   lockStoreOptions: object;
   lockStoreType: string;
+  priorityQueueStoreType: string;
+  priorityQueueStoreOptions: object & { expirationTime: number };
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
   healthPort: number;
