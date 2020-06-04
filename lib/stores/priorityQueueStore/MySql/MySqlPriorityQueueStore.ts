@@ -218,7 +218,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }): Promise<void> {
     const queue = await this.getQueueByDiscriminator({ connection, discriminator });
 
-    if (queue) {
+    if (!queue) {
       throw new errors.InvalidOperation();
     }
 
