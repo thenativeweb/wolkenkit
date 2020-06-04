@@ -4,6 +4,7 @@ import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
+import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
@@ -11,7 +12,6 @@ import { getConfiguration } from './getConfiguration';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
-import { InMemoryPriorityQueueStore } from '../../../../stores/priorityQueueStore/InMemory';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';
@@ -53,7 +53,10 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const priorityQueueStore = await InMemoryPriorityQueueStore.create<CommandWithMetadata<CommandData>>({});
+    const priorityQueueStore = await createPriorityQueueStore<CommandWithMetadata<CommandData>>({
+      type: configuration.priorityQueueStoreType,
+      options: configuration.priorityQueueStoreOptions
+    });
 
     const onReceiveCommand: OnReceiveCommand = async ({ command }): Promise<void> => {
       await priorityQueueStore.enqueue({

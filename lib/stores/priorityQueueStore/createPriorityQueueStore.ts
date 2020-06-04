@@ -1,6 +1,7 @@
 import { errors } from '../../common/errors';
 import { InMemoryPriorityQueueStore } from './InMemory';
 import { MySqlPriorityQueueStore } from './MySql';
+import { PostgresPriorityQueueStore } from './Postgres';
 import { PriorityQueueStore } from './PriorityQueueStore';
 
 const createPriorityQueueStore = async function<TItem> ({ type, options }: {
@@ -16,6 +17,9 @@ const createPriorityQueueStore = async function<TItem> ({ type, options }: {
     }
     case 'MySql': {
       return await MySqlPriorityQueueStore.create(options);
+    }
+    case 'Postgres': {
+      return await PostgresPriorityQueueStore.create(options);
     }
     default: {
       throw new errors.DatabaseTypeInvalid();

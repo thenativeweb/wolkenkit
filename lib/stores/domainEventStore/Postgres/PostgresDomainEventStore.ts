@@ -23,9 +23,9 @@ class PostgresDomainEventStore implements DomainEventStore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  protected static async getDatabase (pool: Pool): Promise<PoolClient> {
+  protected async getDatabase (): Promise<PoolClient> {
     const database = await retry(async (): Promise<PoolClient> => {
-      const connection = await pool.connect();
+      const connection = await this.pool.connect();
 
       return connection;
     });
@@ -101,7 +101,7 @@ class PostgresDomainEventStore implements DomainEventStore {
       disconnectWatcher
     });
 
-    const connection = await PostgresDomainEventStore.getDatabase(pool);
+    const connection = await domainEventStore.getDatabase();
 
     try {
       await retry(async (): Promise<void> => {
@@ -139,7 +139,7 @@ class PostgresDomainEventStore implements DomainEventStore {
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     try {
       const result = await connection.query({
@@ -169,7 +169,7 @@ class PostgresDomainEventStore implements DomainEventStore {
   public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     const domainEventStream = connection.query(
       new QueryStream(
@@ -219,7 +219,7 @@ class PostgresDomainEventStore implements DomainEventStore {
   public async hasDomainEventsWithCausationId ({ causationId }: {
     causationId: string;
   }): Promise<boolean> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     try {
       const result = await connection.query({
@@ -239,7 +239,7 @@ class PostgresDomainEventStore implements DomainEventStore {
   public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     const domainEventStream = connection.query(
       new QueryStream(
@@ -293,7 +293,7 @@ class PostgresDomainEventStore implements DomainEventStore {
       throw new errors.ParameterInvalid(`Parameter 'fromTimestamp' must be at least 0.`);
     }
 
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = connection.query(
@@ -359,7 +359,7 @@ class PostgresDomainEventStore implements DomainEventStore {
       throw new errors.ParameterInvalid(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
     }
 
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = connection.query(
@@ -432,7 +432,7 @@ class PostgresDomainEventStore implements DomainEventStore {
       );
     }
 
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     const text = `
       INSERT INTO "${this.tableNames.domainEvents}"
@@ -461,7 +461,7 @@ class PostgresDomainEventStore implements DomainEventStore {
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<Snapshot<TState> | undefined> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     try {
       const result = await connection.query({
@@ -493,7 +493,7 @@ class PostgresDomainEventStore implements DomainEventStore {
   public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     try {
       await connection.query({
