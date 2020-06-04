@@ -181,7 +181,7 @@
     "roboter": "11.1.26",
     "streamtoarray": "3.0.0",
     "subscriptions-transport-ws": "0.9.16",
-    "thenativeweb-ux": "5.6.1",
+    "thenativeweb-ux": "5.6.4",
     "wait-for-signals": "1.1.0",
     "ws": "7.3.0"
   },
