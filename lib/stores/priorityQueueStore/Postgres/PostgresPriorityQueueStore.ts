@@ -139,7 +139,7 @@ class PostgresPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
         await connection.query({
           name: 'create index on items table',
           text: `
-            CREATE INDEX ON "${tableNames.items}" ("discriminator");
+            CREATE INDEX IF NOT EXISTS ON "${tableNames.items}" ("discriminator");
           `
         });
         await connection.query({
@@ -159,7 +159,7 @@ class PostgresPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
         await connection.query({
           name: 'create index on priority queue table',
           text: `
-            CREATE UNIQUE INDEX ON "${tableNames.priorityQueue}" ("indexInPriorityQueue");
+            CREATE UNIQUE INDEX IF NOT EXISTS ON "${tableNames.priorityQueue}" ("indexInPriorityQueue");
           `
         });
       }, {
