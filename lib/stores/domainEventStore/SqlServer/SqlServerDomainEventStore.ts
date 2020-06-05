@@ -258,12 +258,12 @@ class SqlServerDomainEventStore implements DomainEventStore {
 
     const table = new Table(this.tableNames.domainEvents);
 
-    table.columns.add('aggregateId', Types.UniqueIdentifier);
-    table.columns.add('revision', Types.Int);
-    table.columns.add('causationId', Types.UniqueIdentifier);
-    table.columns.add('correlationId', Types.UniqueIdentifier);
-    table.columns.add('timestamp', Types.BigInt);
-    table.columns.add('domainEvent', Types.NVarChar);
+    table.columns.add('aggregateId', Types.UniqueIdentifier, { nullable: false });
+    table.columns.add('revision', Types.Int, { nullable: false });
+    table.columns.add('causationId', Types.UniqueIdentifier, { nullable: false });
+    table.columns.add('correlationId', Types.UniqueIdentifier, { nullable: false });
+    table.columns.add('timestamp', Types.BigInt, { nullable: false });
+    table.columns.add('domainEvent', Types.NVarChar, { nullable: false });
 
     for (const domainEvent of domainEvents.values()) {
       table.rows.add(
