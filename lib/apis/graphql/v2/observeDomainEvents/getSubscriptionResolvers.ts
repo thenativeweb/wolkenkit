@@ -6,7 +6,7 @@ import { errors } from '../../../../common/errors';
 import { getAggregatesService } from '../../../../common/services/getAggregatesService';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
-import { IResolverObject } from 'graphql-tools';
+import { IResolvers } from 'graphql-tools';
 import { partOf } from 'partof';
 import { prepareForPublication } from '../../../../common/domain/domainEvent/prepareForPublication';
 import { Repository } from '../../../../common/domain/Repository';
@@ -18,7 +18,7 @@ const getSubscriptionResolvers = function ({ applicationDefinition, repository, 
   applicationDefinition: ApplicationDefinition;
   repository: Repository;
   domainEventEmitter: SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>;
-}): IResolverObject<any, ClientMetadata> {
+}): IResolvers<any, ClientMetadata> {
   const aggregatesService = getAggregatesService({ applicationDefinition, repository });
 
   return {
