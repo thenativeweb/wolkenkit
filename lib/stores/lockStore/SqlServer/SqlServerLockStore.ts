@@ -175,6 +175,7 @@ class SqlServerLockStore implements LockStore {
     request.input('name', Types.NVarChar, name);
     request.input('nonce', Types.NVarChar, this.nonce);
     request.input('now', Types.BigInt, Date.now());
+    request.input('expiresAt', Types.BigInt, expiresAt);
 
     const { rowsAffected } = await request.query(`
       UPDATE [${this.tableNames.locks}]
