@@ -138,11 +138,11 @@ class SqlServerDomainEventStore implements DomainEventStore {
     request.stream = true;
     request.pipe(toDomainEventStream);
 
-    await request.query`
+    await request.query(`
       SELECT [domainEvent]
         FROM [${this.tableNames.domainEvents}]
         WHERE [causationId] = @causationId;
-    `;
+    `);
 
     return toDomainEventStream;
   }
