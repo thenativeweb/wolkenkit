@@ -67,7 +67,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
 
     try {
       await pool.query(`
-        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = [${tableNames.domainEvents}])
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.domainEvents}')
           BEGIN
             CREATE TABLE [${tableNames.domainEvents}] (
               [aggregateId] UNIQUEIDENTIFIER NOT NULL,
@@ -81,7 +81,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
             );
           END
 
-        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = [${tableNames.snapshots}])
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.snapshots}')
           BEGIN
             CREATE TABLE [${tableNames.snapshots}] (
               [aggregateId] UNIQUEIDENTIFIER NOT NULL,

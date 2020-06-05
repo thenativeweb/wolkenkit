@@ -71,7 +71,7 @@ class SqlServerLockStore implements LockStore {
 
     try {
       await pool.query(`
-        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = [${tableNames.locks}])
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.locks}')
           BEGIN
             CREATE TABLE [${tableNames.locks}] (
               [name] VARCHAR(${maxLockSize}) NOT NULL,
