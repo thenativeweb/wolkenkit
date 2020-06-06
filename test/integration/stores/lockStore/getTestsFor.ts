@@ -19,7 +19,7 @@ const oneSecondAgo = function (): number {
 };
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
-const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }: {
+const getTestsFor = function ({ createLockStore, maxLockSize }: {
   createLockStore ({ suffix }: { suffix: string }): Promise<LockStore>;
   inMemory?: boolean;
   maxLockSize: number;

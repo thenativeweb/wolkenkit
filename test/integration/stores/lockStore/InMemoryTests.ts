@@ -11,7 +11,6 @@ suite('InMemory', (): void => {
         maxLockSize
       });
     },
-    maxLockSize,
-    inMemory: true
+    maxLockSize
   });
 });
