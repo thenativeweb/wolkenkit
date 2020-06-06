@@ -7,17 +7,15 @@ const maxLockSize = 2048;
 
 suite('MySql', (): void => {
   getTestsFor({
-    async createLockStore ({ suffix, nonce }: {
+    async createLockStore ({ suffix }: {
       suffix: string;
-      nonce?: string;
     }): Promise<LockStore> {
       return await MySqlLockStore.create({
         ...connectionOptions.mySql,
         maxLockSize,
         tableNames: {
           locks: `locks_${suffix}`
-        },
-        nonce
+        }
       });
     },
     maxLockSize

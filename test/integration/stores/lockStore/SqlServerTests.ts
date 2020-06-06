@@ -7,17 +7,15 @@ const maxLockSize = 828;
 
 suite('SqlServer', (): void => {
   getTestsFor({
-    async createLockStore ({ suffix, nonce }: {
+    async createLockStore ({ suffix }: {
       suffix: string;
-      nonce?: string;
     }): Promise<LockStore> {
       return await SqlServerLockStore.create({
         ...connectionOptions.sqlServer,
         maxLockSize,
         tableNames: {
           locks: `locks_${suffix}`
-        },
-        nonce
+        }
       });
     },
     maxLockSize

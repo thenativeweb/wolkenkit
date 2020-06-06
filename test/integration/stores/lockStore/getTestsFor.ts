@@ -20,10 +20,7 @@ const oneSecondAgo = function (): number {
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }: {
-  createLockStore ({ suffix, nonce }: {
-    suffix: string;
-    nonce?: string;
-  }): Promise<LockStore>;
+  createLockStore ({ suffix }: { suffix: string }): Promise<LockStore>;
   inMemory?: boolean;
   maxLockSize: number;
 }): void {
@@ -211,22 +208,6 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
         await lockStore.acquireLock({ name });
       }).is.throwingAsync();
     });
-
-    if (!inMemory) {
-      test('throws an error if the lock does not belong to the store.', async (): Promise<void> => {
-        lockStore = await createLockStore({ suffix, nonce: 'nonce1' });
-        const otherLockStore = await createLockStore({ suffix, nonce: 'nonce2' });
-
-        await lockStore.acquireLock({ name, expiresAt: inMilliseconds({ ms: 100 }) });
-
-        await assert.that(async (): Promise<void> => {
-          await otherLockStore.renewLock({ name, expiresAt: inMilliseconds({ ms: 100 }) });
-        }).is.throwingAsync(
-          (ex): boolean =>
-            (ex as CustomError).code === 'ERENEWLOCKFAILED' && ex.message === 'Failed to renew lock.'
-        );
-      });
-    }
   });
 
   suite('releaseLock', (): void => {
@@ -253,22 +234,6 @@ const getTestsFor = function ({ createLockStore, inMemory = false, maxLockSize }
         await lockStore.releaseLock({ name });
       }).is.not.throwingAsync();
     });
-
-    if (!inMemory) {
-      test('throws an error if the lock does not belong to the store.', async (): Promise<void> => {
-        lockStore = await createLockStore({ suffix, nonce: 'nonce1' });
-        const otherLockStore = await createLockStore({ suffix, nonce: 'nonce2' });
-
-        await lockStore.acquireLock({ name });
-
-        await assert.that(async (): Promise<void> => {
-          await otherLockStore.releaseLock({ name });
-        }).is.throwingAsync(
-          (ex): boolean =>
-            (ex as CustomError).code === 'ERELEASELOCKFAILED' && ex.message === 'Failed to release lock.'
-        );
-      });
-    }
   });
 };
 /* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */

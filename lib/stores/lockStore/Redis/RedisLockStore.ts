@@ -12,23 +12,18 @@ class RedisLockStore implements LockStore {
 
   protected maxLockSize: number;
 
-  protected nonce: string;
-
   protected constructor ({
     client,
     listNames,
-    maxLockSize,
-    nonce
+    maxLockSize
   }: {
     client: RedisClient;
     listNames: ListNames;
     maxLockSize: number;
-    nonce: string | null;
   }) {
     this.client = client;
     this.listNames = listNames;
     this.maxLockSize = maxLockSize;
-    this.nonce = nonce ?? 'null';
   }
 
   protected getLockName ({ name, list }: {
@@ -58,7 +53,6 @@ class RedisLockStore implements LockStore {
     password,
     database,
     listNames,
-    nonce = 'null',
     maxLockSize = 2048
   }: {
     hostName: string;
@@ -66,7 +60,6 @@ class RedisLockStore implements LockStore {
     password: string;
     database: string;
     listNames: ListNames;
-    nonce?: string | null;
     maxLockSize?: number;
   }): Promise<RedisLockStore> {
     const url = `redis://:${password}@${hostName}:${port}/${database}`;
@@ -88,8 +81,7 @@ class RedisLockStore implements LockStore {
     return new RedisLockStore({
       client,
       listNames,
-      maxLockSize,
-      nonce
+      maxLockSize
     });
   }
 
@@ -108,7 +100,7 @@ class RedisLockStore implements LockStore {
     }
 
     const result = await new Promise((resolve, reject): void => {
-      this.client.set(key, this.nonce, 'PX', expiration, 'NX', (err, reply): void => {
+      this.client.set(key, key, 'PX', expiration, 'NX', (err, reply): void => {
         if (err) {
           return reject(err);
         }
@@ -163,7 +155,7 @@ class RedisLockStore implements LockStore {
 
     let result;
 
-    if (existingLock === this.nonce) {
+    if (existingLock === key) {
       result = await new Promise((resolve, reject): void => {
         this.client.pexpire(key, expiration, (err, reply): void => {
           if (err) {
@@ -199,7 +191,7 @@ class RedisLockStore implements LockStore {
 
     if (!existingLock) {
       result = 'OK';
-    } else if (existingLock === this.nonce) {
+    } else if (existingLock === key) {
       result = await new Promise((resolve, reject): void => {
         this.client.del(key, (err): void => {
           if (err) {

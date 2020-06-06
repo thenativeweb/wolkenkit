@@ -7,17 +7,15 @@ const maxLockSize = 2048;
 
 suite('MongoDb', (): void => {
   getTestsFor({
-    async createLockStore ({ suffix, nonce }: {
+    async createLockStore ({ suffix }: {
       suffix: string;
-      nonce?: string;
     }): Promise<LockStore> {
       return await MongoDbLockStore.create({
         ...connectionOptions.mongoDb,
         maxLockSize,
         collectionNames: {
           locks: `locks_${suffix}`
-        },
-        nonce
+        }
       });
     },
     maxLockSize

@@ -9,21 +9,17 @@ import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
 class MySqlLockStore implements LockStore {
   protected pool: Pool;
 
-  protected nonce: null | string;
-
   protected maxLockSize: number;
 
   protected tableNames: TableNames;
 
-  protected constructor ({ tableNames, pool, nonce, maxLockSize }: {
+  protected constructor ({ tableNames, pool, maxLockSize }: {
     tableNames: TableNames;
     pool: Pool;
-    nonce: null | string;
     maxLockSize: number;
   }) {
     this.tableNames = tableNames;
     this.pool = pool;
-    this.nonce = nonce;
     this.maxLockSize = maxLockSize;
   }
 
@@ -60,7 +56,6 @@ class MySqlLockStore implements LockStore {
     password,
     database,
     tableNames,
-    nonce = null,
     maxLockSize = 2048
   }: {
     hostName: string;
@@ -69,7 +64,6 @@ class MySqlLockStore implements LockStore {
     password: string;
     database: string;
     tableNames: TableNames;
-    nonce?: null | string;
     maxLockSize?: number;
   }): Promise<MySqlLockStore> {
     const pool = createPool({
@@ -92,7 +86,6 @@ class MySqlLockStore implements LockStore {
     const eventstore = new MySqlLockStore({
       tableNames,
       pool,
-      nonce,
       maxLockSize
     });
 
@@ -103,7 +96,6 @@ class MySqlLockStore implements LockStore {
       query: `CREATE TABLE IF NOT EXISTS \`${tableNames.locks}\` (
         name VARCHAR(${maxLockSize}) NOT NULL,
         expiresAt BIGINT NOT NULL,
-        nonce VARCHAR(64),
 
         PRIMARY KEY(name)
       );`
@@ -141,9 +133,9 @@ class MySqlLockStore implements LockStore {
       try {
         await runQuery({
           connection,
-          query: ` INSERT INTO \`${this.tableNames.locks}\` (expiresAt, nonce, name)
-            VALUES (?, ?, ?);`,
-          parameters: [ expiresAt, this.nonce, name ]
+          query: ` INSERT INTO \`${this.tableNames.locks}\` (expiresAt, name)
+            VALUES (?, ?);`,
+          parameters: [ expiresAt, name ]
         });
       } catch {
         throw new errors.AcquireLockFailed('Failed to acquire lock.');
@@ -202,7 +194,7 @@ class MySqlLockStore implements LockStore {
     try {
       const [ rows ] = await runQuery({
         connection,
-        query: `SELECT expiresAt, nonce
+        query: `SELECT expiresAt
           FROM \`${this.tableNames.locks}\`
          WHERE name = ?;`,
         parameters: [ name ]
@@ -214,7 +206,7 @@ class MySqlLockStore implements LockStore {
 
       const [ entry ] = rows;
 
-      if (entry.expiresAt < Date.now() || this.nonce !== entry.nonce) {
+      if (entry.expiresAt < Date.now()) {
         throw new errors.RenewLockFailed('Failed to renew lock.');
       }
 
@@ -242,7 +234,7 @@ class MySqlLockStore implements LockStore {
     try {
       const [ rows ] = await runQuery({
         connection,
-        query: `SELECT expiresAt, nonce
+        query: `SELECT expiresAt
           FROM \`${this.tableNames.locks}\`
          WHERE name = ?;`,
         parameters: [ name ]
@@ -254,7 +246,7 @@ class MySqlLockStore implements LockStore {
 
       const [ entry ] = rows;
 
-      if (Date.now() < entry.expiresAt && this.nonce !== entry.nonce) {
+      if (Date.now() < entry.expiresAt) {
         throw new errors.ReleaseLockFailed('Failed to release lock.');
       }
 

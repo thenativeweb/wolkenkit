@@ -11,8 +11,6 @@ class MongoDbLockStore implements LockStore {
 
   protected db: Db;
 
-  protected nonce: string | null;
-
   protected maxLockSize: number;
 
   protected collectionNames: CollectionNames;
@@ -21,10 +19,9 @@ class MongoDbLockStore implements LockStore {
     locks: Collection<any>;
   };
 
-  protected constructor ({ client, db, nonce, maxLockSize, collectionNames, collections }: {
+  protected constructor ({ client, db, maxLockSize, collectionNames, collections }: {
     client: MongoClient;
     db: Db;
-    nonce: string | null;
     maxLockSize: number;
     collectionNames: CollectionNames;
     collections: {
@@ -33,7 +30,6 @@ class MongoDbLockStore implements LockStore {
   }) {
     this.client = client;
     this.db = db;
-    this.nonce = nonce;
     this.maxLockSize = maxLockSize;
     this.collectionNames = collectionNames;
     this.collections = collections;
@@ -50,7 +46,6 @@ class MongoDbLockStore implements LockStore {
     password,
     database,
     collectionNames,
-    nonce = null,
     maxLockSize = 968
   }: {
     hostName: string;
@@ -59,7 +54,6 @@ class MongoDbLockStore implements LockStore {
     password: string;
     database: string;
     collectionNames: CollectionNames;
-    nonce?: string | null;
     maxLockSize?: number;
   }): Promise<MongoDbLockStore> {
     const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
@@ -100,7 +94,6 @@ class MongoDbLockStore implements LockStore {
     return new MongoDbLockStore({
       client,
       db,
-      nonce,
       maxLockSize,
       collectionNames,
       collections
@@ -147,7 +140,6 @@ class MongoDbLockStore implements LockStore {
 
         const $set = {
           ...query,
-          nonce: this.nonce,
           expiresAt
         };
 
@@ -198,13 +190,10 @@ class MongoDbLockStore implements LockStore {
     try {
       await session.withTransaction(async (): Promise<void> => {
         const entry = await this.collections.locks.findOne(query, {
-          projection: { _id: 0, expiresAt: 1, nonce: 1 }
+          projection: { _id: 0, expiresAt: 1 }
         });
 
-        if (!entry) {
-          throw new errors.RenewLockFailed('Failed to renew lock.');
-        }
-        if (entry.expiresAt < Date.now() || this.nonce !== entry.nonce) {
+        if (!entry || entry.expiresAt < Date.now()) {
           throw new errors.RenewLockFailed('Failed to renew lock.');
         }
 
@@ -234,13 +223,13 @@ class MongoDbLockStore implements LockStore {
     try {
       await session.withTransaction(async (): Promise<void> => {
         const entry = await this.collections.locks.findOne({ name }, {
-          projection: { _id: 0, expiresAt: 1, nonce: 1 }
+          projection: { _id: 0, expiresAt: 1 }
         });
 
         if (!entry) {
           return;
         }
-        if (Date.now() < entry.expiresAt && this.nonce !== entry.nonce) {
+        if (Date.now() < entry.expiresAt) {
           throw new errors.ReleaseLockFailed('Failed to release lock.');
         }
 

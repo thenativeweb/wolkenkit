@@ -7,17 +7,15 @@ const maxLockSize = 2048;
 
 suite('MariaDb', (): void => {
   getTestsFor({
-    async createLockStore ({ suffix, nonce }: {
+    async createLockStore ({ suffix }: {
       suffix: string;
-      nonce?: string;
     }): Promise<LockStore> {
       return await MySqlLockStore.create({
         ...connectionOptions.mariaDb,
         maxLockSize,
         tableNames: {
           locks: `locks_${suffix}`
-        },
-        nonce
+        }
       });
     },
     maxLockSize

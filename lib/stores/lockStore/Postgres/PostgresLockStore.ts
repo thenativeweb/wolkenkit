@@ -10,8 +10,6 @@ class PostgresLockStore implements LockStore {
 
   protected pool: Pool;
 
-  protected nonce: string | null;
-
   protected maxLockSize: number;
 
   protected disconnectWatcher: Client;
@@ -30,16 +28,14 @@ class PostgresLockStore implements LockStore {
     return database;
   }
 
-  protected constructor ({ tableNames, pool, nonce, maxLockSize, disconnectWatcher }: {
+  protected constructor ({ tableNames, pool, maxLockSize, disconnectWatcher }: {
     tableNames: TableNames;
     pool: Pool;
-    nonce: string | null;
     maxLockSize: number;
     disconnectWatcher: Client;
   }) {
     this.tableNames = tableNames;
     this.pool = pool;
-    this.nonce = nonce;
     this.maxLockSize = maxLockSize;
     this.disconnectWatcher = disconnectWatcher;
   }
@@ -52,7 +48,6 @@ class PostgresLockStore implements LockStore {
     database,
     encryptConnection = false,
     tableNames,
-    nonce = null,
     maxLockSize = 2048
   }: {
     hostName: string;
@@ -62,7 +57,6 @@ class PostgresLockStore implements LockStore {
     database: string;
     encryptConnection: boolean;
     tableNames: TableNames;
-    nonce?: string | null;
     maxLockSize?: number;
   }): Promise<PostgresLockStore> {
     const pool = new Pool({
@@ -103,7 +97,6 @@ class PostgresLockStore implements LockStore {
     const lockstore = new PostgresLockStore({
       tableNames,
       pool,
-      nonce,
       maxLockSize,
       disconnectWatcher
     });
@@ -116,7 +109,6 @@ class PostgresLockStore implements LockStore {
           CREATE TABLE IF NOT EXISTS "${tableNames.locks}" (
             "name" VARCHAR(${maxLockSize}) NOT NULL,
             "expiresAt" BIGINT NOT NULL,
-            "nonce" VARCHAR(64),
 
             CONSTRAINT "${tableNames.locks}_pk" PRIMARY KEY("name")
           );
@@ -161,10 +153,10 @@ class PostgresLockStore implements LockStore {
         await connection.query({
           name: `try to acquire lock`,
           text: `
-        INSERT INTO "${this.tableNames.locks}" ("name", "expiresAt", "nonce")
-        VALUES ($1, $2, $3)
+        INSERT INTO "${this.tableNames.locks}" ("name", "expiresAt")
+        VALUES ($1, $2)
         `,
-          values: [ name, expiresAt, this.nonce ]
+          values: [ name, expiresAt ]
         });
       } catch {
         throw new errors.AcquireLockFailed('Failed to acquire lock.');
@@ -226,7 +218,7 @@ class PostgresLockStore implements LockStore {
       const result = await connection.query({
         name: 'get lock',
         text: `
-        SELECT "expiresAt", "nonce"
+        SELECT "expiresAt"
           FROM "${this.tableNames.locks}"
          WHERE "name" = $1
       `,
@@ -239,7 +231,7 @@ class PostgresLockStore implements LockStore {
 
       const [ entry ] = result.rows;
 
-      if (entry.expiresAt < Date.now() || this.nonce !== entry.nonce) {
+      if (entry.expiresAt < Date.now()) {
         throw new errors.RenewLockFailed('Failed to renew lock.');
       }
 
@@ -270,7 +262,7 @@ class PostgresLockStore implements LockStore {
       const result = await connection.query({
         name: 'get lock',
         text: `
-        SELECT "expiresAt", "nonce"
+        SELECT "expiresAt"
           FROM "${this.tableNames.locks}"
          WHERE "name" = $1
       `,
@@ -283,7 +275,7 @@ class PostgresLockStore implements LockStore {
 
       const [ entry ] = result.rows;
 
-      if (Date.now() < entry.expiresAt && this.nonce !== entry.nonce) {
+      if (Date.now() < entry.expiresAt) {
         throw new errors.ReleaseLockFailed('Failed to release lock.');
       }
 

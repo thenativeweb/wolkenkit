@@ -7,9 +7,8 @@ const maxLockSize = 2048;
 
 suite('Postgres', (): void => {
   getTestsFor({
-    async createLockStore ({ suffix, nonce }: {
+    async createLockStore ({ suffix }: {
       suffix: string;
-      nonce?: string;
     }): Promise<LockStore> {
       return await PostgresLockStore.create({
         ...connectionOptions.postgres,
@@ -17,8 +16,7 @@ suite('Postgres', (): void => {
         tableNames: {
           locks: `locks_${suffix}`
         },
-        encryptConnection: false,
-        nonce
+        encryptConnection: false
       });
     },
     maxLockSize

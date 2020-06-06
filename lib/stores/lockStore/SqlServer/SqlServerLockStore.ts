@@ -9,23 +9,19 @@ class SqlServerLockStore implements LockStore {
 
   protected tableNames: TableNames;
 
-  protected nonce: string | null;
-
   protected maxLockSize: number;
 
   protected static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  protected constructor ({ pool, tableNames, nonce, maxLockSize }: {
+  protected constructor ({ pool, tableNames, maxLockSize }: {
     pool: ConnectionPool;
     tableNames: TableNames;
-    nonce: string | null;
     maxLockSize: number;
   }) {
     this.pool = pool;
     this.tableNames = tableNames;
-    this.nonce = nonce;
     this.maxLockSize = maxLockSize;
   }
 
@@ -37,7 +33,6 @@ class SqlServerLockStore implements LockStore {
     database,
     encryptConnection = false,
     tableNames,
-    nonce = null,
     maxLockSize = 828
   }: {
     hostName: string;
@@ -47,7 +42,6 @@ class SqlServerLockStore implements LockStore {
     database: string;
     encryptConnection?: boolean;
     tableNames: TableNames;
-    nonce?: string | null;
     maxLockSize?: number;
   }): Promise<SqlServerLockStore> {
     const pool = new ConnectionPool({
@@ -76,7 +70,6 @@ class SqlServerLockStore implements LockStore {
             CREATE TABLE [${tableNames.locks}] (
               [name] VARCHAR(${maxLockSize}) NOT NULL,
               [expiresAt] BIGINT NOT NULL,
-              [nonce] NVARCHAR(64),
 
               CONSTRAINT [${tableNames.locks}_pk] PRIMARY KEY([name])
             );
@@ -92,7 +85,7 @@ class SqlServerLockStore implements LockStore {
       // simply ignore it.
     }
 
-    return new SqlServerLockStore({ pool, tableNames, nonce, maxLockSize });
+    return new SqlServerLockStore({ pool, tableNames, maxLockSize });
   }
 
   public async acquireLock ({
@@ -121,12 +114,11 @@ class SqlServerLockStore implements LockStore {
 
     requestInsert.input('name', Types.NVarChar, name);
     requestInsert.input('expiresAt', Types.BigInt, expiresAt);
-    requestInsert.input('nonce', Types.NVarChar, this.nonce);
 
     try {
       await requestInsert.query(`
-        INSERT INTO [${this.tableNames.locks}] ([name], [expiresAt], [nonce])
-          VALUES (@name, @expiresAt, @nonce);
+        INSERT INTO [${this.tableNames.locks}] ([name], [expiresAt])
+          VALUES (@name, @expiresAt);
       `);
     } catch {
       throw new errors.AcquireLockFailed('Failed to acquire lock.');
@@ -173,14 +165,13 @@ class SqlServerLockStore implements LockStore {
     const request = this.pool.request();
 
     request.input('name', Types.NVarChar, name);
-    request.input('nonce', Types.NVarChar, this.nonce);
     request.input('now', Types.BigInt, Date.now());
     request.input('expiresAt', Types.BigInt, expiresAt);
 
     const { rowsAffected } = await request.query(`
       UPDATE [${this.tableNames.locks}]
         SET [expiresAt] = @expiresAt
-        WHERE [name] = @name AND [nonce] = @nonce AND [expiresAt] >= @now;
+        WHERE [name] = @name AND [expiresAt] >= @now;
     `);
 
     if (rowsAffected[0] === 0) {
@@ -198,12 +189,11 @@ class SqlServerLockStore implements LockStore {
     const request = this.pool.request();
 
     request.input('name', Types.NVarChar, name);
-    request.input('nonce', Types.NVarChar, this.nonce);
     request.input('now', Types.BigInt, Date.now());
 
     const { rowsAffected } = await request.query(`
       DELETE [${this.tableNames.locks}]
-        WHERE [name] = @name AND [nonce] = @nonce AND [expiresAt] >= @now;
+        WHERE [name] = @name AND [expiresAt] >= @now;
     `);
 
     if (rowsAffected[0] === 0) {

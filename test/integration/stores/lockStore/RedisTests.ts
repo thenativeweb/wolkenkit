@@ -7,17 +7,15 @@ const maxLockSize = 2048;
 
 suite('Redis', (): void => {
   getTestsFor({
-    async createLockStore ({ suffix, nonce }: {
+    async createLockStore ({ suffix }: {
       suffix: string;
-      nonce?: string;
     }): Promise<LockStore> {
       return await RedisLockStore.create({
         ...connectionOptions.redis,
         maxLockSize,
         listNames: {
           locks: `locks_${suffix}`
-        },
-        nonce
+        }
       });
     },
     maxLockSize
