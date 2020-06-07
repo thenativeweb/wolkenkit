@@ -31,7 +31,7 @@ const createDockerConfiguration = async function ({ directory }: {
         RUN mkdir /app
         WORKDIR /app
 
-        ADD ./package.json ./.npmrc* .
+        ADD ./package.json ./.npmrc* ./
         RUN npm install
 
         ADD . .
@@ -44,7 +44,7 @@ const createDockerConfiguration = async function ({ directory }: {
         RUN mkdir /app
         WORKDIR /app
 
-        ADD ./package.json ./.npmrc* .
+        ADD ./package.json ./.npmrc* ./
         RUN npm install --production
 
 
