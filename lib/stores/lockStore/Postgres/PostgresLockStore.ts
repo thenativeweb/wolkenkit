@@ -171,11 +171,11 @@ class PostgresLockStore implements LockStore {
       const result = await connection.query({
         name: 'get lock',
         text: `
-          SELECT "expiresAt"
+          SELECT 1
             FROM "${this.tableNames.locks}"
-            WHERE "value" = $1
+            WHERE "value" = $1 AND "expiresAt" >= $2
         `,
-        values: [ hash ]
+        values: [ hash, Date.now() ]
       });
 
       if (result.rows.length === 0) {

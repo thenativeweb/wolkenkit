@@ -153,9 +153,9 @@ class MySqlLockStore implements LockStore {
       const [ rows ] = await runQuery({
         connection,
         query: `
-          SELECT expiresAt
+          SELECT 1
             FROM \`${this.tableNames.locks}\`
-            WHERE value = ? AND expiresAt <= ?;
+            WHERE value = ? AND expiresAt >= ?;
         `,
         parameters: [ hash, Date.now() ]
       });

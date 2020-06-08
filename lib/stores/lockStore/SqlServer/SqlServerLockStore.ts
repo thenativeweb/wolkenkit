@@ -130,9 +130,9 @@ class SqlServerLockStore implements LockStore {
     request.input('now', Types.BigInt, Date.now());
 
     const { recordset } = await request.query(`
-      SELECT TOP(1) [expiresAt]
+      SELECT 1
         FROM [${this.tableNames.locks}]
-        WHERE [value] = @value AND [expiresAt] <= @now;
+        WHERE [value] = @value AND [expiresAt] >= @now;
     `);
 
     if (recordset.length === 0) {
