@@ -18,7 +18,7 @@ class InMemoryLockStore implements LockStore {
 
   protected async removeExpiredLocks (): Promise<void> {
     this.database.locks = this.database.locks.filter((lock): boolean =>
-      lock.expiresAt <= Date.now());
+      lock.expiresAt >= Date.now());
   }
 
   public async acquireLock ({ value, expiresAt = Number.MAX_SAFE_INTEGER }: {
