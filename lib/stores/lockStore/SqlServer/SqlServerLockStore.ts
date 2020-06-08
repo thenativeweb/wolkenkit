@@ -1,5 +1,5 @@
 import { errors } from '../errors';
-import { getHash } from '../getHash';
+import { getHash } from '../shared/getHash';
 import { LockStore } from '../LockStore';
 import { TableNames } from './TableNames';
 import { ConnectionPool, TYPES as Types } from 'mssql';

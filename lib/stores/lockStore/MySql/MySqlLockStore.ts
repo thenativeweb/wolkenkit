@@ -1,5 +1,5 @@
 import { errors } from '../errors';
-import { getHash } from '../getHash';
+import { getHash } from '../shared/getHash';
 import { LockStore } from '../LockStore';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';

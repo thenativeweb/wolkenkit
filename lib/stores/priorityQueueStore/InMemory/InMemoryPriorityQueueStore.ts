@@ -1,7 +1,7 @@
-import { errors } from '../../../common/errors';
-import { getIndexOfLeftChild } from '../common/getIndexOfLeftChild';
-import { getIndexOfParent } from '../common/getIndexOfParent';
-import { getIndexOfRightChild } from '../common/getIndexOfRightChild';
+import { errors } from '../../../shared/errors';
+import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
+import { getIndexOfParent } from '../shared/getIndexOfParent';
+import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';

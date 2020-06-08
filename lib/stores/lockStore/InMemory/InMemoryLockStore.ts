@@ -1,5 +1,5 @@
 import { errors } from '../errors';
-import { getHash } from '../getHash';
+import { getHash } from '../shared/getHash';
 import { Lock } from './Lock';
 import { LockStore } from '../LockStore';
 

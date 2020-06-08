@@ -1,6 +1,6 @@
 import { CollectionNames } from './CollectionNames';
 import { errors } from '../errors';
-import { getHash } from '../getHash';
+import { getHash } from '../shared/getHash';
 import { LockStore } from '../LockStore';
 import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
