@@ -1,4 +1,4 @@
-import { errors } from '../../shared/errors';
+import { errors } from '../../common/errors';
 import { InMemoryPriorityQueueStore } from './InMemory';
 import { MySqlPriorityQueueStore } from './MySql';
 import { PostgresPriorityQueueStore } from './Postgres';

@@ -1,4 +1,4 @@
-import { errors } from '../../../shared/errors';
+import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
