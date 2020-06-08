@@ -85,17 +85,6 @@ update_configs:
       prefix: "fix"
 
   - package_manager: "docker"
-    directory: "/docker/wolkenkit-redis"
-    update_schedule: "daily"
-    default_assignees:
-    - "goloroden"
-    - "yeldiRium"
-    default_labels:
-    - "Dependencies"
-    commit_message:
-      prefix: "fix"
-
-  - package_manager: "docker"
     directory: "/docker/wolkenkit-sqlserver"
     update_schedule: "daily"
     default_assignees:
