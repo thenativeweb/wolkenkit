@@ -214,7 +214,7 @@ class PostgresLockStore implements LockStore {
         values: [ hash, expiresAt ]
       });
 
-      if (result.rows.length === 0) {
+      if (result.rowCount === 0) {
         throw new errors.RenewLockFailed('Failed to renew lock.');
       }
     } finally {
