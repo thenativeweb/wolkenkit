@@ -1,20 +1,20 @@
 export interface LockStore {
-  acquireLock: ({ name, expiresAt }: {
-    name: string;
+  acquireLock: ({ value, expiresAt }: {
+    value: string;
     expiresAt?: number;
   }) => Promise<void>;
 
-  isLocked: ({ name }: {
-    name: string;
+  isLocked: ({ value }: {
+    value: string;
   }) => Promise<boolean>;
 
-  renewLock: ({ name, expiresAt }: {
-    name: string;
+  renewLock: ({ value, expiresAt }: {
+    value: string;
     expiresAt: number;
   }) => Promise<void>;
 
-  releaseLock: ({ name }: {
-    name: string;
+  releaseLock: ({ value }: {
+    value: string;
   }) => Promise<void>;
 
   destroy: () => Promise<void>;

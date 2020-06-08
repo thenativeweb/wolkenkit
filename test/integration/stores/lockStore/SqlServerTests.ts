@@ -3,8 +3,6 @@ import { getTestsFor } from './getTestsFor';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { SqlServerLockStore } from '../../../../lib/stores/lockStore/SqlServer';
 
-const maxLockSize = 828;
-
 suite('SqlServer', (): void => {
   getTestsFor({
     async createLockStore ({ suffix }: {
@@ -12,12 +10,10 @@ suite('SqlServer', (): void => {
     }): Promise<LockStore> {
       return await SqlServerLockStore.create({
         ...connectionOptions.sqlServer,
-        maxLockSize,
         tableNames: {
           locks: `locks_${suffix}`
         }
       });
-    },
-    maxLockSize
+    }
   });
 });

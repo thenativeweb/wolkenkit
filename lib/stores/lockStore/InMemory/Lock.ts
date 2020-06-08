@@ -1,4 +1,4 @@
 export interface Lock {
-  name: string;
+  value: string;
   expiresAt: number;
 }

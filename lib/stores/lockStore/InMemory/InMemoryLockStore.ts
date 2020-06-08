@@ -1,81 +1,75 @@
 import { errors } from '../errors';
+import { getHash } from '../getHash';
 import { Lock } from './Lock';
 import { LockStore } from '../LockStore';
-import { javascript as maxDate } from '../../../common/utils/maxDate';
 
 class InMemoryLockStore implements LockStore {
-  protected maxLockSize: number;
-
   protected database: { locks: Lock[] };
 
-  protected constructor ({ maxLockSize }: { maxLockSize: number }) {
-    this.maxLockSize = maxLockSize;
+  protected constructor () {
     this.database = {
       locks: []
     };
   }
 
-  public static async create ({ maxLockSize = 2048 }: {
-    maxLockSize?: number;
-  }): Promise<InMemoryLockStore> {
-    return new InMemoryLockStore({ maxLockSize });
+  public static async create (): Promise<InMemoryLockStore> {
+    return new InMemoryLockStore();
   }
 
-  public async acquireLock ({
-    name,
-    expiresAt = maxDate
-  }: {
-    name: string;
+  protected async removeExpiredLocks (): Promise<void> {
+    this.database.locks = this.database.locks.filter((lock): boolean =>
+      lock.expiresAt <= Date.now());
+  }
+
+  public async acquireLock ({ value, expiresAt = Number.MAX_SAFE_INTEGER }: {
+    value: string;
     expiresAt?: number;
   }): Promise<void> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
+    if (expiresAt < Date.now()) {
+      throw new errors.ExpirationInPast('A lock must not expire in the past.');
     }
 
-    if (expiresAt - Date.now() < 0) {
-      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
-    }
+    // From time to time, we should removed expired locks. Doing this before
+    // acquiring new ones is a good point in time for this.
+    await this.removeExpiredLocks();
 
-    const isLocked = this.database.locks.some(
-      (lock): boolean => lock.name === name && Date.now() < lock.expiresAt
-    );
+    const hash = getHash({ value });
+    const isLocked = this.database.locks.some((lock): boolean =>
+      lock.value === hash);
 
     if (isLocked) {
       throw new errors.AcquireLockFailed('Failed to acquire lock.');
     }
 
-    const lock = { name, expiresAt };
+    const lock = { value: hash, expiresAt };
 
     this.database.locks.push(lock);
   }
 
-  public async isLocked ({ name }: {
-    name: string;
+  public async isLocked ({ value }: {
+    value: string;
   }): Promise<boolean> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
-    }
+    const hash = getHash({ value });
 
-    return this.database.locks.some(
-      (lock): boolean => lock.name === name && Date.now() < lock.expiresAt
-    );
+    return this.database.locks.some((lock): boolean =>
+      lock.value === hash && Date.now() <= lock.expiresAt);
   }
 
-  public async renewLock ({ name, expiresAt }: {
-    name: string;
+  public async renewLock ({ value, expiresAt }: {
+    value: string;
     expiresAt: number;
   }): Promise<void> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
+    if (expiresAt < Date.now()) {
+      throw new errors.ExpirationInPast('A lock must not expire in the past.');
     }
 
-    if (expiresAt - Date.now() < 0) {
-      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
-    }
+    // From time to time, we should removed expired locks. Doing this before
+    // renewing existing ones is a good point in time for this.
+    await this.removeExpiredLocks();
 
-    const existingLock = this.database.locks.find(
-      (lock): boolean => lock.name === name && Date.now() < lock.expiresAt
-    );
+    const hash = getHash({ value });
+    const existingLock = this.database.locks.find((lock): boolean =>
+      lock.value === hash);
 
     if (!existingLock) {
       throw new errors.RenewLockFailed('Failed to renew lock.');
@@ -84,16 +78,16 @@ class InMemoryLockStore implements LockStore {
     existingLock.expiresAt = expiresAt;
   }
 
-  public async releaseLock ({ name }: {
-    name: string;
+  public async releaseLock ({ value }: {
+    value: string;
   }): Promise<void> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
-    }
+    // From time to time, we should removed expired locks. Doing this before
+    // releasing existing ones is a good point in time for this.
+    await this.removeExpiredLocks();
 
-    const index = this.database.locks.findIndex(
-      (lock): boolean => lock.name === name
-    );
+    const hash = getHash({ value });
+    const index = this.database.locks.findIndex((lock): boolean =>
+      lock.value === hash);
 
     if (index === -1) {
       return;

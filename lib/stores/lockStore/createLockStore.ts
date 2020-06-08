@@ -4,7 +4,6 @@ import { LockStore } from './LockStore';
 import { MongoDbLockStore } from './MongoDb';
 import { MySqlLockStore } from './MySql';
 import { PostgresLockStore } from './Postgres';
-import { RedisLockStore } from './Redis';
 import { SqlServerLockStore } from './SqlServer';
 
 const createLockStore = async function ({ type, options }: {
@@ -13,7 +12,7 @@ const createLockStore = async function ({ type, options }: {
 }): Promise<LockStore> {
   switch (type) {
     case 'InMemory': {
-      return InMemoryLockStore.create({});
+      return InMemoryLockStore.create();
     }
     case 'MariaDb': {
       return MySqlLockStore.create(options);
@@ -26,9 +25,6 @@ const createLockStore = async function ({ type, options }: {
     }
     case 'Postgres': {
       return PostgresLockStore.create(options);
-    }
-    case 'Redis': {
-      return RedisLockStore.create(options);
     }
     case 'SqlServer': {
       return SqlServerLockStore.create(options);

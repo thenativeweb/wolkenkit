@@ -1,7 +1,7 @@
 import { CollectionNames } from './CollectionNames';
 import { errors } from '../errors';
+import { getHash } from '../getHash';
 import { LockStore } from '../LockStore';
-import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
 import { Collection, Db, MongoClient } from 'mongodb';
@@ -11,18 +11,15 @@ class MongoDbLockStore implements LockStore {
 
   protected db: Db;
 
-  protected maxLockSize: number;
-
   protected collectionNames: CollectionNames;
 
   protected collections: {
     locks: Collection<any>;
   };
 
-  protected constructor ({ client, db, maxLockSize, collectionNames, collections }: {
+  protected constructor ({ client, db, collectionNames, collections }: {
     client: MongoClient;
     db: Db;
-    maxLockSize: number;
     collectionNames: CollectionNames;
     collections: {
       locks: Collection<any>;
@@ -30,7 +27,6 @@ class MongoDbLockStore implements LockStore {
   }) {
     this.client = client;
     this.db = db;
-    this.maxLockSize = maxLockSize;
     this.collectionNames = collectionNames;
     this.collections = collections;
   }
@@ -45,8 +41,7 @@ class MongoDbLockStore implements LockStore {
     userName,
     password,
     database,
-    collectionNames,
-    maxLockSize = 968
+    collectionNames
   }: {
     hostName: string;
     port: number;
@@ -54,7 +49,6 @@ class MongoDbLockStore implements LockStore {
     password: string;
     database: string;
     collectionNames: CollectionNames;
-    maxLockSize?: number;
   }): Promise<MongoDbLockStore> {
     const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
 
@@ -83,161 +77,93 @@ class MongoDbLockStore implements LockStore {
       locks: db.collection(collectionNames.locks)
     };
 
-    await collections.locks.createIndexes([
-      {
-        key: { name: 1 },
-        name: `${collectionNames.locks}_name`,
-        unique: true
-      }
-    ]);
+    await collections.locks.createIndexes([{
+      key: { value: 1 },
+      name: `${collectionNames.locks}_value`,
+      unique: true
+    }]);
 
     return new MongoDbLockStore({
       client,
       db,
-      maxLockSize,
       collectionNames,
       collections
     });
   }
 
-  public async acquireLock ({
-    name,
-    expiresAt = maxDate
-  }: {
-    name: any;
+  protected async removeExpiredLocks (): Promise<void> {
+    await this.collections.locks.deleteMany({ expiresAt: { $lt: Date.now() }});
+  }
+
+  public async acquireLock ({ value, expiresAt = Number.MAX_SAFE_INTEGER }: {
+    value: string;
     expiresAt?: number;
   }): Promise<void> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
+    if (expiresAt < Date.now()) {
+      throw new errors.ExpirationInPast('A lock must not expire in the past.');
     }
 
-    if (expiresAt - Date.now() < 0) {
-      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
-    }
+    // From time to time, we should removed expired locks. Doing this before
+    // acquiring new ones is a good point in time for this.
+    await this.removeExpiredLocks();
 
-    const session = this.client.startSession({
-      defaultTransactionOptions: {
-        readPreference: 'primary',
-        readConcern: { level: 'local' },
-        // eslint-disable-next-line id-length
-        writeConcern: { w: 'majority' }
-      }
-    });
-
-    const query = { name };
+    const hash = getHash({ value });
 
     try {
-      await session.withTransaction(async (): Promise<void> => {
-        const entry = await this.collections.locks.findOne(query);
-
-        if (entry) {
-          const isLocked = Date.now() < entry.expiresAt;
-
-          if (isLocked) {
-            throw new errors.AcquireLockFailed('Failed to acquire lock.');
-          }
-        }
-
-        const $set = {
-          ...query,
-          expiresAt
-        };
-
-        await this.collections.locks.updateOne(query, { $set }, { upsert: true });
-      });
-    } finally {
-      session.endSession();
+      await this.collections.locks.insertOne({ value: hash, expiresAt });
+    } catch {
+      throw new errors.AcquireLockFailed('Failed to acquire lock.');
     }
   }
 
-  public async isLocked ({ name }: {
-    name: any;
+  public async isLocked ({ value }: {
+    value: string;
   }): Promise<boolean> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
+    const hash = getHash({ value });
+
+    const lock = await this.collections.locks.findOne({ value: hash, expiresAt: { $lte: Date.now() }});
+
+    if (!lock) {
+      return false;
     }
 
-    const entry = await this.collections.locks.findOne({ name });
-
-    const isLocked = Boolean(entry) && Date.now() < entry.expiresAt;
-
-    return isLocked;
+    return true;
   }
 
-  public async renewLock ({ name, expiresAt }: {
-    name: any;
+  public async renewLock ({ value, expiresAt }: {
+    value: string;
     expiresAt: number;
   }): Promise<void> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
+    if (expiresAt < Date.now()) {
+      throw new errors.ExpirationInPast('A lock must not expire in the past.');
     }
 
-    if (expiresAt - Date.now() < 0) {
-      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
-    }
+    // From time to time, we should removed expired locks. Doing this before
+    // renewing existing ones is a good point in time for this.
+    await this.removeExpiredLocks();
 
-    const session = this.client.startSession({
-      defaultTransactionOptions: {
-        readPreference: 'primary',
-        readConcern: { level: 'local' },
-        // eslint-disable-next-line id-length
-        writeConcern: { w: 'majority' }
-      }
-    });
+    const hash = getHash({ value });
 
-    const query = { name };
+    const { modifiedCount } = await this.collections.locks.updateOne(
+      { value: hash },
+      { $set: { expiresAt }}
+    );
 
-    try {
-      await session.withTransaction(async (): Promise<void> => {
-        const entry = await this.collections.locks.findOne(query, {
-          projection: { _id: 0, expiresAt: 1 }
-        });
-
-        if (!entry || entry.expiresAt < Date.now()) {
-          throw new errors.RenewLockFailed('Failed to renew lock.');
-        }
-
-        await this.collections.locks.updateOne(query, { $set: { expiresAt }});
-      });
-    } finally {
-      session.endSession();
+    if (modifiedCount === 0) {
+      throw new errors.RenewLockFailed('Failed to renew lock.');
     }
   }
 
-  public async releaseLock ({ name }: {
-    name: any;
+  public async releaseLock ({ value }: {
+    value: string;
   }): Promise<void> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
-    }
+    // From time to time, we should removed expired locks. Doing this before
+    // releasing existing ones is a good point in time for this.
+    await this.removeExpiredLocks();
 
-    const session = this.client.startSession({
-      defaultTransactionOptions: {
-        readPreference: 'primary',
-        readConcern: { level: 'local' },
-        // eslint-disable-next-line id-length
-        writeConcern: { w: 'majority' }
-      }
-    });
+    const hash = getHash({ value });
 
-    try {
-      await session.withTransaction(async (): Promise<void> => {
-        const entry = await this.collections.locks.findOne({ name }, {
-          projection: { _id: 0, expiresAt: 1 }
-        });
-
-        if (!entry) {
-          return;
-        }
-        if (Date.now() < entry.expiresAt) {
-          throw new errors.ReleaseLockFailed('Failed to release lock.');
-        }
-
-        await this.collections.locks.deleteOne({ name });
-      });
-    } finally {
-      session.endSession();
-    }
+    await this.collections.locks.deleteOne({ value: hash });
   }
 
   public async destroy (): Promise<void> {

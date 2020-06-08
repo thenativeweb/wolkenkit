@@ -40,12 +40,6 @@ const connectionOptions = {
     userName: 'wolkenkit',
     password: 'wolkenkit'
   },
-  redis: {
-    hostName: 'localhost',
-    port: 6379,
-    password: 'wolkenkit',
-    database: '0'
-  },
   sqlServer: {
     hostName: 'localhost',
     port: 1433,

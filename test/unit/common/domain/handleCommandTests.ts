@@ -29,7 +29,7 @@ suite('handleCommand', (): void => {
   setup(async (): Promise<void> => {
     applicationDefinition = await getApplicationDefinition({ applicationDirectory });
     domainEventStore = await InMemoryDomainEventStore.create();
-    lockStore = await InMemoryLockStore.create({});
+    lockStore = await InMemoryLockStore.create();
     repository = new Repository({
       applicationDefinition,
       domainEventStore,

@@ -1,6 +1,6 @@
 import { errors } from '../errors';
+import { getHash } from '../getHash';
 import { LockStore } from '../LockStore';
-import { mySql as maxDate } from '../../../common/utils/maxDate';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { TableNames } from './TableNames';
@@ -9,18 +9,14 @@ import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
 class MySqlLockStore implements LockStore {
   protected pool: Pool;
 
-  protected maxLockSize: number;
-
   protected tableNames: TableNames;
 
-  protected constructor ({ tableNames, pool, maxLockSize }: {
+  protected constructor ({ tableNames, pool }: {
     tableNames: TableNames;
     pool: Pool;
-    maxLockSize: number;
   }) {
     this.tableNames = tableNames;
     this.pool = pool;
-    this.maxLockSize = maxLockSize;
   }
 
   protected static onUnexpectedClose (): never {
@@ -38,10 +34,9 @@ class MySqlLockStore implements LockStore {
     const database = await retry(async (): Promise<PoolConnection> => new Promise((resolve, reject): void => {
       this.pool.getConnection((err: MysqlError | null, poolConnection): void => {
         if (err) {
-          reject(err);
-
-          return;
+          return reject(err);
         }
+
         resolve(poolConnection);
       });
     }));
@@ -55,8 +50,7 @@ class MySqlLockStore implements LockStore {
     userName,
     password,
     database,
-    tableNames,
-    maxLockSize = 2048
+    tableNames
   }: {
     hostName: string;
     port: number;
@@ -64,7 +58,6 @@ class MySqlLockStore implements LockStore {
     password: string;
     database: string;
     tableNames: TableNames;
-    maxLockSize?: number;
   }): Promise<MySqlLockStore> {
     const pool = createPool({
       host: hostName,
@@ -83,59 +76,64 @@ class MySqlLockStore implements LockStore {
       connection.on('end', MySqlLockStore.onUnexpectedClose);
     });
 
-    const eventstore = new MySqlLockStore({
+    const lockStore = new MySqlLockStore({
       tableNames,
-      pool,
-      maxLockSize
+      pool
     });
 
-    const connection = await eventstore.getDatabase();
+    const connection = await lockStore.getDatabase();
 
     await runQuery({
       connection,
-      query: `CREATE TABLE IF NOT EXISTS \`${tableNames.locks}\` (
-        name VARCHAR(${maxLockSize}) NOT NULL,
-        expiresAt BIGINT NOT NULL,
+      query: `
+        CREATE TABLE IF NOT EXISTS \`${tableNames.locks}\` (
+          value CHAR(64) NOT NULL,
+          expiresAt BIGINT NOT NULL,
 
-        PRIMARY KEY(name)
-      );`
+          PRIMARY KEY(value)
+        );
+      `
     });
 
     MySqlLockStore.releaseConnection({ connection });
 
-    return eventstore;
+    return lockStore;
   }
 
-  public async acquireLock ({
-    name,
-    expiresAt = maxDate
-  }: {
-    name: any;
+  protected async removeExpiredLocks ({ connection }: {
+    connection: PoolConnection;
+  }): Promise<void> {
+    await runQuery({
+      connection,
+      query: `DELETE FROM \`${this.tableNames.locks}\` WHERE expiresAt < ?;`,
+      parameters: [ Date.now() ]
+    });
+  }
+
+  public async acquireLock ({ value, expiresAt = Number.MAX_SAFE_INTEGER }: {
+    value: string;
     expiresAt?: number;
   }): Promise<void> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
-    }
-
-    if (expiresAt - Date.now() < 0) {
-      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
+    if (expiresAt < Date.now()) {
+      throw new errors.ExpirationInPast('A lock must not expire in the past.');
     }
 
     const connection = await this.getDatabase();
+    const hash = getHash({ value });
 
     try {
-      await runQuery({
-        connection,
-        query: `DELETE FROM \`${this.tableNames.locks}\` WHERE expiresAt < ?;`,
-        parameters: [ Date.now() ]
-      });
+      // From time to time, we should removed expired locks. Doing this before
+      // acquiring new ones is a good point in time for this.
+      await this.removeExpiredLocks({ connection });
 
       try {
         await runQuery({
           connection,
-          query: ` INSERT INTO \`${this.tableNames.locks}\` (expiresAt, name)
-            VALUES (?, ?);`,
-          parameters: [ expiresAt, name ]
+          query: `
+            INSERT INTO \`${this.tableNames.locks}\` (expiresAt, value)
+              VALUES (?, ?);
+          `,
+          parameters: [ expiresAt, hash ]
         });
       } catch {
         throw new errors.AcquireLockFailed('Failed to acquire lock.');
@@ -145,116 +143,85 @@ class MySqlLockStore implements LockStore {
     }
   }
 
-  public async isLocked ({ name }: {
-    name: any;
+  public async isLocked ({ value }: {
+    value: any;
   }): Promise<boolean> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
-    }
-
     const connection = await this.getDatabase();
-
-    let isLocked = false;
+    const hash = getHash({ value });
 
     try {
       const [ rows ] = await runQuery({
         connection,
-        query: `SELECT expiresAt
-          FROM \`${this.tableNames.locks}\`
-         WHERE name = ?;`,
-        parameters: [ name ]
+        query: `
+          SELECT expiresAt
+            FROM \`${this.tableNames.locks}\`
+            WHERE name = ? AND expiresAt <= ?;
+        `,
+        parameters: [ hash, Date.now() ]
       });
 
-      if (rows.length > 0) {
-        const [ entry ] = rows;
-
-        isLocked = Date.now() < entry.expiresAt;
+      if (rows.length === 0) {
+        return false;
       }
+
+      return true;
     } finally {
       MySqlLockStore.releaseConnection({ connection });
     }
-
-    return isLocked;
   }
 
-  public async renewLock ({ name, expiresAt }: {
-    name: any;
+  public async renewLock ({ value, expiresAt }: {
+    value: string;
     expiresAt: number;
   }): Promise<void> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
-    }
-
-    if (expiresAt - Date.now() < 0) {
-      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
+    if (expiresAt < Date.now()) {
+      throw new errors.ExpirationInPast('A lock must not expire in the past.');
     }
 
     const connection = await this.getDatabase();
+    const hash = getHash({ value });
 
     try {
+      // From time to time, we should removed expired locks. Doing this before
+      // renewing existing ones is a good point in time for this.
+      await this.removeExpiredLocks({ connection });
+
       const [ rows ] = await runQuery({
         connection,
-        query: `SELECT expiresAt
-          FROM \`${this.tableNames.locks}\`
-         WHERE name = ?;`,
-        parameters: [ name ]
+        query: `
+          UPDATE \`${this.tableNames.locks}\`
+            SET expiresAt = ?
+            WHERE value = ?;
+        `,
+        parameters: [ expiresAt, hash ]
       });
 
-      if (rows.length === 0) {
+      if (rows.changedRows === 0) {
         throw new errors.RenewLockFailed('Failed to renew lock.');
       }
-
-      const [ entry ] = rows;
-
-      if (entry.expiresAt < Date.now()) {
-        throw new errors.RenewLockFailed('Failed to renew lock.');
-      }
-
-      await runQuery({
-        connection,
-        query: `UPDATE \`${this.tableNames.locks}\`
-           SET expiresAt = ?
-         WHERE name = ?;`,
-        parameters: [ expiresAt, name ]
-      });
     } finally {
       MySqlLockStore.releaseConnection({ connection });
     }
   }
 
-  public async releaseLock ({ name }: {
-    name: any;
+  public async releaseLock ({ value }: {
+    value: string;
   }): Promise<void> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
-    }
-
     const connection = await this.getDatabase();
+    const hash = getHash({ value });
 
     try {
-      const [ rows ] = await runQuery({
-        connection,
-        query: `SELECT expiresAt
-          FROM \`${this.tableNames.locks}\`
-         WHERE name = ?;`,
-        parameters: [ name ]
-      });
-
-      if (rows.length === 0) {
-        return;
-      }
-
-      const [ entry ] = rows;
-
-      if (Date.now() < entry.expiresAt) {
-        throw new errors.ReleaseLockFailed('Failed to release lock.');
-      }
+      // From time to time, we should removed expired locks. Doing this before
+      // releasing existing ones is a good point in time for this.
+      await this.removeExpiredLocks({ connection });
 
       await runQuery({
         connection,
-        query: `DELETE FROM \`${this.tableNames.locks}\`
-         WHERE name = ?;`,
-        parameters: [ name ]
+        query: `
+          DELETE FROM \`${this.tableNames.locks}\`
+            WHERE name = ?;
+        `,
+        parameters: [ hash ]
       });
     } finally {
       MySqlLockStore.releaseConnection({ connection });

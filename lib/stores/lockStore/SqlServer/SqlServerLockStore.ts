@@ -1,6 +1,6 @@
 import { errors } from '../errors';
+import { getHash } from '../getHash';
 import { LockStore } from '../LockStore';
-import { sqlServer as maxDate } from '../../../common/utils/maxDate';
 import { TableNames } from './TableNames';
 import { ConnectionPool, TYPES as Types } from 'mssql';
 
@@ -9,20 +9,16 @@ class SqlServerLockStore implements LockStore {
 
   protected tableNames: TableNames;
 
-  protected maxLockSize: number;
-
   protected static onUnexpectedClose (): never {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  protected constructor ({ pool, tableNames, maxLockSize }: {
+  protected constructor ({ pool, tableNames }: {
     pool: ConnectionPool;
     tableNames: TableNames;
-    maxLockSize: number;
   }) {
     this.pool = pool;
     this.tableNames = tableNames;
-    this.maxLockSize = maxLockSize;
   }
 
   public static async create ({
@@ -32,8 +28,7 @@ class SqlServerLockStore implements LockStore {
     password,
     database,
     encryptConnection = false,
-    tableNames,
-    maxLockSize = 828
+    tableNames
   }: {
     hostName: string;
     port: number;
@@ -42,7 +37,6 @@ class SqlServerLockStore implements LockStore {
     database: string;
     encryptConnection?: boolean;
     tableNames: TableNames;
-    maxLockSize?: number;
   }): Promise<SqlServerLockStore> {
     const pool = new ConnectionPool({
       server: hostName,
@@ -68,10 +62,10 @@ class SqlServerLockStore implements LockStore {
         IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.locks}')
           BEGIN
             CREATE TABLE [${tableNames.locks}] (
-              [name] VARCHAR(${maxLockSize}) NOT NULL,
+              [value] NCHAR(64) NOT NULL,
               [expiresAt] BIGINT NOT NULL,
 
-              CONSTRAINT [${tableNames.locks}_pk] PRIMARY KEY([name])
+              CONSTRAINT [${tableNames.locks}_pk] PRIMARY KEY([value])
             );
           END
       `);
@@ -85,23 +79,10 @@ class SqlServerLockStore implements LockStore {
       // simply ignore it.
     }
 
-    return new SqlServerLockStore({ pool, tableNames, maxLockSize });
+    return new SqlServerLockStore({ pool, tableNames });
   }
 
-  public async acquireLock ({
-    name,
-    expiresAt = maxDate
-  }: {
-    name: any;
-    expiresAt?: number;
-  }): Promise<void> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
-    }
-    if (expiresAt - Date.now() < 0) {
-      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
-    }
-
+  protected async removeExpiredLocks (): Promise<void> {
     const requestDelete = this.pool.request();
 
     requestDelete.input('now', Types.BigInt, Date.now());
@@ -109,69 +90,81 @@ class SqlServerLockStore implements LockStore {
     await requestDelete.query(`
       DELETE FROM [${this.tableNames.locks}] WHERE [expiresAt] < @now;
     `);
+  }
 
-    const requestInsert = this.pool.request();
+  public async acquireLock ({ value, expiresAt = Number.MAX_SAFE_INTEGER }: {
+    value: string;
+    expiresAt?: number;
+  }): Promise<void> {
+    if (expiresAt < Date.now()) {
+      throw new errors.ExpirationInPast('A lock must not expire in the past.');
+    }
 
-    requestInsert.input('name', Types.NVarChar, name);
-    requestInsert.input('expiresAt', Types.BigInt, expiresAt);
+    // From time to time, we should removed expired locks. Doing this before
+    // acquiring new ones is a good point in time for this.
+    await this.removeExpiredLocks();
+
+    const request = this.pool.request();
+    const hash = getHash({ value });
+
+    request.input('value', Types.NChar, hash);
+    request.input('expiresAt', Types.BigInt, expiresAt);
 
     try {
-      await requestInsert.query(`
-        INSERT INTO [${this.tableNames.locks}] ([name], [expiresAt])
-          VALUES (@name, @expiresAt);
+      await request.query(`
+        INSERT INTO [${this.tableNames.locks}] ([value], [expiresAt])
+          VALUES (@value, @expiresAt);
       `);
     } catch {
       throw new errors.AcquireLockFailed('Failed to acquire lock.');
     }
   }
 
-  public async isLocked ({ name }: {
-    name: any;
+  public async isLocked ({ value }: {
+    value: string;
   }): Promise<boolean> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
-    }
-
     const request = this.pool.request();
+    const hash = getHash({ value });
 
-    request.input('name', Types.NVarChar, name);
+    request.input('value', Types.NChar, hash);
+    request.input('now', Types.BigInt, Date.now());
 
     const { recordset } = await request.query(`
       SELECT TOP(1) [expiresAt]
         FROM [${this.tableNames.locks}]
-        WHERE [name] = @name;
+        WHERE [value] = @value AND [expiresAt] <= @now;
     `);
 
     if (recordset.length === 0) {
       return false;
     }
 
-    const isLocked = recordset[0].expiresAt > Date.now();
-
-    return isLocked;
+    return true;
   }
 
-  public async renewLock ({ name, expiresAt }: {
-    name: any;
+  public async renewLock ({ value, expiresAt }: {
+    value: string;
     expiresAt: number;
   }): Promise<void> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
+    if (expiresAt < Date.now()) {
+      throw new errors.ExpirationInPast('A lock must not expire in the past.');
     }
-    if (expiresAt - Date.now() < 0) {
-      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
-    }
+
+    // From time to time, we should removed expired locks. Doing this before
+    // renewing existing ones is a good point in time for this.
+    await this.removeExpiredLocks();
 
     const request = this.pool.request();
+    const hash = getHash({ value });
 
-    request.input('name', Types.NVarChar, name);
+    request.input('value', Types.NChar, hash);
     request.input('now', Types.BigInt, Date.now());
     request.input('expiresAt', Types.BigInt, expiresAt);
 
     const { rowsAffected } = await request.query(`
       UPDATE [${this.tableNames.locks}]
         SET [expiresAt] = @expiresAt
-        WHERE [name] = @name AND [expiresAt] >= @now;
+        WHERE [value] = @hash;
     `);
 
     if (rowsAffected[0] === 0) {
@@ -179,26 +172,23 @@ class SqlServerLockStore implements LockStore {
     }
   }
 
-  public async releaseLock ({ name }: {
-    name: any;
+  public async releaseLock ({ value }: {
+    value: any;
   }): Promise<void> {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
-    }
+    // From time to time, we should removed expired locks. Doing this before
+    // releasing existing ones is a good point in time for this.
+    await this.removeExpiredLocks();
 
     const request = this.pool.request();
+    const hash = getHash({ value });
 
-    request.input('name', Types.NVarChar, name);
+    request.input('value', Types.NChar, hash);
     request.input('now', Types.BigInt, Date.now());
 
-    const { rowsAffected } = await request.query(`
+    await request.query(`
       DELETE [${this.tableNames.locks}]
-        WHERE [name] = @name AND [expiresAt] >= @now;
+        WHERE [value] = @value;
     `);
-
-    if (rowsAffected[0] === 0) {
-      throw new errors.RenewLockFailed('Failed to release lock.');
-    }
   }
 
   public async destroy (): Promise<void> {
