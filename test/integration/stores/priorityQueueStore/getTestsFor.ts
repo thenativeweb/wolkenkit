@@ -15,7 +15,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     expirationTime: number;
   }): Promise<PriorityQueueStore<CommandWithMetadata<CommandData>>>;
 }): void {
-  const expirationTime = 100;
+  const expirationTime = 250;
 
   const firstAggregateId = uuid(),
         secondAggregateId = uuid();
