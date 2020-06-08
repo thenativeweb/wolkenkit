@@ -155,7 +155,7 @@ class MySqlLockStore implements LockStore {
         query: `
           SELECT expiresAt
             FROM \`${this.tableNames.locks}\`
-            WHERE name = ? AND expiresAt <= ?;
+            WHERE value = ? AND expiresAt <= ?;
         `,
         parameters: [ hash, Date.now() ]
       });
@@ -219,7 +219,7 @@ class MySqlLockStore implements LockStore {
         connection,
         query: `
           DELETE FROM \`${this.tableNames.locks}\`
-            WHERE name = ?;
+            WHERE value = ?;
         `,
         parameters: [ hash ]
       });
