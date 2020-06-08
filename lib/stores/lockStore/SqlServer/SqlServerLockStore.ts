@@ -107,13 +107,13 @@ class SqlServerLockStore implements LockStore {
     const request = this.pool.request();
     const hash = getHash({ value });
 
-    request.input('value', Types.NChar, hash);
+    request.input('hash', Types.NChar, hash);
     request.input('expiresAt', Types.BigInt, expiresAt);
 
     try {
       await request.query(`
         INSERT INTO [${this.tableNames.locks}] ([value], [expiresAt])
-          VALUES (@value, @expiresAt);
+          VALUES (@hash, @expiresAt);
       `);
     } catch {
       throw new errors.AcquireLockFailed('Failed to acquire lock.');
@@ -126,13 +126,13 @@ class SqlServerLockStore implements LockStore {
     const request = this.pool.request();
     const hash = getHash({ value });
 
-    request.input('value', Types.NChar, hash);
+    request.input('hash', Types.NChar, hash);
     request.input('now', Types.BigInt, Date.now());
 
     const { recordset } = await request.query(`
       SELECT 1
         FROM [${this.tableNames.locks}]
-        WHERE [value] = @value AND [expiresAt] >= @now;
+        WHERE [value] = @hash AND [expiresAt] >= @now;
     `);
 
     if (recordset.length === 0) {
@@ -157,7 +157,7 @@ class SqlServerLockStore implements LockStore {
     const request = this.pool.request();
     const hash = getHash({ value });
 
-    request.input('value', Types.NChar, hash);
+    request.input('hash', Types.NChar, hash);
     request.input('now', Types.BigInt, Date.now());
     request.input('expiresAt', Types.BigInt, expiresAt);
 
@@ -182,12 +182,12 @@ class SqlServerLockStore implements LockStore {
     const request = this.pool.request();
     const hash = getHash({ value });
 
-    request.input('value', Types.NChar, hash);
+    request.input('hash', Types.NChar, hash);
     request.input('now', Types.BigInt, Date.now());
 
     await request.query(`
       DELETE [${this.tableNames.locks}]
-        WHERE [value] = @value;
+        WHERE [value] = @hash;
     `);
   }
 
