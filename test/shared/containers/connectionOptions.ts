@@ -34,11 +34,11 @@ const connectionOptions = {
     password: 'wolkenkit',
     database: 'wolkenkit'
   },
-  rabbitMq: {
+  redis: {
     hostName: 'localhost',
-    port: 5672,
-    userName: 'wolkenkit',
-    password: 'wolkenkit'
+    port: 6379,
+    password: 'wolkenkit',
+    database: 0
   },
   sqlServer: {
     hostName: 'localhost',

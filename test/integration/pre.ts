@@ -5,7 +5,7 @@ import { errors } from '../../lib/common/errors';
 import { flaschenpost } from 'flaschenpost';
 import path from 'path';
 import shell from 'shelljs';
-import { mariaDb, minio, mongoDb, mySql, postgres, sqlServer } from '../shared/containers';
+import { mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../shared/containers';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async function (): Promise<void> {
@@ -31,6 +31,7 @@ import { mariaDb, minio, mongoDb, mySql, postgres, sqlServer } from '../shared/c
       mongoDb.start(),
       mySql.start(),
       postgres.start(),
+      redis.start(),
       sqlServer.start()
     ]);
   } catch (ex) {
