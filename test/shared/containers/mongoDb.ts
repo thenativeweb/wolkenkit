@@ -34,11 +34,7 @@ const mongoDb = {
         /* eslint-disable id-length */
         const client = await MongoClient.connect(
           url,
-          {
-            w: 1,
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-          }
+          { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
         );
         /* eslint-enable id-length */
 

@@ -121,7 +121,10 @@ class MongoDbLockStore implements LockStore {
   }): Promise<boolean> {
     const hash = getHash({ value });
 
-    const lock = await this.collections.locks.findOne({ value: hash, expiresAt: { $gte: Date.now() }});
+    const lock = await this.collections.locks.findOne({
+      value: hash,
+      expiresAt: { $gte: Date.now() }
+    });
 
     if (!lock) {
       return false;
