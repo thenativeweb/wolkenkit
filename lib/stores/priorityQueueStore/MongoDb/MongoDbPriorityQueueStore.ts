@@ -344,7 +344,7 @@ class MongoDbPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       const nextIndexInPriorityQueue = await this.collections.queues.countDocuments(
         {},
         { session }
-      ) + 1;
+      );
 
       queue = {
         discriminator,
@@ -429,13 +429,15 @@ class MongoDbPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     discriminator: string;
     token: string;
   }): Promise<void> {
+    const queue = await this.getQueueIfLocked({ session, discriminator, token });
+
     await this.collections.queues.updateOne(
-      { discriminator, 'lock.token': token },
+      { discriminator: queue.discriminator, 'lock.token': token },
       { $set: { 'lock.until': Date.now() + this.expirationTime }},
       { session }
     );
 
-    await this.repairDown({ session, discriminator });
+    await this.repairDown({ session, discriminator: queue.discriminator });
   }
 
   public async renewLock ({ discriminator, token }: {
@@ -459,17 +461,19 @@ class MongoDbPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     discriminator: string;
     token: string;
   }): Promise<void> {
+    const queue = await this.getQueueIfLocked({ session, discriminator, token });
+
     await this.collections.queues.updateOne(
-      { discriminator, 'lock.token': token },
+      { discriminator: queue.discriminator, 'lock.token': token },
       { $pop: { items: -1 }},
       { session }
     );
 
-    const queue = (await this.getQueueByDiscriminator({ session, discriminator }))!;
+    const queueAfterUpdate = (await this.getQueueByDiscriminator({ session, discriminator }))!;
 
-    if (queue.items.length > 0) {
+    if (queueAfterUpdate.items.length > 0) {
       await this.collections.queues.updateOne(
-        { discriminator, 'lock.token': token },
+        { discriminator: queueAfterUpdate.discriminator, 'lock.token': token },
         { $set: { lock: undefined }},
         { session }
       );
