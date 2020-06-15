@@ -35,8 +35,8 @@ class Client extends HttpClient {
   }): Promise<{ id: string }> {
     const { status, data } = await axios({
       method: 'post',
-      url: `${this.url}/`,
-      data: command,
+      url: `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.aggregateIdentifier.id}/${command.name}`,
+      data: command.data,
       validateStatus (): boolean {
         return true;
       }

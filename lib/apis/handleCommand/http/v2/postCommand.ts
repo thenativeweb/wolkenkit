@@ -16,10 +16,10 @@ const logger = flaschenpost.getLogger();
 
 const postCommand = {
   description: 'Accepts a command for further processing.',
-  path: '',
+  path: ':contextName/:aggregateName/:aggregateId/:commandName',
 
   request: {
-    body: getCommandSchema()
+    body: { type: 'object' }
   },
   response: {
     statusCodes: [ 200, 400, 401, 415 ],
@@ -37,8 +37,7 @@ const postCommand = {
     onReceiveCommand: OnReceiveCommand;
     applicationDefinition: ApplicationDefinition;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(postCommand.request.body),
-          responseBodySchema = new Value(postCommand.response.body);
+    const responseBodySchema = new Value(postCommand.response.body);
 
     return async function (req, res): Promise<void> {
       if (!req.token || !req.user) {
@@ -69,10 +68,22 @@ const postCommand = {
         return;
       }
 
+      const command = new Command({
+        contextIdentifier: {
+          name: req.params.contextName
+        },
+        aggregateIdentifier: {
+          name: req.params.aggregateName,
+          id: req.params.aggregateId
+        },
+        name: req.params.commandName,
+        data: req.body
+      });
+
       try {
-        requestBodySchema.validate(req.body);
+        new Value(getCommandSchema()).validate(command);
       } catch (ex) {
-        const error = new errors.CommandMalformed(ex.message);
+        const error = new errors.RequestMalformed(ex.message);
 
         res.status(400).json({
           code: error.code,
@@ -81,8 +92,6 @@ const postCommand = {
 
         return;
       }
-
-      const command = new Command(req.body);
 
       try {
         validateCommand({ command, applicationDefinition });
