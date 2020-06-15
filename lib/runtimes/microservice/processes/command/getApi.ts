@@ -2,6 +2,7 @@ import { ApplicationDefinition } from '../../../../common/application/Applicatio
 import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
+import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
 import { IdentityProvider } from 'limes';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import express, { Application } from 'express';
@@ -17,8 +18,10 @@ const getApi = async function ({
   identityProviders: IdentityProvider[];
   onReceiveCommand: OnReceiveCommand;
 }): Promise<{ api: Application }> {
-  const { api: handleCommandApi } = await getHandleCommandApi({
-    corsOrigin: getCorsOrigin(configuration.commandCorsOrigin),
+  const corsOrigin = getCorsOrigin(configuration.commandCorsOrigin);
+
+  const { api: handleCommandApi, getApiDefinitions: getHandleCommandApiDefinitions } = await getHandleCommandApi({
+    corsOrigin,
     onReceiveCommand,
     applicationDefinition,
     identityProviders
@@ -27,6 +30,19 @@ const getApi = async function ({
   const api = express();
 
   api.use('/command', handleCommandApi);
+
+  if (configuration.enableOpenApiDocumentation) {
+    const { api: openApiApi } = await getOpenApiApi({
+      corsOrigin,
+      title: 'Command server API',
+      schemes: [ 'http' ],
+      apis: [
+        ...getHandleCommandApiDefinitions('command')
+      ]
+    });
+
+    api.use('/docs', openApiApi);
+  }
 
   return { api };
 };

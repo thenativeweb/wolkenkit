@@ -27,7 +27,7 @@ const getConfiguration = function (): Configuration {
       default: false,
       schema: {
         oneOf: [
-          { type: 'boolean', enum: [ 'false' ]},
+          { type: 'boolean', enum: [ false ]},
           {
             type: 'object',
             properties: {
@@ -97,6 +97,10 @@ const getConfiguration = function (): Configuration {
     },
     COMMAND_QUEUE_RENEW_INTERVAL: {
       default: 5_000
+    },
+    ENABLE_OPEN_API_DOCUMENTATION: {
+      default: false,
+      schema: { type: 'boolean' }
     }
   });
 
