@@ -1,0 +1,13 @@
+.swagger-ui .topbar {
+    background-color: #2f333b;
+}
+.swagger-ui .topbar .topbar-wrapper > .link img {
+    display: none;
+}
+.swagger-ui .topbar .topbar-wrapper > .link {
+    height: 60px;
+    background-image: url("logo.png");
+    background-size: contain;
+    background-position: left;
+    background-repeat: no-repeat;
+}

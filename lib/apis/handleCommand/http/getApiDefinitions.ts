@@ -16,7 +16,8 @@ const getApiDefinitions = function ({ applicationDefinition, basePath }: {
         getDescription
       ],
       post: []
-    }
+    },
+    tags: [ 'Commands' ]
   };
 
   for (const [ contextName, contextDefinition ] of Object.entries(applicationDefinition.domain)) {
@@ -24,7 +25,7 @@ const getApiDefinitions = function ({ applicationDefinition, basePath }: {
       for (const [ commandName, commandHandler ] of Object.entries(aggregateDefinition.commandHandlers)) {
         v2ApiDefinition.routes.post.push({
           path: `${contextName}/${aggregateName}/:aggregateId/${commandName}`,
-          description: postCommand.description,
+          description: commandHandler.getDocumentation ? commandHandler.getDocumentation() : postCommand.description,
           request: {
             body: commandHandler.getSchema ? commandHandler.getSchema() : { type: 'object' }
           },

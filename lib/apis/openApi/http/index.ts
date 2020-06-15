@@ -1,15 +1,19 @@
 import { addRouteToPaths } from '../addRouteToPaths';
 import { ApiDefinition } from '../ApiDefinition';
 import { Application } from 'express';
+import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
 import { CorsOrigin } from 'get-cors-origin';
 import { flaschenpost } from 'flaschenpost';
 import { getApiBase } from '../../base/getApiBase';
+import { getApi as getStaticApi } from '../../getStatic/http';
+import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 
 const logger = flaschenpost.getLogger();
 
 const getApi = async function ({
   corsOrigin,
+  applicationDefinition,
   title,
   version,
   description,
@@ -19,6 +23,7 @@ const getApi = async function ({
   apis
 }: {
   corsOrigin: CorsOrigin;
+  applicationDefinition: ApplicationDefinition;
   title: string;
   version?: string;
   description?: string;
@@ -42,10 +47,10 @@ const getApi = async function ({
 
   for (const apiDefinition of apis) {
     for (const route of apiDefinition.routes.get) {
-      addRouteToPaths({ route, method: 'get', basePath: apiDefinition.basePath, paths });
+      addRouteToPaths({ route, method: 'get', basePath: apiDefinition.basePath, tags: apiDefinition.tags, paths });
     }
     for (const route of apiDefinition.routes.post) {
-      addRouteToPaths({ route, method: 'post', basePath: apiDefinition.basePath, paths });
+      addRouteToPaths({ route, method: 'post', basePath: apiDefinition.basePath, tags: apiDefinition.tags, paths });
     }
   }
 
@@ -64,7 +69,17 @@ const getApi = async function ({
 
   logger.debug('Constructed openApi definition for documentation route', { openApiDefinition });
 
-  api.use('/', swaggerUi.serve, swaggerUi.setup(openApiDefinition));
+  const { api: staticApi } = await getStaticApi({ directory: path.join(__dirname, '..', '..', '..', '..', 'assets'), corsOrigin });
+
+  api.use('/assets', staticApi);
+  api.use('/', swaggerUi.serve, swaggerUi.setup(
+    openApiDefinition,
+    {
+      customfavIcon: 'assets/favicon.png',
+      customSiteTitle: `${applicationDefinition.packageManifest.name} - api documentation`,
+      customCssUrl: 'assets/style.css'
+    }
+  ));
 
   return { api };
 };

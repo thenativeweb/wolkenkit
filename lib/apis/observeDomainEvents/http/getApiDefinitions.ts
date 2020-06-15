@@ -13,7 +13,8 @@ const getApiDefinitions = function ({ basePath }: {
         getDomainEvents
       ],
       post: []
-    }
+    },
+    tags: [ 'Domain Events' ]
   }];
 };
 

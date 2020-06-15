@@ -2,10 +2,11 @@ import { getOpenApiPathFromExpressPath } from './getOpenApiPathFromExpressPath';
 import http from 'http';
 import { RouteDefinition } from './RouteDefinition';
 
-const addRouteToPaths = function ({ route, method, basePath, paths }: {
+const addRouteToPaths = function ({ route, method, basePath, tags, paths }: {
   route: RouteDefinition;
   method: 'get' | 'post';
   basePath: string;
+  tags: string[];
   paths: any;
 }): void {
   const path = `/${basePath}/${getOpenApiPathFromExpressPath({ expressPath: route.path })}`;
@@ -14,7 +15,8 @@ const addRouteToPaths = function ({ route, method, basePath, paths }: {
     [method]: {
       summary: route.description,
       parameters: [],
-      responses: {}
+      responses: {},
+      tags
     }
   };
 
@@ -64,7 +66,7 @@ const addRouteToPaths = function ({ route, method, basePath, paths }: {
     let contentType = 'application/json';
 
     if (route.response.stream) {
-      contentType = 'application/nd+json';
+      contentType = 'application/x-ndjson';
     }
 
     routeObject[method].responses[200].content = {

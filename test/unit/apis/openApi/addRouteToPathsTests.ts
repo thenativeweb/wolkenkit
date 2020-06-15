@@ -35,12 +35,13 @@ suite('addRouteToPaths', (): void => {
       }
     };
 
-    addRouteToPaths({ route, method: 'post', basePath, paths });
+    addRouteToPaths({ route, method: 'post', basePath, tags: [ 'foo' ], paths });
 
     assert.that(paths).is.equalTo({
       [`/${basePath}/{bar}/baz`]: {
         post: {
           summary: 'foo',
+          tags: [ 'foo' ],
           parameters: [
             {
               name: 'bar',

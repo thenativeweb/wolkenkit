@@ -36,6 +36,7 @@ const getApi = async function ({
   if (configuration.enableOpenApiDocumentation) {
     const { api: openApiApi } = await getOpenApiApi({
       corsOrigin,
+      applicationDefinition,
       title: 'Domain Event server API',
       schemes: [ 'http' ],
       apis: [
@@ -43,7 +44,7 @@ const getApi = async function ({
       ]
     });
 
-    api.use('/docs', openApiApi);
+    api.use('/open-api', openApiApi);
   }
 
   return { api, publishDomainEvent };

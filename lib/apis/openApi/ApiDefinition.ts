@@ -6,4 +6,5 @@ export interface ApiDefinition {
     get: RouteDefinition[];
     post: RouteDefinition[];
   };
+  tags: string[];
 }
