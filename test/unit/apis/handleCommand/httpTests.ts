@@ -144,6 +144,26 @@ suite('handleCommand/http', (): void => {
         });
       });
 
+      test('returns 400 if the aggregate id is not a uuid.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/nonExistent/sampleAggregate/not-a-uuid/execute`,
+          data: { strategy: 'succeed' },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'EREQUESTMALFORMED',
+          message: 'String does not match pattern: (?:^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}$)|(?:^0{8}-0{4}-0{4}-0{4}-0{12}$)/ (at value.aggregateIdentifier.id).'
+        });
+      });
+
       test('returns 400 if a non-existent context name is given.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 

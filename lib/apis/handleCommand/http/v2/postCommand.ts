@@ -4,6 +4,7 @@ import { Command } from '../../../../common/elements/Command';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
+import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import typer from 'content-type';
 import { validateCommand } from '../../../../common/validators/validateCommand';
@@ -68,18 +69,6 @@ const postCommand = {
         return;
       }
 
-      try {
-        requestBodySchema.validate(req.body);
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
-
-        res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
-
-        return;
-      }
 
       const command = new Command({
         contextIdentifier: {
@@ -92,6 +81,19 @@ const postCommand = {
         name: req.params.commandName,
         data: req.body
       });
+
+      try {
+        new Value(getCommandSchema()).validate(command);
+      } catch (ex) {
+        const error = new errors.RequestMalformed(ex.message);
+
+        res.status(400).json({
+          code: error.code,
+          message: error.message
+        });
+
+        return;
+      }
 
       try {
         validateCommand({ command, applicationDefinition });
