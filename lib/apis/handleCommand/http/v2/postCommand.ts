@@ -4,7 +4,6 @@ import { Command } from '../../../../common/elements/Command';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
-import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import typer from 'content-type';
 import { validateCommand } from '../../../../common/validators/validateCommand';
@@ -16,10 +15,10 @@ const logger = flaschenpost.getLogger();
 
 const postCommand = {
   description: 'Accepts a command for further processing.',
-  path: '',
+  path: ':contextName/:aggregateName/:aggregateId/:commandName',
 
   request: {
-    body: getCommandSchema()
+    body: { type: 'object' }
   },
   response: {
     statusCodes: [ 200, 400, 401, 415 ],
@@ -72,7 +71,7 @@ const postCommand = {
       try {
         requestBodySchema.validate(req.body);
       } catch (ex) {
-        const error = new errors.CommandMalformed(ex.message);
+        const error = new errors.RequestMalformed(ex.message);
 
         res.status(400).json({
           code: error.code,
@@ -82,7 +81,17 @@ const postCommand = {
         return;
       }
 
-      const command = new Command(req.body);
+      const command = new Command({
+        contextIdentifier: {
+          name: req.params.contextName
+        },
+        aggregateIdentifier: {
+          name: req.params.aggregateName,
+          id: req.params.aggregateId
+        },
+        name: req.params.commandName,
+        data: req.body
+      });
 
       try {
         validateCommand({ command, applicationDefinition });

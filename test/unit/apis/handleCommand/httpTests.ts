@@ -1,7 +1,6 @@
 import { Application } from 'express';
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { assert } from 'assertthat';
-import { Command } from '../../../../lib/common/elements/Command';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { getApi } from '../../../../lib/apis/handleCommand/http';
@@ -82,7 +81,7 @@ suite('handleCommand/http', (): void => {
       });
     });
 
-    suite('POST /', (): void => {
+    suite('POST /:contextName/:aggregateName/:aggregateId/:commandName', (): void => {
       let api: Application,
           receivedCommands: CommandWithMetadata<CommandData>[];
 
@@ -106,7 +105,7 @@ suite('handleCommand/http', (): void => {
 
         const { status, data } = await client({
           method: 'post',
-          url: '/v2/',
+          url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
           headers: {
             'content-type': ''
           },
@@ -128,7 +127,7 @@ suite('handleCommand/http', (): void => {
 
         const { status, data } = await client({
           method: 'post',
-          url: '/v2/',
+          url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
           headers: {
             'content-type': 'text/plain'
           },
@@ -145,40 +144,13 @@ suite('handleCommand/http', (): void => {
         });
       });
 
-      test('returns 400 if a malformed command is sent.', async (): Promise<void> => {
+      test('returns 400 if a non-existent context name is given.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',
-          url: '/v2/',
-          data: { foo: 'bar' },
-          responseType: 'text',
-          validateStatus (): boolean {
-            return true;
-          }
-        });
-
-        assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo({
-          code: 'ECOMMANDMALFORMED',
-          message: 'Missing required property: contextIdentifier (at value.contextIdentifier).'
-        });
-      });
-
-      test('returns 400 if a wellformed command is sent with a non-existent context name.', async (): Promise<void> => {
-        const command = new Command({
-          contextIdentifier: { name: 'nonExistent' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-          name: 'execute',
-          data: { strategy: 'succeed' }
-        });
-
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: '/v2/',
-          data: command,
+          url: `/v2/nonExistent/sampleAggregate/${uuid()}/execute`,
+          data: { strategy: 'succeed' },
           responseType: 'text',
           validateStatus (): boolean {
             return true;
@@ -192,20 +164,13 @@ suite('handleCommand/http', (): void => {
         });
       });
 
-      test('returns 400 if a wellformed command is sent with a non-existent aggregate name.', async (): Promise<void> => {
-        const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'nonExistent', id: uuid() },
-          name: 'execute',
-          data: { strategy: 'succeed' }
-        });
-
+      test('returns 400 if a non-existent aggregate name is given.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',
-          url: '/v2/',
-          data: command,
+          url: `/v2/sampleContext/nonExistent/${uuid()}/execute`,
+          data: { strategy: 'succeed' },
           responseType: 'text',
           validateStatus (): boolean {
             return true;
@@ -219,20 +184,13 @@ suite('handleCommand/http', (): void => {
         });
       });
 
-      test('returns 400 if a wellformed command is sent with a non-existent command name.', async (): Promise<void> => {
-        const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-          name: 'nonExistent',
-          data: { strategy: 'succeed' }
-        });
-
+      test('returns 400 if a non-existent command name is given.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',
-          url: '/v2/',
-          data: command,
+          url: `/v2/sampleContext/sampleAggregate/${uuid()}/nonExistent`,
+          data: { strategy: 'succeed' },
           responseType: 'text',
           validateStatus (): boolean {
             return true;
@@ -247,19 +205,12 @@ suite('handleCommand/http', (): void => {
       });
 
       test('returns 400 if a command is sent with a payload that does not match the schema.', async (): Promise<void> => {
-        const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-          name: 'execute',
-          data: { strategy: 'invalid-value' }
-        });
-
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',
-          url: '/v2/',
-          data: command,
+          url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
+          data: { strategy: 'invalid-value' },
           responseType: 'text',
           validateStatus (): boolean {
             return true;
@@ -274,46 +225,34 @@ suite('handleCommand/http', (): void => {
       });
 
       test('returns 200 if a wellformed and existing command is sent.', async (): Promise<void> => {
-        const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-          name: 'execute',
-          data: { strategy: 'succeed' }
-        });
-
         const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
           method: 'post',
-          url: '/v2/',
-          data: command
+          url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
+          data: { strategy: 'succeed' }
         });
 
         assert.that(status).is.equalTo(200);
       });
 
       test('receives commands.', async (): Promise<void> => {
-        const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-          name: 'execute',
-          data: { strategy: 'succeed' }
-        });
-
         const { client } = await runAsServer({ app: api });
+
+        const id = uuid();
 
         await client({
           method: 'post',
-          url: '/v2/',
-          data: command
+          url: `/v2/sampleContext/sampleAggregate/${id}/execute`,
+          data: { strategy: 'succeed' }
         });
 
         assert.that(receivedCommands.length).is.equalTo(1);
         assert.that(receivedCommands[0]).is.atLeast({
-          contextIdentifier: command.contextIdentifier,
-          aggregateIdentifier: command.aggregateIdentifier,
-          name: command.name,
-          data: command.data,
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id },
+          name: 'execute',
+          data: { strategy: 'succeed' },
           metadata: {
             client: {
               user: { id: 'anonymous', claims: { sub: 'anonymous', iss: 'https://token.invalid' }}
@@ -333,19 +272,12 @@ suite('handleCommand/http', (): void => {
       });
 
       test('returns the ID of the received command.', async (): Promise<void> => {
-        const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-          name: 'execute',
-          data: { strategy: 'succeed' }
-        });
-
         const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'post',
-          url: '/v2/',
-          data: command
+          url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
+          data: { strategy: 'succeed' }
         });
 
         assert.that(data).is.equalTo({
@@ -363,19 +295,12 @@ suite('handleCommand/http', (): void => {
           identityProviders
         }));
 
-        const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-          name: 'execute',
-          data: { strategy: 'succeed' }
-        });
-
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'post',
-          url: '/v2/',
-          data: command,
+          url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
+          data: { strategy: 'succeed' },
           validateStatus (): boolean {
             return true;
           }
