@@ -42,7 +42,7 @@ $ npx wolkenkit dev
 
 To send commands or receive domain events, the current version only offers an HTTP interface. By default, wolkenkit provides three endpoints in local development mode:
 
-- `http://localhost:3000/command/v2` for sending commands
+- `http://localhost:3000/command/v2/:contextName/:aggregateName/:aggregateId/:commandName` for sending commands
 - `http://localhost:3000/domain-events/v2` for receiving domain events
 - `http://localhost:3001/health/v2` for fetching health data
 
@@ -52,17 +52,7 @@ To send a command, send a `POST` request with the following JSON data structure 
 
 ```json
 {
-  "contextIdentifier": {
-    "name": "communication"
-  },
-  "aggregateIdentifier": {
-    "name": "message",
-    "id": "ff7cd4eb-8ce0-4511-995a-2f9e9ce245fa"
-  },
-  "name": "send",
-  "data": {
-    "text": "Hello, world!"
-  }
+  "text": "Hello, world!"
 }
 ```
 
