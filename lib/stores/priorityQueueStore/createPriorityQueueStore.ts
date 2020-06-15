@@ -1,5 +1,6 @@
 import { errors } from '../../common/errors';
 import { InMemoryPriorityQueueStore } from './InMemory';
+import { MongoDbPriorityQueueStore } from './MongoDb';
 import { MySqlPriorityQueueStore } from './MySql';
 import { PostgresPriorityQueueStore } from './Postgres';
 import { PriorityQueueStore } from './PriorityQueueStore';
@@ -14,6 +15,9 @@ const createPriorityQueueStore = async function<TItem> ({ type, options }: {
     }
     case 'MariaDb': {
       return await MySqlPriorityQueueStore.create(options);
+    }
+    case 'MongoDb': {
+      return await MongoDbPriorityQueueStore.create(options);
     }
     case 'MySql': {
       return await MySqlPriorityQueueStore.create(options);

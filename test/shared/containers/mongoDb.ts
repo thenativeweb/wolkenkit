@@ -20,9 +20,13 @@ const mongoDb = {
       docker run
         -d
         -p 27017:27017
-        -e MONGO_INITDB_ROOT_USERNAME=${userName}
-        -e MONGO_INITDB_ROOT_PASSWORD=${password}
-        -e MONGO_INITDB_DATABASE=${database}
+        -e MONGODB_ROOT_PASSWORD=${password}
+        -e MONGODB_USERNAME=${userName}
+        -e MONGODB_PASSWORD=${password}
+        -e MONGODB_DATABASE=${database}
+        -e MONGODB_REPLICA_SET_MODE=primary
+        -e MONGODB_REPLICA_SET_NAME=rs0
+        -e MONGODB_REPLICA_SET_KEY=secret
         --name test-mongodb
         thenativeweb/wolkenkit-mongodb:latest
     `);
@@ -34,11 +38,7 @@ const mongoDb = {
         /* eslint-disable id-length */
         const client = await MongoClient.connect(
           url,
-          {
-            w: 1,
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-          }
+          { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
         );
         /* eslint-enable id-length */
 

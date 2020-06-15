@@ -9,6 +9,7 @@ import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
+import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { Collection, Db, MongoClient } from 'mongodb';
 import { PassThrough, Readable } from 'stream';
 
@@ -112,6 +113,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     await collections.snapshots.createIndexes([
       {
         key: { 'aggregateIdentifier.id': 1 },
+        name: `${collectionNames.snapshots}_aggregateId`,
         unique: true
       }
     ]);
@@ -122,19 +124,18 @@ class MongoDbDomainEventStore implements DomainEventStore {
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
-    const domainEvents = await this.collections.domainEvents.find({
+    const lastDomainEvent = await this.collections.domainEvents.findOne({
       'aggregateIdentifier.id': aggregateIdentifier.id
     }, {
       projection: { _id: 0 },
-      sort: [[ 'metadata.revision', -1 ]],
-      limit: 1
-    }).toArray();
+      sort: [[ 'metadata.revision', -1 ]]
+    });
 
-    if (domainEvents.length === 0) {
+    if (!lastDomainEvent) {
       return;
     }
 
-    return new DomainEvent<TDomainEventData>(domainEvents[0]);
+    return new DomainEvent<TDomainEventData>(lastDomainEvent);
   }
 
   public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
@@ -377,20 +378,15 @@ class MongoDbDomainEventStore implements DomainEventStore {
       data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
     }));
 
-    const session = this.client.startSession({
-      defaultTransactionOptions: {
-        readPreference: 'primary',
-        readConcern: { level: 'local' },
-        // eslint-disable-next-line id-length
-        writeConcern: { w: 'majority' }
-      }
-    });
-
     try {
-      await session.withTransaction(async (): Promise<void> => {
-        await this.collections.domainEvents.insertMany(sanitizedDomainEvents, {
-          forceServerObjectId: true
-        });
+      await withTransaction({
+        client: this.client,
+        fn: async ({ session }): Promise<void> => {
+          await this.collections.domainEvents.insertMany(
+            sanitizedDomainEvents,
+            { session }
+          );
+        }
       });
     } catch (ex) {
       if (ex.code === 11000 && ex.message.includes('_aggregateId_revision')) {
@@ -398,8 +394,6 @@ class MongoDbDomainEventStore implements DomainEventStore {
       }
 
       throw ex;
-    } finally {
-      session.endSession();
     }
   }
 

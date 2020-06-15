@@ -13,7 +13,7 @@ const createLockStore = async function ({ type, options }: {
 }): Promise<LockStore> {
   switch (type) {
     case 'InMemory': {
-      return InMemoryLockStore.create({});
+      return InMemoryLockStore.create();
     }
     case 'MariaDb': {
       return MySqlLockStore.create(options);

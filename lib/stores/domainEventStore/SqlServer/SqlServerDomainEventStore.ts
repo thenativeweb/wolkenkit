@@ -1,20 +1,17 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
-import { createPool } from '../../utils/sqlServer/createPool';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
-import { Pool } from 'tarn';
-import { retry } from 'retry-ignore-abort';
-import { Row } from './Row';
+import { Readable } from 'stream';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
-import { ColumnValue, Connection, Request, TYPES } from 'tedious';
-import { PassThrough, Readable } from 'stream';
+import { ToDomainEventStream } from '../../utils/sqlServer/ToDomainEventStream';
+import { ConnectionPool, Table, TYPES as Types } from 'mssql';
 
 class SqlServerDomainEventStore implements DomainEventStore {
-  protected pool: Pool<Connection>;
+  protected pool: ConnectionPool;
 
   protected tableNames: TableNames;
 
@@ -22,18 +19,8 @@ class SqlServerDomainEventStore implements DomainEventStore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  protected static async getDatabase (pool: Pool<Connection>): Promise<Connection> {
-    const database = await retry(async (): Promise<Connection> => {
-      const connection = await pool.acquire().promise;
-
-      return connection;
-    });
-
-    return database;
-  }
-
   protected constructor ({ pool, tableNames }: {
-    pool: Pool<Connection>;
+    pool: ConnectionPool;
     tableNames: TableNames;
   }) {
     this.pool = pool;
@@ -57,77 +44,63 @@ class SqlServerDomainEventStore implements DomainEventStore {
     encryptConnection?: boolean;
     tableNames: TableNames;
   }): Promise<SqlServerDomainEventStore> {
-    const pool = createPool({
-      host: hostName,
+    const pool = new ConnectionPool({
+      server: hostName,
       port,
       user: userName,
       password,
       database,
-      encrypt: encryptConnection,
-
-      onError (err): never {
-        throw err;
-      },
-
-      onDisconnect (): void {
-        SqlServerDomainEventStore.onUnexpectedClose();
+      options: {
+        enableArithAbort: true,
+        encrypt: encryptConnection,
+        trustServerCertificate: false
       }
     });
 
-    const domainEventStore = new SqlServerDomainEventStore({ pool, tableNames });
-    const connection = await SqlServerDomainEventStore.getDatabase(pool);
-
-    const query = `
-      BEGIN TRANSACTION setupTables;
-
-      IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.domainEvents}')
-        BEGIN
-          CREATE TABLE [${tableNames.domainEvents}] (
-            [aggregateId] UNIQUEIDENTIFIER NOT NULL,
-            [revision] INT NOT NULL,
-            [causationId] UNIQUEIDENTIFIER NOT NULL,
-            [correlationId] UNIQUEIDENTIFIER NOT NULL,
-            [timestamp] BIGINT NOT NULL,
-            [domainEvent] NVARCHAR(4000) NOT NULL,
-
-            CONSTRAINT [${tableNames.domainEvents}_pk] PRIMARY KEY([aggregateId], [revision])
-          );
-        END
-
-      IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.snapshots}')
-        BEGIN
-          CREATE TABLE [${tableNames.snapshots}] (
-            [aggregateId] UNIQUEIDENTIFIER NOT NULL,
-            [revision] INT NOT NULL,
-            [state] NVARCHAR(4000) NOT NULL,
-
-            CONSTRAINT [${tableNames.snapshots}_pk] PRIMARY KEY([aggregateId], [revision])
-          );
-        END
-
-      COMMIT TRANSACTION setupTables;
-    `;
-
-    await new Promise((resolve, reject): void => {
-      const request = new Request(query, (err: Error | null): void => {
-        if (err) {
-          // When multiple clients initialize at the same time, e.g. during
-          // integration tests, SQL Server might throw an error. In this case
-          // we simply ignore it.
-          if (err.message.includes('There is already an object named')) {
-            return resolve();
-          }
-
-          return reject(err);
-        }
-
-        resolve();
-      });
-
-      connection.execSql(request);
+    pool.on('error', (): void => {
+      SqlServerDomainEventStore.onUnexpectedClose();
     });
 
-    pool.release(connection);
+    await pool.connect();
+
+    const domainEventStore = new SqlServerDomainEventStore({ pool, tableNames });
+
+    try {
+      await pool.query(`
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.domainEvents}')
+          BEGIN
+            CREATE TABLE [${tableNames.domainEvents}] (
+              [aggregateId] UNIQUEIDENTIFIER NOT NULL,
+              [revision] INT NOT NULL,
+              [causationId] UNIQUEIDENTIFIER NOT NULL,
+              [correlationId] UNIQUEIDENTIFIER NOT NULL,
+              [timestamp] BIGINT NOT NULL,
+              [domainEvent] NVARCHAR(4000) NOT NULL,
+
+              CONSTRAINT [${tableNames.domainEvents}_pk] PRIMARY KEY([aggregateId], [revision])
+            );
+          END
+
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.snapshots}')
+          BEGIN
+            CREATE TABLE [${tableNames.snapshots}] (
+              [aggregateId] UNIQUEIDENTIFIER NOT NULL,
+              [revision] INT NOT NULL,
+              [state] NVARCHAR(4000) NOT NULL,
+
+              CONSTRAINT [${tableNames.snapshots}_pk] PRIMARY KEY([aggregateId], [revision])
+            );
+          END
+      `);
+    } catch (ex) {
+      if (!ex.message.includes('There is already an object named')) {
+        throw ex;
+      }
+
+      // When multiple clients initialize at the same time, e.g. during
+      // integration tests, SQL Server might throw an error. In this case we
+      // simply ignore it
+    }
 
     return domainEventStore;
   }
@@ -135,188 +108,78 @@ class SqlServerDomainEventStore implements DomainEventStore {
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
-    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+    const request = this.pool.request();
 
-    try {
-      const result: DomainEvent<TDomainEventData> | undefined = await new Promise((resolve, reject): void => {
-        let resultDomainEvent: DomainEvent<TDomainEventData>;
+    request.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
 
-        const request = new Request(`
-          SELECT TOP(1) [domainEvent]
-            FROM [${this.tableNames.domainEvents}]
-            WHERE [aggregateId] = @aggregateId
-            ORDER BY [revision] DESC
-          ;
-        `, (err: Error | null): void => {
-          if (err) {
-            return reject(err);
-          }
+    const { recordset } = await request.query(`
+      SELECT TOP(1) [domainEvent]
+        FROM [${this.tableNames.domainEvents}]
+        WHERE [aggregateId] = @aggregateId
+        ORDER BY [revision] DESC;
+    `);
 
-          resolve(resultDomainEvent);
-        });
-
-        request.once('row', (columns): void => {
-          resultDomainEvent = new DomainEvent<TDomainEventData>(JSON.parse(columns[0].value));
-        });
-
-        request.addParameter('aggregateId', TYPES.UniqueIdentifier, aggregateIdentifier.id);
-
-        database.execSql(request);
-      });
-
-      if (!result) {
-        return;
-      }
-
-      return result;
-    } finally {
-      this.pool.release(database);
+    if (recordset.length === 0) {
+      return;
     }
+
+    const lastDomainEvent = new DomainEvent<TDomainEventData>(JSON.parse(recordset[0].domainEvent));
+
+    return lastDomainEvent;
   }
 
   public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
-    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+    const request = this.pool.request();
+    const toDomainEventStream = new ToDomainEventStream();
 
-    const passThrough = new PassThrough({ objectMode: true });
+    request.input('causationId', Types.UniqueIdentifier, causationId);
+    request.stream = true;
+    request.pipe(toDomainEventStream);
 
-    let onError: (err: Error) => void,
-        onRow: (columns: ColumnValue[]) => void,
-        request: Request;
-
-    const unsubscribe = (): void => {
-      this.pool.release(database);
-      request.removeListener('error', onError);
-      request.removeListener('row', onRow);
-    };
-
-    onError = (err: Error): void => {
-      unsubscribe();
-      passThrough.emit('error', err);
-      passThrough.end();
-    };
-
-    onRow = (columns: ColumnValue[]): void => {
-      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
-
-      passThrough.write(domainEvent);
-    };
-
-    request = new Request(
-      `SELECT [domainEvent]
+    await request.query(`
+      SELECT [domainEvent]
         FROM [${this.tableNames.domainEvents}]
-        WHERE [causationId] = @causationId;`
-      , (err: Error | null): void => {
-        unsubscribe();
+        WHERE [causationId] = @causationId;
+    `);
 
-        if (err) {
-          passThrough.emit('error', err);
-        }
-
-        passThrough.end();
-      }
-    );
-
-    request.addParameter('causationId', TYPES.UniqueIdentifier, causationId);
-
-    request.on('error', onError);
-    request.on('row', onRow);
-
-    database.execSql(request);
-
-    return passThrough;
+    return toDomainEventStream;
   }
 
   public async hasDomainEventsWithCausationId ({ causationId }: {
     causationId: string;
   }): Promise<boolean> {
-    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+    const request = this.pool.request();
 
-    try {
-      const result: boolean = await new Promise((resolve, reject): void => {
-        let hasDomainEvents = false;
+    request.input('causationId', Types.UniqueIdentifier, causationId);
 
-        const request = new Request(`
-          SELECT 1
-            FROM [${this.tableNames.domainEvents}]
-            WHERE [causationId] = @causationId
-          ;
-        `, (err: Error | null): void => {
-          if (err) {
-            return reject(err);
-          }
+    const { recordset } = await request.query(`
+      SELECT 1
+        FROM [${this.tableNames.domainEvents}]
+        WHERE [causationId] = @causationId;
+    `);
 
-          resolve(hasDomainEvents);
-        });
-
-        request.once('row', (): void => {
-          hasDomainEvents = true;
-        });
-
-        request.addParameter('causationId', TYPES.UniqueIdentifier, causationId);
-
-        database.execSql(request);
-      });
-
-      return result;
-    } finally {
-      this.pool.release(database);
-    }
+    return recordset.length > 0;
   }
 
   public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
-    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+    const request = this.pool.request();
+    const toDomainEventStream = new ToDomainEventStream();
 
-    const passThrough = new PassThrough({ objectMode: true });
+    request.input('correlationId', Types.UniqueIdentifier, correlationId);
+    request.stream = true;
+    request.pipe(toDomainEventStream);
 
-    let onError: (err: Error) => void,
-        onRow: (columns: ColumnValue[]) => void,
-        request: Request;
-
-    const unsubscribe = (): void => {
-      this.pool.release(database);
-      request.removeListener('error', onError);
-      request.removeListener('row', onRow);
-    };
-
-    onError = (err: Error): void => {
-      unsubscribe();
-      passThrough.emit('error', err);
-      passThrough.end();
-    };
-
-    onRow = (columns: ColumnValue[]): void => {
-      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
-
-      passThrough.write(domainEvent);
-    };
-
-    request = new Request(
-      `SELECT [domainEvent]
+    await request.query(`
+      SELECT [domainEvent]
         FROM [${this.tableNames.domainEvents}]
-        WHERE [correlationId] = @correlationId;`
-      , (err: Error | null): void => {
-        unsubscribe();
+        WHERE [correlationId] = @correlationId;
+    `);
 
-        if (err) {
-          passThrough.emit('error', err);
-        }
-
-        passThrough.end();
-      }
-    );
-
-    request.addParameter('correlationId', TYPES.UniqueIdentifier, correlationId);
-
-    request.on('error', onError);
-    request.on('row', onRow);
-
-    database.execSql(request);
-
-    return passThrough;
+    return toDomainEventStream;
   }
 
   public async getReplay ({
@@ -328,54 +191,21 @@ class SqlServerDomainEventStore implements DomainEventStore {
       throw new errors.ParameterInvalid(`Parameter 'fromTimestamp' must be at least 0.`);
     }
 
-    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+    const request = this.pool.request();
+    const toDomainEventStream = new ToDomainEventStream();
 
-    const passThrough = new PassThrough({ objectMode: true });
+    request.input('fromTimestamp', Types.BigInt, fromTimestamp);
+    request.stream = true;
+    request.pipe(toDomainEventStream);
 
-    let onError: (err: Error) => void,
-        onRow: (columns: ColumnValue[]) => void,
-        request: Request;
-
-    const unsubscribe = (): void => {
-      this.pool.release(database);
-      request.removeListener('error', onError);
-      request.removeListener('row', onRow);
-    };
-
-    onError = (err: Error): void => {
-      unsubscribe();
-      passThrough.emit('error', err);
-      passThrough.end();
-    };
-
-    onRow = (columns: ColumnValue[]): void => {
-      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
-
-      passThrough.write(domainEvent);
-    };
-
-    request = new Request(`
+    await request.query(`
       SELECT [domainEvent]
         FROM [${this.tableNames.domainEvents}]
         WHERE [timestamp] >= @fromTimestamp
-        ORDER BY [aggregateId], [revision]`, (err: Error | null): void => {
-      unsubscribe();
+        ORDER BY [aggregateId], [revision];
+    `);
 
-      if (err) {
-        passThrough.emit('error', err);
-      }
-
-      passThrough.end();
-    });
-
-    request.addParameter('fromTimestamp', TYPES.BigInt, fromTimestamp);
-
-    request.on('error', onError);
-    request.on('row', onRow);
-
-    database.execSql(request);
-
-    return passThrough;
+    return toDomainEventStream;
   }
 
   public async getReplayForAggregate ({
@@ -397,58 +227,26 @@ class SqlServerDomainEventStore implements DomainEventStore {
       throw new errors.ParameterInvalid(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
     }
 
-    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+    const request = this.pool.request();
+    const toDomainEventStream = new ToDomainEventStream();
 
-    const passThrough = new PassThrough({ objectMode: true });
+    request.input('aggregateId', Types.UniqueIdentifier, aggregateId);
+    request.input('fromRevision', Types.Int, fromRevision);
+    request.input('toRevision', Types.Int, toRevision);
 
-    let onError: (err: Error) => void,
-        onRow: (columns: ColumnValue[]) => void,
-        request: Request;
+    request.stream = true;
+    request.pipe(toDomainEventStream);
 
-    const unsubscribe = (): void => {
-      this.pool.release(database);
-      request.removeListener('row', onRow);
-      request.removeListener('error', onError);
-    };
-
-    onError = (err): void => {
-      unsubscribe();
-      passThrough.emit('error', err);
-      passThrough.end();
-    };
-
-    onRow = (columns: ColumnValue[]): void => {
-      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(columns[0].value));
-
-      passThrough.write(domainEvent);
-    };
-
-    request = new Request(`
+    await request.query(`
       SELECT [domainEvent]
         FROM [${this.tableNames.domainEvents}]
         WHERE [aggregateId] = @aggregateId
           AND [revision] >= @fromRevision
           AND [revision] <= @toRevision
-        ORDER BY [revision]`, (err: Error | null): void => {
-      unsubscribe();
+        ORDER BY [revision];
+    `);
 
-      if (err) {
-        passThrough.emit('error', err);
-      }
-
-      passThrough.end();
-    });
-
-    request.addParameter('aggregateId', TYPES.UniqueIdentifier, aggregateId);
-    request.addParameter('fromRevision', TYPES.Int, fromRevision);
-    request.addParameter('toRevision', TYPES.Int, toRevision);
-
-    request.on('error', onError);
-    request.on('row', onRow);
-
-    database.execSql(request);
-
-    return passThrough;
+    return toDomainEventStream;
   }
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
@@ -458,138 +256,86 @@ class SqlServerDomainEventStore implements DomainEventStore {
       throw new errors.ParameterInvalid('Domain events are missing.');
     }
 
-    const placeholders = [],
-          values: Row[] = [];
+    const table = new Table(this.tableNames.domainEvents);
 
-    for (const [ index, domainEvent ] of domainEvents.entries()) {
-      const rowId = index + 1;
-      const row = [
-        { key: `aggregateId${rowId}`, value: domainEvent.aggregateIdentifier.id, type: TYPES.UniqueIdentifier, options: undefined },
-        { key: `revision${rowId}`, value: domainEvent.metadata.revision, type: TYPES.Int, options: undefined },
-        { key: `causationId${rowId}`, value: domainEvent.metadata.causationId, type: TYPES.UniqueIdentifier, options: undefined },
-        { key: `correlationId${rowId}`, value: domainEvent.metadata.correlationId, type: TYPES.UniqueIdentifier, options: undefined },
-        { key: `timestamp${rowId}`, value: domainEvent.metadata.timestamp, type: TYPES.BigInt, options: undefined },
-        { key: `event${rowId}`, value: JSON.stringify(domainEvent), type: TYPES.NVarChar, options: { length: 4000 }}
-      ];
+    table.columns.add('aggregateId', Types.UniqueIdentifier, { nullable: false });
+    table.columns.add('revision', Types.Int, { nullable: false });
+    table.columns.add('causationId', Types.UniqueIdentifier, { nullable: false });
+    table.columns.add('correlationId', Types.UniqueIdentifier, { nullable: false });
+    table.columns.add('timestamp', Types.BigInt, { nullable: false });
+    table.columns.add('domainEvent', Types.NVarChar, { nullable: false });
 
-      placeholders.push(`(@${row[0].key}, @${row[1].key}, @${row[2].key}, @${row[3].key}, @${row[4].key}, @${row[5].key})`);
-
-      values.push(...row);
+    for (const domainEvent of domainEvents.values()) {
+      table.rows.add(
+        domainEvent.aggregateIdentifier.id,
+        domainEvent.metadata.revision,
+        domainEvent.metadata.causationId,
+        domainEvent.metadata.correlationId,
+        domainEvent.metadata.timestamp,
+        JSON.stringify(domainEvent)
+      );
     }
 
-    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
-
-    const text = `
-      INSERT INTO [${this.tableNames.domainEvents}] ([aggregateId], [revision], [causationId], [correlationId], [timestamp], [domainEvent])
-      VALUES ${placeholders.join(',')};
-    `;
+    const request = this.pool.request();
 
     try {
-      await new Promise((resolve, reject): void => {
-        const request = new Request(text, (err: Error | null): void => {
-          if (err) {
-            return reject(err);
-          }
-
-          resolve();
-        });
-
-        for (const value of values) {
-          request.addParameter(value.key, value.type, value.value, value.options);
-        }
-
-        database.execSql(request);
-      });
+      await request.bulk(table);
     } catch (ex) {
       if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.startsWith('Violation of PRIMARY KEY constraint')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
       throw ex;
-    } finally {
-      this.pool.release(database);
     }
   }
 
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<Snapshot<TState> | undefined> {
-    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+    const request = this.pool.request();
 
-    try {
-      const result: Snapshot<TState> | undefined = await new Promise((resolve, reject): void => {
-        let resultRow: Snapshot<TState>;
+    request.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
 
-        const request = new Request(`
-          SELECT TOP(1) [state], [revision]
-            FROM [${this.tableNames.snapshots}]
-            WHERE [aggregateId] = @aggregateId
-            ORDER BY [revision] DESC
-          ;`, (err: Error | null): void => {
-          if (err) {
-            return reject(err);
-          }
+    const { recordset } = await request.query(`
+      SELECT TOP(1) [state], [revision]
+        FROM [${this.tableNames.snapshots}]
+        WHERE [aggregateId] = @aggregateId
+        ORDER BY [revision] DESC;
+    `);
 
-          resolve(resultRow);
-        });
-
-        request.once('row', (columns: ColumnValue[]): void => {
-          resultRow = {
-            aggregateIdentifier,
-            state: JSON.parse(columns[0].value),
-            revision: Number(columns[1].value)
-          };
-        });
-
-        request.addParameter('aggregateId', TYPES.UniqueIdentifier, aggregateIdentifier.id);
-
-        database.execSql(request);
-      });
-
-      if (!result) {
-        return;
-      }
-
-      return result;
-    } finally {
-      this.pool.release(database);
+    if (recordset.length === 0) {
+      return;
     }
+
+    const snapshot = {
+      aggregateIdentifier,
+      state: JSON.parse(recordset[0].state),
+      revision: Number(recordset[0].revision)
+    };
+
+    return snapshot;
   }
 
   public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
-    const database = await SqlServerDomainEventStore.getDatabase(this.pool);
+    const request = this.pool.request();
 
-    try {
-      await new Promise((resolve, reject): void => {
-        const request = new Request(`
-          IF NOT EXISTS (SELECT TOP(1) * FROM [${this.tableNames.snapshots}] WHERE [aggregateId] = @aggregateId and [revision] = @revision)
-            BEGIN
-              INSERT INTO [${this.tableNames.snapshots}] ([aggregateId], [revision], [state])
-              VALUES (@aggregateId, @revision, @state);
-            END
-          `, (err: Error | null): void => {
-          if (err) {
-            return reject(err);
-          }
+    request.input('aggregateId', Types.UniqueIdentifier, snapshot.aggregateIdentifier.id);
+    request.input('revision', Types.Int, snapshot.revision);
+    request.input('state', Types.NVarChar, JSON.stringify(snapshot.state));
 
-          resolve();
-        });
-
-        request.addParameter('aggregateId', TYPES.UniqueIdentifier, snapshot.aggregateIdentifier.id);
-        request.addParameter('revision', TYPES.Int, snapshot.revision);
-        request.addParameter('state', TYPES.NVarChar, JSON.stringify(snapshot.state), { length: 4000 });
-
-        database.execSql(request);
-      });
-    } finally {
-      this.pool.release(database);
-    }
+    await request.query(`
+      IF NOT EXISTS (SELECT TOP(1) * FROM [${this.tableNames.snapshots}] WHERE [aggregateId] = @aggregateId and [revision] = @revision)
+        BEGIN
+          INSERT INTO [${this.tableNames.snapshots}] ([aggregateId], [revision], [state])
+          VALUES (@aggregateId, @revision, @state);
+        END
+    `);
   }
 
   public async destroy (): Promise<void> {
-    await this.pool.destroy();
+    await this.pool.close();
   }
 }
 

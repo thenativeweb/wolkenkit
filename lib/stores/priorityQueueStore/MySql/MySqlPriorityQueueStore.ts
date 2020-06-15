@@ -1,7 +1,7 @@
 import { errors } from '../../../common/errors';
-import { getIndexOfLeftChild } from '../common/getIndexOfLeftChild';
-import { getIndexOfParent } from '../common/getIndexOfParent';
-import { getIndexOfRightChild } from '../common/getIndexOfRightChild';
+import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
+import { getIndexOfParent } from '../shared/getIndexOfParent';
+import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
@@ -342,7 +342,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     const [ rows ] = await runQuery({
       connection,
       query: `
-        SELECT 
+        SELECT
             pq.indexInPriorityQueue AS indexInPriorityQueue,
             i.priority AS priority,
             pq.lockUntil AS lockUntil,
@@ -382,7 +382,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     const [ rows ] = await runQuery({
       connection,
       query: `
-        SELECT 
+        SELECT
             pq.discriminator AS discriminator,
             i.priority AS priority,
             pq.lockUntil AS lockUntil,
@@ -467,7 +467,9 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     const [[{ nextIndexInQueue }]] = await runQuery({
       connection,
       query: `
-        SELECT COALESCE(MAX(indexInQueue) + 1, 0) as nextIndexInQueue FROM \`${this.tableNames.items}\` WHERE discriminator = ?;
+        SELECT COALESCE(MAX(indexInQueue) + 1, 0) as nextIndexInQueue
+          FROM \`${this.tableNames.items}\`
+          WHERE discriminator = ?;
       `,
       parameters: [ discriminator ]
     });
@@ -485,9 +487,9 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       const [[{ nextIndexInPriorityQueue }]] = await runQuery({
         connection,
         query: `
-          SELECT COALESCE(MAX(indexInPriorityQueue) + 1, 0) as nextIndexInPriorityQueue FROM \`${this.tableNames.priorityQueue}\`;
-        `,
-        parameters: [ discriminator ]
+          SELECT COALESCE(MAX(indexInPriorityQueue) + 1, 0) as nextIndexInPriorityQueue
+            FROM \`${this.tableNames.priorityQueue}\`;
+        `
       });
 
       await runQuery({
