@@ -37,8 +37,7 @@ const postCommand = {
     onReceiveCommand: OnReceiveCommand;
     applicationDefinition: ApplicationDefinition;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(postCommand.request.body),
-          responseBodySchema = new Value(postCommand.response.body);
+    const responseBodySchema = new Value(postCommand.response.body);
 
     return async function (req, res): Promise<void> {
       if (!req.token || !req.user) {
@@ -68,7 +67,6 @@ const postCommand = {
 
         return;
       }
-
 
       const command = new Command({
         contextIdentifier: {
