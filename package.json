@@ -190,7 +190,7 @@
     "concierge": "npx ts-node lib/bin/concierge.ts",
     "postdeps": "npm run concierge versions verify",
     "postbuild": "npm run concierge documentation build && npm run copy-assets",
-    "copy-assets": "mkdir -p build/assets && cp assets/favicon.png build/assets/favicon.png && cp assets/style.css build/assets/style.css && cp assets/logo.png build/assets/logo.png"
+    "copy-assets": "mkdir -p build/assets && cp assets/favicon.png build/assets/favicon.png && cp assets/style.css build/assets/style.css && cp assets/wolkenkit.svg build/assets/wolkenkit.svg"
   },
   "repository": {
     "type": "git",
