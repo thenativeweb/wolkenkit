@@ -23,8 +23,8 @@ const getAggregateService: GetAggregateService = function <TState extends State>
       return aggregateInstance.aggregateIdentifier.id;
     },
 
-    exists (): boolean {
-      return aggregateInstance.exists();
+    isPristine (): boolean {
+      return aggregateInstance.isPristine();
     },
 
     publishDomainEvent <TDomainEventData extends DomainEventData> (

@@ -289,7 +289,7 @@ class AggregateInstance<TState extends State> {
     return domainEvents;
   }
 
-  public exists (): boolean {
+  public isPristine (): boolean {
     return this.revision > 0;
   }
 

@@ -104,22 +104,22 @@ suite('getAggregateService', (): void => {
     });
   });
 
-  suite('exists', (): void => {
-    test(`uses the aggregate's exists method.`, async (): Promise<void> => {
-      let existsCalled = false;
+  suite('isPristine', (): void => {
+    test(`uses the aggregate's isPristine method.`, async (): Promise<void> => {
+      let isPristineCalled = false;
 
       /* eslint-disable @typescript-eslint/unbound-method */
-      aggregateInstance.exists = function (): boolean {
-        existsCalled = true;
+      aggregateInstance.isPristine = function (): boolean {
+        isPristineCalled = true;
 
         return true;
       };
       /* eslint-enable @typescript-eslint/unbound-method */
 
-      const doesExist = aggregateService.exists();
+      const doesExist = aggregateService.isPristine();
 
       assert.that(doesExist).is.true();
-      assert.that(existsCalled).is.true();
+      assert.that(isPristineCalled).is.true();
     });
   });
 

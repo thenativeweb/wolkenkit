@@ -140,9 +140,9 @@ suite('AggregateInstance', (): void => {
     });
   });
 
-  suite('exists', (): void => {
+  suite('isPristine', (): void => {
     test('returns false when the revision is 0.', async (): Promise<void> => {
-      assert.that(aggregateInstance.exists()).is.false();
+      assert.that(aggregateInstance.isPristine()).is.false();
     });
 
     test('returns true when the revision is greater than 0.', async (): Promise<void> => {
@@ -156,7 +156,7 @@ suite('AggregateInstance', (): void => {
         }
       });
 
-      assert.that(aggregateInstance.exists()).is.true();
+      assert.that(aggregateInstance.isPristine()).is.true();
     });
   });
 

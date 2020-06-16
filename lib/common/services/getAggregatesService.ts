@@ -25,7 +25,7 @@ const getAggregatesService: GetAggregatesService = function ({ repository }: {
               aggregateIdentifier: { name: aggregateName, id: aggregateId }
             });
 
-            if (!otherAggregateInstance.exists()) {
+            if (!otherAggregateInstance.isPristine()) {
               throw new errors.AggregateNotFound(`Aggregate '${contextName}.${aggregateName}.${aggregateId}' not found.`);
             }
 
