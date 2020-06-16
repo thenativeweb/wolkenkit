@@ -4,8 +4,8 @@ import { getTestApplicationDirectory } from '../../../shared/applications/getTes
 import { sandbox } from '../../../../lib/common/utils/test/sandbox';
 import { uuid } from 'uuidv4';
 
-suite.only('javascript/base', (): void => {
-  test('something something.', async (): Promise<void> => {
+suite('javascript/base', (): void => {
+  test('runs the execute command on a pristine aggregate.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
     const applicationDefinition = await getApplicationDefinition({ applicationDirectory });
 
