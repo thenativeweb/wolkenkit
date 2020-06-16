@@ -116,9 +116,9 @@ suite('getAggregateService', (): void => {
       };
       /* eslint-enable @typescript-eslint/unbound-method */
 
-      const doesExist = aggregateService.isPristine();
+      const isPristine = aggregateService.isPristine();
 
-      assert.that(doesExist).is.true();
+      assert.that(isPristine).is.true();
       assert.that(isPristineCalled).is.true();
     });
   });

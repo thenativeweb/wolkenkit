@@ -290,7 +290,7 @@ class AggregateInstance<TState extends State> {
   }
 
   public isPristine (): boolean {
-    return this.revision > 0;
+    return this.revision === 0;
   }
 
   public applySnapshot ({ snapshot }: {

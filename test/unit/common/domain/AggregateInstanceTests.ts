@@ -141,11 +141,11 @@ suite('AggregateInstance', (): void => {
   });
 
   suite('isPristine', (): void => {
-    test('returns false when the revision is 0.', async (): Promise<void> => {
-      assert.that(aggregateInstance.isPristine()).is.false();
+    test('returns true when the revision is 0.', async (): Promise<void> => {
+      assert.that(aggregateInstance.isPristine()).is.true();
     });
 
-    test('returns true when the revision is greater than 0.', async (): Promise<void> => {
+    test('returns false when the revision is greater than 0.', async (): Promise<void> => {
       aggregateInstance.applySnapshot({
         snapshot: {
           aggregateIdentifier: aggregateInstance.aggregateIdentifier,
@@ -156,7 +156,7 @@ suite('AggregateInstance', (): void => {
         }
       });
 
-      assert.that(aggregateInstance.isPristine()).is.true();
+      assert.that(aggregateInstance.isPristine()).is.false();
     });
   });
 
