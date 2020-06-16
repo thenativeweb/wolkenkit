@@ -1,7 +1,7 @@
 import { AggregateIdentifier } from '../../elements/AggregateIdentifier';
 import { ApplicationDefinition } from '../../application/ApplicationDefinition';
 import { buildCommandWithMetadata } from './buildCommandWithMetadata';
-import { buildDomainEvent } from '../../../wolkenkit';
+import { buildDomainEvent } from './buildDomainEvent';
 import { Client } from '../../elements/Client';
 import { CommandData } from '../../elements/CommandData';
 import { CommandWithMetadata } from '../../elements/CommandWithMetadata';
