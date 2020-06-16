@@ -37,6 +37,12 @@ suite('AggregateInstance', (): void => {
 
     domainEventStore = await createDomainEventStore({ type: 'InMemory', options: {}});
     lockStore = await createLockStore({ type: 'InMemory', options: {}});
+    repository = new Repository({
+      applicationDefinition,
+      lockStore,
+      domainEventStore,
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+    });
 
     aggregateInstance = await AggregateInstance.create({
       applicationDefinition,
