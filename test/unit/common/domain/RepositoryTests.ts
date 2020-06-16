@@ -2,19 +2,14 @@ import { ApplicationDefinition } from '../../../../lib/common/application/Applic
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
-import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
-import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
-import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
-import { toArray } from 'streamtoarray';
 import { uuid } from 'uuidv4';
-import { AggregateInstance } from '../../../../lib/common/domain/AggregateInstance';
 
 suite('Repository', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });

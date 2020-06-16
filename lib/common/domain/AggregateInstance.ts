@@ -15,7 +15,6 @@ import { getAggregatesService } from '../services/getAggregatesService';
 import { GetAggregatesService } from '../services/types/GetAggregatesService';
 import { getClientService } from '../services/getClientService';
 import { GetClientService } from '../services/types/GetClientService';
-import { getCommandWithMetadataSchema } from '../schemas/getCommandWithMetadataSchema';
 import { getErrorService } from '../services/getErrorService';
 import { getLockService } from '../services/getLockService';
 import { GetLockService } from '../services/types/GetLockService';
@@ -27,7 +26,6 @@ import { Snapshot } from '../../stores/domainEventStore/Snapshot';
 import { SnapshotStrategy } from './SnapshotStrategy';
 import { State } from '../elements/State';
 import { validateCommandWithMetadata } from '../validators/validateCommandWithMetadata';
-import { Value } from 'validate-value';
 import { cloneDeep, get } from 'lodash';
 
 class AggregateInstance<TState extends State> {

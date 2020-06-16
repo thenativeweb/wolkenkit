@@ -284,10 +284,7 @@ suite('AggregateInstance', (): void => {
 
     suite('authorization', (): void => {
       test(`publishes (and does not store) a rejected event if the sender of a command is not authorized.`, async (): Promise<void> => {
-        const aggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: uuid()
-        };
+        const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
           contextIdentifier: {
@@ -322,10 +319,7 @@ suite('AggregateInstance', (): void => {
       });
 
       test('passes the correct state to the isAuthorized handler.', async (): Promise<void> => {
-        const aggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: uuid()
-        };
+        const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
           contextIdentifier: {
@@ -360,10 +354,7 @@ suite('AggregateInstance', (): void => {
 
     suite('handling', (): void => {
       test('publishes (and stores) an appropriate event for the incoming command.', async (): Promise<void> => {
-        const aggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: uuid()
-        };
+        const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
           contextIdentifier: {
@@ -453,10 +444,7 @@ suite('AggregateInstance', (): void => {
       });
 
       test('publishes (and does not store) a rejected event if a handler rejects.', async (): Promise<void> => {
-        const aggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: uuid()
-        };
+        const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
           contextIdentifier: {
@@ -491,10 +479,7 @@ suite('AggregateInstance', (): void => {
       });
 
       test('publishes (and does not store) a failed event if a handler throws an unknow exception.', async (): Promise<void> => {
-        const aggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: uuid()
-        };
+        const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
           contextIdentifier: {
