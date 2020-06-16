@@ -255,12 +255,12 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           start_period: 30s
 
       graphql:
-        build: '../..
+        build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/graphql/app.js'
         environment:
           NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
-          GRAPHQL_PLAYGROUND: false
+          GRAPHQL_PLAYGROUND: 'false'
           CORS_ORIGIN: '*'
           DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
           DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'
