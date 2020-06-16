@@ -6,6 +6,7 @@ import { buildDomainEvent } from '../../../shared/buildDomainEvent';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
+import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import fetch from 'node-fetch';
@@ -57,6 +58,7 @@ suite('graphql', function (): void {
     repository = new Repository({
       applicationDefinition,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+      lockStore: await createLockStore({ type: 'InMemory', options: {}}),
       domainEventStore
     });
     receivedCommands = [];

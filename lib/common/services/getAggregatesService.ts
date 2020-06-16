@@ -1,16 +1,15 @@
 import { AggregatesService } from './AggregatesService';
-import { ApplicationDefinition } from '../application/ApplicationDefinition';
 import { errors } from '../errors';
+import { GetAggregatesService } from './types/GetAggregatesService';
 import { Repository } from '../domain/Repository';
 import { State } from '../elements/State';
 
-const getAggregatesService = function ({ applicationDefinition, repository }: {
-  applicationDefinition: ApplicationDefinition;
+const getAggregatesService: GetAggregatesService = function ({ repository }: {
   repository: Repository;
 }): AggregatesService {
   const aggregatesService: AggregatesService = {};
 
-  for (const [ contextName, contextConfiguration ] of Object.entries(applicationDefinition.domain)) {
+  for (const [ contextName, contextConfiguration ] of Object.entries(repository.applicationDefinition.domain)) {
     const aggregatesInContext: Record<string, (aggregateId: string) => {
       read: <TState extends State> () => Promise<TState>;
     }> = {};
@@ -21,16 +20,16 @@ const getAggregatesService = function ({ applicationDefinition, repository }: {
       } {
         return {
           async read <TState extends State> (): Promise<TState> {
-            const aggregate = await repository.loadCurrentAggregateState<TState>({
+            const otherAggregateInstance = await repository.getAggregateInstance<TState>({
               contextIdentifier: { name: contextName },
               aggregateIdentifier: { name: aggregateName, id: aggregateId }
             });
 
-            if (!aggregate.exists()) {
+            if (!otherAggregateInstance.exists()) {
               throw new errors.AggregateNotFound(`Aggregate '${contextName}.${aggregateName}.${aggregateId}' not found.`);
             }
 
-            return aggregate.state;
+            return otherAggregateInstance.state;
           }
         };
       };

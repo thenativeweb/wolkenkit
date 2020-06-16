@@ -1,12 +1,14 @@
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getAggregatesService } from '../../../../lib/common/services/getAggregatesService';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
-import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory/InMemoryDomainEventStore';
+import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
+import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { uuid } from 'uuidv4';
 
@@ -15,6 +17,7 @@ suite('getAggregatesService', (): void => {
 
   let applicationDefinition: ApplicationDefinition,
       domainEventStore: DomainEventStore,
+      lockStore: LockStore,
       repository: Repository;
 
   suiteSetup(async (): Promise<void> => {
@@ -23,16 +26,18 @@ suite('getAggregatesService', (): void => {
 
   setup(async (): Promise<void> => {
     domainEventStore = await InMemoryDomainEventStore.create();
+    lockStore = await createLockStore({ type: 'InMemory', options: {}});
 
     repository = new Repository({
       applicationDefinition,
+      lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' })
     });
   });
 
   test('returns an AggregatesService if everything is fine.', async (): Promise<void> => {
-    const aggregatesService = getAggregatesService({ applicationDefinition, repository });
+    const aggregatesService = getAggregatesService({ repository });
 
     assert.that(Object.keys(aggregatesService)).is.equalTo([ 'sampleContext' ]);
     assert.that(Object.keys(aggregatesService.sampleContext!)).is.equalTo([ 'sampleAggregate' ]);
@@ -62,7 +67,7 @@ suite('getAggregatesService', (): void => {
 
       await domainEventStore.storeDomainEvents({ domainEvents: [ sampleDomainEvent ]});
 
-      const aggregatesService = getAggregatesService({ applicationDefinition, repository });
+      const aggregatesService = getAggregatesService({ repository });
       const sampleAggregateState = await aggregatesService.sampleContext!.sampleAggregate!(id).read();
 
       assert.that(sampleAggregateState).is.equalTo({
@@ -71,7 +76,7 @@ suite('getAggregatesService', (): void => {
     });
 
     test('throws an error if a requested aggregate does not exist.', async (): Promise<void> => {
-      const aggregatesService = getAggregatesService({ applicationDefinition, repository });
+      const aggregatesService = getAggregatesService({ repository });
       const id = uuid();
 
       await assert.that(async (): Promise<void> => {

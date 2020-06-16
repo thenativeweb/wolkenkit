@@ -6,7 +6,7 @@ import { sleep } from '../../../../common/utils/sleep';
 
 const keepRenewingLock = async function ({ command, handleCommandPromise, dispatcher, token }: {
   command: CommandWithMetadata<CommandData>;
-  handleCommandPromise: Promise<void>;
+  handleCommandPromise: Promise<any>;
   dispatcher: Dispatcher;
   token: string;
 }): Promise<void> {

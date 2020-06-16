@@ -36,7 +36,7 @@ const prepareForPublication = async function ({
   const { name: contextName } = contextIdentifier;
   const { name: aggregateName } = aggregateIdentifier;
 
-  const aggregateInstance = await repository.loadCurrentAggregateState({ contextIdentifier, aggregateIdentifier });
+  const aggregateInstance = await repository.getAggregateInstance({ contextIdentifier, aggregateIdentifier });
   const aggregateState = aggregateInstance.state;
 
   const domainEventHandler =
