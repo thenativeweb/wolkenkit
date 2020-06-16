@@ -1,6 +1,6 @@
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';

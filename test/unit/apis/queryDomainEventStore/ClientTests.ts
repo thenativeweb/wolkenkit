@@ -2,7 +2,7 @@ import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateId
 import { Application } from 'express';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { Client } from '../../../../lib/apis/queryDomainEventStore/http/v2/Client';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { CustomError } from 'defekt';

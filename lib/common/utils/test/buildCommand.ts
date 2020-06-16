@@ -1,7 +1,7 @@
-import { AggregateIdentifier } from '../../lib/common/elements/AggregateIdentifier';
-import { Command } from '../../lib/common/elements/Command';
-import { CommandData } from '../../lib/common/elements/CommandData';
-import { ContextIdentifier } from '../../lib/common/elements/ContextIdentifier';
+import { AggregateIdentifier } from '../../elements/AggregateIdentifier';
+import { Command } from '../../elements/Command';
+import { CommandData } from '../../elements/CommandData';
+import { ContextIdentifier } from '../../elements/ContextIdentifier';
 
 const buildCommand = function <TCommandData extends CommandData> ({
   contextIdentifier,

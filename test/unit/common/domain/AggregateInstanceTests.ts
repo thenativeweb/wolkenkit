@@ -2,8 +2,8 @@ import { AggregateInstance } from '../../../../lib/common/domain/AggregateInstan
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { buildCommandWithMetadata } from '../../../shared/buildCommandWithMetadata';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { buildCommandWithMetadata } from '../../../../lib/common/utils/test/buildCommandWithMetadata';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { CustomError } from 'defekt';

@@ -1,5 +1,5 @@
 import { assert } from 'assertthat';
-import { buildCommandWithMetadata } from '../../../shared/buildCommandWithMetadata';
+import { buildCommandWithMetadata } from '../../../../lib/common/utils/test/buildCommandWithMetadata';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { CustomError } from 'defekt';

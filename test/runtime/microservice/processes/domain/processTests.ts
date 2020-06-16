@@ -1,6 +1,6 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { buildCommandWithMetadata } from '../../../../shared/buildCommandWithMetadata';
+import { buildCommandWithMetadata } from '../../../../../lib/common/utils/test/buildCommandWithMetadata';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/apis/handleCommandWithMetadata/http/v2/Client';

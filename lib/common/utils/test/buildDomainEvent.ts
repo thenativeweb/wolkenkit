@@ -1,8 +1,8 @@
-import { AggregateIdentifier } from '../../lib/common/elements/AggregateIdentifier';
-import { ContextIdentifier } from '../../lib/common/elements/ContextIdentifier';
-import { DomainEvent } from '../../lib/common/elements/DomainEvent';
-import { DomainEventData } from '../../lib/common/elements/DomainEventData';
-import { Initiator } from '../../lib/common/elements/Initiator';
+import { AggregateIdentifier } from '../../elements/AggregateIdentifier';
+import { ContextIdentifier } from '../../elements/ContextIdentifier';
+import { DomainEvent } from '../../elements/DomainEvent';
+import { DomainEventData } from '../../elements/DomainEventData';
+import { Initiator } from '../../elements/Initiator';
 import { uuid } from 'uuidv4';
 
 const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({

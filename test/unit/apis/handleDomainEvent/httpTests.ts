@@ -1,7 +1,7 @@
 import { Application } from 'express';
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { getApi } from '../../../../lib/apis/handleDomainEvent/http';

@@ -1,9 +1,9 @@
-import { AggregateIdentifier } from '../../lib/common/elements/AggregateIdentifier';
-import { Client } from '../../lib/common/elements/Client';
-import { CommandData } from '../../lib/common/elements/CommandData';
-import { CommandWithMetadata } from '../../lib/common/elements/CommandWithMetadata';
-import { ContextIdentifier } from '../../lib/common/elements/ContextIdentifier';
-import { Initiator } from '../../lib/common/elements/Initiator';
+import { AggregateIdentifier } from '../../elements/AggregateIdentifier';
+import { Client } from '../../elements/Client';
+import { CommandData } from '../../elements/CommandData';
+import { CommandWithMetadata } from '../../elements/CommandWithMetadata';
+import { ContextIdentifier } from '../../elements/ContextIdentifier';
+import { Initiator } from '../../elements/Initiator';
 import { uuid } from 'uuidv4';
 
 const buildCommandWithMetadata = function <TCommandData extends CommandData> ({

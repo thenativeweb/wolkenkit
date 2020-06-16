@@ -1,7 +1,7 @@
 import { Application } from 'express';
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { assert } from 'assertthat';
-import { buildCommandWithMetadata } from '../../../shared/buildCommandWithMetadata';
+import { buildCommandWithMetadata } from '../../../../lib/common/utils/test/buildCommandWithMetadata';
 import { Client } from '../../../../lib/apis/awaitCommandWithMetadata/http/v2/Client';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
