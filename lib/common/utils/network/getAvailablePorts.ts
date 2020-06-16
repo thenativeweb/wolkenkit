@@ -45,11 +45,17 @@ const releasePort = async function ({ port }: { port: number }): Promise<void> {
 const getAvailablePorts = async function ({ count }: {
   count: number;
 }): Promise<number[]> {
-  const availablePorts = [];
+  const availablePorts: number[] = [];
 
-  for (let i = 0; i < count; i++) {
-    availablePorts.push(await lockPort());
-  }
+  do {
+    const availablePort = await lockPort();
+
+    if (availablePorts.includes(availablePort)) {
+      continue;
+    }
+
+    availablePorts.push(availablePort);
+  } while (availablePorts.length < count);
 
   for (const availablePort of availablePorts) {
     await releasePort({ port: availablePort });

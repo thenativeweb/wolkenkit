@@ -75,7 +75,7 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
         environment:
           NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
-          HTTP_API: true
+          HTTP_API: 'true'
           GRAPHQL_API: '{"enableIntegratedClient":false}'
           COMMAND_QUEUE_RENEW_INTERVAL: ${5_000}
           CONCURRENT_COMMANDS: ${100}

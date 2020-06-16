@@ -6,6 +6,7 @@ const errors = defekt({
   AggregateNotFound: {},
   ApplicationMalformed: {},
   ApplicationNotFound: {},
+  ClaimsMalformed: {},
   CommandNotAuthorized: {},
   CommandHandlerMalformed: {},
   CommandMalformed: {},
