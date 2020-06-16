@@ -1,9 +1,10 @@
+import { AggregateIdentifier } from '../elements/AggregateIdentifier';
+import { ContextIdentifier } from '../elements/ContextIdentifier';
 import { State } from '../elements/State';
 
 export interface AggregatesService {
-  [contextName: string]: {
-    [aggregateName: string]: ((aggregateId: string) => {
-      read: <TState extends State> () => Promise<TState>;
-    }) | undefined;
-  } | undefined;
+  read: <TState extends State> (parameters: {
+    contextIdentifier: ContextIdentifier;
+    aggregateIdentifier: AggregateIdentifier;
+  }) => Promise<TState>;
 }

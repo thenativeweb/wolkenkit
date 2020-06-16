@@ -39,9 +39,7 @@ suite('getAggregatesService', (): void => {
   test('returns an AggregatesService if everything is fine.', async (): Promise<void> => {
     const aggregatesService = getAggregatesService({ repository });
 
-    assert.that(Object.keys(aggregatesService)).is.equalTo([ 'sampleContext' ]);
-    assert.that(Object.keys(aggregatesService.sampleContext!)).is.equalTo([ 'sampleAggregate' ]);
-    assert.that(aggregatesService.sampleContext!.sampleAggregate!).is.ofType('function');
+    assert.that(aggregatesService.read).is.ofType('function');
   });
 
   suite('AggregatesService', (): void => {
@@ -68,7 +66,10 @@ suite('getAggregatesService', (): void => {
       await domainEventStore.storeDomainEvents({ domainEvents: [ sampleDomainEvent ]});
 
       const aggregatesService = getAggregatesService({ repository });
-      const sampleAggregateState = await aggregatesService.sampleContext!.sampleAggregate!(id).read();
+      const sampleAggregateState = await aggregatesService.read({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id }
+      });
 
       assert.that(sampleAggregateState).is.equalTo({
         domainEventNames: [ 'succeeded' ]
@@ -80,7 +81,10 @@ suite('getAggregatesService', (): void => {
       const id = uuid();
 
       await assert.that(async (): Promise<void> => {
-        await aggregatesService.sampleContext!.sampleAggregate!(id).read();
+        await aggregatesService.read({
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id }
+        });
       }).is.throwingAsync(`Aggregate 'sampleContext.sampleAggregate.${id}' not found.`);
     });
   });
