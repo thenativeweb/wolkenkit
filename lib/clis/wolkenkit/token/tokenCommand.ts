@@ -2,6 +2,7 @@ import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { errors } from '../../../common/errors';
 import fs from 'fs';
+import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
 import { getJwtSchema } from './getJwtSchema';
 import { TokenOptions } from './TokenOptions';
 import { validateExpiration } from './validateExpiration';
@@ -47,6 +48,14 @@ const tokenCommand = function (): Command<TokenOptions> {
         isRequired: false,
         defaultValue: 60 * 24 * 365,
         validate: validateExpiration
+      },
+      {
+        name: 'raw',
+        alias: 'r',
+        description: 'only output the token',
+        type: 'boolean',
+        isRequired: false,
+        defaultValue: false
       }
     ],
 
@@ -55,29 +64,45 @@ const tokenCommand = function (): Command<TokenOptions> {
       issuer,
       'private-key': privateKeyPath,
       claims: claimsPath,
-      expiration: expiresInMinutes
+      expiration: expiresInMinutes,
+      raw
     }}): Promise<void> {
       buntstift.configure(
         buntstift.getConfiguration().
           withVerboseMode(verbose)
       );
-      const stopWaiting = buntstift.wait();
+
+      let stopWaiting;
+
+      if (!raw) {
+        stopWaiting = buntstift.wait();
+      }
 
       try {
         let claims,
             privateKey;
 
+        const privateKeyAbsolutePath = getAbsolutePath({
+          path: privateKeyPath,
+          cwd: process.cwd()
+        });
+
         try {
-          privateKey = await fs.promises.readFile(privateKeyPath);
+          privateKey = await fs.promises.readFile(privateKeyAbsolutePath);
         } catch (ex) {
-          buntstift.info('Private key not found.');
+          buntstift.info(`Private key file '${privateKeyAbsolutePath}' not found.`);
           throw new errors.FileNotFound();
         }
 
+        const claimsAbsolutePath = getAbsolutePath({
+          path: claimsPath,
+          cwd: process.cwd()
+        });
+
         try {
-          claims = await fs.promises.readFile(claimsPath, { encoding: 'utf8' });
+          claims = await fs.promises.readFile(claimsAbsolutePath, { encoding: 'utf8' });
         } catch (ex) {
-          buntstift.info('Claims file not found.');
+          buntstift.info(`Claims file '${claimsAbsolutePath}' not found.`);
           throw new errors.FileNotFound();
         }
 
@@ -100,7 +125,9 @@ const tokenCommand = function (): Command<TokenOptions> {
         const subject = claims.sub;
         const payload = { ...claims, sub: undefined };
 
-        buntstift.info('Issuing a token...');
+        if (!raw) {
+          buntstift.info('Issuing a token...');
+        }
 
         const limes = new Limes({
           identityProviders: [ new IdentityProvider({ issuer, privateKey, expiresInMinutes }) ]
@@ -108,18 +135,25 @@ const tokenCommand = function (): Command<TokenOptions> {
 
         const token = limes.issueToken({ issuer, subject, payload });
 
-        buntstift.newLine();
-        buntstift.line();
-        buntstift.info(token);
-        buntstift.line();
-        buntstift.newLine();
-        buntstift.success('Issued a token.');
+        if (!raw) {
+          buntstift.newLine();
+          buntstift.line();
+          buntstift.info(token);
+          buntstift.line();
+          buntstift.newLine();
+          buntstift.success('Issued a token.');
+        } else {
+          // eslint-disable-next-line no-console
+          console.log(token);
+        }
       } catch (ex) {
         buntstift.error('Failed to issue a token.');
 
         throw ex;
       } finally {
-        stopWaiting();
+        if (stopWaiting) {
+          stopWaiting();
+        }
       }
     }
   };

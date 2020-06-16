@@ -5,4 +5,5 @@ export interface TokenOptions extends RootOptions {
   'private-key': string;
   claims: string;
   expiration: number;
+  raw: boolean;
 }
