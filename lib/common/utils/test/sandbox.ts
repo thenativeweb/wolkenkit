@@ -398,7 +398,9 @@ const sandboxWithResult = function <TState extends State> (sandboxConfiguration:
       const lockServiceFactory = sandboxConfiguration.lockServiceFactory ?? getLockService;
       const loggerServiceFactory = sandboxConfiguration.loggerServiceFactory ?? getLoggerService;
 
-      await domainEventStore.storeDomainEvents({ domainEvents: sandboxConfiguration.domainEvents });
+      if (sandboxConfiguration.domainEvents.length > 0) {
+        await domainEventStore.storeDomainEvents({ domainEvents: sandboxConfiguration.domainEvents });
+      }
 
       const repository = new Repository({
         applicationDefinition: sandboxConfiguration.applicationDefinition,
