@@ -61,6 +61,10 @@ const getConfiguration = function (): Configuration {
     HEALTH_PORT: {
       default: 3001,
       schema: portSchema
+    },
+    ENABLE_OPEN_API_DOCUMENTATION: {
+      default: false,
+      schema: { type: 'boolean' }
     }
   });
 

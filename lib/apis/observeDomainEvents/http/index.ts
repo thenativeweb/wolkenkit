@@ -1,5 +1,7 @@
+import { ApiDefinition } from '../../openApi/ApiDefinition';
 import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
 import { CorsOrigin } from 'get-cors-origin';
+import { getApiDefinitions } from './getApiDefinitions';
 import { getV2 } from './v2';
 import { IdentityProvider } from 'limes';
 import { PublishDomainEvent } from '../PublishDomainEvent';
@@ -18,7 +20,7 @@ const getApi = async function ({
   repository: Repository;
   identityProviders: IdentityProvider[];
   heartbeatInterval?: number;
-}): Promise<{ api: Application; publishDomainEvent: PublishDomainEvent }> {
+}): Promise<{ api: Application; publishDomainEvent: PublishDomainEvent; getApiDefinitions: (basePath: string) => ApiDefinition[] }> {
   const api = express();
 
   const v2 = await getV2({
@@ -35,7 +37,11 @@ const getApi = async function ({
     v2.publishDomainEvent({ domainEvent });
   };
 
-  return { api, publishDomainEvent };
+  return {
+    api,
+    publishDomainEvent,
+    getApiDefinitions: (basePath: string): ApiDefinition[] => getApiDefinitions({ basePath })
+  };
 };
 
 export { getApi };
