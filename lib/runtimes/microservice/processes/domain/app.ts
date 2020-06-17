@@ -43,6 +43,7 @@ import { State } from '../../../../common/elements/State';
 
     const repository = new Repository({
       applicationDefinition,
+      lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
@@ -81,9 +82,6 @@ import { State } from '../../../../common/elements/State';
             renewalInterval: configuration.dispatcherRenewInterval,
             acknowledgeRetries: configuration.dispatcherAcknowledgeRetries
           },
-          applicationDefinition,
-          lockStore,
-          domainEventStore,
           repository,
           publishDomainEvents
         });

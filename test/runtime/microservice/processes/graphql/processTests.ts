@@ -1,6 +1,6 @@
 import { ApolloClient } from 'apollo-client';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { Client } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
 import fetch from 'node-fetch';

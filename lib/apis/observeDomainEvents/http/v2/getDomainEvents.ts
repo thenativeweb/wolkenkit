@@ -54,7 +54,7 @@ const getDomainEvents = {
     const querySchema = new Value(getDomainEvents.request.query),
           responseBodySchema = new Value(getDomainEvents.response.body);
 
-    const aggregatesService = getAggregatesService({ applicationDefinition, repository });
+    const aggregatesService = getAggregatesService({ repository });
 
     return async function (req: Request, res: Response): Promise<void> {
       try {

@@ -2,8 +2,9 @@ import { Application } from 'express';
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { Client } from '../../../../lib/apis/observeDomainEvents/http/v2/Client';
+import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { getApi } from '../../../../lib/apis/observeDomainEvents/http';
@@ -34,6 +35,7 @@ suite('observeDomainEvents/http/Client', function (): void {
     domainEventStore = await InMemoryDomainEventStore.create();
     repository = new Repository({
       applicationDefinition,
+      lockStore: await createLockStore({ type: 'InMemory', options: {}}),
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' })
     });

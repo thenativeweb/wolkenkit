@@ -1,8 +1,8 @@
-import { AggregateIdentifier } from '../../lib/common/elements/AggregateIdentifier';
-import { ContextIdentifier } from '../../lib/common/elements/ContextIdentifier';
-import { DomainEvent } from '../../lib/common/elements/DomainEvent';
-import { DomainEventData } from '../../lib/common/elements/DomainEventData';
-import { Initiator } from '../../lib/common/elements/Initiator';
+import { AggregateIdentifier } from '../../elements/AggregateIdentifier';
+import { ContextIdentifier } from '../../elements/ContextIdentifier';
+import { DomainEvent } from '../../elements/DomainEvent';
+import { DomainEventData } from '../../elements/DomainEventData';
+import { Initiator } from '../../elements/Initiator';
 import { uuid } from 'uuidv4';
 
 const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
@@ -23,7 +23,7 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
     correlationId?: string;
     timestamp?: number;
     revision: number;
-    initiator: Initiator;
+    initiator?: Initiator;
     tags?: string[];
   };
 }): DomainEvent<TDomainEventData> {
@@ -38,7 +38,9 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
       correlationId: metadata.correlationId ?? uuid(),
       timestamp: metadata.timestamp ?? Date.now(),
       revision: metadata.revision,
-      initiator: metadata.initiator,
+      initiator: metadata.initiator ?? {
+        user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
+      },
       tags: metadata.tags ?? []
     }
   });

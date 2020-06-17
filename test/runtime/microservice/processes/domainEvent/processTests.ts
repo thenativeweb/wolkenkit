@@ -1,6 +1,6 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
 import { errors } from '../../../../../lib/common/errors';

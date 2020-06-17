@@ -1,7 +1,7 @@
 import { ApolloClient } from 'apollo-client';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { buildCommand } from '../../../../shared/buildCommand';
+import { buildCommand } from '../../../../../lib/common/utils/test/buildCommand';
 import { Client } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import fetch from 'node-fetch';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';

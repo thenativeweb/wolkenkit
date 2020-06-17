@@ -11,6 +11,7 @@ import { DomainEventData } from './common/elements/DomainEventData';
 import { DomainEventHandler } from './common/elements/DomainEventHandler';
 import { DomainEventWithState } from './common/elements/DomainEventWithState';
 import { ErrorService } from './common/services/ErrorService';
+import { getApplicationDefinition } from './common/application/getApplicationDefinition';
 import { GetInitialState } from './common/elements/GetInitialState';
 import { LockService } from './common/services/LockService';
 import { LoggerService } from './common/services/LoggerService';
@@ -18,6 +19,7 @@ import { ProjectionHandler } from './common/elements/ProjectionHandler';
 import { QueryHandler } from './common/elements/QueryHandler';
 import { QueryOptions } from './common/elements/QueryOptions';
 import { QueryResultItem } from './common/elements/QueryResultItem';
+import { sandbox } from './common/utils/test/sandbox';
 import { Schema } from './common/elements/Schema';
 import { State } from './common/elements/State';
 import { View } from './common/elements/View';
@@ -37,6 +39,7 @@ export {
   DomainEventHandler,
   DomainEventWithState,
   ErrorService,
+  getApplicationDefinition,
   GetInitialState,
   LockService,
   LoggerService,
@@ -44,6 +47,7 @@ export {
   QueryHandler,
   QueryOptions,
   QueryResultItem,
+  sandbox,
   Schema,
   State,
   View,

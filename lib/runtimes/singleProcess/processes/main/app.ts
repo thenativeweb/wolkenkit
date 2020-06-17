@@ -49,6 +49,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const repository = new Repository({
       applicationDefinition,
+      lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });

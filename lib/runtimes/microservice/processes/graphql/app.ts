@@ -3,6 +3,7 @@
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
+import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
@@ -44,6 +45,7 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
 
     const repository = new Repository({
       applicationDefinition,
+      lockStore: await createLockStore({ type: 'InMemory', options: {}}),
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });

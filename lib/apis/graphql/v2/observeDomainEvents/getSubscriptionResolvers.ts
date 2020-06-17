@@ -19,7 +19,7 @@ const getSubscriptionResolvers = function ({ applicationDefinition, repository, 
   repository: Repository;
   domainEventEmitter: SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>;
 }): IResolvers<any, ClientMetadata> {
-  const aggregatesService = getAggregatesService({ applicationDefinition, repository });
+  const aggregatesService = getAggregatesService({ repository });
 
   return {
     domainEvents: {

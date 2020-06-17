@@ -1,17 +1,14 @@
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
-import { CurrentAggregateState } from '../../../../lib/common/domain/CurrentAggregateState';
-import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
-import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
+import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
-import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
+import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
-import { toArray } from 'streamtoarray';
 import { uuid } from 'uuidv4';
 
 suite('Repository', (): void => {
@@ -20,6 +17,7 @@ suite('Repository', (): void => {
   let aggregateId: string,
       applicationDefinition: ApplicationDefinition,
       domainEventStore: DomainEventStore,
+      lockStore: LockStore,
       repository: Repository;
 
   setup(async (): Promise<void> => {
@@ -27,8 +25,10 @@ suite('Repository', (): void => {
 
     aggregateId = uuid();
     domainEventStore = await InMemoryDomainEventStore.create();
+    lockStore = await createLockStore({ type: 'InMemory', options: {}});
     repository = new Repository({
       applicationDefinition,
+      lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' })
     });
@@ -38,7 +38,7 @@ suite('Repository', (): void => {
     await domainEventStore.destroy();
   });
 
-  suite('loadCurrentAggregateState', (): void => {
+  suite('getAggregateInstance', (): void => {
     test('returns the current state of the requested aggregate.', async (): Promise<void> => {
       const domainEventSucceeded = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
@@ -66,20 +66,21 @@ suite('Repository', (): void => {
         domainEvents: [ domainEventSucceeded, domainEventExecuted ]
       });
 
-      const currentAggregateState = await repository.loadCurrentAggregateState({
+      const aggregateInstance = await repository.getAggregateInstance({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId }
       });
 
-      assert.that(currentAggregateState.state).is.equalTo({
+      assert.that(aggregateInstance.state).is.equalTo({
         domainEventNames: [ 'succeeded', 'executed' ]
       });
-      assert.that(currentAggregateState.revision).is.equalTo(2);
+      assert.that(aggregateInstance.revision).is.equalTo(2);
     });
 
     test('stores a snapshot if the snapshot strategy evaluates to true.', async (): Promise<void> => {
       repository = new Repository({
         applicationDefinition,
+        lockStore,
         domainEventStore,
         snapshotStrategy: getSnapshotStrategy({ name: 'always' })
       });
@@ -121,7 +122,7 @@ suite('Repository', (): void => {
 
       await domainEventStore.storeDomainEvents({ domainEvents });
 
-      await repository.loadCurrentAggregateState({
+      await repository.getAggregateInstance({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier
       });
@@ -142,156 +143,19 @@ suite('Repository', (): void => {
 
       repository = new Repository({
         applicationDefinition,
+        lockStore,
         domainEventStore,
         snapshotStrategy
       });
 
       const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
 
-      await repository.loadCurrentAggregateState({
+      await repository.getAggregateInstance({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier
       });
 
       assert.that(snapshotStrategyCalled).is.false();
-    });
-  });
-
-  suite('saveCurrentAggregateState', (): void => {
-    test('does nothing if there are no unsaved domain events.', async (): Promise<void> => {
-      const currentAggregateState = new CurrentAggregateState({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
-        initialState: applicationDefinition.domain.sampleContext.sampleAggregate.getInitialState()
-      });
-
-      await repository.saveCurrentAggregateState({ currentAggregateState });
-
-      const domainEventStream = await domainEventStore.getReplayForAggregate({
-        aggregateId
-      });
-
-      const domainEvents = await toArray(domainEventStream);
-
-      assert.that(domainEvents.length).is.equalTo(0);
-    });
-
-    test('saves a single unsaved domain event to the domain event store.', async (): Promise<void> => {
-      const currentAggregateState = new CurrentAggregateState({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
-        initialState: applicationDefinition.domain.sampleContext.sampleAggregate.getInitialState()
-      });
-
-      currentAggregateState.unsavedDomainEvents.push(
-        new DomainEventWithState({
-          ...buildDomainEvent({
-            contextIdentifier: currentAggregateState.contextIdentifier,
-            aggregateIdentifier: currentAggregateState.aggregateIdentifier,
-            name: 'executed',
-            data: {
-              strategy: 'succeed'
-            },
-            metadata: {
-              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: 1
-            }
-          }),
-          state: {
-            previous: {
-              domainEventNames: []
-            },
-            next: {
-              domainEventNames: [ 'executed' ]
-            }
-          }
-        })
-      );
-
-      await repository.saveCurrentAggregateState({ currentAggregateState });
-
-      const domainEventStream = await domainEventStore.getReplayForAggregate({
-        aggregateId
-      });
-
-      const domainEvents: DomainEvent<DomainEventData>[] = await toArray(domainEventStream);
-
-      assert.that(domainEvents.length).is.equalTo(1);
-      assert.that(domainEvents[0].name).is.equalTo('executed');
-      assert.that(domainEvents[0].data).is.equalTo({
-        strategy: 'succeed'
-      });
-    });
-
-    test('saves multiple unsaved domain events to the domain event store.', async (): Promise<void> => {
-      const currentAggregateState = new CurrentAggregateState({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
-        initialState: applicationDefinition.domain.sampleContext.sampleAggregate.getInitialState()
-      });
-
-      currentAggregateState.unsavedDomainEvents.push(
-        new DomainEventWithState({
-          ...buildDomainEvent({
-            contextIdentifier: currentAggregateState.contextIdentifier,
-            aggregateIdentifier: currentAggregateState.aggregateIdentifier,
-            name: 'succeeded',
-            data: {},
-            metadata: {
-              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: 1
-            }
-          }),
-          state: {
-            previous: {
-              domainEventNames: []
-            },
-            next: {
-              domainEventNames: [ 'succeeded' ]
-            }
-          }
-        })
-      );
-      currentAggregateState.unsavedDomainEvents.push(
-        new DomainEventWithState({
-          ...buildDomainEvent({
-            contextIdentifier: currentAggregateState.contextIdentifier,
-            aggregateIdentifier: currentAggregateState.aggregateIdentifier,
-            name: 'executed',
-            data: {
-              strategy: 'succeed'
-            },
-            metadata: {
-              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
-              revision: 2
-            }
-          }),
-          state: {
-            previous: {
-              domainEventNames: [ 'succeeded' ]
-            },
-            next: {
-              domainEventNames: [ 'succeeded', 'executed' ]
-            }
-          }
-        })
-      );
-
-      await repository.saveCurrentAggregateState({ currentAggregateState });
-
-      const domainEventStream = await domainEventStore.getReplayForAggregate({
-        aggregateId
-      });
-
-      const domainEvents: DomainEvent<DomainEventData>[] = await toArray(domainEventStream);
-
-      assert.that(domainEvents.length).is.equalTo(2);
-      assert.that(domainEvents[0].name).is.equalTo('succeeded');
-      assert.that(domainEvents[0].data).is.equalTo({});
-      assert.that(domainEvents[1].name).is.equalTo('executed');
-      assert.that(domainEvents[1].data).is.equalTo({
-        strategy: 'succeed'
-      });
     });
   });
 });

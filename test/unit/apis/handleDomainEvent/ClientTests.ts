@@ -1,7 +1,7 @@
 import { Application } from 'express';
 import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { Client } from '../../../../lib/apis/handleDomainEvent/http/v2/Client';
 import { CustomError } from 'defekt';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
