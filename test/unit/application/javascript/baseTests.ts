@@ -42,7 +42,7 @@ suite('javascript/base', (): void => {
       then(({ state, domainEvents }): void => {
         assert.that(domainEvents[0].name).is.equalTo('succeeded');
         assert.that(domainEvents[1].name).is.equalTo('executed');
-        assert.that(state).is.equalTo({ domainEventNames: [ 'succeeded', 'executed' ]});
+        assert.that(state).is.equalTo({ domainEventNames: [ 'succeeded', 'executed', 'succeeded', 'executed' ]});
       });
   });
 });
