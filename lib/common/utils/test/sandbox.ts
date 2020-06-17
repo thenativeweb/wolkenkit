@@ -79,12 +79,11 @@ interface SandboxForAggregate<TState extends State> {
     name: string;
     data: TDomainEventData;
     id?: string;
-    metadata: {
+    metadata?: {
       causationId?: string;
       correlationId?: string;
       timestamp?: number;
-      revision: number;
-      initiator: Initiator;
+      initiator?: Initiator;
       tags?: string[];
     };
   }): SandboxForAggregate<TState>;
@@ -93,12 +92,11 @@ interface SandboxForAggregate<TState extends State> {
     name: string;
     data: TDomainEventData;
     id?: string;
-    metadata: {
+    metadata?: {
       causationId?: string;
       correlationId?: string;
       timestamp?: number;
-      revision: number;
-      initiator: Initiator;
+      initiator?: Initiator;
       tags?: string[];
     };
   }): SandboxForAggregate<TState>;
@@ -268,12 +266,11 @@ const sandboxForAggregate = function <TState extends State> (sandboxConfiguratio
       name: string;
       data: TDomainEventData;
       id?: string;
-      metadata: {
+      metadata?: {
         causationId?: string;
         correlationId?: string;
         timestamp?: number;
-        revision: number;
-        initiator: Initiator;
+        initiator?: Initiator;
         tags?: string[];
       };
     }): SandboxForAggregate<TState> {
@@ -287,7 +284,7 @@ const sandboxForAggregate = function <TState extends State> (sandboxConfiguratio
             name,
             data,
             id,
-            metadata
+            metadata: { ...metadata, revision: 0 }
           })
         ]
       });
@@ -297,12 +294,11 @@ const sandboxForAggregate = function <TState extends State> (sandboxConfiguratio
       name: string;
       data: TDomainEventData;
       id?: string;
-      metadata: {
+      metadata?: {
         causationId?: string;
         correlationId?: string;
         timestamp?: number;
-        revision: number;
-        initiator: Initiator;
+        initiator?: Initiator;
         tags?: string[];
       };
     }): SandboxForAggregate<TState> {
@@ -316,7 +312,7 @@ const sandboxForAggregate = function <TState extends State> (sandboxConfiguratio
             name,
             data,
             id,
-            metadata
+            metadata: { ...metadata, revision: 0 }
           })
         ]
       });
@@ -397,6 +393,14 @@ const sandboxWithResult = function <TState extends State> (sandboxConfiguration:
       const clientServiceFactory = sandboxConfiguration.clientServiceFactory ?? getClientService;
       const lockServiceFactory = sandboxConfiguration.lockServiceFactory ?? getLockService;
       const loggerServiceFactory = sandboxConfiguration.loggerServiceFactory ?? getLoggerService;
+
+      const lastDomainEvent =
+        await domainEventStore.getLastDomainEvent({ aggregateIdentifier: sandboxConfiguration.aggregateIdentifier });
+      const nextRevision = (lastDomainEvent?.metadata.revision ?? 0) + 1;
+
+      for (const [ index, domainEvent ] of sandboxConfiguration.domainEvents.entries()) {
+        domainEvent.metadata.revision = nextRevision + index;
+      }
 
       if (sandboxConfiguration.domainEvents.length > 0) {
         await domainEventStore.storeDomainEvents({ domainEvents: sandboxConfiguration.domainEvents });

@@ -23,7 +23,7 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
     correlationId?: string;
     timestamp?: number;
     revision: number;
-    initiator: Initiator;
+    initiator?: Initiator;
     tags?: string[];
   };
 }): DomainEvent<TDomainEventData> {
@@ -38,7 +38,9 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
       correlationId: metadata.correlationId ?? uuid(),
       timestamp: metadata.timestamp ?? Date.now(),
       revision: metadata.revision,
-      initiator: metadata.initiator,
+      initiator: metadata.initiator ?? {
+        user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}
+      },
       tags: metadata.tags ?? []
     }
   });

@@ -449,6 +449,29 @@ suite('AggregateInstance', (): void => {
         });
       });
 
+      test('updates the state.', async (): Promise<void> => {
+        const { aggregateIdentifier } = aggregateInstance;
+
+        const command = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier,
+          name: 'execute',
+          data: {
+            strategy: 'succeed'
+          }
+        });
+
+        await aggregateInstance.handleCommand({
+          command
+        });
+
+        assert.that(aggregateInstance.state).is.equalTo({
+          domainEventNames: [ 'succeeded', 'executed' ]
+        });
+      });
+
       test('publishes (and does not store) a rejected event if a handler rejects.', async (): Promise<void> => {
         const { aggregateIdentifier } = aggregateInstance;
 
@@ -521,7 +544,7 @@ suite('AggregateInstance', (): void => {
     });
   });
 
-  suite('saveCurrentAggregateState', (): void => {
+  suite('storeCurrentAggregateState', (): void => {
     test('does nothing if there are no unstored domain events.', async (): Promise<void> => {
       await aggregateInstance.storeCurrentAggregateState();
 
@@ -534,7 +557,7 @@ suite('AggregateInstance', (): void => {
       assert.that(domainEvents.length).is.equalTo(0);
     });
 
-    test('saves a single unstored domain event to the domain event store.', async (): Promise<void> => {
+    test('stores a single unstored domain event to the domain event store.', async (): Promise<void> => {
       aggregateInstance.unstoredDomainEvents.push(
         new DomainEventWithState({
           ...buildDomainEvent({
@@ -575,7 +598,7 @@ suite('AggregateInstance', (): void => {
       });
     });
 
-    test('saves multiple unstored domain events to the domain event store.', async (): Promise<void> => {
+    test('stores multiple unstored domain events to the domain event store.', async (): Promise<void> => {
       aggregateInstance.unstoredDomainEvents.push(
         new DomainEventWithState({
           ...buildDomainEvent({

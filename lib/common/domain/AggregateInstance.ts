@@ -284,6 +284,14 @@ class AggregateInstance<TState extends State> {
 
     this.unstoredDomainEvents = [];
 
+    for (const domainEvent of domainEvents) {
+      this.state = this.applyDomainEvent({
+        applicationDefinition,
+        domainEvent
+      });
+      this.revision = domainEvent.metadata.revision;
+    }
+
     return domainEvents;
   }
 
