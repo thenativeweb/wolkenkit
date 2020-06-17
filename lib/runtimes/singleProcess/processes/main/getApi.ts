@@ -4,6 +4,7 @@ import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getGraphqlApi } from '../../../../apis/graphql';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
 import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
+import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
 import { IdentityProvider } from 'limes';
 import { InitializeGraphQlOnServer } from '../../../../apis/graphql/InitializeGraphQlOnServer';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
@@ -36,16 +37,17 @@ const getApi = async function ({
       publishDomainEventToRestApi: undefined | PublishDomainEvent;
 
   if (configuration.httpApi) {
-    const { api: observeDomainEventsApi, publishDomainEvent } = await getObserveDomainEventsApi({
-      corsOrigin,
-      applicationDefinition,
-      identityProviders,
-      repository
-    });
+    const { api: observeDomainEventsApi, publishDomainEvent, getApiDefinitions: getObserveDomainEventApiDefinitions } =
+      await getObserveDomainEventsApi({
+        corsOrigin,
+        applicationDefinition,
+        identityProviders,
+        repository
+      });
 
     publishDomainEventToRestApi = publishDomainEvent;
 
-    const { api: handleCommandApi } = await getHandleCommandApi({
+    const { api: handleCommandApi, getApiDefinitions: getHandleCommandApiDefinitions } = await getHandleCommandApi({
       corsOrigin,
       onReceiveCommand,
       applicationDefinition,
@@ -54,6 +56,21 @@ const getApi = async function ({
 
     api.use('/domain-events', observeDomainEventsApi);
     api.use('/command', handleCommandApi);
+
+    if (configuration.enableOpenApiDocumentation) {
+      const { api: openApiApi } = await getOpenApiApi({
+        corsOrigin,
+        applicationDefinition,
+        title: 'Single process runtime API',
+        schemes: [ 'http' ],
+        apis: [
+          ...getHandleCommandApiDefinitions('command'),
+          ...getObserveDomainEventApiDefinitions('domain-events')
+        ]
+      });
+
+      api.use('/open-api', openApiApi);
+    }
   }
 
   if (configuration.graphqlApi !== false) {

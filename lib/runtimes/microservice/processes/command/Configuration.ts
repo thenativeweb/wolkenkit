@@ -9,4 +9,5 @@ export interface Configuration {
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
   healthPort: number;
+  enableOpenApiDocumentation: boolean;
 }

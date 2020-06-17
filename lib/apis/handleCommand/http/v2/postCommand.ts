@@ -6,6 +6,7 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
+import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { validateCommand } from '../../../../common/validators/validateCommand';
 import { Value } from 'validate-value';
@@ -30,7 +31,7 @@ const postCommand = {
       },
       required: [ 'id' ],
       additionalProperties: false
-    }
+    } as Schema
   },
 
   getHandler ({ onReceiveCommand, applicationDefinition }: {
