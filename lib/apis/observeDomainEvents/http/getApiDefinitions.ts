@@ -14,7 +14,7 @@ const getApiDefinitions = function ({ basePath }: {
       ],
       post: []
     },
-    tags: [ 'Domain Events' ]
+    tags: [ 'Domain events' ]
   }];
 };
 

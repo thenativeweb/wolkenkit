@@ -37,7 +37,7 @@ const getApi = async function ({
     const { api: openApiApi } = await getOpenApiApi({
       corsOrigin,
       applicationDefinition,
-      title: 'Domain Event server API',
+      title: 'Domain event server API',
       schemes: [ 'http' ],
       apis: [
         ...getObserveDomainApiDefinitions('domain-events')

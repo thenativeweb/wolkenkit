@@ -76,7 +76,7 @@ const getApi = async function ({
     openApiDefinition,
     {
       customfavIcon: 'assets/favicon.png',
-      customSiteTitle: `${applicationDefinition.packageManifest.name} - api documentation`,
+      customSiteTitle: `${applicationDefinition.packageManifest.name} | API documentation`,
       customCssUrl: 'assets/style.css'
     }
   ));
