@@ -17,4 +17,5 @@ export interface Configuration {
   snapshotStrategy: SnapshotStrategyConfiguration;
   concurrentCommands: number;
   commandQueueRenewInterval: number;
+  enableOpenApiDocumentation: boolean;
 }

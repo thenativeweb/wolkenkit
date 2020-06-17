@@ -76,6 +76,10 @@ const getConfiguration = function (): Configuration {
         }
       },
       schema: getSnapshotStrategySchema()
+    },
+    ENABLE_OPEN_API_DOCUMENTATION: {
+      default: false,
+      schema: { type: 'boolean' }
     }
   });
 

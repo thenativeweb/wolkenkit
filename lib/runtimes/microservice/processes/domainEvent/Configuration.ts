@@ -13,4 +13,5 @@ export interface Configuration {
   subscribeMessagesHostName: string;
   subscribeMessagesPort: number;
   snapshotStrategy: SnapshotStrategyConfiguration;
+  enableOpenApiDocumentation: boolean;
 }
