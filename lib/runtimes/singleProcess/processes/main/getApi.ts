@@ -38,12 +38,12 @@ const getApi = async function ({
 
   if (configuration.httpApi) {
     const { api: observeDomainEventsApi, publishDomainEvent, getApiDefinitions: getObserveDomainEventApiDefinitions } =
-        await getObserveDomainEventsApi({
-          corsOrigin,
-          applicationDefinition,
-          identityProviders,
-          repository
-        });
+      await getObserveDomainEventsApi({
+        corsOrigin,
+        applicationDefinition,
+        identityProviders,
+        repository
+      });
 
     publishDomainEventToRestApi = publishDomainEvent;
 
