@@ -211,9 +211,7 @@ class AggregateInstance<TState extends State> {
     });
   }
 
-  public async handleCommand ({
-    command
-  }: {
+  public async handleCommand ({ command }: {
     command: CommandWithMetadata<CommandData>;
   }): Promise<DomainEventWithState<DomainEventData, TState>[]> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -332,11 +330,9 @@ class AggregateInstance<TState extends State> {
     };
 
     const newStatePartial = domainEventHandler.handle(this.state, domainEvent, services);
+    const newState = { ...this.state, ...newStatePartial };
 
-    return {
-      ...this.state,
-      ...newStatePartial
-    };
+    return newState;
   }
 }
 
