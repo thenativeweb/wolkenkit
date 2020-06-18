@@ -90,8 +90,16 @@ Ideally you can also include a [short but complete code sample](http://sscce.org
 
 ## Running the build
 
-To build this module use [roboter](https://www.npmjs.com/package/roboter).
+To build this module use [roboter](https://www.npmjs.com/package/roboter):
 
 ```shell
 $ npx roboter
+```
+
+## Publishing an internal version
+
+While working on wolkenkit itself, it is sometimes necessary to publish an internal version to npm, e.g. to be able to install wolkenkit from the registry. To publish an internal version run the following command:
+
+```shell
+$ npx roboter build && npm version 4.0.0-internal.<id> && npm publish --tag internal
 ```
