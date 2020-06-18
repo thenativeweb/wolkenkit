@@ -3,6 +3,7 @@ import { CommandData } from '../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../common/elements/CommandWithMetadata';
 import { CorsOrigin } from 'get-cors-origin';
 import { getV2 } from './v2';
+import { ItemIdentifierWithClient } from '../../../common/elements/ItemIdentifierWithClient';
 import { PriorityQueueStore } from '../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Subscriber } from '../../../messaging/pubSub/Subscriber';
 import express, { Application } from 'express';
@@ -17,7 +18,7 @@ const getApi = async function ({
 }: {
   applicationDefinition: ApplicationDefinition;
   corsOrigin: CorsOrigin;
-  priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
+  priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
   newCommandSubscriber: Subscriber<object>;
   newCommandSubscriberChannel: string;
   heartbeatInterval?: number;

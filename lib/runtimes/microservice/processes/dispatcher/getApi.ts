@@ -5,6 +5,8 @@ import { Configuration } from './Configuration';
 import { getApi as getAwaitCommandWithMetadataApi } from '../../../../apis/awaitCommandWithMetadata/http';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getHandleCommandWithMetadataApi } from '../../../../apis/handleCommandWithMetadata/http';
+import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { OnCancelCommand } from '../../../../apis/handleCommandWithMetadata/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
@@ -16,18 +18,21 @@ const getApi = async function ({
   priorityQueueStore,
   newCommandSubscriber,
   newCommandPubSubChannel,
-  onReceiveCommand
+  onReceiveCommand,
+  onCancelCommand
 }: {
   configuration: Configuration;
   applicationDefinition: ApplicationDefinition;
-  priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
+  priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
   newCommandSubscriber: Subscriber<object>;
   newCommandPubSubChannel: string;
   onReceiveCommand: OnReceiveCommand;
+  onCancelCommand: OnCancelCommand;
 }): Promise<{ api: Application }> {
   const { api: handleCommandApi } = await getHandleCommandWithMetadataApi({
     corsOrigin: getCorsOrigin(configuration.handleCommandCorsOrigin),
     onReceiveCommand,
+    onCancelCommand,
     applicationDefinition
   });
 

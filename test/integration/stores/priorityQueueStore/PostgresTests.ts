@@ -1,5 +1,6 @@
 import { connectionOptions } from '../../../shared/containers/connectionOptions';
 import { getTestsFor } from './getTestsFor';
+import { isEqual } from 'lodash';
 import { PostgresPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/Postgres';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 
@@ -8,16 +9,19 @@ suite('Postgres', (): void => {
     async createPriorityQueueStore ({ suffix, expirationTime }: {
       suffix: string;
       expirationTime: number;
-    }): Promise<PriorityQueueStore<any>> {
+    }): Promise<PriorityQueueStore<any, any>> {
       const tableNames = {
         items: `items_${suffix}`,
         priorityQueue: `priorityQueue_${suffix}`
       };
 
       return await PostgresPriorityQueueStore.create({
-        ...connectionOptions.postgres,
-        tableNames,
-        expirationTime
+        doesIdentifierMatchItem: ({ item, itemIdentifier }): boolean => isEqual(item, itemIdentifier),
+        options: {
+          ...connectionOptions.postgres,
+          tableNames,
+          expirationTime
+        }
       });
     }
   });
