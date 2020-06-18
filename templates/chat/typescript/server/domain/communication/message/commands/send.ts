@@ -26,6 +26,9 @@ export const send: CommandHandler<MessageState, SendData> = {
     if (!command.data.text) {
       throw new error.CommandRejected('Text is missing.');
     }
+    if (!aggregate.isPristine()) {
+      throw new error.CommandRejected('Message was already sent.');
+    }
 
     aggregate.publishDomainEvent<SentData>('sent', {
       text: command.data.text
