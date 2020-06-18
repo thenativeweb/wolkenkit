@@ -1,9 +1,9 @@
 import { BuildOptions } from './BuildOptions';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
-import { exec } from 'shelljs';
 import { getApplicationRoot } from '../../../../common/application/getApplicationRoot';
 import path from 'path';
+import { exec, rm } from 'shelljs';
 
 const buildCommand = function (): Command<BuildOptions> {
   return {
@@ -27,6 +27,7 @@ const buildCommand = function (): Command<BuildOptions> {
 
         buntstift.info('Building the documentation...');
 
+        rm('-rf', path.join(documentationDirectory, '.next'));
         exec('npx next build', { cwd: documentationDirectory });
         exec(`npx next export -o '${outputDirectory}'`, { cwd: documentationDirectory });
 
