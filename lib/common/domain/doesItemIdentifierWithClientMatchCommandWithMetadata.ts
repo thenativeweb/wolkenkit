@@ -10,7 +10,7 @@ const doesItemIdentifierWithClientMatchCommandWithMetadata: DoesIdentifierMatchI
         isEqual(item.aggregateIdentifier, itemIdentifier.aggregateIdentifier) &&
         item.name === itemIdentifier.name &&
         item.id === itemIdentifier.id &&
-        isEqual(item.metadata.client, itemIdentifier.client);
+        isEqual(item.metadata.client.user, itemIdentifier.client.user);
     };
 
 export { doesItemIdentifierWithClientMatchCommandWithMetadata };

@@ -19,7 +19,7 @@ const cancelCommand = {
     body: getItemIdentifierWithClientSchema()
   },
   response: {
-    statusCodes: [ 200, 400, 415 ],
+    statusCodes: [ 200, 400, 404, 415 ],
     body: { type: 'object' }
   },
 

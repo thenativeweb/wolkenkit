@@ -7,9 +7,7 @@ import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/Priori
 
 const logger = flaschenpost.getLogger();
 
-const getOnCancelCommand = function ({
-  priorityQueueStore
-}: {
+const getOnCancelCommand = function ({ priorityQueueStore }: {
   priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
 }): OnCancelCommand {
   return async function ({ commandIdentifierWithClient }): Promise<void> {

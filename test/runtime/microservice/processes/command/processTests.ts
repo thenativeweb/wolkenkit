@@ -88,7 +88,7 @@ suite('command', (): void => {
     });
 
     suite('postCommand', (): void => {
-      test('sends commands to the right endpoint at the dispatcher.', async (): Promise<void> => {
+      test('sends commands to the correct endpoint at the dispatcher.', async (): Promise<void> => {
         const command = new Command({
           contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -150,7 +150,7 @@ suite('command', (): void => {
     });
 
     suite('cancelCommand', (): void => {
-      test('sends a cancel request to the right endpoint at the dispatcher.', async (): Promise<void> => {
+      test('sends a cancel request to the correct endpoint at the dispatcher.', async (): Promise<void> => {
         const commandIdentifier: ItemIdentifier = {
           contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
