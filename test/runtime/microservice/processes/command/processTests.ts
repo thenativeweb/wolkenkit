@@ -154,14 +154,14 @@ suite('command', (): void => {
         const commandIdentifier: ItemIdentifier = {
           contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-          name: 'excute',
+          name: 'execute',
           id: uuid()
         };
 
         await handleCommandClient.cancelCommand({ commandIdentifier });
 
         assert.that(endpointCommandWasSentTo).is.equalTo('/handle-command/v2/cancel');
-        assert.that(commandReceivedByDispatcher).is.equalTo(commandIdentifier);
+        assert.that(commandReceivedByDispatcher).is.atLeast(commandIdentifier);
       });
 
       test('fails if sending the cancel request to the dispatcher fails.', async (): Promise<void> => {
@@ -189,7 +189,7 @@ suite('command', (): void => {
         const commandIdentifier: ItemIdentifier = {
           contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-          name: 'excute',
+          name: 'execute',
           id: uuid()
         };
 

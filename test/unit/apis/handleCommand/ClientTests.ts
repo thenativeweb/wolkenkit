@@ -11,10 +11,10 @@ import { getApplicationDefinition } from '../../../../lib/common/application/get
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
+import { ItemIdentifier } from '../../../../lib/common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { uuid } from 'uuidv4';
-import { ItemIdentifier } from '../../../../lib/common/elements/ItemIdentifier';
 
 suite('handleCommand/http/Client', (): void => {
   const identityProviders = [ identityProvider ];

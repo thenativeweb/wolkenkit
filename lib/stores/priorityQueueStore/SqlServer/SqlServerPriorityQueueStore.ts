@@ -9,7 +9,6 @@ import { Queue } from './Queue';
 import { TableNames } from './TableNames';
 import { uuid } from 'uuidv4';
 import { ConnectionPool, Transaction, TYPES as Types } from 'mssql';
-import { runQuery } from '../../utils/mySql/runQuery';
 
 class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;

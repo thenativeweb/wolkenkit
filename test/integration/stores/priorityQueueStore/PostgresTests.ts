@@ -1,8 +1,8 @@
 import { connectionOptions } from '../../../shared/containers/connectionOptions';
 import { getTestsFor } from './getTestsFor';
+import { isEqual } from 'lodash';
 import { PostgresPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/Postgres';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
-import { isEqual } from 'lodash';
 
 suite('Postgres', (): void => {
   getTestsFor({
