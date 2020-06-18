@@ -29,6 +29,9 @@ const message = {
         if (!command.data.text) {
           throw new error.CommandRejected('Text is missing.');
         }
+        if (!aggregate.isPristine()) {
+          throw new error.CommandRejected('Message was already sent.');
+        }
 
         aggregate.publishDomainEvent('sent', {
           text: command.data.text
@@ -50,7 +53,11 @@ const message = {
         return true;
       },
 
-      handle (state, _command, { aggregate }) {
+      handle (state, _command, { aggregate, error }) {
+        if (aggregate.isPristine()) {
+          throw new error.CommandRejected('Message was not yet sent.');
+        }
+
         aggregate.publishDomainEvent('liked', {
           likes: state.likes + 1
         });
