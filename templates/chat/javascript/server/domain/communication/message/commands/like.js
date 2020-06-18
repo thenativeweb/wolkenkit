@@ -14,7 +14,11 @@ const like = {
     return true;
   },
 
-  handle (state, command, { aggregate }) {
+  handle (state, command, { aggregate, error }) {
+    if (aggregate.isPristine()) {
+      throw new error.CommandRejected('Message was not yet sent.');
+    }
+
     aggregate.publishDomainEvent('liked', {
       likes: state.likes + 1
     });

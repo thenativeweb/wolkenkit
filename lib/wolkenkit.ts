@@ -1,6 +1,7 @@
 import { Aggregate } from './common/elements/Aggregate';
 import { AggregateService } from './common/services/AggregateService';
 import { AggregatesService } from './common/services/AggregatesService';
+import { ApplicationDefinition } from './common/application/ApplicationDefinition';
 import { ClientService } from './common/services/ClientService';
 import { Command } from './common/elements/Command';
 import { CommandData } from './common/elements/CommandData';
@@ -29,6 +30,7 @@ export {
   Aggregate,
   AggregateService,
   AggregatesService,
+  ApplicationDefinition,
   ClientService,
   Command,
   CommandData,

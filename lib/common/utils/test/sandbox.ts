@@ -131,7 +131,7 @@ interface SandboxWithResult<TState extends State> {
 
   then(callback: ((parameters: {
     state: State;
-    domainEvents: DomainEventWithState<DomainEventData, State>[];
+    domainEvents: DomainEvent<DomainEventData>[];
   }) => void | Promise<void>)): Promise<void>;
 }
 
@@ -382,7 +382,7 @@ const sandboxWithResult = function <TState extends State> (sandboxConfiguration:
 
     async then (callback: ((parameters: {
       state: TState;
-      domainEvents: DomainEventWithState<DomainEventData, TState>[];
+      domainEvents: DomainEvent<DomainEventData>[];
     }) => void | Promise<void>)): Promise<void> {
       const lockStore = sandboxConfiguration.lockStore ?? await createLockStore({ type: 'InMemory', options: {}});
       const domainEventStore = sandboxConfiguration.domainEventStore ?? await createDomainEventStore({ type: 'InMemory', options: {}});
@@ -425,11 +425,15 @@ const sandboxWithResult = function <TState extends State> (sandboxConfiguration:
         aggregateIdentifier: sandboxConfiguration.aggregateIdentifier
       });
 
-      let domainEvents: DomainEventWithState<DomainEventData, TState>[] = [];
+      let domainEventsWithState: DomainEventWithState<DomainEventData, TState>[] = [];
 
       for (const command of sandboxConfiguration.commands) {
-        domainEvents = await aggregateInstance.handleCommand({ command });
+        domainEventsWithState = await aggregateInstance.handleCommand({ command });
       }
+
+      const domainEvents = domainEventsWithState.map(
+        (domainEventWithState): DomainEvent<DomainEventData> => domainEventWithState.withoutState()
+      );
 
       // eslint-disable-next-line callback-return
       await callback({ domainEvents, state: aggregateInstance.state });
