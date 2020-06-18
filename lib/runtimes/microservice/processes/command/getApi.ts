@@ -4,6 +4,7 @@ import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
 import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
 import { IdentityProvider } from 'limes';
+import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import express, { Application } from 'express';
 
@@ -11,18 +12,21 @@ const getApi = async function ({
   configuration,
   applicationDefinition,
   identityProviders,
-  onReceiveCommand
+  onReceiveCommand,
+  onCancelCommand
 }: {
   configuration: Configuration;
   applicationDefinition: ApplicationDefinition;
   identityProviders: IdentityProvider[];
   onReceiveCommand: OnReceiveCommand;
+  onCancelCommand: OnCancelCommand;
 }): Promise<{ api: Application }> {
   const corsOrigin = getCorsOrigin(configuration.commandCorsOrigin);
 
   const { api: handleCommandApi, getApiDefinitions: getHandleCommandApiDefinitions } = await getHandleCommandApi({
     corsOrigin,
     onReceiveCommand,
+    onCancelCommand,
     applicationDefinition,
     identityProviders
   });

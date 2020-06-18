@@ -1,3 +1,4 @@
+import { DoesIdentifierMatchItem } from '../DoesIdentifierMatchItem';
 import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
@@ -11,12 +12,14 @@ import { uuid } from 'uuidv4';
 import { withTransaction } from '../../utils/postgres/withTransaction';
 import { Client, Pool, PoolClient } from 'pg';
 
-class PostgresPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
+class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;
 
   protected pool: Pool;
 
   protected disconnectWatcher: Client;
+
+  protected doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
 
   protected expirationTime: number;
 
@@ -44,38 +47,46 @@ class PostgresPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     return database;
   }
 
-  protected constructor ({ tableNames, pool, disconnectWatcher, expirationTime }: {
+  protected constructor ({ tableNames, pool, disconnectWatcher, doesIdentifierMatchItem, expirationTime }: {
     tableNames: TableNames;
     pool: Pool;
     disconnectWatcher: Client;
+    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
     expirationTime: number;
   }) {
     this.tableNames = tableNames;
     this.pool = pool;
     this.disconnectWatcher = disconnectWatcher;
+    this.doesIdentifierMatchItem = doesIdentifierMatchItem;
     this.expirationTime = expirationTime;
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem> ({
-    hostName,
-    port,
-    userName,
-    password,
-    database,
-    encryptConnection = false,
-    tableNames,
-    expirationTime = 15_000
+  public static async create<TItem, TItemIdentifier> ({
+    doesIdentifierMatchItem,
+    options: {
+      hostName,
+      port,
+      userName,
+      password,
+      database,
+      encryptConnection = false,
+      tableNames,
+      expirationTime = 15_000
+    }
   }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    encryptConnection?: boolean;
-    tableNames: TableNames;
-    expirationTime?: number;
-  }): Promise<PostgresPriorityQueueStore<TItem>> {
+    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
+    options: {
+      hostName: string;
+      port: number;
+      userName: string;
+      password: string;
+      database: string;
+      encryptConnection?: boolean;
+      tableNames: TableNames;
+      expirationTime?: number;
+    };
+  }): Promise<PostgresPriorityQueueStore<TItem, TItemIdentifier>> {
     const pool = new Pool({
       host: hostName,
       port,
@@ -111,10 +122,11 @@ class PostgresPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       }
     });
 
-    const priorityQueueStore = new PostgresPriorityQueueStore<TItem>({
+    const priorityQueueStore = new PostgresPriorityQueueStore<TItem, TItemIdentifier>({
       pool,
       tableNames,
       disconnectWatcher,
+      doesIdentifierMatchItem,
       expirationTime
     });
 
@@ -303,13 +315,20 @@ class PostgresPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     }
   }
 
-  protected async removeInternal ({ connection, discriminator }: {
+  protected async removeQueueInternal ({ connection, discriminator }: {
     connection: PoolClient;
     discriminator: string;
   }): Promise<void> {
-    const queue = await this.getQueueByDiscriminator({ connection, discriminator });
+    const { rows } = await connection.query({
+      name: 'get raw queue',
+      text: `
+        SELECT "indexInPriorityQueue" FROM "${this.tableNames.priorityQueue}"
+          WHERE "discriminator" = $1;
+      `,
+      values: [ discriminator ]
+    });
 
-    if (!queue) {
+    if (rows.length === 0) {
       throw new errors.InvalidOperation();
     }
 
@@ -319,16 +338,16 @@ class PostgresPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
         DELETE FROM "${this.tableNames.priorityQueue}"
           WHERE "discriminator" = $1;
           `,
-      values: [ queue.discriminator ]
+      values: [ discriminator ]
     });
     const { rowCount } = await connection.query({
       name: 'move last queue in priority queue to index of removed queue',
       text: `
         UPDATE "${this.tableNames.priorityQueue}"
           SET "indexInPriorityQueue" = $1
-          WHERE "indexInPriorityQueue" = MAX("indexInPriorityQueue");
+          WHERE "indexInPriorityQueue" = (SELECT MAX("indexInPriorityQueue") FROM "${this.tableNames.priorityQueue}");
       `,
-      values: [ queue.index ]
+      values: [ rows[0].indexInPriorityQueue ]
     });
 
     // If the update did not change any rows, we removed the last queue and
@@ -343,7 +362,7 @@ class PostgresPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
         SELECT "discriminator" FROM "${this.tableNames.priorityQueue}"
           WHERE "indexInPriorityQueue" = $1;
       `,
-      values: [ queue.index ]
+      values: [ rows[0].indexInPriorityQueue ]
     });
 
     await this.repairDown({ connection, discriminator: movedQueueDiscriminator });
@@ -656,7 +675,8 @@ class PostgresPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       name: 'remove item from queue',
       text: `
         DELETE FROM "${this.tableNames.items}"
-          WHERE "discriminator" = $1 AND "indexInQueue" = 0;
+          WHERE "discriminator" = $1 
+            AND "indexInQueue" = 0;
       `,
       values: [ queue.discriminator ]
     });
@@ -688,7 +708,7 @@ class PostgresPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       return;
     }
 
-    await this.removeInternal({ connection, discriminator: queue.discriminator });
+    await this.removeQueueInternal({ connection, discriminator: queue.discriminator });
   }
 
   public async acknowledge ({ discriminator, token }: {
@@ -735,6 +755,108 @@ class PostgresPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
           getConnection: async (): Promise<PoolClient> => await this.getDatabase(),
           fn: async ({ connection }): Promise<void> => {
             await this.deferInternal({ connection, discriminator, token, priority });
+          },
+          async releaseConnection ({ connection }): Promise<void> {
+            connection.release();
+          }
+        });
+      }
+    );
+  }
+
+  protected async removeInternal ({ connection, discriminator, itemIdentifier }: {
+    connection: PoolClient;
+    discriminator: string;
+    itemIdentifier: TItemIdentifier;
+  }): Promise<void> {
+    const queue = await this.getQueueByDiscriminator({ connection, discriminator });
+
+    if (!queue) {
+      throw new errors.ItemNotFound();
+    }
+
+    const { rows } = await connection.query({
+      name: 'get all items in queue',
+      text: `
+        SELECT "item" FROM "${this.tableNames.items}"
+          WHERE "discriminator" = $1
+          ORDER BY "indexInQueue" ASC;
+      `,
+      values: [ discriminator ]
+    });
+
+    const items = rows.map(({ item }: { item: TItem }): TItem => item);
+
+    const foundItemIndex = items.findIndex((item: TItem): boolean => this.doesIdentifierMatchItem({ item, itemIdentifier }));
+
+    if (foundItemIndex === -1) {
+      throw new errors.ItemNotFound();
+    }
+
+    if (foundItemIndex === 0) {
+      if (queue?.lock && queue.lock.until > Date.now()) {
+        throw new errors.ItemNotFound();
+      }
+
+      if (items.length === 1) {
+        await this.removeQueueInternal({ connection, discriminator });
+
+        return;
+      }
+
+      await connection.query({
+        name: 'delete first item from queue',
+        text: `
+          DELETE FROM "${this.tableNames.items}"
+            WHERE "discriminator" = $1
+              AND "indexInQueue" = 0;
+        `,
+        values: [ queue.discriminator ]
+      });
+      await connection.query({
+        name: 'move up remaining items in queue',
+        text: `
+          UPDATE "${this.tableNames.items}"
+            SET "indexInQueue" = "indexInQueue" - 1
+            WHERE "discriminator" = $1;
+        `,
+        values: [ queue.discriminator ]
+      });
+
+      await this.repairDown({ connection, discriminator: queue.discriminator });
+      await this.repairUp({ connection, discriminator: queue.discriminator });
+
+      return;
+    }
+
+    await connection.query({
+      name: 'delete later item from queue',
+      text: `
+          DELETE FROM "${this.tableNames.items}"
+            WHERE "discriminator" = $1
+              AND "indexInQueue" = $2;
+        `,
+      values: [ queue.discriminator, foundItemIndex ]
+    });
+    await connection.query({
+      name: 'move up remaining items later in queue',
+      text: `
+          UPDATE "${this.tableNames.items}"
+            SET "indexInQueue" = "indexInQueue" - 1
+            WHERE "discriminator" = $1
+              AND "indexInQueue" > $2;
+        `,
+      values: [ queue.discriminator, foundItemIndex ]
+    });
+  }
+
+  public async remove ({ discriminator, itemIdentifier }: { discriminator: string; itemIdentifier: TItemIdentifier }): Promise<void> {
+    await this.functionCallQueue.add(
+      async (): Promise<void> => {
+        await withTransaction({
+          getConnection: async (): Promise<PoolClient> => await this.getDatabase(),
+          fn: async ({ connection }): Promise<void> => {
+            await this.removeInternal({ connection, discriminator, itemIdentifier });
           },
           async releaseConnection ({ connection }): Promise<void> {
             connection.release();

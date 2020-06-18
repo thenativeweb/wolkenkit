@@ -5,12 +5,15 @@ import { CommandWithMetadata } from '../../../../common/elements/CommandWithMeta
 import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
 import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { createSubscriber } from '../../../../messaging/pubSub/createSubscriber';
+import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
+import { getOnCancelCommand } from './getOnCancelCommand';
 import { getOnReceiveCommand } from './getOnReceiveCommand';
 import http from 'http';
+import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
 
@@ -27,8 +30,9 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       applicationDirectory: configuration.applicationDirectory
     });
 
-    const priorityQueueStore = await createPriorityQueueStore<CommandWithMetadata<CommandData>>({
+    const priorityQueueStore = await createPriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>({
       type: configuration.priorityQueueStoreType,
+      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
       options: {
         ...configuration.priorityQueueStoreOptions,
         expirationTime: configuration.priorityQueueStoreOptions.expirationTime
@@ -50,6 +54,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       newCommandPublisher,
       newCommandPubSubChannel: configuration.pubSubOptions.channel
     });
+    const onCancelCommand = getOnCancelCommand({ priorityQueueStore });
 
     // Publish new command events on an interval even if there are no new
     // commands so that missed events or crashing workers will not lead to
@@ -70,7 +75,8 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       priorityQueueStore,
       newCommandSubscriber,
       newCommandPubSubChannel: configuration.pubSubOptions.channel,
-      onReceiveCommand
+      onReceiveCommand,
+      onCancelCommand
     });
 
     await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });

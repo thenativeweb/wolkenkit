@@ -2,6 +2,7 @@ import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
+import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { jsonSchema } from 'uuidv4';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Response } from 'express';
@@ -38,7 +39,7 @@ const awaitCommandWithMetadata = {
     newCommandSubscriberChannel,
     heartbeatInterval
   }: {
-    priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
+    priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
     newCommandSubscriber: Subscriber<object>;
     newCommandSubscriberChannel: string;
     heartbeatInterval: number;

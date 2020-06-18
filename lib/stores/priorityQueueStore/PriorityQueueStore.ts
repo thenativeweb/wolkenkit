@@ -1,7 +1,7 @@
 // The priority queues implementing this interface are based on a heap data
 // structure, where items with smaller priorities tend to become closer to the
 // root node. Hence, this represents a min-heap.
-export interface PriorityQueueStore<TItem> {
+export interface PriorityQueueStore<TItem, TItemIdentifier> {
   enqueue ({ item, discriminator, priority }: {
     item: TItem;
     discriminator: string;
@@ -24,6 +24,11 @@ export interface PriorityQueueStore<TItem> {
     discriminator: string;
     token: string;
     priority: number;
+  }): Promise<void>;
+
+  remove ({ discriminator, itemIdentifier }: {
+    discriminator: string;
+    itemIdentifier: TItemIdentifier;
   }): Promise<void>;
 
   destroy (): Promise<void>;

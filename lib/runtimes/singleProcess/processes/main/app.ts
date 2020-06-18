@@ -5,6 +5,7 @@ import { CommandWithMetadata } from '../../../../common/elements/CommandWithMeta
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
+import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
@@ -12,6 +13,8 @@ import { getConfiguration } from './getConfiguration';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
+import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';
@@ -54,8 +57,9 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const priorityQueueStore = await createPriorityQueueStore<CommandWithMetadata<CommandData>>({
+    const priorityQueueStore = await createPriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>({
       type: configuration.priorityQueueStoreType,
+      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
       options: configuration.priorityQueueStoreOptions
     });
 
@@ -66,12 +70,19 @@ import { runHealthServer } from '../../../shared/runHealthServer';
         priority: command.metadata.timestamp
       });
     };
+    const onCancelCommand: OnCancelCommand = async ({ commandIdentifierWithClient }): Promise<void> => {
+      await priorityQueueStore.remove({
+        discriminator: commandIdentifierWithClient.aggregateIdentifier.id,
+        itemIdentifier: commandIdentifierWithClient
+      });
+    };
 
     const { api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
       configuration,
       applicationDefinition,
       identityProviders,
       onReceiveCommand,
+      onCancelCommand,
       repository
     });
 

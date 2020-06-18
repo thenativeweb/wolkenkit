@@ -8,6 +8,7 @@ import { CustomError } from 'defekt';
 import { getApi } from '../../../../lib/apis/handleCommandWithMetadata/http';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { uuid } from 'uuidv4';
 
@@ -34,6 +35,9 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
             command: CommandWithMetadata<CommandData>;
           }): Promise<void> {
             receivedCommands.push(command);
+          },
+          async onCancelCommand (): Promise<void> {
+            // Intentionally left blank.
           },
           applicationDefinition
         }));
@@ -278,6 +282,9 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
           async onReceiveCommand (): Promise<void> {
             throw new Error('Failed to handle received command.');
           },
+          async onCancelCommand (): Promise<void> {
+            // Intentionally left blank.
+          },
           applicationDefinition
         }));
 
@@ -311,6 +318,173 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
 
         await assert.that(async (): Promise<void> => {
           await client.postCommand({ command });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as CustomError).code === 'EUNKNOWNERROR' &&
+          (ex as CustomError).message === 'Unknown error.');
+      });
+    });
+
+    suite('cancelCommand', (): void => {
+      let api: Application,
+          cancelledCommands: ItemIdentifierWithClient[];
+
+      setup(async (): Promise<void> => {
+        cancelledCommands = [];
+
+        ({ api } = await getApi({
+          corsOrigin: '*',
+          async onReceiveCommand (): Promise<void> {
+            // Intentionally left blank.
+          },
+          async onCancelCommand ({ commandIdentifierWithClient }: {
+            commandIdentifierWithClient: ItemIdentifierWithClient;
+          }): Promise<void> {
+            cancelledCommands.push(commandIdentifierWithClient);
+          },
+          applicationDefinition
+        }));
+      });
+
+      test('throws an exception if a non-existent context name is given.', async (): Promise<void> => {
+        const commandIdentifierWithClient: ItemIdentifierWithClient = {
+          contextIdentifier: { name: 'nonExistent' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          id: uuid(),
+          client: {
+            ip: '127.0.0.1',
+            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
+            token: '...'
+          }
+        };
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.cancelCommand({ commandIdentifierWithClient });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as CustomError).code === 'ECONTEXTNOTFOUND' &&
+          (ex as CustomError).message === `Context 'nonExistent' not found.`);
+      });
+
+      test('throws an exception if a non-existent aggregate name is given.', async (): Promise<void> => {
+        const commandIdentifierWithClient: ItemIdentifierWithClient = {
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'nonExistent', id: uuid() },
+          name: 'execute',
+          id: uuid(),
+          client: {
+            ip: '127.0.0.1',
+            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
+            token: '...'
+          }
+        };
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.cancelCommand({ commandIdentifierWithClient });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as CustomError).code === 'EAGGREGATENOTFOUND' &&
+          (ex as CustomError).message === `Aggregate 'sampleContext.nonExistent' not found.`);
+      });
+
+      test('throws an exception if a non-existent command name is given.', async (): Promise<void> => {
+        const commandIdentifierWithClient: ItemIdentifierWithClient = {
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          name: 'nonExistent',
+          id: uuid(),
+          client: {
+            ip: '127.0.0.1',
+            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
+            token: '...'
+          }
+        };
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.cancelCommand({ commandIdentifierWithClient });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as CustomError).code === 'ECOMMANDNOTFOUND' &&
+          (ex as CustomError).message === `Command 'sampleContext.sampleAggregate.nonExistent' not found.`);
+      });
+
+      test('cancels commands.', async (): Promise<void> => {
+        const commandIdentifierWithClient: ItemIdentifierWithClient = {
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          id: uuid(),
+          client: {
+            ip: '127.0.0.1',
+            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
+            token: '...'
+          }
+        };
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        await client.cancelCommand({ commandIdentifierWithClient });
+
+        assert.that(cancelledCommands.length).is.equalTo(1);
+        assert.that(cancelledCommands[0]).is.equalTo(commandIdentifierWithClient);
+      });
+
+      test('throws an error if on cancel command throws an error.', async (): Promise<void> => {
+        ({ api } = await getApi({
+          corsOrigin: '*',
+          async onReceiveCommand (): Promise<void> {
+            // Intentionally left blank.
+          },
+          async onCancelCommand (): Promise<void> {
+            throw new Error('Failed to cancel command.');
+          },
+          applicationDefinition
+        }));
+
+        const commandIdentifierWithClient: ItemIdentifierWithClient = {
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          name: 'execute',
+          id: uuid(),
+          client: {
+            ip: '127.0.0.1',
+            user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
+            token: '...'
+          }
+        };
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.cancelCommand({ commandIdentifierWithClient });
         }).is.throwingAsync((ex): boolean =>
           (ex as CustomError).code === 'EUNKNOWNERROR' &&
           (ex as CustomError).message === 'Unknown error.');
