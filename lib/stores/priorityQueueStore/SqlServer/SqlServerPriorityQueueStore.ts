@@ -1,3 +1,4 @@
+import { DoesIdentifierMatchItem } from '../DoesIdentifierMatchItem';
 import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
@@ -9,10 +10,12 @@ import { TableNames } from './TableNames';
 import { uuid } from 'uuidv4';
 import { ConnectionPool, Transaction, TYPES as Types } from 'mssql';
 
-class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
+class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;
 
   protected pool: ConnectionPool;
+
+  protected doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
 
   protected expirationTime: number;
 
@@ -30,36 +33,44 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  protected constructor ({ tableNames, pool, expirationTime }: {
+  protected constructor ({ tableNames, pool, doesIdentifierMatchItem, expirationTime }: {
     tableNames: TableNames;
     pool: ConnectionPool;
+    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
     expirationTime: number;
   }) {
     this.tableNames = tableNames;
     this.pool = pool;
+    this.doesIdentifierMatchItem = doesIdentifierMatchItem;
     this.expirationTime = expirationTime;
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem> ({
-    hostName,
-    port,
-    userName,
-    password,
-    database,
-    tableNames,
-    encryptConnection = false,
-    expirationTime = 15_000
+  public static async create<TItem, TItemIdentifier> ({
+    doesIdentifierMatchItem,
+    options: {
+      hostName,
+      port,
+      userName,
+      password,
+      database,
+      tableNames,
+      encryptConnection = false,
+      expirationTime = 15_000
+    }
   }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    tableNames: TableNames;
-    encryptConnection?: boolean;
-    expirationTime?: number;
-  }): Promise<SqlServerPriorityQueueStore<TItem>> {
+    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
+    options: {
+      hostName: string;
+      port: number;
+      userName: string;
+      password: string;
+      database: string;
+      tableNames: TableNames;
+      encryptConnection?: boolean;
+      expirationTime?: number;
+    };
+  }): Promise<SqlServerPriorityQueueStore<TItem, TItemIdentifier>> {
     const pool = new ConnectionPool({
       server: hostName,
       port,
@@ -79,7 +90,12 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
 
     await pool.connect();
 
-    const priorityQueueStore = new SqlServerPriorityQueueStore<TItem>({ tableNames, pool, expirationTime });
+    const priorityQueueStore = new SqlServerPriorityQueueStore<TItem, TItemIdentifier>({
+      tableNames,
+      pool,
+      doesIdentifierMatchItem,
+      expirationTime
+    });
 
     try {
       await pool.query(`
@@ -244,30 +260,40 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     }
   }
 
-  protected async removeInternal ({ transaction, discriminator }: {
+  protected async removeQueueInternal ({ transaction, discriminator }: {
     transaction: Transaction;
     discriminator: string;
   }): Promise<void> {
-    const queue = await this.getQueueByDiscriminator({ transaction, discriminator });
+    const requestOne = transaction.request();
 
-    if (!queue) {
-      throw new errors.InvalidOperation();
+    requestOne.input('discriminator', Types.NVarChar, discriminator);
+
+    const { recordset } = await requestOne.query(`
+      SELECT [indexInPriorityQueue]
+        FROM [${this.tableNames.priorityQueue}]
+        WHERE [discriminator] = @discriminator;
+    `);
+
+    if (recordset.length === 0) {
+      throw new errors.ItemNotFound();
     }
 
-    const request = transaction.request();
+    const requestTwo = transaction.request();
 
-    request.input('discriminator', Types.NVarChar, queue.discriminator);
-    request.input('index', Types.Int, queue.index);
+    requestTwo.input('discriminator', Types.NVarChar, discriminator);
+    requestTwo.input('index', Types.Int, recordset[0].indexInPriorityQueue);
 
-    const { rowsAffected, recordsets } = await request.query(`
-      DELETE FROM [${this.tableNames.priorityQueue}]
+    const { rowsAffected, recordsets } = await requestTwo.query(`
+      DELETE
+        FROM [${this.tableNames.priorityQueue}]
         WHERE [discriminator] = @discriminator;
       WITH [CTE] AS (
         SELECT TOP 1 *
           FROM [${this.tableNames.priorityQueue}]
           ORDER BY [indexInPriorityQueue] DESC
       ) UPDATE [CTE] SET [indexInPriorityQueue] = @index;
-      SELECT [discriminator] FROM [${this.tableNames.priorityQueue}]
+      SELECT [discriminator]
+        FROM [${this.tableNames.priorityQueue}]
         WHERE [indexInPriorityQueue] = @index;
     `);
 
@@ -297,7 +323,8 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
         FROM [${this.tableNames.priorityQueue}] AS [pq]
         JOIN [${this.tableNames.items}] AS [i]
           ON [pq].[discriminator] = [i].[discriminator]
-        WHERE [pq].[discriminator] = @discriminator AND [i].[indexInQueue] = 0;
+        WHERE [pq].[discriminator] = @discriminator
+          AND [i].[indexInQueue] = 0;
     `);
 
     if (recordset.length === 0) {
@@ -337,7 +364,8 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
         FROM [${this.tableNames.priorityQueue}] AS [pq]
         JOIN [${this.tableNames.items}] AS [i]
           ON [pq].[discriminator] = [i].[discriminator]
-        WHERE [pq].[indexInPriorityQueue] = @indexInPriorityQueue AND [i].[indexInQueue] = 0;
+        WHERE [pq].[indexInPriorityQueue] = @indexInPriorityQueue
+          AND [i].[indexInQueue] = 0;
     `);
 
     if (recordset.length === 0) {
@@ -369,7 +397,8 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     request.input('discriminator', Types.NVarChar, discriminator);
 
     const { recordset } = await request.query(`
-      SELECT TOP 1 [item] FROM [${this.tableNames.items}]
+      SELECT TOP 1 [item]
+        FROM [${this.tableNames.items}]
         WHERE [discriminator] = @discriminator
         ORDER BY [indexInQueue] ASC;
     `);
@@ -415,7 +444,8 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
 
     const { recordset: [{ nextIndexInQueue }] } = await requestGetNextIndexInQueue.query(`
       SELECT COALESCE(MAX([indexInQueue]) + 1, 0) AS [nextIndexInQueue]
-        FROM [${this.tableNames.items}] WHERE [discriminator] = @discriminator;
+        FROM [${this.tableNames.items}]
+        WHERE [discriminator] = @discriminator;
     `);
 
     const requestInsertItem = transaction.request();
@@ -426,7 +456,8 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     requestInsertItem.input('item', Types.NVarChar, JSON.stringify(item));
 
     await requestInsertItem.query(`
-      INSERT INTO [${this.tableNames.items}] ([discriminator], [indexInQueue], [priority], [item])
+      INSERT
+        INTO [${this.tableNames.items}] ([discriminator], [indexInQueue], [priority], [item])
         VALUES (@discriminator, @indexInQueue, @priority, @item);
     `);
 
@@ -444,7 +475,8 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       requestInsertPriorityQueue.input('indexInPriorityQueue', Types.Int, nextIndexInPriorityQueue);
 
       await requestInsertPriorityQueue.query(`
-        INSERT INTO [${this.tableNames.priorityQueue}] ([discriminator], [indexInPriorityQueue])
+        INSERT
+          INTO [${this.tableNames.priorityQueue}] ([discriminator], [indexInPriorityQueue])
           VALUES (@discriminator, @indexInPriorityQueue);
       `);
     } catch (ex) {
@@ -489,7 +521,8 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
 
     const { recordset } = await requestSelect.query(`
       SELECT TOP 1 [discriminator] FROM [${this.tableNames.priorityQueue}]
-        WHERE [lockUntil] IS NULL OR [lockUntil] <= @now
+        WHERE [lockUntil] IS NULL
+           OR [lockUntil] <= @now
         ORDER BY [indexInPriorityQueue] ASC;
     `);
 
@@ -598,7 +631,8 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
 
     const { rowsAffected } = await requestDelete.query(`
       DELETE FROM [${this.tableNames.items}]
-        WHERE [discriminator] = @discriminator AND [indexInQueue] = 0;
+        WHERE [discriminator] = @discriminator
+          AND [indexInQueue] = 0;
       UPDATE [${this.tableNames.items}]
         SET [indexInQueue] = [indexInQueue] - 1
         WHERE [discriminator] = @discriminator;
@@ -622,7 +656,7 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       return;
     }
 
-    await this.removeInternal({ transaction, discriminator: queue.discriminator });
+    await this.removeQueueInternal({ transaction, discriminator: queue.discriminator });
   }
 
   public async acknowledge ({ discriminator, token }: {
@@ -673,6 +707,102 @@ class SqlServerPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
 
         try {
           await this.deferInternal({ transaction, discriminator, token, priority });
+          await transaction.commit();
+        } catch (ex) {
+          await transaction.rollback();
+          throw ex;
+        }
+      }
+    );
+  }
+
+  public async removeInternal ({ transaction, discriminator, itemIdentifier }: {
+    transaction: Transaction;
+    discriminator: string;
+    itemIdentifier: TItemIdentifier;
+  }): Promise<void> {
+    const queue = await this.getQueueByDiscriminator({ transaction, discriminator });
+
+    if (!queue) {
+      throw new errors.ItemNotFound();
+    }
+
+    const getItemsRequest = transaction.request();
+
+    getItemsRequest.input('discriminator', Types.NVarChar, discriminator);
+
+    const { recordset } = await getItemsRequest.query(`
+      SELECT [item]
+        FROM [${this.tableNames.items}]
+        WHERE [discriminator] = @discriminator
+        ORDER BY [indexInQueue] ASC;
+    `);
+
+    const items = recordset.map(({ item }: { item: string }): TItem => JSON.parse(item));
+
+    const foundItemIndex = items.findIndex((item: TItem): boolean => this.doesIdentifierMatchItem({ item, itemIdentifier }));
+
+    if (foundItemIndex === -1) {
+      throw new errors.ItemNotFound();
+    }
+
+    if (foundItemIndex === 0) {
+      if (queue?.lock && queue.lock.until > Date.now()) {
+        throw new errors.ItemNotFound();
+      }
+
+      if (items.length === 1) {
+        await this.removeQueueInternal({ transaction, discriminator });
+
+        return;
+      }
+
+      const removeItemRequest = transaction.request();
+
+      removeItemRequest.input('discriminator', Types.NVarChar, discriminator);
+
+      await removeItemRequest.query(`
+        DELETE
+          FROM [${this.tableNames.items}]
+          WHERE [discriminator] = @discriminator
+            AND [indexInQueue] = 0;
+        UPDATE [${this.tableNames.items}]
+          SET [indexInQueue] = [indexInQueue] - 1
+          WHERE [discriminator] = @discriminator;
+      `);
+
+      await this.repairDown({ transaction, discriminator: queue.discriminator });
+      await this.repairUp({ transaction, discriminator: queue.discriminator });
+
+      return;
+    }
+
+    const removeItemRequest = transaction.request();
+
+    removeItemRequest.input('discriminator', Types.NVarChar, discriminator);
+    removeItemRequest.input('indexInQueue', Types.Int, foundItemIndex);
+
+    await removeItemRequest.query(`
+      DELETE
+        FROM [${this.tableNames.items}]
+        WHERE [discriminator] = @discriminator
+          AND [indexInQueue] = @indexInQueue;
+      UPDATE [${this.tableNames.items}]
+        SET [indexInQueue] = [indexInQueue] - 1
+        WHERE [discriminator] = @discriminator
+          AND [indexInQueue] > @indexInQueue;
+    `);
+  }
+
+  public async remove ({ discriminator, itemIdentifier }: { discriminator: string; itemIdentifier: TItemIdentifier }): Promise<void> {
+    await this.functionCallQueue.add(
+      async (): Promise<void> => {
+        const transaction = this.pool.transaction();
+
+        await transaction.begin();
+
+        try {
+          await this.removeInternal({ transaction, discriminator, itemIdentifier });
           await transaction.commit();
         } catch (ex) {
           await transaction.rollback();

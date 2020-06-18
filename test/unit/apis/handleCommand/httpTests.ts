@@ -3,11 +3,13 @@ import { ApplicationDefinition } from '../../../../lib/common/application/Applic
 import { assert } from 'assertthat';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
+import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/handleCommand/http';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
+import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { uuid } from 'uuidv4';
 
@@ -31,6 +33,9 @@ suite('handleCommand/http', (): void => {
           corsOrigin: '*',
           async onReceiveCommand (): Promise<void> {
           // Intentionally left blank.
+          },
+          async onCancelCommand (): Promise<void> {
+            // Intentionally left blank.
           },
           applicationDefinition,
           identityProviders
@@ -94,6 +99,9 @@ suite('handleCommand/http', (): void => {
             command: CommandWithMetadata<CommandData>;
           }): Promise<void> {
             receivedCommands.push(command);
+          },
+          async onCancelCommand (): Promise<void> {
+            // Intentionally left blank.
           },
           applicationDefinition,
           identityProviders
@@ -311,6 +319,9 @@ suite('handleCommand/http', (): void => {
           async onReceiveCommand (): Promise<void> {
             throw new Error('Failed to handle received command.');
           },
+          async onCancelCommand (): Promise<void> {
+            // Intentionally left blank.
+          },
           applicationDefinition,
           identityProviders
         }));
@@ -321,6 +332,294 @@ suite('handleCommand/http', (): void => {
           method: 'post',
           url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
           data: { strategy: 'succeed' },
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(500);
+        assert.that(data).is.equalTo({
+          code: 'EUNKNOWNERROR',
+          message: 'Unknown error.'
+        });
+      });
+    });
+
+    suite('POST /cancel', (): void => {
+      let api: Application,
+          cancelledCommands: ItemIdentifierWithClient[];
+
+      setup(async (): Promise<void> => {
+        cancelledCommands = [];
+
+        ({ api } = await getApi({
+          corsOrigin: '*',
+          async onReceiveCommand (): Promise<void> {
+            // Intentionally left blank.
+          },
+          async onCancelCommand ({ commandIdentifierWithClient }: {
+            commandIdentifierWithClient: ItemIdentifierWithClient;
+          }): Promise<void> {
+            cancelledCommands.push(commandIdentifierWithClient);
+          },
+          applicationDefinition,
+          identityProviders
+        }));
+      });
+
+      test('returns 415 if the content-type header is missing.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/cancel`,
+          headers: {
+            'content-type': ''
+          },
+          data: {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'execute',
+            id: uuid()
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(415);
+        assert.that(data).is.equalTo({
+          code: 'EREQUESTMALFORMED',
+          message: 'Header content-type must be application/json.'
+        });
+      });
+
+      test('returns 415 if content-type is not set to application/json.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/cancel`,
+          headers: {
+            'content-type': 'text/plain'
+          },
+          data: {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'execute',
+            id: uuid()
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(415);
+        assert.that(data).is.equalTo({
+          code: 'EREQUESTMALFORMED',
+          message: 'Header content-type must be application/json.'
+        });
+      });
+
+      test('returns 400 if the command identifier is malformed.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/cancel`,
+          data: {
+            foo: 'bar'
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'EREQUESTMALFORMED',
+          message: 'Missing required property: contextIdentifier (at value.contextIdentifier).'
+        });
+      });
+
+      test('returns 400 if a non-existent context name is given.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/cancel`,
+          data: {
+            contextIdentifier: { name: 'nonExistent' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'execute',
+            id: uuid()
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'ECONTEXTNOTFOUND',
+          message: `Context 'nonExistent' not found.`
+        });
+      });
+
+      test('returns 400 if a non-existent aggregate name is given.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/cancel`,
+          data: {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'nonExistent', id: uuid() },
+            name: 'execute',
+            id: uuid()
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'EAGGREGATENOTFOUND',
+          message: `Aggregate 'sampleContext.nonExistent' not found.`
+        });
+      });
+
+      test('returns 400 if a non-existent command name is given.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/cancel`,
+          data: {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'nonExistent',
+            id: uuid()
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'ECOMMANDNOTFOUND',
+          message: `Command 'sampleContext.sampleAggregate.nonExistent' not found.`
+        });
+      });
+
+      test('returns 200 if a command can be cancelled successfully.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'post',
+          url: `/v2/cancel`,
+          data: {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'execute',
+            id: uuid()
+          }
+        });
+
+        assert.that(status).is.equalTo(200);
+      });
+
+      test(`returns 404 if a command can't be found.`, async (): Promise<void> => {
+        ({ api } = await getApi({
+          corsOrigin: '*',
+          async onReceiveCommand (): Promise<void> {
+            // Intentionally left blank.
+          },
+          async onCancelCommand (): Promise<void> {
+            throw new errors.ItemNotFound();
+          },
+          applicationDefinition,
+          identityProviders
+        }));
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'post',
+          url: `/v2/cancel`,
+          data: {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'execute',
+            id: uuid()
+          },
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(404);
+      });
+
+      test('cancels commands.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const aggregateId = uuid(),
+              commandId = uuid();
+
+        await client({
+          method: 'post',
+          url: `/v2/cancel`,
+          data: {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+            name: 'execute',
+            id: commandId
+          }
+        });
+
+        assert.that(cancelledCommands.length).is.equalTo(1);
+        assert.that(cancelledCommands[0]).is.atLeast({
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          name: 'execute',
+          id: commandId,
+          client: {
+            user: { id: 'anonymous', claims: { sub: 'anonymous', iss: 'https://token.invalid' }}
+          }
+        });
+      });
+
+      test('returns 500 if on cancel command throws an error.', async (): Promise<void> => {
+        ({ api } = await getApi({
+          corsOrigin: '*',
+          async onReceiveCommand (): Promise<void> {
+            // Intentionally left blank.
+          },
+          async onCancelCommand (): Promise<void> {
+            throw new Error('Failed to cancel command.');
+          },
+          applicationDefinition,
+          identityProviders
+        }));
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/cancel`,
+          data: {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'execute',
+            id: uuid()
+          },
           validateStatus (): boolean {
             return true;
           }

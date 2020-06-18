@@ -1,4 +1,5 @@
 import { CollectionNames } from './CollectionNames';
+import { DoesIdentifierMatchItem } from '../DoesIdentifierMatchItem';
 import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
@@ -12,7 +13,7 @@ import { uuid } from 'uuidv4';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { ClientSession, Collection, Db, MongoClient } from 'mongodb';
 
-class MongoDbPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
+class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected client: MongoClient;
 
   protected db: Db;
@@ -22,6 +23,8 @@ class MongoDbPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   protected collections: {
     queues: Collection<any>;
   };
+
+  protected doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
 
   protected expirationTime: number;
 
@@ -39,40 +42,48 @@ class MongoDbPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  protected constructor ({ client, db, collectionNames, collections, expirationTime }: {
+  protected constructor ({ client, db, collectionNames, collections, doesIdentifierMatchItem, expirationTime }: {
     client: MongoClient;
     db: Db;
     collectionNames: CollectionNames;
     collections: {
       queues: Collection<any>;
     };
+    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
     expirationTime: number;
   }) {
     this.client = client;
     this.db = db;
     this.collectionNames = collectionNames;
     this.collections = collections;
+    this.doesIdentifierMatchItem = doesIdentifierMatchItem;
     this.expirationTime = expirationTime;
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem> ({
-    hostName,
-    port,
-    userName,
-    password,
-    database,
-    collectionNames,
-    expirationTime = 15_000
+  public static async create<TItem, TItemIdentifier> ({
+    doesIdentifierMatchItem,
+    options: {
+      hostName,
+      port,
+      userName,
+      password,
+      database,
+      collectionNames,
+      expirationTime = 15_000
+    }
   }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    collectionNames: CollectionNames;
-    expirationTime?: number;
-  }): Promise<MongoDbPriorityQueueStore<TItem>> {
+    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
+    options: {
+      hostName: string;
+      port: number;
+      userName: string;
+      password: string;
+      database: string;
+      collectionNames: CollectionNames;
+      expirationTime?: number;
+    };
+  }): Promise<MongoDbPriorityQueueStore<TItem, TItemIdentifier>> {
     const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
 
     const client = await retry(async (): Promise<MongoClient> => {
@@ -100,11 +111,12 @@ class MongoDbPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       queues: db.collection(collectionNames.queues)
     };
 
-    const priorityQueueStore = new MongoDbPriorityQueueStore<TItem>({
+    const priorityQueueStore = new MongoDbPriorityQueueStore<TItem, TItemIdentifier>({
       client,
       db,
       collectionNames,
       collections,
+      doesIdentifierMatchItem,
       expirationTime
     });
 
@@ -240,7 +252,7 @@ class MongoDbPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     }
   }
 
-  protected async removeInternal ({ session, discriminator }: {
+  protected async removeQueueInternal ({ session, discriminator }: {
     session: ClientSession;
     discriminator: string;
   }): Promise<void> {
@@ -483,7 +495,7 @@ class MongoDbPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       return;
     }
 
-    await this.removeInternal({ session, discriminator });
+    await this.removeQueueInternal({ session, discriminator });
   }
 
   public async acknowledge ({ discriminator, token }: {
@@ -526,6 +538,70 @@ class MongoDbPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
           client: this.client,
           fn: async ({ session }): Promise<void> => {
             await this.deferInternal({ session, discriminator, token, priority });
+          }
+        });
+      }
+    );
+  }
+
+  protected async removeInternal ({ session, discriminator, itemIdentifier }: {
+    session: ClientSession;
+    discriminator: string;
+    itemIdentifier: TItemIdentifier;
+  }): Promise<void> {
+    const queue = await this.getQueueByDiscriminator({ session, discriminator });
+
+    if (!queue) {
+      throw new errors.ItemNotFound();
+    }
+
+    const foundItemIndex = queue.items.findIndex(({ item }: { item: TItem }): boolean => this.doesIdentifierMatchItem({ item, itemIdentifier }));
+
+    if (foundItemIndex === -1) {
+      throw new errors.ItemNotFound();
+    }
+
+    if (foundItemIndex === 0) {
+      if (queue?.lock && queue.lock.until > Date.now()) {
+        throw new errors.ItemNotFound();
+      }
+
+      if (queue.items.length === 1) {
+        await this.removeQueueInternal({ session, discriminator });
+
+        return;
+      }
+
+      queue.items = queue.items.slice(1);
+
+      await this.collections.queues.replaceOne(
+        { discriminator },
+        queue,
+        { session }
+      );
+
+      await this.repairDown({ session, discriminator: queue.discriminator });
+      await this.repairUp({ session, discriminator: queue.discriminator });
+
+      return;
+    }
+
+    queue.items = [ ...queue.items.slice(0, foundItemIndex), ...queue.items.slice(foundItemIndex + 1) ];
+
+    await this.collections.queues.replaceOne(
+      { discriminator },
+      queue,
+      { session }
+    );
+  }
+
+  public async remove ({ discriminator, itemIdentifier }: { discriminator: string; itemIdentifier: TItemIdentifier }): Promise<void> {
+    await this.functionCallQueue.add(
+      async (): Promise<void> => {
+        await withTransaction({
+          client: this.client,
+          fn: async ({ session }): Promise<void> => {
+            await this.removeInternal({ session, discriminator, itemIdentifier });
           }
         });
       }

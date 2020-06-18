@@ -7,6 +7,7 @@ import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDom
 import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
 import { IdentityProvider } from 'limes';
 import { InitializeGraphQlOnServer } from '../../../../apis/graphql/InitializeGraphQlOnServer';
+import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
@@ -17,12 +18,14 @@ const getApi = async function ({
   applicationDefinition,
   identityProviders,
   onReceiveCommand,
+  onCancelCommand,
   repository
 }: {
   configuration: Configuration;
   applicationDefinition: ApplicationDefinition;
   identityProviders: IdentityProvider[];
   onReceiveCommand: OnReceiveCommand;
+  onCancelCommand: OnCancelCommand;
   repository: Repository;
 }): Promise<{
     api: Application;
@@ -50,6 +53,7 @@ const getApi = async function ({
     const { api: handleCommandApi, getApiDefinitions: getHandleCommandApiDefinitions } = await getHandleCommandApi({
       corsOrigin,
       onReceiveCommand,
+      onCancelCommand,
       applicationDefinition,
       identityProviders
     });

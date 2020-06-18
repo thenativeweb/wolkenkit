@@ -6,6 +6,7 @@ import { getApi } from './getApi';
 import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
+import { getOnCancelCommand } from './getOnCancelCommand';
 import { getOnReceiveCommand } from './getOnReceiveCommand';
 import http from 'http';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
@@ -35,18 +36,19 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       path: '/handle-command/v2'
     });
 
-    const onReceiveCommand = getOnReceiveCommand({
-      dispatcher: {
-        client: dispatcherClient,
-        retries: configuration.dispatcherRetries
-      }
-    });
+    const dispatcher = {
+      client: dispatcherClient,
+      retries: configuration.dispatcherRetries
+    };
+    const onReceiveCommand = getOnReceiveCommand({ dispatcher });
+    const onCancelCommand = getOnCancelCommand({ dispatcher });
 
     const { api } = await getApi({
       configuration,
       applicationDefinition,
       identityProviders,
-      onReceiveCommand
+      onReceiveCommand,
+      onCancelCommand
     });
 
     await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });

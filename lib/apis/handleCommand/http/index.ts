@@ -4,17 +4,20 @@ import { CorsOrigin } from 'get-cors-origin';
 import { getApiDefinitions } from './getApiDefinitions';
 import { getV2 } from './v2';
 import { IdentityProvider } from 'limes';
+import { OnCancelCommand } from '../OnCancelCommand';
 import { OnReceiveCommand } from '../OnReceiveCommand';
 import express, { Application } from 'express';
 
 const getApi = async function ({
   corsOrigin,
   onReceiveCommand,
+  onCancelCommand,
   applicationDefinition,
   identityProviders
 }: {
   corsOrigin: CorsOrigin;
   onReceiveCommand: OnReceiveCommand;
+  onCancelCommand: OnCancelCommand;
   applicationDefinition: ApplicationDefinition;
   identityProviders: IdentityProvider[];
 }): Promise<{ api: Application; getApiDefinitions: (basePath: string) => ApiDefinition[] }> {
@@ -23,6 +26,7 @@ const getApi = async function ({
   const v2 = await getV2({
     corsOrigin,
     onReceiveCommand,
+    onCancelCommand,
     applicationDefinition,
     identityProviders
   });

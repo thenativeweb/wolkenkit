@@ -4,6 +4,7 @@ import { CommandWithMetadata } from '../../../../common/elements/CommandWithMeta
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
+import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { jsonSchema } from 'uuidv4';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import typer from 'content-type';
@@ -39,7 +40,7 @@ const defer = {
     priorityQueueStore
   }: {
     applicationDefinition: ApplicationDefinition;
-    priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
+    priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
   }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(defer.request.body),
           responseBodySchema = new Value(defer.response.body);
