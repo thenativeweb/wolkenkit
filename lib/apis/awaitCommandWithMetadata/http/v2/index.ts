@@ -7,6 +7,7 @@ import { CommandWithMetadata } from '../../../../common/elements/CommandWithMeta
 import { CorsOrigin } from 'get-cors-origin';
 import { defer } from './defer';
 import { getApiBase } from '../../../base/getApiBase';
+import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { renewLock } from './renewLock';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
@@ -21,7 +22,7 @@ const getV2 = async function ({
 }: {
   applicationDefinition: ApplicationDefinition;
   corsOrigin: CorsOrigin;
-  priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
+  priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
   newCommandSubscriber: Subscriber<object>;
   newCommandSubscriberChannel: string;
   heartbeatInterval?: number;

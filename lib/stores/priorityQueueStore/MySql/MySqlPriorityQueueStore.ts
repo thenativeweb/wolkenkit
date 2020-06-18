@@ -1,3 +1,4 @@
+import { DoesIdentifierMatchItem } from '../DoesIdentifierMatchItem';
 import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
@@ -12,10 +13,12 @@ import { uuid } from 'uuidv4';
 import { withTransaction } from '../../utils/mySql/withTransaction';
 import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
 
-class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
+class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;
 
   protected pool: Pool;
+
+  protected doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
 
   protected expirationTime: number;
 
@@ -55,34 +58,42 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     return database;
   }
 
-  protected constructor ({ tableNames, pool, expirationTime }: {
+  protected constructor ({ tableNames, pool, doesIdentifierMatchItem, expirationTime }: {
     tableNames: TableNames;
     pool: Pool;
+    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
     expirationTime: number;
   }) {
     this.tableNames = tableNames;
     this.pool = pool;
+    this.doesIdentifierMatchItem = doesIdentifierMatchItem;
     this.expirationTime = expirationTime;
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem> ({
-    hostName,
-    port,
-    userName,
-    password,
-    database,
-    tableNames,
-    expirationTime = 15_000
+  public static async create<TItem, TItemIdentifier> ({
+    doesIdentifierMatchItem,
+    options: {
+      hostName,
+      port,
+      userName,
+      password,
+      database,
+      tableNames,
+      expirationTime = 15_000
+    }
   }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    tableNames: TableNames;
-    expirationTime?: number;
-  }): Promise<MySqlPriorityQueueStore<TItem>> {
+    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
+    options: {
+      hostName: string;
+      port: number;
+      userName: string;
+      password: string;
+      database: string;
+      tableNames: TableNames;
+      expirationTime?: number;
+    };
+  }): Promise<MySqlPriorityQueueStore<TItem, TItemIdentifier>> {
     const pool = createPool({
       host: hostName,
       port,
@@ -100,7 +111,12 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       connection.on('end', MySqlPriorityQueueStore.onUnexpectedClose);
     });
 
-    const priorityQueueStore = new MySqlPriorityQueueStore<TItem>({ tableNames, pool, expirationTime });
+    const priorityQueueStore = new MySqlPriorityQueueStore<TItem, TItemIdentifier>({
+      tableNames,
+      pool,
+      doesIdentifierMatchItem,
+      expirationTime
+    });
     const connection = await priorityQueueStore.getDatabase();
 
     const createUuidToBinFunction = `
@@ -301,13 +317,20 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     }
   }
 
-  protected async removeInternal ({ connection, discriminator }: {
+  protected async removeQueueInternal ({ connection, discriminator }: {
     connection: PoolConnection;
     discriminator: string;
   }): Promise<void> {
-    const queue = await this.getQueueByDiscriminator({ connection, discriminator });
+    const [ rows ] = await runQuery({
+      connection,
+      query: `
+        SELECT indexInPriorityQueue FROM \`${this.tableNames.priorityQueue}\`
+          WHERE discriminator = ?;
+      `,
+      parameters: [ discriminator ]
+    });
 
-    if (!queue) {
+    if (rows.length === 0) {
       throw new errors.InvalidOperation();
     }
 
@@ -323,7 +346,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
         SELECT discriminator FROM \`${this.tableNames.priorityQueue}\`
           WHERE indexInPriorityQueue = ?;
       `,
-      parameters: [ queue.discriminator, queue.index, queue.index ]
+      parameters: [ discriminator, rows[0].indexInPriorityQueue, rows[0].indexInPriorityQueue ]
     });
 
     // If the update did not change any rows, we removed the last queue and
@@ -661,7 +684,7 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       return;
     }
 
-    await this.removeInternal({ connection, discriminator: queue.discriminator });
+    await this.removeQueueInternal({ connection, discriminator: queue.discriminator });
   }
 
   public async acknowledge ({ discriminator, token }: {
@@ -708,6 +731,95 @@ class MySqlPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
           getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
           fn: async ({ connection }): Promise<void> => {
             await this.deferInternal({ connection, discriminator, token, priority });
+          },
+          async releaseConnection ({ connection }): Promise<void> {
+            MySqlPriorityQueueStore.releaseConnection({ connection });
+          }
+        });
+      }
+    );
+  }
+
+  protected async removeInternal ({ connection, discriminator, itemIdentifier }: {
+    connection: PoolConnection;
+    discriminator: string;
+    itemIdentifier: TItemIdentifier;
+  }): Promise<void> {
+    const queue = await this.getQueueByDiscriminator({ connection, discriminator });
+
+    if (!queue) {
+      throw new errors.ItemNotFound();
+    }
+
+    const [ results ] = await runQuery({
+      connection,
+      query: `
+        SELECT item FROM \`${this.tableNames.items}\`
+          WHERE discriminator = ?
+          ORDER BY indexInQueue ASC;
+      `,
+      parameters: [ queue.discriminator ]
+    });
+
+    const items = results.map(({ item }: { item: string }): TItem => JSON.parse(item));
+
+    const foundItemIndex = items.findIndex((item: TItem): boolean => this.doesIdentifierMatchItem({ item, itemIdentifier }));
+
+    if (foundItemIndex === -1) {
+      throw new errors.ItemNotFound();
+    }
+
+    if (foundItemIndex === 0) {
+      if (queue?.lock && queue.lock.until > Date.now()) {
+        throw new errors.ItemNotFound();
+      }
+
+      if (items.length === 1) {
+        await this.removeQueueInternal({ connection, discriminator });
+
+        return;
+      }
+
+      await runQuery({
+        connection,
+        query: `
+          DELETE FROM \`${this.tableNames.items}\`
+            WHERE discriminator = ? AND indexInQueue = 0;
+          UPDATE \`${this.tableNames.items}\`
+            SET indexInQueue = indexInQueue - 1
+            WHERE discriminator = ?
+            ORDER BY indexInQueue ASC;
+        `,
+        parameters: [ queue.discriminator, queue.discriminator ]
+      });
+
+      await this.repairDown({ connection, discriminator: queue.discriminator });
+      await this.repairUp({ connection, discriminator: queue.discriminator });
+
+      return;
+    }
+
+    await runQuery({
+      connection,
+      query: `
+          DELETE FROM \`${this.tableNames.items}\`
+            WHERE discriminator = ? AND indexInQueue = ?;
+          UPDATE \`${this.tableNames.items}\`
+            SET indexInQueue = indexInQueue - 1
+            WHERE discriminator = ? AND indexInQueue > ?
+            ORDER BY indexInQueue ASC;
+        `,
+      parameters: [ queue.discriminator, foundItemIndex, queue.discriminator, foundItemIndex ]
+    });
+  }
+
+  public async remove ({ discriminator, itemIdentifier }: { discriminator: string; itemIdentifier: TItemIdentifier }): Promise<void> {
+    await this.functionCallQueue.add(
+      async (): Promise<void> => {
+        await withTransaction({
+          getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
+          fn: async ({ connection }): Promise<void> => {
+            await this.removeInternal({ connection, discriminator, itemIdentifier });
           },
           async releaseConnection ({ connection }): Promise<void> {
             MySqlPriorityQueueStore.releaseConnection({ connection });

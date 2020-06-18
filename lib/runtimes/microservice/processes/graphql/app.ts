@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import { CommandData } from '../../../../common/elements/CommandData';
-import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
+import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
+import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
@@ -13,11 +13,10 @@ import { getConfiguration } from './getConfiguration';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
-import { InMemoryPriorityQueueStore } from '../../../../stores/priorityQueueStore/InMemory';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
-import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
+import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
 
@@ -50,7 +49,11 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const priorityQueueStore = await InMemoryPriorityQueueStore.create<CommandWithMetadata<CommandData>>({});
+    const priorityQueueStore = await createPriorityQueueStore({
+      type: 'InMemory',
+      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
+      options: {}
+    });
 
     const onReceiveCommand: OnReceiveCommand = async ({ command }): Promise<void> => {
       await priorityQueueStore.enqueue({

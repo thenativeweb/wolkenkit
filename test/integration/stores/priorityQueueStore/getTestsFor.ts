@@ -4,6 +4,7 @@ import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { CustomError } from 'defekt';
 import { getShortId } from '../../../shared/getShortId';
+import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { uuid } from 'uuidv4';
@@ -13,7 +14,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
   createPriorityQueueStore ({ suffix, expirationTime }: {
     suffix: string;
     expirationTime: number;
-  }): Promise<PriorityQueueStore<CommandWithMetadata<CommandData>>>;
+  }): Promise<PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>>;
 }): void {
   const expirationTime = 250;
 
@@ -55,7 +56,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     }
   };
 
-  let priorityQueueStore: PriorityQueueStore<any>,
+  let priorityQueueStore: PriorityQueueStore<any, any>,
       suffix: string;
 
   setup(async (): Promise<void> => {
@@ -286,12 +287,12 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
       const firstLockResult = await priorityQueueStore.lockNext();
 
-      assert.that(firstLockResult!.item).is.equalTo(item1);
+      assert.that(firstLockResult?.item).is.equalTo(item1);
 
       const secondLockResult = await priorityQueueStore.lockNext();
 
       assert.that(secondLockResult).is.not.undefined();
-      assert.that(secondLockResult!.item).is.equalTo(item2);
+      assert.that(secondLockResult?.item).is.equalTo(item2);
     });
   });
 
@@ -434,6 +435,25 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
       assert.that(nextCommand).is.equalTo(commands.firstAggregate.secondCommand);
     });
+
+    test('acknowledges the last item in a queue and removes it.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+
+      const { token } = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
+        token
+      });
+
+      const shouldBeUndefined = (await priorityQueueStore.lockNext())!;
+
+      assert.that(shouldBeUndefined).is.undefined();
+    });
   });
 
   suite('defer', (): void => {
@@ -518,6 +538,95 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       const { item: commandAfterNextCommand } = (await priorityQueueStore.lockNext())!;
 
       assert.that(commandAfterNextCommand).is.equalTo(commands.firstAggregate.firstCommand);
+    });
+  });
+
+  suite('remove', (): void => {
+    test('throws an error if no queue exists for the discriminator.', async (): Promise<void> => {
+      await assert.that(async (): Promise<void> => await priorityQueueStore.remove({
+        discriminator: uuid(),
+        itemIdentifier: { id: uuid() }
+      })).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EITEMNOTFOUND');
+    });
+
+    test('throws an error if no item in the queue matches the identifier.', async (): Promise<void> => {
+      const discriminator = uuid();
+
+      await priorityQueueStore.enqueue({ item: { id: uuid() }, discriminator, priority: 5 });
+
+      await assert.that(async (): Promise<void> => await priorityQueueStore.remove({
+        discriminator,
+        itemIdentifier: { id: uuid() }
+      })).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EITEMNOTFOUND');
+    });
+
+    test('throws an error if the item is in the front of the queue and currently locked.', async (): Promise<void> => {
+      const discriminator = uuid();
+      const item = { id: uuid() };
+
+      await priorityQueueStore.enqueue({ item, discriminator, priority: 5 });
+      await priorityQueueStore.lockNext();
+
+      await assert.that(async (): Promise<void> => await priorityQueueStore.remove({
+        discriminator,
+        itemIdentifier: item
+      })).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EITEMNOTFOUND');
+    });
+
+    test('removes the item from the front of the queue and repairs up if necessary.', async (): Promise<void> => {
+      const discriminatorOne = uuid();
+      const discriminatorTwo = uuid();
+
+      const itemPrioOne = { id: uuid() };
+      const itemPrioTwo = { id: uuid() };
+      const itemPrioThree = { id: uuid() };
+
+      await priorityQueueStore.enqueue({ item: itemPrioThree, discriminator: discriminatorOne, priority: 3 });
+      await priorityQueueStore.enqueue({ item: itemPrioOne, discriminator: discriminatorOne, priority: 1 });
+      await priorityQueueStore.enqueue({ item: itemPrioTwo, discriminator: discriminatorTwo, priority: 2 });
+
+      await priorityQueueStore.remove({ discriminator: discriminatorOne, itemIdentifier: itemPrioThree });
+
+      const shouldBeItemPrioOne = await priorityQueueStore.lockNext();
+
+      assert.that(shouldBeItemPrioOne?.item).is.equalTo(itemPrioOne);
+    });
+
+    test('removes the item from the front of the queue and repairs down if necessary.', async (): Promise<void> => {
+      const discriminatorOne = uuid();
+      const discriminatorTwo = uuid();
+
+      const itemPrioOne = { id: uuid() };
+      const itemPrioTwo = { id: uuid() };
+      const itemPrioThree = { id: uuid() };
+
+      await priorityQueueStore.enqueue({ item: itemPrioOne, discriminator: discriminatorOne, priority: 1 });
+      await priorityQueueStore.enqueue({ item: itemPrioThree, discriminator: discriminatorOne, priority: 3 });
+      await priorityQueueStore.enqueue({ item: itemPrioTwo, discriminator: discriminatorTwo, priority: 2 });
+
+      await priorityQueueStore.remove({ discriminator: discriminatorOne, itemIdentifier: itemPrioOne });
+
+      const shouldBeItemPrioTwo = await priorityQueueStore.lockNext();
+
+      assert.that(shouldBeItemPrioTwo?.item).is.equalTo(itemPrioTwo);
+    });
+
+    test('removes the item from anywhere else in the queue.', async (): Promise<void> => {
+      const discriminator = uuid();
+
+      const itemPrioOne = { id: uuid() };
+      const itemPrioTwo = { id: uuid() };
+
+      await priorityQueueStore.enqueue({ item: itemPrioOne, discriminator, priority: 1 });
+      await priorityQueueStore.enqueue({ item: itemPrioTwo, discriminator, priority: 2 });
+
+      await priorityQueueStore.remove({ discriminator, itemIdentifier: itemPrioTwo });
+      const shouldBeItemPrioOne = await priorityQueueStore.lockNext();
+
+      await priorityQueueStore.acknowledge({ discriminator, token: shouldBeItemPrioOne!.token });
+      const shouldBeUndefined = await priorityQueueStore.lockNext();
+
+      assert.that(shouldBeUndefined).is.undefined();
     });
   });
 };

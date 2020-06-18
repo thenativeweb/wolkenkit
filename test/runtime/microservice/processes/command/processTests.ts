@@ -4,6 +4,7 @@ import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAv
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
+import { ItemIdentifier } from '../../../../../lib/common/elements/ItemIdentifier';
 import path from 'path';
 import { startCatchAllServer } from '../../../../shared/runtime/startCatchAllServer';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
@@ -142,6 +143,58 @@ suite('command', (): void => {
 
         await assert.that(async (): Promise<void> => {
           await handleCommandClient.postCommand({ command });
+        }).is.throwingAsync();
+
+        assert.that(commandReceivedByDispatcher).is.undefined();
+      });
+    });
+
+    suite('cancelCommand', (): void => {
+      test('sends a cancel request to the right endpoint at the dispatcher.', async (): Promise<void> => {
+        const commandIdentifier: ItemIdentifier = {
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          name: 'excute',
+          id: uuid()
+        };
+
+        await handleCommandClient.cancelCommand({ commandIdentifier });
+
+        assert.that(endpointCommandWasSentTo).is.equalTo('/handle-command/v2/cancel');
+        assert.that(commandReceivedByDispatcher).is.equalTo(commandIdentifier);
+      });
+
+      test('fails if sending the cancel request to the dispatcher fails.', async (): Promise<void> => {
+        if (stopProcess) {
+          await stopProcess();
+        }
+
+        stopProcess = await startProcess({
+          runtime: 'microservice',
+          name: 'command',
+          enableDebugMode: false,
+          port: healthPort,
+          env: {
+            APPLICATION_DIRECTORY: applicationDirectory,
+            PORT: String(port),
+            HEALTH_PORT: String(healthPort),
+            DISPATCHER_PROTOCOL: 'http',
+            DISPATCHER_HOST_NAME: 'non-existent',
+            DISPATCHER_PORT: String(12345),
+            DISPATCHER_RETRIES: String(0),
+            IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
+          }
+        });
+
+        const commandIdentifier: ItemIdentifier = {
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          name: 'excute',
+          id: uuid()
+        };
+
+        await assert.that(async (): Promise<void> => {
+          await handleCommandClient.cancelCommand({ commandIdentifier });
         }).is.throwingAsync();
 
         assert.that(commandReceivedByDispatcher).is.undefined();

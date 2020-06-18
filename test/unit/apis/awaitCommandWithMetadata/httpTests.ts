@@ -5,12 +5,14 @@ import { assert } from 'assertthat';
 import { buildCommandWithMetadata } from '../../../../lib/common/utils/test/buildCommandWithMetadata';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
+import { createPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/createPriorityQueueStore';
+import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../lib/common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { getApi } from '../../../../lib/apis/awaitCommandWithMetadata/http';
 import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
-import { InMemoryPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/InMemory';
 import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
 import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
+import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { runAsServer } from '../../../shared/http/runAsServer';
@@ -28,7 +30,7 @@ suite('awaitCommandWithMetadata/http', (): void => {
         newCommandPublisher: Publisher<object>,
         newCommandSubscriber: Subscriber<object>,
         newCommandSubscriberChannel: string,
-        priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>>;
+        priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
 
     setup(async (): Promise<void> => {
       const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
@@ -39,8 +41,10 @@ suite('awaitCommandWithMetadata/http', (): void => {
       newCommandSubscriberChannel = uuid();
       newCommandPublisher = await InMemoryPublisher.create();
 
-      priorityQueueStore = await InMemoryPriorityQueueStore.create({
-        expirationTime
+      priorityQueueStore = await createPriorityQueueStore({
+        type: 'InMemory',
+        doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
+        options: { expirationTime }
       });
 
       ({ api } = await getApi({

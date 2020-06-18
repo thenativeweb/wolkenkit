@@ -1,3 +1,4 @@
+import { DoesIdentifierMatchItem } from '../DoesIdentifierMatchItem';
 import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
@@ -7,7 +8,9 @@ import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
 import { uuid } from 'uuidv4';
 
-class InMemoryPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
+class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
+  protected doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
+
   protected expirationTime: number;
 
   protected queues: (Queue<TItem> | undefined)[];
@@ -26,19 +29,26 @@ class InMemoryPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }
   /* eslint-enable class-methods-use-this */
 
-  protected constructor ({ expirationTime }: {
-    expirationTime: number;
+  protected constructor ({ doesIdentifierMatchItem, options: { expirationTime }}: {
+    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
+    options: {
+      expirationTime: number;
+    };
   }) {
+    this.doesIdentifierMatchItem = doesIdentifierMatchItem;
     this.expirationTime = expirationTime;
     this.queues = [];
     this.index = new Map();
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem> ({ expirationTime = 15_000 }: {
-    expirationTime?: number;
-  }): Promise<InMemoryPriorityQueueStore<TItem>> {
-    return new InMemoryPriorityQueueStore<TItem>({ expirationTime });
+  public static async create<TItem, TItemIdentifier> ({ doesIdentifierMatchItem, options: { expirationTime = 15_000 }}: {
+    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
+    options: {
+      expirationTime?: number;
+    };
+  }): Promise<InMemoryPriorityQueueStore<TItem, TItemIdentifier>> {
+    return new InMemoryPriorityQueueStore<TItem, TItemIdentifier>({ doesIdentifierMatchItem, options: { expirationTime }});
   }
 
   protected repairUp ({ queue }: { queue: Queue<TItem> }): void {
@@ -117,7 +127,7 @@ class InMemoryPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
     }
   }
 
-  protected removeInternal ({ discriminator }: {
+  protected removeQueueInternal ({ discriminator }: {
     discriminator: string;
   }): void {
     const queueIndex = this.index.get(discriminator);
@@ -259,7 +269,7 @@ class InMemoryPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
       return;
     }
 
-    this.removeInternal({ discriminator: queue.discriminator });
+    this.removeQueueInternal({ discriminator: queue.discriminator });
   }
 
   public async acknowledge ({ discriminator, token }: {
@@ -291,6 +301,49 @@ class InMemoryPriorityQueueStore<TItem> implements PriorityQueueStore<TItem> {
   }): Promise<void> {
     await this.functionCallQueue.add(
       async (): Promise<void> => this.deferInternal({ discriminator, token, priority })
+    );
+  }
+
+  protected async removeInternal ({ discriminator, itemIdentifier }: { discriminator: string; itemIdentifier: TItemIdentifier }): Promise<void> {
+    const queueIndex = this.index.get(discriminator);
+
+    if (queueIndex === undefined) {
+      throw new errors.ItemNotFound();
+    }
+
+    const queue = this.queues[queueIndex] as Queue<TItem>;
+
+    const foundItemIndex = queue.items.findIndex(({ item }: { item: TItem }): boolean => this.doesIdentifierMatchItem({ item, itemIdentifier }));
+
+    if (foundItemIndex === -1) {
+      throw new errors.ItemNotFound();
+    }
+
+    if (foundItemIndex === 0) {
+      if (queue?.lock && queue.lock.until > Date.now()) {
+        throw new errors.ItemNotFound();
+      }
+
+      if (queue.items.length === 1) {
+        this.removeQueueInternal({ discriminator });
+
+        return;
+      }
+
+      queue.items = queue.items.slice(1);
+
+      this.repairDown({ queue });
+      this.repairUp({ queue });
+
+      return;
+    }
+
+    queue.items = [ ...queue.items.slice(0, foundItemIndex), ...queue.items.slice(foundItemIndex + 1) ];
+  }
+
+  public async remove ({ discriminator, itemIdentifier }: { discriminator: string; itemIdentifier: TItemIdentifier }): Promise<void> {
+    await this.functionCallQueue.add(
+      async (): Promise<void> => this.removeInternal({ discriminator, itemIdentifier })
     );
   }
 

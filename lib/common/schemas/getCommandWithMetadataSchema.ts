@@ -1,3 +1,4 @@
+import { getClientSchema } from './getClientSchema';
 import { jsonSchema } from 'uuidv4';
 import { Schema } from '../elements/Schema';
 
@@ -36,31 +37,7 @@ const getCommandWithMetadataSchema = function (): Schema {
           causationId: jsonSchema.v4 as Schema,
           correlationId: jsonSchema.v4 as Schema,
           timestamp: { type: 'number' },
-          client: {
-            type: 'object',
-            properties: {
-              token: { type: 'string', minLength: 1 },
-              user: {
-                type: 'object',
-                properties: {
-                  id: { type: 'string', minLength: 1 },
-                  claims: {
-                    type: 'object',
-                    properties: {
-                      sub: { type: 'string', minLength: 1 }
-                    },
-                    required: [ 'sub' ],
-                    additionalProperties: true
-                  }
-                },
-                required: [ 'id', 'claims' ],
-                additionalProperties: false
-              },
-              ip: { type: 'string', minLength: 1 }
-            },
-            required: [ 'token', 'user', 'ip' ],
-            additionalProperties: false
-          },
+          client: getClientSchema(),
           initiator: {
             type: 'object',
             properties: {

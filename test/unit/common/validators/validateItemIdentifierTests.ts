@@ -64,4 +64,38 @@ suite('validateItemIdentifier', (): void => {
         ex.message === `Aggregate 'sampleContext.someAggregate' not found.`
     );
   });
+
+  test(`throws an error if the command identifier's name doesn't exist in the application definition.`, async (): Promise<void> => {
+    assert.that((): void => {
+      validateItemIdentifier({
+        itemIdentifier: {
+          ...itemIdentifier,
+          name: 'nonExistent'
+        },
+        applicationDefinition,
+        itemType: 'command'
+      });
+    }).is.throwing(
+      (ex): boolean =>
+        (ex as CustomError).code === 'ECOMMANDNOTFOUND' &&
+        ex.message === `Command 'sampleContext.sampleAggregate.nonExistent' not found.`
+    );
+  });
+
+  test(`throws an error if the domain event identifier's name doesn't exist in the application definition.`, async (): Promise<void> => {
+    assert.that((): void => {
+      validateItemIdentifier({
+        itemIdentifier: {
+          ...itemIdentifier,
+          name: 'nonExistent'
+        },
+        applicationDefinition,
+        itemType: 'domain-event'
+      });
+    }).is.throwing(
+      (ex): boolean =>
+        (ex as CustomError).code === 'EDOMAINEVENTNOTFOUND' &&
+        ex.message === `Domain event 'sampleContext.sampleAggregate.nonExistent' not found.`
+    );
+  });
 });
