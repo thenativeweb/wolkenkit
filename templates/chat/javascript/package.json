@@ -3,5 +3,11 @@
   "version": "0.0.1",
   "description": "",
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "assertthat": "5.1.1",
+    "mocha": "8.0.1"
+  },
+  "scripts": {
+    "test": "npx mocha --async-only --bail --recursive --ui tdd"
+  }
 }

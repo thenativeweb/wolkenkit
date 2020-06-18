@@ -18,6 +18,108 @@ update_configs:
         update_type: "all"
     version_requirement_updates: "increase_versions"
 
+  - package_manager: "javascript"
+    directory: "/templates/blank/javascript"
+    update_schedule: "live"
+    default_assignees:
+    - "goloroden"
+    - "yeldiRium"
+    default_labels:
+    - "Dependencies"
+    commit_message:
+      prefix: "fix"
+      prefix_development: "chore"
+    allowed_updates:
+    - match:
+        dependency_type: "direct"
+        update_type: "all"
+    version_requirement_updates: "increase_versions"
+
+  - package_manager: "javascript"
+    directory: "/templates/blank/typescript"
+    update_schedule: "live"
+    default_assignees:
+    - "goloroden"
+    - "yeldiRium"
+    default_labels:
+    - "Dependencies"
+    commit_message:
+      prefix: "fix"
+      prefix_development: "chore"
+    allowed_updates:
+    - match:
+        dependency_type: "direct"
+        update_type: "all"
+    version_requirement_updates: "increase_versions"
+
+  - package_manager: "javascript"
+    directory: "/templates/chat/javascript"
+    update_schedule: "live"
+    default_assignees:
+    - "goloroden"
+    - "yeldiRium"
+    default_labels:
+    - "Dependencies"
+    commit_message:
+      prefix: "fix"
+      prefix_development: "chore"
+    allowed_updates:
+    - match:
+        dependency_type: "direct"
+        update_type: "all"
+    version_requirement_updates: "increase_versions"
+
+  - package_manager: "javascript"
+    directory: "/templates/chat/typescript"
+    update_schedule: "live"
+    default_assignees:
+    - "goloroden"
+    - "yeldiRium"
+    default_labels:
+    - "Dependencies"
+    commit_message:
+      prefix: "fix"
+      prefix_development: "chore"
+    allowed_updates:
+    - match:
+        dependency_type: "direct"
+        update_type: "all"
+    version_requirement_updates: "increase_versions"
+
+  - package_manager: "javascript"
+    directory: "/templates/chat-simplified/javascript"
+    update_schedule: "live"
+    default_assignees:
+    - "goloroden"
+    - "yeldiRium"
+    default_labels:
+    - "Dependencies"
+    commit_message:
+      prefix: "fix"
+      prefix_development: "chore"
+    allowed_updates:
+    - match:
+        dependency_type: "direct"
+        update_type: "all"
+    version_requirement_updates: "increase_versions"
+
+  - package_manager: "javascript"
+    directory: "/templates/chat-simplified/typescript"
+    update_schedule: "live"
+    default_assignees:
+    - "goloroden"
+    - "yeldiRium"
+    default_labels:
+    - "Dependencies"
+    commit_message:
+      prefix: "fix"
+      prefix_development: "chore"
+    allowed_updates:
+    - match:
+        dependency_type: "direct"
+        update_type: "all"
+    version_requirement_updates: "increase_versions"
+
   - package_manager: "docker"
     directory: "/docker/wolkenkit-mariadb"
     update_schedule: "daily"

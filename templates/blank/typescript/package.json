@@ -3,5 +3,13 @@
   "version": "0.0.1",
   "description": "",
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/mocha": "7.0.2",
+    "assertthat": "5.1.1",
+    "mocha": "8.0.1",
+    "ts-node": "8.10.2"
+  },
+  "scripts": {
+    "test": "npx mocha --async-only --bail --require ts-node/register --recursive --ui tdd"
+  }
 }
