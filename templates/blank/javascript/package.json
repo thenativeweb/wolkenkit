@@ -5,9 +5,13 @@
   "dependencies": {},
   "devDependencies": {
     "assertthat": "5.1.1",
-    "mocha": "8.0.1"
+    "mocha": "8.0.1",
+    "run-script-os": "1.1.1",
+    "uuidv4": "6.1.0"
   },
   "scripts": {
-    "test": "npx mocha --async-only --bail --recursive --ui tdd"
+    "test": "run-script-os",
+    "test:win32": "npx wolkenkit build && npx mocha --async-only --bail --recursive --ui tdd '.\\test\\**\\*.js'",
+    "test:default": "npx wolkenkit build && npx mocha --async-only --bail --recursive --ui tdd './test/**/*.js'"
   }
 }
