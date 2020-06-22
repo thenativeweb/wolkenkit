@@ -4,10 +4,10 @@ import { LikeData } from '../../../server/domain/communication/message';
 import { SendData } from '../../../server/domain/communication/message';
 import { SentData } from '../../../server/domain/communication/message';
 import { uuid } from 'uuidv4';
-import { application, loadApplication, sandbox } from 'wolkenkit';
+import { Application, loadApplication, sandbox } from 'wolkenkit';
 
 suite('message', (): void => {
-  let application: application;
+  let application: Application;
 
   suiteSetup(async (): Promise<void> => {
     application = await loadApplication({

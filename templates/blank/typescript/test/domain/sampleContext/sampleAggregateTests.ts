@@ -2,10 +2,10 @@ import { assert } from 'assertthat';
 import path from 'path';
 import { SampleCommandData } from '../../../server/domain/sampleContext/sampleAggregate/commands/sampleCommand';
 import { uuid } from 'uuidv4';
-import { application, loadApplication, sandbox } from 'wolkenkit';
+import { Application, loadApplication, sandbox } from 'wolkenkit';
 
 suite('sampleAggregate', (): void => {
-  let application: application;
+  let application: Application;
 
   suiteSetup(async (): Promise<void> => {
     application = await loadApplication({

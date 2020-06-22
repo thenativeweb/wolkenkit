@@ -1,11 +1,11 @@
 import { MessageState } from '../MessageState';
-import { DomainEventData, DomainEventHandler, Schema } from 'wolkenkit';
+import { AskInfrastructure, DomainEventData, DomainEventHandler, Schema, TellInfrastructure } from 'wolkenkit';
 
 export interface LikedData extends DomainEventData {
   likes: number;
 }
 
-export const liked: DomainEventHandler<MessageState, LikedData> = {
+export const liked: DomainEventHandler<MessageState, LikedData, AskInfrastructure & TellInfrastructure> = {
   getSchema (): Schema {
     return {
       type: 'object',
