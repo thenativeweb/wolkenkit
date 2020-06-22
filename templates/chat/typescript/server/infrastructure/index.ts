@@ -1,4 +1,3 @@
-// @ts-ignore
 import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
 
 export interface Infrastructure extends AskInfrastructure, TellInfrastructure {
