@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
@@ -14,8 +14,8 @@ import { SpecializedEventEmitter } from '../../../../common/utils/events/Special
 import { State } from '../../../../common/elements/State';
 import { transformDomainEventForGraphql } from '../../shared/elements/transformDomainEventForGraphql';
 
-const getSubscriptionResolvers = function ({ applicationDefinition, repository, domainEventEmitter }: {
-  applicationDefinition: ApplicationDefinition;
+const getSubscriptionResolvers = function ({ application, repository, domainEventEmitter }: {
+  application: Application;
   repository: Repository;
   domainEventEmitter: SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>;
 }): IResolvers<any, ClientMetadata> {
@@ -41,7 +41,7 @@ const getSubscriptionResolvers = function ({ applicationDefinition, repository, 
           }
 
           const preparedDomainEvent = await prepareForPublication({
-            applicationDefinition,
+            application,
             domainEventWithState: domainEvent,
             domainEventFilter: {},
             repository,
@@ -50,8 +50,11 @@ const getSubscriptionResolvers = function ({ applicationDefinition, repository, 
               client: clientService,
               logger: getLoggerService({
                 fileName: `<app>/server/domain/${domainEvent.contextIdentifier.name}/${domainEvent.aggregateIdentifier.name}/`,
-                packageManifest: applicationDefinition.packageManifest
-              })
+                packageManifest: application.packageManifest
+              }),
+              infrastructure: {
+                ask: application.infrastructure.ask
+              }
             }
           });
 

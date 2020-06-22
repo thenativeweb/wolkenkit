@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../application/ApplicationDefinition';
+import { Application } from '../application/Application';
 import { DomainEventData } from '../elements/DomainEventData';
 import { DomainEventWithState } from '../elements/DomainEventWithState';
 import { errors } from '../errors';
@@ -6,12 +6,12 @@ import { Value } from 'validate-value';
 
 const validateDomainEventWithState = function <TDomainEventData extends DomainEventData, TState> ({
   domainEvent,
-  applicationDefinition
+  application
 }: {
   domainEvent: DomainEventWithState<TDomainEventData, TState>;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
 }): void {
-  const contextDefinitions = applicationDefinition.domain;
+  const contextDefinitions = application.domain;
 
   const {
     contextIdentifier: { name: contextName },

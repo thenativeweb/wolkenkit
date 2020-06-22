@@ -6,11 +6,11 @@ import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
-import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
+import { loadApplication } from '../../../../common/application/loadApplication';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
@@ -30,7 +30,7 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
       identityProvidersEnvironmentVariable: configuration.identityProviders
     });
 
-    const applicationDefinition = await getApplicationDefinition({
+    const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
 
@@ -40,7 +40,7 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
     });
 
     const repository = new Repository({
-      applicationDefinition,
+      application,
       lockStore: await createLockStore({ type: 'InMemory', options: {}}),
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
@@ -48,7 +48,7 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
 
     const { api, publishDomainEvent } = await getApi({
       configuration,
-      applicationDefinition,
+      application,
       identityProviders,
       repository
     });

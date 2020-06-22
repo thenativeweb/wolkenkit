@@ -1,35 +1,35 @@
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { Client } from '../../../../lib/apis/handleCommand/http/v2/Client';
 import { Command } from '../../../../lib/common/elements/Command';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { CustomError } from 'defekt';
+import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/handleCommand/http';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
 import { ItemIdentifier } from '../../../../lib/common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { uuid } from 'uuidv4';
 
 suite('handleCommand/http/Client', (): void => {
   const identityProviders = [ identityProvider ];
 
-  let applicationDefinition: ApplicationDefinition;
+  let application: Application;
 
   suite('/v2', (): void => {
     suiteSetup(async (): Promise<void> => {
       const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-      applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+      application = await loadApplication({ applicationDirectory });
     });
 
     suite('getDescription', (): void => {
-      let api: Application;
+      let api: ExpressApplication;
 
       setup(async (): Promise<void> => {
         ({ api } = await getApi({
@@ -40,7 +40,7 @@ suite('handleCommand/http/Client', (): void => {
           async onCancelCommand (): Promise<void> {
             // Intentionally left blank.
           },
-          applicationDefinition,
+          application,
           identityProviders
         }));
       });
@@ -56,7 +56,7 @@ suite('handleCommand/http/Client', (): void => {
         const description = await client.getDescription();
 
         const { commands: commandsDescription } = getApplicationDescription({
-          applicationDefinition
+          application
         });
 
         // Convert and parse as JSON, to get rid of any values that are undefined.
@@ -70,7 +70,7 @@ suite('handleCommand/http/Client', (): void => {
     });
 
     suite('postCommand', (): void => {
-      let api: Application,
+      let api: ExpressApplication,
           receivedCommands: CommandWithMetadata<CommandData>[];
 
       setup(async (): Promise<void> => {
@@ -86,7 +86,7 @@ suite('handleCommand/http/Client', (): void => {
           async onCancelCommand (): Promise<void> {
             // Intentionally left blank.
           },
-          applicationDefinition,
+          application,
           identityProviders
         }));
       });
@@ -249,7 +249,7 @@ suite('handleCommand/http/Client', (): void => {
           async onCancelCommand (): Promise<void> {
             // Intentionally left blank.
           },
-          applicationDefinition,
+          application,
           identityProviders
         }));
 
@@ -276,7 +276,7 @@ suite('handleCommand/http/Client', (): void => {
     });
 
     suite('cancelCommand', (): void => {
-      let api: Application,
+      let api: ExpressApplication,
           cancelledCommands: ItemIdentifierWithClient[];
 
       setup(async (): Promise<void> => {
@@ -292,7 +292,7 @@ suite('handleCommand/http/Client', (): void => {
           }): Promise<void> {
             cancelledCommands.push(commandIdentifierWithClient);
           },
-          applicationDefinition,
+          application,
           identityProviders
         }));
       });
@@ -395,7 +395,7 @@ suite('handleCommand/http/Client', (): void => {
           async onCancelCommand (): Promise<void> {
             throw new Error('Failed to cancel command.');
           },
-          applicationDefinition,
+          application,
           identityProviders
         }));
 

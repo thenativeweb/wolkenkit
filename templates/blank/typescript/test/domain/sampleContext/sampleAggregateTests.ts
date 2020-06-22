@@ -2,13 +2,13 @@ import { assert } from 'assertthat';
 import path from 'path';
 import { SampleCommandData } from '../../../server/domain/sampleContext/sampleAggregate/commands/sampleCommand';
 import { uuid } from 'uuidv4';
-import { ApplicationDefinition, getApplicationDefinition, sandbox } from 'wolkenkit';
+import { application, loadApplication, sandbox } from 'wolkenkit';
 
 suite('sampleAggregate', (): void => {
-  let applicationDefinition: ApplicationDefinition;
+  let application: application;
 
   suiteSetup(async (): Promise<void> => {
-    applicationDefinition = await getApplicationDefinition({
+    application = await loadApplication({
       applicationDirectory: path.join(__dirname, '..', '..', '..')
     });
   });
@@ -19,7 +19,7 @@ suite('sampleAggregate', (): void => {
       const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
 
       await sandbox().
-        withApplicationDefinition({ applicationDefinition }).
+        withApplication({ application }).
         forAggregate({ contextIdentifier, aggregateIdentifier }).
         when<SampleCommandData>({ name: 'sampleCommand', data: {}}).
         then(({ domainEvents, state }): void => {

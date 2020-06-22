@@ -24,7 +24,7 @@ export interface CommandHandler<
     aggregates: AggregatesService;
     client: ClientService;
     logger: LoggerService;
-    infrasturcture: Pick<TInfrastructure, 'ask'>;
+    infrastructure: Pick<TInfrastructure, 'ask'>;
   }): boolean | Promise<boolean>;
 
   handle (state: TState, command: CommandWithMetadata<TCommandData>, services: {

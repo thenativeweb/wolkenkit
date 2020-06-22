@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { Configuration } from './Configuration';
@@ -10,11 +10,11 @@ import { OnCancelCommand } from '../../../../apis/handleCommandWithMetadata/OnCa
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
-import express, { Application } from 'express';
+import express, { Application as ExpressApplication } from 'express';
 
 const getApi = async function ({
   configuration,
-  applicationDefinition,
+  application,
   priorityQueueStore,
   newCommandSubscriber,
   newCommandPubSubChannel,
@@ -22,22 +22,22 @@ const getApi = async function ({
   onCancelCommand
 }: {
   configuration: Configuration;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
   newCommandSubscriber: Subscriber<object>;
   newCommandPubSubChannel: string;
   onReceiveCommand: OnReceiveCommand;
   onCancelCommand: OnCancelCommand;
-}): Promise<{ api: Application }> {
+}): Promise<{ api: ExpressApplication }> {
   const { api: handleCommandApi } = await getHandleCommandWithMetadataApi({
     corsOrigin: getCorsOrigin(configuration.handleCommandCorsOrigin),
     onReceiveCommand,
     onCancelCommand,
-    applicationDefinition
+    application
   });
 
   const { api: awaitCommandWithMetadataApi } = await getAwaitCommandWithMetadataApi({
-    applicationDefinition,
+    application,
     corsOrigin: getCorsOrigin(configuration.awaitCommandCorsOrigin),
     priorityQueueStore,
     newCommandSubscriber,

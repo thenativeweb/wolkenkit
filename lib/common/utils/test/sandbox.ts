@@ -1,5 +1,5 @@
 import { AggregateIdentifier } from '../../elements/AggregateIdentifier';
-import { ApplicationDefinition } from '../../application/ApplicationDefinition';
+import { Application } from '../../application/Application';
 import { buildCommandWithMetadata } from './buildCommandWithMetadata';
 import { buildDomainEvent } from './buildDomainEvent';
 import { Client } from '../../elements/Client';
@@ -30,8 +30,8 @@ import { SnapshotStrategy } from '../../domain/SnapshotStrategy';
 import { State } from '../../elements/State';
 
 interface UninitializedSandbox {
-  withApplicationDefinition({ applicationDefinition }: {
-    applicationDefinition: ApplicationDefinition;
+  withApplication({ application }: {
+    application: Application;
   }): Sandbox;
 }
 
@@ -136,7 +136,7 @@ interface SandboxWithResult<TState extends State> {
 }
 
 interface SandboxConfiguration {
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
 
   domainEventStore?: DomainEventStore;
   lockStore?: LockStore;
@@ -159,12 +159,12 @@ interface SandboxConfigurationWithAggregate extends SandboxConfiguration {
 
 const sandbox = function (): UninitializedSandbox {
   return {
-    withApplicationDefinition ({ applicationDefinition }: {
-      applicationDefinition: ApplicationDefinition;
+    withApplication ({ application }: {
+      application: Application;
     }): Sandbox {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return initializedSandbox({
-        applicationDefinition
+        application
       });
     }
   };
@@ -407,7 +407,7 @@ const sandboxWithResult = function <TState extends State> (sandboxConfiguration:
       }
 
       const repository = new Repository({
-        applicationDefinition: sandboxConfiguration.applicationDefinition,
+        application: sandboxConfiguration.application,
         lockStore,
         domainEventStore,
         snapshotStrategy,

@@ -3,12 +3,12 @@
 import { Client as DispatcherClient } from '../../../../apis/handleCommandWithMetadata/http/v2/Client';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
-import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getOnCancelCommand } from './getOnCancelCommand';
 import { getOnReceiveCommand } from './getOnReceiveCommand';
 import http from 'http';
+import { loadApplication } from '../../../../common/application/loadApplication';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
 
@@ -25,7 +25,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       identityProvidersEnvironmentVariable: configuration.identityProviders
     });
 
-    const applicationDefinition = await getApplicationDefinition({
+    const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
 
@@ -45,7 +45,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const { api } = await getApi({
       configuration,
-      applicationDefinition,
+      application,
       identityProviders,
       onReceiveCommand,
       onCancelCommand

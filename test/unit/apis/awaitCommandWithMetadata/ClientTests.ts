@@ -1,5 +1,4 @@
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { buildCommandWithMetadata } from '../../../../lib/common/utils/test/buildCommandWithMetadata';
 import { Client } from '../../../../lib/apis/awaitCommandWithMetadata/http/v2/Client';
@@ -8,13 +7,14 @@ import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWith
 import { createPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/createPriorityQueueStore';
 import { CustomError } from 'defekt';
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../lib/common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
+import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/awaitCommandWithMetadata/http';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getPromiseStatus } from '../../../../lib/common/utils/getPromiseStatus';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
 import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { runAsServer } from '../../../shared/http/runAsServer';
@@ -27,8 +27,8 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
     const expirationTime = 600;
     const pollInterval = 500;
 
-    let api: Application,
-        applicationDefinition: ApplicationDefinition,
+    let api: ExpressApplication,
+        application: Application,
         newCommandPublisher: Publisher<object>,
         newCommandSubscriber: Subscriber<object>,
         newCommandSubscriberChannel: string,
@@ -37,7 +37,7 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
     setup(async (): Promise<void> => {
       const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-      applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+      application = await loadApplication({ applicationDirectory });
 
       newCommandSubscriber = await InMemorySubscriber.create();
       newCommandSubscriberChannel = uuid();
@@ -50,7 +50,7 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
       });
 
       ({ api } = await getApi({
-        applicationDefinition,
+        application,
         corsOrigin: '*',
         priorityQueueStore,
         newCommandSubscriber,

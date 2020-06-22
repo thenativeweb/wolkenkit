@@ -2,6 +2,7 @@ import { Aggregate } from './common/elements/Aggregate';
 import { AggregateService } from './common/services/AggregateService';
 import { AggregatesService } from './common/services/AggregatesService';
 import { Application } from './common/application/Application';
+import { AskInfrastructure } from './common/elements/AskInfrastructure';
 import { ClientService } from './common/services/ClientService';
 import { Command } from './common/elements/Command';
 import { CommandData } from './common/elements/CommandData';
@@ -23,6 +24,7 @@ import { QueryResultItem } from './common/elements/QueryResultItem';
 import { sandbox } from './common/utils/test/sandbox';
 import { Schema } from './common/elements/Schema';
 import { State } from './common/elements/State';
+import { TellInfrastructure } from './common/elements/TellInfrastructure';
 import { View } from './common/elements/View';
 import { ViewInitializer } from './common/elements/ViewInitializer';
 
@@ -31,6 +33,7 @@ export {
   AggregateService,
   AggregatesService,
   Application,
+  AskInfrastructure,
   ClientService,
   Command,
   CommandData,
@@ -52,6 +55,7 @@ export {
   sandbox,
   Schema,
   State,
+  TellInfrastructure,
   View,
   ViewInitializer
 };

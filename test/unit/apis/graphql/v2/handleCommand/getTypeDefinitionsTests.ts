@@ -1,5 +1,5 @@
 import { ApolloServer } from 'apollo-server-express';
-import { ApplicationDefinition } from '../../../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { getTypeDefinitions } from '../../../../../../lib/apis/graphql/v2/handleCommand/getTypeDefinitions';
 import gql from 'graphql-tag';
@@ -8,7 +8,7 @@ import { JSONSchema4 } from 'json-schema';
 
 suite('getTypeDefinitions', (): void => {
   test('works with empty schemas.', async (): Promise<void> => {
-    const applicationDefinition: ApplicationDefinition = {
+    const application: Application = {
       domain: {
         sampleContext: {
           sampleAggregate: {
@@ -37,6 +37,10 @@ suite('getTypeDefinitions', (): void => {
           }
         }
       },
+      infrastructure: {
+        ask: {},
+        tell: {}
+      },
       views: {},
       packageManifest: {
         name: 'empty',
@@ -48,7 +52,7 @@ suite('getTypeDefinitions', (): void => {
       rootDirectory: await isolated()
     };
 
-    let typeDefinitions = getTypeDefinitions({ applicationDefinition });
+    let typeDefinitions = getTypeDefinitions({ application });
 
     typeDefinitions += `
         type Query {

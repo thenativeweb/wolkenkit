@@ -1,28 +1,28 @@
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
+import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/handleDomainEvent/http';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { State } from '../../../../lib/common/elements/State';
 import { uuid } from 'uuidv4';
 
 suite('handleDomainEvent/http', (): void => {
-  let applicationDefinition: ApplicationDefinition;
+  let application: Application;
 
   suite('/v2', (): void => {
     suiteSetup(async (): Promise<void> => {
       const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-      applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+      application = await loadApplication({ applicationDirectory });
     });
 
     suite('POST /', (): void => {
-      let api: Application,
+      let api: ExpressApplication,
           receivedDomainEvents: DomainEventWithState<DomainEventData, State>[];
 
       setup(async (): Promise<void> => {
@@ -35,7 +35,7 @@ suite('handleDomainEvent/http', (): void => {
           }): Promise<void> {
             receivedDomainEvents.push(domainEvent);
           },
-          applicationDefinition
+          application
         }));
       });
 
@@ -345,7 +345,7 @@ suite('handleDomainEvent/http', (): void => {
           async onReceiveDomainEvent (): Promise<void> {
             throw new Error('Failed to handle received domain event.');
           },
-          applicationDefinition
+          application
         }));
 
         const domainEventExecuted = new DomainEventWithState({

@@ -4,13 +4,13 @@ import { LikeData } from '../../../server/domain/communication/message';
 import { SendData } from '../../../server/domain/communication/message';
 import { SentData } from '../../../server/domain/communication/message';
 import { uuid } from 'uuidv4';
-import { ApplicationDefinition, getApplicationDefinition, sandbox } from 'wolkenkit';
+import { application, loadApplication, sandbox } from 'wolkenkit';
 
 suite('message', (): void => {
-  let applicationDefinition: ApplicationDefinition;
+  let application: application;
 
   suiteSetup(async (): Promise<void> => {
-    applicationDefinition = await getApplicationDefinition({
+    application = await loadApplication({
       applicationDirectory: path.join(__dirname, '..', '..', '..')
     });
   });
@@ -21,7 +21,7 @@ suite('message', (): void => {
       const aggregateIdentifier = { name: 'message', id: uuid() };
 
       await sandbox().
-        withApplicationDefinition({ applicationDefinition }).
+        withApplication({ application }).
         forAggregate({ contextIdentifier, aggregateIdentifier }).
         when<SendData>({ name: 'send', data: { text: 'Hello world!' }}).
         then(({ domainEvents, state }): void => {
@@ -37,7 +37,7 @@ suite('message', (): void => {
       const aggregateIdentifier = { name: 'message', id: uuid() };
 
       await sandbox().
-        withApplicationDefinition({ applicationDefinition }).
+        withApplication({ application }).
         forAggregate({ contextIdentifier, aggregateIdentifier }).
         given<SentData>({ name: 'sent', data: { text: 'Hello world!' }}).
         when<SendData>({ name: 'send', data: { text: 'Hello world!' }}).
@@ -56,7 +56,7 @@ suite('message', (): void => {
       const aggregateIdentifier = { name: 'message', id: uuid() };
 
       await sandbox().
-        withApplicationDefinition({ applicationDefinition }).
+        withApplication({ application }).
         forAggregate({ contextIdentifier, aggregateIdentifier }).
         given<SentData>({ name: 'sent', data: { text: 'Hello world!' }}).
         when<LikeData>({ name: 'like', data: {}}).
@@ -73,7 +73,7 @@ suite('message', (): void => {
       const aggregateIdentifier = { name: 'message', id: uuid() };
 
       await sandbox().
-        withApplicationDefinition({ applicationDefinition }).
+        withApplication({ application }).
         forAggregate({ contextIdentifier, aggregateIdentifier }).
         when<LikeData>({ name: 'like', data: {}}).
         then(({ domainEvents, state }): void => {

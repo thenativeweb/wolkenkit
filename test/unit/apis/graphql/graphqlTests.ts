@@ -1,6 +1,5 @@
 import { ApolloClient } from 'apollo-client';
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
@@ -9,9 +8,9 @@ import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
+import { Application as ExpressApplication } from 'express';
 import fetch from 'node-fetch';
 import { getApi } from '../../../../lib/apis/graphql';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getAvailablePort } from '../../../../lib/common/utils/network/getAvailablePort';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
@@ -21,6 +20,7 @@ import { HttpLink } from 'apollo-link-http';
 import { identityProvider } from '../../../shared/identityProvider';
 import { InitializeGraphQlOnServer } from '../../../../lib/apis/graphql/InitializeGraphQlOnServer';
 import { Limes } from 'limes';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { PublishDomainEvent } from '../../../../lib/apis/graphql/PublishDomainEvent';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
@@ -38,8 +38,8 @@ suite('graphql', function (): void {
   this.timeout(15_000);
 
   const identityProviders = [ identityProvider ];
-  let api: Application,
-      applicationDefinition: ApplicationDefinition,
+  let api: ExpressApplication,
+      application: Application,
       domainEventStore: DomainEventStore,
       initializeGraphQlOnServer: InitializeGraphQlOnServer,
       port: number,
@@ -50,13 +50,13 @@ suite('graphql', function (): void {
   setup(async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
     domainEventStore = await createDomainEventStore({
       type: 'InMemory',
       options: {}
     });
     repository = new Repository({
-      applicationDefinition,
+      application,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
       lockStore: await createLockStore({ type: 'InMemory', options: {}}),
       domainEventStore
@@ -66,7 +66,7 @@ suite('graphql', function (): void {
     ({ api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
       identityProviders,
       corsOrigin: '*',
-      applicationDefinition,
+      application,
       handleCommand: {
         async onReceiveCommand ({ command }): Promise<void> {
           receivedCommands.push(command);

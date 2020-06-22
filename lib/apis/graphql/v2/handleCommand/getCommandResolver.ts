@@ -1,5 +1,5 @@
 import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { cloneDeep } from 'lodash';
 import { Command } from '../../../../common/elements/Command';
@@ -22,13 +22,13 @@ const getCommandResolver = function ({
   contextIdentifier,
   aggregateIdentifier,
   commandName,
-  applicationDefinition,
+  application,
   onReceiveCommand
 }: {
   contextIdentifier: ContextIdentifier;
   aggregateIdentifier: AggregateIdentifier;
   commandName: string;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   onReceiveCommand: OnReceiveCommand;
 }): IFieldResolver<any, { clientMetadata: ClientMetadata }> {
   return async ({ data }, { clientMetadata }): Promise<{ id: string }> => {
@@ -44,7 +44,7 @@ const getCommandResolver = function ({
     } catch (ex) {
       throw new errors.CommandMalformed(ex.message);
     }
-    validateCommand({ command, applicationDefinition });
+    validateCommand({ command, application });
 
     const commandId = uuid();
     const commandWithMetadata = new CommandWithMetadata({

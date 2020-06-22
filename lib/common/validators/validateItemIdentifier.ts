@@ -1,17 +1,17 @@
-import { ApplicationDefinition } from '../application/ApplicationDefinition';
+import { Application } from '../application/Application';
 import { errors } from '../errors';
 import { ItemIdentifier } from '../elements/ItemIdentifier';
 
 const validateItemIdentifier = function ({
   itemIdentifier,
-  applicationDefinition,
+  application,
   itemType
 }: {
   itemIdentifier: ItemIdentifier;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   itemType?: 'command' | 'domain-event';
 }): void {
-  const contextDefinitions = applicationDefinition.domain;
+  const contextDefinitions = application.domain;
 
   const {
     contextIdentifier: { name: contextName },

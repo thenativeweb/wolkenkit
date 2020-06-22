@@ -1,16 +1,16 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { getCommandResolver } from './getCommandResolver';
 import { IResolvers } from 'graphql-tools';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 
-const getMutationResolvers = function ({ applicationDefinition, onReceiveCommand }: {
-  applicationDefinition: ApplicationDefinition;
+const getMutationResolvers = function ({ application, onReceiveCommand }: {
+  application: Application;
   onReceiveCommand: OnReceiveCommand;
 }): IResolvers<any, { clientMetadata: ClientMetadata }> {
   const contextResolvers: IResolvers<any, { clientMetadata: ClientMetadata }> = {};
 
-  for (const [ contextName, context ] of Object.entries(applicationDefinition.domain)) {
+  for (const [ contextName, context ] of Object.entries(application.domain)) {
     contextResolvers[contextName] = (): IResolvers<any, { clientMetadata: ClientMetadata }> => {
       const aggregateResolvers: IResolvers<any, { clientMetadata: ClientMetadata }> = {};
 
@@ -23,7 +23,7 @@ const getMutationResolvers = function ({ applicationDefinition, onReceiveCommand
               contextIdentifier: { name: contextName },
               aggregateIdentifier: { name: aggregateName, id },
               commandName,
-              applicationDefinition,
+              application,
               onReceiveCommand
             });
           }

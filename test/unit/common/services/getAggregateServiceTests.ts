@@ -1,16 +1,16 @@
 import { AggregateInstance } from '../../../../lib/common/domain/AggregateInstance';
 import { AggregateService } from '../../../../lib/common/services/AggregateService';
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { cloneDeep } from 'lodash';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getAggregateService } from '../../../../lib/common/services/getAggregateService';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { State } from '../../../../lib/common/elements/State';
@@ -49,24 +49,24 @@ suite('getAggregateService', (): void => {
 
   let aggregateInstance: AggregateInstance<State>,
       aggregateService: AggregateService<State>,
-      applicationDefinition: ApplicationDefinition,
+      application: Application,
       domainEventHandlerCalled = false,
       domainEventStore: DomainEventStore,
       lockStore: LockStore,
       repository: Repository;
 
   suiteSetup(async (): Promise<void> => {
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
   });
 
   setup(async (): Promise<void> => {
     domainEventHandlerCalled = false;
 
     /* eslint-disable @typescript-eslint/unbound-method */
-    const handleFunction = applicationDefinition.domain[contextName][aggregateName].domainEventHandlers[domainEventName].handle;
+    const handleFunction = application.domain[contextName][aggregateName].domainEventHandlers[domainEventName].handle;
 
     /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-    applicationDefinition.domain[contextName][aggregateName].domainEventHandlers[domainEventName].handle =
+    application.domain[contextName][aggregateName].domainEventHandlers[domainEventName].handle =
       function (state, domainEvent, services): Partial<State> {
         domainEventHandlerCalled = true;
 
@@ -79,7 +79,7 @@ suite('getAggregateService', (): void => {
     lockStore = await createLockStore({ type: 'InMemory', options: {}});
 
     repository = new Repository({
-      applicationDefinition,
+      application,
       lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' })
@@ -95,7 +95,7 @@ suite('getAggregateService', (): void => {
       }
     });
 
-    aggregateService = getAggregateService<State>({ aggregateInstance, applicationDefinition, command });
+    aggregateService = getAggregateService<State>({ aggregateInstance, application, command });
   });
 
   suite('id', (): void => {

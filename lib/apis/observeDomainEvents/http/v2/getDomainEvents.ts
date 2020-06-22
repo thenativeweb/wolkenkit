@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
@@ -42,12 +42,12 @@ const getDomainEvents = {
 
   getHandler ({
     domainEventEmitter,
-    applicationDefinition,
+    application,
     repository,
     heartbeatInterval
   }: {
     domainEventEmitter: SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>;
-    applicationDefinition: ApplicationDefinition;
+    application: Application;
     repository: Repository;
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
@@ -79,15 +79,18 @@ const getDomainEvents = {
             const domainEvent = await prepareForPublication({
               domainEventWithState,
               domainEventFilter,
-              applicationDefinition,
+              application,
               repository,
               services: {
                 aggregates: aggregatesService,
                 client: clientService,
                 logger: getLoggerService({
                   fileName: `<app>/server/domain/${domainEventWithState.contextIdentifier.name}/${domainEventWithState.aggregateIdentifier.name}/`,
-                  packageManifest: applicationDefinition.packageManifest
-                })
+                  packageManifest: application.packageManifest
+                }),
+                infrastructure: {
+                  ask: application.infrastructure.ask
+                }
               }
             });
 

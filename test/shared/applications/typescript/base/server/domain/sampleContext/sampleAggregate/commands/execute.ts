@@ -1,3 +1,4 @@
+import { Infrastructure } from '../../../../infrastructure';
 import { SampleState } from '../SampleState';
 // @ts-ignore
 import { AggregateService, CommandData, CommandHandler, ErrorService, Schema } from 'wolkenkit';
@@ -6,7 +7,7 @@ export interface ExecuteData extends CommandData {
   strategy: 'succeed' | 'fail' | 'reject';
 }
 
-export const execute: CommandHandler<SampleState, ExecuteData> = {
+export const execute: CommandHandler<SampleState, ExecuteData, Infrastructure> = {
   getSchema (): Schema {
     return {
       type: 'object',

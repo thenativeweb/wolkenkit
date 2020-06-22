@@ -3,13 +3,13 @@
 const { assert } = require('assertthat');
 const path = require('path');
 const { uuid } = require('uuidv4');
-const { getApplicationDefinition, sandbox } = require('wolkenkit');
+const { loadApplication, sandbox } = require('wolkenkit');
 
 suite('message', () => {
-  let applicationDefinition;
+  let application;
 
   suiteSetup(async () => {
-    applicationDefinition = await getApplicationDefinition({
+    application = await loadApplication({
       applicationDirectory: path.join(__dirname, '..', '..', '..')
     });
   });
@@ -20,7 +20,7 @@ suite('message', () => {
       const aggregateIdentifier = { name: 'message', id: uuid() };
 
       await sandbox().
-        withApplicationDefinition({ applicationDefinition }).
+        withApplication({ application }).
         forAggregate({ contextIdentifier, aggregateIdentifier }).
         when({ name: 'send', data: { text: 'Hello world!' }}).
         then(({ domainEvents, state }) => {
@@ -36,7 +36,7 @@ suite('message', () => {
       const aggregateIdentifier = { name: 'message', id: uuid() };
 
       await sandbox().
-        withApplicationDefinition({ applicationDefinition }).
+        withApplication({ application }).
         forAggregate({ contextIdentifier, aggregateIdentifier }).
         given({ name: 'sent', data: { text: 'Hello world!' }}).
         when({ name: 'send', data: { text: 'Hello world!' }}).
@@ -55,7 +55,7 @@ suite('message', () => {
       const aggregateIdentifier = { name: 'message', id: uuid() };
 
       await sandbox().
-        withApplicationDefinition({ applicationDefinition }).
+        withApplication({ application }).
         forAggregate({ contextIdentifier, aggregateIdentifier }).
         given({ name: 'sent', data: { text: 'Hello world!' }}).
         when({ name: 'like', data: {}}).
@@ -72,7 +72,7 @@ suite('message', () => {
       const aggregateIdentifier = { name: 'message', id: uuid() };
 
       await sandbox().
-        withApplicationDefinition({ applicationDefinition }).
+        withApplication({ application }).
         forAggregate({ contextIdentifier, aggregateIdentifier }).
         when({ name: 'like', data: {}}).
         then(({ domainEvents, state }) => {

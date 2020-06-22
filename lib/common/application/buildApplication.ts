@@ -10,6 +10,8 @@ const buildApplication = async function ({ applicationDirectory, buildDirectoryO
   const serverDirectory = path.join(applicationDirectory, 'server');
   const buildDirectory = buildDirectoryOverride ?? path.join(applicationDirectory, 'build');
 
+  console.log({ serverDirectory, buildDirectory });
+
   shell.rm('-rf', buildDirectory);
 
   if (await isTypeScript({ directory: applicationDirectory })) {

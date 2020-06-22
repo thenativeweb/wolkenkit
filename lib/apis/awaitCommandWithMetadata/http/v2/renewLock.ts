@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
@@ -35,10 +35,10 @@ const renewLock = {
   },
 
   getHandler ({
-    applicationDefinition,
+    application,
     priorityQueueStore
   }: {
-    applicationDefinition: ApplicationDefinition;
+    application: Application;
     priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
   }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(renewLock.request.body),
@@ -64,7 +64,7 @@ const renewLock = {
 
       try {
         requestBodySchema.validate(req.body);
-        validateItemIdentifier({ itemIdentifier: req.body.itemIdentifier, applicationDefinition });
+        validateItemIdentifier({ itemIdentifier: req.body.itemIdentifier, application });
       } catch (ex) {
         const error = new errors.ItemIdentifierMalformed(ex.message);
 

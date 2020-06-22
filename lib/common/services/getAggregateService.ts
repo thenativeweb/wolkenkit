@@ -1,6 +1,7 @@
 import { AggregateInstance } from '../domain/AggregateInstance';
 import { AggregateService } from './AggregateService';
-import { ApplicationDefinition } from '../application/ApplicationDefinition';
+import { Application } from '../application/Application';
+import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { CommandWithMetadata } from '../elements/CommandWithMetadata';
 import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
@@ -9,13 +10,14 @@ import { DomainEventWithState } from '../elements/DomainEventWithState';
 import { errors } from '../errors';
 import { GetAggregateService } from './types/GetAggregateService';
 import { State } from '../elements/State';
+import { TellInfrastructure } from '../elements/TellInfrastructure';
 import { uuid } from 'uuidv4';
 import { Value } from 'validate-value';
 import { cloneDeep, get } from 'lodash';
 
-const getAggregateService: GetAggregateService = function <TState extends State> ({ aggregateInstance, applicationDefinition, command }: {
+const getAggregateService: GetAggregateService = function <TState extends State> ({ aggregateInstance, application, command }: {
   aggregateInstance: AggregateInstance<TState>;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   command: CommandWithMetadata<any>;
 }): AggregateService<TState> {
   return {
@@ -35,7 +37,10 @@ const getAggregateService: GetAggregateService = function <TState extends State>
       const contextName = aggregateInstance.contextIdentifier.name;
       const aggregateName = aggregateInstance.aggregateIdentifier.name;
 
-      const domainEventHandler = get(applicationDefinition.domain, [ contextName, aggregateName, 'domainEventHandlers', domainEventName ]) as DomainEventHandler<State, DomainEventData> | undefined;
+      const domainEventHandler = get(
+        application.domain,
+        [ contextName, aggregateName, 'domainEventHandlers', domainEventName ]
+      ) as DomainEventHandler<State, DomainEventData, AskInfrastructure & TellInfrastructure> | undefined;
 
       if (!domainEventHandler) {
         throw new errors.DomainEventUnknown(`Failed to publish unknown domain event '${domainEventName}' in '${contextName}.${aggregateName}'.`);
@@ -65,7 +70,7 @@ const getAggregateService: GetAggregateService = function <TState extends State>
       });
 
       const previousState = cloneDeep(aggregateInstance.state);
-      const nextState = aggregateInstance.applyDomainEvent({ applicationDefinition, domainEvent });
+      const nextState = aggregateInstance.applyDomainEvent({ application, domainEvent });
 
       const domainEventWithState = new DomainEventWithState({
         ...domainEvent,

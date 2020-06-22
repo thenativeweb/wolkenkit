@@ -1,13 +1,13 @@
 import { assert } from 'assertthat';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 
 suite('getApplicationDescription', (): void => {
   test('returns an application description from the given application definition.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
-    const applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-    const applicationDescription = getApplicationDescription({ applicationDefinition });
+    const application = await loadApplication({ applicationDirectory });
+    const applicationDescription = getApplicationDescription({ application });
 
     assert.that(applicationDescription).is.equalTo({
       commands: {

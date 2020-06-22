@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
@@ -32,9 +32,9 @@ const postCommand = {
     }
   },
 
-  getHandler ({ onReceiveCommand, applicationDefinition }: {
+  getHandler ({ onReceiveCommand, application }: {
     onReceiveCommand: OnReceiveCommand;
-    applicationDefinition: ApplicationDefinition;
+    application: Application;
   }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(postCommand.request.body),
           responseBodySchema = new Value(postCommand.response.body);
@@ -73,7 +73,7 @@ const postCommand = {
       const command = new CommandWithMetadata(req.body);
 
       try {
-        validateCommandWithMetadata({ command, applicationDefinition });
+        validateCommandWithMetadata({ command, application });
       } catch (ex) {
         res.status(400).json({
           code: ex.code,

@@ -6,16 +6,16 @@ import { Client as DispatcherClient } from '../../../../apis/awaitCommandWithMet
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
-import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
+import { loadApplication } from '../../../../common/application/loadApplication';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { Client as PublisherClient } from '../../../../apis/publishMessage/http/v2/Client';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
-import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
+import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
@@ -27,7 +27,7 @@ import { State } from '../../../../common/elements/State';
 
     const configuration = getConfiguration();
 
-    const applicationDefinition = await getApplicationDefinition({
+    const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
 
@@ -42,7 +42,7 @@ import { State } from '../../../../common/elements/State';
     });
 
     const repository = new Repository({
-      applicationDefinition,
+      application,
       lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
