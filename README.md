@@ -162,7 +162,7 @@ wolkenkit uses a number of stores to run your application. In the local developm
 - Redis (only for the lock store)
 - SQL Server
 
-*Please note that MongoDB must be at least version 4.2, and that you dont need to run it as a replica set (a single node cluster is fine).*
+*Please note that MongoDB must be at least version 4.2, and that you need to run it as a replica set (a single node cluster is fine).*
 
 For details on how to configure the databases, please have a look at the source code. This will be explained in more detail in the final version of the documentation.
 
@@ -170,7 +170,7 @@ For details on how to configure the databases, please have a look at the source 
 
 Please remember that this version is a community technology preview (CTP) of the upcoming wolkenkit 4.0. Therefore it is possible that not all provided features work as expected or that some features are missing completely.
 
-**BEWARE: Do not use the CTP for production use, its for getting a first impression of and evaluating the upcoming wolkenkit 4.0.**
+**BEWARE: Do not use the CTP for production use, it's for getting a first impression of and evaluating the upcoming wolkenkit 4.0.**
 
 If you experience any difficulties, please [create an issue](https://github.com/thenativeweb/wolkenkit/issues/new/choose) and provide any steps required to reproduce the issue, as well as the expected and the actual result. Additionally provide the versions of wolkenkit and Docker, and the type and architecture of the operating system you are using.
 
