@@ -1,5 +1,5 @@
 import { AggregateInstance } from '../../../../lib/common/domain/AggregateInstance';
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildCommandWithMetadata } from '../../../../lib/common/utils/test/buildCommandWithMetadata';
@@ -11,9 +11,9 @@ import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { State } from '../../../../lib/common/elements/State';
@@ -25,7 +25,7 @@ suite('AggregateInstance', (): void => {
 
   let aggregateId: string,
       aggregateInstance: AggregateInstance<State>,
-      applicationDefinition: ApplicationDefinition,
+      application: Application,
       domainEventStore: DomainEventStore,
       lockStore: LockStore,
       repository: Repository;
@@ -33,19 +33,19 @@ suite('AggregateInstance', (): void => {
   setup(async (): Promise<void> => {
     aggregateId = uuid();
 
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
 
     domainEventStore = await createDomainEventStore({ type: 'InMemory', options: {}});
     lockStore = await createLockStore({ type: 'InMemory', options: {}});
     repository = new Repository({
-      applicationDefinition,
+      application,
       lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' })
     });
 
     aggregateInstance = await AggregateInstance.create({
-      applicationDefinition,
+      application,
       contextIdentifier: { name: 'sampleContext' },
       aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
       lockStore,
@@ -176,7 +176,7 @@ suite('AggregateInstance', (): void => {
       });
 
       assert.that((): void => {
-        aggregateInstance.applyDomainEvent({ applicationDefinition, domainEvent });
+        aggregateInstance.applyDomainEvent({ application, domainEvent });
       }).is.throwing('Context name does not match.');
     });
 
@@ -195,7 +195,7 @@ suite('AggregateInstance', (): void => {
       });
 
       assert.that((): void => {
-        aggregateInstance.applyDomainEvent({ applicationDefinition, domainEvent });
+        aggregateInstance.applyDomainEvent({ application, domainEvent });
       }).is.throwing('Aggregate name does not match.');
     });
 
@@ -214,7 +214,7 @@ suite('AggregateInstance', (): void => {
       });
 
       assert.that((): void => {
-        aggregateInstance.applyDomainEvent({ applicationDefinition, domainEvent });
+        aggregateInstance.applyDomainEvent({ application, domainEvent });
       }).is.throwing('Aggregate id does not match.');
     });
 
@@ -233,7 +233,7 @@ suite('AggregateInstance', (): void => {
       });
 
       assert.that((): void => {
-        aggregateInstance.applyDomainEvent({ applicationDefinition, domainEvent });
+        aggregateInstance.applyDomainEvent({ application, domainEvent });
       }).is.throwing(`Failed to apply unknown domain event 'nonExistent' in 'sampleContext.sampleAggregate'.`);
     });
 
@@ -251,7 +251,7 @@ suite('AggregateInstance', (): void => {
         }
       });
 
-      const nextState = aggregateInstance.applyDomainEvent({ applicationDefinition, domainEvent });
+      const nextState = aggregateInstance.applyDomainEvent({ application, domainEvent });
 
       assert.that(nextState).is.equalTo({
         domainEventNames: [ 'executed' ]

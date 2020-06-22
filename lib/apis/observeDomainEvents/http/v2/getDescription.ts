@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
 import { getDomainEventsDescriptionSchema } from '../../../../common/schemas/getDomainEventsDescriptionSchema';
 import { Value } from 'validate-value';
@@ -15,12 +15,12 @@ const getDescription = {
     body: getDomainEventsDescriptionSchema()
   },
 
-  getHandler ({ applicationDefinition }: {
-    applicationDefinition: ApplicationDefinition;
+  getHandler ({ application }: {
+    application: Application;
   }): WolkenkitRequestHandler {
     const responseBodySchema = new Value(getDescription.response.body);
 
-    const applicationDescription = getApplicationDescription({ applicationDefinition });
+    const applicationDescription = getApplicationDescription({ application });
 
     return function (_req: Request, res: Response): void {
       const response = applicationDescription.domainEvents;

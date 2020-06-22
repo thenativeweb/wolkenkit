@@ -3,13 +3,13 @@
 const { assert } = require('assertthat');
 const path = require('path');
 const { uuid } = require('uuidv4');
-const { getApplicationDefinition, sandbox } = require('wolkenkit');
+const { loadApplication, sandbox } = require('wolkenkit');
 
 suite('sampleAggregate', () => {
-  let applicationDefinition;
+  let application;
 
   suiteSetup(async () => {
-    applicationDefinition = await getApplicationDefinition({
+    application = await loadApplication({
       applicationDirectory: path.join(__dirname, '..', '..', '..')
     });
   });
@@ -20,7 +20,7 @@ suite('sampleAggregate', () => {
       const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
 
       await sandbox().
-        withApplicationDefinition({ applicationDefinition }).
+        withApplication({ application }).
         forAggregate({ contextIdentifier, aggregateIdentifier }).
         when({ name: 'sampleCommand', data: {}}).
         then(({ domainEvents, state }) => {

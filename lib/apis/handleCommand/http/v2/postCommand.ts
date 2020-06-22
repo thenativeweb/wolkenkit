@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { Command } from '../../../../common/elements/Command';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
@@ -34,9 +34,9 @@ const postCommand = {
     } as Schema
   },
 
-  getHandler ({ onReceiveCommand, applicationDefinition }: {
+  getHandler ({ onReceiveCommand, application }: {
     onReceiveCommand: OnReceiveCommand;
-    applicationDefinition: ApplicationDefinition;
+    application: Application;
   }): WolkenkitRequestHandler {
     const responseBodySchema = new Value(postCommand.response.body);
 
@@ -95,7 +95,7 @@ const postCommand = {
       }
 
       try {
-        validateCommand({ command, applicationDefinition });
+        validateCommand({ command, application });
       } catch (ex) {
         res.status(400).json({
           code: ex.code,

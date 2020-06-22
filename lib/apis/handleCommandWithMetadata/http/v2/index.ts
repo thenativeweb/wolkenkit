@@ -1,7 +1,7 @@
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { cancelCommand } from './cancelCommand';
 import { CorsOrigin } from 'get-cors-origin';
+import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
 import { OnCancelCommand } from '../../OnCancelCommand';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
@@ -11,13 +11,13 @@ const getV2 = async function ({
   corsOrigin,
   onReceiveCommand,
   onCancelCommand,
-  applicationDefinition
+  application
 }: {
   corsOrigin: CorsOrigin;
   onReceiveCommand: OnReceiveCommand;
   onCancelCommand: OnCancelCommand;
-  applicationDefinition: ApplicationDefinition;
-}): Promise<{ api: Application }> {
+  application: Application;
+}): Promise<{ api: ExpressApplication }> {
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
@@ -31,12 +31,12 @@ const getV2 = async function ({
 
   api.post(`/${postCommand.path}`, postCommand.getHandler({
     onReceiveCommand,
-    applicationDefinition
+    application
   }));
 
   api.post(`/${cancelCommand.path}`, cancelCommand.getHandler({
     onCancelCommand,
-    applicationDefinition
+    application
   }));
 
   return { api };

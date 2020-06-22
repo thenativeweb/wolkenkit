@@ -8,12 +8,12 @@ import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
-import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { loadApplication } from '../../../../common/application/loadApplication';
 import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import pForever from 'p-forever';
@@ -36,7 +36,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       identityProvidersEnvironmentVariable: configuration.identityProviders
     });
 
-    const applicationDefinition = await getApplicationDefinition({
+    const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
 
@@ -51,7 +51,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     });
 
     const repository = new Repository({
-      applicationDefinition,
+      application,
       lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
@@ -79,7 +79,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const { api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
       configuration,
-      applicationDefinition,
+      application,
       identityProviders,
       onReceiveCommand,
       onCancelCommand,
@@ -105,7 +105,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     for (let i = 0; i < configuration.concurrentCommands; i++) {
       pForever(async (): Promise<void> => {
         await processCommand({
-          applicationDefinition,
+          application,
           repository,
           lockStore,
           priorityQueue: {

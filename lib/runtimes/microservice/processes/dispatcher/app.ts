@@ -8,12 +8,12 @@ import { createSubscriber } from '../../../../messaging/pubSub/createSubscriber'
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
-import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
 import { getOnCancelCommand } from './getOnCancelCommand';
 import { getOnReceiveCommand } from './getOnReceiveCommand';
 import http from 'http';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { loadApplication } from '../../../../common/application/loadApplication';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
 
@@ -26,7 +26,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const configuration = getConfiguration();
 
-    const applicationDefinition = await getApplicationDefinition({
+    const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
 
@@ -71,7 +71,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const { api } = await getApi({
       configuration,
-      applicationDefinition,
+      application,
       priorityQueueStore,
       newCommandSubscriber,
       newCommandPubSubChannel: configuration.pubSubOptions.channel,

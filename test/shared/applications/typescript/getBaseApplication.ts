@@ -1,10 +1,10 @@
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import path from 'path';
 import sampleAggregate from './base/server/domain/sampleContext/sampleAggregate';
 import sampleView from './base/server/views/sampleView';
 import { withSystemDomainEvents } from '../../../../lib/tools/withSystemDomainEvents';
 
-const getBaseApplicationDefinition = function (): ApplicationDefinition {
+const getBaseApplication = function (): Application {
   return withSystemDomainEvents({
     rootDirectory: __dirname,
     packageManifest: {
@@ -16,6 +16,10 @@ const getBaseApplicationDefinition = function (): ApplicationDefinition {
         sampleAggregate
       }
     },
+    infrastructure: {
+      ask: {},
+      tell: {}
+    },
     views: {
       sampleView
     }
@@ -23,5 +27,5 @@ const getBaseApplicationDefinition = function (): ApplicationDefinition {
 };
 
 export {
-  getBaseApplicationDefinition
+  getBaseApplication
 };

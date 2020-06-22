@@ -1,9 +1,9 @@
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { errors } from '../../../../common/errors';
+import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
 import { getDescription } from './getDescription';
@@ -21,17 +21,17 @@ const domainEventWithStateSchema = new Value(getDomainEventWithStateSchema());
 
 const getV2 = async function ({
   corsOrigin,
-  applicationDefinition,
+  application,
   repository,
   identityProviders,
   heartbeatInterval = 90_000
 }: {
   corsOrigin: CorsOrigin;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   repository: Repository;
   identityProviders: IdentityProvider[];
   heartbeatInterval?: number;
-}): Promise<{ api: Application; publishDomainEvent: PublishDomainEvent }> {
+}): Promise<{ api: ExpressApplication; publishDomainEvent: PublishDomainEvent }> {
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
@@ -51,14 +51,14 @@ const getV2 = async function ({
     new SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>();
 
   api.get(`/${getDescription.path}`, getDescription.getHandler({
-    applicationDefinition
+    application
   }));
 
   api.get(
     `/${getDomainEvents.path}`,
     authenticationMiddleware,
     getDomainEvents.getHandler({
-      applicationDefinition,
+      application,
       domainEventEmitter,
       repository,
       heartbeatInterval
@@ -71,7 +71,7 @@ const getV2 = async function ({
     } catch (ex) {
       throw new errors.DomainEventMalformed(ex.message);
     }
-    validateDomainEventWithState({ domainEvent, applicationDefinition });
+    validateDomainEventWithState({ domainEvent, application });
 
     domainEventEmitter.emit(domainEvent);
   };

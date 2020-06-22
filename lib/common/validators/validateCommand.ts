@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../application/ApplicationDefinition';
+import { Application } from '../application/Application';
 import { Command } from '../elements/Command';
 import { CommandData } from '../elements/CommandData';
 import { errors } from '../errors';
@@ -6,12 +6,12 @@ import { Value } from 'validate-value';
 
 const validateCommand = function <TCommandData extends CommandData> ({
   command,
-  applicationDefinition
+  application
 }: {
   command: Command<TCommandData>;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
 }): void {
-  const contextDefinitions = applicationDefinition.domain;
+  const contextDefinitions = application.domain;
 
   const {
     contextIdentifier: { name: contextName },

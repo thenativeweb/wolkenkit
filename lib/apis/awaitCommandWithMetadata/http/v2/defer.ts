@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
@@ -36,10 +36,10 @@ const defer = {
   },
 
   getHandler ({
-    applicationDefinition,
+    application,
     priorityQueueStore
   }: {
-    applicationDefinition: ApplicationDefinition;
+    application: Application;
     priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
   }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(defer.request.body),
@@ -77,7 +77,7 @@ const defer = {
       }
 
       try {
-        validateItemIdentifier({ itemIdentifier: req.body.itemIdentifier, applicationDefinition });
+        validateItemIdentifier({ itemIdentifier: req.body.itemIdentifier, application });
       } catch (ex) {
         const error = new errors.ItemIdentifierMalformed(ex.message);
 

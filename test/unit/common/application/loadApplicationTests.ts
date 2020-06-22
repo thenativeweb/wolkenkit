@@ -2,17 +2,17 @@ import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import fs from 'fs';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { isolated } from 'isolated';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import path from 'path';
 import { Services } from '../../../../lib/common/domain/domainEvent/Services';
 import { uuid } from 'uuidv4';
 
-suite('getApplicationDefinition', (): void => {
+suite('loadApplication', (): void => {
   test('throws an error if a non-existent directory is given.', async (): Promise<void> => {
     await assert.that(async (): Promise<void> => {
-      await getApplicationDefinition({ applicationDirectory: path.join(__dirname, 'does', 'not', 'exist') });
+      await loadApplication({ applicationDirectory: path.join(__dirname, 'does', 'not', 'exist') });
     }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EAPPLICATIONNOTFOUND');
   });
 
@@ -20,7 +20,7 @@ suite('getApplicationDefinition', (): void => {
     const applicationDirectory = await isolated();
 
     await assert.that(async (): Promise<void> => {
-      await getApplicationDefinition({ applicationDirectory });
+      await loadApplication({ applicationDirectory });
     }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EFILENOTFOUND' && ex.message === `File '<app>/package.json' not found.`);
   });
 
@@ -34,15 +34,15 @@ suite('getApplicationDefinition', (): void => {
     }, null, 2));
 
     await assert.that(async (): Promise<void> => {
-      await getApplicationDefinition({ applicationDirectory });
+      await loadApplication({ applicationDirectory });
     }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EDIRECTORYNOTFOUND' && ex.message === `Directory '<app>/build' not found.`);
   });
 
   test('loads the base application.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
-    const applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    const application = await loadApplication({ applicationDirectory });
 
-    assert.that(applicationDefinition).is.atLeast({
+    assert.that(application).is.atLeast({
       domain: {
         sampleContext: {
           sampleAggregate: {
@@ -72,9 +72,9 @@ suite('getApplicationDefinition', (): void => {
 
   test('adds system events and handlers.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
-    const applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    const application = await loadApplication({ applicationDirectory });
 
-    assert.that(applicationDefinition).is.atLeast({
+    assert.that(application).is.atLeast({
       domain: {
         sampleContext: {
           sampleAggregate: {
@@ -94,7 +94,7 @@ suite('getApplicationDefinition', (): void => {
     const userId = uuid();
 
     assert.that(
-      applicationDefinition.domain.sampleContext.sampleAggregate.domainEventHandlers.authenticateFailed.isAuthorized(
+      application.domain.sampleContext.sampleAggregate.domainEventHandlers.authenticateFailed.isAuthorized(
         {},
         { metadata: { initiator: { user: { id: userId }}}} as DomainEventWithState<any, any>,
         { client: { user: { id: userId }}} as Services
@@ -102,7 +102,7 @@ suite('getApplicationDefinition', (): void => {
     ).is.true();
 
     assert.that(
-      applicationDefinition.domain.sampleContext.sampleAggregate.domainEventHandlers.authenticateFailed.isAuthorized(
+      application.domain.sampleContext.sampleAggregate.domainEventHandlers.authenticateFailed.isAuthorized(
         {},
         { metadata: { initiator: { user: { id: userId }}}} as DomainEventWithState<any, any>,
         { client: { user: { id: uuid() }}} as Services
@@ -112,9 +112,9 @@ suite('getApplicationDefinition', (): void => {
 
   test('applies aggregate enhancers.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withAggregateEnhancer' });
-    const applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    const application = await loadApplication({ applicationDirectory });
 
-    assert.that(applicationDefinition).is.atLeast({
+    assert.that(application).is.atLeast({
       domain: {
         sampleContext: {
           sampleAggregate: {
@@ -132,9 +132,9 @@ suite('getApplicationDefinition', (): void => {
 
   test('applies view enhancers.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withViewEnhancer' });
-    const applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    const application = await loadApplication({ applicationDirectory });
 
-    assert.that(applicationDefinition).is.atLeast({
+    assert.that(application).is.atLeast({
       views: {
         sampleView: {
           projectionHandlers: {
@@ -152,7 +152,7 @@ suite('getApplicationDefinition', (): void => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withoutDomainDirectory' });
 
     await assert.
-      that(async (): Promise<any> => getApplicationDefinition({ applicationDirectory })).
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
       is.throwingAsync(`Directory '<app>/build/domain' not found.`);
   });
 
@@ -160,7 +160,7 @@ suite('getApplicationDefinition', (): void => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withEmptyAggregateDirectory' });
 
     await assert.
-      that(async (): Promise<any> => getApplicationDefinition({ applicationDirectory })).
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
       is.throwingAsync(`No aggregate definition in '<app>/build/domain/sampleContext/emptyAggregate' found.`);
   });
 
@@ -168,7 +168,7 @@ suite('getApplicationDefinition', (): void => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withInvalidAggregate' });
 
     await assert.
-      that(async (): Promise<any> => getApplicationDefinition({ applicationDirectory })).
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
       is.throwingAsync(`Aggregate definition '<app>/build/domain/sampleContext/invalidAggregate' is malformed: Function 'getInitialState' is missing.`);
   });
 
@@ -176,7 +176,7 @@ suite('getApplicationDefinition', (): void => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withoutViewsDirectory' });
 
     await assert.
-      that(async (): Promise<any> => getApplicationDefinition({ applicationDirectory })).
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
       is.throwingAsync(`Directory '<app>/build/views' not found.`);
   });
 
@@ -184,7 +184,7 @@ suite('getApplicationDefinition', (): void => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withEmptyViewDirectory' });
 
     await assert.
-      that(async (): Promise<any> => getApplicationDefinition({ applicationDirectory })).
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
       is.throwingAsync(`No view definition in '<app>/build/views/emptyView' found.`);
   });
 
@@ -192,7 +192,7 @@ suite('getApplicationDefinition', (): void => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withInvalidView' });
 
     await assert.
-      that(async (): Promise<any> => getApplicationDefinition({ applicationDirectory })).
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
       is.throwingAsync(`View definition '<app>/build/views/invalidView' is malformed: Object 'initializer' is missing.`);
   });
 
@@ -200,7 +200,15 @@ suite('getApplicationDefinition', (): void => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withSyntaxError' });
 
     await assert.
-      that(async (): Promise<any> => getApplicationDefinition({ applicationDirectory })).
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
       is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EAPPLICATIONMALFORMED');
+  });
+
+  test('throws an error if the infrastructure directory is missing.', async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withoutInfrastructureDirectory' });
+
+    await assert.
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
+      is.throwingAsync(`Directory '<app>/build/infrastructure' not found.`);
   });
 });

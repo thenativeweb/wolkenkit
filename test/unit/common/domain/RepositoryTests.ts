@@ -1,12 +1,12 @@
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { uuid } from 'uuidv4';
@@ -15,19 +15,19 @@ suite('Repository', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   let aggregateId: string,
-      applicationDefinition: ApplicationDefinition,
+      application: Application,
       domainEventStore: DomainEventStore,
       lockStore: LockStore,
       repository: Repository;
 
   setup(async (): Promise<void> => {
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
 
     aggregateId = uuid();
     domainEventStore = await InMemoryDomainEventStore.create();
     lockStore = await createLockStore({ type: 'InMemory', options: {}});
     repository = new Repository({
-      applicationDefinition,
+      application,
       lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' })
@@ -79,7 +79,7 @@ suite('Repository', (): void => {
 
     test('stores a snapshot if the snapshot strategy evaluates to true.', async (): Promise<void> => {
       repository = new Repository({
-        applicationDefinition,
+        application,
         lockStore,
         domainEventStore,
         snapshotStrategy: getSnapshotStrategy({ name: 'always' })
@@ -142,7 +142,7 @@ suite('Repository', (): void => {
       };
 
       repository = new Repository({
-        applicationDefinition,
+        application,
         lockStore,
         domainEventStore,
         snapshotStrategy

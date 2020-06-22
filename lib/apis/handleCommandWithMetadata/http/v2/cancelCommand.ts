@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getItemIdentifierWithClientSchema } from '../../../../common/schemas/getItemIdentifierWithClientSchema';
@@ -23,9 +23,9 @@ const cancelCommand = {
     body: { type: 'object' }
   },
 
-  getHandler ({ onCancelCommand, applicationDefinition }: {
+  getHandler ({ onCancelCommand, application }: {
     onCancelCommand: OnCancelCommand;
-    applicationDefinition: ApplicationDefinition;
+    application: Application;
   }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(cancelCommand.request.body),
           responseBodySchema = new Value(cancelCommand.response.body);
@@ -64,7 +64,7 @@ const cancelCommand = {
       const commandIdentifierWithClient: ItemIdentifierWithClient = req.body;
 
       try {
-        validateItemIdentifier({ itemIdentifier: commandIdentifierWithClient, applicationDefinition, itemType: 'command' });
+        validateItemIdentifier({ itemIdentifier: commandIdentifierWithClient, application, itemType: 'command' });
       } catch (ex) {
         res.status(400).json({
           code: ex.code,
