@@ -139,7 +139,8 @@ const devCommand = function (): Command<DevOptions> {
               configuration: {
                 revisionLimit: 100
               }
-            })
+            }),
+            ENABLE_OPEN_API_DOCUMENTATION: String(true)
           },
           onExit (exitCode): void {
             // eslint-disable-next-line unicorn/no-process-exit
