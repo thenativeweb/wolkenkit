@@ -52,8 +52,8 @@ wolkenkit provides two primary endpoints in local development mode:
 Additionally, the following secondary endpoints are available as well:
 
 - `http://localhost:3000/command/v2/cancel` cancels a submitted, but not yet handled command
-- `http://localhost:3000/command/v2/describe` fetches a JSON description of all available commands
-- `http://localhost:3000/domain-events/v2/describe` fetches a JSON description of all available domain events
+- `http://localhost:3000/command/v2/description` fetches a JSON description of all available commands
+- `http://localhost:3000/domain-events/v2/description` fetches a JSON description of all available domain events
 - `http://localhost:3000/open-api/v2` provides an OpenAPI description of the HTTP interface
 - `http://localhost:3001/health/v2` fetches health data
 
