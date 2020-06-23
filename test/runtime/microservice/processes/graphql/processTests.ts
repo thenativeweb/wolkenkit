@@ -113,10 +113,12 @@ suite('main', function (): void {
 
       const mutation = gql`
         mutation ($aggregateId: String!, $data: SampleContext_sampleAggregate_executeT0!) {
-          sampleContext {
-            sampleAggregate(id: $aggregateId) {
-              execute(data: $data) {
-                id
+          command {
+            sampleContext {
+              sampleAggregate(id: $aggregateId) {
+                execute(data: $data) {
+                  id
+                }
               }
             }
           }
