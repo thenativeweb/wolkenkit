@@ -19,6 +19,7 @@ import http from 'http';
 import { HttpLink } from 'apollo-link-http';
 import { identityProvider } from '../../../shared/identityProvider';
 import { InitializeGraphQlOnServer } from '../../../../lib/apis/graphql/InitializeGraphQlOnServer';
+import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { Limes } from 'limes';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { PublishDomainEvent } from '../../../../lib/apis/graphql/PublishDomainEvent';
@@ -40,6 +41,7 @@ suite('graphql', function (): void {
   const identityProviders = [ identityProvider ];
   let api: ExpressApplication,
       application: Application,
+      cancelledCommands: ItemIdentifierWithClient[],
       domainEventStore: DomainEventStore,
       initializeGraphQlOnServer: InitializeGraphQlOnServer,
       port: number,
@@ -62,6 +64,7 @@ suite('graphql', function (): void {
       domainEventStore
     });
     receivedCommands = [];
+    cancelledCommands = [];
 
     ({ api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
       identityProviders,
@@ -70,6 +73,9 @@ suite('graphql', function (): void {
       handleCommand: {
         async onReceiveCommand ({ command }): Promise<void> {
           receivedCommands.push(command);
+        },
+        async onCancelCommand ({ commandIdentifierWithClient }): Promise<void> {
+          cancelledCommands.push(commandIdentifierWithClient);
         }
       },
       observeDomainEvents: {
@@ -115,10 +121,12 @@ suite('graphql', function (): void {
     test('calls onReceiveCommand for given commands.', async (): Promise<void> => {
       const mutation = gql`
         mutation ($aggregateId: String!, $data: SampleContext_sampleAggregate_executeT0!) {
-          sampleContext {
-            sampleAggregate (id: $aggregateId) {
-              execute(data: $data) {
-                id
+          command {
+            sampleContext {
+              sampleAggregate (id: $aggregateId) {
+                execute(data: $data) {
+                  id
+                }
               }
             }
           }
@@ -141,10 +149,109 @@ suite('graphql', function (): void {
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
         name: 'execute',
-        id: response.data.sampleContext.sampleAggregate.execute.id,
+        id: response.data.command.sampleContext.sampleAggregate.execute.id,
         data: { strategy: 'succeed' }
       });
       assert.that((receivedCommands[0].metadata.client.user.claims as any)['https://token.invalid/is-anonymous']).is.true();
+    });
+  });
+
+  suite('cancelCommand', (): void => {
+    let client: ApolloClient<NormalizedCacheObject>;
+
+    setup(async (): Promise<void> => {
+      const link = new HttpLink({
+        uri: `http://localhost:${port}/v2/`,
+        fetch: fetch as any
+      });
+      const cache = new InMemoryCache();
+
+      client = new ApolloClient<NormalizedCacheObject>({
+        link,
+        cache
+      });
+    });
+
+    test('calls onCancelCommand for requests to cancel commands.', async (): Promise<void> => {
+      const commandIdentifier = {
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'execute',
+        id: uuid()
+      };
+      const mutation = gql`
+        mutation ($data: CommandIdentifierT0!) {
+          cancel (commandIdentifier: $data) {
+            success
+          }
+        }
+      `;
+
+      const response = await client.mutate({
+        mutation,
+        variables: {
+          data: commandIdentifier
+        }
+      });
+
+      assert.that(response).is.equalTo({ success: true });
+      assert.that(cancelledCommands.length).is.equalTo(1);
+      assert.that(cancelledCommands[0]).is.atLeast(commandIdentifier);
+    });
+
+    test('returns success false if onCancelCommand throws an error.', async (): Promise<void> => {
+      ({ api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
+        identityProviders,
+        corsOrigin: '*',
+        application,
+        handleCommand: {
+          async onReceiveCommand (): Promise<void> {
+            // Intentionally left empty.
+          },
+          async onCancelCommand (): Promise<void> {
+            // eslint-disable-next-line unicorn/error-message
+            throw new Error();
+          }
+        },
+        observeDomainEvents: {
+          webSocketEndpoint: '/v2/',
+          repository
+        },
+        enableIntegratedClient: false
+      }));
+
+      const commandIdentifier = {
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier: {
+          name: 'sampleAggregate',
+          id: uuid()
+        },
+        name: 'execute',
+        id: uuid()
+      };
+      const mutation = gql`
+        mutation ($data: CommandIdentifierT0!) {
+          cancel (commandIdentifier: $data) {
+            success
+          }
+        }
+      `;
+
+      const response = await client.mutate({
+        mutation,
+        variables: {
+          data: commandIdentifier
+        }
+      });
+
+      assert.that(response).is.equalTo({ success: false });
     });
   });
 

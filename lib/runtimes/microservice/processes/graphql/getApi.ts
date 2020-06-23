@@ -4,6 +4,7 @@ import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getGraphqlApi } from '../../../../apis/graphql';
 import { IdentityProvider } from 'limes';
 import { InitializeGraphQlOnServer } from '../../../../apis/graphql/InitializeGraphQlOnServer';
+import { OnCancelCommand } from '../../../../apis/graphql/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
@@ -14,12 +15,14 @@ const getApi = async function ({
   application,
   identityProviders,
   onReceiveCommand,
+  onCancelCommand,
   repository
 }: {
   configuration: Configuration;
   application: Application;
   identityProviders: IdentityProvider[];
   onReceiveCommand: OnReceiveCommand;
+  onCancelCommand: OnCancelCommand;
   repository: Repository;
 }): Promise<{
     api: ExpressApplication;
@@ -34,7 +37,8 @@ const getApi = async function ({
     application,
     identityProviders,
     handleCommand: {
-      onReceiveCommand
+      onReceiveCommand,
+      onCancelCommand
     },
     observeDomainEvents: {
       repository,

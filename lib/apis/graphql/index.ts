@@ -3,6 +3,7 @@ import { CorsOrigin } from 'get-cors-origin';
 import { getV2 } from './v2';
 import { IdentityProvider } from 'limes';
 import { InitializeGraphQlOnServer } from './InitializeGraphQlOnServer';
+import { OnCancelCommand } from './OnCancelCommand';
 import { OnReceiveCommand } from './OnReceiveCommand';
 import { PublishDomainEvent } from './PublishDomainEvent';
 import { Repository } from '../../common/domain/Repository';
@@ -19,7 +20,7 @@ const getApi = async function ({
   corsOrigin: CorsOrigin;
   application: Application;
   identityProviders: IdentityProvider[];
-  handleCommand: false | { onReceiveCommand: OnReceiveCommand };
+  handleCommand: false | { onReceiveCommand: OnReceiveCommand; onCancelCommand: OnCancelCommand };
   observeDomainEvents: false | { repository: Repository; webSocketEndpoint: string };
   enableIntegratedClient: boolean;
 }): Promise<{

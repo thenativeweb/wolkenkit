@@ -1,17 +1,18 @@
 import { Application } from '../../../../common/application/Application';
 import { errors } from '../../../../common/errors';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
 import { stripIndent } from 'common-tags';
 
 const getTypeDefinitions = function ({ application }: {
   application: Application;
 }): string {
-  let mutationSchema = '';
+  let commandSchema = '';
   const typeDefinitions = [];
 
-  mutationSchema += 'type Mutation {\n';
+  commandSchema += 'type Command {\n';
   for (const [ contextName, context ] of Object.entries(application.domain)) {
-    mutationSchema += `  ${contextName}: ${contextName}\n`;
+    commandSchema += `  ${contextName}: ${contextName}\n`;
     let contextSchema = `type ${contextName} {\n`;
 
     for (const [ aggregateName, aggregate ] of Object.entries(context)) {
@@ -47,7 +48,13 @@ const getTypeDefinitions = function ({ application }: {
     contextSchema += `}\n`;
     typeDefinitions.push(contextSchema);
   }
-  mutationSchema += `}\n`;
+  commandSchema += `}\n`;
+
+  const cancelTypeDefs = getGraphqlFromJsonSchema({
+    schema: getItemIdentifierSchema(),
+    rootName: 'CommandIdentifier',
+    direction: 'input'
+  });
 
   return stripIndent`
     type CommandId  {
@@ -55,8 +62,19 @@ const getTypeDefinitions = function ({ application }: {
     }
 
     ${typeDefinitions.join('\n')}
+    
+    ${cancelTypeDefs.typeDefinitions.join('\n')}
 
-    ${mutationSchema}
+    ${commandSchema}
+
+    type Cancel {
+      success: Boolean
+    }
+
+    type Mutation {
+      command: Command
+      cancel (commandIdentifier: ${cancelTypeDefs.typeName}!): Cancel
+    }
   `;
 };
 
