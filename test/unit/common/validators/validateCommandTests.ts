@@ -1,9 +1,9 @@
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { Command } from '../../../../lib/common/elements/Command';
 import { CustomError } from 'defekt';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { uuid } from 'uuidv4';
 import { validateCommand } from '../../../../lib/common/validators/validateCommand';
 
@@ -19,15 +19,15 @@ suite('validateCommand', (): void => {
     }
   });
 
-  let applicationDefinition: ApplicationDefinition;
+  let application: Application;
 
   suiteSetup(async (): Promise<void> => {
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
   });
 
   test('does not throw an error if everything is fine.', async (): Promise<void> => {
     assert.that((): void => {
-      validateCommand({ command, applicationDefinition });
+      validateCommand({ command, application });
     }).is.not.throwing();
   });
 
@@ -40,7 +40,7 @@ suite('validateCommand', (): void => {
             name: 'someContext'
           }
         },
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -59,7 +59,7 @@ suite('validateCommand', (): void => {
             id: uuid()
           }
         },
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -75,7 +75,7 @@ suite('validateCommand', (): void => {
           ...command,
           name: 'someCommand'
         },
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -93,7 +93,7 @@ suite('validateCommand', (): void => {
             foo: ''
           }
         },
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>

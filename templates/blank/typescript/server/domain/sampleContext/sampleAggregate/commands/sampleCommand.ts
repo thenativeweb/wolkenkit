@@ -1,10 +1,10 @@
 import { SampleDomainEventData } from '../domainEvents/sampleDomainEvent';
 import { SampleState } from '../SampleState';
-import { CommandData, CommandHandler, Schema } from 'wolkenkit';
+import { AskInfrastructure, CommandData, CommandHandler, Schema, TellInfrastructure } from 'wolkenkit';
 
 export interface SampleCommandData extends CommandData {}
 
-export const sampleCommand: CommandHandler<SampleState, SampleCommandData> = {
+export const sampleCommand: CommandHandler<SampleState, SampleCommandData, AskInfrastructure & TellInfrastructure> = {
   getSchema (): Schema {
     return {
       type: 'object',

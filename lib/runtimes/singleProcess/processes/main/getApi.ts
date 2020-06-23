@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getGraphqlApi } from '../../../../apis/graphql';
@@ -11,24 +11,24 @@ import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand'
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
-import express, { Application } from 'express';
+import express, { Application as ExpressApplication } from 'express';
 
 const getApi = async function ({
   configuration,
-  applicationDefinition,
+  application,
   identityProviders,
   onReceiveCommand,
   onCancelCommand,
   repository
 }: {
   configuration: Configuration;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   identityProviders: IdentityProvider[];
   onReceiveCommand: OnReceiveCommand;
   onCancelCommand: OnCancelCommand;
   repository: Repository;
 }): Promise<{
-    api: Application;
+    api: ExpressApplication;
     publishDomainEvent: PublishDomainEvent;
     initializeGraphQlOnServer: InitializeGraphQlOnServer | undefined;
   }> {
@@ -43,7 +43,7 @@ const getApi = async function ({
     const { api: observeDomainEventsApi, publishDomainEvent, getApiDefinitions: getObserveDomainEventApiDefinitions } =
       await getObserveDomainEventsApi({
         corsOrigin,
-        applicationDefinition,
+        application,
         identityProviders,
         repository
       });
@@ -54,7 +54,7 @@ const getApi = async function ({
       corsOrigin,
       onReceiveCommand,
       onCancelCommand,
-      applicationDefinition,
+      application,
       identityProviders
     });
 
@@ -64,7 +64,7 @@ const getApi = async function ({
     if (configuration.enableOpenApiDocumentation) {
       const { api: openApiApi } = await getOpenApiApi({
         corsOrigin,
-        applicationDefinition,
+        application,
         title: 'Single process runtime API',
         schemes: [ 'http' ],
         apis: [
@@ -80,7 +80,7 @@ const getApi = async function ({
   if (configuration.graphqlApi !== false) {
     const { api: graphqlApi, publishDomainEvent, initializeGraphQlOnServer: initializeGraphql } = await getGraphqlApi({
       corsOrigin,
-      applicationDefinition,
+      application,
       identityProviders,
       handleCommand: {
         onReceiveCommand

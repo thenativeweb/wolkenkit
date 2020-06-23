@@ -1,11 +1,11 @@
 import { acknowledge } from './acknowledge';
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { awaitCommandWithMetadata } from './awaitCommandWithMetadata';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { CorsOrigin } from 'get-cors-origin';
 import { defer } from './defer';
+import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
@@ -13,20 +13,20 @@ import { renewLock } from './renewLock';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 
 const getV2 = async function ({
-  applicationDefinition,
+  application,
   corsOrigin,
   priorityQueueStore,
   newCommandSubscriber,
   newCommandSubscriberChannel,
   heartbeatInterval = 90_000
 }: {
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   corsOrigin: CorsOrigin;
   priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
   newCommandSubscriber: Subscriber<object>;
   newCommandSubscriberChannel: string;
   heartbeatInterval?: number;
-}): Promise<{ api: Application }> {
+}): Promise<{ api: ExpressApplication }> {
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
@@ -49,17 +49,17 @@ const getV2 = async function ({
   );
 
   api.post(`/${renewLock.path}`, renewLock.getHandler({
-    applicationDefinition,
+    application,
     priorityQueueStore
   }));
 
   api.post(`/${acknowledge.path}`, acknowledge.getHandler({
-    applicationDefinition,
+    application,
     priorityQueueStore
   }));
 
   api.post(`/${defer.path}`, defer.getHandler({
-    applicationDefinition,
+    application,
     priorityQueueStore
   }));
 

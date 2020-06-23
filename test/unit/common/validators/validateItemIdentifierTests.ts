@@ -1,8 +1,8 @@
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { uuid } from 'uuidv4';
 import { validateItemIdentifier } from '../../../../lib/common/validators/validateItemIdentifier';
 
@@ -16,15 +16,15 @@ suite('validateItemIdentifier', (): void => {
     name: 'execute'
   };
 
-  let applicationDefinition: ApplicationDefinition;
+  let application: Application;
 
   suiteSetup(async (): Promise<void> => {
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
   });
 
   test('does not throw an error if everything is fine.', async (): Promise<void> => {
     assert.that((): void => {
-      validateItemIdentifier({ itemIdentifier, applicationDefinition });
+      validateItemIdentifier({ itemIdentifier, application });
     }).is.not.throwing();
   });
 
@@ -37,7 +37,7 @@ suite('validateItemIdentifier', (): void => {
             name: 'someContext'
           }
         },
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -56,7 +56,7 @@ suite('validateItemIdentifier', (): void => {
             id: uuid()
           }
         },
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -72,7 +72,7 @@ suite('validateItemIdentifier', (): void => {
           ...itemIdentifier,
           name: 'nonExistent'
         },
-        applicationDefinition,
+        application,
         itemType: 'command'
       });
     }).is.throwing(
@@ -89,7 +89,7 @@ suite('validateItemIdentifier', (): void => {
           ...itemIdentifier,
           name: 'nonExistent'
         },
-        applicationDefinition,
+        application,
         itemType: 'domain-event'
       });
     }).is.throwing(

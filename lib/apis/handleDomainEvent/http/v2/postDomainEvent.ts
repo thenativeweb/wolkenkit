@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { errors } from '../../../../common/errors';
@@ -25,9 +25,9 @@ const postDomainEvent = {
     body: { type: 'object' }
   },
 
-  getHandler ({ onReceiveDomainEvent, applicationDefinition }: {
+  getHandler ({ onReceiveDomainEvent, application }: {
     onReceiveDomainEvent: OnReceiveDomainEvent;
-    applicationDefinition: ApplicationDefinition;
+    application: Application;
   }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(postDomainEvent.request.body),
           responseBodySchema = new Value(postDomainEvent.response.body);
@@ -68,7 +68,7 @@ const postDomainEvent = {
       const domainEvent = new DomainEventWithState<DomainEventData, State>(req.body);
 
       try {
-        validateDomainEventWithState({ domainEvent, applicationDefinition });
+        validateDomainEventWithState({ domainEvent, application });
       } catch (ex) {
         res.status(400).json({
           code: ex.code,

@@ -1,3 +1,4 @@
+import { AskInfrastructure } from '../../elements/AskInfrastructure';
 import { cloneDeep } from 'lodash';
 import { DomainEventData } from '../../elements/DomainEventData';
 import { DomainEventHandler } from '../../elements/DomainEventHandler';
@@ -5,6 +6,7 @@ import { DomainEventWithState } from '../../elements/DomainEventWithState';
 import { errors } from '../../errors';
 import { Services } from './Services';
 import { State } from '../../elements/State';
+import { TellInfrastructure } from '../../elements/TellInfrastructure';
 
 const filterDomainEvent = async function ({
   domainEventWithState,
@@ -14,7 +16,7 @@ const filterDomainEvent = async function ({
 }: {
   domainEventWithState: DomainEventWithState<DomainEventData, State>;
   aggregateState: State;
-  domainEventHandler: DomainEventHandler<State, DomainEventData>;
+  domainEventHandler: DomainEventHandler<State, DomainEventData, AskInfrastructure & TellInfrastructure>;
   services: Services;
 }): Promise<void> {
   /* eslint-disable @typescript-eslint/unbound-method */

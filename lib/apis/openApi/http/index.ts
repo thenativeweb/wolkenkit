@@ -1,8 +1,8 @@
 import { addRouteToPaths } from '../addRouteToPaths';
 import { ApiDefinition } from '../ApiDefinition';
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
+import { Application } from '../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
+import { Application as ExpressApplication } from 'express';
 import { flaschenpost } from 'flaschenpost';
 import { getApiBase } from '../../base/getApiBase';
 import { getApi as getStaticApi } from '../../getStatic/http';
@@ -13,7 +13,7 @@ const logger = flaschenpost.getLogger();
 
 const getApi = async function ({
   corsOrigin,
-  applicationDefinition,
+  application,
   title,
   version,
   description,
@@ -23,7 +23,7 @@ const getApi = async function ({
   apis
 }: {
   corsOrigin: CorsOrigin;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   title: string;
   version?: string;
   description?: string;
@@ -31,7 +31,7 @@ const getApi = async function ({
   basePath?: string;
   tags?: string[];
   apis: ApiDefinition[];
-}): Promise<{ api: Application }> {
+}): Promise<{ api: ExpressApplication }> {
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
@@ -76,7 +76,7 @@ const getApi = async function ({
     openApiDefinition,
     {
       customfavIcon: 'assets/favicon.png',
-      customSiteTitle: `${applicationDefinition.packageManifest.name} | API documentation`,
+      customSiteTitle: `${application.packageManifest.name} | API documentation`,
       customCssUrl: 'assets/style.css'
     }
   ));

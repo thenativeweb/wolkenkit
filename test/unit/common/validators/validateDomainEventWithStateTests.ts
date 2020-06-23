@@ -1,10 +1,10 @@
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { CustomError } from 'defekt';
 import { DomainEventWithState } from '../../../../lib/wolkenkit';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { uuid } from 'uuidv4';
 import { validateDomainEventWithState } from '../../../../lib/common/validators/validateDomainEventWithState';
 
@@ -34,15 +34,15 @@ suite('validateDomainEventWithState', (): void => {
     }
   });
 
-  let applicationDefinition: ApplicationDefinition;
+  let application: Application;
 
   suiteSetup(async (): Promise<void> => {
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
   });
 
   test('does not throw an error if everything is fine.', async (): Promise<void> => {
     assert.that((): void => {
-      validateDomainEventWithState({ domainEvent, applicationDefinition });
+      validateDomainEventWithState({ domainEvent, application });
     }).is.not.throwing();
   });
 
@@ -55,7 +55,7 @@ suite('validateDomainEventWithState', (): void => {
             name: 'someContext'
           }
         }),
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -74,7 +74,7 @@ suite('validateDomainEventWithState', (): void => {
             id: uuid()
           }
         }),
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -90,7 +90,7 @@ suite('validateDomainEventWithState', (): void => {
           ...domainEvent,
           name: 'someDomainEvent'
         }),
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -108,7 +108,7 @@ suite('validateDomainEventWithState', (): void => {
             foo: ''
           }
         }),
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>

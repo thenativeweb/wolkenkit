@@ -1,11 +1,11 @@
 import { MessageState } from '../MessageState';
-import { DomainEventData, DomainEventHandler, Schema } from 'wolkenkit';
+import { AskInfrastructure, DomainEventData, DomainEventHandler, Schema, TellInfrastructure } from 'wolkenkit';
 
 export interface SentData extends DomainEventData {
   text: string;
 }
 
-export const sent: DomainEventHandler<MessageState, SentData> = {
+export const sent: DomainEventHandler<MessageState, SentData, AskInfrastructure & TellInfrastructure> = {
   getSchema (): Schema {
     return {
       type: 'object',

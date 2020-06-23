@@ -1,7 +1,7 @@
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { cancelCommand } from './cancelCommand';
 import { CorsOrigin } from 'get-cors-origin';
+import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
 import { getDescription } from './getDescription';
@@ -14,15 +14,15 @@ const getV2 = async function ({
   corsOrigin,
   onReceiveCommand,
   onCancelCommand,
-  applicationDefinition,
+  application,
   identityProviders
 }: {
   corsOrigin: CorsOrigin;
   onReceiveCommand: OnReceiveCommand;
   onCancelCommand: OnCancelCommand;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   identityProviders: IdentityProvider[];
-}): Promise<{ api: Application }> {
+}): Promise<{ api: ExpressApplication }> {
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
@@ -39,17 +39,17 @@ const getV2 = async function ({
   });
 
   api.get(`/${getDescription.path}`, getDescription.getHandler({
-    applicationDefinition
+    application
   }));
 
   api.post(`/${postCommand.path}`, authenticationMiddleware, postCommand.getHandler({
     onReceiveCommand,
-    applicationDefinition
+    application
   }));
 
   api.post(`/${cancelCommand.path}`, authenticationMiddleware, cancelCommand.getHandler({
     onCancelCommand,
-    applicationDefinition
+    application
   }));
 
   return { api };

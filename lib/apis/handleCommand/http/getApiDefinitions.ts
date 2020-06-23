@@ -1,10 +1,10 @@
 import { ApiDefinition } from '../../openApi/ApiDefinition';
-import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
+import { Application } from '../../../common/application/Application';
 import { getDescription } from './v2/getDescription';
 import { postCommand } from './v2/postCommand';
 
-const getApiDefinitions = function ({ applicationDefinition, basePath }: {
-  applicationDefinition: ApplicationDefinition;
+const getApiDefinitions = function ({ application, basePath }: {
+  application: Application;
   basePath: string;
 }): ApiDefinition[] {
   const apiDefinitions: ApiDefinition[] = [];
@@ -20,7 +20,7 @@ const getApiDefinitions = function ({ applicationDefinition, basePath }: {
     tags: [ 'Commands' ]
   };
 
-  for (const [ contextName, contextDefinition ] of Object.entries(applicationDefinition.domain)) {
+  for (const [ contextName, contextDefinition ] of Object.entries(application.domain)) {
     for (const [ aggregateName, aggregateDefinition ] of Object.entries(contextDefinition)) {
       for (const [ commandName, commandHandler ] of Object.entries(aggregateDefinition.commandHandlers)) {
         v2ApiDefinition.routes.post.push({

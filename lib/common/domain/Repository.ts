@@ -1,6 +1,6 @@
 import { AggregateIdentifier } from '../elements/AggregateIdentifier';
 import { AggregateInstance } from './AggregateInstance';
-import { ApplicationDefinition } from '../application/ApplicationDefinition';
+import { Application } from '../application/Application';
 import { ContextIdentifier } from '../elements/ContextIdentifier';
 import { DomainEventStore } from '../../stores/domainEventStore/DomainEventStore';
 import { GetAggregateService } from '../services/types/GetAggregateService';
@@ -13,7 +13,7 @@ import { SnapshotStrategy } from './SnapshotStrategy';
 import { State } from '../elements/State';
 
 class Repository {
-  public readonly applicationDefinition: ApplicationDefinition;
+  public readonly application: Application;
 
   public readonly domainEventStore: DomainEventStore;
 
@@ -30,13 +30,13 @@ class Repository {
   };
 
   public constructor ({
-    applicationDefinition,
+    application,
     domainEventStore,
     lockStore,
     snapshotStrategy,
     serviceFactories
   }: {
-    applicationDefinition: ApplicationDefinition;
+    application: Application;
     domainEventStore: DomainEventStore;
     lockStore: LockStore;
     snapshotStrategy: SnapshotStrategy;
@@ -48,7 +48,7 @@ class Repository {
       getLoggerService?: GetLoggerService;
     };
   }) {
-    this.applicationDefinition = applicationDefinition;
+    this.application = application;
     this.domainEventStore = domainEventStore;
     this.lockStore = lockStore;
     this.snapshotStrategy = snapshotStrategy;
@@ -60,7 +60,7 @@ class Repository {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<AggregateInstance<TState>> {
     return await AggregateInstance.create({
-      applicationDefinition: this.applicationDefinition,
+      application: this.application,
       contextIdentifier,
       aggregateIdentifier,
       lockStore: this.lockStore,

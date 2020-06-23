@@ -1,10 +1,10 @@
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
+import { Application } from '../../../common/application/Application';
 import { ClientMetadata } from '../../../common/utils/http/ClientMetadata';
 import { CorsOrigin } from 'get-cors-origin';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../common/elements/DomainEventWithState';
 import { errors } from '../../../common/errors';
+import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../base/getAuthenticationMiddleware';
 import { getDomainEventWithStateSchema } from '../../../common/schemas/getDomainEventWithStateSchema';
@@ -30,20 +30,20 @@ const domainEventWithStateSchema = new Value(getDomainEventWithStateSchema());
 
 const getV2 = async function ({
   corsOrigin,
-  applicationDefinition,
+  application,
   identityProviders,
   handleCommand,
   observeDomainEvents,
   enableIntegratedClient
 }: {
   corsOrigin: CorsOrigin;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   identityProviders: IdentityProvider[];
   handleCommand: false | { onReceiveCommand: OnReceiveCommand };
   observeDomainEvents: false | { repository: Repository; webSocketEndpoint: string };
   enableIntegratedClient: boolean;
 }): Promise<{
-    api: Application;
+    api: ExpressApplication;
     publishDomainEvent?: PublishDomainEvent;
     initializeGraphQlOnServer: InitializeGraphQlOnServer;
   }> {
@@ -69,9 +69,9 @@ const getV2 = async function ({
   const resolvers: any = {};
 
   if (handleCommand !== false) {
-    typeDefinitions += `${getHandleCommandTypeDefinitions({ applicationDefinition })}\n`;
+    typeDefinitions += `${getHandleCommandTypeDefinitions({ application })}\n`;
     resolvers.Mutation = getMutationResolvers({
-      applicationDefinition,
+      application,
       onReceiveCommand: handleCommand.onReceiveCommand
     });
   }
@@ -81,7 +81,7 @@ const getV2 = async function ({
 
     typeDefinitions += `${getObserveDomainEventsTypeDefinitions()}\n`;
     resolvers.Subscription = getSubscriptionResolvers({
-      applicationDefinition,
+      application,
       repository: observeDomainEvents.repository,
       domainEventEmitter
     });
@@ -92,7 +92,7 @@ const getV2 = async function ({
       } catch (ex) {
         throw new errors.DomainEventMalformed(ex.message);
       }
-      validateDomainEventWithState({ domainEvent, applicationDefinition });
+      validateDomainEventWithState({ domainEvent, application });
 
       domainEventEmitter.emit(domainEvent);
     };

@@ -1,13 +1,13 @@
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getAggregatesService } from '../../../../lib/common/services/getAggregatesService';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { uuid } from 'uuidv4';
@@ -15,13 +15,13 @@ import { uuid } from 'uuidv4';
 suite('getAggregatesService', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-  let applicationDefinition: ApplicationDefinition,
+  let application: Application,
       domainEventStore: DomainEventStore,
       lockStore: LockStore,
       repository: Repository;
 
   suiteSetup(async (): Promise<void> => {
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
   });
 
   setup(async (): Promise<void> => {
@@ -29,7 +29,7 @@ suite('getAggregatesService', (): void => {
     lockStore = await createLockStore({ type: 'InMemory', options: {}});
 
     repository = new Repository({
-      applicationDefinition,
+      application,
       lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' })

@@ -1,5 +1,5 @@
 import { acknowledgeCommand } from './acknowledgeCommand';
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { errors } from '../../../../common/errors';
 import { fetchCommand } from './fetchCommand';
 import { flaschenpost } from 'flaschenpost';
@@ -14,7 +14,7 @@ import { Value } from 'validate-value';
 const logger = flaschenpost.getLogger();
 
 const processCommand = async function ({ repository, priorityQueue, publishDomainEvents }: {
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   repository: Repository;
   lockStore: LockStore;
   priorityQueue: PriorityQueue;

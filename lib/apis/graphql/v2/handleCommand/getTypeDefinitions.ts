@@ -1,16 +1,16 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { errors } from '../../../../common/errors';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { stripIndent } from 'common-tags';
 
-const getTypeDefinitions = function ({ applicationDefinition }: {
-  applicationDefinition: ApplicationDefinition;
+const getTypeDefinitions = function ({ application }: {
+  application: Application;
 }): string {
   let mutationSchema = '';
   const typeDefinitions = [];
 
   mutationSchema += 'type Mutation {\n';
-  for (const [ contextName, context ] of Object.entries(applicationDefinition.domain)) {
+  for (const [ contextName, context ] of Object.entries(application.domain)) {
     mutationSchema += `  ${contextName}: ${contextName}\n`;
     let contextSchema = `type ${contextName} {\n`;
 

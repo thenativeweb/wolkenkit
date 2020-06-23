@@ -1,4 +1,4 @@
-import { ApplicationDefinition } from '../../application/ApplicationDefinition';
+import { Application } from '../../application/Application';
 import { DomainEvent } from '../../elements/DomainEvent';
 import { DomainEventData } from '../../elements/DomainEventData';
 import { DomainEventWithState } from '../../elements/DomainEventWithState';
@@ -13,13 +13,13 @@ import { State } from '../../elements/State';
 const prepareForPublication = async function ({
   domainEventWithState,
   domainEventFilter,
-  applicationDefinition,
+  application,
   repository,
   services
 }: {
   domainEventWithState: DomainEventWithState<DomainEventData, State>;
   domainEventFilter: object;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   repository: Repository;
   services: Services;
 }): Promise<DomainEvent<DomainEventData> | undefined> {
@@ -40,7 +40,7 @@ const prepareForPublication = async function ({
   const aggregateState = aggregateInstance.state;
 
   const domainEventHandler =
-    applicationDefinition.domain[contextName]![aggregateName]!.domainEventHandlers[domainEventName]!;
+    application.domain[contextName]![aggregateName]!.domainEventHandlers[domainEventName]!;
 
   try {
     await isDomainEventAuthorized({ domainEventWithState, aggregateState, domainEventHandler, services });

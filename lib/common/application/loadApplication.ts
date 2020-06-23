@@ -1,15 +1,16 @@
-import { ApplicationDefinition } from './ApplicationDefinition';
+import { Application } from './Application';
 import { ApplicationEnhancer } from '../../tools/ApplicationEnhancer';
 import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
 import { getDomainDefinition } from './getDomainDefinition';
+import { getInfrastructureDefinition } from './getInfrastructureDefinition';
 import { getViewsDefinition } from './getViewsDefinition';
 import path from 'path';
 import { withSystemDomainEvents } from '../../tools/withSystemDomainEvents';
 
-const getApplicationDefinition = async function ({ applicationDirectory }: {
+const loadApplication = async function ({ applicationDirectory }: {
   applicationDirectory: string;
-}): Promise<ApplicationDefinition> {
+}): Promise<Application> {
   if (!await exists({ path: applicationDirectory })) {
     throw new errors.ApplicationNotFound();
   }
@@ -28,28 +29,31 @@ const getApplicationDefinition = async function ({ applicationDirectory }: {
 
   const domainDirectory = path.join(serverDirectory, 'domain');
   const viewsDirectory = path.join(serverDirectory, 'views');
+  const infrastructureDirectory = path.join(serverDirectory, 'infrastructure');
 
   const domainDefinition = await getDomainDefinition({ domainDirectory });
   const viewsDefinition = await getViewsDefinition({ viewsDirectory });
+  const infrastructureDefinition = await getInfrastructureDefinition({ infrastructureDirectory });
 
   const applicationEnhancers: ApplicationEnhancer[] = [
     withSystemDomainEvents
   ];
 
-  const rawApplicationDefinition: ApplicationDefinition = {
+  const rawApplication: Application = {
     rootDirectory: applicationDirectory,
     packageManifest,
     domain: domainDefinition,
-    views: viewsDefinition
+    views: viewsDefinition,
+    infrastructure: await infrastructureDefinition.getInfrastructure()
   };
 
-  const enhancedApplicationDefinition = applicationEnhancers.reduce(
-    (applicationDefinition, applicationEnhancer): ApplicationDefinition =>
-      applicationEnhancer(applicationDefinition),
-    rawApplicationDefinition
+  const enhancedApplication = applicationEnhancers.reduce(
+    (application, applicationEnhancer): Application =>
+      applicationEnhancer(application),
+    rawApplication
   );
 
-  return enhancedApplicationDefinition;
+  return enhancedApplication;
 };
 
-export { getApplicationDefinition };
+export { loadApplication };

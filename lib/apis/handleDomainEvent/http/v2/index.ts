@@ -1,6 +1,6 @@
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
+import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
 import { OnReceiveDomainEvent } from '../../OnReceiveDomainEvent';
 import { postDomainEvent } from './postDomainEvent';
@@ -8,12 +8,12 @@ import { postDomainEvent } from './postDomainEvent';
 const getV2 = async function ({
   corsOrigin,
   onReceiveDomainEvent,
-  applicationDefinition
+  application
 }: {
   corsOrigin: CorsOrigin;
   onReceiveDomainEvent: OnReceiveDomainEvent;
-  applicationDefinition: ApplicationDefinition;
-}): Promise<{ api: Application }> {
+  application: Application;
+}): Promise<{ api: ExpressApplication }> {
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
@@ -27,7 +27,7 @@ const getV2 = async function ({
 
   api.post(`/${postDomainEvent.path}`, postDomainEvent.getHandler({
     onReceiveDomainEvent,
-    applicationDefinition
+    application
   }));
 
   return { api };

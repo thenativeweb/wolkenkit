@@ -1,11 +1,11 @@
 import { AggregateInstance } from '../../domain/AggregateInstance';
 import { AggregateService } from '../AggregateService';
-import { ApplicationDefinition } from '../../application/ApplicationDefinition';
+import { Application } from '../../application/Application';
 import { CommandWithMetadata } from '../../elements/CommandWithMetadata';
 import { State } from '../../elements/State';
 
 export type GetAggregateService = <TState extends State>(parameters: {
   aggregateInstance: AggregateInstance<TState>;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   command: CommandWithMetadata<any>;
 }) => AggregateService<TState>;
