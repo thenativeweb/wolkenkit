@@ -199,7 +199,7 @@ suite('graphql', function (): void {
         }
       });
 
-      assert.that(response).is.equalTo({ success: true });
+      assert.that(response.data).is.atLeast({ cancel: { success: true }});
       assert.that(cancelledCommands.length).is.equalTo(1);
       assert.that(cancelledCommands[0]).is.atLeast(commandIdentifier);
     });
@@ -224,6 +224,33 @@ suite('graphql', function (): void {
         },
         enableIntegratedClient: false
       }));
+
+      const server = http.createServer(api);
+
+      port = await getAvailablePort();
+
+      await initializeGraphQlOnServer({ server });
+
+      await new Promise((resolve, reject): void => {
+        server.listen(port, (): void => {
+          resolve();
+        });
+
+        server.on('error', (err): void => {
+          reject(err);
+        });
+      });
+
+      const link = new HttpLink({
+        uri: `http://localhost:${port}/v2/`,
+        fetch: fetch as any
+      });
+      const cache = new InMemoryCache();
+
+      client = new ApolloClient<NormalizedCacheObject>({
+        link,
+        cache
+      });
 
       const commandIdentifier = {
         contextIdentifier: {
@@ -251,7 +278,7 @@ suite('graphql', function (): void {
         }
       });
 
-      assert.that(response).is.equalTo({ success: false });
+      assert.that(response.data).is.atLeast({ cancel: { success: false }});
     });
   });
 

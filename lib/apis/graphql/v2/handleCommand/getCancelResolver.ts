@@ -18,7 +18,7 @@ const getCancelResolver = function ({
   application: Application;
   onCancelCommand: OnCancelCommand;
 }): IFieldResolver<any, { clientMetadata: ClientMetadata }> {
-  return async ({ commandIdentifier }, { clientMetadata }): Promise<{ success: boolean }> => {
+  return async (root, { commandIdentifier }, { clientMetadata }): Promise<{ success: boolean }> => {
     try {
       new Value(getItemIdentifierSchema()).validate(commandIdentifier, { valueName: 'commandIdentifier' });
     } catch (ex) {
