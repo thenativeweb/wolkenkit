@@ -94,6 +94,10 @@
     {
       "name": "Tom Ceuppens",
       "email": "t-c@live.be"
+    },
+    {
+      "name": "Mike Cann",
+      "email": "mike.cann@gmail.com"
     }
   ],
   "main": "build/lib/wolkenkit.js",
