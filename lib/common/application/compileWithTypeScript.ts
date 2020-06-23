@@ -14,11 +14,13 @@ const compileWithTypeScript = async function ({
     throw new errors.CompilationFailed('Source folder does not exist.');
   }
 
+  const shellQuote = process.platform === 'win32' ? `"` : `'`;
+
   const { code, stdout, stderr } = shell.exec(oneLine`
     npx tsc
       --module CommonJS
       --noEmitOnError
-      --outDir '${targetDirectory}'
+      --outDir ${shellQuote}${targetDirectory}${shellQuote}
   `, { cwd: sourceDirectory });
 
   if (code !== 0) {
