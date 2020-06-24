@@ -202,7 +202,7 @@ suite('main', function (): void {
         }
       });
 
-      assert.that(result?.data?.sampleContext?.sampleAggregate?.execute?.id).is.not.undefined();
+      assert.that(result?.data?.command.sampleContext?.sampleAggregate?.execute?.id).is.not.undefined();
     });
 
     test('has a subscription endpoint.', async (): Promise<void> => {
