@@ -2,11 +2,11 @@ import { SnapshotStrategyConfiguration } from '../../../../common/domain/Snapsho
 
 export interface Configuration {
   applicationDirectory: string;
-  dispatcherProtocol: string;
-  dispatcherHostName: string;
-  dispatcherPort: number;
-  dispatcherRenewInterval: number;
-  dispatcherAcknowledgeRetries: number;
+  commandDispatcherProtocol: string;
+  commandDispatcherHostName: string;
+  commandDispatcherPort: number;
+  commandDispatcherRenewInterval: number;
+  commandDispatcherAcknowledgeRetries: number;
   publisherProtocol: string;
   publisherHostName: string;
   publisherPort: number;

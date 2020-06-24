@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { AeonstoreDomainEventStore } from '../../../../stores/domainEventStore/Aeonstore';
+import { Client as CommandDispatcherClient } from '../../../../apis/awaitCommandWithMetadata/http/v2/Client';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
-import { Client as DispatcherClient } from '../../../../apis/awaitCommandWithMetadata/http/v2/Client';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
@@ -48,10 +48,10 @@ import { State } from '../../../../common/elements/State';
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const dispatcherClient = new DispatcherClient({
-      protocol: configuration.dispatcherProtocol,
-      hostName: configuration.dispatcherHostName,
-      port: configuration.dispatcherPort,
+    const commandDispatcherClient = new CommandDispatcherClient({
+      protocol: configuration.commandDispatcherProtocol,
+      hostName: configuration.commandDispatcherHostName,
+      port: configuration.commandDispatcherPort,
       path: '/await-command/v2'
     });
 
@@ -77,10 +77,10 @@ import { State } from '../../../../common/elements/State';
     for (let i = 0; i < configuration.concurrentCommands; i++) {
       pForever(async (): Promise<void> => {
         await processCommand({
-          dispatcher: {
-            client: dispatcherClient,
-            renewalInterval: configuration.dispatcherRenewInterval,
-            acknowledgeRetries: configuration.dispatcherAcknowledgeRetries
+          commandDispatcher: {
+            client: commandDispatcherClient,
+            renewalInterval: configuration.commandDispatcherRenewInterval,
+            acknowledgeRetries: configuration.commandDispatcherAcknowledgeRetries
           },
           repository,
           publishDomainEvents

@@ -1,5 +1,5 @@
 import { acknowledgeCommand } from './acknowledgeCommand';
-import { Dispatcher } from './Dispatcher';
+import { CommandDispatcher } from './CommandDispatcher';
 import { errors } from '../../../../common/errors';
 import { fetchCommand } from './fetchCommand';
 import { flaschenpost } from 'flaschenpost';
@@ -12,15 +12,15 @@ import { Value } from 'validate-value';
 const logger = flaschenpost.getLogger();
 
 const processCommand = async function ({
-  dispatcher,
+  commandDispatcher,
   repository,
   publishDomainEvents
 }: {
-  dispatcher: Dispatcher;
+  commandDispatcher: CommandDispatcher;
   repository: Repository;
   publishDomainEvents: PublishDomainEvents;
 }): Promise<void> {
-  const { command, token } = await fetchCommand({ dispatcher });
+  const { command, token } = await fetchCommand({ commandDispatcher });
 
   try {
     try {
@@ -38,7 +38,7 @@ const processCommand = async function ({
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async (): Promise<void> => {
-      await keepRenewingLock({ command, handleCommandPromise, dispatcher, token });
+      await keepRenewingLock({ command, handleCommandPromise, commandDispatcher, token });
     })();
 
     const domainEvents = await handleCommandPromise;
@@ -47,7 +47,7 @@ const processCommand = async function ({
   } catch (ex) {
     logger.error('Failed to handle command.', { command, ex });
   } finally {
-    await acknowledgeCommand({ command, token, dispatcher });
+    await acknowledgeCommand({ command, token, commandDispatcher });
   }
 };
 

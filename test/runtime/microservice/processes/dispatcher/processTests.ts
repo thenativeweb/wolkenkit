@@ -8,7 +8,7 @@ import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 
-suite('dispatcher', function (): void {
+suite('commandDispatcher', function (): void {
   this.timeout(10 * 1000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
@@ -26,7 +26,7 @@ suite('dispatcher', function (): void {
 
     stopProcess = await startProcess({
       runtime: 'microservice',
-      name: 'dispatcher',
+      name: 'commandDispatcher',
       enableDebugMode: false,
       port: healthPort,
       env: {

@@ -1,10 +1,10 @@
 export interface Configuration {
   applicationDirectory: string;
   commandCorsOrigin: string | string[];
-  dispatcherProtocol: string;
-  dispatcherHostName: string;
-  dispatcherPort: number;
-  dispatcherRetries: number;
+  commandDispatcherProtocol: string;
+  commandDispatcherHostName: string;
+  commandDispatcherPort: number;
+  commandDispatcherRetries: number;
   healthCorsOrigin: string | string[];
   identityProviders: { issuer: string; certificate: string }[];
   port: number;

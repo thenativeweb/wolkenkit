@@ -18,8 +18,8 @@ suite('command', (): void => {
 
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-    let commandReceivedByDispatcher: object | undefined,
-        dispatcherPort: number,
+    let commandDispatcherPort: number,
+        commandReceivedByDispatcher: object | undefined,
         endpointCommandWasSentTo: string | undefined,
         handleCommandClient: HandleCommandClient,
         healthPort: number,
@@ -27,10 +27,10 @@ suite('command', (): void => {
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, healthPort, dispatcherPort ] = await getAvailablePorts({ count: 3 });
+      [ port, healthPort, commandDispatcherPort ] = await getAvailablePorts({ count: 3 });
 
       await startCatchAllServer({
-        port: dispatcherPort,
+        port: commandDispatcherPort,
         onRequest (req, res): void {
           endpointCommandWasSentTo = req.path;
           commandReceivedByDispatcher = req.body;
@@ -47,10 +47,10 @@ suite('command', (): void => {
           APPLICATION_DIRECTORY: applicationDirectory,
           PORT: String(port),
           HEALTH_PORT: String(healthPort),
-          DISPATCHER_PROTOCOL: 'http',
-          DISPATCHER_HOST_NAME: 'localhost',
-          DISPATCHER_PORT: String(dispatcherPort),
-          DISPATCHER_RETRIES: String(0),
+          COMMAND_DISPATCHER_PROTOCOL: 'http',
+          COMMAND_DISPATCHER_HOST_NAME: 'localhost',
+          COMMAND_DISPATCHER_PORT: String(commandDispatcherPort),
+          COMMAND_DISPATCHER_RETRIES: String(0),
           IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
         }
       });
@@ -88,7 +88,7 @@ suite('command', (): void => {
     });
 
     suite('postCommand', (): void => {
-      test('sends commands to the correct endpoint at the dispatcher.', async (): Promise<void> => {
+      test('sends commands to the correct endpoint at the command dispatcher.', async (): Promise<void> => {
         const command = new Command({
           contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -112,7 +112,7 @@ suite('command', (): void => {
         });
       });
 
-      test('fails if sending the given command to the dispatcher fails.', async (): Promise<void> => {
+      test('fails if sending the given command to the command dispatcher fails.', async (): Promise<void> => {
         if (stopProcess) {
           await stopProcess();
         }
@@ -126,10 +126,10 @@ suite('command', (): void => {
             APPLICATION_DIRECTORY: applicationDirectory,
             PORT: String(port),
             HEALTH_PORT: String(healthPort),
-            DISPATCHER_PROTOCOL: 'http',
-            DISPATCHER_HOST_NAME: 'non-existent',
-            DISPATCHER_PORT: String(12345),
-            DISPATCHER_RETRIES: String(0),
+            COMMAND_DISPATCHER_PROTOCOL: 'http',
+            COMMAND_DISPATCHER_HOST_NAME: 'non-existent',
+            COMMAND_DISPATCHER_PORT: String(12345),
+            COMMAND_DISPATCHER_RETRIES: String(0),
             IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
           }
         });
@@ -150,7 +150,7 @@ suite('command', (): void => {
     });
 
     suite('cancelCommand', (): void => {
-      test('sends a cancel request to the correct endpoint at the dispatcher.', async (): Promise<void> => {
+      test('sends a cancel request to the correct endpoint at the command dispatcher.', async (): Promise<void> => {
         const commandIdentifier: ItemIdentifier = {
           contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -164,7 +164,7 @@ suite('command', (): void => {
         assert.that(commandReceivedByDispatcher).is.atLeast(commandIdentifier);
       });
 
-      test('fails if sending the cancel request to the dispatcher fails.', async (): Promise<void> => {
+      test('fails if sending the cancel request to the command dispatcher fails.', async (): Promise<void> => {
         if (stopProcess) {
           await stopProcess();
         }
@@ -178,10 +178,10 @@ suite('command', (): void => {
             APPLICATION_DIRECTORY: applicationDirectory,
             PORT: String(port),
             HEALTH_PORT: String(healthPort),
-            DISPATCHER_PROTOCOL: 'http',
-            DISPATCHER_HOST_NAME: 'non-existent',
-            DISPATCHER_PORT: String(12345),
-            DISPATCHER_RETRIES: String(0),
+            COMMAND_DISPATCHER_PROTOCOL: 'http',
+            COMMAND_DISPATCHER_HOST_NAME: 'non-existent',
+            COMMAND_DISPATCHER_PORT: String(12345),
+            COMMAND_DISPATCHER_RETRIES: String(0),
             IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
           }
         });
@@ -206,9 +206,9 @@ suite('command', (): void => {
     this.timeout(10_000);
 
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
-          dispatcherRetries = 5;
+          commandDispatcherRetries = 5;
 
-    let dispatcherPort: number,
+    let commandDispatcherPort: number,
         handleCommandClient: HandleCommandClient,
         healthPort: number,
         port: number,
@@ -216,11 +216,11 @@ suite('command', (): void => {
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, healthPort, dispatcherPort ] = await getAvailablePorts({ count: 3 });
+      [ port, healthPort, commandDispatcherPort ] = await getAvailablePorts({ count: 3 });
 
       requestCount = 0;
       await startCatchAllServer({
-        port: dispatcherPort,
+        port: commandDispatcherPort,
         onRequest (req, res): void {
           requestCount += 1;
           res.status(500).end();
@@ -236,10 +236,10 @@ suite('command', (): void => {
           APPLICATION_DIRECTORY: applicationDirectory,
           PORT: String(port),
           HEALTH_PORT: String(healthPort),
-          DISPATCHER_PROTOCOL: 'http',
-          DISPATCHER_HOST_NAME: 'localhost',
-          DISPATCHER_PORT: String(dispatcherPort),
-          DISPATCHER_RETRIES: String(dispatcherRetries),
+          COMMAND_DISPATCHER_PROTOCOL: 'http',
+          COMMAND_DISPATCHER_HOST_NAME: 'localhost',
+          COMMAND_DISPATCHER_PORT: String(commandDispatcherPort),
+          COMMAND_DISPATCHER_RETRIES: String(commandDispatcherRetries),
           IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
         }
       });
@@ -272,7 +272,7 @@ suite('command', (): void => {
         async (): Promise<any> => await handleCommandClient.postCommand({ command })
       ).is.throwingAsync();
 
-      assert.that(requestCount).is.equalTo(dispatcherRetries + 1);
+      assert.that(requestCount).is.equalTo(commandDispatcherRetries + 1);
     });
   });
 
@@ -280,10 +280,10 @@ suite('command', (): void => {
     this.timeout(10_000);
 
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
-          dispatcherRetries = 5,
+          commandDispatcherRetries = 5,
           succeedAfterTries = 3;
 
-    let dispatcherPort: number,
+    let commandDispatcherPort: number,
         handleCommandClient: HandleCommandClient,
         healthPort: number,
         port: number,
@@ -291,11 +291,11 @@ suite('command', (): void => {
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, healthPort, dispatcherPort ] = await getAvailablePorts({ count: 3 });
+      [ port, healthPort, commandDispatcherPort ] = await getAvailablePorts({ count: 3 });
 
       requestCount = 0;
       await startCatchAllServer({
-        port: dispatcherPort,
+        port: commandDispatcherPort,
         onRequest (req, res): void {
           requestCount += 1;
           if (requestCount < succeedAfterTries) {
@@ -314,10 +314,10 @@ suite('command', (): void => {
           APPLICATION_DIRECTORY: applicationDirectory,
           PORT: String(port),
           HEALTH_PORT: String(healthPort),
-          DISPATCHER_PROTOCOL: 'http',
-          DISPATCHER_HOST_NAME: 'localhost',
-          DISPATCHER_PORT: String(dispatcherPort),
-          DISPATCHER_RETRIES: String(dispatcherRetries),
+          COMMAND_DISPATCHER_PROTOCOL: 'http',
+          COMMAND_DISPATCHER_HOST_NAME: 'localhost',
+          COMMAND_DISPATCHER_PORT: String(commandDispatcherPort),
+          COMMAND_DISPATCHER_RETRIES: String(commandDispatcherRetries),
           IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
         }
       });

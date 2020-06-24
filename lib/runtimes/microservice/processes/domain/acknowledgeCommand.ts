@@ -1,19 +1,19 @@
 import { CommandData } from '../../../../common/elements/CommandData';
+import { CommandDispatcher } from './CommandDispatcher';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
-import { Dispatcher } from './Dispatcher';
 import { retry } from 'retry-ignore-abort';
 
-const acknowledgeCommand = async function ({ command, token, dispatcher }: {
+const acknowledgeCommand = async function ({ command, token, commandDispatcher }: {
   command: CommandWithMetadata<CommandData>;
   token: string;
-  dispatcher: Dispatcher;
+  commandDispatcher: CommandDispatcher;
 }): Promise<void> {
   await retry(async (): Promise<void> => {
-    await dispatcher.client.acknowledge({
+    await commandDispatcher.client.acknowledge({
       itemIdentifier: command.getItemIdentifier(),
       token
     });
-  }, { retries: dispatcher.acknowledgeRetries, maxTimeout: 1000 });
+  }, { retries: commandDispatcher.acknowledgeRetries, maxTimeout: 1000 });
 };
 
 export {
