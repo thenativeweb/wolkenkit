@@ -15,6 +15,7 @@ import { getSubscriptionOptions } from './observeDomainEvents/getSubscriptionOpt
 import { getSubscriptionResolvers } from './observeDomainEvents/getSubscriptionResolvers';
 import { IdentityProvider } from 'limes';
 import { InitializeGraphQlOnServer } from '../InitializeGraphQlOnServer';
+import { OnCancelCommand } from '../OnCancelCommand';
 import { OnReceiveCommand } from '../OnReceiveCommand';
 import { PublishDomainEvent } from '../PublishDomainEvent';
 import { Repository } from '../../../common/domain/Repository';
@@ -39,7 +40,7 @@ const getV2 = async function ({
   corsOrigin: CorsOrigin;
   application: Application;
   identityProviders: IdentityProvider[];
-  handleCommand: false | { onReceiveCommand: OnReceiveCommand };
+  handleCommand: false | { onReceiveCommand: OnReceiveCommand; onCancelCommand: OnCancelCommand };
   observeDomainEvents: false | { repository: Repository; webSocketEndpoint: string };
   enableIntegratedClient: boolean;
 }): Promise<{
@@ -72,7 +73,8 @@ const getV2 = async function ({
     typeDefinitions += `${getHandleCommandTypeDefinitions({ application })}\n`;
     resolvers.Mutation = getMutationResolvers({
       application,
-      onReceiveCommand: handleCommand.onReceiveCommand
+      onReceiveCommand: handleCommand.onReceiveCommand,
+      onCancelCommand: handleCommand.onCancelCommand
     });
   }
 
