@@ -9,7 +9,7 @@
     "mocha": "8.0.1",
     "run-script-os": "1.1.1",
     "ts-node": "8.10.2",
-    "uuidv4": "6.1.0"
+    "uuidv4": "6.1.1"
   },
   "scripts": {
     "test": "run-script-os",
