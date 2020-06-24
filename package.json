@@ -166,7 +166,7 @@
     "streamtoarray": "3.0.0",
     "swagger-ui-express": "4.1.4",
     "untildify": "4.0.0",
-    "uuidv4": "6.1.0",
+    "uuidv4": "6.1.1",
     "validate-value": "7.0.0"
   },
   "devDependencies": {
