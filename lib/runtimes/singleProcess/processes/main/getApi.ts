@@ -83,7 +83,8 @@ const getApi = async function ({
       application,
       identityProviders,
       handleCommand: {
-        onReceiveCommand
+        onReceiveCommand,
+        onCancelCommand
       },
       observeDomainEvents: {
         repository,

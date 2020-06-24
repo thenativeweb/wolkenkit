@@ -113,10 +113,12 @@ suite('main', function (): void {
 
       const mutation = gql`
         mutation ($aggregateId: String!, $data: SampleContext_sampleAggregate_executeT0!) {
-          sampleContext {
-            sampleAggregate(id: $aggregateId) {
-              execute(data: $data) {
-                id
+          command {
+            sampleContext {
+              sampleAggregate(id: $aggregateId) {
+                execute(data: $data) {
+                  id
+                }
               }
             }
           }
@@ -133,7 +135,7 @@ suite('main', function (): void {
         }
       });
 
-      assert.that(result?.data?.sampleContext?.sampleAggregate?.execute?.id).is.not.undefined();
+      assert.that(result?.data?.command.sampleContext?.sampleAggregate?.execute?.id).is.not.undefined();
     });
 
     test('has a subscription endpoint.', async (): Promise<void> => {

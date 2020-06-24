@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { CommandData } from '../../../../common/elements/CommandData';
+import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
@@ -12,7 +14,9 @@ import { getConfiguration } from './getConfiguration';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
+import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { loadApplication } from '../../../../common/application/loadApplication';
+import { OnCancelCommand } from '../../../../apis/graphql/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
@@ -49,7 +53,7 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const priorityQueueStore = await createPriorityQueueStore({
+    const priorityQueueStore = await createPriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>({
       type: 'InMemory',
       doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
       options: {}
@@ -63,11 +67,21 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
       });
     };
 
+    const onCancelCommand: OnCancelCommand = async ({ commandIdentifierWithClient }: {
+      commandIdentifierWithClient: ItemIdentifierWithClient;
+    }): Promise<void> => {
+      await priorityQueueStore.remove({
+        discriminator: commandIdentifierWithClient.aggregateIdentifier.id,
+        itemIdentifier: commandIdentifierWithClient
+      });
+    };
+
     const { api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
       configuration,
       application,
       identityProviders,
       onReceiveCommand,
+      onCancelCommand,
       repository
     });
 
