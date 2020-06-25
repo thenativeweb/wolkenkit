@@ -7,7 +7,8 @@ import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWith
 import { createPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/createPriorityQueueStore';
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../lib/common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { Application as ExpressApplication } from 'express';
-import { getApi } from '../../../../lib/apis/awaitCommandWithMetadata/http';
+import { getApi } from '../../../../lib/apis/awaitItem/http';
+import { getCommandWithMetadataSchema } from '../../../../lib/common/schemas/getCommandWithMetadataSchema';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
 import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
@@ -18,18 +19,19 @@ import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
+import { Value } from 'validate-value';
 import { isUuid, uuid } from 'uuidv4';
 
-suite('awaitCommandWithMetadata/http', (): void => {
+suite('awaitItem/http', (): void => {
   suite('/v2', (): void => {
     const expirationTime = 600;
     const pollInterval = 500;
 
     let api: ExpressApplication,
         application: Application,
-        newCommandPublisher: Publisher<object>,
-        newCommandSubscriber: Subscriber<object>,
-        newCommandSubscriberChannel: string,
+        newItemPublisher: Publisher<object>,
+        newItemSubscriber: Subscriber<object>,
+        newItemSubscriberChannel: string,
         priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
 
     setup(async (): Promise<void> => {
@@ -37,9 +39,9 @@ suite('awaitCommandWithMetadata/http', (): void => {
 
       application = await loadApplication({ applicationDirectory });
 
-      newCommandSubscriber = await InMemorySubscriber.create();
-      newCommandSubscriberChannel = uuid();
-      newCommandPublisher = await InMemoryPublisher.create();
+      newItemSubscriber = await InMemorySubscriber.create();
+      newItemSubscriberChannel = uuid();
+      newItemPublisher = await InMemoryPublisher.create();
 
       priorityQueueStore = await createPriorityQueueStore({
         type: 'InMemory',
@@ -51,8 +53,11 @@ suite('awaitCommandWithMetadata/http', (): void => {
         application,
         corsOrigin: '*',
         priorityQueueStore,
-        newCommandSubscriber,
-        newCommandSubscriberChannel
+        newItemSubscriber,
+        newItemSubscriberChannel,
+        validateOutgoingItem ({ item }: { item: any }): void {
+          new Value(getCommandWithMetadataSchema()).validate(item);
+        }
       }));
     });
 
@@ -137,8 +142,8 @@ suite('awaitCommandWithMetadata/http', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
@@ -185,8 +190,8 @@ suite('awaitCommandWithMetadata/http', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
@@ -364,8 +369,8 @@ suite('awaitCommandWithMetadata/http', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
@@ -413,8 +418,8 @@ suite('awaitCommandWithMetadata/http', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
@@ -531,8 +536,8 @@ suite('awaitCommandWithMetadata/http', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
@@ -699,8 +704,8 @@ suite('awaitCommandWithMetadata/http', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 

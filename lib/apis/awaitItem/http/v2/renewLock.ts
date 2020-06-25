@@ -1,10 +1,8 @@
 import { Application } from '../../../../common/application/Application';
-import { CommandData } from '../../../../common/elements/CommandData';
-import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
-import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { jsonSchema } from 'uuidv4';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import typer from 'content-type';
@@ -14,9 +12,9 @@ import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
-const acknowledge = {
-  description: 'Acknowledges a command from the queue and removes it.',
-  path: 'acknowledge',
+const renewLock = {
+  description: 'Renews the timeout of a locked item in the queue.',
+  path: 'renew-lock',
 
   request: {
     body: {
@@ -30,19 +28,19 @@ const acknowledge = {
     }
   },
   response: {
-    statusCodes: [ 200, 400, 403, 404, 415 ],
+    statusCodes: [],
     body: { type: 'object' }
   },
 
-  getHandler ({
+  getHandler<TItem, TItemIdentifier extends ItemIdentifier> ({
     application,
     priorityQueueStore
   }: {
     application: Application;
-    priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
+    priorityQueueStore: PriorityQueueStore<TItem, TItemIdentifier>;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(acknowledge.request.body),
-          responseBodySchema = new Value(acknowledge.response.body);
+    const requestBodySchema = new Value(renewLock.request.body),
+          responseBodySchema = new Value(renewLock.response.body);
 
     return async function (req, res): Promise<void> {
       try {
@@ -79,7 +77,7 @@ const acknowledge = {
       const { itemIdentifier, token } = req.body;
 
       try {
-        await priorityQueueStore.acknowledge({
+        await priorityQueueStore.renewLock({
           discriminator: itemIdentifier.aggregateIdentifier.id,
           token
         });
@@ -121,4 +119,4 @@ const acknowledge = {
   }
 };
 
-export { acknowledge };
+export { renewLock };

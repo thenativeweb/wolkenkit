@@ -1,10 +1,13 @@
 import { assert } from 'assertthat';
-import { Client as AwaitCommandClient } from '../../../../../lib/apis/awaitCommandWithMetadata/http/v2/Client';
+import { Client as AwaitCommandClient } from '../../../../../lib/apis/awaitItem/http/v2/Client';
 import { buildCommandWithMetadata } from '../../../../../lib/common/utils/test/buildCommandWithMetadata';
+import { CommandData } from '../../../../../lib/common/elements/CommandData';
+import { CommandWithMetadata } from '../../../../../lib/common/elements/CommandWithMetadata';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/apis/handleCommandWithMetadata/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
+import { ItemIdentifier } from '../../../../../lib/common/elements/ItemIdentifier';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 
@@ -15,7 +18,7 @@ suite('commandDispatcher', function (): void {
 
   const queueLockExpirationTime = 600;
 
-  let awaitCommandClient: AwaitCommandClient,
+  let awaitCommandClient: AwaitCommandClient<CommandWithMetadata<CommandData>, ItemIdentifier>,
       handleCommandWithMetadataClient: HandleCommandWithMetadataClient,
       healthPort: number,
       port: number,
@@ -41,7 +44,8 @@ suite('commandDispatcher', function (): void {
       protocol: 'http',
       hostName: 'localhost',
       port,
-      path: '/await-command/v2'
+      path: '/await-command/v2',
+      createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
     });
 
     handleCommandWithMetadataClient = new HandleCommandWithMetadataClient({
@@ -93,7 +97,7 @@ suite('commandDispatcher', function (): void {
 
       await handleCommandWithMetadataClient.postCommand({ command });
 
-      const lock = await awaitCommandClient.awaitCommandWithMetadata();
+      const lock = await awaitCommandClient.awaitItem();
 
       assert.that(lock.item).is.equalTo(command);
     });

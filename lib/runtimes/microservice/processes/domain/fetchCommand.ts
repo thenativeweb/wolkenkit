@@ -13,7 +13,7 @@ const fetchCommand = async function ({ commandDispatcher }: {
     async (): Promise<{
       item: CommandWithMetadata<CommandData>;
       token: string;
-    }> => await commandDispatcher.client.awaitCommandWithMetadata(),
+    }> => await commandDispatcher.client.awaitItem(),
     { retries: Number.POSITIVE_INFINITY, maxTimeout: 1000 }
   );
 
