@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 
 import { AeonstoreDomainEventStore } from '../../../../stores/domainEventStore/Aeonstore';
-import { Client as CommandDispatcherClient } from '../../../../apis/awaitCommandWithMetadata/http/v2/Client';
+import { CommandData } from '../../../../common/elements/CommandData';
+import { Client as CommandDispatcherClient } from '../../../../apis/awaitItem/http/v2/Client';
+import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
 import { getConfiguration } from './getConfiguration';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
+import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { loadApplication } from '../../../../common/application/loadApplication';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';
@@ -48,11 +51,12 @@ import { State } from '../../../../common/elements/State';
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const commandDispatcherClient = new CommandDispatcherClient({
+    const commandDispatcherClient = new CommandDispatcherClient<CommandWithMetadata<CommandData>, ItemIdentifier>({
       protocol: configuration.commandDispatcherProtocol,
       hostName: configuration.commandDispatcherHostName,
       port: configuration.commandDispatcherPort,
-      path: '/await-command/v2'
+      path: '/await-command/v2',
+      constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
     });
 
     const publisherClient = new PublisherClient({

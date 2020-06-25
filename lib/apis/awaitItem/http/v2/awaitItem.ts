@@ -1,8 +1,5 @@
-import { CommandData } from '../../../../common/elements/CommandData';
-import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { flaschenpost } from 'flaschenpost';
-import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
-import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { jsonSchema } from 'uuidv4';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Response } from 'express';
@@ -13,8 +10,8 @@ import { writeLine } from '../../../base/writeLine';
 
 const logger = flaschenpost.getLogger();
 
-const awaitCommandWithMetadata = {
-  description: 'Sends the next available command.',
+const awaitItem = {
+  description: 'Sends the next available item.',
   path: '',
 
   request: {},
@@ -25,7 +22,7 @@ const awaitCommandWithMetadata = {
     body: {
       type: 'object',
       properties: {
-        item: getCommandWithMetadataSchema(),
+        item: {},
         token: jsonSchema.v4
       },
       required: [ 'item', 'token' ],
@@ -33,18 +30,20 @@ const awaitCommandWithMetadata = {
     }
   },
 
-  getHandler ({
+  getHandler <TItem, TItemIdentifier extends ItemIdentifier>({
     priorityQueueStore,
-    newCommandSubscriber,
-    newCommandSubscriberChannel,
+    newItemSubscriber,
+    newItemSubscriberChannel,
+    validateOutgoingItem,
     heartbeatInterval
   }: {
-    priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
-    newCommandSubscriber: Subscriber<object>;
-    newCommandSubscriberChannel: string;
+    priorityQueueStore: PriorityQueueStore<TItem, TItemIdentifier>;
+    newItemSubscriber: Subscriber<object>;
+    newItemSubscriberChannel: string;
+    validateOutgoingItem: ({ item }: { item: TItem }) => void | Promise<void>;
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
-    const responseBodySchema = new Value(awaitCommandWithMetadata.response.body);
+    const responseBodySchema = new Value(awaitItem.response.body);
 
     const maybeHandleLock = async function ({
       res
@@ -56,6 +55,7 @@ const awaitCommandWithMetadata = {
       if (nextLock !== undefined) {
         logger.info('Locked priority queue item.', nextLock);
 
+        await validateOutgoingItem({ item: nextLock.item });
         responseBodySchema.validate(nextLock);
 
         writeLine({ res, data: nextLock });
@@ -77,22 +77,26 @@ const awaitCommandWithMetadata = {
       }
 
       const callback = async function (): Promise<void> {
-        const success = await maybeHandleLock({ res });
+        try {
+          const success = await maybeHandleLock({ res });
 
-        if (success) {
-          await newCommandSubscriber.unsubscribe({
-            channel: newCommandSubscriberChannel,
-            callback
-          });
+          if (success) {
+            await newItemSubscriber.unsubscribe({
+              channel: newItemSubscriberChannel,
+              callback
+            });
+          }
+        } catch (ex) {
+          logger.error('An unexpected error occured when locking an item.', { ex });
         }
       };
 
-      await newCommandSubscriber.subscribe({
-        channel: newCommandSubscriberChannel,
+      await newItemSubscriber.subscribe({
+        channel: newItemSubscriberChannel,
         callback
       });
     };
   }
 };
 
-export { awaitCommandWithMetadata };
+export { awaitItem };

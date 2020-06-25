@@ -1,10 +1,8 @@
 import { Application } from '../../../../common/application/Application';
-import { CommandData } from '../../../../common/elements/CommandData';
-import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
-import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { jsonSchema } from 'uuidv4';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import typer from 'content-type';
@@ -14,35 +12,36 @@ import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
-const renewLock = {
-  description: 'Renews the timeout of a locked item in the queue.',
-  path: 'renew-lock',
+const defer = {
+  description: 'Defers an item from the queue.',
+  path: 'defer',
 
   request: {
     body: {
       type: 'object',
       properties: {
         itemIdentifier: getItemIdentifierSchema(),
-        token: jsonSchema.v4
+        token: jsonSchema.v4,
+        priority: { type: 'number', minimum: 0 }
       },
-      required: [ 'itemIdentifier', 'token' ],
+      required: [ 'itemIdentifier', 'token', 'priority' ],
       additionalProperties: false
     }
   },
   response: {
-    statusCodes: [],
+    statusCodes: [ 200, 400, 403, 404, 415 ],
     body: { type: 'object' }
   },
 
-  getHandler ({
+  getHandler<TItem, TItemIdentifier extends ItemIdentifier> ({
     application,
     priorityQueueStore
   }: {
     application: Application;
-    priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
+    priorityQueueStore: PriorityQueueStore<TItem, TItemIdentifier>;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(renewLock.request.body),
-          responseBodySchema = new Value(renewLock.response.body);
+    const requestBodySchema = new Value(defer.request.body),
+          responseBodySchema = new Value(defer.response.body);
 
     return async function (req, res): Promise<void> {
       try {
@@ -64,6 +63,18 @@ const renewLock = {
 
       try {
         requestBodySchema.validate(req.body);
+      } catch (ex) {
+        const error = new errors.RequestMalformed(ex.message);
+
+        res.status(400).json({
+          code: error.code,
+          message: error.message
+        });
+
+        return;
+      }
+
+      try {
         validateItemIdentifier({ itemIdentifier: req.body.itemIdentifier, application });
       } catch (ex) {
         const error = new errors.ItemIdentifierMalformed(ex.message);
@@ -76,12 +87,13 @@ const renewLock = {
         return;
       }
 
-      const { itemIdentifier, token } = req.body;
+      const { itemIdentifier, token, priority } = req.body;
 
       try {
-        await priorityQueueStore.renewLock({
+        await priorityQueueStore.defer({
           discriminator: itemIdentifier.aggregateIdentifier.id,
-          token
+          token,
+          priority
         });
 
         const response = {};
@@ -121,4 +133,4 @@ const renewLock = {
   }
 };
 
-export { renewLock };
+export { defer };

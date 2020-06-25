@@ -1,18 +1,20 @@
 import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { buildCommandWithMetadata } from '../../../../lib/common/utils/test/buildCommandWithMetadata';
-import { Client } from '../../../../lib/apis/awaitCommandWithMetadata/http/v2/Client';
+import { Client } from '../../../../lib/apis/awaitItem/http/v2/Client';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { createPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/createPriorityQueueStore';
 import { CustomError } from 'defekt';
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../lib/common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { Application as ExpressApplication } from 'express';
-import { getApi } from '../../../../lib/apis/awaitCommandWithMetadata/http';
+import { getApi } from '../../../../lib/apis/awaitItem/http';
+import { getCommandWithMetadataSchema } from '../../../../lib/common/schemas/getCommandWithMetadataSchema';
 import { getPromiseStatus } from '../../../../lib/common/utils/getPromiseStatus';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
 import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
+import { ItemIdentifier } from '../../../../lib/common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
@@ -21,17 +23,18 @@ import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { uuid } from 'uuidv4';
+import { Value } from 'validate-value';
 
-suite('awaitCommandWithMetadata/http/Client', (): void => {
+suite('awaitItem/http/Client', (): void => {
   suite('/v2', (): void => {
     const expirationTime = 600;
     const pollInterval = 500;
 
     let api: ExpressApplication,
         application: Application,
-        newCommandPublisher: Publisher<object>,
-        newCommandSubscriber: Subscriber<object>,
-        newCommandSubscriberChannel: string,
+        newItemPublisher: Publisher<object>,
+        newItemSubscriber: Subscriber<object>,
+        newItemSubscriberChannel: string,
         priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
 
     setup(async (): Promise<void> => {
@@ -39,9 +42,9 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       application = await loadApplication({ applicationDirectory });
 
-      newCommandSubscriber = await InMemorySubscriber.create();
-      newCommandSubscriberChannel = uuid();
-      newCommandPublisher = await InMemoryPublisher.create();
+      newItemSubscriber = await InMemorySubscriber.create();
+      newItemSubscriberChannel = uuid();
+      newItemPublisher = await InMemoryPublisher.create();
 
       priorityQueueStore = await createPriorityQueueStore({
         type: 'InMemory',
@@ -53,18 +56,22 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
         application,
         corsOrigin: '*',
         priorityQueueStore,
-        newCommandSubscriber,
-        newCommandSubscriberChannel
+        newItemSubscriber,
+        newItemSubscriberChannel,
+        validateOutgoingItem ({ item }: { item: any }): void {
+          new Value(getCommandWithMetadataSchema()).validate(item);
+        }
       }));
     });
 
-    suite('awaitCommandWithMetadata', (): void => {
+    suite('awaitItem', (): void => {
       test('retrieves a lock item.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -84,12 +91,12 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
-        const command = await client.awaitCommandWithMetadata();
+        const command = await client.awaitItem();
 
         assert.that(command.item).is.equalTo(commandWithMetadata);
         assert.that(command.token).is.ofType('string');
@@ -99,10 +106,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
     suite('renewLock', (): void => {
       test('throws an item identifier malformed error if the item identifier is malformed.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         await assert.that(async (): Promise<any> => await client.renewLock({
@@ -116,10 +124,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         await assert.that(async (): Promise<any> => client.renewLock({
@@ -142,10 +151,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -165,8 +175,8 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
@@ -180,10 +190,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -203,12 +214,12 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
-        await client.awaitCommandWithMetadata();
+        await client.awaitItem();
 
         await assert.that(async (): Promise<any> => client.renewLock({
           itemIdentifier: commandWithMetadata.getItemIdentifier(),
@@ -221,10 +232,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       test('extends the lock expiry time.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -244,12 +256,12 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
-        const { item, token } = await client.awaitCommandWithMetadata();
+        const { item, token } = await client.awaitItem();
 
         await sleep({ ms: 0.6 * expirationTime });
 
@@ -257,7 +269,7 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
         await sleep({ ms: 0.6 * expirationTime });
 
-        const notResolvingPromise = client.awaitCommandWithMetadata();
+        const notResolvingPromise = client.awaitItem();
 
         await sleep({ ms: pollInterval });
 
@@ -268,10 +280,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
     suite('acknowledge', (): void => {
       test('throws an item identifier malformed error if the item identifier is malformed.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         await assert.that(async (): Promise<any> => await client.acknowledge({
@@ -285,10 +298,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         await assert.that(async (): Promise<any> => client.acknowledge({
@@ -311,10 +325,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -334,8 +349,8 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
@@ -349,10 +364,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -372,12 +388,12 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
-        await client.awaitCommandWithMetadata();
+        await client.awaitItem();
 
         await assert.that(async (): Promise<any> => client.acknowledge({
           itemIdentifier: commandWithMetadata.getItemIdentifier(),
@@ -390,10 +406,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       test('removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const aggregateId = uuid();
@@ -431,7 +448,7 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           priority: commandTwo.metadata.timestamp
         });
 
-        const { item, token } = await client.awaitCommandWithMetadata();
+        const { item, token } = await client.awaitItem();
 
         const commandWithMetadata = new CommandWithMetadata(item);
 
@@ -442,17 +459,18 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
         // This should resolve. A timeout in this test means, that this can not
         // fetch a command.
-        await client.awaitCommandWithMetadata();
+        await client.awaitItem();
       });
     });
 
     suite('defer', (): void => {
       test('throws an item identifier malformed error if the item identifier is malformed.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         await assert.that(async (): Promise<any> => await client.defer({
@@ -467,10 +485,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         await assert.that(async (): Promise<any> => client.defer({
@@ -494,10 +513,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -517,8 +537,8 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
@@ -533,10 +553,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -556,12 +577,12 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           priority: commandWithMetadata.metadata.timestamp
         });
-        await newCommandPublisher.publish({
-          channel: newCommandSubscriberChannel,
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
           message: {}
         });
 
-        await client.awaitCommandWithMetadata();
+        await client.awaitItem();
 
         await assert.that(async (): Promise<any> => client.defer({
           itemIdentifier: commandWithMetadata.getItemIdentifier(),
@@ -575,10 +596,11 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
       test('removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client({
+        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
           hostName: 'localhost',
           port,
-          path: '/v2'
+          path: '/v2',
+          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const aggregateId = uuid();
@@ -616,7 +638,7 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           priority: commandTwo.metadata.timestamp
         });
 
-        const { item, token } = await client.awaitCommandWithMetadata();
+        const { item, token } = await client.awaitItem();
 
         const commandWithMetadata = new CommandWithMetadata(item);
 
@@ -626,7 +648,7 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
           priority: Date.now()
         });
 
-        const { item: nextItem, token: nextToken } = await client.awaitCommandWithMetadata();
+        const { item: nextItem, token: nextToken } = await client.awaitItem();
 
         const nextCommandWithMetadata = new CommandWithMetadata(nextItem);
 
@@ -637,7 +659,7 @@ suite('awaitCommandWithMetadata/http/Client', (): void => {
 
         // This should resolve. A timeout in this test means, that this can not
         // fetch a command.
-        await client.awaitCommandWithMetadata();
+        await client.awaitItem();
       });
     });
   });

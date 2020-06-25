@@ -1,6 +1,4 @@
 import axios from 'axios';
-import { CommandData } from '../../../../common/elements/CommandData';
-import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/utils/http/FilterHeartbeatsFromJsonStreamTransform';
 import { flaschenpost } from 'flaschenpost';
@@ -10,17 +8,28 @@ import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
 
-class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+class Client<TItem, TItemIdentifier extends ItemIdentifier> extends HttpClient {
+  protected constructItemInstance: ({ item }: { item: TItem }) => TItem;
+
+  public constructor ({
+    protocol = 'http',
+    hostName,
+    port,
+    path = '/',
+    constructItemInstance = ({ item }: { item: TItem }): TItem => item
+  }: {
     protocol?: string;
     hostName: string;
     port: number;
     path?: string;
+    constructItemInstance: ({ item }: { item: TItem }) => TItem;
   }) {
     super({ protocol, hostName, port, path });
+
+    this.constructItemInstance = constructItemInstance;
   }
 
-  public async awaitCommandWithMetadata (): Promise<{ item: CommandWithMetadata<CommandData>; token: string }> {
+  public async awaitItem (): Promise<{ item: TItem; token: string }> {
     const { data } = await axios({
       method: 'get',
       url: this.url,
@@ -33,9 +42,9 @@ class Client extends HttpClient {
     const { item, token } = await new Promise((resolve, reject): void => {
       let unsubscribe: () => void;
 
-      const onData = (command: any): void => {
+      const onData = (nextItem: any): void => {
         unsubscribe();
-        resolve(command);
+        resolve(nextItem);
       };
       const onError = (err: any): void => {
         unsubscribe();
@@ -63,13 +72,13 @@ class Client extends HttpClient {
     });
 
     return {
-      item: new CommandWithMetadata(item),
+      item: this.constructItemInstance({ item }),
       token
     };
   }
 
   public async renewLock ({ itemIdentifier, token }: {
-    itemIdentifier: ItemIdentifier;
+    itemIdentifier: TItemIdentifier;
     token: string;
   }): Promise<void> {
     const { status, data } = await axios({
@@ -107,7 +116,7 @@ class Client extends HttpClient {
   }
 
   public async acknowledge ({ itemIdentifier, token }: {
-    itemIdentifier: ItemIdentifier;
+    itemIdentifier: TItemIdentifier;
     token: string;
   }): Promise<void> {
     const { status, data } = await axios({
@@ -145,7 +154,7 @@ class Client extends HttpClient {
   }
 
   public async defer ({ itemIdentifier, token, priority }: {
-    itemIdentifier: ItemIdentifier;
+    itemIdentifier: TItemIdentifier;
     token: string;
     priority: number;
   }): Promise<void> {

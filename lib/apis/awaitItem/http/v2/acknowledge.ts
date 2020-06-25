@@ -1,10 +1,8 @@
 import { Application } from '../../../../common/application/Application';
-import { CommandData } from '../../../../common/elements/CommandData';
-import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
-import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { jsonSchema } from 'uuidv4';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import typer from 'content-type';
@@ -14,19 +12,18 @@ import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
-const defer = {
-  description: 'Defers a command from the queue.',
-  path: 'defer',
+const acknowledge = {
+  description: 'Acknowledges an item from the queue and removes it.',
+  path: 'acknowledge',
 
   request: {
     body: {
       type: 'object',
       properties: {
         itemIdentifier: getItemIdentifierSchema(),
-        token: jsonSchema.v4,
-        priority: { type: 'number', minimum: 0 }
+        token: jsonSchema.v4
       },
-      required: [ 'itemIdentifier', 'token', 'priority' ],
+      required: [ 'itemIdentifier', 'token' ],
       additionalProperties: false
     }
   },
@@ -35,15 +32,15 @@ const defer = {
     body: { type: 'object' }
   },
 
-  getHandler ({
+  getHandler<TItem, TItemIdentifier extends ItemIdentifier> ({
     application,
     priorityQueueStore
   }: {
     application: Application;
-    priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
+    priorityQueueStore: PriorityQueueStore<TItem, TItemIdentifier>;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(defer.request.body),
-          responseBodySchema = new Value(defer.response.body);
+    const requestBodySchema = new Value(acknowledge.request.body),
+          responseBodySchema = new Value(acknowledge.response.body);
 
     return async function (req, res): Promise<void> {
       try {
@@ -65,18 +62,6 @@ const defer = {
 
       try {
         requestBodySchema.validate(req.body);
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
-
-        res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
-
-        return;
-      }
-
-      try {
         validateItemIdentifier({ itemIdentifier: req.body.itemIdentifier, application });
       } catch (ex) {
         const error = new errors.ItemIdentifierMalformed(ex.message);
@@ -89,13 +74,12 @@ const defer = {
         return;
       }
 
-      const { itemIdentifier, token, priority } = req.body;
+      const { itemIdentifier, token } = req.body;
 
       try {
-        await priorityQueueStore.defer({
+        await priorityQueueStore.acknowledge({
           discriminator: itemIdentifier.aggregateIdentifier.id,
-          token,
-          priority
+          token
         });
 
         const response = {};
@@ -135,4 +119,4 @@ const defer = {
   }
 };
 
-export { defer };
+export { acknowledge };
