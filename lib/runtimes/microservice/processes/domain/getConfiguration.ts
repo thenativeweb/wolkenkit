@@ -59,7 +59,7 @@ const getConfiguration = function (): Configuration {
     },
     PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT: {
       default: 'newDomainEvent',
-      schema: { type: 'string' }
+      schema: { type: 'string', minLength: 1 }
     },
     AEONSTORE_PROTOCOL: {
       default: 'http',
