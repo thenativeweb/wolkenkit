@@ -12,11 +12,11 @@ const getOnCancelCommand = function ({ commandDispatcher }: {
     try {
       await commandDispatcher.client.cancelCommand({ commandIdentifierWithClient });
 
-      logger.info('Cancelled command in commandDispatcher.', { commandIdentifierWithClient });
+      logger.info('Cancelled command in command dispatcher.', { commandIdentifierWithClient });
     } catch (ex) {
-      logger.error('Failed to cancel command in commandDispatcher.', { commandIdentifierWithClient, ex });
+      logger.error('Failed to cancel command in command dispatcher.', { commandIdentifierWithClient, ex });
 
-      throw new errors.RequestFailed('Failed to cancel command in commandDispatcher.', {
+      throw new errors.RequestFailed('Failed to cancel command in command dispatcher.', {
         cause: ex,
         data: { commandIdentifierWithClient }
       });

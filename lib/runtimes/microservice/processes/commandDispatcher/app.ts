@@ -85,7 +85,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     server.listen(configuration.port, (): void => {
       logger.info(
-        'CommandDispatcher server started.',
+        'Command dispatcher server started.',
         { port: configuration.port, healthPort: configuration.healthPort }
       );
     });

@@ -15,11 +15,11 @@ const getOnReceiveCommand = function ({ commandDispatcher }: {
         await commandDispatcher.client.postCommand({ command });
       }, { retries: commandDispatcher.retries, maxTimeout: 1000 });
 
-      logger.info('Command sent to commandDispatcher server.', { command });
+      logger.info('Command sent to command dispatcher.', { command });
     } catch (ex) {
-      logger.error('Failed to send command to commandDispatcher.', { command, ex });
+      logger.error('Failed to send command to command dispatcher.', { command, ex });
 
-      throw new errors.RequestFailed('Failed to send command to commandDispatcher.', {
+      throw new errors.RequestFailed('Failed to send command to command dispatcher.', {
         cause: ex,
         data: { command }
       });
