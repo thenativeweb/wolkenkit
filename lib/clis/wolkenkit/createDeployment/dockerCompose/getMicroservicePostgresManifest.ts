@@ -103,7 +103,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           APPLICATION_DIRECTORY: '/app'
           COMMAND_CORS_ORIGIN: '*'
           COMMAND_DISPATCHER_PROTOCOL: 'http'
-          COMMAND_DISPATCHER_HOST_NAME: 'commandDispatcher'
+          COMMAND_DISPATCHER_HOST_NAME: 'command-dispatcher'
           COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
           COMMAND_DISPATCHER_RETRIES: ${5}
           HEALTH_CORS_ORIGIN: '*'
@@ -122,7 +122,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           retries: 3
           start_period: 30s
 
-      commandDispatcher:
+      command-dispatcher:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/commandDispatcher/app.js'
         environment:
@@ -155,7 +155,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
           COMMAND_DISPATCHER_PROTOCOL: 'http'
-          COMMAND_DISPATCHER_HOST_NAME: 'commandDispatcher'
+          COMMAND_DISPATCHER_HOST_NAME: 'command-dispatcher'
           COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
           COMMAND_DISPATCHER_RENEW_INTERVAL: ${5000}
           COMMAND_DISPATCHER_ACKNOWLEDGE_RETRIES: ${5}
@@ -181,7 +181,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           retries: 3
           start_period: 30s
 
-      domainEvent:
+      domain-event:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEvent/app.js'
         environment:
