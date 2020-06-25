@@ -9,24 +9,24 @@ import { PassThrough, pipeline } from 'stream';
 const logger = flaschenpost.getLogger();
 
 class Client<TItem, TItemIdentifier extends ItemIdentifier> extends HttpClient {
-  protected constructItemInstance: ({ item }: { item: TItem }) => TItem;
+  protected createItemInstance: ({ item }: { item: TItem }) => TItem;
 
   public constructor ({
     protocol = 'http',
     hostName,
     port,
     path = '/',
-    constructItemInstance = ({ item }: { item: TItem }): TItem => item
+    createItemInstance = ({ item }: { item: TItem }): TItem => item
   }: {
     protocol?: string;
     hostName: string;
     port: number;
     path?: string;
-    constructItemInstance: ({ item }: { item: TItem }) => TItem;
+    createItemInstance: ({ item }: { item: TItem }) => TItem;
   }) {
     super({ protocol, hostName, port, path });
 
-    this.constructItemInstance = constructItemInstance;
+    this.createItemInstance = createItemInstance;
   }
 
   public async awaitItem (): Promise<{ item: TItem; token: string }> {
@@ -72,7 +72,7 @@ class Client<TItem, TItemIdentifier extends ItemIdentifier> extends HttpClient {
     });
 
     return {
-      item: this.constructItemInstance({ item }),
+      item: this.createItemInstance({ item }),
       token
     };
   }

@@ -71,7 +71,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -110,7 +110,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         await assert.that(async (): Promise<any> => await client.renewLock({
@@ -128,7 +128,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         await assert.that(async (): Promise<any> => client.renewLock({
@@ -155,7 +155,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -194,7 +194,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -236,7 +236,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -284,7 +284,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         await assert.that(async (): Promise<any> => await client.acknowledge({
@@ -302,7 +302,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         await assert.that(async (): Promise<any> => client.acknowledge({
@@ -329,7 +329,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -368,7 +368,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -410,7 +410,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const aggregateId = uuid();
@@ -470,7 +470,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         await assert.that(async (): Promise<any> => await client.defer({
@@ -489,7 +489,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         await assert.that(async (): Promise<any> => client.defer({
@@ -517,7 +517,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -557,7 +557,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -600,7 +600,7 @@ suite('awaitItem/http/Client', (): void => {
           hostName: 'localhost',
           port,
           path: '/v2',
-          constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+          createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const aggregateId = uuid();

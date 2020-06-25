@@ -45,7 +45,7 @@ suite('commandDispatcher', function (): void {
       hostName: 'localhost',
       port,
       path: '/await-command/v2',
-      constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+      createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
     });
 
     handleCommandWithMetadataClient = new HandleCommandWithMetadataClient({

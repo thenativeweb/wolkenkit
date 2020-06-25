@@ -56,7 +56,7 @@ import { State } from '../../../../common/elements/State';
       hostName: configuration.commandDispatcherHostName,
       port: configuration.commandDispatcherPort,
       path: '/await-command/v2',
-      constructItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+      createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
     });
 
     const publisherClient = new PublisherClient({
