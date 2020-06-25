@@ -11,6 +11,7 @@ import { DomainEventWithState } from '../../../../common/elements/DomainEventWit
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getConfiguration } from './getConfiguration';
+import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
@@ -23,9 +24,8 @@ import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
-import {Value} from "validate-value";
-import {getDomainEventSchema} from "../../../../common/schemas/getDomainEventSchema";
-import {validateDomainEvent} from "../../../../common/validators/validateDomainEvent";
+import { validateDomainEvent } from '../../../../common/validators/validateDomainEvent';
+import { Value } from 'validate-value';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -123,7 +123,7 @@ import {validateDomainEvent} from "../../../../common/validators/validateDomainE
         new Value(getDomainEventSchema()).validate(domainEvent);
         validateDomainEvent({ domainEvent, application });
       } catch (ex) {
-        logger.error('Received a message via the publisher server with an unexpected format.', { domainEvent, ex });
+        logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, ex });
 
         return;
       }

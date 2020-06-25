@@ -89,7 +89,7 @@ import { Value } from 'validate-value';
         new Value(getDomainEventSchema()).validate(domainEvent);
         validateDomainEvent({ domainEvent, application });
       } catch (ex) {
-        logger.error('Received a message via the publisher server with an unexpected format.', { domainEvent, ex });
+        logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, ex });
 
         return;
       }
