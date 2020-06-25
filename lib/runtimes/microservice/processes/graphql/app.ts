@@ -11,6 +11,7 @@ import { DomainEventWithState } from '../../../../common/elements/DomainEventWit
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getConfiguration } from './getConfiguration';
+import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
@@ -23,6 +24,8 @@ import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
+import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
+import { Value } from 'validate-value';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -89,17 +92,6 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
 
     await initializeGraphQlOnServer?.({ server });
 
-    const subscribeMessagesClient = new SubscribeMessagesClient({
-      protocol: configuration.subscribeMessagesProtocol,
-      hostName: configuration.subscribeMessagesHostName,
-      port: configuration.subscribeMessagesPort,
-      path: '/subscribe/v2'
-    });
-
-    const messageStream = await subscribeMessagesClient.getMessages({
-      channel: configuration.subscribeMessagesChannel
-    });
-
     await runHealthServer({ corsOrigin: configuration.corsOrigin, port: configuration.healthPort });
 
     await new Promise((resolve): void => {
@@ -113,8 +105,28 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
       { port: configuration.port, healthPort: configuration.healthPort }
     );
 
+    const subscribeMessagesClient = new SubscribeMessagesClient({
+      protocol: configuration.subscribeMessagesProtocol,
+      hostName: configuration.subscribeMessagesHostName,
+      port: configuration.subscribeMessagesPort,
+      path: '/subscribe/v2'
+    });
+
+    const messageStream = await subscribeMessagesClient.getMessages({
+      channel: configuration.subscribeMessagesChannel
+    });
+
     for await (const message of messageStream) {
       const domainEvent = new DomainEventWithState<DomainEventData, State>(message);
+
+      try {
+        new Value(getDomainEventWithStateSchema()).validate(domainEvent);
+        validateDomainEventWithState({ domainEvent, application });
+      } catch (ex) {
+        logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, ex });
+
+        return;
+      }
 
       publishDomainEvent({ domainEvent });
     }
