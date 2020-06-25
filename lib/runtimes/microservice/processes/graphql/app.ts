@@ -23,6 +23,9 @@ import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
+import {Value} from "validate-value";
+import {getDomainEventSchema} from "../../../../common/schemas/getDomainEventSchema";
+import {validateDomainEvent} from "../../../../common/validators/validateDomainEvent";
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -89,17 +92,6 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
 
     await initializeGraphQlOnServer?.({ server });
 
-    const subscribeMessagesClient = new SubscribeMessagesClient({
-      protocol: configuration.subscribeMessagesProtocol,
-      hostName: configuration.subscribeMessagesHostName,
-      port: configuration.subscribeMessagesPort,
-      path: '/subscribe/v2'
-    });
-
-    const messageStream = await subscribeMessagesClient.getMessages({
-      channel: configuration.subscribeMessagesChannel
-    });
-
     await runHealthServer({ corsOrigin: configuration.corsOrigin, port: configuration.healthPort });
 
     await new Promise((resolve): void => {
@@ -113,8 +105,28 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
       { port: configuration.port, healthPort: configuration.healthPort }
     );
 
+    const subscribeMessagesClient = new SubscribeMessagesClient({
+      protocol: configuration.subscribeMessagesProtocol,
+      hostName: configuration.subscribeMessagesHostName,
+      port: configuration.subscribeMessagesPort,
+      path: '/subscribe/v2'
+    });
+
+    const messageStream = await subscribeMessagesClient.getMessages({
+      channel: configuration.subscribeMessagesChannel
+    });
+
     for await (const message of messageStream) {
       const domainEvent = new DomainEventWithState<DomainEventData, State>(message);
+
+      try {
+        new Value(getDomainEventSchema()).validate(domainEvent);
+        validateDomainEvent({ domainEvent, application });
+      } catch (ex) {
+        logger.error('Received a message via the publisher server with an unexpected format.', { domainEvent, ex });
+
+        return;
+      }
 
       publishDomainEvent({ domainEvent });
     }
