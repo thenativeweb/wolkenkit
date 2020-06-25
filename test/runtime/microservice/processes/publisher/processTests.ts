@@ -70,13 +70,14 @@ suite('publisher', function (): void {
 
   suite('publishMessage', (): void => {
     test('forwards messages to subscribers.', async (): Promise<void> => {
-      const message = { text: 'Hello world!' };
+      const channel = 'messages',
+            message = { text: 'Hello world!' };
 
       setTimeout(async (): Promise<void> => {
-        await publishMessageClient.postMessage({ message });
+        await publishMessageClient.postMessage({ channel, message });
       }, 50);
 
-      const messageStream = await subscribeMessagesClient.getMessages();
+      const messageStream = await subscribeMessagesClient.getMessages({ channel });
 
       const collector = waitForSignals({ count: 1 });
 

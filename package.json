@@ -136,6 +136,7 @@
     "content-type": "1.0.4",
     "cors": "2.8.5",
     "defekt": "5.0.1",
+    "eventemitter2": "6.4.3",
     "express": "4.17.1",
     "flaschenpost": "4.0.17",
     "get-cors-origin": "4.0.1",

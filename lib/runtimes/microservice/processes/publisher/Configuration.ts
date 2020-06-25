@@ -6,7 +6,6 @@ export interface Configuration {
   subscribeCorsOrigin: string | string[];
   pubSubType: string;
   pubSubOptions: {
-    channel: string;
     subscriber: object;
     publisher: object;
   };

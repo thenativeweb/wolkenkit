@@ -1,6 +1,6 @@
+import { EventEmitter } from 'events';
 import { flaschenpost } from 'flaschenpost';
 import PQueue from 'p-queue';
-import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import { Request, Response } from 'express';
@@ -9,7 +9,7 @@ const logger = flaschenpost.getLogger();
 
 const getMessages = {
   description: 'Subscribes to messages.',
-  path: '',
+  path: ':channel',
 
   request: {},
   response: {
@@ -20,10 +20,12 @@ const getMessages = {
   },
 
   getHandler ({ messageEmitter, heartbeatInterval }: {
-    messageEmitter: SpecializedEventEmitter<object>;
+    messageEmitter: EventEmitter;
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
     return async function (req: Request, res: Response): Promise<void> {
+      const { channel } = req.params;
+
       res.startStream({ heartbeatInterval });
 
       try {
@@ -38,11 +40,11 @@ const getMessages = {
         };
 
         res.connection.once('close', (): void => {
-          messageEmitter.off(handleMessage);
+          messageEmitter.off(channel, handleMessage);
           messageQueue.clear();
         });
 
-        messageEmitter.on(handleMessage);
+        messageEmitter.on(channel, handleMessage);
       } catch (ex) {
         // It can happen that the connection gets closed in the background, and
         // hence the underlying socket does not have a remote address any more. We

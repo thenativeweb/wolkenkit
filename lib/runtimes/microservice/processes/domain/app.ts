@@ -66,7 +66,10 @@ import { State } from '../../../../common/elements/State';
       domainEvents: DomainEventWithState<DomainEventData, State>[];
     }): Promise<any> => {
       for (const domainEvent of domainEvents) {
-        await publisherClient.postMessage({ message: domainEvent });
+        await publisherClient.postMessage({
+          channel: configuration.publisherChannelNewDomainEvent,
+          message: domainEvent
+        });
       }
     };
 

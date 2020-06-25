@@ -1,9 +1,9 @@
 import { Application } from 'express';
 import { CorsOrigin } from 'get-cors-origin';
+import { EventEmitter } from 'events';
 import { getApiBase } from '../../../base/getApiBase';
 import { getMessages } from './getMessages';
 import { PublishMessage } from '../../PublishMessage';
-import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 
 const getV2 = async function ({ corsOrigin, heartbeatInterval = 90_000 }: {
   corsOrigin: CorsOrigin;
@@ -20,7 +20,7 @@ const getV2 = async function ({ corsOrigin, heartbeatInterval = 90_000 }: {
     }
   });
 
-  const messageEmitter = new SpecializedEventEmitter<object>();
+  const messageEmitter = new EventEmitter();
 
   api.get(
     `/${getMessages.path}`,
@@ -30,8 +30,8 @@ const getV2 = async function ({ corsOrigin, heartbeatInterval = 90_000 }: {
     })
   );
 
-  const publishMessage: PublishMessage = function ({ message }): void {
-    messageEmitter.emit(message);
+  const publishMessage: PublishMessage = function ({ channel, message }): void {
+    messageEmitter.emit(channel, message);
   };
 
   return { api, publishMessage };

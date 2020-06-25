@@ -57,6 +57,10 @@ const getConfiguration = function (): Configuration {
       default: 3000,
       schema: portSchema
     },
+    PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT: {
+      default: 'newDomainEvent',
+      schema: { type: 'string', minLength: 1 }
+    },
     AEONSTORE_PROTOCOL: {
       default: 'http',
       schema: protocolSchema

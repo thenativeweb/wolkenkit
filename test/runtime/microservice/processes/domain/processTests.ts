@@ -18,8 +18,9 @@ suite('domain', function (): void {
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-  const queueLockExpirationTime = 600;
-  const queuePollInterval = 600;
+  const publisherChannelNewDomainEvent = 'newDomainEvent',
+        queueLockExpirationTime = 600,
+        queuePollInterval = 600;
 
   let commandDispatcherHealthPort: number,
       commandDispatcherPort: number,
@@ -120,6 +121,7 @@ suite('domain', function (): void {
         PUBLISHER_PROTOCOL: 'http',
         PUBLISHER_HOST_NAME: 'localhost',
         PUBLISHER_PORT: String(publisherPort),
+        PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT: publisherChannelNewDomainEvent,
         AEONSTORE_PROTOCOL: 'http',
         AEONSTORE_HOST_NAME: 'localhost',
         AEONSTORE_PORT: String(domainEventStorePort),
@@ -184,7 +186,9 @@ suite('domain', function (): void {
         }
       });
 
-      const messageStream = await subscribeMessagesClient.getMessages();
+      const messageStream = await subscribeMessagesClient.getMessages({
+        channel: publisherChannelNewDomainEvent
+      });
 
       await handleCommandWithMetadataClient.postCommand({ command });
 
@@ -246,7 +250,9 @@ suite('domain', function (): void {
         }
       });
 
-      const messageStream = await subscribeMessagesClient.getMessages();
+      const messageStream = await subscribeMessagesClient.getMessages({
+        channel: publisherChannelNewDomainEvent
+      });
 
       await handleCommandWithMetadataClient.postCommand({ command });
 
@@ -379,7 +385,9 @@ suite('domain', function (): void {
         }
       });
 
-      const messageStream = await subscribeMessagesClient.getMessages();
+      const messageStream = await subscribeMessagesClient.getMessages({
+        channel: publisherChannelNewDomainEvent
+      });
 
       await handleCommandWithMetadataClient.postCommand({ command: command1 });
       await handleCommandWithMetadataClient.postCommand({ command: command2 });

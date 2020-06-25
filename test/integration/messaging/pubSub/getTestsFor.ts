@@ -2,6 +2,7 @@ import { assert } from 'assertthat';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { uuid } from 'uuidv4';
+import { waitForSignals } from 'wait-for-signals';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createPublisher, createSubscriber }: {
@@ -20,23 +21,20 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
     const channel = uuid();
     const message = { data: uuid() };
 
-    let resolveSubscriber: () => void;
-    const subscriberCallbackPromise = new Promise((resolve): void => {
-      resolveSubscriber = resolve;
-    });
+    const counter = waitForSignals({ count: 1 });
 
     await subscriber.subscribe({
       channel,
       async callback (receivedMessage): Promise<void> {
         assert.that(receivedMessage).is.equalTo(message);
 
-        resolveSubscriber();
+        await counter.signal();
       }
     });
 
     await publisher.publish({ channel, message });
 
-    await subscriberCallbackPromise;
+    await counter.promise;
   });
 
   test('published messages are received by all subscribers.', async (): Promise<void> => {
@@ -45,37 +43,31 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
     const channel = uuid();
     const message = { data: uuid() };
 
-    let resolveSubscriber: () => void;
-    const subscriberCallbackPromise = new Promise((resolve): void => {
-      resolveSubscriber = resolve;
-    });
+    const counterOne = waitForSignals({ count: 1 });
 
     await subscriber.subscribe({
       channel,
       async callback (receivedMessage): Promise<void> {
         assert.that(receivedMessage).is.equalTo(message);
 
-        resolveSubscriber();
+        await counterOne.signal();
       }
     });
 
-    let resolveSecondSubscriber: () => void;
-    const secondSubscriberCallbackPromise = new Promise((resolve): void => {
-      resolveSecondSubscriber = resolve;
-    });
+    const counterTwo = waitForSignals({ count: 1 });
 
     await secondSubscriber.subscribe({
       channel,
       async callback (receivedMessage): Promise<void> {
         assert.that(receivedMessage).is.equalTo(message);
 
-        resolveSecondSubscriber();
+        await counterTwo.signal();
       }
     });
 
     await publisher.publish({ channel, message });
 
-    await Promise.all([ subscriberCallbackPromise, secondSubscriberCallbackPromise ]);
+    await Promise.all([ counterOne.promise, counterTwo.promise ]);
   });
 
   test('after unsubscribing no more messages are received.', async (): Promise<void> => {
@@ -97,6 +89,33 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
     });
 
     assert.that(receivedMessageCount).is.equalTo(0);
+  });
+
+  test('can subscribe to all channels simultaneously.', async (): Promise<void> => {
+    const messageOne = { data: uuid() };
+    const messageTwo = { data: uuid() };
+    const receivedMessages: object[] = [];
+
+    const counter = waitForSignals({ count: 2 });
+
+    await subscriber.subscribe({
+      channel: '*',
+      async callback (receivedMessage): Promise<void> {
+        receivedMessages.push(receivedMessage);
+
+        await counter.signal();
+      }
+    });
+
+    await publisher.publish({ channel: uuid(), message: messageOne });
+    await publisher.publish({ channel: uuid(), message: messageTwo });
+
+    await counter.promise;
+
+    assert.that(receivedMessages).is.equalTo([
+      messageOne,
+      messageTwo
+    ]);
   });
 };
 /* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */

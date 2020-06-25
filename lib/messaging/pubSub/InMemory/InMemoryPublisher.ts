@@ -1,11 +1,11 @@
-import { EventEmitter } from 'events';
+import { EventEmitter2 } from 'eventemitter2';
 import { inMemoryEventEmitter } from './inMemoryEventEmitter';
 import { Publisher } from '../Publisher';
 
 class InMemoryPublisher<T extends object> implements Publisher<T> {
-  protected eventEmitter: EventEmitter;
+  protected eventEmitter: EventEmitter2;
 
-  protected constructor ({ eventEmitter }: { eventEmitter: EventEmitter }) {
+  protected constructor ({ eventEmitter }: { eventEmitter: EventEmitter2 }) {
     this.eventEmitter = eventEmitter;
   }
 

@@ -14,10 +14,11 @@ suite('publishMessage/http', (): void => {
 
         ({ api } = await getApi({
           corsOrigin: '*',
-          async onReceiveMessage ({ message }: {
+          async onReceiveMessage ({ channel, message }: {
+            channel: string;
             message: object;
           }): Promise<void> {
-            receivedMessages.push(message);
+            receivedMessages.push({ channel, message });
           }
         }));
       });
@@ -67,6 +68,22 @@ suite('publishMessage/http', (): void => {
         });
       });
 
+      test('returns 400 if the channel is missing.', async (): Promise<void> => {
+        const message = { text: 'Hello world!' };
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: {
+            message
+          },
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(400);
+      });
+
       test('returns 200 if a message is sent.', async (): Promise<void> => {
         const message = { text: 'Hello world!' };
         const { client } = await runAsServer({ app: api });
@@ -74,7 +91,10 @@ suite('publishMessage/http', (): void => {
         const { status } = await client({
           method: 'post',
           url: '/v2/',
-          data: message
+          data: {
+            channel: 'messages',
+            message
+          }
         });
 
         assert.that(status).is.equalTo(200);
@@ -87,11 +107,14 @@ suite('publishMessage/http', (): void => {
         await client({
           method: 'post',
           url: '/v2/',
-          data: message
+          data: {
+            channel: 'messages',
+            message
+          }
         });
 
         assert.that(receivedMessages.length).is.equalTo(1);
-        assert.that(receivedMessages[0]).is.equalTo(message);
+        assert.that(receivedMessages[0]).is.equalTo({ channel: 'messages', message });
       });
 
       test('returns a 200.', async (): Promise<void> => {
@@ -101,7 +124,10 @@ suite('publishMessage/http', (): void => {
         const { status } = await client({
           method: 'post',
           url: '/v2/',
-          data: message
+          data: {
+            channel: 'messages',
+            message
+          }
         });
 
         assert.that(status).is.equalTo(200);
@@ -121,7 +147,10 @@ suite('publishMessage/http', (): void => {
         const { status, data } = await client({
           method: 'post',
           url: '/v2/',
-          data: message,
+          data: {
+            channel: 'messages',
+            message
+          },
           responseType: 'text',
           validateStatus (): boolean {
             return true;

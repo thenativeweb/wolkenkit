@@ -34,15 +34,14 @@ const getConfiguration = function (): Configuration {
       schema: { type: 'string', minLength: 1 }
     },
     PUB_SUB_OPTIONS: {
-      default: { channel: 'messages', subscriber: {}, publisher: {}},
+      default: { subscriber: {}, publisher: {}},
       schema: {
         type: 'object',
         properties: {
-          channel: { type: 'string', minLength: 1 },
           subscriber: { type: 'object' },
           publisher: { type: 'object' }
         },
-        required: [ 'channel', 'subscriber', 'publisher' ],
+        required: [ 'subscriber', 'publisher' ],
         additionalProperties: false
       }
     }

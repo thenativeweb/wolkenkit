@@ -60,7 +60,9 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
       path: '/subscribe/v2'
     });
 
-    const messageStream = await subscribeMessagesClient.getMessages();
+    const messageStream = await subscribeMessagesClient.getMessages({
+      channel: configuration.subscribeMessagesChannel
+    });
 
     const server = http.createServer(api);
 

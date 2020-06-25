@@ -17,10 +17,12 @@ class Client extends HttpClient {
     super({ protocol, hostName, port, path });
   }
 
-  public async getMessages (): Promise<PassThrough> {
+  public async getMessages ({ channel }: {
+    channel: string;
+  }): Promise<PassThrough> {
     const { data, status } = await axios({
       method: 'get',
-      url: this.url,
+      url: `${this.url}/${channel}`,
       responseType: 'stream',
       validateStatus (): boolean {
         return true;

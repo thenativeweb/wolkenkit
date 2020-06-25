@@ -12,7 +12,15 @@ const postMessage = {
   path: '',
 
   request: {
-    body: {}
+    body: {
+      type: 'object',
+      properties: {
+        channel: { type: 'string', minLength: 1 },
+        message: { type: 'object' }
+      },
+      required: [ 'channel', 'message' ],
+      additionalProperties: false
+    }
   },
   response: {
     statusCodes: [ 200, 415 ],
@@ -22,7 +30,7 @@ const postMessage = {
   getHandler ({ onReceiveMessage }: {
     onReceiveMessage: OnReceiveMessage;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(postMessage.response.body),
+    const requestBodySchema = new Value(postMessage.request.body),
           responseBodySchema = new Value(postMessage.response.body);
 
     return async function (req, res): Promise<void> {
@@ -58,12 +66,12 @@ const postMessage = {
         return;
       }
 
-      const message = req.body;
+      const { channel, message } = req.body;
 
-      logger.info('Message received.');
+      logger.info('Message received.', { channel });
 
       try {
-        await onReceiveMessage({ message });
+        await onReceiveMessage({ channel, message });
 
         const response = {};
 
