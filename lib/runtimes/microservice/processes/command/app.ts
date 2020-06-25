@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Client as DispatcherClient } from '../../../../apis/handleCommandWithMetadata/http/v2/Client';
+import { Client as CommandDispatcherClient } from '../../../../apis/handleCommandWithMetadata/http/v2/Client';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getConfiguration } from './getConfiguration';
@@ -29,19 +29,19 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       applicationDirectory: configuration.applicationDirectory
     });
 
-    const dispatcherClient = new DispatcherClient({
-      protocol: configuration.dispatcherProtocol,
-      hostName: configuration.dispatcherHostName,
-      port: configuration.dispatcherPort,
+    const commandDispatcherClient = new CommandDispatcherClient({
+      protocol: configuration.commandDispatcherProtocol,
+      hostName: configuration.commandDispatcherHostName,
+      port: configuration.commandDispatcherPort,
       path: '/handle-command/v2'
     });
 
-    const dispatcher = {
-      client: dispatcherClient,
-      retries: configuration.dispatcherRetries
+    const commandDispatcher = {
+      client: commandDispatcherClient,
+      retries: configuration.commandDispatcherRetries
     };
-    const onReceiveCommand = getOnReceiveCommand({ dispatcher });
-    const onCancelCommand = getOnCancelCommand({ dispatcher });
+    const onReceiveCommand = getOnReceiveCommand({ commandDispatcher });
+    const onCancelCommand = getOnCancelCommand({ commandDispatcher });
 
     const { api } = await getApi({
       configuration,

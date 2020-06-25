@@ -20,25 +20,25 @@ const getConfiguration = function (): Configuration {
         minLength: 1
       }
     },
-    DISPATCHER_PROTOCOL: {
+    COMMAND_DISPATCHER_PROTOCOL: {
       default: 'http',
       schema: protocolSchema
     },
-    DISPATCHER_HOST_NAME: {
-      default: 'dispatcher',
+    COMMAND_DISPATCHER_HOST_NAME: {
+      default: 'commandDispatcher',
       schema: {
         type: 'string',
         format: 'hostname'
       }
     },
-    DISPATCHER_PORT: {
+    COMMAND_DISPATCHER_PORT: {
       default: 3000,
       schema: portSchema
     },
-    DISPATCHER_RENEW_INTERVAL: {
+    COMMAND_DISPATCHER_RENEW_INTERVAL: {
       default: 5_000
     },
-    DISPATCHER_ACKNOWLEDGE_RETRIES: {
+    COMMAND_DISPATCHER_ACKNOWLEDGE_RETRIES: {
       default: 5,
       schema: { type: 'integer' }
     },

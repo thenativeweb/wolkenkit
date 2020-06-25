@@ -24,22 +24,22 @@ const getConfiguration = function (): Configuration {
       default: '*',
       schema: corsSchema
     },
-    DISPATCHER_PROTOCOL: {
+    COMMAND_DISPATCHER_PROTOCOL: {
       default: 'http',
       schema: protocolSchema
     },
-    DISPATCHER_HOST_NAME: {
-      default: 'dispatcher',
+    COMMAND_DISPATCHER_HOST_NAME: {
+      default: 'commandDispatcher',
       schema: {
         type: 'string',
         format: 'hostname'
       }
     },
-    DISPATCHER_PORT: {
+    COMMAND_DISPATCHER_PORT: {
       default: 3000,
       schema: portSchema
     },
-    DISPATCHER_RETRIES: {
+    COMMAND_DISPATCHER_RETRIES: {
       default: 5,
       schema: { type: 'integer' }
     },

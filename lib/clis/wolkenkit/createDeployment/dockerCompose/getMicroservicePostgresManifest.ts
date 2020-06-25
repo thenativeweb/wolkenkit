@@ -11,7 +11,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     },
     private: {
       command: 3000,
-      dispatcher: 3000,
+      commandDispatcher: 3000,
       domainEvents: 3000,
       aeonstore: 3000,
       publisher: 3000,
@@ -19,7 +19,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     },
     health: {
       command: 3001,
-      dispatcher: 3001,
+      commandDispatcher: 3001,
       domain: 3001,
       domainEvents: 3001,
       aeonstore: 3001,
@@ -102,10 +102,10 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
           COMMAND_CORS_ORIGIN: '*'
-          DISPATCHER_PROTOCOL: 'http'
-          DISPATCHER_HOST_NAME: 'dispatcher'
-          DISPATCHER_PORT: ${ports.private.dispatcher}
-          DISPATCHER_RETRIES: ${5}
+          COMMAND_DISPATCHER_PROTOCOL: 'http'
+          COMMAND_DISPATCHER_HOST_NAME: 'commandDispatcher'
+          COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
+          COMMAND_DISPATCHER_RETRIES: ${5}
           HEALTH_CORS_ORIGIN: '*'
           IDENTITY_PROVIDERS: '${identityProviders}'
           PORT: ${ports.private.command}
@@ -122,9 +122,9 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           retries: 3
           start_period: 30s
 
-      dispatcher:
+      commandDispatcher:
         build: '../..'
-        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/dispatcher/app.js'
+        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/commandDispatcher/app.js'
         environment:
           NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
@@ -135,14 +135,14 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           AWAIT_COMMAND_CORS_ORIGIN: '*'
           HANDLE_COMMAND_CORS_ORIGIN: '*'
           HEALTH_CORS_ORIGIN: '*'
-          PORT: ${ports.private.dispatcher}
-          HEALTH_PORT: ${ports.health.dispatcher}
+          PORT: ${ports.private.commandDispatcher}
+          HEALTH_PORT: ${ports.health.commandDispatcher}
           MISSED_COMMAND_RECOVERY_INTERVAL: ${5000}
         image: '${appName}'
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.dispatcher}"]
+          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.commandDispatcher}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -154,11 +154,11 @@ const getMicroservicePostgresManifest = function ({ appName }: {
         environment:
           NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
-          DISPATCHER_PROTOCOL: 'http'
-          DISPATCHER_HOST_NAME: 'dispatcher'
-          DISPATCHER_PORT: ${ports.private.dispatcher}
-          DISPATCHER_RENEW_INTERVAL: ${5000}
-          DISPATCHER_ACKNOWLEDGE_RETRIES: ${5}
+          COMMAND_DISPATCHER_PROTOCOL: 'http'
+          COMMAND_DISPATCHER_HOST_NAME: 'commandDispatcher'
+          COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
+          COMMAND_DISPATCHER_RENEW_INTERVAL: ${5000}
+          COMMAND_DISPATCHER_ACKNOWLEDGE_RETRIES: ${5}
           PUBLISHER_PROTOCOL: 'http'
           PUBLISHER_HOST_NAME: 'publisher'
           PUBLISHER_PORT: ${ports.private.publisher}

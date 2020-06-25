@@ -21,8 +21,8 @@ suite('domain', function (): void {
   const queueLockExpirationTime = 600;
   const queuePollInterval = 600;
 
-  let dispatcherHealthPort: number,
-      dispatcherPort: number,
+  let commandDispatcherHealthPort: number,
+      commandDispatcherPort: number,
       domainEventStoreHealthPort: number,
       domainEventStorePort: number,
       domainHealthPort: number,
@@ -38,8 +38,8 @@ suite('domain', function (): void {
 
   setup(async (): Promise<void> => {
     [
-      dispatcherPort,
-      dispatcherHealthPort,
+      commandDispatcherPort,
+      commandDispatcherHealthPort,
       domainEventStorePort,
       domainEventStoreHealthPort,
       domainHealthPort,
@@ -49,14 +49,14 @@ suite('domain', function (): void {
 
     stopDispatcherProcess = await startProcess({
       runtime: 'microservice',
-      name: 'dispatcher',
+      name: 'commandDispatcher',
       enableDebugMode: false,
-      port: dispatcherHealthPort,
+      port: commandDispatcherHealthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
         PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${queueLockExpirationTime}}`,
-        PORT: String(dispatcherPort),
-        HEALTH_PORT: String(dispatcherHealthPort),
+        PORT: String(commandDispatcherPort),
+        HEALTH_PORT: String(commandDispatcherHealthPort),
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
         QUEUE_POLL_INTERVAL: String(queuePollInterval)
       }
@@ -65,7 +65,7 @@ suite('domain', function (): void {
     handleCommandWithMetadataClient = new HandleCommandWithMetadataClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: dispatcherPort,
+      port: commandDispatcherPort,
       path: '/handle-command/v2'
     });
 
@@ -112,11 +112,11 @@ suite('domain', function (): void {
       port: domainHealthPort,
       env: {
         APPLICATION_DIRECTORY: applicationDirectory,
-        DISPATCHER_PROTOCOL: 'http',
-        DISPATCHER_HOST_NAME: 'localhost',
-        DISPATCHER_PORT: String(dispatcherPort),
-        DISPATCHER_RENEW_INTERVAL: String(5_000),
-        DISPATCHER_ACKNOWLEDGE_RETRIES: String(0),
+        COMMAND_DISPATCHER_PROTOCOL: 'http',
+        COMMAND_DISPATCHER_HOST_NAME: 'localhost',
+        COMMAND_DISPATCHER_PORT: String(commandDispatcherPort),
+        COMMAND_DISPATCHER_RENEW_INTERVAL: String(5_000),
+        COMMAND_DISPATCHER_ACKNOWLEDGE_RETRIES: String(0),
         PUBLISHER_PROTOCOL: 'http',
         PUBLISHER_HOST_NAME: 'localhost',
         PUBLISHER_PORT: String(publisherPort),
