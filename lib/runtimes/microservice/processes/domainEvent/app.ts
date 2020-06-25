@@ -7,6 +7,7 @@ import { DomainEventWithState } from '../../../../common/elements/DomainEventWit
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getConfiguration } from './getConfiguration';
+import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
@@ -16,6 +17,8 @@ import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
+import { validateDomainEvent } from '../../../../common/validators/validateDomainEvent';
+import { Value } from 'validate-value';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -53,17 +56,6 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
       repository
     });
 
-    const subscribeMessagesClient = new SubscribeMessagesClient({
-      protocol: configuration.subscribeMessagesProtocol,
-      hostName: configuration.subscribeMessagesHostName,
-      port: configuration.subscribeMessagesPort,
-      path: '/subscribe/v2'
-    });
-
-    const messageStream = await subscribeMessagesClient.getMessages({
-      channel: configuration.subscribeMessagesChannel
-    });
-
     const server = http.createServer(api);
 
     await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
@@ -79,8 +71,28 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
       { port: configuration.port, healthPort: configuration.healthPort }
     );
 
+    const subscribeMessagesClient = new SubscribeMessagesClient({
+      protocol: configuration.subscribeMessagesProtocol,
+      hostName: configuration.subscribeMessagesHostName,
+      port: configuration.subscribeMessagesPort,
+      path: '/subscribe/v2'
+    });
+
+    const messageStream = await subscribeMessagesClient.getMessages({
+      channel: configuration.subscribeMessagesChannel
+    });
+
     for await (const message of messageStream) {
       const domainEvent = new DomainEventWithState<DomainEventData, State>(message);
+
+      try {
+        new Value(getDomainEventSchema()).validate(domainEvent);
+        validateDomainEvent({ domainEvent, application });
+      } catch (ex) {
+        logger.error('Received a message via the publisher server with an unexpected format.', { domainEvent, ex });
+
+        return;
+      }
 
       publishDomainEvent({ domainEvent });
     }
