@@ -19,6 +19,7 @@ suite('domain event', function (): void {
   this.timeout(10_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
+  const subscribeMessagesChannel = 'newDomainEvent';
 
   let healthPort: number,
       observeDomainEventsClient: ObserveDomainEventsClient,
@@ -64,6 +65,7 @@ suite('domain event', function (): void {
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
         SUBSCRIBE_MESSAGES_HOST_NAME: 'localhost',
         SUBSCRIBE_MESSAGES_PORT: String(publisherPort),
+        SUBSCRIBE_MESSAGES_CHANNEL: subscribeMessagesChannel,
         SNAPSHOT_STRATEGY: `{"name":"never"}`
       }
     });
@@ -117,7 +119,10 @@ suite('domain event', function (): void {
       });
 
       setTimeout(async (): Promise<void> => {
-        await publishMessageClient.postMessage({ message: domainEventWithoutState });
+        await publishMessageClient.postMessage({
+          channel: subscribeMessagesChannel,
+          message: domainEventWithoutState
+        });
       }, 50);
 
       const domainEventStream = await observeDomainEventsClient.getDomainEvents({});
@@ -161,7 +166,10 @@ suite('domain event', function (): void {
       });
 
       setTimeout(async (): Promise<void> => {
-        await publishMessageClient.postMessage({ message: domainEvent });
+        await publishMessageClient.postMessage({
+          channel: subscribeMessagesChannel,
+          message: domainEvent
+        });
       }, 50);
 
       await new Promise(async (resolve, reject): Promise<void> => {

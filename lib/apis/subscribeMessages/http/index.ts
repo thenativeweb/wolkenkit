@@ -16,8 +16,8 @@ const getApi = async function ({ corsOrigin, heartbeatInterval = 90_000 }: {
 
   api.use('/v2', v2.api);
 
-  const publishMessage: PublishMessage = function ({ message }): void {
-    v2.publishMessage({ message });
+  const publishMessage: PublishMessage = function ({ channel, message }): void {
+    v2.publishMessage({ channel, message });
   };
 
   return { api, publishMessage };

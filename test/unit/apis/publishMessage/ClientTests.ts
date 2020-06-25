@@ -16,10 +16,11 @@ suite('publishMessage/http/Client', (): void => {
 
         ({ api } = await getApi({
           corsOrigin: '*',
-          async onReceiveMessage ({ message }: {
+          async onReceiveMessage ({ channel, message }: {
+            channel: string;
             message: object;
           }): Promise<void> {
-            receivedMessages.push(message);
+            receivedMessages.push({ channel, message });
           }
         }));
       });
@@ -34,10 +35,10 @@ suite('publishMessage/http/Client', (): void => {
           path: '/v2'
         });
 
-        await client.postMessage({ message });
+        await client.postMessage({ channel: 'messages', message });
 
         assert.that(receivedMessages.length).is.equalTo(1);
-        assert.that(receivedMessages[0]).is.equalTo(message);
+        assert.that(receivedMessages[0]).is.equalTo({ channel: 'messages', message });
       });
 
       test('throws an error if on received message throws an error.', async (): Promise<void> => {
@@ -58,7 +59,7 @@ suite('publishMessage/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<void> => {
-          await client.postMessage({ message });
+          await client.postMessage({ channel: 'messages', message });
         }).is.throwingAsync((ex): boolean =>
           (ex as CustomError).code === 'EUNKNOWNERROR' &&
           (ex as CustomError).message === 'Unknown error.');

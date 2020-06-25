@@ -30,8 +30,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     });
 
     const onReceiveMessage = getOnReceiveMessage({
-      publisher,
-      pubSubChannel: configuration.pubSubOptions.channel
+      publisher
     });
 
     const { api, publishMessage } = await getApi({
@@ -40,9 +39,11 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     });
 
     subscriber.subscribe({
-      channel: configuration.pubSubOptions.channel,
+      channel: '*',
       callback (message): void {
-        publishMessage({ message });
+        // This callback has its scope set by the subscriber. To make
+        // TypeScript understand this, we have to forcibly convert the type.
+        publishMessage({ channel: (this as any as { event: string }).event, message });
       }
     });
 

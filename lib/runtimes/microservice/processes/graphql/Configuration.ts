@@ -12,5 +12,6 @@ export interface Configuration {
   subscribeMessagesProtocol: string;
   subscribeMessagesHostName: string;
   subscribeMessagesPort: number;
+  subscribeMessagesChannel: string;
   snapshotStrategy: SnapshotStrategyConfiguration;
 }

@@ -22,6 +22,8 @@ suite('main', function (): void {
   this.timeout(10_000);
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
+  const subscribeMessagesChannel = 'newDomainEvent';
+
   let healthPort: number,
       port: number,
       publisherHealthPort: number,
@@ -66,6 +68,7 @@ suite('main', function (): void {
         SUBSCRIBE_MESSAGES_PROTOCOL: 'http',
         SUBSCRIBE_MESSAGES_HOST_NAME: 'localhost',
         SUBSCRIBE_MESSAGES_PORT: String(publisherPort),
+        SUBSCRIBE_MESSAGES_CHANNEL: subscribeMessagesChannel,
         SNAPSHOT_STRATEGY: `{"name":"never"}`
       }
     });
@@ -195,7 +198,10 @@ suite('main', function (): void {
 
       await sleep({ ms: 100 });
 
-      await publishMessageClient.postMessage({ message: domainEvent });
+      await publishMessageClient.postMessage({
+        channel: subscribeMessagesChannel,
+        message: domainEvent
+      });
 
       await collector.promise;
     });
