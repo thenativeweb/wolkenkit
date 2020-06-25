@@ -69,7 +69,7 @@ const getConfiguration = function (): Configuration {
     },
     SUBSCRIBE_MESSAGES_CHANNEL: {
       default: 'newDomainEvent',
-      schema: { type: 'string' }
+      schema: { type: 'string', minLength: 1 }
     },
     SNAPSHOT_STRATEGY: {
       default: {

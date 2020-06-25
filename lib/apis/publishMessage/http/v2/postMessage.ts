@@ -15,7 +15,7 @@ const postMessage = {
     body: {
       type: 'object',
       properties: {
-        channel: { type: 'string' },
+        channel: { type: 'string', minLength: 1 },
         message: { type: 'object' }
       },
       required: [ 'channel', 'message' ],
