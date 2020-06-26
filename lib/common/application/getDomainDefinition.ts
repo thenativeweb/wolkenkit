@@ -30,21 +30,20 @@ const getDomainDefinition = async function ({ domainDirectory }: {
       const aggregateName = path.basename(aggregateEntry.name, '.js'),
             aggregatePath = path.join(contextPath, aggregateEntry.name);
 
+      // Ignore not-importable files (e.g. x.d.ts, .DS_Store).
+      if (aggregateEntry.isFile() && path.extname(aggregateEntry.name) !== '.js') {
+        continue;
+      }
+
       let rawAggregate;
 
       try {
         rawAggregate = (await import(aggregatePath)).default;
       } catch (ex) {
-        // Ignore not-importable files (e.g. x.d.ts, .DS_Store).
-        if (aggregateEntry.isFile()) {
-          continue;
-        }
-
         if (ex instanceof SyntaxError) {
           throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/domain/${contextName}/${aggregateName}'.`, { cause: ex });
         }
 
-        // But throw an error if the entry is a directory without importable content.
         throw new errors.FileNotFound(`No aggregate definition in '<app>/build/domain/${contextName}/${aggregateName}' found.`);
       }
 

@@ -20,17 +20,20 @@ const getFlowsDefinition = async function ({ flowsDirectory }: {
     const flowName = path.basename(flowEntry.name, '.js'),
           flowPath = path.join(flowsDirectory, flowEntry.name);
 
+    // Ignore not-importable files (e.g. x.d.ts, .DS_Store).
+    if (flowEntry.isFile() && path.extname(flowEntry.name) !== '.js') {
+      continue;
+    }
+
     let rawFlow;
 
     try {
       rawFlow = (await import(flowPath)).default;
-    } catch {
-      // Ignore not-importable files (e.g. x.d.ts, .DS_Store).
-      if (flowEntry.isFile()) {
-        continue;
+    } catch (ex) {
+      if (ex instanceof SyntaxError) {
+        throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/flows/${flowName}'.`, { cause: ex });
       }
 
-      // But throw an error if the entry is a directory without importable content.
       throw new errors.FileNotFound(`No flow definition in '<app>/build/flows/${flowName}' found.`);
     }
 

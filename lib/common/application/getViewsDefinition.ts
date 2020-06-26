@@ -20,17 +20,20 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
     const viewName = path.basename(viewEntry.name, '.js'),
           viewPath = path.join(viewsDirectory, viewEntry.name);
 
+    // Ignore not-importable files (e.g. x.d.ts, .DS_Store).
+    if (viewEntry.isFile() && path.extname(viewEntry.name) !== '.js') {
+      continue;
+    }
+
     let rawView;
 
     try {
       rawView = (await import(viewPath)).default;
-    } catch {
-      // Ignore not-importable files (e.g. x.d.ts, .DS_Store).
-      if (viewEntry.isFile()) {
-        continue;
+    } catch (ex) {
+      if (ex instanceof SyntaxError) {
+        throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/views/${viewName}'.`, { cause: ex });
       }
 
-      // But throw an error if the entry is a directory without importable content.
       throw new errors.FileNotFound(`No view definition in '<app>/build/views/${viewName}' found.`);
     }
 
