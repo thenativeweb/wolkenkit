@@ -189,5 +189,5 @@ $ npx roboter
 While working on wolkenkit itself, it is sometimes necessary to publish an internal version to npm, e.g. to be able to install wolkenkit from the registry. To publish an internal version run the following commands:
 
 ```shell
-$ npx roboter build && npm version 4.0.0-internal.<id> && npm publish --tag internal && git push --tags
+$ npx roboter build && npm version 4.0.0-internal.<id> && npm publish --tag internal && git push && git push --tags
 ```
