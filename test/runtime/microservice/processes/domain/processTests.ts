@@ -19,6 +19,7 @@ suite('domain', function (): void {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   const publisherChannelNewDomainEvent = 'newDomainEvent',
+        publisherChannelNewDomainEventInternal = 'newDomainEventInternal',
         queueLockExpirationTime = 600,
         queuePollInterval = 600;
 
@@ -122,6 +123,7 @@ suite('domain', function (): void {
         PUBLISHER_HOST_NAME: 'localhost',
         PUBLISHER_PORT: String(publisherPort),
         PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT: publisherChannelNewDomainEvent,
+        PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT_INTERNAL: publisherChannelNewDomainEventInternal,
         AEONSTORE_PROTOCOL: 'http',
         AEONSTORE_HOST_NAME: 'localhost',
         AEONSTORE_PORT: String(domainEventStorePort),
@@ -250,20 +252,72 @@ suite('domain', function (): void {
         }
       });
 
-      const messageStream = await subscribeMessagesClient.getMessages({
+      const messageStreamNewDomainEvent = await subscribeMessagesClient.getMessages({
         channel: publisherChannelNewDomainEvent
+      });
+      const messageStreamNewDomainEventInternal = await subscribeMessagesClient.getMessages({
+        channel: publisherChannelNewDomainEventInternal
       });
 
       await handleCommandWithMetadataClient.postCommand({ command });
 
       await new Promise((resolve, reject): void => {
-        messageStream.on('error', (err: any): void => {
+        messageStreamNewDomainEvent.on('error', (err: any): void => {
           reject(err);
         });
-        messageStream.on('close', (): void => {
+        messageStreamNewDomainEvent.on('close', (): void => {
           resolve();
         });
-        messageStream.pipe(asJsonStream(
+        messageStreamNewDomainEvent.pipe(asJsonStream(
+          [
+            (data): void => {
+              try {
+                assert.that(data).is.atLeast({
+                  contextIdentifier: {
+                    name: 'sampleContext'
+                  },
+                  aggregateIdentifier,
+                  name: 'succeeded',
+                  data: {}
+                });
+                resolve();
+              } catch (ex) {
+                reject(ex);
+              }
+            },
+            (data): void => {
+              try {
+                assert.that(data).is.atLeast({
+                  contextIdentifier: {
+                    name: 'sampleContext'
+                  },
+                  aggregateIdentifier,
+                  name: 'executed',
+                  data: {
+                    strategy: 'succeed'
+                  }
+                });
+                resolve();
+              } catch (ex) {
+                reject(ex);
+              }
+            },
+            (): void => {
+              reject(new Error('Should only have received two messages.'));
+            }
+          ],
+          true
+        ));
+      });
+
+      await new Promise((resolve, reject): void => {
+        messageStreamNewDomainEventInternal.on('error', (err: any): void => {
+          reject(err);
+        });
+        messageStreamNewDomainEventInternal.on('close', (): void => {
+          resolve();
+        });
+        messageStreamNewDomainEventInternal.pipe(asJsonStream(
           [
             (data): void => {
               try {
