@@ -6,6 +6,9 @@ import { createDomainEventStore } from '../../../../stores/domainEventStore/crea
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
+import { doesItemIdentifierWithClientMatchDomainEvent } from '../../../../common/domain/doesItemIdentifierWithClientMatchDomainEvent';
+import { DomainEvent } from '../../../../common/elements/DomainEvent';
+import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getConfiguration } from './getConfiguration';
@@ -57,21 +60,26 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const priorityQueueStore = await createPriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>({
-      type: configuration.priorityQueueStoreType,
+    const priorityQueueStoreForCommands = await createPriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>({
+      type: configuration.priorityQueueStoreForCommandsType,
       doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
-      options: configuration.priorityQueueStoreOptions
+      options: configuration.priorityQueueStoreForCommandsOptions
+    });
+    const priorityQueueStoreForDomainEvents = await createPriorityQueueStore<DomainEvent<DomainEventData>, ItemIdentifierWithClient>({
+      type: configuration.priorityQueueStoreForDomainEventsType,
+      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchDomainEvent,
+      options: configuration.priorityQueueStoreForDomainEventsOptions
     });
 
     const onReceiveCommand: OnReceiveCommand = async ({ command }): Promise<void> => {
-      await priorityQueueStore.enqueue({
+      await priorityQueueStoreForCommands.enqueue({
         item: command,
         discriminator: command.aggregateIdentifier.id,
         priority: command.metadata.timestamp
       });
     };
     const onCancelCommand: OnCancelCommand = async ({ commandIdentifierWithClient }): Promise<void> => {
-      await priorityQueueStore.remove({
+      await priorityQueueStoreForCommands.remove({
         discriminator: commandIdentifierWithClient.aggregateIdentifier.id,
         itemIdentifier: commandIdentifierWithClient
       });
@@ -99,6 +107,12 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const publishDomainEvents: PublishDomainEvents = async function ({ domainEvents }): Promise<void> {
       for (const domainEvent of domainEvents) {
         publishDomainEvent({ domainEvent });
+
+        await priorityQueueStoreForDomainEvents.enqueue({
+          item: domainEvent,
+          discriminator: domainEvent.aggregateIdentifier.id,
+          priority: domainEvent.metadata.timestamp
+        });
       }
     };
 
@@ -109,7 +123,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
           repository,
           lockStore,
           priorityQueue: {
-            store: priorityQueueStore,
+            store: priorityQueueStoreForCommands,
             renewalInterval: configuration.commandQueueRenewInterval
           },
           publishDomainEvents
