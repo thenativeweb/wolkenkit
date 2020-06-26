@@ -1,7 +1,7 @@
 import { compileWithTypeScript } from './compileWithTypeScript';
 import { isTypeScript } from 'is-typescript';
 import path from 'path';
-import shell from 'shelljs';
+import { cp, mkdir, rm } from 'shelljs';
 
 const buildApplication = async function ({ applicationDirectory, buildDirectoryOverride }: {
   applicationDirectory: string;
@@ -10,7 +10,7 @@ const buildApplication = async function ({ applicationDirectory, buildDirectoryO
   const serverDirectory = path.join(applicationDirectory, 'server');
   const buildDirectory = buildDirectoryOverride ?? path.join(applicationDirectory, 'build');
 
-  shell.rm('-rf', buildDirectory);
+  rm('-rf', buildDirectory);
 
   if (await isTypeScript({ directory: applicationDirectory })) {
     await compileWithTypeScript({
@@ -21,8 +21,8 @@ const buildApplication = async function ({ applicationDirectory, buildDirectoryO
     return;
   }
 
-  shell.mkdir('-p', path.join(buildDirectory, 'server'));
-  shell.cp('-r', `${serverDirectory}/*`, path.join(buildDirectory, 'server'));
+  mkdir('-p', path.join(buildDirectory, 'server'));
+  cp('-r', `${serverDirectory}/*`, path.join(buildDirectory, 'server'));
 };
 
 export { buildApplication };

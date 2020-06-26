@@ -1,7 +1,8 @@
 import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
 import { oneLine } from 'common-tags';
-import shell from 'shelljs';
+import path from 'path';
+import { exec, mkdir } from 'shelljs';
 
 const compileWithTypeScript = async function ({
   sourceDirectory,
@@ -16,7 +17,7 @@ const compileWithTypeScript = async function ({
 
   const shellQuote = process.platform === 'win32' ? `"` : `'`;
 
-  const { code, stdout, stderr } = shell.exec(oneLine`
+  const { code, stdout, stderr } = exec(oneLine`
     npx tsc
       --module CommonJS
       --noEmitOnError
@@ -27,6 +28,17 @@ const compileWithTypeScript = async function ({
     throw new errors.CompilationFailed('Compilation failed.', {
       data: { stdout, stderr }
     });
+  }
+
+  // Some directories may not contain TypeScript source files and are hence not
+  // copied over by the TypeScript compiler, e.g. the flows directory. Since it
+  // has to be there for the application loading process to succeed, we need to
+  // verify that these directories exist, and if not, create them manually as
+  // empty ones.
+  const flowsDirectory = path.join(targetDirectory, 'server', 'flows');
+
+  if (!await exists({ path: flowsDirectory })) {
+    mkdir('-p', flowsDirectory);
   }
 };
 
