@@ -24,11 +24,17 @@ const readdirRecursive = async function ({ path }: {
       for (const subFile of subFiles) {
         files.push(join(entry.name, subFile));
       }
-    } else if (entry.isFile()) {
-      files.push(entry.name);
-    } else {
-      throw new errors.InvalidOperation();
+
+      continue;
     }
+
+    if (entry.isFile()) {
+      files.push(entry.name);
+
+      continue;
+    }
+
+    throw new errors.InvalidOperation(`'${join(path, entry.name)}' is neither a directory nor a file.`);
   }
 
   return { directories, files };
