@@ -1,9 +1,7 @@
 import { errors } from '../errors';
+import { exec } from 'shelljs';
 import { exists } from '../utils/fs/exists';
 import { oneLine } from 'common-tags';
-import path from 'path';
-import { readdirRecursive } from '../utils/fs/readdirRecursive';
-import { cp, exec, mkdir } from 'shelljs';
 
 const compileWithTypeScript = async function ({
   sourceDirectory,
@@ -29,26 +27,6 @@ const compileWithTypeScript = async function ({
     throw new errors.CompilationFailed('Compilation failed.', {
       data: { stdout, stderr }
     });
-  }
-
-  const { directories, files } = await readdirRecursive({ path: sourceDirectory });
-
-  for (const directory of directories) {
-    mkdir('-p', path.join(targetDirectory, directory));
-  }
-
-  const nonTypeScriptFiles = files.filter((file): boolean => path.extname(file) !== '.ts');
-
-  for (const file of nonTypeScriptFiles) {
-    const targetFile = path.join(targetDirectory, file);
-
-    if (await exists({ path: targetFile })) {
-      continue;
-    }
-
-    const sourceFile = path.join(sourceDirectory, file);
-
-    cp(sourceFile, targetFile);
   }
 };
 
