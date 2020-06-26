@@ -63,7 +63,7 @@ suite('validateFlowDefinition', (): void => {
     }).is.throwing(
       (ex): boolean =>
         (ex as CustomError).code === 'EFLOWDEFINITIONMALFORMED' &&
-        ex.message === `Domain event handler 'sampleHandler' is malformed: Domain event handler is not an object.`
+        ex.message === `Domain event handler 'sampleHandler' is malformed: Property 'domainEventHandler' is not an object.`
     );
   });
 });

@@ -141,7 +141,20 @@ suite('loadApplication', (): void => {
     });
   });
 
-  test('applies flow enhancers.');
+  test('applies flow enhancers.', async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withFlowEnhancer' });
+    const application = await loadApplication({ applicationDirectory });
+
+    assert.that(application).is.atLeast({
+      flows: {
+        sampleFlow: {
+          domainEventHandlers: {
+            enhancedHandler: {}
+          }
+        }
+      }
+    });
+  });
 
   test('applies view enhancers.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withViewEnhancer' });
@@ -185,11 +198,29 @@ suite('loadApplication', (): void => {
       is.throwingAsync(`Aggregate definition '<app>/build/domain/sampleContext/invalidAggregate' is malformed: Function 'getInitialState' is missing.`);
   });
 
-  test('throws an error if the flows directory is missing.');
+  test('throws an error if the flows directory is missing.', async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withoutFlowsDirectory' });
 
-  test('throws an error if the domains contain an empty flow directory.');
+    await assert.
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
+      is.throwingAsync(`Directory '<app>/build/flows' not found.`);
+  });
 
-  test('throws an error if a flow is malformed.');
+  test('throws an error if the flows contain an empty flow directory.', async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withEmptyFlowDirectory' });
+
+    await assert.
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
+      is.throwingAsync(`No flow definition in '<app>/build/flows/emptyFlow' found.`);
+  });
+
+  test('throws an error if a flow is malformed.', async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withInvalidFlow' });
+
+    await assert.
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
+      is.throwingAsync(`Flow definition '<app>/build/flows/invalidFlow' is malformed: Object 'domainEventHandlers' is missing.`);
+  });
 
   test('throws an error if the views directory is missing.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withoutViewsDirectory' });
