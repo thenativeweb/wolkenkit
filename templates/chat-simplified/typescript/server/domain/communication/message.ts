@@ -30,7 +30,7 @@ export interface LikedData extends DomainEventData {
   likes: number;
 }
 
-const message: Aggregate<MessageState> = {
+const message: Aggregate = {
   getInitialState: function () {
     return {
       text: '',
