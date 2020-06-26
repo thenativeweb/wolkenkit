@@ -66,7 +66,7 @@ const validateViewDefinition = function ({ viewDefinition }: {
 
     for (const [ index, enhancer ] of viewDefinition.enhancers.entries()) {
       if (!isFunction(enhancer)) {
-        throw new errors.ViewDefinitionMalformed(`View enhancer at index ${index} is not a function.`);
+        throw new errors.ViewDefinitionMalformed(`View enhancer at index '${index}' is not a function.`);
       }
     }
   }

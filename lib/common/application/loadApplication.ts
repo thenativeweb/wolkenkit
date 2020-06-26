@@ -3,6 +3,7 @@ import { ApplicationEnhancer } from '../../tools/ApplicationEnhancer';
 import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
 import { getDomainDefinition } from './getDomainDefinition';
+import { getFlowsDefinition } from './getFlowsDefinition';
 import { getInfrastructureDefinition } from './getInfrastructureDefinition';
 import { getViewsDefinition } from './getViewsDefinition';
 import path from 'path';
@@ -28,12 +29,14 @@ const loadApplication = async function ({ applicationDirectory }: {
   const packageManifest = (await import(packageManifestPath)).default;
 
   const domainDirectory = path.join(serverDirectory, 'domain');
-  const viewsDirectory = path.join(serverDirectory, 'views');
+  const flowsDirectory = path.join(serverDirectory, 'flows');
   const infrastructureDirectory = path.join(serverDirectory, 'infrastructure');
+  const viewsDirectory = path.join(serverDirectory, 'views');
 
   const domainDefinition = await getDomainDefinition({ domainDirectory });
-  const viewsDefinition = await getViewsDefinition({ viewsDirectory });
   const infrastructureDefinition = await getInfrastructureDefinition({ infrastructureDirectory });
+  const flowsDefinition = await getFlowsDefinition({ flowsDirectory });
+  const viewsDefinition = await getViewsDefinition({ viewsDirectory });
 
   const applicationEnhancers: ApplicationEnhancer[] = [
     withSystemDomainEvents
@@ -43,8 +46,9 @@ const loadApplication = async function ({ applicationDirectory }: {
     rootDirectory: applicationDirectory,
     packageManifest,
     domain: domainDefinition,
-    views: viewsDefinition,
-    infrastructure: await infrastructureDefinition.getInfrastructure()
+    flows: flowsDefinition,
+    infrastructure: await infrastructureDefinition.getInfrastructure(),
+    views: viewsDefinition
   };
 
   const enhancedApplication = applicationEnhancers.reduce(
