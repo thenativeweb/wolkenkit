@@ -15,13 +15,14 @@ class Client extends HttpClient {
     super({ protocol, hostName, port, path });
   }
 
-  public async postMessage ({ message }: {
+  public async postMessage ({ channel, message }: {
+    channel: string;
     message: object;
   }): Promise<void> {
     const { status, data } = await axios({
       method: 'post',
       url: `${this.url}/`,
-      data: message,
+      data: { channel, message },
       validateStatus (): boolean {
         return true;
       }

@@ -23,9 +23,9 @@ class PostgresDomainEventStore implements DomainEventStore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  protected static async getDatabase (pool: Pool): Promise<PoolClient> {
+  protected async getDatabase (): Promise<PoolClient> {
     const database = await retry(async (): Promise<PoolClient> => {
-      const connection = await pool.connect();
+      const connection = await this.pool.connect();
 
       return connection;
     });
@@ -101,28 +101,27 @@ class PostgresDomainEventStore implements DomainEventStore {
       disconnectWatcher
     });
 
-    const connection = await PostgresDomainEventStore.getDatabase(pool);
+    const connection = await domainEventStore.getDatabase();
 
     try {
       await retry(async (): Promise<void> => {
         await connection.query(`
           CREATE TABLE IF NOT EXISTS "${tableNames.domainEvents}" (
-            "revisionGlobal" bigserial NOT NULL,
             "aggregateId" uuid NOT NULL,
-            "revisionAggregate" integer NOT NULL,
+            "revision" integer NOT NULL,
             "causationId" uuid NOT NULL,
             "correlationId" uuid NOT NULL,
+            "timestamp" bigint NOT NULL,
             "domainEvent" jsonb NOT NULL,
 
-            CONSTRAINT "${tableNames.domainEvents}_pk" PRIMARY KEY("revisionGlobal"),
-            CONSTRAINT "${tableNames.domainEvents}_aggregateId_revisionAggregate" UNIQUE ("aggregateId", "revisionAggregate")
+            CONSTRAINT "${tableNames.domainEvents}_pk" PRIMARY KEY ("aggregateId", "revision")
           );
           CREATE TABLE IF NOT EXISTS "${tableNames.snapshots}" (
             "aggregateId" uuid NOT NULL,
-            "revisionAggregate" integer NOT NULL,
+            "revision" integer NOT NULL,
             "state" jsonb NOT NULL,
 
-            CONSTRAINT "${tableNames.snapshots}_pk" PRIMARY KEY("aggregateId", "revisionAggregate")
+            CONSTRAINT "${tableNames.snapshots}_pk" PRIMARY KEY ("aggregateId", "revision")
           );
         `);
       }, {
@@ -140,16 +139,16 @@ class PostgresDomainEventStore implements DomainEventStore {
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     try {
       const result = await connection.query({
         name: 'get last domain event',
         text: `
-          SELECT "domainEvent", "revisionGlobal"
+          SELECT "domainEvent"
             FROM "${this.tableNames.domainEvents}"
             WHERE "aggregateId" = $1
-            ORDER BY "revisionAggregate" DESC
+            ORDER BY "revision" DESC
             LIMIT 1
         `,
         values: [ aggregateIdentifier.id ]
@@ -159,11 +158,7 @@ class PostgresDomainEventStore implements DomainEventStore {
         return;
       }
 
-      let domainEvent = new DomainEvent<TDomainEventData>(result.rows[0].domainEvent);
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(result.rows[0].revisionGlobal)
-      });
+      const domainEvent = new DomainEvent<TDomainEventData>(result.rows[0].domainEvent);
 
       return domainEvent;
     } finally {
@@ -174,14 +169,13 @@ class PostgresDomainEventStore implements DomainEventStore {
   public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     const domainEventStream = connection.query(
       new QueryStream(
-        `SELECT "domainEvent", "revisionGlobal"
-            FROM "${this.tableNames.domainEvents}"
-            WHERE "causationId" = $1
-            ORDER BY "revisionGlobal" ASC`,
+        `SELECT "domainEvent"
+          FROM "${this.tableNames.domainEvents}"
+          WHERE "causationId" = $1`,
         [ causationId ]
       )
     );
@@ -199,11 +193,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     };
 
     onData = function (data: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(data.revisionGlobal)
-      });
+      const domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
 
       passThrough.write(domainEvent);
     };
@@ -229,18 +219,18 @@ class PostgresDomainEventStore implements DomainEventStore {
   public async hasDomainEventsWithCausationId ({ causationId }: {
     causationId: string;
   }): Promise<boolean> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     try {
       const result = await connection.query({
         name: 'has domain event with causation id',
-        text: `SELECT COUNT(*) as count
+        text: `SELECT 1
           FROM "${this.tableNames.domainEvents}"
           WHERE "causationId" = $1`,
         values: [ causationId ]
       });
 
-      return Number(result.rows[0].count) !== 0;
+      return result.rows.length !== 0;
     } finally {
       connection.release();
     }
@@ -249,14 +239,13 @@ class PostgresDomainEventStore implements DomainEventStore {
   public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     const domainEventStream = connection.query(
       new QueryStream(
-        `SELECT "domainEvent", "revisionGlobal"
-            FROM "${this.tableNames.domainEvents}"
-            WHERE "correlationId" = $1
-            ORDER BY "revisionGlobal" ASC`,
+        `SELECT "domainEvent"
+          FROM "${this.tableNames.domainEvents}"
+          WHERE "correlationId" = $1`,
         [ correlationId ]
       )
     );
@@ -274,11 +263,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     };
 
     onData = function (data: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(data.revisionGlobal)
-      });
+      const domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
 
       passThrough.write(domainEvent);
     };
@@ -302,30 +287,22 @@ class PostgresDomainEventStore implements DomainEventStore {
   }
 
   public async getReplay ({
-    fromRevisionGlobal = 1,
-    toRevisionGlobal = (2 ** 31) - 1
+    fromTimestamp = 0
   } = {}): Promise<Readable> {
-    if (fromRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
-    }
-    if (fromRevisionGlobal > toRevisionGlobal) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+    if (fromTimestamp < 0) {
+      throw new errors.ParameterInvalid(`Parameter 'fromTimestamp' must be at least 0.`);
     }
 
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = connection.query(
       new QueryStream(`
-        SELECT "domainEvent", "revisionGlobal"
+        SELECT "domainEvent"
           FROM "${this.tableNames.domainEvents}"
-          WHERE "revisionGlobal" >= $1
-            AND "revisionGlobal" <= $2
-          ORDER BY "revisionGlobal"`,
-      [ fromRevisionGlobal, toRevisionGlobal ])
+          WHERE "timestamp" >= $1
+          ORDER BY "aggregateId", "revision"`,
+      [ fromTimestamp ])
     );
 
     let onData: (data: any) => void,
@@ -340,11 +317,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     };
 
     onData = function (data: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(data.revisionGlobal)
-      });
+      const domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
 
       passThrough.write(domainEvent);
     };
@@ -386,17 +359,17 @@ class PostgresDomainEventStore implements DomainEventStore {
       throw new errors.ParameterInvalid(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
     }
 
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = connection.query(
       new QueryStream(`
-        SELECT "domainEvent", "revisionGlobal"
+        SELECT "domainEvent"
           FROM "${this.tableNames.domainEvents}"
           WHERE "aggregateId" = $1
-            AND "revisionAggregate" >= $2
-            AND "revisionAggregate" <= $3
-          ORDER BY "revisionAggregate"`,
+            AND "revision" >= $2
+            AND "revision" <= $3
+          ORDER BY "revision"`,
       [ aggregateId, fromRevision, toRevision ])
     );
 
@@ -412,11 +385,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     };
 
     onData = function (data: any): void {
-      let domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
-
-      domainEvent = domainEvent.withRevisionGlobal({
-        revisionGlobal: Number(data.revisionGlobal)
-      });
+      const domainEvent = new DomainEvent<DomainEventData>(data.domainEvent);
 
       passThrough.write(domainEvent);
     };
@@ -441,7 +410,7 @@ class PostgresDomainEventStore implements DomainEventStore {
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
-  }): Promise<DomainEvent<TDomainEventData>[]> {
+  }): Promise<void> {
     if (domainEvents.length === 0) {
       throw new errors.ParameterInvalid('Domain events are missing.');
     }
@@ -450,48 +419,36 @@ class PostgresDomainEventStore implements DomainEventStore {
           values = [];
 
     for (const [ index, domainEvent ] of domainEvents.entries()) {
-      const base = (5 * index) + 1;
+      const base = (6 * index) + 1;
 
-      placeholders.push(`($${base}, $${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`);
+      placeholders.push(`($${base}, $${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`);
       values.push(
         domainEvent.aggregateIdentifier.id,
-        domainEvent.metadata.revision.aggregate,
+        domainEvent.metadata.revision,
         domainEvent.metadata.causationId,
         domainEvent.metadata.correlationId,
-        domainEvent
+        domainEvent.metadata.timestamp,
+        omitDeepBy(domainEvent, (value): boolean => value === undefined)
       );
     }
 
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     const text = `
       INSERT INTO "${this.tableNames.domainEvents}"
-        ("aggregateId", "revisionAggregate", "causationId", "correlationId", "domainEvent")
+        ("aggregateId", "revision", "causationId", "correlationId", "timestamp", "domainEvent")
       VALUES
-        ${placeholders.join(',')} RETURNING "revisionGlobal";
+        ${placeholders.join(',')};
     `;
 
-    const savedDomainEvents = [];
-
     try {
-      const result = await connection.query({
+      await connection.query({
         name: `store domain events ${domainEvents.length}`,
         text,
         values
       });
-
-      for (const [ index, domainEvent ] of domainEvents.entries()) {
-        const savedDomainEvent = new DomainEvent<TDomainEventData>({
-          ...domainEvent.withRevisionGlobal({
-            revisionGlobal: Number(result.rows[index].revisionGlobal)
-          }),
-          data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
-        });
-
-        savedDomainEvents.push(savedDomainEvent);
-      }
     } catch (ex) {
-      if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", "revisionAggregate")')) {
+      if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", revision)')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
@@ -499,23 +456,21 @@ class PostgresDomainEventStore implements DomainEventStore {
     } finally {
       connection.release();
     }
-
-    return savedDomainEvents;
   }
 
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<Snapshot<TState> | undefined> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     try {
       const result = await connection.query({
         name: 'get snapshot',
         text: `
-          SELECT "state", "revisionAggregate"
+          SELECT "state", "revision"
             FROM "${this.tableNames.snapshots}"
             WHERE "aggregateId" = $1
-            ORDER BY "revisionAggregate" DESC
+            ORDER BY "revision" DESC
             LIMIT 1
         `,
         values: [ aggregateIdentifier.id ]
@@ -527,7 +482,7 @@ class PostgresDomainEventStore implements DomainEventStore {
 
       return {
         aggregateIdentifier,
-        revision: result.rows[0].revisionAggregate,
+        revision: result.rows[0].revision,
         state: result.rows[0].state
       };
     } finally {
@@ -538,14 +493,14 @@ class PostgresDomainEventStore implements DomainEventStore {
   public async storeSnapshot ({ snapshot }: {
     snapshot: Snapshot<State>;
   }): Promise<void> {
-    const connection = await PostgresDomainEventStore.getDatabase(this.pool);
+    const connection = await this.getDatabase();
 
     try {
       await connection.query({
         name: 'store snapshot',
         text: `
         INSERT INTO "${this.tableNames.snapshots}" (
-          "aggregateId", "revisionAggregate", state
+          "aggregateId", "revision", state
         ) VALUES ($1, $2, $3)
         ON CONFLICT DO NOTHING;
         `,

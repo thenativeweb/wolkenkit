@@ -19,7 +19,8 @@ suite('subscribeMessages/http/Client', (): void => {
       });
 
       test('delivers a single message.', async (): Promise<void> => {
-        const message = { text: 'Hello world!' };
+        const channel = 'messages',
+              message = { text: 'Hello world!' };
 
         const { port } = await runAsServer({ app: api });
         const client = new Client({
@@ -29,10 +30,10 @@ suite('subscribeMessages/http/Client', (): void => {
         });
 
         setTimeout(async (): Promise<void> => {
-          publishMessage({ message });
+          publishMessage({ channel, message });
         }, 100);
 
-        const data = await client.getMessages();
+        const data = await client.getMessages({ channel });
 
         await new Promise((resolve, reject): void => {
           data.on('error', (err: any): void => {
@@ -56,8 +57,9 @@ suite('subscribeMessages/http/Client', (): void => {
       });
 
       test('delivers multiple messages.', async (): Promise<void> => {
-        const messageFirst = { text: 'Hello world!' };
-        const messageSecond = { text: 'Goodbye world!' };
+        const channel = 'messages',
+              messageFirst = { text: 'Hello world!' },
+              messageSecond = { text: 'Goodbye world!' };
 
         const { port } = await runAsServer({ app: api });
         const client = new Client({
@@ -67,11 +69,11 @@ suite('subscribeMessages/http/Client', (): void => {
         });
 
         setTimeout(async (): Promise<void> => {
-          publishMessage({ message: messageFirst });
-          publishMessage({ message: messageSecond });
+          publishMessage({ channel, message: messageFirst });
+          publishMessage({ channel, message: messageSecond });
         }, 100);
 
-        const data = await client.getMessages();
+        const data = await client.getMessages({ channel });
 
         await new Promise((resolve, reject): void => {
           data.on('error', (err: any): void => {

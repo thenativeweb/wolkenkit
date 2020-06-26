@@ -1,16 +1,16 @@
 import { assert } from 'assertthat';
 import { buildApplication } from '../../../../lib/common/application/buildApplication';
 import fs from 'fs';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { isolated } from 'isolated';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import path from 'path';
 import shell from 'shelljs';
 
 const javascriptApplicationDirectory = getTestApplicationDirectory({ name: 'base-uncompiled' });
 const typescriptApplicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'typescript' });
 
-const getExpectedApplicationDefinition = ({ applicationDirectory, packageName }: {
+const getExpectedApplication = ({ applicationDirectory, packageName }: {
   applicationDirectory: string;
   packageName: string;
 }): any => ({
@@ -32,6 +32,10 @@ const getExpectedApplicationDefinition = ({ applicationDirectory, packageName }:
       }
     }
   },
+  infrastructure: {
+    ask: {},
+    tell: {}
+  },
   views: {
     sampleView: {
       initializer: {
@@ -48,7 +52,7 @@ const getExpectedApplicationDefinition = ({ applicationDirectory, packageName }:
 });
 
 suite('buildApplication', function (): void {
-  this.timeout(20 * 1000);
+  this.timeout(30_000);
 
   test('builds a JavaScript application.', async (): Promise<void> => {
     const applicationDirectory = await isolated();
@@ -56,10 +60,10 @@ suite('buildApplication', function (): void {
     shell.cp('-r', path.join(javascriptApplicationDirectory, '*'), applicationDirectory);
     await buildApplication({ applicationDirectory });
 
-    const actualApplicationDefinition = await getApplicationDefinition({ applicationDirectory });
-    const expectedApplicationDefinition = getExpectedApplicationDefinition({ applicationDirectory, packageName: 'base-uncompiled' });
+    const actualApplication = await loadApplication({ applicationDirectory });
+    const expectedApplication = getExpectedApplication({ applicationDirectory, packageName: 'base-uncompiled' });
 
-    assert.that(actualApplicationDefinition).is.atLeast(expectedApplicationDefinition);
+    assert.that(actualApplication).is.atLeast(expectedApplication);
   });
 
   test('builds a TypeScript application.', async (): Promise<void> => {
@@ -79,9 +83,9 @@ suite('buildApplication', function (): void {
     shell.exec('npm install', { cwd: applicationDirectory });
     await buildApplication({ applicationDirectory });
 
-    const actualApplicationDefinition = await getApplicationDefinition({ applicationDirectory });
-    const expectedApplicationDefinition = getExpectedApplicationDefinition({ applicationDirectory, packageName: 'base' });
+    const actualApplication = await loadApplication({ applicationDirectory });
+    const expectedApplication = getExpectedApplication({ applicationDirectory, packageName: 'base' });
 
-    assert.that(actualApplicationDefinition).is.atLeast(expectedApplicationDefinition);
+    assert.that(actualApplication).is.atLeast(expectedApplication);
   });
 });

@@ -16,7 +16,8 @@ const getV2 = async function ({
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
-      body: { parser: { sizeLimit: 100_000 }}
+      body: { parser: { sizeLimit: 100_000 }},
+      query: { parser: { useJson: true }}
     },
     response: {
       headers: { cache: false }
@@ -24,17 +25,13 @@ const getV2 = async function ({
   });
 
   api.post(
-    '/store-domain-events',
-    storeDomainEvents({
-      domainEventStore
-    })
+    `/${storeDomainEvents.path}`,
+    storeDomainEvents.getHandler({ domainEventStore })
   );
 
   api.post(
-    '/store-snapshot',
-    storeSnapshot({
-      domainEventStore
-    })
+    `/${storeSnapshot.path}`,
+    storeSnapshot.getHandler({ domainEventStore })
   );
 
   return { api };

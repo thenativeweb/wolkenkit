@@ -1,18 +1,19 @@
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { Client } from '../../../../lib/apis/observeDomainEvents/http/v2/Client';
+import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
+import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/observeDomainEvents/http';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory/InMemoryDomainEventStore';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { PublishDomainEvent } from '../../../../lib/apis/observeDomainEvents/PublishDomainEvent';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { runAsServer } from '../../../shared/http/runAsServer';
@@ -23,17 +24,18 @@ suite('observeDomainEvents/http/Client', function (): void {
 
   const identityProviders = [ identityProvider ];
 
-  let applicationDefinition: ApplicationDefinition,
+  let application: Application,
       domainEventStore: DomainEventStore,
       repository: Repository;
 
   setup(async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
     domainEventStore = await InMemoryDomainEventStore.create();
     repository = new Repository({
-      applicationDefinition,
+      application,
+      lockStore: await createLockStore({ type: 'InMemory', options: {}}),
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' })
     });
@@ -45,12 +47,12 @@ suite('observeDomainEvents/http/Client', function (): void {
 
   suite('/v2', (): void => {
     suite('getDescription', (): void => {
-      let api: Application;
+      let api: ExpressApplication;
 
       setup(async (): Promise<void> => {
         ({ api } = await getApi({
           corsOrigin: '*',
-          applicationDefinition,
+          application,
           repository,
           identityProviders
         }));
@@ -67,7 +69,7 @@ suite('observeDomainEvents/http/Client', function (): void {
         const data = await client.getDescription();
 
         const { domainEvents: domainEventsDescription } = getApplicationDescription({
-          applicationDefinition
+          application
         });
 
         // Convert and parse as JSON, to get rid of any values that are undefined.
@@ -81,13 +83,13 @@ suite('observeDomainEvents/http/Client', function (): void {
     });
 
     suite('getDomainEvents', (): void => {
-      let api: Application,
+      let api: ExpressApplication,
           publishDomainEvent: PublishDomainEvent;
 
       setup(async (): Promise<void> => {
         ({ api, publishDomainEvent } = await getApi({
           corsOrigin: '*',
-          applicationDefinition,
+          application,
           repository,
           identityProviders
         }));
@@ -101,7 +103,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -150,7 +152,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'succeeded',
             data: {},
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -163,7 +165,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -218,7 +220,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'succeeded',
             data: {},
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -231,7 +233,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -282,7 +284,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'succeeded',
             data: {},
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -295,7 +297,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -349,7 +351,7 @@ suite('observeDomainEvents/http/Client', function (): void {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),

@@ -1,38 +1,40 @@
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
+import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
+import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/observeDomainEvents/http';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
-import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory/InMemoryDomainEventStore';
+import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { PublishDomainEvent } from '../../../../lib/apis/observeDomainEvents/PublishDomainEvent';
-import qs from 'qs';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { uuid } from 'uuidv4';
+import { waitForSignals } from 'wait-for-signals';
 
 suite('observeDomainEvents/http', (): void => {
   const identityProviders = [ identityProvider ];
 
-  let applicationDefinition: ApplicationDefinition,
+  let application: Application,
       domainEventStore: DomainEventStore,
       repository: Repository;
 
   setup(async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
     domainEventStore = await InMemoryDomainEventStore.create();
     repository = new Repository({
-      applicationDefinition,
+      application,
+      lockStore: await createLockStore({ type: 'InMemory', options: {}}),
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' })
     });
@@ -44,12 +46,12 @@ suite('observeDomainEvents/http', (): void => {
 
   suite('/v2', (): void => {
     suite('GET /description', (): void => {
-      let api: Application;
+      let api: ExpressApplication;
 
       setup(async (): Promise<void> => {
         ({ api } = await getApi({
           corsOrigin: '*',
-          applicationDefinition,
+          application,
           repository,
           identityProviders
         }));
@@ -86,7 +88,7 @@ suite('observeDomainEvents/http', (): void => {
         });
 
         const { domainEvents: domainEventsDescription } = getApplicationDescription({
-          applicationDefinition
+          application
         });
 
         // Convert and parse as JSON, to get rid of any values that are undefined.
@@ -100,16 +102,29 @@ suite('observeDomainEvents/http', (): void => {
     });
 
     suite('GET /', (): void => {
-      let api: Application,
+      let api: ExpressApplication,
           publishDomainEvent: PublishDomainEvent;
 
       setup(async (): Promise<void> => {
         ({ api, publishDomainEvent } = await getApi({
           corsOrigin: '*',
-          applicationDefinition,
+          application,
           repository,
           identityProviders
         }));
+      });
+
+      test('returns a 400 if the query is malformed.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'get',
+          url: '/v2/?foo=bar',
+          responseType: 'stream',
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(400);
       });
 
       test('delivers a single domain event.', async (): Promise<void> => {
@@ -120,7 +135,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -168,7 +183,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'succeeded',
             data: {},
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -181,7 +196,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -235,7 +250,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'succeeded',
             data: {},
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -248,7 +263,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -265,7 +280,12 @@ suite('observeDomainEvents/http', (): void => {
         const { data } = await client({
           method: 'get',
           url: '/v2/',
-          params: { name: 'executed' },
+          params: { filter: { name: 'executed' }},
+          paramsSerializer (params): string {
+            return Object.entries(params).
+              map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
+              join('&');
+          },
           responseType: 'stream'
         });
 
@@ -299,7 +319,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'succeeded',
             data: {},
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -312,7 +332,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 2 },
+              revision: 2,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -329,12 +349,14 @@ suite('observeDomainEvents/http', (): void => {
         const { data } = await client({
           method: 'get',
           url: '/v2/',
-          params: {
+          params: { filter: {
             contextIdentifier: { name: 'sampleContext' },
             name: 'executed'
-          },
+          }},
           paramsSerializer (params): string {
-            return qs.stringify(params);
+            return Object.entries(params).
+              map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
+              join('&');
           },
           responseType: 'stream'
         });
@@ -361,6 +383,155 @@ suite('observeDomainEvents/http', (): void => {
         });
       });
 
+      test('delivers rejected/failed events to their initiator.', async (): Promise<void> => {
+        const failed = new DomainEventWithState({
+          ...buildDomainEvent({
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'authenticateFailed',
+            data: { reason: 'test' },
+            metadata: {
+              revision: 1,
+              initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
+            }
+          }),
+          state: { previous: {}, next: {}}
+        });
+        const rejected = new DomainEventWithState({
+          ...buildDomainEvent({
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'authenticateRejected',
+            data: { reason: 'test' },
+            metadata: {
+              revision: 2,
+              initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
+            }
+          }),
+          state: { previous: {}, next: {}}
+        });
+
+        setTimeout(async (): Promise<void> => {
+          publishDomainEvent({ domainEvent: failed });
+          publishDomainEvent({ domainEvent: rejected });
+        }, 100);
+
+        const { client } = await runAsServer({ app: api });
+
+        const { data } = await client({
+          method: 'get',
+          url: '/v2/',
+          headers: {
+            'x-anonymous-id': 'jane.doe'
+          },
+          responseType: 'stream'
+        });
+
+        const collector = waitForSignals({ count: 2 });
+
+        data.on('error', async (err: any): Promise<void> => {
+          await collector.fail(err);
+        });
+
+        data.on('close', async (): Promise<void> => {
+          await collector.fail();
+        });
+
+        data.pipe(asJsonStream([
+          (streamElement): void => {
+            assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+          },
+          async (streamElement: any): Promise<void> => {
+            try {
+              assert.that(streamElement.name).is.equalTo('authenticateFailed');
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          },
+          async (streamElement: any): Promise<void> => {
+            try {
+              assert.that(streamElement.name).is.equalTo('authenticateRejected');
+              await collector.signal();
+            } catch (ex) {
+              await collector.fail(ex);
+            }
+          }
+        ]));
+
+        await collector.promise;
+      });
+
+      test('does not deliver rejected/failed events to other clients than the initiator.', async (): Promise<void> => {
+        const failed = new DomainEventWithState({
+          ...buildDomainEvent({
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'authenticateFailed',
+            data: { reason: 'test' },
+            metadata: {
+              revision: 1,
+              initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
+            }
+          }),
+          state: { previous: {}, next: {}}
+        });
+        const rejected = new DomainEventWithState({
+          ...buildDomainEvent({
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'authenticateRejected',
+            data: { reason: 'test' },
+            metadata: {
+              revision: 2,
+              initiator: { user: { id: 'anonymous-jane.doe', claims: { sub: 'anonymous-jane.doe' }}}
+            }
+          }),
+          state: { previous: {}, next: {}}
+        });
+
+        setTimeout(async (): Promise<void> => {
+          publishDomainEvent({ domainEvent: failed });
+          publishDomainEvent({ domainEvent: rejected });
+        }, 100);
+
+        const { client } = await runAsServer({ app: api });
+
+        const { data } = await client({
+          method: 'get',
+          url: '/v2/',
+          headers: {
+            'x-anonymous-id': 'john.doe'
+          },
+          responseType: 'stream'
+        });
+
+        const collector = waitForSignals({ count: 1 });
+
+        data.on('error', async (err: any): Promise<void> => {
+          await collector.fail(err);
+        });
+
+        data.on('close', async (): Promise<void> => {
+          await collector.fail();
+        });
+
+        data.pipe(asJsonStream([
+          (streamElement): void => {
+            assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+          },
+          async (): Promise<void> => {
+            await collector.fail();
+          }
+        ]));
+
+        setTimeout(async (): Promise<void> => {
+          await collector.signal();
+        }, 200);
+
+        await collector.promise;
+      });
+
       test('removes state before delivery.', async (): Promise<void> => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
@@ -369,7 +540,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -417,7 +588,7 @@ suite('observeDomainEvents/http', (): void => {
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
-              revision: { aggregate: 1 },
+              revision: 1,
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
             }
           }),
@@ -455,16 +626,17 @@ suite('observeDomainEvents/http', (): void => {
             name: 'withDomainEventAuthorization'
           });
 
-          applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+          application = await loadApplication({ applicationDirectory });
           repository = new Repository({
-            applicationDefinition,
+            application,
+            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
-            applicationDefinition,
+            application,
             repository,
             identityProviders
           }));
@@ -478,7 +650,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'authorizationDenied',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -491,7 +663,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
-                revision: { aggregate: 2 },
+                revision: 2,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -537,16 +709,17 @@ suite('observeDomainEvents/http', (): void => {
             name: 'withDomainEventAuthorization'
           });
 
-          applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+          application = await loadApplication({ applicationDirectory });
           repository = new Repository({
-            applicationDefinition,
+            application,
+            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
-            applicationDefinition,
+            application,
             repository,
             identityProviders
           }));
@@ -560,7 +733,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'authorizationFailed',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -573,7 +746,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
-                revision: { aggregate: 2 },
+                revision: 2,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -617,16 +790,17 @@ suite('observeDomainEvents/http', (): void => {
         test('does not mutate the domain event.', async (): Promise<void> => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventAuthorization' });
 
-          applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+          application = await loadApplication({ applicationDirectory });
           repository = new Repository({
-            applicationDefinition,
+            application,
+            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
-            applicationDefinition,
+            application,
             repository,
             identityProviders
           }));
@@ -640,7 +814,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'authorizationWithMutation',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -687,16 +861,17 @@ suite('observeDomainEvents/http', (): void => {
         test('does not skip a domain event if the domain event does not get filtered out.', async (): Promise<void> => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventFilter' });
 
-          applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+          application = await loadApplication({ applicationDirectory });
           repository = new Repository({
-            applicationDefinition,
+            application,
+            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
-            applicationDefinition,
+            application,
             repository,
             identityProviders
           }));
@@ -710,7 +885,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'filterPassed',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -753,16 +928,17 @@ suite('observeDomainEvents/http', (): void => {
         test('skips a domain event if the domain event gets filtered out.', async (): Promise<void> => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventFilter' });
 
-          applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+          application = await loadApplication({ applicationDirectory });
           repository = new Repository({
-            applicationDefinition,
+            application,
+            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
-            applicationDefinition,
+            application,
             repository,
             identityProviders
           }));
@@ -776,7 +952,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'filterDenied',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -789,7 +965,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
-                revision: { aggregate: 2 },
+                revision: 2,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -833,16 +1009,17 @@ suite('observeDomainEvents/http', (): void => {
         test('skips a domain event if an error is thrown.', async (): Promise<void> => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventFilter' });
 
-          applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+          application = await loadApplication({ applicationDirectory });
           repository = new Repository({
-            applicationDefinition,
+            application,
+            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
-            applicationDefinition,
+            application,
             repository,
             identityProviders
           }));
@@ -856,7 +1033,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'filterFailed',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -869,7 +1046,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
-                revision: { aggregate: 2 },
+                revision: 2,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -913,16 +1090,17 @@ suite('observeDomainEvents/http', (): void => {
         test('does not mutate the domain event.', async (): Promise<void> => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventFilter' });
 
-          applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+          application = await loadApplication({ applicationDirectory });
           repository = new Repository({
-            applicationDefinition,
+            application,
+            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
-            applicationDefinition,
+            application,
             repository,
             identityProviders
           }));
@@ -936,7 +1114,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'filterWithMutation',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -983,16 +1161,17 @@ suite('observeDomainEvents/http', (): void => {
         test('maps the domain event.', async (): Promise<void> => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventMap' });
 
-          applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+          application = await loadApplication({ applicationDirectory });
           repository = new Repository({
-            applicationDefinition,
+            application,
+            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
-            applicationDefinition,
+            application,
             repository,
             identityProviders
           }));
@@ -1006,7 +1185,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'mapApplied',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1050,16 +1229,17 @@ suite('observeDomainEvents/http', (): void => {
         test('skips a domain event if the domain event gets mapped to undefined.', async (): Promise<void> => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventMap' });
 
-          applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+          application = await loadApplication({ applicationDirectory });
           repository = new Repository({
-            applicationDefinition,
+            application,
+            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
-            applicationDefinition,
+            application,
             repository,
             identityProviders
           }));
@@ -1073,7 +1253,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'mapToUndefined',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1086,7 +1266,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
-                revision: { aggregate: 2 },
+                revision: 2,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1130,16 +1310,17 @@ suite('observeDomainEvents/http', (): void => {
         test('skips a domain event if an error is thrown.', async (): Promise<void> => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventMap' });
 
-          applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+          application = await loadApplication({ applicationDirectory });
           repository = new Repository({
-            applicationDefinition,
+            application,
+            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
-            applicationDefinition,
+            application,
             repository,
             identityProviders
           }));
@@ -1153,7 +1334,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'mapFailed',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1166,7 +1347,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
-                revision: { aggregate: 2 },
+                revision: 2,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),
@@ -1210,16 +1391,17 @@ suite('observeDomainEvents/http', (): void => {
         test('does not mutate the domain event.', async (): Promise<void> => {
           const applicationDirectory = getTestApplicationDirectory({ name: 'withDomainEventMap' });
 
-          applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+          application = await loadApplication({ applicationDirectory });
           repository = new Repository({
-            applicationDefinition,
+            application,
+            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
 
           ({ api, publishDomainEvent } = await getApi({
             corsOrigin: '*',
-            applicationDefinition,
+            application,
             repository,
             identityProviders
           }));
@@ -1233,7 +1415,7 @@ suite('observeDomainEvents/http', (): void => {
               name: 'mapWithMutation',
               data: {},
               metadata: {
-                revision: { aggregate: 1 },
+                revision: 1,
                 initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
               }
             }),

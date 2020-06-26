@@ -40,25 +40,6 @@ class DomainEvent<TDomainEventData extends DomainEventData> {
     this.metadata = metadata;
   }
 
-  public withRevisionGlobal ({ revisionGlobal }: {
-    revisionGlobal: number;
-  }): DomainEvent<TDomainEventData> {
-    return new DomainEvent({
-      contextIdentifier: this.contextIdentifier,
-      aggregateIdentifier: this.aggregateIdentifier,
-      name: this.name,
-      data: this.data,
-      id: this.id,
-      metadata: {
-        ...this.metadata,
-        revision: {
-          ...this.metadata.revision,
-          global: revisionGlobal
-        }
-      }
-    });
-  }
-
   public getItemIdentifier (): ItemIdentifier {
     return {
       contextIdentifier: this.contextIdentifier,

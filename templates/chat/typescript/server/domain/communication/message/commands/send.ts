@@ -1,12 +1,12 @@
 import { MessageState } from '../MessageState';
 import { SentData } from '../domainEvents/sent';
-import { CommandData, CommandHandler, Schema } from 'wolkenkit';
+import { AskInfrastructure, CommandData, CommandHandler, Schema, TellInfrastructure } from 'wolkenkit';
 
 export interface SendData extends CommandData {
   text: string;
 }
 
-export const send: CommandHandler<MessageState, SendData> = {
+export const send: CommandHandler<MessageState, SendData, AskInfrastructure & TellInfrastructure> = {
   getSchema (): Schema {
     return {
       type: 'object',
@@ -25,6 +25,9 @@ export const send: CommandHandler<MessageState, SendData> = {
   handle (_state, command, { aggregate, error }): void {
     if (!command.data.text) {
       throw new error.CommandRejected('Text is missing.');
+    }
+    if (!aggregate.isPristine()) {
+      throw new error.CommandRejected('Message was already sent.');
     }
 
     aggregate.publishDomainEvent<SentData>('sent', {

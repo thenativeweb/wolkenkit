@@ -1,31 +1,69 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
-import { RequestHandler } from 'express';
-import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
+import { flaschenpost } from 'flaschenpost';
+import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
+import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
+import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
-const getSnapshot = function ({
-  domainEventStore
-}: {
-  domainEventStore: DomainEventStore;
-}): RequestHandler {
-  return async function (req, res): Promise<any> {
-    let aggregateIdentifier;
+const logger = flaschenpost.getLogger();
 
-    try {
-      aggregateIdentifier = JSON.parse(req.query.aggregateIdentifier);
+const getSnapshot = {
+  description: 'Returns the latest snapshot for an aggeragte.',
+  path: 'snapshot',
 
-      validateAggregateIdentifier({ aggregateIdentifier });
-    } catch (ex) {
-      return res.status(400).send(ex.message);
+  request: {
+    query: {
+      type: 'object',
+      properties: {
+        aggregateIdentifier: getAggregateIdentifierSchema()
+      },
+      required: [ 'aggregateIdentifier' ],
+      additionalParameters: false
     }
+  },
+  response: {
+    statusCodes: [ 200, 400, 404 ],
 
-    const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
+    body: getSnapshotSchema()
+  },
 
-    if (!snapshot) {
-      return res.status(404).end();
-    }
+  getHandler ({
+    domainEventStore
+  }: {
+    domainEventStore: DomainEventStore;
+  }): WolkenkitRequestHandler {
+    const querySchema = new Value(getSnapshot.request.query),
+          responseBodySchema = new Value(getSnapshot.response.body);
 
-    res.json(snapshot);
-  };
+    return async function (req, res): Promise<any> {
+      const { aggregateIdentifier } = req.query;
+
+      try {
+        querySchema.validate(req.query);
+      } catch (ex) {
+        return res.status(400).send(ex.message);
+      }
+
+      try {
+        const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
+
+        if (!snapshot) {
+          return res.status(404).end();
+        }
+
+        responseBodySchema.validate(snapshot);
+
+        res.json(snapshot);
+      } catch (ex) {
+        logger.error('Unknown error occured.', { ex });
+
+        return res.status(400).json({
+          code: ex.code ?? 'EUNKNOWNERROR',
+          message: ex.message
+        });
+      }
+    };
+  }
 };
 
 export { getSnapshot };

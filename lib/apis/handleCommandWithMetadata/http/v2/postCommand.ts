@@ -1,68 +1,110 @@
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
+import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
+import { jsonSchema } from 'uuidv4';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
-import { RequestHandler } from 'express';
 import typer from 'content-type';
 import { validateCommandWithMetadata } from '../../../../common/validators/validateCommandWithMetadata';
+import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
-const postCommand = function ({ onReceiveCommand, applicationDefinition }: {
-  onReceiveCommand: OnReceiveCommand;
-  applicationDefinition: ApplicationDefinition;
-}): RequestHandler {
-  return async function (req, res): Promise<void> {
-    try {
-      const contentType = typer.parse(req);
+const postCommand = {
+  description: 'Accepts a command with metadata for further processing.',
+  path: '',
 
-      if (contentType.type !== 'application/json') {
-        throw new errors.RequestMalformed();
+  request: {
+    body: getCommandWithMetadataSchema()
+  },
+  response: {
+    statusCodes: [ 200, 400, 415 ],
+
+    body: {
+      type: 'object',
+      properties: {
+        id: jsonSchema.v4
+      },
+      required: [ 'id' ],
+      additionalProperties: false
+    }
+  },
+
+  getHandler ({ onReceiveCommand, application }: {
+    onReceiveCommand: OnReceiveCommand;
+    application: Application;
+  }): WolkenkitRequestHandler {
+    const requestBodySchema = new Value(postCommand.request.body),
+          responseBodySchema = new Value(postCommand.response.body);
+
+    return async function (req, res): Promise<void> {
+      try {
+        const contentType = typer.parse(req);
+
+        if (contentType.type !== 'application/json') {
+          throw new errors.RequestMalformed();
+        }
+      } catch {
+        const ex = new errors.RequestMalformed('Header content-type must be application/json.');
+
+        res.status(415).json({
+          code: ex.code,
+          message: ex.message
+        });
+
+        return;
       }
-    } catch {
-      const ex = new errors.RequestMalformed('Header content-type must be application/json.');
 
-      res.status(415).json({
-        code: ex.code,
-        message: ex.message
-      });
+      try {
+        requestBodySchema.validate(req.body);
+      } catch (ex) {
+        const error = new errors.CommandMalformed(ex.message);
 
-      return;
-    }
+        res.status(400).json({
+          code: error.code,
+          message: error.message
+        });
 
-    const command = new CommandWithMetadata(req.body);
+        return;
+      }
 
-    try {
-      validateCommandWithMetadata({ command, applicationDefinition });
-    } catch (ex) {
-      res.status(400).json({
-        code: ex.code,
-        message: ex.message
-      });
+      const command = new CommandWithMetadata(req.body);
 
-      return;
-    }
+      try {
+        validateCommandWithMetadata({ command, application });
+      } catch (ex) {
+        res.status(400).json({
+          code: ex.code,
+          message: ex.message
+        });
 
-    logger.info('Command received.', { command });
+        return;
+      }
 
-    try {
-      await onReceiveCommand({ command });
-    } catch (ex) {
-      logger.error('An error occured in on receive callback.', { ex });
+      logger.info('Command received.', { command });
 
-      const customError = new errors.UnknownError();
+      try {
+        await onReceiveCommand({ command });
 
-      res.status(500).json({
-        code: customError.code,
-        message: customError.message
-      });
+        const response = { id: command.id };
 
-      return;
-    }
+        responseBodySchema.validate(response);
 
-    res.status(200).json({ id: command.id });
-  };
+        res.status(200).json(response);
+      } catch (ex) {
+        logger.error('Unknown error occured.', { ex });
+
+        const error = new errors.UnknownError();
+
+        res.status(500).json({
+          code: error.code,
+          message: error.message
+        });
+      }
+    };
+  }
 };
 
 export { postCommand };

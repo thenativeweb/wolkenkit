@@ -1,25 +1,19 @@
 import { connectionOptions } from '../../../shared/containers/connectionOptions';
 import { getTestsFor } from './getTestsFor';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
-import { MariaDbLockStore } from '../../../../lib/stores/lockStore/MariaDb';
-
-const maxLockSize = 2048;
+import { MySqlLockStore } from '../../../../lib/stores/lockStore/MySql';
 
 suite('MariaDb', (): void => {
   getTestsFor({
-    async createLockStore ({ suffix, nonce }: {
+    async createLockStore ({ suffix }: {
       suffix: string;
-      nonce?: string;
     }): Promise<LockStore> {
-      return await MariaDbLockStore.create({
+      return await MySqlLockStore.create({
         ...connectionOptions.mariaDb,
-        maxLockSize,
         tableNames: {
           locks: `locks_${suffix}`
-        },
-        nonce
+        }
       });
-    },
-    maxLockSize
+    }
   });
 });

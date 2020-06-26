@@ -1,40 +1,62 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
-import { parseGetReplayQueryParameters } from './parameters/parseGetReplayQueryParameters';
-import { RequestHandler } from 'express';
-import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
+import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
+import { Value } from 'validate-value';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 
-const getReplay = function ({
-  domainEventStore,
-  heartbeatInterval
-}: {
-  domainEventStore: DomainEventStore;
-  heartbeatInterval: number;
-}): RequestHandler {
-  return async function (req, res): Promise<any> {
-    let fromRevisionGlobal: number | undefined,
-        toRevisionGlobal: number | undefined;
+const getReplay = {
+  description: 'Streams a replay of all domain events, optionally starting and ending at given revisions.',
+  path: 'replay',
 
-    try {
-      ({ fromRevisionGlobal, toRevisionGlobal } = parseGetReplayQueryParameters({ parameters: req.query }));
-    } catch (ex) {
-      return res.status(400).send(ex.message);
+  request: {
+    query: {
+      type: 'object',
+      properties: {
+        fromTimestamp: { type: 'number', minimum: 0 }
+      },
+      required: [],
+      additionalProperties: false
     }
+  },
+  response: {
+    statusCodes: [ 200, 400 ],
 
-    const heartbeatMiddleware = streamNdjsonMiddleware({ heartbeatInterval });
+    stream: true,
+    body: getDomainEventSchema()
+  },
 
-    await heartbeatMiddleware(req, res, (): void => {
-      // No need for a `next`-callback for this middleware.
-    });
+  getHandler ({
+    domainEventStore,
+    heartbeatInterval
+  }: {
+    domainEventStore: DomainEventStore;
+    heartbeatInterval: number;
+  }): WolkenkitRequestHandler {
+    const querySchema = new Value(getReplay.request.query),
+          responseBodySchema = new Value(getReplay.response.body);
 
-    const domainEventStream = await domainEventStore.getReplay({ fromRevisionGlobal, toRevisionGlobal });
+    return async function (req, res): Promise<any> {
+      try {
+        querySchema.validate(req.query);
+      } catch (ex) {
+        return res.status(400).send(ex.message);
+      }
 
-    for await (const domainEvent of domainEventStream) {
-      writeLine({ res, data: domainEvent });
-    }
+      const fromTimestamp = req.query.fromTimestamp as number;
 
-    return res.end();
-  };
+      res.startStream({ heartbeatInterval });
+
+      const domainEventStream = await domainEventStore.getReplay({ fromTimestamp });
+
+      for await (const domainEvent of domainEventStream) {
+        responseBodySchema.validate(domainEvent);
+
+        writeLine({ res, data: domainEvent });
+      }
+
+      return res.end();
+    };
+  }
 };
 
 export { getReplay };

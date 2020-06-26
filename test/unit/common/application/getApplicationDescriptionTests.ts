@@ -1,20 +1,33 @@
 import { assert } from 'assertthat';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 
 suite('getApplicationDescription', (): void => {
   test('returns an application description from the given application definition.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
-    const applicationDefinition = await getApplicationDefinition({ applicationDirectory });
-    const applicationDescription = getApplicationDescription({ applicationDefinition });
+    const application = await loadApplication({ applicationDirectory });
+    const applicationDescription = getApplicationDescription({ application });
 
     assert.that(applicationDescription).is.equalTo({
       commands: {
         sampleContext: {
           sampleAggregate: {
+            authenticate: {
+              schema: {
+                type: 'object',
+                properties: {
+                  allowAnonymous: {
+                    type: 'boolean'
+                  }
+                },
+                required: [
+                  'allowAnonymous'
+                ],
+                additionalProperties: false
+              }
+            },
             authorize: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -25,7 +38,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             execute: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -41,16 +53,66 @@ suite('getApplicationDescription', (): void => {
       domainEvents: {
         sampleContext: {
           sampleAggregate: {
-            authorized: {
-              documentation: undefined,
+            authenticated: {
               schema: {
                 type: 'object',
                 properties: {},
                 additionalProperties: false
               }
             },
+            authorized: {
+              schema: {
+                type: 'object',
+                properties: {},
+                additionalProperties: false
+              }
+            },
+            succeeded: {
+              schema: {
+                type: 'object',
+                properties: {},
+                additionalProperties: false
+              }
+            },
+            executed: {
+              schema: {
+                type: 'object',
+                properties: {
+                  strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                },
+                required: [ 'strategy' ],
+                additionalProperties: false
+              }
+            },
+            authenticateFailed: {
+              schema: {
+                type: 'object',
+                properties: {
+                  reason: {
+                    type: 'string'
+                  }
+                },
+                required: [
+                  'reason'
+                ],
+                additionalProperties: false
+              }
+            },
+            authenticateRejected: {
+              schema: {
+                type: 'object',
+                properties: {
+                  reason: {
+                    type: 'string'
+                  }
+                },
+                required: [
+                  'reason'
+                ],
+                additionalProperties: false
+              }
+            },
             authorizeFailed: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -61,7 +123,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             authorizeRejected: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -71,23 +132,7 @@ suite('getApplicationDescription', (): void => {
                 additionalProperties: false
               }
             },
-            succeeded: {
-              documentation: undefined,
-              schema: undefined
-            },
-            executed: {
-              documentation: undefined,
-              schema: {
-                type: 'object',
-                properties: {
-                  strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
-                },
-                required: [ 'strategy' ],
-                additionalProperties: false
-              }
-            },
             executeFailed: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {
@@ -98,7 +143,6 @@ suite('getApplicationDescription', (): void => {
               }
             },
             executeRejected: {
-              documentation: undefined,
               schema: {
                 type: 'object',
                 properties: {

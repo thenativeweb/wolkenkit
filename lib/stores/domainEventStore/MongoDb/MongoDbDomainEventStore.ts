@@ -9,6 +9,7 @@ import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
+import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { Collection, Db, MongoClient } from 'mongodb';
 import { PassThrough, Readable } from 'stream';
 
@@ -22,7 +23,6 @@ class MongoDbDomainEventStore implements DomainEventStore {
   protected collections: {
     domainEvents: Collection<any>;
     snapshots: Collection<any>;
-    counters: Collection<any>;
   };
 
   protected constructor ({ client, db, collectionNames, collections }: {
@@ -32,7 +32,6 @@ class MongoDbDomainEventStore implements DomainEventStore {
     collections: {
       domainEvents: Collection<any>;
       snapshots: Collection<any>;
-      counters: Collection<any>;
     };
   }) {
     this.client = client;
@@ -55,20 +54,15 @@ class MongoDbDomainEventStore implements DomainEventStore {
   }): Promise<MongoDbDomainEventStore> {
     const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
 
-    /* eslint-disable id-length */
     const client = await retry(async (): Promise<MongoClient> => {
       const connection = await MongoClient.connect(
         url,
-        {
-          w: 1,
-          useNewUrlParser: true,
-          useUnifiedTopology: true
-        }
+        // eslint-disable-next-line id-length
+        { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
       );
 
       return connection;
     });
-    /* eslint-enable id-length */
 
     const { pathname } = parse(url);
 
@@ -83,8 +77,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
 
     const collections = {
       domainEvents: db.collection(collectionNames.domainEvents),
-      snapshots: db.collection(collectionNames.snapshots),
-      counters: db.collection(collectionNames.counters)
+      snapshots: db.collection(collectionNames.snapshots)
     };
 
     const domainEventStore = new MongoDbDomainEventStore({
@@ -100,13 +93,8 @@ class MongoDbDomainEventStore implements DomainEventStore {
         name: `${collectionNames.domainEvents}_aggregateId`
       },
       {
-        key: { 'aggregateIdentifier.id': 1, 'metadata.revision.aggregate': 1 },
-        name: `${collectionNames.domainEvents}_aggregateId_revisionAggregate`,
-        unique: true
-      },
-      {
-        key: { 'metadata.revision.global': 1 },
-        name: `${collectionNames.domainEvents}_revisionGlobal`,
+        key: { 'aggregateIdentifier.id': 1, 'metadata.revision': 1 },
+        name: `${collectionNames.domainEvents}_aggregateId_revision`,
         unique: true
       },
       {
@@ -116,59 +104,38 @@ class MongoDbDomainEventStore implements DomainEventStore {
       {
         key: { 'metadata.correlationId': 1 },
         name: `${collectionNames.domainEvents}_correlationId`
+      },
+      {
+        key: { 'metadata.timestamp': 1 },
+        name: `${collectionNames.domainEvents}_timestamp`
       }
     ]);
     await collections.snapshots.createIndexes([
       {
         key: { 'aggregateIdentifier.id': 1 },
+        name: `${collectionNames.snapshots}_aggregateId`,
         unique: true
       }
     ]);
 
-    try {
-      await collections.counters.insertOne({
-        _id: collectionNames.domainEvents,
-        seq: 0
-      });
-    } catch (ex) {
-      if (ex.code === 11000 && ex.message.includes('_counters index: _id_ dup key')) {
-        return domainEventStore;
-      }
-
-      throw ex;
-    }
-
     return domainEventStore;
-  }
-
-  protected async getNextSequence ({ name }: {
-    name: string;
-  }): Promise<number> {
-    const counter = await this.collections.counters.findOneAndUpdate(
-      { _id: name },
-      { $inc: { seq: 1 }},
-      { returnOriginal: false }
-    );
-
-    return counter.value.seq;
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
-    const domainEvents = await this.collections.domainEvents.find({
+    const lastDomainEvent = await this.collections.domainEvents.findOne({
       'aggregateIdentifier.id': aggregateIdentifier.id
     }, {
       projection: { _id: 0 },
-      sort: { 'metadata.revision.aggregate': -1 },
-      limit: 1
-    }).toArray();
+      sort: [[ 'metadata.revision', -1 ]]
+    });
 
-    if (domainEvents.length === 0) {
+    if (!lastDomainEvent) {
       return;
     }
 
-    return new DomainEvent<TDomainEventData>(domainEvents[0]);
+    return new DomainEvent<TDomainEventData>(lastDomainEvent);
   }
 
   public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
@@ -177,8 +144,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     const domainEventStream = this.collections.domainEvents.find({
       'metadata.causationId': causationId
     }, {
-      projection: { _id: 0 },
-      sort: { 'metadata.revision.global': 1 }
+      projection: { _id: 0 }
     }).stream();
 
     const passThrough = new PassThrough({ objectMode: true });
@@ -218,11 +184,11 @@ class MongoDbDomainEventStore implements DomainEventStore {
   public async hasDomainEventsWithCausationId ({ causationId }: {
     causationId: string;
   }): Promise<boolean> {
-    const domainEventCount = await this.collections.domainEvents.count({
+    const domainEventCount = await this.collections.domainEvents.findOne({
       'metadata.causationId': causationId
     });
 
-    return domainEventCount !== 0;
+    return domainEventCount !== null;
   }
 
   public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
@@ -231,8 +197,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     const domainEventStream = this.collections.domainEvents.find({
       'metadata.correlationId': correlationId
     }, {
-      projection: { _id: 0 },
-      sort: { 'metadata.revision.global': 1 }
+      projection: { _id: 0 }
     }).stream();
 
     const passThrough = new PassThrough({ objectMode: true });
@@ -270,31 +235,20 @@ class MongoDbDomainEventStore implements DomainEventStore {
   }
 
   public async getReplay ({
-    fromRevisionGlobal = 1,
-    toRevisionGlobal = (2 ** 31) - 1
+    fromTimestamp = 0
   }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
+    fromTimestamp?: number;
   } = {}): Promise<Readable> {
-    if (fromRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'fromRevisionGlobal' must be at least 1.`);
-    }
-    if (toRevisionGlobal < 1) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be at least 1.`);
-    }
-    if (fromRevisionGlobal > toRevisionGlobal) {
-      throw new errors.ParameterInvalid(`Parameter 'toRevisionGlobal' must be greater or equal to 'fromRevisionGlobal'.`);
+    if (fromTimestamp < 0) {
+      throw new errors.ParameterInvalid(`Parameter 'fromTimestamp' must be at least 0.`);
     }
 
     const passThrough = new PassThrough({ objectMode: true });
     const replayStream = this.collections.domainEvents.find({
-      $and: [
-        { 'metadata.revision.global': { $gte: fromRevisionGlobal }},
-        { 'metadata.revision.global': { $lte: toRevisionGlobal }}
-      ]
+      'metadata.timestamp': { $gte: fromTimestamp }
     }, {
       projection: { _id: 0 },
-      sort: { 'metadata.revision.global': 1 }
+      sort: [[ 'aggregateId', 1 ], [ 'metadata.revision', 1 ]]
     }).stream();
 
     let onData: (data: any) => void,
@@ -362,12 +316,12 @@ class MongoDbDomainEventStore implements DomainEventStore {
     const domainEventStream = this.collections.domainEvents.find({
       $and: [
         { 'aggregateIdentifier.id': aggregateId },
-        { 'metadata.revision.aggregate': { $gte: fromRevision }},
-        { 'metadata.revision.aggregate': { $lte: toRevision }}
+        { 'metadata.revision': { $gte: fromRevision }},
+        { 'metadata.revision': { $lte: toRevision }}
       ]
     }, {
       projection: { _id: 0 },
-      sort: { 'metadata.revision.aggregate': 1 }
+      sort: [[ 'metadata.revision', 1 ]]
     }).stream();
 
     let onData: (data: any) => void,
@@ -414,30 +368,26 @@ class MongoDbDomainEventStore implements DomainEventStore {
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
-  }): Promise<DomainEvent<TDomainEventData>[]> {
+  }): Promise<void> {
     if (domainEvents.length === 0) {
       throw new errors.ParameterInvalid('Domain events are missing.');
     }
 
-    const savedDomainEvents = [];
+    const sanitizedDomainEvents = domainEvents.map((domainEvent): DomainEvent<TDomainEventData> => new DomainEvent<TDomainEventData>({
+      ...domainEvent,
+      data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
+    }));
 
     try {
-      for (const domainEvent of domainEvents) {
-        const revisionGlobal = await this.getNextSequence({
-          name: this.collectionNames.domainEvents
-        });
-
-        const savedDomainEvent = new DomainEvent<TDomainEventData>({
-          ...domainEvent.withRevisionGlobal({ revisionGlobal }),
-          data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
-        });
-
-        savedDomainEvents.push(savedDomainEvent);
-
-        await this.collections.domainEvents.insertOne(savedDomainEvent, {
-          forceServerObjectId: true
-        });
-      }
+      await withTransaction({
+        client: this.client,
+        fn: async ({ session }): Promise<void> => {
+          await this.collections.domainEvents.insertMany(
+            sanitizedDomainEvents,
+            { session }
+          );
+        }
+      });
     } catch (ex) {
       if (ex.code === 11000 && ex.message.includes('_aggregateId_revision')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
@@ -445,8 +395,6 @@ class MongoDbDomainEventStore implements DomainEventStore {
 
       throw ex;
     }
-
-    return savedDomainEvents;
   }
 
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {

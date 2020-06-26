@@ -12,8 +12,7 @@ suite('MongoDb', (): void => {
         ...connectionOptions.mongoDb,
         collectionNames: {
           domainEvents: `domainevents_${suffix}`,
-          snapshots: `snapshots_${suffix}`,
-          counters: `counters_${suffix}`
+          snapshots: `snapshots_${suffix}`
         }
       });
     }

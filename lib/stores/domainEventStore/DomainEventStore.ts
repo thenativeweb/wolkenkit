@@ -23,9 +23,8 @@ export interface DomainEventStore {
     correlationId: string;
   }) => Promise<Readable>;
 
-  getReplay: ({ fromRevisionGlobal, toRevisionGlobal }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
+  getReplay: ({ fromTimestamp }: {
+    fromTimestamp?: number;
   }) => Promise<Readable>;
 
   getReplayForAggregate: ({ aggregateId, fromRevision, toRevision }: {
@@ -40,7 +39,7 @@ export interface DomainEventStore {
 
   storeDomainEvents: <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
-  }) => Promise<DomainEvent<TDomainEventData>[]>;
+  }) => Promise<void>;
 
   storeSnapshot: <TState extends State> ({ snapshot }: {
     snapshot: Snapshot<TState>;

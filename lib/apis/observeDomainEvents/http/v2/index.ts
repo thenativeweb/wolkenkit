@@ -1,37 +1,42 @@
-import { Application } from 'express';
-import { ApplicationDefinition } from '../../../../common/application/ApplicationDefinition';
+import { Application } from '../../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
+import { errors } from '../../../../common/errors';
+import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
 import { getDescription } from './getDescription';
 import { getDomainEvents } from './getDomainEvents';
+import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
 import { IdentityProvider } from 'limes';
 import { PublishDomainEvent } from '../../PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
-import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
+import { Value } from 'validate-value';
+
+const domainEventWithStateSchema = new Value(getDomainEventWithStateSchema());
 
 const getV2 = async function ({
   corsOrigin,
-  applicationDefinition,
+  application,
   repository,
   identityProviders,
   heartbeatInterval = 90_000
 }: {
   corsOrigin: CorsOrigin;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
   repository: Repository;
   identityProviders: IdentityProvider[];
   heartbeatInterval?: number;
-}): Promise<{ api: Application; publishDomainEvent: PublishDomainEvent }> {
+}): Promise<{ api: ExpressApplication; publishDomainEvent: PublishDomainEvent }> {
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
-      body: { parser: false }
+      body: { parser: false },
+      query: { parser: { useJson: true }}
     },
     response: {
       headers: { cache: false }
@@ -45,23 +50,28 @@ const getV2 = async function ({
   const domainEventEmitter =
     new SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>();
 
-  api.get('/description', getDescription({
-    applicationDefinition
+  api.get(`/${getDescription.path}`, getDescription.getHandler({
+    application
   }));
 
   api.get(
-    '/',
+    `/${getDomainEvents.path}`,
     authenticationMiddleware,
-    streamNdjsonMiddleware({ heartbeatInterval }),
-    getDomainEvents({
-      applicationDefinition,
+    getDomainEvents.getHandler({
+      application,
       domainEventEmitter,
-      repository
+      repository,
+      heartbeatInterval
     })
   );
 
   const publishDomainEvent: PublishDomainEvent = function ({ domainEvent }): void {
-    validateDomainEventWithState({ domainEvent, applicationDefinition });
+    try {
+      domainEventWithStateSchema.validate(domainEvent, { valueName: 'domainEvent' });
+    } catch (ex) {
+      throw new errors.DomainEventMalformed(ex.message);
+    }
+    validateDomainEventWithState({ domainEvent, application });
 
     domainEventEmitter.emit(domainEvent);
   };

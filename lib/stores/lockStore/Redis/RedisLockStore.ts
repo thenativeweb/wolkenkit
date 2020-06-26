@@ -1,45 +1,30 @@
 import { errors } from '../errors';
+import { getHash } from '../shared/getHash';
 import { ListNames } from './ListNames';
 import { LockStore } from '../LockStore';
-import { javascript as maxDate } from '../../../common/utils/maxDate';
 import { retry } from 'retry-ignore-abort';
-import redis, { RedisClient } from 'redis';
+import Redis, { Redis as RedisClient } from 'ioredis';
 
 class RedisLockStore implements LockStore {
-  protected client: RedisClient;
+  protected client: Redis.Redis;
 
   protected listNames: ListNames;
 
-  protected maxLockSize: number;
-
-  protected nonce: string;
-
-  protected constructor ({
-    client,
-    listNames,
-    maxLockSize,
-    nonce
-  }: {
+  protected constructor ({ client, listNames }: {
     client: RedisClient;
     listNames: ListNames;
-    maxLockSize: number;
-    nonce: string | null;
   }) {
     this.client = client;
     this.listNames = listNames;
-    this.maxLockSize = maxLockSize;
-    this.nonce = nonce ?? 'null';
   }
 
-  protected getLockName ({ name, list }: {
-    name: any;
-    list: string;
+  protected getKey ({ value }: {
+    value: string;
   }): string {
-    if (name.length > this.maxLockSize) {
-      throw new errors.LockNameTooLong('Lock name is too long.');
-    }
+    const hash = getHash({ value });
+    const key = `${this.listNames.locks}_${hash}`;
 
-    return `${list}#${name}`;
+    return key;
   }
 
   protected static getExpiration ({ expiresAt }: {
@@ -52,174 +37,96 @@ class RedisLockStore implements LockStore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  public static async create ({
-    hostName,
-    port,
-    password,
-    database,
-    listNames,
-    nonce = 'null',
-    maxLockSize = 2048
-  }: {
+  public static async create ({ hostName, port, password, database, listNames }: {
     hostName: string;
     port: number;
     password: string;
-    database: string;
+    database: number;
     listNames: ListNames;
-    nonce?: string | null;
-    maxLockSize?: number;
   }): Promise<RedisLockStore> {
-    const url = `redis://:${password}@${hostName}:${port}/${database}`;
-
-    const client = await retry(async (): Promise<RedisClient> => new Promise((resolve, reject): void => {
-      const redisClient = redis.createClient({ url });
-
-      redisClient.ping((err: Error | null): void => {
-        if (err) {
-          return reject(err);
-        }
-
-        resolve(redisClient);
+    const client = await retry(async (): Promise<RedisClient> => {
+      const redis = new Redis({
+        host: hostName,
+        port,
+        password,
+        db: database
       });
-    }));
+
+      return redis;
+    });
 
     client.on('error', RedisLockStore.onUnexpectedError);
 
-    return new RedisLockStore({
-      client,
-      listNames,
-      maxLockSize,
-      nonce
-    });
+    return new RedisLockStore({ client, listNames });
   }
 
-  public async acquireLock ({
-    name,
-    expiresAt = maxDate
-  }: {
-    name: any;
+  public async acquireLock ({ value, expiresAt = Number.MAX_SAFE_INTEGER }: {
+    value: string;
     expiresAt?: number;
   }): Promise<void> {
-    const key = this.getLockName({ name, list: this.listNames.locks });
-    const expiration = RedisLockStore.getExpiration({ expiresAt });
-
-    if (expiration < 0) {
-      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
+    if (expiresAt < Date.now()) {
+      throw new errors.ExpirationInPast('A lock must not expire in the past.');
     }
 
-    const result = await new Promise((resolve, reject): void => {
-      this.client.set(key, this.nonce, 'PX', expiration, 'NX', (err, reply): void => {
-        if (err) {
-          return reject(err);
-        }
+    const key = this.getKey({ value });
+    const expiration = RedisLockStore.getExpiration({ expiresAt });
 
-        resolve(reply);
-      });
-    });
+    // The return type of `set` is wrong. Typings say it's always 'OK', but
+    // actually it can also be null, if the key already exists.
+    const result = await this.client.set(key, '', 'PX', expiration, 'NX') as 'OK' | null;
 
     if (!result) {
       throw new errors.AcquireLockFailed('Failed to acquire lock.');
     }
   }
 
-  public async isLocked ({ name }: {
-    name: any;
+  public async isLocked ({ value }: {
+    value: string;
   }): Promise<boolean> {
-    const key = this.getLockName({ name, list: this.listNames.locks });
+    const key = this.getKey({ value });
+    const count = await this.client.exists(key);
 
-    const existingLock = await new Promise((resolve, reject): void => {
-      this.client.get(key, (err, reply): void => {
-        if (err) {
-          return reject(err);
-        }
-
-        resolve(reply);
-      });
-    });
-
-    return Boolean(existingLock);
+    return count === 1;
   }
 
-  public async renewLock ({ name, expiresAt }: {
-    name: any;
+  public async renewLock ({ value, expiresAt }: {
+    value: string;
     expiresAt: number;
   }): Promise<void> {
-    const key = this.getLockName({ name, list: this.listNames.locks });
+    if (expiresAt < Date.now()) {
+      throw new errors.ExpirationInPast('A lock must not expire in the past.');
+    }
+
+    const key = this.getKey({ value });
     const expiration = RedisLockStore.getExpiration({ expiresAt });
 
-    if (expiration < 0) {
-      throw new errors.ExpirationInPast('Cannot acquire a lock in the past.');
-    }
-
-    const existingLock = await new Promise((resolve, reject): void => {
-      this.client.get(key, (err, reply): void => {
-        if (err) {
-          return reject(err);
-        }
-
-        resolve(reply);
-      });
-    });
-
-    let result;
-
-    if (existingLock === this.nonce) {
-      result = await new Promise((resolve, reject): void => {
-        this.client.pexpire(key, expiration, (err, reply): void => {
-          if (err) {
-            return reject(err);
-          }
-
-          resolve(reply);
-        });
-      });
-    }
+    const result = await this.client.pexpire(key, expiration);
 
     if (!result) {
       throw new errors.RenewLockFailed('Failed to renew lock.');
     }
   }
 
-  public async releaseLock ({ name }: {
-    name: any;
+  public async releaseLock ({ value }: {
+    value: string;
   }): Promise<void> {
-    const key = this.getLockName({ name, list: this.listNames.locks });
+    const key = this.getKey({ value });
 
-    let result;
-
-    const existingLock = await new Promise((resolve, reject): void => {
-      this.client.get(key, (err, reply): void => {
-        if (err) {
-          return reject(err);
-        }
-
-        resolve(reply);
-      });
-    });
-
-    if (!existingLock) {
-      result = 'OK';
-    } else if (existingLock === this.nonce) {
-      result = await new Promise((resolve, reject): void => {
-        this.client.del(key, (err): void => {
-          if (err) {
-            return reject(err);
-          }
-
-          // At some point the entry may already have been removed by Redis.
-          resolve('OK');
-        });
-      });
-    }
-
-    if (!result) {
-      throw new errors.ReleaseLockFailed('Failed to release lock.');
-    }
+    await this.client.del(key);
   }
 
   public async destroy (): Promise<void> {
     this.client.removeListener('error', RedisLockStore.onUnexpectedError);
-    this.client.quit();
+
+    await new Promise((resolve, reject): void => {
+      this.client.quit((err): void => {
+        if (err) {
+          return reject(err);
+        }
+
+        resolve();
+      });
+    });
   }
 }
 

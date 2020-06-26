@@ -1,33 +1,42 @@
-import { ApplicationDefinition } from '../../../common/application/ApplicationDefinition';
+import { ApiDefinition } from '../../openApi/ApiDefinition';
+import { Application } from '../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
+import { getApiDefinitions } from './getApiDefinitions';
 import { getV2 } from './v2';
 import { IdentityProvider } from 'limes';
+import { OnCancelCommand } from '../OnCancelCommand';
 import { OnReceiveCommand } from '../OnReceiveCommand';
-import express, { Application } from 'express';
+import express, { Application as ExpressApplication } from 'express';
 
 const getApi = async function ({
   corsOrigin,
   onReceiveCommand,
-  applicationDefinition,
+  onCancelCommand,
+  application,
   identityProviders
 }: {
   corsOrigin: CorsOrigin;
   onReceiveCommand: OnReceiveCommand;
-  applicationDefinition: ApplicationDefinition;
+  onCancelCommand: OnCancelCommand;
+  application: Application;
   identityProviders: IdentityProvider[];
-}): Promise<{ api: Application }> {
+}): Promise<{ api: ExpressApplication; getApiDefinitions: (basePath: string) => ApiDefinition[] }> {
   const api = express();
 
   const v2 = await getV2({
     corsOrigin,
     onReceiveCommand,
-    applicationDefinition,
+    onCancelCommand,
+    application,
     identityProviders
   });
 
   api.use('/v2', v2.api);
 
-  return { api };
+  return {
+    api,
+    getApiDefinitions: (basePath: string): ApiDefinition[] => getApiDefinitions({ application, basePath })
+  };
 };
 
 export { getApi };

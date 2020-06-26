@@ -1,26 +1,17 @@
-import { ApplicationDefinition } from '../application/ApplicationDefinition';
+import { Application } from '../application/Application';
 import { CommandData } from '../elements/CommandData';
 import { CommandWithMetadata } from '../elements/CommandWithMetadata';
 import { errors } from '../errors';
-import { getCommandWithMetadataSchema } from '../schemas/getCommandWithMetadataSchema';
 import { Value } from 'validate-value';
 
 const validateCommandWithMetadata = function <TCommandData extends CommandData> ({
   command,
-  applicationDefinition
+  application
 }: {
   command: CommandWithMetadata<TCommandData>;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
 }): void {
-  const schema = getCommandWithMetadataSchema();
-
-  try {
-    schema.validate(command, { valueName: 'command' });
-  } catch (ex) {
-    throw new errors.CommandMalformed(ex.message);
-  }
-
-  const contextDefinitions = applicationDefinition.domain;
+  const contextDefinitions = application.domain;
 
   const {
     contextIdentifier: { name: contextName },

@@ -13,7 +13,7 @@ suite('documentation', function (): void {
 
   test('starts the documentation.', async (): Promise<void> => {
     const port = await getAvailablePort();
-    const documentationCommand = `node ${cliPath} documentation --port ${port}`;
+    const documentationCommand = `node ${cliPath} --verbose documentation --port ${port}`;
 
     const childProcess = shell.exec(documentationCommand, { async: true });
 

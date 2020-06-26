@@ -2,7 +2,7 @@ import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateId
 import { Application } from 'express';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getApi } from '../../../../lib/apis/writeDomainEventStore/http';
@@ -42,7 +42,7 @@ suite('writeDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -54,7 +54,7 @@ suite('writeDomainEventStore/http', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -68,10 +68,7 @@ suite('writeDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(200);
-        assert.that(data).is.equalTo([
-          firstDomainEvent,
-          secondDomainEvent
-        ]);
+        assert.that(data).is.equalTo({});
 
         const domainEventReplay = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
 
@@ -121,8 +118,8 @@ suite('writeDomainEventStore/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EDOMAINEVENTMALFORMED',
-          message: 'Invalid type: undefined should be object (at domainEvent.metadata).'
+          code: 'EREQUESTMALFORMED',
+          message: 'Missing required property: contextIdentifier (at value[0].contextIdentifier).'
         });
       });
 
@@ -231,7 +228,7 @@ suite('writeDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: 'ESNAPSHOTMALFORMED',
-          message: 'Missing required property: aggregateIdentifier (at snapshot.aggregateIdentifier).'
+          message: 'Missing required property: aggregateIdentifier (at value.aggregateIdentifier).'
         });
       });
     });

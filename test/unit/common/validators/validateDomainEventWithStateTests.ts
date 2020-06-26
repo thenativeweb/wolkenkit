@@ -1,10 +1,10 @@
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { CustomError } from 'defekt';
 import { DomainEventWithState } from '../../../../lib/wolkenkit';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { uuid } from 'uuidv4';
 import { validateDomainEventWithState } from '../../../../lib/common/validators/validateDomainEventWithState';
 
@@ -25,7 +25,7 @@ suite('validateDomainEventWithState', (): void => {
       },
       metadata: {
         initiator: { user },
-        revision: { aggregate: 1 }
+        revision: 1
       }
     }),
     state: {
@@ -34,54 +34,16 @@ suite('validateDomainEventWithState', (): void => {
     }
   });
 
-  let applicationDefinition: ApplicationDefinition;
+  let application: Application;
 
   suiteSetup(async (): Promise<void> => {
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
   });
 
   test('does not throw an error if everything is fine.', async (): Promise<void> => {
     assert.that((): void => {
-      validateDomainEventWithState({ domainEvent, applicationDefinition });
+      validateDomainEventWithState({ domainEvent, application });
     }).is.not.throwing();
-  });
-
-  test('throws an error if the domain event does not match the domainEvent schema.', async (): Promise<void> => {
-    assert.that((): void => {
-      validateDomainEventWithState({
-        domainEvent: new DomainEventWithState({
-          ...domainEvent,
-          name: ''
-        }),
-        applicationDefinition
-      });
-    }).is.throwing(
-      (ex): boolean =>
-        (ex as CustomError).code === 'EDOMAINEVENTMALFORMED' &&
-        ex.message === 'String is too short (0 chars), minimum 1 (at domainEvent.name).'
-    );
-  });
-
-  test('throws an error if the aggregate revision is greater than the global revision.', async (): Promise<void> => {
-    assert.that((): void => {
-      validateDomainEventWithState({
-        domainEvent: new DomainEventWithState({
-          ...domainEvent,
-          metadata: {
-            ...domainEvent.metadata,
-            revision: {
-              aggregate: 5,
-              global: 2
-            }
-          }
-        }),
-        applicationDefinition
-      });
-    }).is.throwing(
-      (ex): boolean =>
-        (ex as CustomError).code === 'EDOMAINEVENTMALFORMED' &&
-        ex.message === 'Aggregate revision must be less than global revision.'
-    );
   });
 
   test(`throws an error if the domainEvent's context doesn't exist in the application definition.`, async (): Promise<void> => {
@@ -93,7 +55,7 @@ suite('validateDomainEventWithState', (): void => {
             name: 'someContext'
           }
         }),
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -112,7 +74,7 @@ suite('validateDomainEventWithState', (): void => {
             id: uuid()
           }
         }),
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -128,7 +90,7 @@ suite('validateDomainEventWithState', (): void => {
           ...domainEvent,
           name: 'someDomainEvent'
         }),
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -146,7 +108,7 @@ suite('validateDomainEventWithState', (): void => {
             foo: ''
           }
         }),
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>

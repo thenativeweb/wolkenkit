@@ -2,6 +2,7 @@
 /build/
 
 # Test applications
+/test/shared/applications/javascript/withSyntaxError/
 /test/shared/applications/typescript/
 
 # Application templates

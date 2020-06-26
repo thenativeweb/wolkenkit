@@ -1,33 +1,17 @@
-import { ApplicationDefinition } from '../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../application/Application';
 import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
 import { errors } from '../errors';
-import { getDomainEventSchema } from '../schemas/getDomainEventSchema';
 import { Value } from 'validate-value';
 
 const validateDomainEvent = function <TDomainEventData extends DomainEventData> ({
   domainEvent,
-  applicationDefinition
+  application
 }: {
   domainEvent: DomainEvent<TDomainEventData>;
-  applicationDefinition: ApplicationDefinition;
+  application: Application;
 }): void {
-  const schema = getDomainEventSchema();
-
-  try {
-    schema.validate(domainEvent, { valueName: 'domainEvent' });
-  } catch (ex) {
-    throw new errors.DomainEventMalformed(ex.message);
-  }
-
-  if (
-    domainEvent.metadata.revision.global !== null &&
-    domainEvent.metadata.revision.aggregate > domainEvent.metadata.revision.global
-  ) {
-    throw new errors.DomainEventMalformed('Aggregate revision must be less than global revision.');
-  }
-
-  const contextDefinitions = applicationDefinition.domain;
+  const contextDefinitions = application.domain;
 
   const {
     contextIdentifier: { name: contextName },

@@ -1,3 +1,3 @@
-import { ApplicationDefinition } from '../../lib/common/application/ApplicationDefinition';
+import { Application } from '../common/application/Application';
 
-export type ApplicationEnhancer = (applicationDefinition: ApplicationDefinition) => ApplicationDefinition;
+export type ApplicationEnhancer = (application: Application) => Application;

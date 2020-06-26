@@ -1,9 +1,9 @@
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { CustomError } from 'defekt';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { uuid } from 'uuidv4';
 import { validateCommandWithMetadata } from '../../../../lib/common/validators/validateCommandWithMetadata';
 
@@ -33,32 +33,16 @@ suite('validateCommandWithMetadata', (): void => {
     }
   });
 
-  let applicationDefinition: ApplicationDefinition;
+  let application: Application;
 
   suiteSetup(async (): Promise<void> => {
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
   });
 
   test('does not throw an error if everything is fine.', async (): Promise<void> => {
     assert.that((): void => {
-      validateCommandWithMetadata({ command, applicationDefinition });
+      validateCommandWithMetadata({ command, application });
     }).is.not.throwing();
-  });
-
-  test('throws an error if the command does not match the commandWithMetadata schema.', async (): Promise<void> => {
-    assert.that((): void => {
-      validateCommandWithMetadata({
-        command: ({
-          ...command,
-          name: ''
-        }) as any,
-        applicationDefinition
-      });
-    }).is.throwing(
-      (ex): boolean =>
-        (ex as CustomError).code === 'ECOMMANDMALFORMED' &&
-        ex.message === 'String is too short (0 chars), minimum 1 (at command.name).'
-    );
   });
 
   test(`throws an error if the command's context doesn't exist in the application definition.`, async (): Promise<void> => {
@@ -70,7 +54,7 @@ suite('validateCommandWithMetadata', (): void => {
             name: 'someContext'
           }
         }) as any,
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -89,7 +73,7 @@ suite('validateCommandWithMetadata', (): void => {
             id: uuid()
           }
         }) as any,
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -105,7 +89,7 @@ suite('validateCommandWithMetadata', (): void => {
           ...command,
           name: 'someCommand'
         }) as any,
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -123,7 +107,7 @@ suite('validateCommandWithMetadata', (): void => {
             foo: ''
           }
         }) as any,
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>

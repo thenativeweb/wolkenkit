@@ -3,13 +3,13 @@ import cors from 'cors';
 import express from 'express';
 import { flaschenpost } from 'flaschenpost';
 import http from 'http';
-import { RequestHandler } from 'express-serve-static-core';
+import { WolkenkitRequestHandler } from '../../../lib/apis/base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
 const startCatchAllServer = async function ({ port, onRequest, parseJson = true }: {
   port: number;
-  onRequest: RequestHandler;
+  onRequest: WolkenkitRequestHandler;
   parseJson?: boolean;
 }): Promise<void> {
   const app = express();

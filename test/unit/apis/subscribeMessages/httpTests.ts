@@ -19,17 +19,18 @@ suite('subscribeMessages/http', (): void => {
       });
 
       test('delivers a single message.', async (): Promise<void> => {
-        const message = { text: 'Hello world!' };
+        const channel = 'messages',
+              message = { text: 'Hello world!' };
 
         setTimeout(async (): Promise<void> => {
-          publishMessage({ message });
+          publishMessage({ channel, message });
         }, 100);
 
         const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'get',
-          url: '/v2/',
+          url: `/v2/${channel}`,
           responseType: 'stream'
         });
 
@@ -55,19 +56,20 @@ suite('subscribeMessages/http', (): void => {
       });
 
       test('delivers multiple messages.', async (): Promise<void> => {
-        const messageFirst = { text: 'Hello world!' };
-        const messageSecond = { text: 'Goodbye world!' };
+        const channel = 'messages',
+              messageFirst = { text: 'Hello world!' },
+              messageSecond = { text: 'Goodbye world!' };
 
         setTimeout(async (): Promise<void> => {
-          publishMessage({ message: messageFirst });
-          publishMessage({ message: messageSecond });
+          publishMessage({ channel, message: messageFirst });
+          publishMessage({ channel, message: messageSecond });
         }, 100);
 
         const { client } = await runAsServer({ app: api });
 
         const { data } = await client({
           method: 'get',
-          url: '/v2/',
+          url: `/v2/${channel}`,
           responseType: 'stream'
         });
 
@@ -96,13 +98,14 @@ suite('subscribeMessages/http', (): void => {
       });
 
       test('gracefully handles connections that get closed by the client.', async (): Promise<void> => {
-        const message = { text: 'Hello world!' };
+        const channel = 'messages',
+              message = { text: 'Hello world!' };
         const { client } = await runAsServer({ app: api });
 
         try {
           await client({
             method: 'get',
-            url: '/v2/',
+            url: `/v2/${channel}`,
             responseType: 'stream',
             timeout: 100
           });
@@ -118,7 +121,7 @@ suite('subscribeMessages/http', (): void => {
         await sleep({ ms: 50 });
 
         await assert.that(async (): Promise<void> => {
-          publishMessage({ message });
+          publishMessage({ channel, message });
         }).is.not.throwingAsync();
       });
     });

@@ -4,21 +4,24 @@ import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
+import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
+import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
-import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
-import { InMemoryPriorityQueueStore } from '../../../../stores/priorityQueueStore/InMemory';
+import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { loadApplication } from '../../../../common/application/loadApplication';
+import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
-import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
+import { runHealthServer } from '../../../shared/runHealthServer';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -33,7 +36,7 @@ import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
       identityProvidersEnvironmentVariable: configuration.identityProviders
     });
 
-    const applicationDefinition = await getApplicationDefinition({
+    const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
 
@@ -48,26 +51,44 @@ import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
     });
 
     const repository = new Repository({
-      applicationDefinition,
+      application,
+      lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const priorityQueueStore = await InMemoryPriorityQueueStore.create<CommandWithMetadata<CommandData>>({});
+    const priorityQueueStore = await createPriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>({
+      type: configuration.priorityQueueStoreType,
+      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
+      options: configuration.priorityQueueStoreOptions
+    });
 
     const onReceiveCommand: OnReceiveCommand = async ({ command }): Promise<void> => {
-      await priorityQueueStore.enqueue({ item: command });
+      await priorityQueueStore.enqueue({
+        item: command,
+        discriminator: command.aggregateIdentifier.id,
+        priority: command.metadata.timestamp
+      });
+    };
+    const onCancelCommand: OnCancelCommand = async ({ commandIdentifierWithClient }): Promise<void> => {
+      await priorityQueueStore.remove({
+        discriminator: commandIdentifierWithClient.aggregateIdentifier.id,
+        itemIdentifier: commandIdentifierWithClient
+      });
     };
 
-    const { api, publishDomainEvent } = await getApi({
+    const { api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
       configuration,
-      applicationDefinition,
+      application,
       identityProviders,
       onReceiveCommand,
+      onCancelCommand,
       repository
     });
 
     const server = http.createServer(api);
+
+    await initializeGraphQlOnServer?.({ server });
 
     await runHealthServer({ corsOrigin: configuration.corsOrigin, port: configuration.healthPort });
 
@@ -84,7 +105,7 @@ import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
     for (let i = 0; i < configuration.concurrentCommands; i++) {
       pForever(async (): Promise<void> => {
         await processCommand({
-          applicationDefinition,
+          application,
           repository,
           lockStore,
           priorityQueue: {

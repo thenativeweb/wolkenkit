@@ -1,6 +1,6 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
 import { errors } from '../../../../../lib/common/errors';
@@ -19,6 +19,7 @@ suite('domain event', function (): void {
   this.timeout(10_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
+  const subscribeMessagesChannel = 'newDomainEvent';
 
   let healthPort: number,
       observeDomainEventsClient: ObserveDomainEventsClient,
@@ -64,6 +65,7 @@ suite('domain event', function (): void {
         IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
         SUBSCRIBE_MESSAGES_HOST_NAME: 'localhost',
         SUBSCRIBE_MESSAGES_PORT: String(publisherPort),
+        SUBSCRIBE_MESSAGES_CHANNEL: subscribeMessagesChannel,
         SNAPSHOT_STRATEGY: `{"name":"never"}`
       }
     });
@@ -111,13 +113,16 @@ suite('domain event', function (): void {
         name: 'nonExistent',
         data: {},
         metadata: {
-          revision: { aggregate: 1, global: null },
+          revision: 1,
           initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
         }
       });
 
       setTimeout(async (): Promise<void> => {
-        await publishMessageClient.postMessage({ message: domainEventWithoutState });
+        await publishMessageClient.postMessage({
+          channel: subscribeMessagesChannel,
+          message: domainEventWithoutState
+        });
       }, 50);
 
       const domainEventStream = await observeDomainEventsClient.getDomainEvents({});
@@ -150,7 +155,7 @@ suite('domain event', function (): void {
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
-            revision: { aggregate: 1, global: null },
+            revision: 1,
             initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
           }
         }),
@@ -161,7 +166,10 @@ suite('domain event', function (): void {
       });
 
       setTimeout(async (): Promise<void> => {
-        await publishMessageClient.postMessage({ message: domainEvent });
+        await publishMessageClient.postMessage({
+          channel: subscribeMessagesChannel,
+          message: domainEvent
+        });
       }, 50);
 
       await new Promise(async (resolve, reject): Promise<void> => {

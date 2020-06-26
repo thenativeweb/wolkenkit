@@ -1,10 +1,9 @@
 import { Application } from 'express';
 import { CorsOrigin } from 'get-cors-origin';
+import { EventEmitter } from 'events';
 import { getApiBase } from '../../../base/getApiBase';
 import { getMessages } from './getMessages';
 import { PublishMessage } from '../../PublishMessage';
-import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
-import { streamNdjsonMiddleware } from '../../../middlewares/streamNdjson';
 
 const getV2 = async function ({ corsOrigin, heartbeatInterval = 90_000 }: {
   corsOrigin: CorsOrigin;
@@ -13,23 +12,26 @@ const getV2 = async function ({ corsOrigin, heartbeatInterval = 90_000 }: {
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
-      body: { parser: false }
+      body: { parser: false },
+      query: { parser: { useJson: true }}
     },
     response: {
       headers: { cache: false }
     }
   });
 
-  const messageEmitter = new SpecializedEventEmitter<object>();
+  const messageEmitter = new EventEmitter();
 
   api.get(
-    '/',
-    streamNdjsonMiddleware({ heartbeatInterval }),
-    getMessages({ messageEmitter })
+    `/${getMessages.path}`,
+    getMessages.getHandler({
+      messageEmitter,
+      heartbeatInterval
+    })
   );
 
-  const publishMessage: PublishMessage = function ({ message }): void {
-    messageEmitter.emit(message);
+  const publishMessage: PublishMessage = function ({ channel, message }): void {
+    messageEmitter.emit(channel, message);
   };
 
   return { api, publishMessage };

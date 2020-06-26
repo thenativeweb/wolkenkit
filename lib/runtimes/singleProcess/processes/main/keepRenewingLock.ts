@@ -6,7 +6,7 @@ import { sleep } from '../../../../common/utils/sleep';
 
 const keepRenewingLock = async function ({ command, handleCommandPromise, priorityQueue, token }: {
   command: CommandWithMetadata<CommandData>;
-  handleCommandPromise: Promise<void>;
+  handleCommandPromise: Promise<any>;
   priorityQueue: PriorityQueue;
   token: string;
 }): Promise<void> {
@@ -19,7 +19,7 @@ const keepRenewingLock = async function ({ command, handleCommandPromise, priori
     }
 
     await priorityQueue.store.renewLock({
-      itemIdentifier: command.getItemIdentifier(),
+      discriminator: command.aggregateIdentifier.id,
       token
     });
   }

@@ -1,10 +1,8 @@
-import { regex } from 'uuidv4';
-import { Value } from 'validate-value';
+import { jsonSchema } from 'uuidv4';
+import { Schema } from '../elements/Schema';
 
-const uuidRegex = regex.v4.toString().slice(1, -1);
-
-const getDomainEventWithStateSchema = function (): Value {
-  return new Value({
+const getDomainEventWithStateSchema = function (): Schema {
+  return {
     type: 'object',
     properties: {
       contextIdentifier: {
@@ -19,7 +17,7 @@ const getDomainEventWithStateSchema = function (): Value {
         type: 'object',
         properties: {
           name: { type: 'string', minLength: 1, format: 'alphanumeric' },
-          id: { type: 'string', pattern: uuidRegex }
+          id: jsonSchema.v4 as Schema
         },
         required: [ 'name', 'id' ],
         additionalProperties: false
@@ -31,24 +29,14 @@ const getDomainEventWithStateSchema = function (): Value {
         required: [],
         additionalProperties: true
       },
-      id: { type: 'string', pattern: uuidRegex },
+      id: jsonSchema.v4 as Schema,
       metadata: {
         type: 'object',
         properties: {
-          causationId: { type: 'string', pattern: uuidRegex },
-          correlationId: { type: 'string', pattern: uuidRegex },
-          timestamp: { type: 'number' },
-          revision: {
-            type: 'object',
-            properties: {
-              aggregate: { type: 'number', minimum: 1 },
-              global: {
-                anyOf: [{ type: 'number', minimum: 1 }, { type: 'null' }]
-              }
-            },
-            required: [ 'aggregate' ],
-            additionalProperties: false
-          },
+          causationId: jsonSchema.v4 as Schema,
+          correlationId: jsonSchema.v4 as Schema,
+          timestamp: { type: 'number', minimum: 0 },
+          revision: { type: 'number', minimum: 1 },
           initiator: {
             type: 'object',
             properties: {
@@ -117,7 +105,7 @@ const getDomainEventWithStateSchema = function (): Value {
       'state'
     ],
     additionalProperties: false
-  });
+  };
 };
 
 export { getDomainEventWithStateSchema };

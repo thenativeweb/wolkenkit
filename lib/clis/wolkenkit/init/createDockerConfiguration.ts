@@ -1,15 +1,10 @@
 import fs from 'fs';
-import { getMicroserviceInMemoryManifest } from './docker-compose/getMicroserviceInMemoryManifest';
-import { getMicroservicePostgresManifest } from './docker-compose/getMicroservicePostgresManifest';
-import { getSingleProcessInMemoryManifest } from './docker-compose/getSingleProcessInMemoryManifest';
-import { getSingleProcessPostgresManifest } from './docker-compose/getSingleProcessPostgresManifest';
 import path from 'path';
 import { stripIndent } from 'common-tags';
 import { versions } from '../../../versions';
 
-const createDockerConfiguration = async function ({ directory, name }: {
+const createDockerConfiguration = async function ({ directory }: {
   directory: string;
-  name: string;
 }): Promise<void> {
   const dockerConfiguration = [
     {
@@ -36,7 +31,7 @@ const createDockerConfiguration = async function ({ directory, name }: {
         RUN mkdir /app
         WORKDIR /app
 
-        ADD ./package.json ./.npmrc* .
+        ADD ./package.json ./.npmrc* ./
         RUN npm install
 
         ADD . .
@@ -49,7 +44,7 @@ const createDockerConfiguration = async function ({ directory, name }: {
         RUN mkdir /app
         WORKDIR /app
 
-        ADD ./package.json ./.npmrc* .
+        ADD ./package.json ./.npmrc* ./
         RUN npm install --production
 
 
@@ -64,22 +59,6 @@ const createDockerConfiguration = async function ({ directory, name }: {
         COPY --from=build /app/build /app/build
         COPY --from=dependencies /app/node_modules /app/node_modules
       `
-    },
-    {
-      filePath: [ 'deployment', 'docker-compose', 'docker-compose.microservice.in-memory.yml' ],
-      content: getMicroserviceInMemoryManifest({ appName: name })
-    },
-    {
-      filePath: [ 'deployment', 'docker-compose', 'docker-compose.microservice.postgres.yml' ],
-      content: getMicroservicePostgresManifest({ appName: name })
-    },
-    {
-      filePath: [ 'deployment', 'docker-compose', 'docker-compose.single-process.in-memory.yml' ],
-      content: getSingleProcessInMemoryManifest({ appName: name })
-    },
-    {
-      filePath: [ 'deployment', 'docker-compose', 'docker-compose.single-process.postgres.yml' ],
-      content: getSingleProcessPostgresManifest({ appName: name })
     }
   ];
 

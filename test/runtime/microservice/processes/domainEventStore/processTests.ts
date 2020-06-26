@@ -1,6 +1,6 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Client as QueryDomainEventStoreClient } from '../../../../../lib/apis/queryDomainEventStore/http/v2/Client';
@@ -78,7 +78,7 @@ suite('domain event store', function (): void {
         name: 'execute',
         data: {},
         metadata: {
-          revision: { aggregate: 1, global: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -112,7 +112,7 @@ suite('domain event store', function (): void {
         name: 'execute',
         data: {},
         metadata: {
-          revision: { aggregate: 1, global: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -125,7 +125,7 @@ suite('domain event store', function (): void {
         name: 'execute',
         data: {},
         metadata: {
-          revision: { aggregate: 1, global: 2 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -160,7 +160,7 @@ suite('domain event store', function (): void {
         name: 'execute',
         data: {},
         metadata: {
-          revision: { aggregate: 1, global: 1 },
+          revision: 1,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });
@@ -170,7 +170,7 @@ suite('domain event store', function (): void {
         name: 'execute',
         data: {},
         metadata: {
-          revision: { aggregate: 2, global: 2 },
+          revision: 2,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
         }
       });

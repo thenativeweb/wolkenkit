@@ -37,25 +37,25 @@ suite('getLockService', (): void => {
   });
 
   test('passes calls to acquireLock through to lock store.', async (): Promise<void> => {
-    await lockStore.acquireLock({ name: 'foo' });
+    await lockStore.acquireLock({ value: 'foo' });
 
     assert.that(acquireLockCalled).is.true();
   });
 
   test('passes calls to isLocked through to lock store.', async (): Promise<void> => {
-    await lockStore.isLocked({ name: 'foo' });
+    await lockStore.isLocked({ value: 'foo' });
 
     assert.that(isLockedCalled).is.true();
   });
 
   test('passes calls to renewLock through to lock store.', async (): Promise<void> => {
-    await lockStore.renewLock({ name: 'foo', expiresAt: Date.now() + 500 });
+    await lockStore.renewLock({ value: 'foo', expiresAt: Date.now() + 500 });
 
     assert.that(renewLockCalled).is.true();
   });
 
   test('passes calls to releaseLock through to lock store.', async (): Promise<void> => {
-    await lockStore.releaseLock({ name: 'foo' });
+    await lockStore.releaseLock({ value: 'foo' });
 
     assert.that(releaseLockCalled).is.true();
   });

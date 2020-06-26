@@ -1,21 +1,24 @@
 #!/usr/bin/env node
 
 import { AeonstoreDomainEventStore } from '../../../../stores/domainEventStore/Aeonstore';
+import { CommandData } from '../../../../common/elements/CommandData';
+import { Client as CommandDispatcherClient } from '../../../../apis/awaitItem/http/v2/Client';
+import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
-import { Client as DispatcherClient } from '../../../../apis/awaitCommandWithMetadata/http/v2/Client';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
-import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
+import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
+import { loadApplication } from '../../../../common/application/loadApplication';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { Client as PublisherClient } from '../../../../apis/publishMessage/http/v2/Client';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
-import { runHealthServer } from '../../../../runtimes/shared/runHealthServer';
+import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
@@ -27,7 +30,7 @@ import { State } from '../../../../common/elements/State';
 
     const configuration = getConfiguration();
 
-    const applicationDefinition = await getApplicationDefinition({
+    const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
 
@@ -42,16 +45,18 @@ import { State } from '../../../../common/elements/State';
     });
 
     const repository = new Repository({
-      applicationDefinition,
+      application,
+      lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const dispatcherClient = new DispatcherClient({
-      protocol: configuration.dispatcherProtocol,
-      hostName: configuration.dispatcherHostName,
-      port: configuration.dispatcherPort,
-      path: '/await-command/v2'
+    const commandDispatcherClient = new CommandDispatcherClient<CommandWithMetadata<CommandData>, ItemIdentifier>({
+      protocol: configuration.commandDispatcherProtocol,
+      hostName: configuration.commandDispatcherHostName,
+      port: configuration.commandDispatcherPort,
+      path: '/await-command/v2',
+      createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
     });
 
     const publisherClient = new PublisherClient({
@@ -65,7 +70,10 @@ import { State } from '../../../../common/elements/State';
       domainEvents: DomainEventWithState<DomainEventData, State>[];
     }): Promise<any> => {
       for (const domainEvent of domainEvents) {
-        await publisherClient.postMessage({ message: domainEvent });
+        await publisherClient.postMessage({
+          channel: configuration.publisherChannelNewDomainEvent,
+          message: domainEvent
+        });
       }
     };
 
@@ -76,14 +84,11 @@ import { State } from '../../../../common/elements/State';
     for (let i = 0; i < configuration.concurrentCommands; i++) {
       pForever(async (): Promise<void> => {
         await processCommand({
-          dispatcher: {
-            client: dispatcherClient,
-            renewalInterval: configuration.dispatcherRenewInterval,
-            acknowledgeRetries: configuration.dispatcherAcknowledgeRetries
+          commandDispatcher: {
+            client: commandDispatcherClient,
+            renewalInterval: configuration.commandDispatcherRenewInterval,
+            acknowledgeRetries: configuration.commandDispatcherAcknowledgeRetries
           },
-          applicationDefinition,
-          lockStore,
-          domainEventStore,
           repository,
           publishDomainEvents
         });

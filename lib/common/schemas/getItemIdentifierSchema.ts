@@ -1,10 +1,8 @@
-import { regex } from 'uuidv4';
-import { Value } from 'validate-value';
+import { jsonSchema } from 'uuidv4';
+import { Schema } from '../elements/Schema';
 
-const uuidRegex = regex.v4.toString().slice(1, -1);
-
-const getItemIdentifierSchema = function (): Value {
-  return new Value({
+const getItemIdentifierSchema = function (): Schema {
+  return {
     type: 'object',
     properties: {
       contextIdentifier: {
@@ -19,12 +17,12 @@ const getItemIdentifierSchema = function (): Value {
         type: 'object',
         properties: {
           name: { type: 'string', minLength: 1, format: 'alphanumeric' },
-          id: { type: 'string', pattern: uuidRegex }
+          id: jsonSchema.v4 as Schema
         },
         required: [ 'name', 'id' ],
         additionalProperties: false
       },
-      id: { type: 'string', pattern: uuidRegex },
+      id: jsonSchema.v4 as Schema,
       name: { type: 'string', minLength: 1, format: 'alphanumeric' }
     },
     required: [
@@ -34,7 +32,7 @@ const getItemIdentifierSchema = function (): Value {
       'name'
     ],
     additionalProperties: false
-  });
+  };
 };
 
 export { getItemIdentifierSchema };

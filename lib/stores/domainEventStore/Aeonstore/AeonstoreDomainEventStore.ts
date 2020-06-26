@@ -62,14 +62,10 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     return await this.queryClient.getDomainEventsByCorrelationId({ correlationId });
   }
 
-  public async getReplay ({
-    fromRevisionGlobal = 1,
-    toRevisionGlobal = (2 ** 31) - 1
-  }: {
-    fromRevisionGlobal?: number;
-    toRevisionGlobal?: number;
+  public async getReplay ({ fromTimestamp = 0 }: {
+    fromTimestamp?: number;
   }): Promise<Readable> {
-    return await this.queryClient.getReplay({ fromRevisionGlobal, toRevisionGlobal });
+    return await this.queryClient.getReplay({ fromTimestamp });
   }
 
   public async getReplayForAggregate ({
@@ -96,8 +92,8 @@ class AeonstoreDomainEventStore implements DomainEventStore {
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
-  }): Promise<DomainEvent<TDomainEventData>[]> {
-    return await this.writeClient.storeDomainEvents({ domainEvents });
+  }): Promise<void> {
+    await this.writeClient.storeDomainEvents({ domainEvents });
   }
 
   public async storeSnapshot ({ snapshot }: {

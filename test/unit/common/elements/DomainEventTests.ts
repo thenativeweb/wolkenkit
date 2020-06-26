@@ -22,7 +22,7 @@ suite('DomainEvent', (): void => {
         causationId,
         correlationId,
         timestamp,
-        revision: { aggregate: 23, global: 42 },
+        revision: 23,
         initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
         tags: [ 'gdpr' ]
       }
@@ -40,7 +40,7 @@ suite('DomainEvent', (): void => {
         causationId,
         correlationId,
         timestamp,
-        revision: { aggregate: 23, global: 42 },
+        revision: 23,
         initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
         tags: [ 'gdpr' ]
       }
@@ -67,7 +67,7 @@ suite('DomainEvent', (): void => {
           causationId,
           correlationId,
           timestamp,
-          revision: { aggregate: 23, global: 42 },
+          revision: 23,
           initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
           tags: []
         }

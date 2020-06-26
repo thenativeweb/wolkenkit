@@ -2,7 +2,7 @@ import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateId
 import { Application } from 'express';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { Client } from '../../../../lib/apis/writeDomainEventStore/http/v2/Client';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { CustomError } from 'defekt';
@@ -44,7 +44,7 @@ suite('writeDomainEventStore/http/Client', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 1, global: 1 },
+            revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -56,7 +56,7 @@ suite('writeDomainEventStore/http/Client', (): void => {
           name: 'succeeded',
           data: {},
           metadata: {
-            revision: { aggregate: 2, global: 2 },
+            revision: 2,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
         });
@@ -68,17 +68,12 @@ suite('writeDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        const events = await client.storeDomainEvents({
+        await client.storeDomainEvents({
           domainEvents: [
             firstDomainEvent,
             secondDomainEvent
           ]
         });
-
-        assert.that(events).is.equalTo([
-          firstDomainEvent,
-          secondDomainEvent
-        ]);
 
         const domainEventReplay = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
 

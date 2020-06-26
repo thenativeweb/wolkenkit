@@ -1,20 +1,24 @@
 #!/usr/bin/env node
 
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
+import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
-import { getApplicationDefinition } from '../../../../common/application/getApplicationDefinition';
 import { getConfiguration } from './getConfiguration';
+import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
+import { loadApplication } from '../../../../common/application/loadApplication';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
+import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
+import { Value } from 'validate-value';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -29,7 +33,7 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
       identityProvidersEnvironmentVariable: configuration.identityProviders
     });
 
-    const applicationDefinition = await getApplicationDefinition({
+    const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
 
@@ -39,26 +43,18 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
     });
 
     const repository = new Repository({
-      applicationDefinition,
+      application,
+      lockStore: await createLockStore({ type: 'InMemory', options: {}}),
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
     const { api, publishDomainEvent } = await getApi({
       configuration,
-      applicationDefinition,
+      application,
       identityProviders,
       repository
     });
-
-    const subscribeMessagesClient = new SubscribeMessagesClient({
-      protocol: configuration.subscribeMessagesProtocol,
-      hostName: configuration.subscribeMessagesHostName,
-      port: configuration.subscribeMessagesPort,
-      path: '/subscribe/v2'
-    });
-
-    const messageStream = await subscribeMessagesClient.getMessages();
 
     const server = http.createServer(api);
 
@@ -75,8 +71,28 @@ import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMes
       { port: configuration.port, healthPort: configuration.healthPort }
     );
 
+    const subscribeMessagesClient = new SubscribeMessagesClient({
+      protocol: configuration.subscribeMessagesProtocol,
+      hostName: configuration.subscribeMessagesHostName,
+      port: configuration.subscribeMessagesPort,
+      path: '/subscribe/v2'
+    });
+
+    const messageStream = await subscribeMessagesClient.getMessages({
+      channel: configuration.subscribeMessagesChannel
+    });
+
     for await (const message of messageStream) {
       const domainEvent = new DomainEventWithState<DomainEventData, State>(message);
+
+      try {
+        new Value(getDomainEventWithStateSchema()).validate(domainEvent);
+        validateDomainEventWithState({ domainEvent, application });
+      } catch (ex) {
+        logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, ex });
+
+        return;
+      }
 
       publishDomainEvent({ domainEvent });
     }

@@ -67,6 +67,10 @@ const getConfiguration = function (): Configuration {
       default: 3000,
       schema: portSchema
     },
+    SUBSCRIBE_MESSAGES_CHANNEL: {
+      default: 'newDomainEvent',
+      schema: { type: 'string', minLength: 1 }
+    },
     SNAPSHOT_STRATEGY: {
       default: {
         name: 'lowest',
@@ -76,6 +80,10 @@ const getConfiguration = function (): Configuration {
         }
       },
       schema: getSnapshotStrategySchema()
+    },
+    ENABLE_OPEN_API_DOCUMENTATION: {
+      default: false,
+      schema: { type: 'boolean' }
     }
   });
 

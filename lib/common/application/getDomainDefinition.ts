@@ -34,10 +34,14 @@ const getDomainDefinition = async function ({ domainDirectory }: {
 
       try {
         rawAggregate = (await import(aggregatePath)).default;
-      } catch {
+      } catch (ex) {
         // Ignore not-importable files (e.g. x.d.ts, .DS_Store).
         if (aggregateEntry.isFile()) {
           continue;
+        }
+
+        if (ex instanceof SyntaxError) {
+          throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/domain/${contextName}/${aggregateName}'.`, { cause: ex });
         }
 
         // But throw an error if the entry is a directory without importable content.

@@ -1,10 +1,10 @@
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
-import { buildDomainEvent } from '../../../shared/buildDomainEvent';
+import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { CustomError } from 'defekt';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { uuid } from 'uuidv4';
 import { validateDomainEvent } from '../../../../lib/common/validators/validateDomainEvent';
 
@@ -24,58 +24,20 @@ suite('validateDomainEvent', (): void => {
     },
     metadata: {
       initiator: { user },
-      revision: { aggregate: 1 }
+      revision: 1
     }
   });
 
-  let applicationDefinition: ApplicationDefinition;
+  let application: Application;
 
   suiteSetup(async (): Promise<void> => {
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
   });
 
   test('does not throw an error if everything is fine.', async (): Promise<void> => {
     assert.that((): void => {
-      validateDomainEvent({ domainEvent, applicationDefinition });
+      validateDomainEvent({ domainEvent, application });
     }).is.not.throwing();
-  });
-
-  test('throws an error if the domain event does not match the domainEvent schema.', async (): Promise<void> => {
-    assert.that((): void => {
-      validateDomainEvent({
-        domainEvent: new DomainEvent({
-          ...domainEvent,
-          name: ''
-        }),
-        applicationDefinition
-      });
-    }).is.throwing(
-      (ex): boolean =>
-        (ex as CustomError).code === 'EDOMAINEVENTMALFORMED' &&
-        ex.message === 'String is too short (0 chars), minimum 1 (at domainEvent.name).'
-    );
-  });
-
-  test('throws an error if the aggregate revision is greater than the global revision.', async (): Promise<void> => {
-    assert.that((): void => {
-      validateDomainEvent({
-        domainEvent: new DomainEvent({
-          ...domainEvent,
-          metadata: {
-            ...domainEvent.metadata,
-            revision: {
-              aggregate: 5,
-              global: 2
-            }
-          }
-        }),
-        applicationDefinition
-      });
-    }).is.throwing(
-      (ex): boolean =>
-        (ex as CustomError).code === 'EDOMAINEVENTMALFORMED' &&
-        ex.message === 'Aggregate revision must be less than global revision.'
-    );
   });
 
   test(`throws an error if the domainEvent's context doesn't exist in the application definition.`, async (): Promise<void> => {
@@ -87,7 +49,7 @@ suite('validateDomainEvent', (): void => {
             name: 'someContext'
           }
         }),
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -106,7 +68,7 @@ suite('validateDomainEvent', (): void => {
             id: uuid()
           }
         }),
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -122,7 +84,7 @@ suite('validateDomainEvent', (): void => {
           ...domainEvent,
           name: 'someDomainEvent'
         }),
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>
@@ -140,7 +102,7 @@ suite('validateDomainEvent', (): void => {
             foo: ''
           }
         }),
-        applicationDefinition
+        application
       });
     }).is.throwing(
       (ex): boolean =>

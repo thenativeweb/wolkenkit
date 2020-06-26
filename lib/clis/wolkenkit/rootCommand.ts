@@ -1,9 +1,11 @@
 import { buildCommand } from './build/buildCommand';
 import { Command } from 'command-line-interface';
+import { createDeploymentCommand } from './createDeployment/createDeploymentCommand';
 import { devCommand } from './dev/devCommand';
 import { documentationCommand } from './documentation/documentationCommand';
 import { initCommand } from './init/initCommand';
 import { RootOptions } from './RootOptions';
+import { tokenCommand } from './token/tokenCommand';
 
 const rootCommand = function (): Command<RootOptions> {
   return {
@@ -31,7 +33,9 @@ const rootCommand = function (): Command<RootOptions> {
       init: initCommand(),
       dev: devCommand(),
       build: buildCommand(),
-      documentation: documentationCommand()
+      'create-deployment': createDeploymentCommand(),
+      documentation: documentationCommand(),
+      token: tokenCommand()
     }
   };
 };

@@ -1,10 +1,10 @@
 import { CommandData } from '../../../../common/elements/CommandData';
+import { CommandDispatcher } from './CommandDispatcher';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
-import { Dispatcher } from './Dispatcher';
 import { retry } from 'retry-ignore-abort';
 
-const fetchCommand = async function ({ dispatcher }: {
-  dispatcher: Dispatcher;
+const fetchCommand = async function ({ commandDispatcher }: {
+  commandDispatcher: CommandDispatcher;
 }): Promise<{
     command: CommandWithMetadata<CommandData>;
     token: string;
@@ -13,7 +13,7 @@ const fetchCommand = async function ({ dispatcher }: {
     async (): Promise<{
       item: CommandWithMetadata<CommandData>;
       token: string;
-    }> => await dispatcher.client.awaitCommandWithMetadata(),
+    }> => await commandDispatcher.client.awaitItem(),
     { retries: Number.POSITIVE_INFINITY, maxTimeout: 1000 }
   );
 

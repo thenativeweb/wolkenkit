@@ -1,15 +1,17 @@
+import { AggregateInstance } from '../../../../lib/common/domain/AggregateInstance';
 import { AggregateService } from '../../../../lib/common/services/AggregateService';
-import { ApplicationDefinition } from '../../../../lib/common/application/ApplicationDefinition';
+import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { cloneDeep } from 'lodash';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
-import { CurrentAggregateState } from '../../../../lib/common/domain/CurrentAggregateState';
+import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getAggregateService } from '../../../../lib/common/services/getAggregateService';
-import { getApplicationDefinition } from '../../../../lib/common/application/getApplicationDefinition';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
+import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { State } from '../../../../lib/common/elements/State';
 import { uuid } from 'uuidv4';
@@ -45,25 +47,26 @@ suite('getAggregateService', (): void => {
     }
   });
 
-  let aggregateService: AggregateService<State>,
-      applicationDefinition: ApplicationDefinition,
-      currentAggregateState: CurrentAggregateState<State>,
+  let aggregateInstance: AggregateInstance<State>,
+      aggregateService: AggregateService<State>,
+      application: Application,
       domainEventHandlerCalled = false,
       domainEventStore: DomainEventStore,
+      lockStore: LockStore,
       repository: Repository;
 
   suiteSetup(async (): Promise<void> => {
-    applicationDefinition = await getApplicationDefinition({ applicationDirectory });
+    application = await loadApplication({ applicationDirectory });
   });
 
   setup(async (): Promise<void> => {
     domainEventHandlerCalled = false;
 
     /* eslint-disable @typescript-eslint/unbound-method */
-    const handleFunction = applicationDefinition.domain[contextName][aggregateName].domainEventHandlers[domainEventName].handle;
+    const handleFunction = application.domain[contextName][aggregateName].domainEventHandlers[domainEventName].handle;
 
     /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-    applicationDefinition.domain[contextName][aggregateName].domainEventHandlers[domainEventName].handle =
+    application.domain[contextName][aggregateName].domainEventHandlers[domainEventName].handle =
       function (state, domainEvent, services): Partial<State> {
         domainEventHandlerCalled = true;
 
@@ -73,14 +76,16 @@ suite('getAggregateService', (): void => {
     /* eslint-enable @typescript-eslint/unbound-method */
 
     domainEventStore = await InMemoryDomainEventStore.create();
+    lockStore = await createLockStore({ type: 'InMemory', options: {}});
 
     repository = new Repository({
-      applicationDefinition,
+      application,
+      lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' })
     });
 
-    currentAggregateState = await repository.loadCurrentAggregateState({
+    aggregateInstance = await repository.getAggregateInstance({
       contextIdentifier: {
         name: contextName
       },
@@ -90,48 +95,47 @@ suite('getAggregateService', (): void => {
       }
     });
 
-    aggregateService = getAggregateService<State>({ currentAggregateState, applicationDefinition, command });
+    aggregateService = getAggregateService<State>({ aggregateInstance, application, command });
   });
 
   suite('id', (): void => {
     test(`returns the aggregate's id.`, async (): Promise<void> => {
-      assert.that(aggregateService.id()).is.equalTo(currentAggregateState.aggregateIdentifier.id);
+      assert.that(aggregateService.id()).is.equalTo(aggregateInstance.aggregateIdentifier.id);
     });
   });
 
-  suite('exists', (): void => {
-    test(`uses the aggregate's exists method.`, async (): Promise<void> => {
-      let existsCalled = false;
+  suite('isPristine', (): void => {
+    test(`uses the aggregate's isPristine method.`, async (): Promise<void> => {
+      let isPristineCalled = false;
 
       /* eslint-disable @typescript-eslint/unbound-method */
-      currentAggregateState.exists = function (): boolean {
-        existsCalled = true;
+      aggregateInstance.isPristine = function (): boolean {
+        isPristineCalled = true;
 
         return true;
       };
       /* eslint-enable @typescript-eslint/unbound-method */
 
-      const doesExist = aggregateService.exists();
+      const isPristine = aggregateService.isPristine();
 
-      assert.that(doesExist).is.true();
-      assert.that(existsCalled).is.true();
+      assert.that(isPristine).is.true();
+      assert.that(isPristineCalled).is.true();
     });
   });
 
   suite('publishDomainEvent', (): void => {
     test(`applies the given domain event to the aggregate and returns the new state.`, async (): Promise<void> => {
-      const previousAggregateState = cloneDeep(currentAggregateState.state);
+      const previousAggregateState = cloneDeep(aggregateInstance.state);
       const domainEventData = { strategy: 'succeed' };
       const nextState = aggregateService.publishDomainEvent(domainEventName, domainEventData);
 
-      const generatedDomainEvent = currentAggregateState.unsavedDomainEvents[0];
+      const generatedDomainEvent = aggregateInstance.unstoredDomainEvents[0];
 
       assert.that(generatedDomainEvent.data).is.equalTo(domainEventData);
       assert.that(generatedDomainEvent.metadata.causationId).is.equalTo(command.id);
       assert.that(generatedDomainEvent.metadata.correlationId).is.equalTo(command.metadata.correlationId);
       assert.that(generatedDomainEvent.metadata.initiator).is.equalTo(command.metadata.initiator);
-      assert.that(generatedDomainEvent.metadata.revision.aggregate).is.equalTo(1);
-      assert.that(generatedDomainEvent.metadata.revision.global).is.null();
+      assert.that(generatedDomainEvent.metadata.revision).is.equalTo(1);
       assert.that(generatedDomainEvent.data).is.equalTo(domainEventData);
       assert.that(generatedDomainEvent.state.previous).is.equalTo(previousAggregateState);
       assert.that(generatedDomainEvent.state.next).is.equalTo(nextState);

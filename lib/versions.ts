@@ -1,13 +1,13 @@
 const versions = {
   infrastructure: {
-    nodejs: '12.16.1',
+    nodejs: '14.4.0',
     'docker-compose': '3.7'
   },
   packages: {
-    typescript: '3.8.2'
+    typescript: '3.9.3'
   },
   dockerImages: {
-    postgres: '12.2-alpine'
+    postgres: '12.3-alpine'
   }
 };
 
