@@ -56,6 +56,17 @@ suite('loadApplication', (): void => {
           }
         }
       },
+      flows: {
+        sampleFlow: {
+          domainEventHandlers: {
+            sampleHandler: {}
+          }
+        }
+      },
+      infrastructure: {
+        ask: {},
+        tell: {}
+      },
       views: {
         sampleView: {
           initializer: {},
@@ -130,6 +141,8 @@ suite('loadApplication', (): void => {
     });
   });
 
+  test('applies flow enhancers.');
+
   test('applies view enhancers.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withViewEnhancer' });
     const application = await loadApplication({ applicationDirectory });
@@ -171,6 +184,12 @@ suite('loadApplication', (): void => {
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
       is.throwingAsync(`Aggregate definition '<app>/build/domain/sampleContext/invalidAggregate' is malformed: Function 'getInitialState' is missing.`);
   });
+
+  test('throws an error if the flows directory is missing.');
+
+  test('throws an error if the domains contain an empty flow directory.');
+
+  test('throws an error if a flow is malformed.');
 
   test('throws an error if the views directory is missing.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withoutViewsDirectory' });
