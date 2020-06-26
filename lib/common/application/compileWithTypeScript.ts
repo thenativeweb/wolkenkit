@@ -1,7 +1,7 @@
 import { errors } from '../errors';
+import { exec } from 'shelljs';
 import { exists } from '../utils/fs/exists';
 import { oneLine } from 'common-tags';
-import shell from 'shelljs';
 
 const compileWithTypeScript = async function ({
   sourceDirectory,
@@ -16,7 +16,7 @@ const compileWithTypeScript = async function ({
 
   const shellQuote = process.platform === 'win32' ? `"` : `'`;
 
-  const { code, stdout, stderr } = shell.exec(oneLine`
+  const { code, stdout, stderr } = exec(oneLine`
     npx tsc
       --module CommonJS
       --noEmitOnError

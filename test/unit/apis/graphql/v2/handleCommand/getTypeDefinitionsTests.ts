@@ -37,6 +37,7 @@ suite('getTypeDefinitions', (): void => {
           }
         }
       },
+      flows: {},
       infrastructure: {
         ask: {},
         tell: {}
