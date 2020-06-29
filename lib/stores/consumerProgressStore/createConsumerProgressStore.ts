@@ -3,6 +3,7 @@ import { errors } from '../../common/errors';
 import { InMemoryConsumerProgressStore } from './InMemory';
 import { MongoDbConsumerProgressStore } from './MongoDb';
 import { MySqlConsumerProgressStore } from './MySql';
+import { PostgresConsumerProgressStore } from './Postgres';
 
 const createConsumerProgressStore = async function ({ type, options }: {
   type: string;
@@ -20,6 +21,9 @@ const createConsumerProgressStore = async function ({ type, options }: {
     }
     case 'MySql': {
       return MySqlConsumerProgressStore.create(options);
+    }
+    case 'Postgres': {
+      return PostgresConsumerProgressStore.create(options);
     }
     default: {
       throw new errors.DatabaseTypeInvalid();
