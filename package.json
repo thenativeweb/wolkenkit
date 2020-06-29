@@ -141,7 +141,7 @@
     "flaschenpost": "4.0.17",
     "get-cors-origin": "4.0.1",
     "get-graphql-from-jsonschema": "5.0.2",
-    "graphql": "15.1.0",
+    "graphql": "15.2.0",
     "graphql-tools": "6.0.11",
     "ioredis": "4.17.3",
     "is-typescript": "4.0.0",
