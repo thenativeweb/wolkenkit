@@ -1,4 +1,4 @@
-import { errors } from '../errors';
+import { errors } from '../../../common/errors';
 import { getHash } from '../shared/getHash';
 import { LockStore } from '../LockStore';
 import { retry } from 'retry-ignore-abort';
@@ -136,7 +136,7 @@ class MySqlLockStore implements LockStore {
           parameters: [ expiresAt, hash ]
         });
       } catch {
-        throw new errors.AcquireLockFailed('Failed to acquire lock.');
+        throw new errors.LockAcquireFailed('Failed to acquire lock.');
       }
     } finally {
       MySqlLockStore.releaseConnection({ connection });
@@ -197,7 +197,7 @@ class MySqlLockStore implements LockStore {
       });
 
       if (rows.changedRows === 0) {
-        throw new errors.RenewLockFailed('Failed to renew lock.');
+        throw new errors.LockRenewalFailed('Failed to renew lock.');
       }
     } finally {
       MySqlLockStore.releaseConnection({ connection });
