@@ -5,6 +5,7 @@ import { getHash } from '../../../common/utils/crypto/getHash';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { TableNames } from './TableNames';
+import { withTransaction } from '../../utils/mySql/withTransaction';
 import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
 
 class MySqlConsumerProgressStore implements ConsumerProgressStore {
@@ -185,44 +186,47 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
     aggregateIdentifier: AggregateIdentifier;
     revision: number;
   }): Promise<void> {
-    const connection = await this.getDatabase();
     const hash = getHash({ value: consumerId });
 
-    try {
-      const [ rows ] = await runQuery({
-        connection,
-        query: `
-          UPDATE \`${this.tableNames.progress}\`
-            SET revision = ?
-            WHERE consumerId = ? AND aggregateId = UuidToBin(?);
-        `,
-        parameters: [ revision, hash, aggregateIdentifier.id ]
-      });
-
-      if (rows.changedRows === 1) {
-        return;
-      }
-
-      try {
-        await runQuery({
+    await withTransaction({
+      getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
+      fn: async ({ connection }): Promise<void> => {
+        const [ rows ] = await runQuery({
           connection,
           query: `
-            INSERT INTO \`${this.tableNames.progress}\`
-              (consumerId, aggregateId, revision)
-              VALUES (?, UuidToBin(?), ?);
+            UPDATE \`${this.tableNames.progress}\`
+              SET revision = ?
+              WHERE consumerId = ? AND aggregateId = UuidToBin(?);
           `,
           parameters: [ revision, hash, aggregateIdentifier.id ]
         });
-      } catch (ex) {
-        if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
-          throw new errors.RevisionTooLow();
+
+        if (rows.changedRows === 1) {
+          return;
         }
 
-        throw ex;
+        try {
+          await runQuery({
+            connection,
+            query: `
+              INSERT INTO \`${this.tableNames.progress}\`
+                (consumerId, aggregateId, revision)
+                VALUES (?, UuidToBin(?), ?);
+            `,
+            parameters: [ revision, hash, aggregateIdentifier.id ]
+          });
+        } catch (ex) {
+          if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
+            throw new errors.RevisionTooLow();
+          }
+
+          throw ex;
+        }
+      },
+      async releaseConnection ({ connection }): Promise<void> {
+        MySqlConsumerProgressStore.releaseConnection({ connection });
       }
-    } finally {
-      MySqlConsumerProgressStore.releaseConnection({ connection });
-    }
+    });
   }
 
   public async resetProgress ({ consumerId }: {
