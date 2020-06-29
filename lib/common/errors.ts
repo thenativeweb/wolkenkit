@@ -53,6 +53,7 @@ const errors = defekt({
   RequestFailed: {},
   RequestMalformed: {},
   RevisionAlreadyExists: {},
+  RevisionTooLow: {},
   SnapshotMalformed: {},
   SubscriberTypeInvalid: {},
   TokenMismatch: {},
