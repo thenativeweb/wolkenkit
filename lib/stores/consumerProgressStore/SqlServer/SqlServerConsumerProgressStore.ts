@@ -3,7 +3,7 @@ import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { TableNames } from './TableNames';
-import { ConnectionPool, Transaction, TYPES as Types } from 'mssql';
+import { ConnectionPool, TYPES as Types } from 'mssql';
 
 class SqlServerConsumerProgressStore implements ConsumerProgressStore {
   protected pool: ConnectionPool;
@@ -162,16 +162,6 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
       await transaction.rollback();
       throw ex;
     }
-
-
-
-
-    request.input('consumerId', Types.NChar, hash);
-
-    await request.query(`
-      DELETE FROM [${this.tableNames.progress}]
-        WHERE [consumerId] = @consumerId;
-    `);
   }
 
   public async resetProgress ({ consumerId }: {
