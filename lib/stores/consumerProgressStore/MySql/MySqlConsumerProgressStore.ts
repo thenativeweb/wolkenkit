@@ -196,9 +196,9 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
           query: `
             UPDATE \`${this.tableNames.progress}\`
               SET revision = ?
-              WHERE consumerId = ? AND aggregateId = UuidToBin(?);
+              WHERE consumerId = ? AND aggregateId = UuidToBin(?) AND revision < ?;
           `,
-          parameters: [ revision, hash, aggregateIdentifier.id ]
+          parameters: [ revision, hash, aggregateIdentifier.id, revision ]
         });
 
         if (rows.changedRows === 1) {
