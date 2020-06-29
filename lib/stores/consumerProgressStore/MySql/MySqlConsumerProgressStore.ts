@@ -213,7 +213,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
                 (consumerId, aggregateId, revision)
                 VALUES (?, UuidToBin(?), ?);
             `,
-            parameters: [ revision, hash, aggregateIdentifier.id ]
+            parameters: [ hash, aggregateIdentifier.id, revision ]
           });
         } catch (ex) {
           if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
