@@ -52,7 +52,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
     userName: string;
     password: string;
     database: string;
-    encryptConnection: boolean;
+    encryptConnection?: boolean;
     tableNames: TableNames;
   }): Promise<PostgresConsumerProgressStore> {
     const pool = new Pool({
