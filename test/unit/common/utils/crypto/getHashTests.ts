@@ -1,5 +1,5 @@
 import { assert } from 'assertthat';
-import { getHash } from '../../../../../lib/stores/lockStore/shared/getHash';
+import { getHash } from '../../../../../lib/common/utils/crypto/getHash';
 
 suite('getHash', (): void => {
   test('returns the SHA256 hash for the given value.', async (): Promise<void> => {

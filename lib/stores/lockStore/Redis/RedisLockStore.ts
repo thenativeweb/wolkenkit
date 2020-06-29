@@ -1,5 +1,5 @@
 import { errors } from '../../../common/errors';
-import { getHash } from '../shared/getHash';
+import { getHash } from '../../../common/utils/crypto/getHash';
 import { ListNames } from './ListNames';
 import { LockStore } from '../LockStore';
 import { retry } from 'retry-ignore-abort';
