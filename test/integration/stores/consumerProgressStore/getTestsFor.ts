@@ -211,6 +211,20 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
 
       assert.that(revision).is.equalTo(1);
     });
+
+    test('does not reset anything for an unknown consumer.', async (): Promise<void> => {
+      const otherConsumerId = uuid();
+
+      await consumerProgressStore.setProgress({
+        consumerId: otherConsumerId,
+        aggregateIdentifier,
+        revision: 1
+      });
+
+      await assert.that(async (): Promise<void> => {
+        await consumerProgressStore.resetProgress({ consumerId });
+      }).is.not.throwingAsync();
+    });
   });
 };
 /* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
