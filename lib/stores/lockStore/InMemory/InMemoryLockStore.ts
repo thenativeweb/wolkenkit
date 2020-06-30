@@ -1,5 +1,5 @@
-import { errors } from '../errors';
-import { getHash } from '../shared/getHash';
+import { errors } from '../../../common/errors';
+import { getHash } from '../../../common/utils/crypto/getHash';
 import { Lock } from './Lock';
 import { LockStore } from '../LockStore';
 
@@ -38,7 +38,7 @@ class InMemoryLockStore implements LockStore {
       lock.value === hash);
 
     if (isLocked) {
-      throw new errors.AcquireLockFailed('Failed to acquire lock.');
+      throw new errors.LockAcquireFailed('Failed to acquire lock.');
     }
 
     const lock = { value: hash, expiresAt };
@@ -72,7 +72,7 @@ class InMemoryLockStore implements LockStore {
       lock.value === hash);
 
     if (!existingLock) {
-      throw new errors.RenewLockFailed('Failed to renew lock.');
+      throw new errors.LockRenewalFailed('Failed to renew lock.');
     }
 
     existingLock.expiresAt = expiresAt;

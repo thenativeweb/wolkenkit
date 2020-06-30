@@ -1,5 +1,5 @@
-import { errors } from '../errors';
-import { getHash } from '../shared/getHash';
+import { errors } from '../../../common/errors';
+import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
 import { retry } from 'retry-ignore-abort';
 import { TableNames } from './TableNames';
@@ -50,7 +50,7 @@ class PostgresLockStore implements LockStore {
     userName: string;
     password: string;
     database: string;
-    encryptConnection: boolean;
+    encryptConnection?: boolean;
     tableNames: TableNames;
   }): Promise<PostgresLockStore> {
     const pool = new Pool({
@@ -154,7 +154,7 @@ class PostgresLockStore implements LockStore {
           values: [ hash, expiresAt ]
         });
       } catch {
-        throw new errors.AcquireLockFailed('Failed to acquire lock.');
+        throw new errors.LockAcquireFailed('Failed to acquire lock.');
       }
     } finally {
       connection.release();
@@ -215,7 +215,7 @@ class PostgresLockStore implements LockStore {
       });
 
       if (result.rowCount === 0) {
-        throw new errors.RenewLockFailed('Failed to renew lock.');
+        throw new errors.LockRenewalFailed('Failed to renew lock.');
       }
     } finally {
       connection.release();

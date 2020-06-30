@@ -35,7 +35,7 @@ const getTestsFor = function ({ createLockStore }: {
       await assert.that(async (): Promise<void> => {
         await lockStore.acquireLock({ value });
       }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'EACQUIRELOCKFAILED' && ex.message === 'Failed to acquire lock.');
+        (ex as CustomError).code === 'ELOCKACQUIREFAILED' && ex.message === 'Failed to acquire lock.');
     });
 
     test('supports locks with different values.', async (): Promise<void> => {
@@ -96,7 +96,7 @@ const getTestsFor = function ({ createLockStore }: {
       await assert.that(async (): Promise<void> => {
         await lockStore.renewLock({ value, expiresAt: Date.now() + 100 });
       }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'ERENEWLOCKFAILED' && ex.message === 'Failed to renew lock.');
+        (ex as CustomError).code === 'ELOCKRENEWALFAILED' && ex.message === 'Failed to renew lock.');
     });
 
     test('throws an error if the given lock exists, but has expired.', async (): Promise<void> => {
@@ -106,7 +106,7 @@ const getTestsFor = function ({ createLockStore }: {
       await assert.that(async (): Promise<void> => {
         await lockStore.renewLock({ value, expiresAt: Date.now() + 100 });
       }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'ERENEWLOCKFAILED' && ex.message === 'Failed to renew lock.');
+        (ex as CustomError).code === 'ELOCKRENEWALFAILED' && ex.message === 'Failed to renew lock.');
     });
 
     test('throws an error if the expiration date is in the past.', async (): Promise<void> => {

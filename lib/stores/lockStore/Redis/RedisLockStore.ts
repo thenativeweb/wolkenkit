@@ -1,5 +1,5 @@
-import { errors } from '../errors';
-import { getHash } from '../shared/getHash';
+import { errors } from '../../../common/errors';
+import { getHash } from '../../../common/utils/crypto/getHash';
 import { ListNames } from './ListNames';
 import { LockStore } from '../LockStore';
 import { retry } from 'retry-ignore-abort';
@@ -76,7 +76,7 @@ class RedisLockStore implements LockStore {
     const result = await this.client.set(key, '', 'PX', expiration, 'NX') as 'OK' | null;
 
     if (!result) {
-      throw new errors.AcquireLockFailed('Failed to acquire lock.');
+      throw new errors.LockAcquireFailed('Failed to acquire lock.');
     }
   }
 
@@ -103,7 +103,7 @@ class RedisLockStore implements LockStore {
     const result = await this.client.pexpire(key, expiration);
 
     if (!result) {
-      throw new errors.RenewLockFailed('Failed to renew lock.');
+      throw new errors.LockRenewalFailed('Failed to renew lock.');
     }
   }
 

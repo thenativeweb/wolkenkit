@@ -1,5 +1,5 @@
-import { errors } from '../errors';
-import { getHash } from '../shared/getHash';
+import { errors } from '../../../common/errors';
+import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
 import { TableNames } from './TableNames';
 import { ConnectionPool, TYPES as Types } from 'mssql';
@@ -116,7 +116,7 @@ class SqlServerLockStore implements LockStore {
           VALUES (@hash, @expiresAt);
       `);
     } catch {
-      throw new errors.AcquireLockFailed('Failed to acquire lock.');
+      throw new errors.LockAcquireFailed('Failed to acquire lock.');
     }
   }
 
@@ -168,7 +168,7 @@ class SqlServerLockStore implements LockStore {
     `);
 
     if (rowsAffected[0] === 0) {
-      throw new errors.RenewLockFailed('Failed to renew lock.');
+      throw new errors.LockRenewalFailed('Failed to renew lock.');
     }
   }
 

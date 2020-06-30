@@ -1,6 +1,6 @@
 import { CollectionNames } from './CollectionNames';
-import { errors } from '../errors';
-import { getHash } from '../shared/getHash';
+import { errors } from '../../../common/errors';
+import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
 import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
@@ -112,7 +112,7 @@ class MongoDbLockStore implements LockStore {
     try {
       await this.collections.locks.insertOne({ value: hash, expiresAt });
     } catch {
-      throw new errors.AcquireLockFailed('Failed to acquire lock.');
+      throw new errors.LockAcquireFailed('Failed to acquire lock.');
     }
   }
 
@@ -153,7 +153,7 @@ class MongoDbLockStore implements LockStore {
     );
 
     if (modifiedCount === 0) {
-      throw new errors.RenewLockFailed('Failed to renew lock.');
+      throw new errors.LockRenewalFailed('Failed to renew lock.');
     }
   }
 
