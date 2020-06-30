@@ -78,7 +78,7 @@ import { Value } from 'validate-value';
 
     server.listen(configuration.port, (): void => {
       logger.info(
-        'CommandDispatcher server started.',
+        'Domain event dispatcher server started.',
         { port: configuration.port, healthPort: configuration.healthPort }
       );
     });

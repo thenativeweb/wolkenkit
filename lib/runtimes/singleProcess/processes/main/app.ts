@@ -108,11 +108,13 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       for (const domainEvent of domainEvents) {
         publishDomainEvent({ domainEvent });
 
-        await priorityQueueStoreForDomainEvents.enqueue({
-          item: domainEvent,
-          discriminator: domainEvent.aggregateIdentifier.id,
-          priority: domainEvent.metadata.timestamp
-        });
+        for (const flowName of Object.keys(application.flows)) {
+          await priorityQueueStoreForDomainEvents.enqueue({
+            item: domainEvent,
+            discriminator: flowName,
+            priority: domainEvent.metadata.timestamp
+          });
+        }
       }
     };
 
