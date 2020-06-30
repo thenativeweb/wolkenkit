@@ -4,6 +4,7 @@ import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/util
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
+import { LockMetadata } from '../../../../stores/priorityQueueStore/LockMetadata';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -29,7 +30,7 @@ class Client<TItem, TItemIdentifier extends ItemIdentifier> extends HttpClient {
     this.createItemInstance = createItemInstance;
   }
 
-  public async awaitItem (): Promise<{ item: TItem; token: string }> {
+  public async awaitItem (): Promise<{ item: TItem; metadata: LockMetadata }> {
     const { data } = await axios({
       method: 'get',
       url: this.url,
@@ -39,7 +40,7 @@ class Client<TItem, TItemIdentifier extends ItemIdentifier> extends HttpClient {
     const passThrough = new PassThrough({ objectMode: true });
     const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
 
-    const { item, token } = await new Promise((resolve, reject): void => {
+    const { item, metadata } = await new Promise((resolve, reject): void => {
       let unsubscribe: () => void;
 
       const onData = (nextItem: any): void => {
@@ -73,7 +74,7 @@ class Client<TItem, TItemIdentifier extends ItemIdentifier> extends HttpClient {
 
     return {
       item: this.createItemInstance({ item }),
-      token
+      metadata
     };
   }
 

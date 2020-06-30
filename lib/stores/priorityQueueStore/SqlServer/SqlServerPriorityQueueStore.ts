@@ -3,6 +3,7 @@ import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
+import { LockMetadata } from '../LockMetadata';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
@@ -514,7 +515,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
 
   protected async lockNextInternal ({ transaction }: {
     transaction: Transaction;
-  }): Promise<{ item: TItem; token: string } | undefined> {
+  }): Promise<{ item: TItem; metadata: LockMetadata } | undefined> {
     const requestSelect = transaction.request();
 
     requestSelect.input('now', Types.BigInt, Date.now());
@@ -551,14 +552,14 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
 
     await this.repairDown({ transaction, discriminator });
 
-    return { item, token };
+    return { item, metadata: { discriminator, token }};
   }
 
-  public async lockNext (): Promise<{ item: TItem; token: string } | undefined> {
+  public async lockNext (): Promise<{ item: TItem; metadata: LockMetadata } | undefined> {
     return await this.functionCallQueue.add(
-      async (): Promise<{ item: TItem; token: string } | undefined> => {
+      async (): Promise<{ item: TItem; metadata: LockMetadata } | undefined> => {
         const transaction = this.pool.transaction();
-        let nextItem: { item: TItem; token: string } | undefined;
+        let nextItem: { item: TItem; metadata: LockMetadata } | undefined;
 
         await transaction.begin();
 

@@ -57,11 +57,26 @@ const getConfiguration = function (): Configuration {
       default: 'InMemory',
       schema: { type: 'string' }
     },
-    PRIORITY_QUEUE_STORE_TYPE: {
+    PRIORITY_QUEUE_STORE_FOR_COMMANDS_TYPE: {
       default: 'InMemory',
       schema: { type: 'string', minLength: 1 }
     },
-    PRIORITY_QUEUE_STORE_OPTIONS: {
+    PRIORITY_QUEUE_STORE_FOR_COMMANDS_OPTIONS: {
+      default: { expirationTime: 30_000 },
+      schema: {
+        type: 'object',
+        properties: {
+          expirationTime: { type: 'number', minimum: 1 }
+        },
+        required: [ 'expirationTime' ],
+        additionalProperties: true
+      }
+    },
+    PRIORITY_QUEUE_STORE_FOR_DOMAIN_EVENTS_TYPE: {
+      default: 'InMemory',
+      schema: { type: 'string', minLength: 1 }
+    },
+    PRIORITY_QUEUE_STORE_FOR_DOMAIN_EVENTS_OPTIONS: {
       default: { expirationTime: 30_000 },
       schema: {
         type: 'object',

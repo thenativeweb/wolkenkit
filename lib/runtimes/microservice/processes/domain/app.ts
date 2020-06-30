@@ -74,6 +74,10 @@ import { State } from '../../../../common/elements/State';
           channel: configuration.publisherChannelNewDomainEvent,
           message: domainEvent
         });
+        await publisherClient.postMessage({
+          channel: configuration.publisherChannelNewDomainEventInternal,
+          message: domainEvent
+        });
       }
     };
 

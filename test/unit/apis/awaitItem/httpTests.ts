@@ -162,7 +162,7 @@ suite('awaitItem/http', (): void => {
             },
             (streamElement: any): void => {
               assert.that(streamElement.item).is.equalTo(commandWithMetadata);
-              assert.that(isUuid(streamElement.token)).is.true();
+              assert.that(isUuid(streamElement.metadata.token)).is.true();
             }
           ]));
         });
@@ -208,7 +208,7 @@ suite('awaitItem/http', (): void => {
             },
             (streamElement: any): void => {
               assert.that(streamElement.item).is.equalTo(commandWithMetadata);
-              assert.that(isUuid(streamElement.token)).is.true();
+              assert.that(isUuid(streamElement.metadata.token)).is.true();
 
               resolve();
             }
@@ -234,7 +234,7 @@ suite('awaitItem/http', (): void => {
             },
             (streamElement: any): void => {
               assert.that(streamElement.item).is.equalTo(commandWithMetadata);
-              assert.that(isUuid(streamElement.token)).is.true();
+              assert.that(isUuid(streamElement.metadata.token)).is.true();
 
               resolve();
             }
@@ -429,7 +429,7 @@ suite('awaitItem/http', (): void => {
           responseType: 'stream'
         });
 
-        const { token } = await new Promise((resolve, reject): void => {
+        const { metadata: { token }} = await new Promise((resolve, reject): void => {
           lockData.on('error', (err: any): void => {
             reject(err);
           });
@@ -609,7 +609,7 @@ suite('awaitItem/http', (): void => {
           responseType: 'stream'
         });
 
-        const { item, token } = await new Promise((resolve, reject): void => {
+        const { item, metadata: { token }} = await new Promise((resolve, reject): void => {
           firstLockData.on('error', (err: any): void => {
             reject(err);
           });
@@ -812,7 +812,7 @@ suite('awaitItem/http', (): void => {
           responseType: 'stream'
         });
 
-        const { item, token } = await new Promise((resolve, reject): void => {
+        const { item, metadata: { token }} = await new Promise((resolve, reject): void => {
           firstLockData.on('error', (err: any): void => {
             reject(err);
           });
@@ -846,7 +846,7 @@ suite('awaitItem/http', (): void => {
           responseType: 'stream'
         });
 
-        const { item: nextItem, token: nextToken } = await new Promise((resolve, reject): void => {
+        const { item: nextItem, metadata: { token: nextToken }} = await new Promise((resolve, reject): void => {
           secondLockData.on('error', (err: any): void => {
             reject(err);
           });

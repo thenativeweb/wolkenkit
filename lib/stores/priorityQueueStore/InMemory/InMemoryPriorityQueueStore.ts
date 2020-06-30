@@ -3,6 +3,7 @@ import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
+import { LockMetadata } from '../LockMetadata';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
@@ -205,7 +206,7 @@ class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     );
   }
 
-  protected lockNextInternal (): { item: TItem; token: string } | undefined {
+  protected lockNextInternal (): { item: TItem; metadata: LockMetadata} | undefined {
     if (this.queues.length === 0) {
       return;
     }
@@ -225,12 +226,12 @@ class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
 
     this.repairDown({ queue });
 
-    return { item: item.item, token };
+    return { item: item.item, metadata: { discriminator: queue.discriminator, token }};
   }
 
-  public async lockNext (): Promise<{ item: TItem; token: string } | undefined> {
+  public async lockNext (): Promise<{ item: TItem; metadata: LockMetadata } | undefined> {
     return await this.functionCallQueue.add(
-      async (): Promise<{ item: TItem; token: string } | undefined> => this.lockNextInternal()
+      async (): Promise<{ item: TItem; metadata: LockMetadata } | undefined> => this.lockNextInternal()
     );
   }
 

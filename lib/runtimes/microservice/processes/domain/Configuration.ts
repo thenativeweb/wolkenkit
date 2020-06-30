@@ -11,6 +11,7 @@ export interface Configuration {
   publisherHostName: string;
   publisherPort: number;
   publisherChannelNewDomainEvent: string;
+  publisherChannelNewDomainEventInternal: string;
   aeonstoreProtocol: string;
   aeonstoreHostName: string;
   aeonstorePort: number;
