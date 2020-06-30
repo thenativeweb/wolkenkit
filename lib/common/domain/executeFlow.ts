@@ -1,6 +1,7 @@
 import { AggregatesService } from '../services/AggregatesService';
 import { Application } from '../application/Application';
 import { AskInfrastructure } from '../elements/AskInfrastructure';
+import { CommandService } from '../services/CommandService';
 import { ConsumerProgressStore } from '../../stores/consumerProgressStore/ConsumerProgressStore';
 import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
@@ -9,7 +10,6 @@ import { flaschenpost } from 'flaschenpost';
 import { LockService } from '../services/LockService';
 import { LoggerService } from '../services/LoggerService';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
-import {CommandService} from "../services/CommandService";
 
 const logger = flaschenpost.getLogger();
 
