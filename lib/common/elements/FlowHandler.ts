@@ -1,4 +1,6 @@
+import { AggregatesService } from '../services/AggregatesService';
 import { AskInfrastructure } from './AskInfrastructure';
+import { CommandService } from '../services/CommandService';
 import { DomainEvent } from './DomainEvent';
 import { DomainEventData } from './DomainEventData';
 import { ItemIdentifier } from './ItemIdentifier';
@@ -16,8 +18,10 @@ export interface FlowHandler<
   }): boolean;
 
   handle (domainEvent: DomainEvent<TDomainEventData>, services: {
+    aggregates: AggregatesService;
+    command: CommandService;
+    infrastructure: TInfrastructure;
     lock: LockService;
     logger: LoggerService;
-    infrastructure: TInfrastructure;
   }): void | Promise<void>;
 }

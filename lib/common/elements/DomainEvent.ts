@@ -48,6 +48,10 @@ class DomainEvent<TDomainEventData extends DomainEventData> {
       id: this.id
     };
   }
+
+  public getFullyQualifiedName (): string {
+    return `${this.contextIdentifier.name}.${this.aggregateIdentifier.name}.${this.name}`;
+  }
 }
 
 export { DomainEvent };
