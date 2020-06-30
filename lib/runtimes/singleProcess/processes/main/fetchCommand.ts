@@ -1,5 +1,6 @@
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
+import { LockMetadata } from '../../../../stores/priorityQueueStore/LockMetadata';
 import { PriorityQueue } from './PriorityQueue';
 import { retry } from 'retry-ignore-abort';
 
@@ -9,10 +10,10 @@ const fetchCommand = async function ({ priorityQueue }: {
     command: CommandWithMetadata<CommandData>;
     token: string;
   }> {
-  const { item, token } = await retry(
+  const { item, metadata } = await retry(
     async (): Promise<{
       item: CommandWithMetadata<CommandData>;
-      token: string;
+      metadata: LockMetadata;
     }> => {
       const lock = await priorityQueue.store.lockNext();
 
@@ -25,7 +26,7 @@ const fetchCommand = async function ({ priorityQueue }: {
     { retries: Number.POSITIVE_INFINITY, maxTimeout: 1000 }
   );
 
-  return { command: item, token };
+  return { command: item, token: metadata.token };
 };
 
 export {

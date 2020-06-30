@@ -3,6 +3,7 @@ import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
+import { LockMetadata } from '../LockMetadata';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
@@ -556,7 +557,7 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
 
   protected async lockNextInternal ({ connection }: {
     connection: PoolConnection;
-  }): Promise<{ item: TItem; token: string } | undefined> {
+  }): Promise<{ item: TItem; metadata: LockMetadata } | undefined> {
     const [ rows ] = await runQuery({
       connection,
       query: `
@@ -591,14 +592,14 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
 
     await this.repairDown({ connection, discriminator });
 
-    return { item, token };
+    return { item, metadata: { discriminator, token }};
   }
 
-  public async lockNext (): Promise<{ item: TItem; token: string } | undefined> {
+  public async lockNext (): Promise<{ item: TItem; metadata: LockMetadata } | undefined> {
     return await this.functionCallQueue.add(
-      async (): Promise<{ item: TItem; token: string } | undefined> => await withTransaction({
+      async (): Promise<{ item: TItem; metadata: LockMetadata } | undefined> => await withTransaction({
         getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
-        fn: async ({ connection }): Promise<{ item: TItem; token: string } | undefined> =>
+        fn: async ({ connection }): Promise<{ item: TItem; metadata: LockMetadata } | undefined> =>
           await this.lockNextInternal({ connection }),
         async releaseConnection ({ connection }): Promise<void> {
           MySqlPriorityQueueStore.releaseConnection({ connection });

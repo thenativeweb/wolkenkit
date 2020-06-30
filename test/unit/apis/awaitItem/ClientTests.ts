@@ -88,7 +88,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: 'foo',
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -99,7 +99,8 @@ suite('awaitItem/http/Client', (): void => {
         const command = await client.awaitItem();
 
         assert.that(command.item).is.equalTo(commandWithMetadata);
-        assert.that(command.token).is.ofType('string');
+        assert.that(command.metadata.token).is.ofType('string');
+        assert.that(command.metadata.discriminator).is.equalTo('foo');
       });
     });
 
@@ -261,7 +262,7 @@ suite('awaitItem/http/Client', (): void => {
           message: {}
         });
 
-        const { item, token } = await client.awaitItem();
+        const { item, metadata: { token }} = await client.awaitItem();
 
         await sleep({ ms: 0.6 * expirationTime });
 
@@ -448,7 +449,7 @@ suite('awaitItem/http/Client', (): void => {
           priority: commandTwo.metadata.timestamp
         });
 
-        const { item, token } = await client.awaitItem();
+        const { item, metadata: { token }} = await client.awaitItem();
 
         const commandWithMetadata = new CommandWithMetadata(item);
 
@@ -638,7 +639,7 @@ suite('awaitItem/http/Client', (): void => {
           priority: commandTwo.metadata.timestamp
         });
 
-        const { item, token } = await client.awaitItem();
+        const { item, metadata: { token }} = await client.awaitItem();
 
         const commandWithMetadata = new CommandWithMetadata(item);
 
@@ -648,7 +649,7 @@ suite('awaitItem/http/Client', (): void => {
           priority: Date.now()
         });
 
-        const { item: nextItem, token: nextToken } = await client.awaitItem();
+        const { item: nextItem, metadata: { token: nextToken }} = await client.awaitItem();
 
         const nextCommandWithMetadata = new CommandWithMetadata(nextItem);
 

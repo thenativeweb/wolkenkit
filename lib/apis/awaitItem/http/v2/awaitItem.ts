@@ -23,9 +23,17 @@ const awaitItem = {
       type: 'object',
       properties: {
         item: {},
-        token: jsonSchema.v4
+        metadata: {
+          type: 'object',
+          properties: {
+            discriminator: { type: 'string', minLength: 1 },
+            token: jsonSchema.v4
+          },
+          required: [ 'discriminator', 'token' ],
+          additionalProperties: false
+        }
       },
-      required: [ 'item', 'token' ],
+      required: [ 'item', 'metadata' ],
       additionalProperties: false
     }
   },

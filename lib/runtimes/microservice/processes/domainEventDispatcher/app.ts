@@ -106,11 +106,13 @@ import { Value } from 'validate-value';
         return;
       }
 
-      await priorityQueueStore.enqueue({
-        item: domainEvent,
-        discriminator: domainEvent.aggregateIdentifier.id,
-        priority: domainEvent.metadata.timestamp
-      });
+      for (const flowName of Object.keys(application.flows)) {
+        await priorityQueueStore.enqueue({
+          item: domainEvent,
+          discriminator: flowName,
+          priority: domainEvent.metadata.timestamp
+        });
+      }
       await internalNewDomainEventPublisher.publish({
         channel: configuration.pubSubOptions.channel,
         message: {}

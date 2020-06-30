@@ -151,6 +151,18 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       assert.that(nextCommand).is.equalTo(commands.firstAggregate.firstCommand);
     });
 
+    test('returns the discriminator for the locked item.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: 'foo',
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+
+      const { metadata: { discriminator }} = (await priorityQueueStore.lockNext())!;
+
+      assert.that(discriminator).is.equalTo('foo');
+    });
+
     test('returns undefined if the queue of the enqueued items is locked.', async (): Promise<void> => {
       await priorityQueueStore.enqueue({
         item: commands.firstAggregate.firstCommand,
@@ -247,8 +259,8 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         priority: commands.secondAggregate.firstCommand.metadata.timestamp
       });
 
-      const { token: firstNextToken } = (await priorityQueueStore.lockNext())!;
-      const { token: secondNextToken } = (await priorityQueueStore.lockNext())!;
+      const { metadata: { token: firstNextToken }} = (await priorityQueueStore.lockNext())!;
+      const { metadata: { token: secondNextToken }} = (await priorityQueueStore.lockNext())!;
 
       assert.that(firstNextToken).is.not.equalTo(secondNextToken);
     });
@@ -260,11 +272,11 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         priority: commands.firstAggregate.firstCommand.metadata.timestamp
       });
 
-      const { token: firstNextToken } = (await priorityQueueStore.lockNext())!;
+      const { metadata: { token: firstNextToken }} = (await priorityQueueStore.lockNext())!;
 
       await sleep({ ms: expirationTime * 1.5 });
 
-      const { token: secondNextToken } = (await priorityQueueStore.lockNext())!;
+      const { metadata: { token: secondNextToken }} = (await priorityQueueStore.lockNext())!;
 
       assert.that(firstNextToken).is.not.equalTo(secondNextToken);
     });
@@ -350,7 +362,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         priority: commands.firstAggregate.firstCommand.metadata.timestamp
       });
 
-      const { token } = (await priorityQueueStore.lockNext())!;
+      const { metadata: { token }} = (await priorityQueueStore.lockNext())!;
 
       await sleep({ ms: expirationTime * 0.75 });
       await priorityQueueStore.renewLock({
@@ -424,7 +436,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         priority: commands.firstAggregate.secondCommand.metadata.timestamp
       });
 
-      const { token } = (await priorityQueueStore.lockNext())!;
+      const { metadata: { token }} = (await priorityQueueStore.lockNext())!;
 
       await priorityQueueStore.acknowledge({
         discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
@@ -443,7 +455,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         priority: commands.firstAggregate.firstCommand.metadata.timestamp
       });
 
-      const { token } = (await priorityQueueStore.lockNext())!;
+      const { metadata: { token }} = (await priorityQueueStore.lockNext())!;
 
       await priorityQueueStore.acknowledge({
         discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
@@ -518,7 +530,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         priority: commands.firstAggregate.secondCommand.metadata.timestamp
       });
 
-      const { token } = (await priorityQueueStore.lockNext())!;
+      const { metadata: { token }} = (await priorityQueueStore.lockNext())!;
 
       await priorityQueueStore.defer({
         discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.id,
@@ -526,7 +538,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         priority: commands.firstAggregate.firstCommand.metadata.timestamp + 1
       });
 
-      const { item: nextCommand, token: nextToken } = (await priorityQueueStore.lockNext())!;
+      const { item: nextCommand, metadata: { token: nextToken }} = (await priorityQueueStore.lockNext())!;
 
       assert.that(nextCommand).is.equalTo(commands.firstAggregate.secondCommand);
 
@@ -623,7 +635,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       await priorityQueueStore.remove({ discriminator, itemIdentifier: itemPrioTwo });
       const shouldBeItemPrioOne = await priorityQueueStore.lockNext();
 
-      await priorityQueueStore.acknowledge({ discriminator, token: shouldBeItemPrioOne!.token });
+      await priorityQueueStore.acknowledge({ discriminator, token: shouldBeItemPrioOne!.metadata.token });
       const shouldBeUndefined = await priorityQueueStore.lockNext();
 
       assert.that(shouldBeUndefined).is.undefined();

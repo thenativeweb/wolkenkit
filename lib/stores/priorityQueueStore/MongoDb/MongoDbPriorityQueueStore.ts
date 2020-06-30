@@ -4,6 +4,7 @@ import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
+import { LockMetadata } from '../LockMetadata';
 import { parse } from 'url';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
@@ -399,7 +400,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
 
   protected async lockNextInternal ({ session }: {
     session: ClientSession;
-  }): Promise<{ item: TItem; token: string } | undefined> {
+  }): Promise<{ item: TItem; metadata: LockMetadata } | undefined> {
     const queue = await this.getQueueByIndexInPriorityQueue({ session, indexInPriorityQueue: 0 });
 
     if (!queue) {
@@ -422,15 +423,15 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
 
     await this.repairDown({ session, discriminator: queue.discriminator });
 
-    return { item: item.item, token };
+    return { item: item.item, metadata: { discriminator: queue.discriminator, token }};
   }
 
-  public async lockNext (): Promise<{ item: TItem; token: string } | undefined> {
+  public async lockNext (): Promise<{ item: TItem; metadata: LockMetadata } | undefined> {
     return await this.functionCallQueue.add(
-      async (): Promise<{ item: TItem; token: string } | undefined> =>
+      async (): Promise<{ item: TItem; metadata: LockMetadata } | undefined> =>
         await withTransaction({
           client: this.client,
-          fn: async ({ session }): Promise<{ item: TItem; token: string } | undefined> =>
+          fn: async ({ session }): Promise<{ item: TItem; metadata: LockMetadata } | undefined> =>
             await this.lockNextInternal({ session })
         })
     );
