@@ -7,6 +7,7 @@ import { ClientService } from './common/services/ClientService';
 import { Command } from './common/elements/Command';
 import { CommandData } from './common/elements/CommandData';
 import { CommandHandler } from './common/elements/CommandHandler';
+import { CommandService } from './common/services/CommandService';
 import { CommandWithMetadata } from './common/elements/CommandWithMetadata';
 import { DomainEvent } from './common/elements/DomainEvent';
 import { DomainEventData } from './common/elements/DomainEventData';
@@ -40,6 +41,7 @@ export {
   Command,
   CommandData,
   CommandHandler,
+  CommandService,
   CommandWithMetadata,
   DomainEvent,
   DomainEventData,
