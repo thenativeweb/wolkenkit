@@ -125,7 +125,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
         for (const flowName of Object.keys(application.flows)) {
           await priorityQueueStoreForDomainEvents.enqueue({
-            item: domainEvent,
+            item: domainEvent.withoutState(),
             discriminator: flowName,
             priority: domainEvent.metadata.timestamp
           });
