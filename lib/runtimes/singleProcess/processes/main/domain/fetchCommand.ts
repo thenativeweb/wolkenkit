@@ -1,7 +1,7 @@
 import { CommandData } from '../../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../../common/elements/CommandWithMetadata';
-import { LockMetadata } from '../../../../../stores/priorityQueueStore/LockMetadata';
 import { DomainPriorityQueue } from './DomainPriorityQueue';
+import { LockMetadata } from '../../../../../stores/priorityQueueStore/LockMetadata';
 import { retry } from 'retry-ignore-abort';
 
 const fetchCommand = async function ({ priorityQueue }: {
@@ -23,7 +23,7 @@ const fetchCommand = async function ({ priorityQueue }: {
 
       return lock;
     },
-    { retries: Number.POSITIVE_INFINITY, maxTimeout: 1000 }
+    { retries: Number.POSITIVE_INFINITY, minTimeout: 10, maxTimeout: 500 }
   );
 
   return { command: item, token: metadata.token };

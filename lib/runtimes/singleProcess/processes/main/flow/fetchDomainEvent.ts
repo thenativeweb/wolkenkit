@@ -23,7 +23,7 @@ const fetchDomainEvent = async function ({ priorityQueue }: {
 
       return lock;
     },
-    { retries: Number.POSITIVE_INFINITY, maxTimeout: 1000 }
+    { retries: Number.POSITIVE_INFINITY, minTimeout: 10, maxTimeout: 500 }
   );
 
   return { domainEvent: item, metadata };
