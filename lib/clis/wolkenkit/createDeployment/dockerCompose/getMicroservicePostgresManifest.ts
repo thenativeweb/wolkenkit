@@ -105,7 +105,6 @@ const getMicroservicePostgresManifest = function ({ appName }: {
 
   const pubSubType = 'InMemory';
   const pubSubOptions = JSON.stringify({
-    channel: 'newCommand',
     subscriber: {},
     publisher: {}
   });
