@@ -96,7 +96,7 @@ const getConfiguration = function (): Configuration {
       default: 3001,
       schema: portSchema
     },
-    CONCURRENT_DOMAIN_EVENTS: {
+    CONCURRENT_FLOWS: {
       default: 1,
       schema: {
         type: 'number',

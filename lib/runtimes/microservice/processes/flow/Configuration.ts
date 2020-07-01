@@ -19,6 +19,6 @@ export interface Configuration {
   consumerProgressStoreOptions: object;
   healthCorsOrigin: string | string[];
   healthPort: number;
-  concurrentDomainEvents: number;
+  concurrentFlows: number;
   snapshotStrategy: SnapshotStrategyConfiguration;
 }

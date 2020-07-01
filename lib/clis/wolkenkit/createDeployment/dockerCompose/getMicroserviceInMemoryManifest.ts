@@ -320,7 +320,7 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
           CONSUMER_PROGRESS_STORE_OPTIONS: '${consumerProgressStoreOptions}'
           HEALTH_CORS_ORIGIN: '*'
           HEALTH_PORT: '${ports.health.domainEventDispatcher}'
-          CONCURRENT_DOMAIN_EVENTS: ${1}
+          CONCURRENT_FLOWS: ${1}
         image: '${appName}'
         init: true
         restart: 'always'

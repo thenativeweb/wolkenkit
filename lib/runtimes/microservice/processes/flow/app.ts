@@ -78,7 +78,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       await commandDispatcherClient.postCommand({ command });
     };
 
-    for (let i = 0; i < configuration.concurrentDomainEvents; i++) {
+    for (let i = 0; i < configuration.concurrentFlows; i++) {
       pForever(async (): Promise<void> => {
         await processDomainEvent({
           application,
