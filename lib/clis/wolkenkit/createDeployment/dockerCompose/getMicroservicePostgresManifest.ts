@@ -103,8 +103,22 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     }
   });
 
-  const pubSubType = 'InMemory';
-  const pubSubOptions = JSON.stringify({
+  const pubSubTypePublisher = 'InMemory';
+  const pubSubOptionsPublisher = JSON.stringify({
+    subscriber: {},
+    publisher: {}
+  });
+
+  const pubSubTypeCommandDispatcher = 'InMemory';
+  const pubSubOptionsCommandDispatcher = JSON.stringify({
+    channel: 'newCommand',
+    subscriber: {},
+    publisher: {}
+  });
+
+  const pubSubTypeDomainEventDispatcher = 'InMemory';
+  const pubSubOptionsDomainEventDispatcher = JSON.stringify({
+    channel: 'newDomainEvent',
     subscriber: {},
     publisher: {}
   });
@@ -158,8 +172,8 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           APPLICATION_DIRECTORY: '/app'
           PRIORITY_QUEUE_STORE_TYPE: '${commandPriorityQueueStoreType}'
           PRIORITY_QUEUE_STORE_OPTIONS: '${commandPriorityQueueStoreOptions}'
-          PUB_SUB_TYPE: '${pubSubType}'
-          PUB_SUB_OPTIONS: '${pubSubOptions}'
+          PUB_SUB_TYPE: '${pubSubTypeCommandDispatcher}'
+          PUB_SUB_OPTIONS: '${pubSubOptionsCommandDispatcher}'
           AWAIT_COMMAND_CORS_ORIGIN: '*'
           HANDLE_COMMAND_CORS_ORIGIN: '*'
           HEALTH_CORS_ORIGIN: '*'
@@ -270,8 +284,8 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           HEALTH_PORT: ${ports.health.publisher}
           PUBLISH_CORS_ORIGIN: '*'
           SUBSCRIBE_CORS_ORIGIN: '*'
-          PUB_SUB_TYPE: '${pubSubType}'
-          PUB_SUB_OPTIONS: '${pubSubOptions}'
+          PUB_SUB_TYPE: '${pubSubTypeCommandDispatcher}'
+          PUB_SUB_OPTIONS: '${pubSubOptionsCommandDispatcher}'
         image: '${appName}'
         init: true
         restart: 'always'
@@ -319,8 +333,8 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           APPLICATION_DIRECTORY: '/app'
           PRIORITY_QUEUE_STORE_TYPE: '${domainEventPriorityQueueStoreType}'
           PRIORITY_QUEUE_STORE_OPTIONS: '${domainEventPriorityQueueStoreOptions}'
-          PUB_SUB_TYPE: '${pubSubType}'
-          PUB_SUB_OPTIONS: '${pubSubOptions}'
+          PUB_SUB_TYPE: '${pubSubTypeDomainEventDispatcher}'
+          PUB_SUB_OPTIONS: '${pubSubOptionsDomainEventDispatcher}'
           SUBSCRIBE_MESSAGES_PROTOCOL: 'http'
           SUBSCRIBE_MESSAGES_HOST_NAME: 'publisher'
           SUBSCRIBE_MESSAGES_PORT: '${ports.private.publisher}'

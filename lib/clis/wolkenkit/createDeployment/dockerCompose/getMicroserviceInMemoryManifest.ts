@@ -45,8 +45,22 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
   const consumerProgressStoreType = 'InMemory';
   const consumerProgressStoreOptions = JSON.stringify({});
 
-  const pubSubType = 'InMemory';
-  const pubSubOptions = JSON.stringify({
+  const pubSubTypePublisher = 'InMemory';
+  const pubSubOptionsPublisher = JSON.stringify({
+    subscriber: {},
+    publisher: {}
+  });
+
+  const pubSubTypeCommandDispatcher = 'InMemory';
+  const pubSubOptionsCommandDispatcher = JSON.stringify({
+    channel: 'newCommand',
+    subscriber: {},
+    publisher: {}
+  });
+
+  const pubSubTypeDomainEventDispatcher = 'InMemory';
+  const pubSubOptionsDomainEventDispatcher = JSON.stringify({
+    channel: 'newDomainEvent',
     subscriber: {},
     publisher: {}
   });
@@ -100,8 +114,8 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
           APPLICATION_DIRECTORY: '/app'
           PRIORITY_QUEUE_STORE_TYPE: '${priorityQueueStoreType}'
           PRIORITY_QUEUE_STORE_OPTIONS: '${priorityQueueStoreOptions}'
-          PUB_SUB_TYPE: '${pubSubType}'
-          PUB_SUB_OPTIONS: '${pubSubOptions}'
+          PUB_SUB_TYPE: '${pubSubTypeCommandDispatcher}'
+          PUB_SUB_OPTIONS: '${pubSubOptionsCommandDispatcher}'
           AWAIT_COMMAND_CORS_ORIGIN: '*'
           HANDLE_COMMAND_CORS_ORIGIN: '*'
           HEALTH_CORS_ORIGIN: '*'
@@ -212,8 +226,8 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
           HEALTH_PORT: ${ports.health.publisher}
           PUBLISH_CORS_ORIGIN: '*'
           SUBSCRIBE_CORS_ORIGIN: '*'
-          PUB_SUB_TYPE: '${pubSubType}'
-          PUB_SUB_OPTIONS: '${pubSubOptions}'
+          PUB_SUB_TYPE: '${pubSubTypePublisher}'
+          PUB_SUB_OPTIONS: '${pubSubOptionsPublisher}'
         image: '${appName}'
         init: true
         restart: 'always'
@@ -230,7 +244,7 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
         environment:
           NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
-          ENABLE_INTEGRATED_CLIENT: 'false'
+          ENABLE_INTEGRATED_CLIENT: 'false
           CORS_ORIGIN: '*'
           DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
           DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'
@@ -261,8 +275,8 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
           APPLICATION_DIRECTORY: '/app'
           PRIORITY_QUEUE_STORE_TYPE: '${priorityQueueStoreType}'
           PRIORITY_QUEUE_STORE_OPTIONS: '${priorityQueueStoreOptions}'
-          PUB_SUB_TYPE: '${pubSubType}'
-          PUB_SUB_OPTIONS: '${pubSubOptions}'
+          PUB_SUB_TYPE: '${pubSubTypeDomainEventDispatcher}'
+          PUB_SUB_OPTIONS: '${pubSubOptionsDomainEventDispatcher}'
           SUBSCRIBE_MESSAGES_PROTOCOL: 'http'
           SUBSCRIBE_MESSAGES_HOST_NAME: 'publisher'
           SUBSCRIBE_MESSAGES_PORT: '${ports.private.publisher}'
