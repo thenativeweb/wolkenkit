@@ -244,7 +244,7 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
         environment:
           NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
-          ENABLE_INTEGRATED_CLIENT: 'false
+          ENABLE_INTEGRATED_CLIENT: 'false'
           CORS_ORIGIN: '*'
           DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
           DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'
