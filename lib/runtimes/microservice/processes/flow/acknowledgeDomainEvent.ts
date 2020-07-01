@@ -1,16 +1,14 @@
-import { DomainEvent } from '../../../../common/elements/DomainEvent';
-import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventDispatcher } from './DomainEventDispatcher';
 import { retry } from 'retry-ignore-abort';
 
-const acknowledgeDomainEvent = async function ({ domainEvent, token, domainEventDispatcher }: {
-  domainEvent: DomainEvent<DomainEventData>;
+const acknowledgeDomainEvent = async function ({ flowName, token, domainEventDispatcher }: {
+  flowName: string;
   token: string;
   domainEventDispatcher: DomainEventDispatcher;
 }): Promise<void> {
   await retry(async (): Promise<void> => {
     await domainEventDispatcher.client.acknowledge({
-      itemIdentifier: domainEvent.getItemIdentifier(),
+      discriminator: flowName,
       token
     });
   }, { retries: domainEventDispatcher.acknowledgeRetries, maxTimeout: 1000 });

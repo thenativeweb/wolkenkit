@@ -36,6 +36,7 @@ const processDomainEvent = async function ({
   onIssueCommand: (parameters: { command: CommandWithMetadata<CommandData> }) => void | Promise<void>;
 }): Promise<void> {
   const { domainEvent, metadata } = await fetchDomainEvent({ domainEventDispatcher });
+  const flowName = metadata.discriminator;
 
   try {
     try {
@@ -43,8 +44,6 @@ const processDomainEvent = async function ({
     } catch (ex) {
       throw new errors.DomainEventMalformed(ex.message);
     }
-
-    const flowName = metadata.discriminator;
 
     if (!(flowName in application.flows)) {
       throw new errors.FlowNotFound(`Received a domain event for unknown flow '${flowName}'.`);
@@ -69,14 +68,14 @@ const processDomainEvent = async function ({
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async (): Promise<void> => {
-      await keepRenewingLock({ domainEvent, flowPromise, domainEventDispatcher, token: metadata.token });
+      await keepRenewingLock({ flowName, flowPromise, domainEventDispatcher, token: metadata.token });
     })();
 
     await flowPromise;
   } catch (ex) {
     logger.error('Failed to handle domain event.', { domainEvent, ex });
   } finally {
-    await acknowledgeDomainEvent({ domainEvent, token: metadata.token, domainEventDispatcher });
+    await acknowledgeDomainEvent({ flowName, token: metadata.token, domainEventDispatcher });
   }
 };
 

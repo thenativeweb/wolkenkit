@@ -6,7 +6,6 @@ import { DomainEventData } from '../../../../../lib/common/elements/DomainEventD
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
-import { ItemIdentifier } from '../../../../../lib/common/elements/ItemIdentifier';
 import { Client as PublishMessageClient } from '../../../../../lib/apis/publishMessage/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
@@ -18,7 +17,7 @@ suite('domainEventDispatcher', function (): void {
 
   const queueLockExpirationTime = 600;
 
-  let awaitDomainEventClient: AwaitDomainEventClient<DomainEvent<DomainEventData>, ItemIdentifier>,
+  let awaitDomainEventClient: AwaitDomainEventClient<DomainEvent<DomainEventData>>,
       healthPortDomainEventDispatcher: number,
       healthPortPublisher: number,
       portDomainEventDispatcher: number,

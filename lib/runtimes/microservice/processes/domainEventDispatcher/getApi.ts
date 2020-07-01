@@ -26,8 +26,7 @@ const getApi = async function ({
   newDomainEventSubscriber: Subscriber<object>;
   newDomainEventPubSubChannel: string;
 }): Promise<{ api: ExpressApplication }> {
-  const { api: awaitDomainEventApi } = await getAwaitDomainEventApi<DomainEvent<DomainEventData>, ItemIdentifier>({
-    application,
+  const { api: awaitDomainEventApi } = await getAwaitDomainEventApi<DomainEvent<DomainEventData>>({
     corsOrigin: getCorsOrigin(configuration.awaitCommandCorsOrigin),
     priorityQueueStore,
     newItemSubscriber: newDomainEventSubscriber,

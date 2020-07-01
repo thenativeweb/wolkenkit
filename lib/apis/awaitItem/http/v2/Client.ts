@@ -3,13 +3,12 @@ import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/utils/http/FilterHeartbeatsFromJsonStreamTransform';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
-import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { LockMetadata } from '../../../../stores/priorityQueueStore/LockMetadata';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
 
-class Client<TItem, TItemIdentifier extends ItemIdentifier> extends HttpClient {
+class Client<TItem> extends HttpClient {
   protected createItemInstance: ({ item }: { item: TItem }) => TItem;
 
   public constructor ({
@@ -78,91 +77,14 @@ class Client<TItem, TItemIdentifier extends ItemIdentifier> extends HttpClient {
     };
   }
 
-  public async renewLock ({ itemIdentifier, token }: {
-    itemIdentifier: TItemIdentifier;
+  public async renewLock ({ discriminator, token }: {
+    discriminator: string;
     token: string;
   }): Promise<void> {
     const { status, data } = await axios({
       method: 'post',
       url: `${this.url}/renew-lock`,
-      data: { itemIdentifier, token },
-      validateStatus (): boolean {
-        return true;
-      }
-    });
-
-    if (status === 200) {
-      return;
-    }
-
-    switch (data.code) {
-      case 'ETOKENMISMATCH': {
-        throw new errors.TokenMismatch(data.message);
-      }
-      case 'EITEMIDENTIFIERMALFORMED': {
-        throw new errors.ItemIdentifierMalformed(data.message);
-      }
-      case 'EITEMNOTFOUND': {
-        throw new errors.ItemNotFound(data.message);
-      }
-      case 'EITEMNOTLOCKED': {
-        throw new errors.ItemNotLocked(data.message);
-      }
-      default: {
-        logger.error('An unknown error occured.', { ex: data, status });
-
-        throw new errors.UnknownError();
-      }
-    }
-  }
-
-  public async acknowledge ({ itemIdentifier, token }: {
-    itemIdentifier: TItemIdentifier;
-    token: string;
-  }): Promise<void> {
-    const { status, data } = await axios({
-      method: 'post',
-      url: `${this.url}/acknowledge`,
-      data: { itemIdentifier, token },
-      validateStatus (): boolean {
-        return true;
-      }
-    });
-
-    if (status === 200) {
-      return;
-    }
-
-    switch (data.code) {
-      case 'ETOKENMISMATCH': {
-        throw new errors.TokenMismatch(data.message);
-      }
-      case 'EITEMIDENTIFIERMALFORMED': {
-        throw new errors.ItemIdentifierMalformed(data.message);
-      }
-      case 'EITEMNOTFOUND': {
-        throw new errors.ItemNotFound(data.message);
-      }
-      case 'EITEMNOTLOCKED': {
-        throw new errors.ItemNotLocked(data.message);
-      }
-      default: {
-        logger.error('An unknown error occured.', { ex: data, status });
-
-        throw new errors.UnknownError();
-      }
-    }
-  }
-
-  public async defer ({ itemIdentifier, token, priority }: {
-    itemIdentifier: TItemIdentifier;
-    token: string;
-    priority: number;
-  }): Promise<void> {
-    const { status, data } = await axios({
-      method: 'post',
-      url: `${this.url}/defer`,
-      data: { itemIdentifier, token, priority },
+      data: { discriminator, token },
       validateStatus (): boolean {
         return true;
       }
@@ -179,8 +101,82 @@ class Client<TItem, TItemIdentifier extends ItemIdentifier> extends HttpClient {
       case 'EREQUESTMALFORMED': {
         throw new errors.RequestMalformed(data.message);
       }
-      case 'EITEMIDENTIFIERMALFORMED': {
-        throw new errors.ItemIdentifierMalformed(data.message);
+      case 'EITEMNOTFOUND': {
+        throw new errors.ItemNotFound(data.message);
+      }
+      case 'EITEMNOTLOCKED': {
+        throw new errors.ItemNotLocked(data.message);
+      }
+      default: {
+        logger.error('An unknown error occured.', { ex: data, status });
+
+        throw new errors.UnknownError();
+      }
+    }
+  }
+
+  public async acknowledge ({ discriminator, token }: {
+    discriminator: string;
+    token: string;
+  }): Promise<void> {
+    const { status, data } = await axios({
+      method: 'post',
+      url: `${this.url}/acknowledge`,
+      data: { discriminator, token },
+      validateStatus (): boolean {
+        return true;
+      }
+    });
+
+    if (status === 200) {
+      return;
+    }
+
+    switch (data.code) {
+      case 'ETOKENMISMATCH': {
+        throw new errors.TokenMismatch(data.message);
+      }
+      case 'EREQUESTMALFORMED': {
+        throw new errors.RequestMalformed(data.message);
+      }
+      case 'EITEMNOTFOUND': {
+        throw new errors.ItemNotFound(data.message);
+      }
+      case 'EITEMNOTLOCKED': {
+        throw new errors.ItemNotLocked(data.message);
+      }
+      default: {
+        logger.error('An unknown error occured.', { ex: data, status });
+
+        throw new errors.UnknownError();
+      }
+    }
+  }
+
+  public async defer ({ discriminator, token, priority }: {
+    discriminator: string;
+    token: string;
+    priority: number;
+  }): Promise<void> {
+    const { status, data } = await axios({
+      method: 'post',
+      url: `${this.url}/defer`,
+      data: { discriminator, token, priority },
+      validateStatus (): boolean {
+        return true;
+      }
+    });
+
+    if (status === 200) {
+      return;
+    }
+
+    switch (data.code) {
+      case 'ETOKENMISMATCH': {
+        throw new errors.TokenMismatch(data.message);
+      }
+      case 'EREQUESTMALFORMED': {
+        throw new errors.RequestMalformed(data.message);
       }
       case 'EITEMNOTFOUND': {
         throw new errors.ItemNotFound(data.message);

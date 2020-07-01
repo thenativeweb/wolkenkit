@@ -1,4 +1,3 @@
-import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { buildCommandWithMetadata } from '../../../../lib/common/utils/test/buildCommandWithMetadata';
 import { Client } from '../../../../lib/apis/awaitItem/http/v2/Client';
@@ -11,12 +10,9 @@ import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/awaitItem/http';
 import { getCommandWithMetadataSchema } from '../../../../lib/common/schemas/getCommandWithMetadataSchema';
 import { getPromiseStatus } from '../../../../lib/common/utils/getPromiseStatus';
-import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
 import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
-import { ItemIdentifier } from '../../../../lib/common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
-import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { runAsServer } from '../../../shared/http/runAsServer';
@@ -31,17 +27,12 @@ suite('awaitItem/http/Client', (): void => {
     const pollInterval = 500;
 
     let api: ExpressApplication,
-        application: Application,
         newItemPublisher: Publisher<object>,
         newItemSubscriber: Subscriber<object>,
         newItemSubscriberChannel: string,
         priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
 
     setup(async (): Promise<void> => {
-      const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
-
-      application = await loadApplication({ applicationDirectory });
-
       newItemSubscriber = await InMemorySubscriber.create();
       newItemSubscriberChannel = uuid();
       newItemPublisher = await InMemoryPublisher.create();
@@ -53,7 +44,6 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       ({ api } = await getApi({
-        application,
         corsOrigin: '*',
         priorityQueueStore,
         newItemSubscriber,
@@ -67,7 +57,7 @@ suite('awaitItem/http/Client', (): void => {
     suite('awaitItem', (): void => {
       test('retrieves a lock item.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -105,9 +95,9 @@ suite('awaitItem/http/Client', (): void => {
     });
 
     suite('renewLock', (): void => {
-      test('throws an item identifier malformed error if the item identifier is malformed.', async (): Promise<void> => {
+      test('throws a request malformed error if the discriminator is too short.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -115,17 +105,17 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => await client.renewLock({
-          itemIdentifier: {} as any,
+          discriminator: '' as any,
           token: uuid()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EITEMIDENTIFIERMALFORMED' &&
-            ex.message === 'Missing required property: contextIdentifier (at value.itemIdentifier.contextIdentifier).'
+          (ex): boolean => (ex as CustomError).code === 'EREQUESTMALFORMED' &&
+            ex.message === 'String is too short (0 chars), minimum 1 (at value.discriminator).'
         );
       });
 
       test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -133,17 +123,7 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.renewLock({
-          itemIdentifier: {
-            contextIdentifier: {
-              name: 'sampleContext'
-            },
-            aggregateIdentifier: {
-              name: 'sampleAggregate',
-              id: uuid()
-            },
-            id: uuid(),
-            name: 'foo'
-          },
+          discriminator: uuid(),
           token: uuid()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === 'EITEMNOTFOUND'
@@ -152,7 +132,7 @@ suite('awaitItem/http/Client', (): void => {
 
       test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -182,7 +162,7 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.renewLock({
-          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
           token: uuid()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === 'EITEMNOTLOCKED'
@@ -191,7 +171,7 @@ suite('awaitItem/http/Client', (): void => {
 
       test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -223,17 +203,17 @@ suite('awaitItem/http/Client', (): void => {
         await client.awaitItem();
 
         await assert.that(async (): Promise<any> => client.renewLock({
-          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
           token: uuid()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === 'ETOKENMISMATCH' &&
-            ex.message === `Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`
+            ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
         );
       });
 
       test('extends the lock expiry time.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -266,7 +246,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await sleep({ ms: 0.6 * expirationTime });
 
-        await client.renewLock({ itemIdentifier: item.getItemIdentifier(), token });
+        await client.renewLock({ discriminator: item.aggregateIdentifier.id, token });
 
         await sleep({ ms: 0.6 * expirationTime });
 
@@ -279,9 +259,9 @@ suite('awaitItem/http/Client', (): void => {
     });
 
     suite('acknowledge', (): void => {
-      test('throws an item identifier malformed error if the item identifier is malformed.', async (): Promise<void> => {
+      test('throws a request malformed error if the discriminator is too short.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -289,17 +269,17 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => await client.acknowledge({
-          itemIdentifier: {} as any,
+          discriminator: '',
           token: uuid()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EITEMIDENTIFIERMALFORMED' &&
-            ex.message === 'Missing required property: contextIdentifier (at value.itemIdentifier.contextIdentifier).'
+          (ex): boolean => (ex as CustomError).code === 'EREQUESTMALFORMED' &&
+            ex.message === 'String is too short (0 chars), minimum 1 (at value.discriminator).'
         );
       });
 
       test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -307,17 +287,7 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.acknowledge({
-          itemIdentifier: {
-            contextIdentifier: {
-              name: 'sampleContext'
-            },
-            aggregateIdentifier: {
-              name: 'sampleAggregate',
-              id: uuid()
-            },
-            id: uuid(),
-            name: 'foo'
-          },
+          discriminator: uuid(),
           token: uuid()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === 'EITEMNOTFOUND'
@@ -326,7 +296,7 @@ suite('awaitItem/http/Client', (): void => {
 
       test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -356,7 +326,7 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.acknowledge({
-          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
           token: uuid()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === 'EITEMNOTLOCKED'
@@ -365,7 +335,7 @@ suite('awaitItem/http/Client', (): void => {
 
       test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -397,17 +367,17 @@ suite('awaitItem/http/Client', (): void => {
         await client.awaitItem();
 
         await assert.that(async (): Promise<any> => client.acknowledge({
-          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
           token: uuid()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === 'ETOKENMISMATCH' &&
-            ex.message === `Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`
+            ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
         );
       });
 
       test('removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -454,7 +424,7 @@ suite('awaitItem/http/Client', (): void => {
         const commandWithMetadata = new CommandWithMetadata(item);
 
         await client.acknowledge({
-          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
           token
         });
 
@@ -465,9 +435,9 @@ suite('awaitItem/http/Client', (): void => {
     });
 
     suite('defer', (): void => {
-      test('throws an item identifier malformed error if the item identifier is malformed.', async (): Promise<void> => {
+      test('throws a request malformed error if the discriminator is too short.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -475,18 +445,18 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => await client.defer({
-          itemIdentifier: {} as any,
+          discriminator: '',
           token: uuid(),
           priority: Date.now()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === 'EREQUESTMALFORMED' &&
-            ex.message === 'Missing required property: contextIdentifier (at value.itemIdentifier.contextIdentifier).'
+            ex.message === 'String is too short (0 chars), minimum 1 (at value.discriminator).'
         );
       });
 
       test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -494,17 +464,7 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.defer({
-          itemIdentifier: {
-            contextIdentifier: {
-              name: 'sampleContext'
-            },
-            aggregateIdentifier: {
-              name: 'sampleAggregate',
-              id: uuid()
-            },
-            id: uuid(),
-            name: 'foo'
-          },
+          discriminator: uuid(),
           token: uuid(),
           priority: Date.now()
         })).is.throwingAsync(
@@ -514,7 +474,7 @@ suite('awaitItem/http/Client', (): void => {
 
       test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -544,7 +504,7 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.defer({
-          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
           token: uuid(),
           priority: Date.now()
         })).is.throwingAsync(
@@ -554,7 +514,7 @@ suite('awaitItem/http/Client', (): void => {
 
       test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -586,18 +546,18 @@ suite('awaitItem/http/Client', (): void => {
         await client.awaitItem();
 
         await assert.that(async (): Promise<any> => client.defer({
-          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
           token: uuid(),
           priority: Date.now()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === 'ETOKENMISMATCH' &&
-            ex.message === `Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`
+                ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
         );
       });
 
       test('removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
-        const client = new Client<CommandWithMetadata<CommandData>, ItemIdentifier>({
+        const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
           port,
           path: '/v2',
@@ -644,7 +604,7 @@ suite('awaitItem/http/Client', (): void => {
         const commandWithMetadata = new CommandWithMetadata(item);
 
         await client.defer({
-          itemIdentifier: commandWithMetadata.getItemIdentifier(),
+          discriminator: commandWithMetadata.aggregateIdentifier.id,
           token,
           priority: Date.now()
         });
@@ -654,7 +614,7 @@ suite('awaitItem/http/Client', (): void => {
         const nextCommandWithMetadata = new CommandWithMetadata(nextItem);
 
         await client.acknowledge({
-          itemIdentifier: nextCommandWithMetadata.getItemIdentifier(),
+          discriminator: nextCommandWithMetadata.aggregateIdentifier.id,
           token: nextToken
         });
 

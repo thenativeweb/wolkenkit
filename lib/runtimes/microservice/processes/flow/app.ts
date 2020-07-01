@@ -55,7 +55,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       options: configuration.consumerProgressStoreOptions
     });
 
-    const domainEventDispatcherClient = new DomainEventDispatcherClient<DomainEvent<DomainEventData>, ItemIdentifier>({
+    const domainEventDispatcherClient = new DomainEventDispatcherClient<DomainEvent<DomainEventData>>({
       protocol: configuration.domainEventDispatcherProtocol,
       hostName: configuration.domainEventDispatcherHostName,
       port: configuration.domainEventDispatcherPort,

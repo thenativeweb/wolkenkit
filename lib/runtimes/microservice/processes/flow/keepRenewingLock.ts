@@ -1,11 +1,9 @@
-import { DomainEvent } from '../../../../common/elements/DomainEvent';
-import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventDispatcher } from './DomainEventDispatcher';
 import { getPromiseStatus } from '../../../../common/utils/getPromiseStatus';
 import { sleep } from '../../../../common/utils/sleep';
 
-const keepRenewingLock = async function ({ domainEvent, flowPromise, domainEventDispatcher, token }: {
-  domainEvent: DomainEvent<DomainEventData>;
+const keepRenewingLock = async function ({ flowName, flowPromise, domainEventDispatcher, token }: {
+  flowName: string;
   flowPromise: Promise<any>;
   domainEventDispatcher: DomainEventDispatcher;
   token: string;
@@ -19,7 +17,7 @@ const keepRenewingLock = async function ({ domainEvent, flowPromise, domainEvent
     }
 
     await domainEventDispatcher.client.renewLock({
-      itemIdentifier: domainEvent.getItemIdentifier(),
+      discriminator: flowName,
       token
     });
   }

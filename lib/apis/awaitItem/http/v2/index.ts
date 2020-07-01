@@ -1,5 +1,4 @@
 import { acknowledge } from './acknowledge';
-import { Application } from '../../../../common/application/Application';
 import { awaitItem } from './awaitItem';
 import { CorsOrigin } from 'get-cors-origin';
 import { defer } from './defer';
@@ -10,8 +9,7 @@ import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/Priori
 import { renewLock } from './renewLock';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 
-const getV2 = async function<TItem, TItemIdentifier extends ItemIdentifier> ({
-  application,
+const getV2 = async function<TItem> ({
   corsOrigin,
   priorityQueueStore,
   newItemSubscriber,
@@ -19,9 +17,8 @@ const getV2 = async function<TItem, TItemIdentifier extends ItemIdentifier> ({
   validateOutgoingItem,
   heartbeatInterval = 90_000
 }: {
-  application: Application;
   corsOrigin: CorsOrigin;
-  priorityQueueStore: PriorityQueueStore<TItem, TItemIdentifier>;
+  priorityQueueStore: PriorityQueueStore<TItem, ItemIdentifier>;
   newItemSubscriber: Subscriber<object>;
   newItemSubscriberChannel: string;
   validateOutgoingItem: ({ item }: { item: TItem }) => void | Promise<void>;
@@ -40,7 +37,7 @@ const getV2 = async function<TItem, TItemIdentifier extends ItemIdentifier> ({
 
   api.get(
     `/${awaitItem.path}`,
-    awaitItem.getHandler<TItem, TItemIdentifier>({
+    awaitItem.getHandler<TItem>({
       priorityQueueStore,
       newItemSubscriber,
       newItemSubscriberChannel,
@@ -49,18 +46,15 @@ const getV2 = async function<TItem, TItemIdentifier extends ItemIdentifier> ({
     })
   );
 
-  api.post(`/${renewLock.path}`, renewLock.getHandler<TItem, TItemIdentifier>({
-    application,
+  api.post(`/${renewLock.path}`, renewLock.getHandler<TItem>({
     priorityQueueStore
   }));
 
-  api.post(`/${acknowledge.path}`, acknowledge.getHandler<TItem, TItemIdentifier>({
-    application,
+  api.post(`/${acknowledge.path}`, acknowledge.getHandler<TItem>({
     priorityQueueStore
   }));
 
-  api.post(`/${defer.path}`, defer.getHandler<TItem, TItemIdentifier>({
-    application,
+  api.post(`/${defer.path}`, defer.getHandler<TItem>({
     priorityQueueStore
   }));
 

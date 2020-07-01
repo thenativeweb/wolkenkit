@@ -51,7 +51,7 @@ import { State } from '../../../../common/elements/State';
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const commandDispatcherClient = new CommandDispatcherClient<CommandWithMetadata<CommandData>, ItemIdentifier>({
+    const commandDispatcherClient = new CommandDispatcherClient<CommandWithMetadata<CommandData>>({
       protocol: configuration.commandDispatcherProtocol,
       hostName: configuration.commandDispatcherHostName,
       port: configuration.commandDispatcherPort,
