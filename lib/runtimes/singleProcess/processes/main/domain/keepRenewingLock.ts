@@ -1,13 +1,13 @@
-import { CommandData } from '../../../../common/elements/CommandData';
-import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
-import { getPromiseStatus } from '../../../../common/utils/getPromiseStatus';
-import { PriorityQueue } from './PriorityQueue';
-import { sleep } from '../../../../common/utils/sleep';
+import { CommandData } from '../../../../../common/elements/CommandData';
+import { CommandWithMetadata } from '../../../../../common/elements/CommandWithMetadata';
+import { getPromiseStatus } from '../../../../../common/utils/getPromiseStatus';
+import { DomainPriorityQueue } from './DomainPriorityQueue';
+import { sleep } from '../../../../../common/utils/sleep';
 
 const keepRenewingLock = async function ({ command, handleCommandPromise, priorityQueue, token }: {
   command: CommandWithMetadata<CommandData>;
   handleCommandPromise: Promise<any>;
-  priorityQueue: PriorityQueue;
+  priorityQueue: DomainPriorityQueue;
   token: string;
 }): Promise<void> {
   // eslint-disable-next-line no-constant-condition, @typescript-eslint/no-unnecessary-condition

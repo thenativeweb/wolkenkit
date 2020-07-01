@@ -284,8 +284,8 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           HEALTH_PORT: ${ports.health.publisher}
           PUBLISH_CORS_ORIGIN: '*'
           SUBSCRIBE_CORS_ORIGIN: '*'
-          PUB_SUB_TYPE: '${pubSubTypeCommandDispatcher}'
-          PUB_SUB_OPTIONS: '${pubSubOptionsCommandDispatcher}'
+          PUB_SUB_TYPE: '${pubSubTypePublisher}'
+          PUB_SUB_OPTIONS: '${pubSubOptionsPublisher}'
         image: '${appName}'
         init: true
         restart: 'always'

@@ -2,6 +2,7 @@
 
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
+import { createConsumerProgressStore } from '../../../../stores/consumerProgressStore/createConsumerProgressStore';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
@@ -20,7 +21,8 @@ import { loadApplication } from '../../../../common/application/loadApplication'
 import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import pForever from 'p-forever';
-import { processCommand } from './processCommand';
+import { processCommand } from './domain/processCommand';
+import { processDomainEvent } from './flow/processDomainEvent';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
@@ -60,6 +62,11 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
+    const consumerProgressStore = await createConsumerProgressStore({
+      type: configuration.consumerProgressStoreType,
+      options: configuration.consumerProgressStoreOptions
+    });
+
     const priorityQueueStoreForCommands = await createPriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>({
       type: configuration.priorityQueueStoreForCommandsType,
       doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
@@ -71,17 +78,25 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       options: configuration.priorityQueueStoreForDomainEventsOptions
     });
 
-    const onReceiveCommand: OnReceiveCommand = async ({ command }): Promise<void> => {
+    const onReceiveCommand: OnReceiveCommand = async function ({ command }): Promise<void> {
       await priorityQueueStoreForCommands.enqueue({
         item: command,
         discriminator: command.aggregateIdentifier.id,
         priority: command.metadata.timestamp
       });
     };
-    const onCancelCommand: OnCancelCommand = async ({ commandIdentifierWithClient }): Promise<void> => {
+    const onCancelCommand: OnCancelCommand = async function ({ commandIdentifierWithClient }): Promise<void> {
       await priorityQueueStoreForCommands.remove({
         discriminator: commandIdentifierWithClient.aggregateIdentifier.id,
         itemIdentifier: commandIdentifierWithClient
+      });
+    };
+
+    const onIssueCommand = async function ({ command }: { command: CommandWithMetadata<CommandData> }): Promise<void> {
+      await priorityQueueStoreForCommands.enqueue({
+        item: command,
+        discriminator: command.aggregateIdentifier.id,
+        priority: command.metadata.timestamp
       });
     };
 
@@ -129,6 +144,22 @@ import { runHealthServer } from '../../../shared/runHealthServer';
             renewalInterval: configuration.commandQueueRenewInterval
           },
           publishDomainEvents
+        });
+      });
+    }
+
+    for (let i = 0; i < configuration.concurrentFlows; i++) {
+      pForever(async (): Promise<void> => {
+        await processDomainEvent({
+          application,
+          repository,
+          lockStore,
+          priorityQueue: {
+            store: priorityQueueStoreForDomainEvents,
+            renewalInterval: configuration.commandQueueRenewInterval
+          },
+          consumerProgressStore,
+          onIssueCommand
         });
       });
     }

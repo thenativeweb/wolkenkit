@@ -41,21 +41,21 @@ const getConfiguration = function (): Configuration {
       default: '*',
       schema: corsSchema
     },
-    DOMAIN_EVENT_STORE_OPTIONS: {
-      default: {},
-      schema: { type: 'object' }
-    },
     DOMAIN_EVENT_STORE_TYPE: {
       default: 'InMemory',
       schema: { type: 'string' }
     },
-    LOCK_STORE_OPTIONS: {
+    DOMAIN_EVENT_STORE_OPTIONS: {
       default: {},
       schema: { type: 'object' }
     },
     LOCK_STORE_TYPE: {
       default: 'InMemory',
       schema: { type: 'string' }
+    },
+    LOCK_STORE_OPTIONS: {
+      default: {},
+      schema: { type: 'object' }
     },
     PRIORITY_QUEUE_STORE_FOR_COMMANDS_TYPE: {
       default: 'InMemory',
@@ -87,6 +87,16 @@ const getConfiguration = function (): Configuration {
         additionalProperties: true
       }
     },
+    CONSUMER_PROGRESS_STORE_TYPE: {
+      default: 'InMemory',
+      schema: { type: 'string', minLength: 1 }
+    },
+    CONSUMER_PROGRESS_STORE_OPTIONS: {
+      default: {},
+      schema: {
+        type: 'object'
+      }
+    },
     IDENTITY_PROVIDERS: {
       default: [],
       schema: getIdentityProviderSchema()
@@ -104,6 +114,13 @@ const getConfiguration = function (): Configuration {
       schema: getSnapshotStrategySchema()
     },
     CONCURRENT_COMMANDS: {
+      default: 1,
+      schema: {
+        type: 'number',
+        minimum: 1
+      }
+    },
+    CONCURRENT_FLOWS: {
       default: 1,
       schema: {
         type: 'number',

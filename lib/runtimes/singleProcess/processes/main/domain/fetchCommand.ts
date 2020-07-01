@@ -1,11 +1,11 @@
-import { CommandData } from '../../../../common/elements/CommandData';
-import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
-import { LockMetadata } from '../../../../stores/priorityQueueStore/LockMetadata';
-import { PriorityQueue } from './PriorityQueue';
+import { CommandData } from '../../../../../common/elements/CommandData';
+import { CommandWithMetadata } from '../../../../../common/elements/CommandWithMetadata';
+import { LockMetadata } from '../../../../../stores/priorityQueueStore/LockMetadata';
+import { DomainPriorityQueue } from './DomainPriorityQueue';
 import { retry } from 'retry-ignore-abort';
 
 const fetchCommand = async function ({ priorityQueue }: {
-  priorityQueue: PriorityQueue;
+  priorityQueue: DomainPriorityQueue;
 }): Promise<{
     command: CommandWithMetadata<CommandData>;
     token: string;

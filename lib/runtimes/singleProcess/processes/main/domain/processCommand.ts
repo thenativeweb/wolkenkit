@@ -1,14 +1,14 @@
 import { acknowledgeCommand } from './acknowledgeCommand';
-import { Application } from '../../../../common/application/Application';
-import { errors } from '../../../../common/errors';
+import { Application } from '../../../../../common/application/Application';
+import { errors } from '../../../../../common/errors';
 import { fetchCommand } from './fetchCommand';
 import { flaschenpost } from 'flaschenpost';
-import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
+import { getCommandWithMetadataSchema } from '../../../../../common/schemas/getCommandWithMetadataSchema';
 import { keepRenewingLock } from './keepRenewingLock';
-import { LockStore } from '../../../../stores/lockStore/LockStore';
-import { PriorityQueue } from './PriorityQueue';
-import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
-import { Repository } from '../../../../common/domain/Repository';
+import { LockStore } from '../../../../../stores/lockStore/LockStore';
+import { DomainPriorityQueue } from './DomainPriorityQueue';
+import { PublishDomainEvents } from '../../../../../common/domain/PublishDomainEvents';
+import { Repository } from '../../../../../common/domain/Repository';
 import { Value } from 'validate-value';
 
 const logger = flaschenpost.getLogger();
@@ -17,7 +17,7 @@ const processCommand = async function ({ repository, priorityQueue, publishDomai
   application: Application;
   repository: Repository;
   lockStore: LockStore;
-  priorityQueue: PriorityQueue;
+  priorityQueue: DomainPriorityQueue;
   publishDomainEvents: PublishDomainEvents;
 }): Promise<void> {
   const { command, token } = await fetchCommand({ priorityQueue });

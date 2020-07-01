@@ -13,11 +13,14 @@ export interface Configuration {
   priorityQueueStoreForCommandsOptions: object & { expirationTime: number };
   priorityQueueStoreForDomainEventsType: string;
   priorityQueueStoreForDomainEventsOptions: object & { expirationTime: number };
+  consumerProgressStoreType: string;
+  consumerProgressStoreOptions: object;
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
   healthPort: number;
   snapshotStrategy: SnapshotStrategyConfiguration;
   concurrentCommands: number;
+  concurrentFlows: number;
   commandQueueRenewInterval: number;
   enableOpenApiDocumentation: boolean;
 }
