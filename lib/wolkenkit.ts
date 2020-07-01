@@ -14,6 +14,7 @@ import { DomainEventHandler } from './common/elements/DomainEventHandler';
 import { DomainEventWithState } from './common/elements/DomainEventWithState';
 import { ErrorService } from './common/services/ErrorService';
 import { Flow } from './common/elements/Flow';
+import { FlowHandler } from './common/elements/FlowHandler';
 import { GetInitialState } from './common/elements/GetInitialState';
 import { loadApplication } from './common/application/loadApplication';
 import { LockService } from './common/services/LockService';
@@ -46,6 +47,7 @@ export {
   DomainEventWithState,
   ErrorService,
   Flow,
+  FlowHandler,
   loadApplication,
   GetInitialState,
   LockService,
