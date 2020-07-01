@@ -15,7 +15,8 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
       domainEvents: 3000,
       aeonstore: 3000,
       publisher: 3000,
-      graphql: 3000
+      graphql: 3000,
+      domainEventDispatcher: 3000
     },
     health: {
       command: 3001,
@@ -24,7 +25,9 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
       domainEvents: 3001,
       aeonstore: 3001,
       publisher: 3001,
-      graphql: 3001
+      graphql: 3001,
+      domainEventDispatcher: 3001,
+      flow: 3001
     }
   };
 
@@ -38,6 +41,9 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
   const priorityQueueStoreOptions = JSON.stringify({
     expirationTime: 30000
   });
+
+  const consumerProgressStoreType = 'InMemory';
+  const consumerProgressStoreOptions = JSON.stringify({});
 
   const pubSubType = 'InMemory';
   const pubSubOptions = JSON.stringify({
@@ -243,6 +249,70 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
         restart: 'always'
         healthcheck:
           test: ["CMD", "curl", "-f", "http://localhost:${ports.health.graphql}"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
+
+      domain-event-dispatcher:
+        build: '../..'
+        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEventDispatcher/app.js'
+        environment: 
+          NODE_ENV: 'production'
+          APPLICATION_DIRECTORY: '/app'
+          PRIORITY_QUEUE_STORE_TYPE: '${priorityQueueStoreType}'
+          PRIORITY_QUEUE_STORE_OPTIONS: '${priorityQueueStoreOptions}'
+          PUB_SUB_TYPE: '${pubSubType}'
+          PUB_SUB_OPTIONS: '${pubSubOptions}'
+          SUBSCRIBE_MESSAGES_PROTOCOL: 'http'
+          SUBSCRIBE_MESSAGES_HOST_NAME: 'publisher'
+          SUBSCRIBE_MESSAGES_PORT: '${ports.private.publisher}'
+          SUBSCRIBE_MESSAGES_CHANNEL: 'newDomainEventInternal'
+          AWAIT_COMMAND_CORS_ORIGIN: '*'
+          HANDLE_COMMAND_CORS_ORIGIN: '*'
+          HEALTH_CORS_ORIGIN: '*'
+          PORT: '${ports.private.domainEventDispatcher}'
+          HEALTH_PORT: '${ports.health.domainEventDispatcher}'
+          MISSED_COMMAND_RECOVERY_INTERVAL: ${5000}
+        image: '${appName}'
+        init: true
+        restart: 'always'
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.domainEventDispatcher}"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
+
+      flow:
+        build: '../..'
+        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/flow/app.js'
+        environment:
+          NODE_ENV: 'production'
+          APPLICATION_DIRECTORY: '/app'
+          DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http'
+          DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'domain-event-dispatcher'
+          DOMAIN_EVENT_DISPATCHER_PORT: '${ports.private.domainEventDispatcher}'
+          DOMAIN_EVENT_DISPATCHER_RENEW_INTERVAL: ${5000}
+          DOMAIN_EVENT_DISPATCHER_ACKNOWLEDGE_RETRIES: ${5}
+          COMMAND_DISPATCHER_PROTOCOL: 'http'
+          COMMAND_DISPATCHER_HOST_NAME: 'command-dispatcher'
+          COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
+          AEONSTORE_PROTOCOL: 'http'
+          AEONSTORE_HOST_NAME: 'aeonstore'
+          AEONSTORE_PORT: ${ports.private.aeonstore}
+          LOCK_STORE_OPTIONS: '${lockStoreOptions}'
+          LOCK_STORE_TYPE: '${lockStoreType}'
+          CONSUMER_PROGRESS_STORE_TYPE: '${consumerProgressStoreType}'
+          CONSUMER_PROGRESS_STORE_OPTIONS: '${consumerProgressStoreOptions}'
+          HEALTH_CORS_ORIGIN: '*'
+          HEALTH_PORT: '${ports.health.domainEventDispatcher}'
+          CONCURRENT_DOMAIN_EVENTS: ${1}
+        image: '${appName}'
+        init: true
+        restart: 'always'
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.flow}"]
           interval: 30s
           timeout: 10s
           retries: 3
