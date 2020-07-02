@@ -13,14 +13,14 @@ export interface ConsumerProgressStore {
     revision: number;
   }) => Promise<void>;
 
-  resetProgress: ({ consumerId }: {
-    consumerId: string;
-  }) => Promise<void>;
-
   setIsReplaying: ({ consumerId, aggregateIdentifier, isReplaying }: {
     consumerId: string;
     aggregateIdentifier: AggregateIdentifier;
     isReplaying: IsReplaying;
+  }) => Promise<void>;
+
+  resetProgress: ({ consumerId }: {
+    consumerId: string;
   }) => Promise<void>;
 
   destroy: () => Promise<void>;

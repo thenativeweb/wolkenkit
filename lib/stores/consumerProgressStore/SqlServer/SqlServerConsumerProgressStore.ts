@@ -2,6 +2,7 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
+import { IsReplaying } from '../IsReplaying';
 import { TableNames } from './TableNames';
 import { ConnectionPool, TYPES as Types } from 'mssql';
 
@@ -66,6 +67,8 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
               [consumerId] NCHAR(64) NOT NULL,
               [aggregateId] UNIQUEIDENTIFIER NOT NULL,
               [revision] INT NOT NULL,
+              [isReplayingFrom] INT,
+              [isReplayingTo] INT,
 
               CONSTRAINT [${tableNames.progress}_pk] PRIMARY KEY([consumerId], [aggregateId])
             );
@@ -87,7 +90,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
   public async getProgress ({ consumerId, aggregateIdentifier }: {
     consumerId: string;
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<number> {
+  }): Promise<{ revision: number; isReplaying: IsReplaying }> {
     const request = this.pool.request();
     const hash = getHash({ value: consumerId });
 
@@ -95,16 +98,22 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
     request.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
 
     const { recordset } = await request.query(`
-      SELECT [revision]
+      SELECT [revision], [isReplayingFrom], [isReplayingTo]
         FROM [${this.tableNames.progress}]
         WHERE [consumerId] = @consumerId AND [aggregateId] = @aggregateId;
     `);
 
     if (recordset.length === 0) {
-      return 0;
+      return { revision: 0, isReplaying: false };
     }
 
-    return recordset[0].revision;
+    const { revision, isReplayingFrom, isReplayingTo } = recordset[0];
+
+    const isReplaying = isReplayingFrom ?
+      { from: isReplayingFrom, to: isReplayingTo } :
+      false;
+
+    return { revision, isReplaying };
   }
 
   public async setProgress ({ consumerId, aggregateIdentifier, revision }: {
@@ -146,8 +155,87 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
 
         await requestInsert.query(`
           INSERT INTO [${this.tableNames.progress}]
-            ([consumerId], [aggregateId], [revision])
-            VALUES (@consumerId, @aggregateId, @revision);
+            ([consumerId], [aggregateId], [revision], [isReplayingFrom], [isReplayingTo])
+            VALUES (@consumerId, @aggregateId, @revision, NULL, NULL);
+        `);
+      } catch (ex) {
+        if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.startsWith('Violation of PRIMARY KEY constraint')) {
+          throw new errors.RevisionTooLow();
+        }
+
+        throw ex;
+      }
+
+      await transaction.commit();
+    } catch (ex) {
+      await transaction.rollback();
+      throw ex;
+    }
+  }
+
+  public async setIsReplaying ({ consumerId, aggregateIdentifier, isReplaying }: {
+    consumerId: string;
+    aggregateIdentifier: AggregateIdentifier;
+    isReplaying: IsReplaying;
+  }): Promise<void> {
+    const hash = getHash({ value: consumerId });
+
+    const transaction = this.pool.transaction();
+
+    await transaction.begin();
+
+    try {
+      const requestUpdate = transaction.request();
+
+      requestUpdate.input('consumerId', Types.NChar, hash);
+      requestUpdate.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+      requestUpdate.input('isReplayingFrom', Types.Int, isReplaying ? isReplaying.from : null);
+      requestUpdate.input('isReplayingTo', Types.Int, isReplaying ? isReplaying.to : null);
+
+      const { rowsAffected } = await (isReplaying ?
+        requestUpdate.query(`
+          UPDATE [${this.tableNames.progress}]
+            SET
+              [revision] = @revision,
+              [isReplayingFrom] = @isReplayingFrom,
+              [isReplayingTo] = @isReplayingTo
+            WHERE
+              [consumerId] = @consumerId AND
+              [aggregateId] = @aggregateId AND
+              [revision] < @revision AND
+              [isReplayingFrom] IS NULL AND
+              [isReplayingTo] IS NULL;
+        `) :
+        requestUpdate.query(`
+          UPDATE [${this.tableNames.progress}]
+            SET
+              [revision] = @revision,
+              [isReplayingFrom] = @isReplayingFrom,
+              [isReplayingTo] = @isReplayingTo
+            WHERE
+              [consumerId] = @consumerId AND
+              [aggregateId] = @aggregateId AND
+              [revision] < @revision AND;
+        `));
+
+      if (rowsAffected[0] === 1) {
+        await transaction.commit();
+
+        return;
+      }
+
+      try {
+        const requestInsert = transaction.request();
+
+        requestInsert.input('consumerId', Types.NChar, hash);
+        requestInsert.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+        requestUpdate.input('isReplayingFrom', Types.Int, isReplaying ? isReplaying.from : null);
+        requestUpdate.input('isReplayingTo', Types.Int, isReplaying ? isReplaying.to : null);
+
+        await requestInsert.query(`
+          INSERT INTO [${this.tableNames.progress}]
+            ([consumerId], [aggregateId], [revision], [isReplayingFrom], [isReplayingTo])
+            VALUES (@consumerId, @aggregateId, 0, @isReplayingFrom, @isReplayingTo);
         `);
       } catch (ex) {
         if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.startsWith('Violation of PRIMARY KEY constraint')) {
