@@ -31,7 +31,7 @@ suite('domain event', function (): void {
       stopProcessPublisher: (() => Promise<void>) | undefined;
 
   setup(async function (): Promise<void> {
-    this.timeout(60 * 1000);
+    this.timeout(60_000);
 
     [ port, healthPort, publisherPort, publisherHealthPort ] = await getAvailablePorts({ count: 4 });
 

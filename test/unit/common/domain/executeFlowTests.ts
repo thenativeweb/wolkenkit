@@ -207,12 +207,10 @@ suite('executeFlow', (): void => {
       requestReplay: noop
     });
 
-    assert.that(
-      await consumerProgressStore.getProgress({
-        consumerId: 'sampleFlow',
-        aggregateIdentifier: domainEvent.aggregateIdentifier
-      })
-    ).is.equalTo(7);
+    assert.that(await consumerProgressStore.getProgress({
+      consumerId: 'sampleFlow',
+      aggregateIdentifier: domainEvent.aggregateIdentifier
+    })).is.equalTo({ revision: 7, isReplaying: false });
     assert.that(loggedMessages.length).is.equalTo(1);
     assert.that(loggedMessages[0]).is.equalTo({
       level: 'info',
@@ -271,11 +269,9 @@ suite('executeFlow', (): void => {
       (ex): boolean => ex.message === 'An expected error occured.'
     );
 
-    assert.that(
-      await consumerProgressStore.getProgress({
-        consumerId: 'sampleFlow',
-        aggregateIdentifier: domainEvent.aggregateIdentifier
-      })
-    ).is.equalTo(6);
+    assert.that(await consumerProgressStore.getProgress({
+      consumerId: 'sampleFlow',
+      aggregateIdentifier: domainEvent.aggregateIdentifier
+    })).is.equalTo({ revision: 6, isReplaying: false });
   });
 });

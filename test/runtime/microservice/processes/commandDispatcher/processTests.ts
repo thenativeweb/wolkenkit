@@ -11,7 +11,7 @@ import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 
 suite('commandDispatcher', function (): void {
-  this.timeout(10 * 1000);
+  this.timeout(10_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 

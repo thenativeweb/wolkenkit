@@ -12,8 +12,8 @@ import { sleep } from '../../../../../lib/common/utils/sleep';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 
-suite.only('flow server', function (): void {
-  this.timeout(10_000);
+suite('flow server', function (): void {
+  this.timeout(60_000);
 
   let aeonstoreClient: AeonstoreClient,
       applicationDirectory: string,
@@ -35,7 +35,7 @@ suite.only('flow server', function (): void {
       stopProcessPublisher: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' });
+    applicationDirectory = getTestApplicationDirectory({ name: 'withFlowThatIssuesCommands', language: 'javascript' });
 
     [
       healthPort,
@@ -120,7 +120,7 @@ suite.only('flow server', function (): void {
       protocol: 'http',
       hostName: 'localhost',
       port: portAeonstore,
-      path: '/query/v2'
+      path: '/write/v2'
     });
 
     stopProcess = await startProcess({
@@ -129,6 +129,7 @@ suite.only('flow server', function (): void {
       enableDebugMode: false,
       port: healthPort,
       env: {
+        APPLICATION_DIRECTORY: applicationDirectory,
         DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http',
         DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'localhost',
         DOMAIN_EVENT_DISPATCHER_PORT: String(portDomainEventDispatcher),
@@ -195,7 +196,7 @@ suite.only('flow server', function (): void {
       const aggregateId = uuid();
       const domainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'aggregateIdentifier', id: aggregateId },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
         name: 'executed',
         data: { strategy: 'succeed' },
         metadata: {
@@ -213,7 +214,7 @@ suite.only('flow server', function (): void {
       assert.that(lock).is.not.undefined();
       assert.that(lock.item).is.atLeast({
         contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'aggregateIdentifier', id: aggregateId },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
         name: 'executeFromFlow',
         data: {}
       });
