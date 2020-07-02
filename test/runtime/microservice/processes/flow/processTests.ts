@@ -6,8 +6,8 @@ import { Client as CommandDispatcherClient } from '../../../../../lib/apis/await
 import { CommandWithMetadata } from '../../../../../lib/common/elements/CommandWithMetadata';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
+import { Client as HandleDomainEventClient } from '../../../../../lib/apis/handleDomainEvent/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
-import { Client as PublisherClient } from '../../../../../lib/apis/publishMessage/http/v2/Client';
 import { sleep } from '../../../../../lib/common/utils/sleep';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
@@ -18,54 +18,31 @@ suite('flow server', function (): void {
   let aeonstoreClient: AeonstoreClient,
       applicationDirectory: string,
       commandDispatcherClient: CommandDispatcherClient<CommandWithMetadata<CommandData>>,
+      handleDomainEventClient: HandleDomainEventClient,
       healthPort: number,
       healthPortAeonstore: number,
       healthPortCommandDispatcher: number,
       healthPortDomainEventDispatcher: number,
-      healthPortPublisher: number,
       portAeonstore: number,
       portCommandDispatcher: number,
       portDomainEventDispatcher: number,
-      portPublisher: number,
-      publisherClient: PublisherClient,
       stopProcess: (() => Promise<void>) | undefined,
       stopProcessAeonstore: (() => Promise<void>) | undefined,
       stopProcessCommandDispatcher: (() => Promise<void>) | undefined,
-      stopProcessDomainEventDispatcher: (() => Promise<void>) | undefined,
-      stopProcessPublisher: (() => Promise<void>) | undefined;
+      stopProcessDomainEventDispatcher: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
     applicationDirectory = getTestApplicationDirectory({ name: 'withFlowThatIssuesCommands', language: 'javascript' });
 
     [
       healthPort,
-      portPublisher,
-      healthPortPublisher,
       portCommandDispatcher,
       healthPortCommandDispatcher,
       portDomainEventDispatcher,
       healthPortDomainEventDispatcher,
       portAeonstore,
       healthPortAeonstore
-    ] = await getAvailablePorts({ count: 9 });
-
-    stopProcessPublisher = await startProcess({
-      runtime: 'microservice',
-      name: 'publisher',
-      enableDebugMode: false,
-      port: healthPortPublisher,
-      env: {
-        PORT: String(portPublisher),
-        HEALTH_PORT: String(healthPortPublisher)
-      }
-    });
-
-    publisherClient = new PublisherClient({
-      protocol: 'http',
-      hostName: 'localhost',
-      port: portPublisher,
-      path: '/publish/v2'
-    });
+    ] = await getAvailablePorts({ count: 7 });
 
     stopProcessCommandDispatcher = await startProcess({
       runtime: 'microservice',
@@ -97,12 +74,15 @@ suite('flow server', function (): void {
         APPLICATION_DIRECTORY: applicationDirectory,
         PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":5000}`,
         PORT: String(portDomainEventDispatcher),
-        HEALTH_PORT: String(healthPortDomainEventDispatcher),
-        SUBSCRIBE_MESSAGES_PROTOCOL: 'http',
-        SUBSCRIBE_MESSAGES_HOST_NAME: 'localhost',
-        SUBSCRIBE_MESSAGES_PORT: String(portPublisher),
-        SUBSCRIBE_MESSAGES_CHANNEL: 'newDomainEventInternal'
+        HEALTH_PORT: String(healthPortDomainEventDispatcher)
       }
+    });
+
+    handleDomainEventClient = new HandleDomainEventClient({
+      protocol: 'http',
+      hostName: 'localhost',
+      port: portDomainEventDispatcher,
+      path: '/handle-domain-event/v2'
     });
 
     stopProcessAeonstore = await startProcess({
@@ -162,9 +142,6 @@ suite('flow server', function (): void {
     if (stopProcessAeonstore) {
       await stopProcessAeonstore();
     }
-    if (stopProcessPublisher) {
-      await stopProcessPublisher();
-    }
     if (stopProcess) {
       await stopProcess();
     }
@@ -172,7 +149,6 @@ suite('flow server', function (): void {
     stopProcessDomainEventDispatcher = undefined;
     stopProcessCommandDispatcher = undefined;
     stopProcessAeonstore = undefined;
-    stopProcessPublisher = undefined;
     stopProcess = undefined;
   });
 
@@ -205,7 +181,7 @@ suite('flow server', function (): void {
       });
 
       await aeonstoreClient.storeDomainEvents({ domainEvents: [ domainEvent ]});
-      await publisherClient.postMessage({ channel: 'newDomainEventInternal', message: domainEvent });
+      await handleDomainEventClient.postDomainEvent({ domainEvent });
 
       await sleep({ ms: 1500 });
 

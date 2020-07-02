@@ -25,7 +25,7 @@ const getConfiguration = function (): Configuration {
       schema: protocolSchema
     },
     COMMAND_DISPATCHER_HOST_NAME: {
-      default: 'commandDispatcher',
+      default: 'command-dispatcher',
       schema: {
         type: 'string',
         format: 'hostname'
@@ -41,6 +41,21 @@ const getConfiguration = function (): Configuration {
     COMMAND_DISPATCHER_ACKNOWLEDGE_RETRIES: {
       default: 5,
       schema: { type: 'integer' }
+    },
+    DOMAIN_EVENT_DISPATCHER_PROTOCOL: {
+      default: 'http',
+      schema: protocolSchema
+    },
+    DOMAIN_EVENT_DISPATCHER_HOST_NAME: {
+      default: 'domain-event-dispatcher',
+      schema: {
+        type: 'string',
+        format: 'hostname'
+      }
+    },
+    DOMAIN_EVENT_DISPATCHER_PORT: {
+      default: 3000,
+      schema: portSchema
     },
     PUBLISHER_PROTOCOL: {
       default: 'http',
@@ -60,10 +75,6 @@ const getConfiguration = function (): Configuration {
     PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT: {
       default: 'newDomainEvent',
       schema: { type: 'string', minLength: 1 }
-    },
-    PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT_INTERNAL: {
-      default: 'newDomainEventInternal',
-      schema: { type: 'string' }
     },
     AEONSTORE_PROTOCOL: {
       default: 'http',

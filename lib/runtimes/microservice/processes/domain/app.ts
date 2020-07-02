@@ -6,6 +6,7 @@ import { Client as CommandDispatcherClient } from '../../../../apis/awaitItem/ht
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
+import { Client as DomainEventDispatcherClient } from '../../../../apis/handleDomainEvent/http/v2/Client';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
 import { getConfiguration } from './getConfiguration';
@@ -65,6 +66,13 @@ import { State } from '../../../../common/elements/State';
       path: '/publish/v2/'
     });
 
+    const domainEventDispatcherClient = new DomainEventDispatcherClient({
+      protocol: configuration.domainEventDispatcherProtocol,
+      hostName: configuration.domainEventDispatcherHostName,
+      port: configuration.domainEventDispatcherPort,
+      path: '/handle-domain-event/v2'
+    });
+
     const publishDomainEvents: PublishDomainEvents = async ({ domainEvents }: {
       domainEvents: DomainEventWithState<DomainEventData, State>[];
     }): Promise<any> => {
@@ -73,9 +81,8 @@ import { State } from '../../../../common/elements/State';
           channel: configuration.publisherChannelNewDomainEvent,
           message: domainEvent
         });
-        await publisherClient.postMessage({
-          channel: configuration.publisherChannelNewDomainEventInternal,
-          message: domainEvent
+        await domainEventDispatcherClient.postDomainEvent({
+          domainEvent: domainEvent.withoutState()
         });
       }
     };

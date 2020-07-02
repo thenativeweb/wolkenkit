@@ -9,15 +9,12 @@ import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { flaschenpost } from 'flaschenpost';
 import { getApi } from './getApi';
 import { getConfiguration } from './getConfiguration';
-import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
+import { getOnReceiveDomainEvent } from './getOnReceiveDomainEvent';
 import http from 'http';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { loadApplication } from '../../../../common/application/loadApplication';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
-import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
-import { validateDomainEvent } from '../../../../common/validators/validateDomainEvent';
-import { Value } from 'validate-value';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -51,9 +48,9 @@ import { Value } from 'validate-value';
       options: configuration.pubSubOptions.publisher
     });
 
-    // Publish new command events on an interval even if there are no new
-    // commands so that missed events or crashing workers will not lead to
-    // unprocessed commands.
+    // Publish "new domain event" events on an interval even if there are no new
+    // domain events so that missed events or crashing workers will not lead to
+    // unprocessed domain events.
     setInterval(
       async (): Promise<void> => {
         await internalNewDomainEventPublisher.publish({
@@ -61,7 +58,7 @@ import { Value } from 'validate-value';
           message: {}
         });
       },
-      configuration.missedCommandRecoveryInterval
+      configuration.missedDomainEventRecoveryInterval
     );
 
     const { api } = await getApi({
@@ -69,7 +66,13 @@ import { Value } from 'validate-value';
       application,
       priorityQueueStore,
       newDomainEventSubscriber: internalNewDomainEventSubscriber,
-      newDomainEventPubSubChannel: configuration.pubSubOptions.channel
+      newDomainEventPubSubChannel: configuration.pubSubOptions.channel,
+      onReceiveDomainEvent: getOnReceiveDomainEvent({
+        application,
+        newDomainEventPublisher: internalNewDomainEventPublisher,
+        newDomainEventPubSubChannel: configuration.pubSubOptions.channel,
+        priorityQueueStore
+      })
     });
 
     await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
@@ -82,42 +85,6 @@ import { Value } from 'validate-value';
         { port: configuration.port, healthPort: configuration.healthPort }
       );
     });
-
-    const externalNewDomainEventSubscriber = new SubscribeMessagesClient({
-      protocol: configuration.subscribeMessagesProtocol,
-      hostName: configuration.subscribeMessagesHostName,
-      port: configuration.subscribeMessagesPort,
-      path: '/subscribe/v2'
-    });
-
-    const domainEventStream = await externalNewDomainEventSubscriber.getMessages({
-      channel: configuration.subscribeMessagesChannel
-    });
-
-    for await (const rawDomainEvent of domainEventStream) {
-      const domainEvent = new DomainEvent<DomainEventData>(rawDomainEvent);
-
-      try {
-        new Value(getDomainEventSchema()).validate(domainEvent);
-        validateDomainEvent({ domainEvent, application });
-      } catch (ex) {
-        logger.error('Received a message via the publisher with an unexpected format.', { domainEvent, ex });
-
-        return;
-      }
-
-      for (const flowName of Object.keys(application.flows)) {
-        await priorityQueueStore.enqueue({
-          item: domainEvent,
-          discriminator: flowName,
-          priority: domainEvent.metadata.timestamp
-        });
-      }
-      await internalNewDomainEventPublisher.publish({
-        channel: configuration.pubSubOptions.channel,
-        message: {}
-      });
-    }
   } catch (ex) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);

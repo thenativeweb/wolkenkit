@@ -143,9 +143,13 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
           COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
           COMMAND_DISPATCHER_RENEW_INTERVAL: ${5000}
           COMMAND_DISPATCHER_ACKNOWLEDGE_RETRIES: ${5}
+          DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http'
+          DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'domain-event-dispatcher'
+          DOMAIN_EVENT_DISPATCHER_PORT: ${ports.private.domainEventDispatcher}
           PUBLISHER_PROTOCOL: 'http'
           PUBLISHER_HOST_NAME: 'publisher'
           PUBLISHER_PORT: ${ports.private.publisher}
+          PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT: 'newDomainEvent'
           AEONSTORE_PROTOCOL: 'http'
           AEONSTORE_HOST_NAME: 'aeonstore'
           AEONSTORE_PORT: ${ports.private.aeonstore}
@@ -270,23 +274,19 @@ const getMicroserviceInMemoryManifest = function ({ appName }: {
       domain-event-dispatcher:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEventDispatcher/app.js'
-        environment: 
+        environment:
           NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
           PRIORITY_QUEUE_STORE_TYPE: '${priorityQueueStoreType}'
           PRIORITY_QUEUE_STORE_OPTIONS: '${priorityQueueStoreOptions}'
           PUB_SUB_TYPE: '${pubSubTypeDomainEventDispatcher}'
           PUB_SUB_OPTIONS: '${pubSubOptionsDomainEventDispatcher}'
-          SUBSCRIBE_MESSAGES_PROTOCOL: 'http'
-          SUBSCRIBE_MESSAGES_HOST_NAME: 'publisher'
-          SUBSCRIBE_MESSAGES_PORT: '${ports.private.publisher}'
-          SUBSCRIBE_MESSAGES_CHANNEL: 'newDomainEventInternal'
-          AWAIT_COMMAND_CORS_ORIGIN: '*'
-          HANDLE_COMMAND_CORS_ORIGIN: '*'
+          AWAIT_DOMAIN_EVENT_CORS_ORIGIN: '*'
+          HANDLE_DOMAIN_EVENT_CORS_ORIGIN: '*'
           HEALTH_CORS_ORIGIN: '*'
           PORT: '${ports.private.domainEventDispatcher}'
           HEALTH_PORT: '${ports.health.domainEventDispatcher}'
-          MISSED_COMMAND_RECOVERY_INTERVAL: ${5000}
+          MISSED_DOMAIN_EVENT_RECOVERY_INTERVAL: ${5000}
         image: '${appName}'
         init: true
         restart: 'always'

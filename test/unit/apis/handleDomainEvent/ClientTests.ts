@@ -3,14 +3,13 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { Client } from '../../../../lib/apis/handleDomainEvent/http/v2/Client';
 import { CustomError } from 'defekt';
+import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
-import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/handleDomainEvent/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
-import { State } from '../../../../lib/common/elements/State';
 import { uuid } from 'uuidv4';
 
 suite('handleDomainEvent/http/Client', (): void => {
@@ -25,7 +24,7 @@ suite('handleDomainEvent/http/Client', (): void => {
 
     suite('postDomainEvent', (): void => {
       let api: ExpressApplication,
-          receivedDomainEvents: DomainEventWithState<DomainEventData, State>[];
+          receivedDomainEvents: DomainEvent<DomainEventData>[];
 
       setup(async (): Promise<void> => {
         receivedDomainEvents = [];
@@ -33,7 +32,7 @@ suite('handleDomainEvent/http/Client', (): void => {
         ({ api } = await getApi({
           corsOrigin: '*',
           async onReceiveDomainEvent ({ domainEvent }: {
-            domainEvent: DomainEventWithState<DomainEventData, State>;
+            domainEvent: DomainEvent<DomainEventData>;
           }): Promise<void> {
             receivedDomainEvents.push(domainEvent);
           },
@@ -42,7 +41,7 @@ suite('handleDomainEvent/http/Client', (): void => {
       });
 
       test('throws an error if a domain event is sent with a non-existent context name.', async (): Promise<void> => {
-        const domainEventExecuted = new DomainEventWithState({
+        const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'nonExistent' },
             aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -53,8 +52,7 @@ suite('handleDomainEvent/http/Client', (): void => {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
             }
-          }),
-          state: { previous: {}, next: {}}
+          })
         });
 
         const { port } = await runAsServer({ app: api });
@@ -72,7 +70,7 @@ suite('handleDomainEvent/http/Client', (): void => {
       });
 
       test('throws an error if a domain event is sent with a non-existent aggregate name.', async (): Promise<void> => {
-        const domainEventExecuted = new DomainEventWithState({
+        const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
             aggregateIdentifier: { name: 'nonExistent', id: uuid() },
@@ -83,8 +81,7 @@ suite('handleDomainEvent/http/Client', (): void => {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
             }
-          }),
-          state: { previous: {}, next: {}}
+          })
         });
 
         const { port } = await runAsServer({ app: api });
@@ -102,7 +99,7 @@ suite('handleDomainEvent/http/Client', (): void => {
       });
 
       test('throws an error if a domain event is sent with a non-existent domain event name.', async (): Promise<void> => {
-        const domainEventExecuted = new DomainEventWithState({
+        const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
             aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -113,8 +110,7 @@ suite('handleDomainEvent/http/Client', (): void => {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
             }
-          }),
-          state: { previous: {}, next: {}}
+          })
         });
 
         const { port } = await runAsServer({ app: api });
@@ -132,7 +128,7 @@ suite('handleDomainEvent/http/Client', (): void => {
       });
 
       test('throws an error if a domain event is sent with a payload that does not match the schema.', async (): Promise<void> => {
-        const domainEventExecuted = new DomainEventWithState({
+        const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
             aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -143,8 +139,7 @@ suite('handleDomainEvent/http/Client', (): void => {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
             }
-          }),
-          state: { previous: {}, next: {}}
+          })
         });
 
         const { port } = await runAsServer({ app: api });
@@ -162,7 +157,7 @@ suite('handleDomainEvent/http/Client', (): void => {
       });
 
       test('sends domain events.', async (): Promise<void> => {
-        const domainEventExecuted = new DomainEventWithState({
+        const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
             aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -173,8 +168,7 @@ suite('handleDomainEvent/http/Client', (): void => {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
             }
-          }),
-          state: { previous: {}, next: {}}
+          })
         });
 
         const { port } = await runAsServer({ app: api });
@@ -212,7 +206,7 @@ suite('handleDomainEvent/http/Client', (): void => {
           application
         }));
 
-        const domainEventExecuted = new DomainEventWithState({
+        const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
             aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -223,8 +217,7 @@ suite('handleDomainEvent/http/Client', (): void => {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
             }
-          }),
-          state: { previous: {}, next: {}}
+          })
         });
 
         const { port } = await runAsServer({ app: api });

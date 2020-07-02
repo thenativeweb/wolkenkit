@@ -1,13 +1,12 @@
 import { Application } from '../../../../common/application/Application';
+import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
-import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
-import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
+import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { OnReceiveDomainEvent } from '../../OnReceiveDomainEvent';
-import { State } from '../../../../common/elements/State';
 import typer from 'content-type';
-import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
+import { validateDomainEvent } from '../../../../common/validators/validateDomainEvent';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
@@ -18,7 +17,7 @@ const postDomainEvent = {
   path: '',
 
   request: {
-    body: getDomainEventWithStateSchema()
+    body: getDomainEventSchema()
   },
   response: {
     statusCodes: [ 200, 400, 415 ],
@@ -65,10 +64,10 @@ const postDomainEvent = {
         return;
       }
 
-      const domainEvent = new DomainEventWithState<DomainEventData, State>(req.body);
+      const domainEvent = new DomainEvent<DomainEventData>(req.body);
 
       try {
-        validateDomainEventWithState({ domainEvent, application });
+        validateDomainEvent({ domainEvent, application });
       } catch (ex) {
         res.status(400).json({
           code: ex.code,

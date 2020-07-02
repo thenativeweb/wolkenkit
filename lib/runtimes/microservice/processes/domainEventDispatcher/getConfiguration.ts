@@ -2,13 +2,11 @@ import { Configuration } from './Configuration';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getEnvironmentVariables } from '../../../../common/utils/process/getEnvironmentVariables';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
-import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
 import path from 'path';
 import { withCamelCaseKeys } from '../../../../common/utils/withCamelCaseKeys';
 
 const corsSchema = getCorsSchema();
 const portSchema = getPortSchema();
-const protocolSchema = getProtocolSchema();
 
 const getConfiguration = function (): Configuration {
   const environmentVariables = getEnvironmentVariables({
@@ -48,30 +46,11 @@ const getConfiguration = function (): Configuration {
         additionalProperties: false
       }
     },
-    SUBSCRIBE_MESSAGES_PROTOCOL: {
-      default: 'http',
-      schema: protocolSchema
-    },
-    SUBSCRIBE_MESSAGES_HOST_NAME: {
-      default: 'publisher',
-      schema: {
-        type: 'string',
-        format: 'hostname'
-      }
-    },
-    SUBSCRIBE_MESSAGES_PORT: {
-      default: 3000,
-      schema: portSchema
-    },
-    SUBSCRIBE_MESSAGES_CHANNEL: {
-      default: 'newDomainEventInternal',
-      schema: { type: 'string' }
-    },
-    AWAIT_COMMAND_CORS_ORIGIN: {
+    AWAIT_DOMAIN_EVENT_CORS_ORIGIN: {
       default: '*',
       schema: corsSchema
     },
-    HANDLE_COMMAND_CORS_ORIGIN: {
+    HANDLE_DOMAIN_EVENT_CORS_ORIGIN: {
       default: '*',
       schema: corsSchema
     },
@@ -87,7 +66,7 @@ const getConfiguration = function (): Configuration {
       default: 3_001,
       schema: portSchema
     },
-    MISSED_COMMAND_RECOVERY_INTERVAL: {
+    MISSED_DOMAIN_EVENT_RECOVERY_INTERVAL: {
       default: 5_000,
       schema: { type: 'number', minimum: 1 }
     }

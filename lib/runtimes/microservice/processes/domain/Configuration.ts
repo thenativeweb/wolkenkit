@@ -7,11 +7,13 @@ export interface Configuration {
   commandDispatcherPort: number;
   commandDispatcherRenewInterval: number;
   commandDispatcherAcknowledgeRetries: number;
+  domainEventDispatcherProtocol: string;
+  domainEventDispatcherHostName: string;
+  domainEventDispatcherPort: number;
   publisherProtocol: string;
   publisherHostName: string;
   publisherPort: number;
   publisherChannelNewDomainEvent: string;
-  publisherChannelNewDomainEventInternal: string;
   aeonstoreProtocol: string;
   aeonstoreHostName: string;
   aeonstorePort: number;

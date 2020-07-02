@@ -8,14 +8,10 @@ export interface Configuration {
     subscriber: object;
     publisher: object;
   };
-  subscribeMessagesProtocol: string;
-  subscribeMessagesHostName: string;
-  subscribeMessagesPort: number;
-  subscribeMessagesChannel: string;
-  awaitCommandCorsOrigin: string | string[];
-  handleCommandCorsOrigin: string | string[];
+  awaitDomainEventCorsOrigin: string | string[];
+  handleDomainEventCorsOrigin: string | string[];
   healthCorsOrigin: string | string[];
   port: number;
   healthPort: number;
-  missedCommandRecoveryInterval: number;
+  missedDomainEventRecoveryInterval: number;
 }

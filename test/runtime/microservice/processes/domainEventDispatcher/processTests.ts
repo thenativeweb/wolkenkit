@@ -5,8 +5,8 @@ import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../../lib/common/elements/DomainEventData';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
+import { Client as HandleDomainEventClient } from '../../../../../lib/apis/handleDomainEvent/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
-import { Client as PublishMessageClient } from '../../../../../lib/apis/publishMessage/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 
@@ -18,34 +18,14 @@ suite('domainEventDispatcher', function (): void {
   const queueLockExpirationTime = 600;
 
   let awaitDomainEventClient: AwaitDomainEventClient<DomainEvent<DomainEventData>>,
+      handleDomainEventClient: HandleDomainEventClient,
       healthPortDomainEventDispatcher: number,
-      healthPortPublisher: number,
       portDomainEventDispatcher: number,
-      portPublisher: number,
-      publishMessageClient: PublishMessageClient,
       stopProcessDomainEventDispatcher: (() => Promise<void>) | undefined,
       stopProcessPublisher: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ portDomainEventDispatcher, healthPortDomainEventDispatcher, portPublisher, healthPortPublisher ] = await getAvailablePorts({ count: 4 });
-
-    stopProcessPublisher = await startProcess({
-      runtime: 'microservice',
-      name: 'publisher',
-      enableDebugMode: false,
-      port: healthPortPublisher,
-      env: {
-        PORT: String(portPublisher),
-        HEALTH_PORT: String(healthPortPublisher)
-      }
-    });
-
-    publishMessageClient = new PublishMessageClient({
-      protocol: 'http',
-      hostName: 'localhost',
-      port: portPublisher,
-      path: '/publish/v2'
-    });
+    [ portDomainEventDispatcher, healthPortDomainEventDispatcher ] = await getAvailablePorts({ count: 2 });
 
     stopProcessDomainEventDispatcher = await startProcess({
       runtime: 'microservice',
@@ -56,11 +36,7 @@ suite('domainEventDispatcher', function (): void {
         APPLICATION_DIRECTORY: applicationDirectory,
         PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${queueLockExpirationTime}}`,
         PORT: String(portDomainEventDispatcher),
-        HEALTH_PORT: String(healthPortDomainEventDispatcher),
-        SUBSCRIBE_MESSAGES_PROTOCOL: 'http',
-        SUBSCRIBE_MESSAGES_HOST_NAME: 'localhost',
-        SUBSCRIBE_MESSAGES_PORT: String(portPublisher),
-        SUBSCRIBE_MESSAGES_CHANNEL: 'newDomainEventInternal'
+        HEALTH_PORT: String(healthPortDomainEventDispatcher)
       }
     });
 
@@ -69,7 +45,14 @@ suite('domainEventDispatcher', function (): void {
       hostName: 'localhost',
       port: portDomainEventDispatcher,
       path: '/await-domain-event/v2',
-      createItemInstance: ({ item }: { item: DomainEvent<DomainEventData> }): DomainEvent<DomainEventData> => new DomainEvent<DomainEventData>(item)
+      createItemInstance: ({ item }): DomainEvent<DomainEventData> => new DomainEvent<DomainEventData>(item)
+    });
+
+    handleDomainEventClient = new HandleDomainEventClient({
+      protocol: 'http',
+      hostName: 'localhost',
+      port: portDomainEventDispatcher,
+      path: '/handle-domain-event/v2'
     });
   });
 
@@ -101,7 +84,7 @@ suite('domainEventDispatcher', function (): void {
   });
 
   suite('awaitDomainEvent', (): void => {
-    test('delivers a domain event that is sent to the publisher.', async (): Promise<void> => {
+    test('delivers a domain event that is sent using the handle route.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
         contextIdentifier: {
           name: 'sampleContext'
@@ -117,10 +100,7 @@ suite('domainEventDispatcher', function (): void {
         }
       });
 
-      await publishMessageClient.postMessage({
-        channel: 'newDomainEventInternal',
-        message: domainEvent
-      });
+      await handleDomainEventClient.postDomainEvent({ domainEvent });
 
       const lock = await awaitDomainEventClient.awaitItem();
 
