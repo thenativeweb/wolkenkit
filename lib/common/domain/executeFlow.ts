@@ -1,3 +1,4 @@
+import { AggregateIdentifier } from '../elements/AggregateIdentifier';
 import { AggregatesService } from '../services/AggregatesService';
 import { Application } from '../application/Application';
 import { AskInfrastructure } from '../elements/AskInfrastructure';
@@ -18,7 +19,9 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
   flowName,
   domainEvent,
   flowProgressStore,
-  services
+  services,
+  deferDomainEvent,
+  requestReplay
 }: {
   application: Application;
   flowName: string;
@@ -31,6 +34,8 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     logger: LoggerService;
     lock: LockService;
   };
+  deferDomainEvent: (parameters: { domainEvent: DomainEvent<DomainEventData>; flowName: string }) => Promise<void>;
+  requestReplay: (parameters: { flowName: string; aggregateIdentifier: AggregateIdentifier; from: number; to: number }) => void | Promise<void>;
 }): Promise<void> {
   if (!(flowName in application.flows)) {
     throw new errors.FlowNotFound(`Flow '${flowName}' not found.`);
@@ -38,13 +43,42 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
 
   const flowDefinition = application.flows[flowName];
 
-  const latestHandledRevision = await flowProgressStore.getProgress({
+  const { revision: latestHandledRevision, isReplaying } = await flowProgressStore.getProgress({
     consumerId: flowName,
     aggregateIdentifier: domainEvent.aggregateIdentifier
   });
 
   if (latestHandledRevision >= domainEvent.metadata.revision) {
     return;
+  }
+
+  if (latestHandledRevision < domainEvent.metadata.revision - 1) {
+    switch (flowDefinition.replayPolicy) {
+      case 'never': {
+        break;
+      }
+      case 'on-demand': {
+        await deferDomainEvent({ domainEvent, flowName });
+
+        return;
+      }
+      case 'always': {
+        await deferDomainEvent({ domainEvent, flowName });
+
+        if (isReplaying === false) {
+          const from = latestHandledRevision + 1,
+                to = domainEvent.metadata.revision - 1;
+
+          await requestReplay({ flowName, aggregateIdentifier: domainEvent.aggregateIdentifier, from, to });
+          await flowProgressStore.setIsReplaying({ isReplaying: { from, to }});
+        }
+
+        return;
+      }
+      default: {
+        throw new errors.InvalidOperation();
+      }
+    }
   }
 
   for (const [ handlerName, handler ] of Object.entries(flowDefinition.domainEventHandlers)) {
@@ -67,6 +101,9 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     aggregateIdentifier: domainEvent.aggregateIdentifier,
     revision: domainEvent.metadata.revision
   });
+  if (isReplaying && isReplaying.to === domainEvent.metadata.revision) {
+    await flowProgressStore.setIsReplaying({ isReplaying: false });
+  }
 };
 
 export { executeFlow };

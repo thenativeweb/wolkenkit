@@ -9,10 +9,10 @@ import { Limes } from 'limes';
 import { uuid } from 'uuidv4';
 
 const getCommandService = function ({
-  domainEvent, onIssueCommand
+  domainEvent, issueCommand
 }: {
   domainEvent: DomainEvent<DomainEventData>;
-  onIssueCommand: (parameters: { command: CommandWithMetadata<CommandData> }) => void | Promise<void>;
+  issueCommand: (parameters: { command: CommandWithMetadata<CommandData> }) => void | Promise<void>;
 }): CommandService {
   return {
     async issueCommand<TCommandData extends CommandData>(command: Command<TCommandData>, initiator?: Initiator): Promise<string> {
@@ -32,7 +32,7 @@ const getCommandService = function ({
         }
       });
 
-      await onIssueCommand({ command: commandWithMetadata });
+      await issueCommand({ command: commandWithMetadata });
 
       return commandWithMetadata.id;
     }

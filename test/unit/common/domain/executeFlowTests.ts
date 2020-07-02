@@ -79,7 +79,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 1 }
     });
 
-    const commandService = getCommandService({ domainEvent, onIssueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: noop });
 
     await assert.that(async (): Promise<void> => {
       await executeFlow({
@@ -109,7 +109,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 5 }
     });
 
-    const commandService = getCommandService({ domainEvent, onIssueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: noop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',
@@ -143,7 +143,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 7 }
     });
 
-    const commandService = getCommandService({ domainEvent, onIssueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: noop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',
@@ -177,7 +177,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 7 }
     });
 
-    const commandService = getCommandService({ domainEvent, onIssueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: noop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',
@@ -235,7 +235,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 7 }
     });
 
-    const commandService = getCommandService({ domainEvent, onIssueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: noop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',

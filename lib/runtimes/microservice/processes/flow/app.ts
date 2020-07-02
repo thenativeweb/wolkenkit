@@ -73,8 +73,12 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     logger.info('Flow server started.', { healthPort: configuration.healthPort });
 
-    const onIssueCommand = async function ({ command }: { command: CommandWithMetadata<CommandData> }): Promise<void> {
+    const issueCommand = async function ({ command }: { command: CommandWithMetadata<CommandData> }): Promise<void> {
       await commandDispatcherClient.postCommand({ command });
+    };
+
+    const requestReplay = async function (): Promise<void> {
+      // TODO: Send request to a replay server or whatever we decide on.
     };
 
     for (let i = 0; i < configuration.concurrentFlows; i++) {
@@ -89,7 +93,8 @@ import { runHealthServer } from '../../../shared/runHealthServer';
           consumerProgressStore,
           lockStore,
           repository,
-          onIssueCommand
+          issueCommand,
+          requestReplay
         });
       });
     }

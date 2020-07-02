@@ -26,14 +26,16 @@ const processDomainEvent = async function ({
   consumerProgressStore,
   lockStore,
   repository,
-  onIssueCommand
+  issueCommand,
+  requestReplay
 }: {
   application: Application;
   domainEventDispatcher: DomainEventDispatcher;
   consumerProgressStore: ConsumerProgressStore;
   lockStore: LockStore;
   repository: Repository;
-  onIssueCommand: (parameters: { command: CommandWithMetadata<CommandData> }) => void | Promise<void>;
+  issueCommand: (parameters: { command: CommandWithMetadata<CommandData> }) => void | Promise<void>;
+  requestReplay: (parameters: { flowName: string; from: number; to: number }) => void | Promise<void>;
 }): Promise<void> {
   const { domainEvent, metadata } = await fetchDomainEvent({ domainEventDispatcher });
   const flowName = metadata.discriminator;
@@ -49,6 +51,14 @@ const processDomainEvent = async function ({
       throw new errors.FlowNotFound(`Received a domain event for unknown flow '${flowName}'.`);
     }
 
+    const deferDomainEvent = async function (): Promise<void> {
+      await domainEventDispatcher.client.defer({
+        discriminator: flowName,
+        priority: domainEvent.metadata.timestamp,
+        token: metadata.token
+      });
+    };
+
     const flowPromise = executeFlow({
       application,
       domainEvent,
@@ -56,14 +66,16 @@ const processDomainEvent = async function ({
       flowProgressStore: consumerProgressStore,
       services: {
         aggregates: getAggregatesService({ repository }),
-        command: getCommandService({ domainEvent, onIssueCommand }),
+        command: getCommandService({ domainEvent, issueCommand }),
         logger: getLoggerService({
           fileName: `<app>/server/flows/${flowName}`,
           packageManifest: application.packageManifest
         }),
         lock: getLockService({ lockStore }),
         infrastructure: application.infrastructure
-      }
+      },
+      deferDomainEvent,
+      requestReplay
     });
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises

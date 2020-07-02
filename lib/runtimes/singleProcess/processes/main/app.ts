@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { createConsumerProgressStore } from '../../../../stores/consumerProgressStore/createConsumerProgressStore';
@@ -92,7 +93,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       });
     };
 
-    const onIssueCommand = async function ({ command }: { command: CommandWithMetadata<CommandData> }): Promise<void> {
+    const issueCommand = async function ({ command }: { command: CommandWithMetadata<CommandData> }): Promise<void> {
       await priorityQueueStoreForCommands.enqueue({
         item: command,
         discriminator: command.aggregateIdentifier.id,
@@ -133,6 +134,27 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       }
     };
 
+    const requestReplay = async function ({ flowName, aggregateIdentifier, from, to }: {
+      flowName: string;
+      aggregateIdentifier: AggregateIdentifier;
+      from: number;
+      to: number;
+    }): Promise<void> {
+      const domainEventStream = await domainEventStore.getReplayForAggregate({
+        aggregateId: aggregateIdentifier.id,
+        fromRevision: from,
+        toRevision: to
+      });
+
+      for await (const domainEvent of domainEventStream) {
+        await priorityQueueStoreForDomainEvents.enqueue({
+          item: domainEvent,
+          discriminator: flowName,
+          priority: (domainEvent as DomainEvent<DomainEventData>).metadata.timestamp
+        });
+      }
+    };
+
     for (let i = 0; i < configuration.concurrentCommands; i++) {
       pForever(async (): Promise<void> => {
         await processCommand({
@@ -159,7 +181,8 @@ import { runHealthServer } from '../../../shared/runHealthServer';
             renewalInterval: configuration.commandQueueRenewInterval
           },
           consumerProgressStore,
-          onIssueCommand
+          issueCommand,
+          requestReplay
         });
       });
     }

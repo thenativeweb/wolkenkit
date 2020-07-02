@@ -26,7 +26,7 @@ suite('getCommandService', (): void => {
       }
     });
 
-    const commandService = getCommandService({ domainEvent, onIssueCommand });
+    const commandService = getCommandService({ domainEvent, issueCommand: onIssueCommand });
 
     const command = buildCommand({
       contextIdentifier: { name: 'sampleContext' },
@@ -78,7 +78,7 @@ suite('getCommandService', (): void => {
       }
     });
 
-    const commandService = getCommandService({ domainEvent, onIssueCommand });
+    const commandService = getCommandService({ domainEvent, issueCommand: onIssueCommand });
 
     const command = buildCommand({
       contextIdentifier: { name: 'sampleContext' },
