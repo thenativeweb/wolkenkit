@@ -37,6 +37,7 @@ const errors = defekt({
   FileNotFound: {},
   FlowDefinitionMalformed: {},
   FlowDomainEventHandlerMalformed: {},
+  FlowIsAlreadyReplaying: {},
   FlowNotFound: {},
   GraphQlError: {},
   IdentifierMismatch: {},
