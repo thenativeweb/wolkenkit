@@ -1,7 +1,7 @@
 import { CommandData } from '../../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../../common/elements/CommandWithMetadata';
-import { getPromiseStatus } from '../../../../../common/utils/getPromiseStatus';
 import { DomainPriorityQueue } from './DomainPriorityQueue';
+import { getPromiseStatus } from '../../../../../common/utils/getPromiseStatus';
 import { sleep } from '../../../../../common/utils/sleep';
 
 const keepRenewingLock = async function ({ command, handleCommandPromise, priorityQueue, token }: {

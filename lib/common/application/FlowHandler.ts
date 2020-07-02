@@ -1,12 +1,12 @@
 import { AggregatesService } from '../services/AggregatesService';
-import { AskInfrastructure } from './AskInfrastructure';
+import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { CommandService } from '../services/CommandService';
-import { DomainEvent } from './DomainEvent';
-import { DomainEventData } from './DomainEventData';
-import { ItemIdentifier } from './ItemIdentifier';
+import { DomainEvent } from '../elements/DomainEvent';
+import { DomainEventData } from '../elements/DomainEventData';
+import { ItemIdentifier } from '../elements/ItemIdentifier';
 import { LockService } from '../services/LockService';
 import { LoggerService } from '../services/LoggerService';
-import { TellInfrastructure } from './TellInfrastructure';
+import { TellInfrastructure } from '../elements/TellInfrastructure';
 
 export interface FlowHandler<
   TDomainEventData extends DomainEventData,

@@ -1,4 +1,3 @@
-import { Application } from '../../../../common/application/Application';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';

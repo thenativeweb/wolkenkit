@@ -5,7 +5,6 @@ import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { getApi as getAwaitDomainEventApi } from '../../../../apis/awaitItem/http';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';

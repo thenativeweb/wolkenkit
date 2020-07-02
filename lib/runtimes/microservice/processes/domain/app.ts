@@ -10,7 +10,6 @@ import { DomainEventWithState } from '../../../../common/elements/DomainEventWit
 import { flaschenpost } from 'flaschenpost';
 import { getConfiguration } from './getConfiguration';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
-import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { loadApplication } from '../../../../common/application/loadApplication';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';

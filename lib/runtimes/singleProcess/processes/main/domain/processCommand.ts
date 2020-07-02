@@ -1,12 +1,12 @@
 import { acknowledgeCommand } from './acknowledgeCommand';
 import { Application } from '../../../../../common/application/Application';
+import { DomainPriorityQueue } from './DomainPriorityQueue';
 import { errors } from '../../../../../common/errors';
 import { fetchCommand } from './fetchCommand';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandWithMetadataSchema } from '../../../../../common/schemas/getCommandWithMetadataSchema';
 import { keepRenewingLock } from './keepRenewingLock';
 import { LockStore } from '../../../../../stores/lockStore/LockStore';
-import { DomainPriorityQueue } from './DomainPriorityQueue';
 import { PublishDomainEvents } from '../../../../../common/domain/PublishDomainEvents';
 import { Repository } from '../../../../../common/domain/Repository';
 import { Value } from 'validate-value';
