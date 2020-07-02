@@ -70,7 +70,11 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
                 to = domainEvent.metadata.revision - 1;
 
           await requestReplay({ flowName, aggregateIdentifier: domainEvent.aggregateIdentifier, from, to });
-          await flowProgressStore.setIsReplaying({ isReplaying: { from, to }});
+          await flowProgressStore.setIsReplaying({
+            consumerId: flowName,
+            aggregateIdentifier: domainEvent.aggregateIdentifier,
+            isReplaying: { from, to }
+          });
         }
 
         return;
@@ -102,7 +106,11 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     revision: domainEvent.metadata.revision
   });
   if (isReplaying && isReplaying.to === domainEvent.metadata.revision) {
-    await flowProgressStore.setIsReplaying({ isReplaying: false });
+    await flowProgressStore.setIsReplaying({
+      consumerId: flowName,
+      aggregateIdentifier: domainEvent.aggregateIdentifier,
+      isReplaying: false
+    });
   }
 };
 

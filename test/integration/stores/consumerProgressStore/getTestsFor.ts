@@ -29,43 +29,43 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
   });
 
   suite('getProgress', (): void => {
-    test('returns 0 for new consumers.', async (): Promise<void> => {
-      const revision = await consumerProgressStore.getProgress({
+    test('returns revision 0 and is replaying false for new consumers.', async (): Promise<void> => {
+      const progress = await consumerProgressStore.getProgress({
         consumerId,
         aggregateIdentifier
       });
 
-      assert.that(revision).is.equalTo(0);
+      assert.that(progress).is.equalTo({ revision: 0, isReplaying: false });
     });
 
-    test('returns 0 for unknown aggregates.', async (): Promise<void> => {
+    test('returns revision 0 and is replaying false for unknown aggregates.', async (): Promise<void> => {
       await consumerProgressStore.setProgress({
         consumerId,
         aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
         revision: 1
       });
 
-      const revision = await consumerProgressStore.getProgress({
+      const progress = await consumerProgressStore.getProgress({
         consumerId,
         aggregateIdentifier
       });
 
-      assert.that(revision).is.equalTo(0);
+      assert.that(progress).is.equalTo({ revision: 0, isReplaying: false });
     });
 
-    test('returns 0 for new consumers even if the aggregate is known to other consumers.', async (): Promise<void> => {
+    test('returns 0 and is replaying false for new consumers even if the aggregate is known to other consumers.', async (): Promise<void> => {
       await consumerProgressStore.setProgress({
         consumerId: uuid(),
         aggregateIdentifier,
         revision: 1
       });
 
-      const revision = await consumerProgressStore.getProgress({
+      const progress = await consumerProgressStore.getProgress({
         consumerId,
         aggregateIdentifier
       });
 
-      assert.that(revision).is.equalTo(0);
+      assert.that(progress).is.equalTo({ revision: 0, isReplaying: false });
     });
 
     test('returns the revision for known aggregates.', async (): Promise<void> => {
@@ -75,7 +75,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
         revision: 1
       });
 
-      const revision = await consumerProgressStore.getProgress({
+      const { revision } = await consumerProgressStore.getProgress({
         consumerId,
         aggregateIdentifier
       });
@@ -92,7 +92,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
         revision: 1
       });
 
-      const revision = await consumerProgressStore.getProgress({
+      const { revision } = await consumerProgressStore.getProgress({
         consumerId,
         aggregateIdentifier
       });
@@ -107,7 +107,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
         revision: 1
       });
 
-      const revision = await consumerProgressStore.getProgress({
+      const { revision } = await consumerProgressStore.getProgress({
         consumerId,
         aggregateIdentifier
       });
@@ -128,7 +128,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
         revision: 2
       });
 
-      const revision = await consumerProgressStore.getProgress({
+      const { revision } = await consumerProgressStore.getProgress({
         consumerId,
         aggregateIdentifier
       });
@@ -179,7 +179,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
 
       await consumerProgressStore.resetProgress({ consumerId });
 
-      const revision = await consumerProgressStore.getProgress({
+      const { revision } = await consumerProgressStore.getProgress({
         consumerId,
         aggregateIdentifier
       });
@@ -204,7 +204,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
 
       await consumerProgressStore.resetProgress({ consumerId });
 
-      const revision = await consumerProgressStore.getProgress({
+      const { revision } = await consumerProgressStore.getProgress({
         consumerId: otherConsumerId,
         aggregateIdentifier
       });
@@ -224,6 +224,47 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
       await assert.that(async (): Promise<void> => {
         await consumerProgressStore.resetProgress({ consumerId });
       }).is.not.throwingAsync();
+    });
+  });
+
+  suite('setIsReplaying', (): void => {
+    test('sets the is replaying value for new consumers.', async (): Promise<void> => {
+      await consumerProgressStore.setIsReplaying({
+        consumerId,
+        aggregateIdentifier,
+        isReplaying: { from: 5, to: 7 }
+      });
+
+      const progress = await consumerProgressStore.getProgress({
+        consumerId,
+        aggregateIdentifier
+      });
+
+      assert.that(progress).is.equalTo({
+        revision: 0,
+        isReplaying: { from: 5, to: 7 }
+      });
+    });
+
+    test('sets the is replaying value for known aggregates.', async (): Promise<void> => {
+      await consumerProgressStore.setProgress({
+        consumerId,
+        aggregateIdentifier,
+        revision: 1
+      });
+
+      await consumerProgressStore.setIsReplaying({
+        consumerId,
+        aggregateIdentifier,
+        isReplaying: { from: 7, to: 9 }
+      });
+
+      const progress = await consumerProgressStore.getProgress({ consumerId, aggregateIdentifier });
+
+      assert.that(progress).is.equalTo({
+        revision: 1,
+        isReplaying: { from: 7, to: 9 }
+      });
     });
   });
 };

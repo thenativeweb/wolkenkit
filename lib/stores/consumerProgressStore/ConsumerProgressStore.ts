@@ -17,7 +17,9 @@ export interface ConsumerProgressStore {
     consumerId: string;
   }) => Promise<void>;
 
-  setIsReplaying: ({ isReplaying }: {
+  setIsReplaying: ({ consumerId, aggregateIdentifier, isReplaying }: {
+    consumerId: string;
+    aggregateIdentifier: AggregateIdentifier;
     isReplaying: IsReplaying;
   }) => Promise<void>;
 
