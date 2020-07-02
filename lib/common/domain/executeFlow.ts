@@ -34,7 +34,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     logger: LoggerService;
     lock: LockService;
   };
-  deferDomainEvent: (parameters: { domainEvent: DomainEvent<DomainEventData>; flowName: string }) => Promise<void>;
+  deferDomainEvent: (parameters: { domainEvent: DomainEvent<DomainEventData>; flowName: string }) => void | Promise<void>;
   requestReplay: (parameters: { flowName: string; aggregateIdentifier: AggregateIdentifier; from: number; to: number }) => void | Promise<void>;
 }): Promise<void> {
   if (!(flowName in application.flows)) {

@@ -69,8 +69,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
       password,
       database,
       connectTimeout: 0,
-      multipleStatements: true,
-      flags: [ 'CLIENT_FOUND_ROWS' ]
+      multipleStatements: true
     });
 
     pool.on('connection', (connection: PoolConnection): void => {
@@ -211,7 +210,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
           parameters: [ revision, hash, aggregateIdentifier.id, revision ]
         });
 
-        if (rows.changedRows === 1) {
+        if (rows.affectedRows === 1) {
           return;
         }
 
@@ -273,7 +272,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
           });
         }
 
-        if (rows.changedRows === 1) {
+        if (rows.affectedRows === 1) {
           return;
         }
 
@@ -289,7 +288,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
           });
         } catch (ex) {
           if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
-            throw new errors.RevisionTooLow();
+            throw new errors.FlowIsAlreadyReplaying();
           }
 
           throw ex;

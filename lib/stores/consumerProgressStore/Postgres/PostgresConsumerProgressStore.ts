@@ -184,7 +184,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
 
         try {
           await connection.query({
-            name: 'insert progress',
+            name: 'insert progress with default is replaying',
             text: `
               INSERT INTO "${this.tableNames.progress}"
                 ("consumerId", "aggregateId", "revision")
@@ -220,7 +220,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
 
         if (isReplaying === false) {
           ({ rowCount } = await connection.query({
-            name: 'update progress',
+            name: 'update is replaying to false',
             text: `
             UPDATE "${this.tableNames.progress}"
               SET "isReplayingFrom" = NULL, "isReplayingTo" = NULL
@@ -230,7 +230,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
           }));
         } else {
           ({ rowCount } = await connection.query({
-            name: 'update progress',
+            name: 'update is replaying to values',
             text: `
             UPDATE "${this.tableNames.progress}"
               SET "isReplayingFrom" = $1, "isReplayingTo" = $2
@@ -246,7 +246,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
 
         try {
           await connection.query({
-            name: 'insert progress',
+            name: 'insert progress with default revision',
             text: `
               INSERT INTO "${this.tableNames.progress}"
                 ("consumerId", "aggregateId", "revision", "isReplayingFrom", "isReplayingTo")
@@ -256,7 +256,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
           });
         } catch (ex) {
           if (ex.code === '23505' && ex.detail.startsWith('Key ("consumerId", "aggregateId")')) {
-            throw new errors.RevisionTooLow();
+            throw new errors.FlowIsAlreadyReplaying();
           }
 
           throw ex;

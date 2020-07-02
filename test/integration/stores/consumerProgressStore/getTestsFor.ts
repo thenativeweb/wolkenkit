@@ -167,6 +167,132 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
         });
       }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EREVISIONTOOLOW');
     });
+
+    test('does not update the replaying state.', async (): Promise<void> => {
+      await consumerProgressStore.setIsReplaying({
+        consumerId,
+        aggregateIdentifier,
+        isReplaying: { from: 7, to: 9 }
+      });
+
+      await consumerProgressStore.setProgress({
+        consumerId,
+        aggregateIdentifier,
+        revision: 2
+      });
+
+      const { isReplaying } = await consumerProgressStore.getProgress({
+        consumerId,
+        aggregateIdentifier
+      });
+
+      assert.that(isReplaying).is.equalTo({ from: 7, to: 9 });
+    });
+  });
+
+  suite('setIsReplaying', (): void => {
+    test('sets the is replaying value for new consumers.', async (): Promise<void> => {
+      await consumerProgressStore.setIsReplaying({
+        consumerId,
+        aggregateIdentifier,
+        isReplaying: { from: 5, to: 7 }
+      });
+
+      const progress = await consumerProgressStore.getProgress({
+        consumerId,
+        aggregateIdentifier
+      });
+
+      assert.that(progress).is.equalTo({
+        revision: 0,
+        isReplaying: { from: 5, to: 7 }
+      });
+    });
+
+    test('sets the is replaying value for known aggregates.', async (): Promise<void> => {
+      await consumerProgressStore.setProgress({
+        consumerId,
+        aggregateIdentifier,
+        revision: 1
+      });
+
+      await consumerProgressStore.setIsReplaying({
+        consumerId,
+        aggregateIdentifier,
+        isReplaying: { from: 7, to: 9 }
+      });
+
+      const progress = await consumerProgressStore.getProgress({ consumerId, aggregateIdentifier });
+
+      assert.that(progress).is.equalTo({
+        revision: 1,
+        isReplaying: { from: 7, to: 9 }
+      });
+    });
+
+    test('throws an error if an aggregate is already replaying.', async (): Promise<void> => {
+      await consumerProgressStore.setProgress({
+        consumerId,
+        aggregateIdentifier,
+        revision: 1
+      });
+
+      await consumerProgressStore.setIsReplaying({
+        consumerId,
+        aggregateIdentifier,
+        isReplaying: { from: 7, to: 9 }
+      });
+
+      await assert.that(async (): Promise<void> => {
+        await consumerProgressStore.setIsReplaying({
+          consumerId,
+          aggregateIdentifier,
+          isReplaying: { from: 2, to: 20 }
+        });
+      }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EFLOWISALREADYREPLAYING');
+    });
+
+    test('does not change the revision when enabling replays.', async (): Promise<void> => {
+      await consumerProgressStore.setProgress({
+        consumerId,
+        aggregateIdentifier,
+        revision: 5
+      });
+
+      await consumerProgressStore.setIsReplaying({
+        consumerId,
+        aggregateIdentifier,
+        isReplaying: { from: 7, to: 9 }
+      });
+
+      const { revision } = await consumerProgressStore.getProgress({
+        consumerId,
+        aggregateIdentifier
+      });
+
+      assert.that(revision).is.equalTo(5);
+    });
+
+    test('does not change the revision when disabling replays.', async (): Promise<void> => {
+      await consumerProgressStore.setProgress({
+        consumerId,
+        aggregateIdentifier,
+        revision: 5
+      });
+
+      await consumerProgressStore.setIsReplaying({
+        consumerId,
+        aggregateIdentifier,
+        isReplaying: false
+      });
+
+      const { revision } = await consumerProgressStore.getProgress({
+        consumerId,
+        aggregateIdentifier
+      });
+
+      assert.that(revision).is.equalTo(5);
+    });
   });
 
   suite('resetProgress', (): void => {
@@ -243,69 +369,6 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
       await assert.that(async (): Promise<void> => {
         await consumerProgressStore.resetProgress({ consumerId });
       }).is.not.throwingAsync();
-    });
-  });
-
-  suite('setIsReplaying', (): void => {
-    test('sets the is replaying value for new consumers.', async (): Promise<void> => {
-      await consumerProgressStore.setIsReplaying({
-        consumerId,
-        aggregateIdentifier,
-        isReplaying: { from: 5, to: 7 }
-      });
-
-      const progress = await consumerProgressStore.getProgress({
-        consumerId,
-        aggregateIdentifier
-      });
-
-      assert.that(progress).is.equalTo({
-        revision: 0,
-        isReplaying: { from: 5, to: 7 }
-      });
-    });
-
-    test('sets the is replaying value for known aggregates.', async (): Promise<void> => {
-      await consumerProgressStore.setProgress({
-        consumerId,
-        aggregateIdentifier,
-        revision: 1
-      });
-
-      await consumerProgressStore.setIsReplaying({
-        consumerId,
-        aggregateIdentifier,
-        isReplaying: { from: 7, to: 9 }
-      });
-
-      const progress = await consumerProgressStore.getProgress({ consumerId, aggregateIdentifier });
-
-      assert.that(progress).is.equalTo({
-        revision: 1,
-        isReplaying: { from: 7, to: 9 }
-      });
-    });
-
-    test('throws an error if an aggregate is already replaying.', async (): Promise<void> => {
-      await consumerProgressStore.setProgress({
-        consumerId,
-        aggregateIdentifier,
-        revision: 1
-      });
-
-      await consumerProgressStore.setIsReplaying({
-        consumerId,
-        aggregateIdentifier,
-        isReplaying: { from: 7, to: 9 }
-      });
-
-      await assert.that(async (): Promise<void> => {
-        await consumerProgressStore.setIsReplaying({
-          consumerId,
-          aggregateIdentifier,
-          isReplaying: { from: 2, to: 20 }
-        });
-      }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EFLOWISALREADYREPLAYING');
     });
   });
 };

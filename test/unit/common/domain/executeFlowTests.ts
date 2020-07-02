@@ -93,7 +93,9 @@ suite('executeFlow', (): void => {
           infrastructure: application.infrastructure,
           lock: lockService,
           logger: loggerService
-        }
+        },
+        deferDomainEvent: noop,
+        requestReplay: noop
       });
     }).is.throwingAsync(
       (ex): boolean => (ex as CustomError).code === 'EFLOWNOTFOUND'
@@ -128,7 +130,9 @@ suite('executeFlow', (): void => {
         infrastructure: application.infrastructure,
         lock: lockService,
         logger: loggerService
-      }
+      },
+      deferDomainEvent: noop,
+      requestReplay: noop
     });
 
     assert.that(loggedMessages).is.equalTo([]);
@@ -162,7 +166,9 @@ suite('executeFlow', (): void => {
         infrastructure: application.infrastructure,
         lock: lockService,
         logger: loggerService
-      }
+      },
+      deferDomainEvent: noop,
+      requestReplay: noop
     });
 
     assert.that(loggedMessages).is.equalTo([]);
@@ -196,7 +202,9 @@ suite('executeFlow', (): void => {
         infrastructure: application.infrastructure,
         lock: lockService,
         logger: loggerService
-      }
+      },
+      deferDomainEvent: noop,
+      requestReplay: noop
     });
 
     assert.that(
@@ -255,7 +263,9 @@ suite('executeFlow', (): void => {
           infrastructure: application.infrastructure,
           lock: lockService,
           logger: loggerService
-        }
+        },
+        deferDomainEvent: noop,
+        requestReplay: noop
       });
     }).is.throwingAsync(
       (ex): boolean => ex.message === 'An expected error occured.'

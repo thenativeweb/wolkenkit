@@ -117,7 +117,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
     await withTransaction({
       client: this.client,
       fn: async ({ session }): Promise<void> => {
-        const { modifiedCount } = await this.collections.progress.updateOne(
+        const { matchedCount } = await this.collections.progress.updateOne(
           {
             consumerId,
             aggregateId: aggregateIdentifier.id,
@@ -127,7 +127,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
           { session }
         );
 
-        if (modifiedCount === 1) {
+        if (matchedCount === 1) {
           return;
         }
 
@@ -151,7 +151,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
     await withTransaction({
       client: this.client,
       fn: async ({ session }): Promise<void> => {
-        const { modifiedCount } = await this.collections.progress.updateOne(
+        const { matchedCount } = await this.collections.progress.updateOne(
           {
             consumerId,
             aggregateId: aggregateIdentifier.id,
@@ -161,7 +161,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
           { session }
         );
 
-        if (modifiedCount === 1) {
+        if (matchedCount === 1) {
           return;
         }
 

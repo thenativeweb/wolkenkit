@@ -196,26 +196,22 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
         requestUpdate.query(`
           UPDATE [${this.tableNames.progress}]
             SET
-              [revision] = @revision,
               [isReplayingFrom] = @isReplayingFrom,
               [isReplayingTo] = @isReplayingTo
             WHERE
               [consumerId] = @consumerId AND
               [aggregateId] = @aggregateId AND
-              [revision] < @revision AND
               [isReplayingFrom] IS NULL AND
               [isReplayingTo] IS NULL;
         `) :
         requestUpdate.query(`
           UPDATE [${this.tableNames.progress}]
             SET
-              [revision] = @revision,
               [isReplayingFrom] = @isReplayingFrom,
               [isReplayingTo] = @isReplayingTo
             WHERE
               [consumerId] = @consumerId AND
-              [aggregateId] = @aggregateId AND
-              [revision] < @revision AND;
+              [aggregateId] = @aggregateId;
         `));
 
       if (rowsAffected[0] === 1) {
@@ -229,8 +225,8 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
 
         requestInsert.input('consumerId', Types.NChar, hash);
         requestInsert.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
-        requestUpdate.input('isReplayingFrom', Types.Int, isReplaying ? isReplaying.from : null);
-        requestUpdate.input('isReplayingTo', Types.Int, isReplaying ? isReplaying.to : null);
+        requestInsert.input('isReplayingFrom', Types.Int, isReplaying ? isReplaying.from : null);
+        requestInsert.input('isReplayingTo', Types.Int, isReplaying ? isReplaying.to : null);
 
         await requestInsert.query(`
           INSERT INTO [${this.tableNames.progress}]
@@ -239,7 +235,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
         `);
       } catch (ex) {
         if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.startsWith('Violation of PRIMARY KEY constraint')) {
-          throw new errors.RevisionTooLow();
+          throw new errors.FlowIsAlreadyReplaying();
         }
 
         throw ex;
