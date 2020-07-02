@@ -2,6 +2,7 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import { CollectionNames } from './CollectionNames';
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { errors } from '../../../common/errors';
+import { IsReplaying } from '../IsReplaying';
 import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
@@ -95,17 +96,17 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
   public async getProgress ({ consumerId, aggregateIdentifier }: {
     consumerId: string;
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<number> {
+  }): Promise<{ revision: number; isReplaying: IsReplaying }> {
     const result = await this.collections.progress.findOne({
       consumerId,
       aggregateId: aggregateIdentifier.id
     });
 
     if (!result) {
-      return 0;
+      return { revision: 0, isReplaying: false };
     }
 
-    return result.revision;
+    return { revision: result.revision, isReplaying: result.isReplaying };
   }
 
   public async setProgress ({ consumerId, aggregateIdentifier, revision }: {
@@ -132,11 +133,45 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
 
         try {
           await this.collections.progress.insertOne(
-            { consumerId, aggregateId: aggregateIdentifier.id, revision },
+            { consumerId, aggregateId: aggregateIdentifier.id, revision, isReplaying: false },
             { session }
           );
         } catch {
           throw new errors.RevisionTooLow();
+        }
+      }
+    });
+  }
+
+  public async setIsReplaying ({ consumerId, aggregateIdentifier, isReplaying }: {
+    consumerId: string;
+    aggregateIdentifier: AggregateIdentifier;
+    isReplaying: IsReplaying;
+  }): Promise<void> {
+    await withTransaction({
+      client: this.client,
+      fn: async ({ session }): Promise<void> => {
+        const { modifiedCount } = await this.collections.progress.updateOne(
+          {
+            consumerId,
+            aggregateId: aggregateIdentifier.id,
+            isReplaying: { $eq: false }
+          },
+          { $set: { isReplaying }},
+          { session }
+        );
+
+        if (modifiedCount === 1) {
+          return;
+        }
+
+        try {
+          await this.collections.progress.insertOne(
+            { consumerId, aggregateId: aggregateIdentifier.id, revision: 0, isReplaying },
+            { session }
+          );
+        } catch {
+          throw new errors.FlowIsAlreadyReplaying();
         }
       }
     });

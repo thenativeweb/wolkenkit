@@ -1,9 +1,10 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { errors } from '../../../common/errors';
+import { IsReplaying } from '../IsReplaying';
 
 class InMemoryConsumerProgressStore implements ConsumerProgressStore {
-  protected progress: Record<string, Record<string, number | undefined> | undefined>;
+  protected progress: Record<string, Record<string, { revision: number; isReplaying: IsReplaying } | undefined> | undefined>;
 
   protected constructor () {
     this.progress = {};
@@ -16,8 +17,11 @@ class InMemoryConsumerProgressStore implements ConsumerProgressStore {
   public async getProgress ({ consumerId, aggregateIdentifier }: {
     consumerId: string;
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<number> {
-    return this.progress[consumerId]?.[aggregateIdentifier.id] ?? 0;
+  }): Promise<{ revision: number; isReplaying: IsReplaying }> {
+    return {
+      revision: this.progress[consumerId]?.[aggregateIdentifier.id]?.revision ?? 0,
+      isReplaying: this.progress[consumerId]?.[aggregateIdentifier.id]?.isReplaying ?? false
+    };
   }
 
   public async setProgress ({ consumerId, aggregateIdentifier, revision }: {
@@ -29,14 +33,33 @@ class InMemoryConsumerProgressStore implements ConsumerProgressStore {
       this.progress[consumerId] = {};
     }
     if (!this.progress[consumerId]![aggregateIdentifier.id]) {
-      this.progress[consumerId]![aggregateIdentifier.id] = 0;
+      this.progress[consumerId]![aggregateIdentifier.id] = { revision: 0, isReplaying: false };
     }
 
-    if (revision <= this.progress[consumerId]![aggregateIdentifier.id]!) {
+    if (revision <= this.progress[consumerId]![aggregateIdentifier.id]!.revision) {
       throw new errors.RevisionTooLow();
     }
 
-    this.progress[consumerId]![aggregateIdentifier.id] = revision;
+    this.progress[consumerId]![aggregateIdentifier.id]!.revision = revision;
+  }
+
+  public async setIsReplaying ({ consumerId, aggregateIdentifier, isReplaying }: {
+    consumerId: string;
+    aggregateIdentifier: AggregateIdentifier;
+    isReplaying: IsReplaying;
+  }): Promise<void> {
+    if (!this.progress[consumerId]) {
+      this.progress[consumerId] = {};
+    }
+    if (!this.progress[consumerId]![aggregateIdentifier.id]) {
+      this.progress[consumerId]![aggregateIdentifier.id] = { revision: 0, isReplaying: false };
+    }
+
+    if (this.progress[consumerId]![aggregateIdentifier.id]!.isReplaying !== false) {
+      throw new errors.FlowIsAlreadyReplaying();
+    }
+
+    this.progress[consumerId]![aggregateIdentifier.id]!.isReplaying = isReplaying;
   }
 
   public async resetProgress ({ consumerId }: {
