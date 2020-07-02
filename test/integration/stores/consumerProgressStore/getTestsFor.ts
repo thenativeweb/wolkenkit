@@ -187,6 +187,25 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
       assert.that(revision).is.equalTo(0);
     });
 
+    test('stops an ongoing replay.', async (): Promise<void> => {
+      await consumerProgressStore.setProgress({
+        consumerId,
+        aggregateIdentifier,
+        revision: 1
+      });
+      await consumerProgressStore.setIsReplaying({
+        consumerId,
+        aggregateIdentifier,
+        isReplaying: { from: 5, to: 7 }
+      });
+
+      await consumerProgressStore.resetProgress({ consumerId });
+
+      const progress = await consumerProgressStore.getProgress({ consumerId, aggregateIdentifier });
+
+      assert.that(progress.isReplaying).is.false();
+    });
+
     test('does not reset the revisions for other consumers.', async (): Promise<void> => {
       const otherConsumerId = uuid();
 
@@ -265,6 +284,28 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
         revision: 1,
         isReplaying: { from: 7, to: 9 }
       });
+    });
+
+    test('throws an error if an aggregate is already replaying.', async (): Promise<void> => {
+      await consumerProgressStore.setProgress({
+        consumerId,
+        aggregateIdentifier,
+        revision: 1
+      });
+
+      await consumerProgressStore.setIsReplaying({
+        consumerId,
+        aggregateIdentifier,
+        isReplaying: { from: 7, to: 9 }
+      });
+
+      await assert.that(async (): Promise<void> => {
+        await consumerProgressStore.setIsReplaying({
+          consumerId,
+          aggregateIdentifier,
+          isReplaying: { from: 2, to: 20 }
+        });
+      }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EFLOWISALREADYREPLAYING');
     });
   });
 };
