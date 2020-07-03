@@ -7,6 +7,4 @@ const getTestApplicationDirectory = function ({ name, language = 'javascript' }:
   return path.join(__dirname, language, name);
 };
 
-export {
-  getTestApplicationDirectory
-};
+export { getTestApplicationDirectory };
