@@ -2,9 +2,10 @@ import { Application } from '../../../../common/application/Application';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
-import { OnPerformReplay } from '../../OnPerformReplay';
+import { PerformReplay } from '../../PerformReplay';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
+import { validateFlowNames } from '../../../../common/validators/validateFlowNames';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
@@ -42,7 +43,7 @@ const postPerformReplay = {
     } as Schema
   },
   response: {
-    statusCodes: [ 200, 400, 404, 415 ],
+    statusCodes: [ 200, 400, 415 ],
     body: {
       type: 'object',
       properties: {},
@@ -51,8 +52,8 @@ const postPerformReplay = {
     } as Schema
   },
 
-  getHandler ({ onPerformReplay, application }: {
-    onPerformReplay: OnPerformReplay;
+  getHandler ({ performReplay, application }: {
+    performReplay: PerformReplay;
     application: Application;
   }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(postPerformReplay.request.body),
@@ -94,23 +95,21 @@ const postPerformReplay = {
         aggregates
       } = req.body;
 
-      for (const flowName of flowNames) {
-        if (!(flowName in application.flows)) {
-          const error = new errors.FlowNotFound(`Flow '${flowName}' not found.`);
+      try {
+        validateFlowNames({ flowNames, application });
+      } catch (ex) {
+        res.status(400).json({
+          code: ex.code,
+          message: ex.message
+        });
 
-          res.status(404).json({
-            code: error.code,
-            message: error.message
-          });
-
-          return;
-        }
+        return;
       }
 
       logger.info('Replay requested.', { flowNames, aggregates });
 
       try {
-        await onPerformReplay({ flowNames, aggregates });
+        await performReplay({ flowNames, aggregates });
 
         const response = {};
 

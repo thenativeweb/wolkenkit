@@ -34,7 +34,7 @@ suite('performReplay/http', (): void => {
 
         ({ api } = await getApi({
           corsOrigin: '*',
-          async onPerformReplay ({ flowNames, aggregates }): Promise<void> {
+          async performReplay ({ flowNames, aggregates }): Promise<void> {
             requestedReplays.push({ flowNames, aggregates });
           },
           application
@@ -189,7 +189,7 @@ suite('performReplay/http', (): void => {
       test('returns 500 if on perform replay throws an error.', async (): Promise<void> => {
         ({ api } = await getApi({
           corsOrigin: '*',
-          async onPerformReplay (): Promise<void> {
+          async performReplay (): Promise<void> {
             throw new Error('Failed to handle requested replay.');
           },
           application

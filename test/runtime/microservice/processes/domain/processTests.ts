@@ -66,7 +66,6 @@ suite('domain', function (): void {
         PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${queueLockExpirationTime}}`,
         PORT: String(commandDispatcherPort),
         HEALTH_PORT: String(commandDispatcherHealthPort),
-        IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
         QUEUE_POLL_INTERVAL: String(queuePollInterval)
       }
     });
@@ -88,7 +87,6 @@ suite('domain', function (): void {
         PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${queueLockExpirationTime}}`,
         PORT: String(domainEventDispatcherPort),
         HEALTH_PORT: String(domainEventDispatcherHealthPort),
-        IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
         QUEUE_POLL_INTERVAL: String(queuePollInterval)
       }
     });

@@ -55,6 +55,7 @@ const errors = defekt({
   ProjectionHandlerMalformed: {},
   PublisherTypeInvalid: {},
   QueryHandlerMalformed: {},
+  ReplayFailed: {},
   RequestFailed: {},
   RequestMalformed: {},
   RevisionAlreadyExists: {},

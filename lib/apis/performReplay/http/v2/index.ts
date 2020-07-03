@@ -2,16 +2,12 @@ import { Application } from '../../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
 import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
-import { OnPerformReplay } from '../../OnPerformReplay';
+import { PerformReplay } from '../../PerformReplay';
 import { postPerformReplay } from './postPerformReplay';
 
-const getV2 = async function ({
-  corsOrigin,
-  onPerformReplay,
-  application
-}: {
+const getV2 = async function ({ corsOrigin, performReplay, application }: {
   corsOrigin: CorsOrigin;
-  onPerformReplay: OnPerformReplay;
+  performReplay: PerformReplay;
   application: Application;
 }): Promise<{ api: ExpressApplication }> {
   const api = await getApiBase({
@@ -26,7 +22,7 @@ const getV2 = async function ({
   });
 
   api.post(`/${postPerformReplay.path}`, postPerformReplay.getHandler({
-    onPerformReplay,
+    performReplay,
     application
   }));
 

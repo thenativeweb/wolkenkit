@@ -89,7 +89,7 @@ suite('handleDomainEvent/http', (): void => {
         const { status, data } = await client({
           method: 'post',
           url: '/v2/',
-          data: { foo: 'bar' },
+          data: { domainEvent: { foo: 'bar' }},
           responseType: 'text',
           validateStatus (): boolean {
             return true;
@@ -98,8 +98,8 @@ suite('handleDomainEvent/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EDOMAINEVENTMALFORMED',
-          message: 'Missing required property: contextIdentifier (at value.contextIdentifier).'
+          code: 'EREQUESTMALFORMED',
+          message: 'Missing required property: contextIdentifier (at value.domainEvent.contextIdentifier).'
         });
       });
 
@@ -123,7 +123,7 @@ suite('handleDomainEvent/http', (): void => {
         const { status, data } = await client({
           method: 'post',
           url: '/v2/',
-          data: domainEventExecuted,
+          data: { domainEvent: domainEventExecuted },
           responseType: 'text',
           validateStatus (): boolean {
             return true;
@@ -157,7 +157,7 @@ suite('handleDomainEvent/http', (): void => {
         const { status, data } = await client({
           method: 'post',
           url: '/v2/',
-          data: domainEventExecuted,
+          data: { domainEvent: domainEventExecuted },
           responseType: 'text',
           validateStatus (): boolean {
             return true;
@@ -191,7 +191,7 @@ suite('handleDomainEvent/http', (): void => {
         const { status, data } = await client({
           method: 'post',
           url: '/v2/',
-          data: domainEventExecuted,
+          data: { domainEvent: domainEventExecuted },
           responseType: 'text',
           validateStatus (): boolean {
             return true;
@@ -225,7 +225,7 @@ suite('handleDomainEvent/http', (): void => {
         const { status, data } = await client({
           method: 'post',
           url: '/v2/',
-          data: domainEventExecuted,
+          data: { domainEvent: domainEventExecuted },
           responseType: 'text',
           validateStatus (): boolean {
             return true;
@@ -236,6 +236,40 @@ suite('handleDomainEvent/http', (): void => {
         assert.that(data).is.equalTo({
           code: 'EDOMAINEVENTMALFORMED',
           message: 'No enum match (invalidValue), expects: succeed, fail, reject (at domainEvent.data.strategy).'
+        });
+      });
+
+      test('returns 400 if a non-existent flow name is sent.', async (): Promise<void> => {
+        const domainEventExecuted = new DomainEvent({
+          ...buildDomainEvent({
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'executed',
+            data: { strategy: 'succeed' },
+            id: uuid(),
+            metadata: {
+              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+              revision: 1
+            }
+          })
+        });
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: { flowNames: [ 'non-existent' ], domainEvent: domainEventExecuted },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'EFLOWNOTFOUND',
+          message: `Flow 'non-existent' not found.`
         });
       });
 
@@ -259,7 +293,33 @@ suite('handleDomainEvent/http', (): void => {
         const { status } = await client({
           method: 'post',
           url: '/v2/',
-          data: domainEventExecuted
+          data: { domainEvent: domainEventExecuted }
+        });
+
+        assert.that(status).is.equalTo(200);
+      });
+
+      test('returns 200 if a wellformed and existing domain event is sent for a specific flow.', async (): Promise<void> => {
+        const domainEventExecuted = new DomainEvent({
+          ...buildDomainEvent({
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'executed',
+            data: { strategy: 'succeed' },
+            id: uuid(),
+            metadata: {
+              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+              revision: 1
+            }
+          })
+        });
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/',
+          data: { flowNames: [ 'sampleFlow' ], domainEvent: domainEventExecuted }
         });
 
         assert.that(status).is.equalTo(200);
@@ -285,7 +345,47 @@ suite('handleDomainEvent/http', (): void => {
         await client({
           method: 'post',
           url: '/v2/',
-          data: domainEventExecuted
+          data: { domainEvent: domainEventExecuted }
+        });
+
+        assert.that(receivedDomainEvents.length).is.equalTo(1);
+        assert.that(receivedDomainEvents[0]).is.atLeast({
+          contextIdentifier: domainEventExecuted.contextIdentifier,
+          aggregateIdentifier: domainEventExecuted.aggregateIdentifier,
+          name: domainEventExecuted.name,
+          data: domainEventExecuted.data,
+          metadata: {
+            causationId: domainEventExecuted.metadata.causationId,
+            correlationId: domainEventExecuted.metadata.correlationId,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        assert.that(receivedDomainEvents[0].id).is.ofType('string');
+        assert.that(receivedDomainEvents[0].metadata.timestamp).is.ofType('number');
+      });
+
+      test('receives domain events for specific flows.', async (): Promise<void> => {
+        const domainEventExecuted = new DomainEvent({
+          ...buildDomainEvent({
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'executed',
+            data: { strategy: 'succeed' },
+            id: uuid(),
+            metadata: {
+              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+              revision: 1
+            }
+          })
+        });
+
+        const { client } = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/',
+          data: { flowNames: [ 'sampleFlow' ], domainEvent: domainEventExecuted }
         });
 
         assert.that(receivedDomainEvents.length).is.equalTo(1);
@@ -325,7 +425,7 @@ suite('handleDomainEvent/http', (): void => {
         const { status } = await client({
           method: 'post',
           url: '/v2/',
-          data: domainEventExecuted
+          data: { domainEvent: domainEventExecuted }
         });
 
         assert.that(status).is.equalTo(200);
@@ -359,7 +459,7 @@ suite('handleDomainEvent/http', (): void => {
         const { status, data } = await client({
           method: 'post',
           url: '/v2/',
-          data: domainEventExecuted,
+          data: { domainEvent: domainEventExecuted },
           responseType: 'text',
           validateStatus (): boolean {
             return true;

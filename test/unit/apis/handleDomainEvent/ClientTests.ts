@@ -156,6 +156,35 @@ suite('handleDomainEvent/http/Client', (): void => {
           (ex as CustomError).message === 'No enum match (invalidValue), expects: succeed, fail, reject (at domainEvent.data.strategy).');
       });
 
+      test('throws an error if a non-existent flow name is sent.', async (): Promise<void> => {
+        const domainEventExecuted = new DomainEvent({
+          ...buildDomainEvent({
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'executed',
+            data: { strategy: 'succeed' },
+            id: uuid(),
+            metadata: {
+              initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+              revision: 1
+            }
+          })
+        });
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.postDomainEvent({ flowNames: [ 'non-existent' ], domainEvent: domainEventExecuted });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as CustomError).code === 'EFLOWNOTFOUND' &&
+          (ex as CustomError).message === `Flow 'non-existent' not found.`);
+      });
+
       test('sends domain events.', async (): Promise<void> => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({

@@ -17,13 +17,14 @@ class Client extends HttpClient {
     super({ protocol, hostName, port, path });
   }
 
-  public async postDomainEvent ({ domainEvent }: {
+  public async postDomainEvent ({ flowNames, domainEvent }: {
+    flowNames?: string[];
     domainEvent: DomainEvent<DomainEventData>;
   }): Promise<void> {
     const { status, data } = await axios({
       method: 'post',
       url: `${this.url}/`,
-      data: domainEvent,
+      data: { flowNames, domainEvent },
       validateStatus (): boolean {
         return true;
       }
@@ -34,6 +35,9 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
+      case 'EFLOWNOTFOUND': {
+        throw new errors.FlowNotFound(data.message);
+      }
       case 'EDOMAINEVENTMALFORMED': {
         throw new errors.DomainEventMalformed(data.message);
       }

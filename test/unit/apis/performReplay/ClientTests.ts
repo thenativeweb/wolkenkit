@@ -36,7 +36,7 @@ suite('performReplay/http/Client', (): void => {
 
         ({ api } = await getApi({
           corsOrigin: '*',
-          async onPerformReplay ({ flowNames, aggregates }): Promise<void> {
+          async performReplay ({ flowNames, aggregates }): Promise<void> {
             requestedReplays.push({ flowNames, aggregates });
           },
           application

@@ -1,6 +1,6 @@
 import { AggregateIdentifier } from '../../common/elements/AggregateIdentifier';
 
-export type OnPerformReplay = ({ flowNames, aggregates }: {
+export type PerformReplay = ({ flowNames, aggregates }: {
   flowNames: string[];
   aggregates: {
     aggregateIdentifier: AggregateIdentifier;
