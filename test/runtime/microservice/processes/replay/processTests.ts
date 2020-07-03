@@ -179,6 +179,7 @@ suite('replay', function (): void {
 
       await replayClient.performReplay({
         aggregates: [{
+          contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
           from: 2,
           to: 3

@@ -4,6 +4,7 @@ import { Application } from '../application/Application';
 import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { CommandService } from '../services/CommandService';
 import { ConsumerProgressStore } from '../../stores/consumerProgressStore/ConsumerProgressStore';
+import { ContextIdentifier } from '../elements/ContextIdentifier';
 import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
 import { errors } from '../errors';
@@ -20,7 +21,6 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
   domainEvent,
   flowProgressStore,
   services,
-  deferDomainEvent,
   requestReplay
 }: {
   application: Application;
@@ -34,9 +34,14 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     logger: LoggerService;
     lock: LockService;
   };
-  deferDomainEvent: (parameters: { domainEvent: DomainEvent<DomainEventData>; flowName: string }) => void | Promise<void>;
-  requestReplay: (parameters: { flowName: string; aggregateIdentifier: AggregateIdentifier; from: number; to: number }) => void | Promise<void>;
-}): Promise<void> {
+  requestReplay: (parameters: {
+    flowName: string;
+    contextIdentifier: ContextIdentifier;
+    aggregateIdentifier: AggregateIdentifier;
+    from: number;
+    to: number;
+  }) => void | Promise<void>;
+}): Promise<'acknowledge' | 'defer'> {
   if (!(flowName in application.flows)) {
     throw new errors.FlowNotFound(`Flow '${flowName}' not found.`);
   }
@@ -49,7 +54,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
   });
 
   if (latestHandledRevision >= domainEvent.metadata.revision) {
-    return;
+    return 'acknowledge';
   }
 
   if (latestHandledRevision < domainEvent.metadata.revision - 1) {
@@ -58,18 +63,20 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
         break;
       }
       case 'on-demand': {
-        await deferDomainEvent({ domainEvent, flowName });
-
-        return;
+        return 'defer';
       }
       case 'always': {
-        await deferDomainEvent({ domainEvent, flowName });
-
         if (isReplaying === false) {
           const from = latestHandledRevision + 1,
                 to = domainEvent.metadata.revision - 1;
 
-          await requestReplay({ flowName, aggregateIdentifier: domainEvent.aggregateIdentifier, from, to });
+          await requestReplay({
+            flowName,
+            contextIdentifier: domainEvent.contextIdentifier,
+            aggregateIdentifier: domainEvent.aggregateIdentifier,
+            from,
+            to
+          });
           await flowProgressStore.setIsReplaying({
             consumerId: flowName,
             aggregateIdentifier: domainEvent.aggregateIdentifier,
@@ -77,7 +84,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
           });
         }
 
-        return;
+        return 'defer';
       }
       default: {
         throw new errors.InvalidOperation();
@@ -112,6 +119,8 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
       isReplaying: false
     });
   }
+
+  return 'acknowledge';
 };
 
 export { executeFlow };

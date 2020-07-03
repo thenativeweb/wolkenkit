@@ -78,6 +78,8 @@ const defer = {
           priority
         });
 
+        logger.info('Deferred priority queue item.', { discriminator, priority });
+
         const response = {};
 
         responseBodySchema.validate(response);

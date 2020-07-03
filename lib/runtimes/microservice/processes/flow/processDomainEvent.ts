@@ -1,8 +1,10 @@
 import { acknowledgeDomainEvent } from './acknowledgeDomainEvent';
+import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
 import { Application } from '../../../../common/application/Application';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { ConsumerProgressStore } from '../../../../stores/consumerProgressStore/ConsumerProgressStore';
+import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { DomainEventDispatcher } from './DomainEventDispatcher';
 import { errors } from '../../../../common/errors';
 import { executeFlow } from '../../../../common/domain/executeFlow';
@@ -35,7 +37,13 @@ const processDomainEvent = async function ({
   lockStore: LockStore;
   repository: Repository;
   issueCommand: (parameters: { command: CommandWithMetadata<CommandData> }) => void | Promise<void>;
-  requestReplay: (parameters: { flowName: string; from: number; to: number }) => void | Promise<void>;
+  requestReplay: (parameters: {
+    flowName: string;
+    contextIdentifier: ContextIdentifier;
+    aggregateIdentifier: AggregateIdentifier;
+    from: number;
+    to: number;
+  }) => void | Promise<void>;
 }): Promise<void> {
   const { domainEvent, metadata } = await fetchDomainEvent({ domainEventDispatcher });
   const flowName = metadata.discriminator;
@@ -50,14 +58,6 @@ const processDomainEvent = async function ({
     if (!(flowName in application.flows)) {
       throw new errors.FlowNotFound(`Received a domain event for unknown flow '${flowName}'.`);
     }
-
-    const deferDomainEvent = async function (): Promise<void> {
-      await domainEventDispatcher.client.defer({
-        discriminator: flowName,
-        priority: domainEvent.metadata.timestamp,
-        token: metadata.token
-      });
-    };
 
     const flowPromise = executeFlow({
       application,
@@ -74,7 +74,6 @@ const processDomainEvent = async function ({
         lock: getLockService({ lockStore }),
         infrastructure: application.infrastructure
       },
-      deferDomainEvent,
       requestReplay
     });
 
@@ -83,10 +82,27 @@ const processDomainEvent = async function ({
       await keepRenewingLock({ flowName, flowPromise, domainEventDispatcher, token: metadata.token });
     })();
 
-    await flowPromise;
+    const howToProceed = await flowPromise;
+
+    switch (howToProceed) {
+      case 'acknowledge': {
+        await acknowledgeDomainEvent({ flowName, token: metadata.token, domainEventDispatcher });
+        break;
+      }
+      case 'defer': {
+        await domainEventDispatcher.client.defer({
+          discriminator: flowName,
+          priority: domainEvent.metadata.timestamp,
+          token: metadata.token
+        });
+        break;
+      }
+      default: {
+        throw new errors.InvalidOperation();
+      }
+    }
   } catch (ex) {
     logger.error('Failed to handle domain event.', { domainEvent, ex });
-  } finally {
     await acknowledgeDomainEvent({ flowName, token: metadata.token, domainEventDispatcher });
   }
 };

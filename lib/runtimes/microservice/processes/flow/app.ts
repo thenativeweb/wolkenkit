@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
 import { AeonstoreDomainEventStore } from '../../../../stores/domainEventStore/Aeonstore';
+import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { Client as CommandDispatcherClient } from '../../../../apis/handleCommandWithMetadata/http/v2/Client';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
+import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { createConsumerProgressStore } from '../../../../stores/consumerProgressStore/createConsumerProgressStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
@@ -16,6 +18,7 @@ import { loadApplication } from '../../../../common/application/loadApplication'
 import pForever from 'p-forever';
 import { processDomainEvent } from './processDomainEvent';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
+import { Client as ReplayClient } from '../../../../apis/performReplay/http/v2/Client';
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
 
@@ -69,6 +72,13 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       path: '/handle-command/v2'
     });
 
+    const replayClient = new ReplayClient({
+      protocol: configuration.replayServerProtocol,
+      hostName: configuration.replayServerHostName,
+      port: configuration.replayServerPort,
+      path: '/perform-replay/v2'
+    });
+
     await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
 
     logger.info('Flow server started.', { healthPort: configuration.healthPort });
@@ -77,8 +87,19 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       await commandDispatcherClient.postCommand({ command });
     };
 
-    const requestReplay = async function (): Promise<void> {
-      // TODO: Send request to a replay server or whatever we decide on.
+    const requestReplay = async function ({ flowName, contextIdentifier, aggregateIdentifier, from, to }: {
+      flowName: string;
+      contextIdentifier: ContextIdentifier;
+      aggregateIdentifier: AggregateIdentifier;
+      from: number;
+      to: number;
+    }): Promise<void> {
+      await replayClient.performReplay({
+        flowNames: [ flowName ],
+        aggregates: [
+          { contextIdentifier, aggregateIdentifier, from, to }
+        ]
+      });
     };
 
     for (let i = 0; i < configuration.concurrentFlows; i++) {

@@ -10,6 +10,9 @@ export interface Configuration {
   commandDispatcherProtocol: string;
   commandDispatcherHostName: string;
   commandDispatcherPort: number;
+  replayServerProtocol: string;
+  replayServerHostName: string;
+  replayServerPort: number;
   aeonstoreProtocol: string;
   aeonstoreHostName: string;
   aeonstorePort: number;

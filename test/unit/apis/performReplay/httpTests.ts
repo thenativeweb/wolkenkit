@@ -112,6 +112,88 @@ suite('performReplay/http', (): void => {
         });
       });
 
+      test('returns 400 if a replay is requested for an unknown context.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/`,
+          data: {
+            aggregates: [{
+              contextIdentifier: { name: 'non-existent' },
+              aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+              from: 23,
+              to: 42
+            }]
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'ECONTEXTNOTFOUND',
+          message: `Context 'non-existent' not found.`
+        });
+      });
+
+      test('returns 400 if a replay is requested for an unknown aggregate.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/`,
+          data: {
+            aggregates: [{
+              contextIdentifier: { name: 'sampleContext' },
+              aggregateIdentifier: { name: 'non-existent', id: uuid() },
+              from: 23,
+              to: 42
+            }]
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'EAGGREGATENOTFOUND',
+          message: `Aggregate 'sampleContext'.'non-existent' not found.`
+        });
+      });
+
+      test('returns 400 if a replay is requested for an unknown flow.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/`,
+          data: {
+            flowNames: [ 'non-existent' ],
+            aggregates: [{
+              contextIdentifier: { name: 'sampleContext' },
+              aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+              from: 23,
+              to: 42
+            }]
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: 'EFLOWNOTFOUND',
+          message: `Flow 'non-existent' not found.`
+        });
+      });
+
       test('returns 200 if a replay is requested.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
@@ -121,6 +203,7 @@ suite('performReplay/http', (): void => {
           data: {
             flowNames: [ 'sampleFlow' ],
             aggregates: [{
+              contextIdentifier: { name: 'sampleContext' },
               aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
               from: 23,
               to: 42
@@ -141,6 +224,7 @@ suite('performReplay/http', (): void => {
           data: {
             flowNames: [ 'sampleFlow' ],
             aggregates: [{
+              contextIdentifier: { name: 'sampleContext' },
               aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
               from: 23,
               to: 42
@@ -152,6 +236,7 @@ suite('performReplay/http', (): void => {
         assert.that(requestedReplays[0]).is.equalTo({
           flowNames: [ 'sampleFlow' ],
           aggregates: [{
+            contextIdentifier: { name: 'sampleContext' },
             aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             from: 23,
             to: 42
@@ -168,6 +253,7 @@ suite('performReplay/http', (): void => {
           url: `/v2/`,
           data: {
             aggregates: [{
+              contextIdentifier: { name: 'sampleContext' },
               aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
               from: 23,
               to: 42
@@ -179,6 +265,7 @@ suite('performReplay/http', (): void => {
         assert.that(requestedReplays[0]).is.equalTo({
           flowNames: [ 'sampleFlow' ],
           aggregates: [{
+            contextIdentifier: { name: 'sampleContext' },
             aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             from: 23,
             to: 42
@@ -203,6 +290,7 @@ suite('performReplay/http', (): void => {
           data: {
             flowNames: [ 'sampleFlow' ],
             aggregates: [{
+              contextIdentifier: { name: 'sampleContext' },
               aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
               from: 23,
               to: 42

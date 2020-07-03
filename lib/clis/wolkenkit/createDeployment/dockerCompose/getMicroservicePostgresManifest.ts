@@ -16,7 +16,8 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       aeonstore: 3000,
       publisher: 3000,
       graphql: 3000,
-      domainEventDispatcher: 3000
+      domainEventDispatcher: 3000,
+      replay: 3000
     },
     health: {
       command: 3001,
@@ -27,7 +28,8 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       publisher: 3001,
       graphql: 3001,
       domainEventDispatcher: 3001,
-      flow: 3001
+      flow: 3001,
+      replay: 3001
     }
   };
 
@@ -369,6 +371,9 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           COMMAND_DISPATCHER_PROTOCOL: 'http'
           COMMAND_DISPATCHER_HOST_NAME: 'command-dispatcher'
           COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
+          REPLAY_SERVER_PROTOCOL: 'http'
+          REPLAY_SERVER_HOST_NAME: 'replay'
+          REPLAY_SERVER_PORT: ${ports.private.replay}
           AEONSTORE_PROTOCOL: 'http'
           AEONSTORE_HOST_NAME: 'aeonstore'
           AEONSTORE_PORT: ${ports.private.aeonstore}
@@ -389,6 +394,9 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           retries: 3
           start_period: 30s
 
+      replay:
+        ...
+
       postgres:
         image: 'postgres:${versions.dockerImages.postgres}'
         environment:
@@ -402,7 +410,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
 
     volumes:
       postgres:
-  `;
+  `; // TODO: configure replay server
 };
 
 export { getMicroservicePostgresManifest };

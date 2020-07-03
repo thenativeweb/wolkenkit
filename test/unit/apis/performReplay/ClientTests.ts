@@ -56,6 +56,7 @@ suite('performReplay/http/Client', (): void => {
         await client.performReplay({
           flowNames: [ 'sampleFlow' ],
           aggregates: [{
+            contextIdentifier: { name: 'sampleContext' },
             aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             from: 23,
             to: 42
@@ -66,6 +67,7 @@ suite('performReplay/http/Client', (): void => {
         assert.that(requestedReplays[0]).is.equalTo({
           flowNames: [ 'sampleFlow' ],
           aggregates: [{
+            contextIdentifier: { name: 'sampleContext' },
             aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             from: 23,
             to: 42
@@ -85,6 +87,7 @@ suite('performReplay/http/Client', (): void => {
 
         await client.performReplay({
           aggregates: [{
+            contextIdentifier: { name: 'sampleContext' },
             aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             from: 23,
             to: 42
@@ -95,11 +98,58 @@ suite('performReplay/http/Client', (): void => {
         assert.that(requestedReplays[0]).is.equalTo({
           flowNames: [ 'sampleFlow' ],
           aggregates: [{
+            contextIdentifier: { name: 'sampleContext' },
             aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
             from: 23,
             to: 42
           }]
         });
+      });
+
+      test('throws an error if an unknown context is given.', async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const aggregateId = uuid();
+
+        await assert.that(async (): Promise<void> => {
+          await client.performReplay({
+            flowNames: [ 'sampleFlow' ],
+            aggregates: [{
+              contextIdentifier: { name: 'non-existent' },
+              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              from: 23,
+              to: 42
+            }]
+          });
+        }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'ECONTEXTNOTFOUND');
+      });
+
+      test('throws an error if an unknown aggregate is given.', async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const aggregateId = uuid();
+
+        await assert.that(async (): Promise<void> => {
+          await client.performReplay({
+            flowNames: [ 'sampleFlow' ],
+            aggregates: [{
+              contextIdentifier: { name: 'sampleContext' },
+              aggregateIdentifier: { name: 'non-existent', id: aggregateId },
+              from: 23,
+              to: 42
+            }]
+          });
+        }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EAGGREGATENOTFOUND');
       });
 
       test('throws an error if an unknown flow is given.', async (): Promise<void> => {
@@ -116,6 +166,7 @@ suite('performReplay/http/Client', (): void => {
           await client.performReplay({
             flowNames: [ 'non-existent' ],
             aggregates: [{
+              contextIdentifier: { name: 'sampleContext' },
               aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
               from: 23,
               to: 42

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
+import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 
 const logger = flaschenpost.getLogger();
 
@@ -19,6 +20,7 @@ class Client extends HttpClient {
   public async performReplay ({ flowNames, aggregates }: {
     flowNames?: string[];
     aggregates: {
+      contextIdentifier: ContextIdentifier;
       aggregateIdentifier: AggregateIdentifier;
       from: number;
       to: number;
@@ -38,6 +40,12 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
+      case 'ECONTEXTNOTFOUND': {
+        throw new errors.ContextNotFound(data.message);
+      }
+      case 'EAGGREGATENOTFOUND': {
+        throw new errors.AggregateNotFound(data.message);
+      }
       case 'EFLOWNOTFOUND': {
         throw new errors.FlowNotFound(data.message);
       }

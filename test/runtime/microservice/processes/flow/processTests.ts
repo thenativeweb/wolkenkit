@@ -12,7 +12,7 @@ import { sleep } from '../../../../../lib/common/utils/sleep';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 
-suite('flow server', function (): void {
+suite.only('flow server', function (): void {
   this.timeout(60_000);
 
   let aeonstoreClient: AeonstoreClient,
@@ -23,16 +23,19 @@ suite('flow server', function (): void {
       healthPortAeonstore: number,
       healthPortCommandDispatcher: number,
       healthPortDomainEventDispatcher: number,
+      healthPortReplay: number,
       portAeonstore: number,
       portCommandDispatcher: number,
       portDomainEventDispatcher: number,
+      portReplay: number,
       stopProcess: (() => Promise<void>) | undefined,
       stopProcessAeonstore: (() => Promise<void>) | undefined,
       stopProcessCommandDispatcher: (() => Promise<void>) | undefined,
-      stopProcessDomainEventDispatcher: (() => Promise<void>) | undefined;
+      stopProcessDomainEventDispatcher: (() => Promise<void>) | undefined,
+      stopReplayServer: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    applicationDirectory = getTestApplicationDirectory({ name: 'withFlowThatIssuesCommands', language: 'javascript' });
+    applicationDirectory = getTestApplicationDirectory({ name: 'withComplexFlow', language: 'javascript' });
 
     [
       healthPort,
@@ -40,9 +43,11 @@ suite('flow server', function (): void {
       healthPortCommandDispatcher,
       portDomainEventDispatcher,
       healthPortDomainEventDispatcher,
+      portReplay,
+      healthPortReplay,
       portAeonstore,
       healthPortAeonstore
-    ] = await getAvailablePorts({ count: 7 });
+    ] = await getAvailablePorts({ count: 9 });
 
     stopProcessCommandDispatcher = await startProcess({
       runtime: 'microservice',
@@ -85,6 +90,25 @@ suite('flow server', function (): void {
       path: '/handle-domain-event/v2'
     });
 
+    stopReplayServer = await startProcess({
+      runtime: 'microservice',
+      name: 'replay',
+      enableDebugMode: false,
+      port: healthPortReplay,
+      env: {
+        APPLICATION_DIRECTORY: applicationDirectory,
+        DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http',
+        DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'localhost',
+        DOMAIN_EVENT_DISPATCHER_PORT: String(portDomainEventDispatcher),
+        AEONSTORE_PROTOCOL: 'http',
+        AEONSTORE_HOST_NAME: 'localhost',
+        AEONSTORE_PORT: String(portAeonstore),
+        AEONSTORE_RETRIES: String(0),
+        PORT: String(portReplay),
+        HEALTH_PORT: String(healthPortReplay)
+      }
+    });
+
     stopProcessAeonstore = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
@@ -118,6 +142,9 @@ suite('flow server', function (): void {
         COMMAND_DISPATCHER_PROTOCOL: 'http',
         COMMAND_DISPATCHER_HOST_NAME: 'localhost',
         COMMAND_DISPATCHER_PORT: String(portCommandDispatcher),
+        REPLAY_SERVER_PROTOCOL: 'http',
+        REPLAY_SERVER_HOST_NAME: 'localhost',
+        REPLAY_SERVER_PORT: String(portReplay),
         AEONSTORE_PROTOCOL: 'http',
         AEONSTORE_HOST_NAME: 'localhost',
         AEONSTORE_PORT: String(portAeonstore),
@@ -133,23 +160,27 @@ suite('flow server', function (): void {
   });
 
   teardown(async (): Promise<void> => {
-    if (stopProcessCommandDispatcher) {
-      await stopProcessCommandDispatcher();
-    }
-    if (stopProcessDomainEventDispatcher) {
-      await stopProcessDomainEventDispatcher();
+    if (stopProcess) {
+      await stopProcess();
     }
     if (stopProcessAeonstore) {
       await stopProcessAeonstore();
     }
-    if (stopProcess) {
-      await stopProcess();
+    if (stopReplayServer) {
+      await stopReplayServer();
+    }
+    if (stopProcessDomainEventDispatcher) {
+      await stopProcessDomainEventDispatcher();
+    }
+    if (stopProcessCommandDispatcher) {
+      await stopProcessCommandDispatcher();
     }
 
-    stopProcessDomainEventDispatcher = undefined;
-    stopProcessCommandDispatcher = undefined;
-    stopProcessAeonstore = undefined;
     stopProcess = undefined;
+    stopProcessAeonstore = undefined;
+    stopReplayServer = undefined;
+    stopProcessCommandDispatcher = undefined;
+    stopProcessDomainEventDispatcher = undefined;
   });
 
   suite('getHealth', (): void => {
@@ -173,11 +204,9 @@ suite('flow server', function (): void {
       const domainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
-        name: 'executed',
-        data: { strategy: 'succeed' },
-        metadata: {
-          revision: 1
-        }
+        name: 'triggeredFlow',
+        data: { flowName: 'neverFlow' },
+        metadata: { revision: 1 }
       });
 
       await aeonstoreClient.storeDomainEvents({ domainEvents: [ domainEvent ]});
@@ -192,8 +221,76 @@ suite('flow server', function (): void {
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
         name: 'executeFromFlow',
-        data: {}
+        data: { fromFlow: 'neverFlow' }
       });
+    });
+
+    test.only('with replay.', async (): Promise<void> => {
+      const aggregateId = uuid();
+      const domainEvents = [
+        buildDomainEvent({
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          name: 'triggeredFlow',
+          data: { flowName: 'alwaysFlow' },
+          metadata: { revision: 1 }
+        }),
+        buildDomainEvent({
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          name: 'triggeredFlow',
+          data: { flowName: 'alwaysFlow' },
+          metadata: { revision: 2 }
+        }),
+        buildDomainEvent({
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          name: 'triggeredFlow',
+          data: { flowName: 'alwaysFlow' },
+          metadata: { revision: 3 }
+        })
+      ];
+
+      await aeonstoreClient.storeDomainEvents({ domainEvents });
+      await handleDomainEventClient.postDomainEvent({ domainEvent: domainEvents[2] });
+
+      await sleep({ ms: 1500 });
+
+      let lock = await commandDispatcherClient.awaitItem();
+
+      assert.that(lock).is.not.undefined();
+      assert.that(lock.item).is.atLeast({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'executeFromFlow',
+        data: { basedOnRevision: 1, fromFlow: 'alwaysFlow' }
+      });
+
+      await commandDispatcherClient.acknowledge({ discriminator: lock.metadata.discriminator, token: lock.metadata.token });
+
+      lock = await commandDispatcherClient.awaitItem();
+
+      assert.that(lock).is.not.undefined();
+      assert.that(lock.item).is.atLeast({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'executeFromFlow',
+        data: { basedOnRevision: 2, fromFlow: 'alwaysFlow' }
+      });
+
+      await commandDispatcherClient.acknowledge({ discriminator: lock.metadata.discriminator, token: lock.metadata.token });
+
+      lock = await commandDispatcherClient.awaitItem();
+
+      assert.that(lock).is.not.undefined();
+      assert.that(lock.item).is.atLeast({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'executeFromFlow',
+        data: { basedOnRevision: 3, fromFlow: 'alwaysFlow' }
+      });
+
+      await commandDispatcherClient.acknowledge({ discriminator: lock.metadata.discriminator, token: lock.metadata.token });
     });
   });
 });

@@ -2,15 +2,22 @@
 
 const sampleHandler = {
   isRelevant ({ fullyQualifiedName }) {
-    return fullyQualifiedName === 'sampleContext.sampleAggregate.executed';
+    return fullyQualifiedName === 'sampleContext.sampleAggregate.triggeredFlow';
   },
 
   async handle (domainEvent, { command }) {
+    if (domainEvent.data.flowName !== 'neverFlow') {
+      return;
+    }
+
     await command.issueCommand({
       contextIdentifier: domainEvent.contextIdentifier,
       aggregateIdentifier: domainEvent.aggregateIdentifier,
       name: 'executeFromFlow',
-      data: {}
+      data: {
+        basedOnRevision: domainEvent.metadata.revision,
+        fromFlow: 'neverFlow'
+      }
     });
   }
 };

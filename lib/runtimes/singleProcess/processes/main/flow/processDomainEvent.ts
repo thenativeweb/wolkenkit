@@ -52,14 +52,6 @@ const processDomainEvent = async function ({
       throw new errors.FlowNotFound(`Received a domain event for unknown flow '${flowName}'.`);
     }
 
-    const deferDomainEvent = async function (): Promise<void> {
-      await priorityQueue.store.defer({
-        discriminator: flowName,
-        priority: domainEvent.metadata.timestamp,
-        token: metadata.token
-      });
-    };
-
     const flowPromise = executeFlow({
       application,
       domainEvent,
@@ -75,7 +67,6 @@ const processDomainEvent = async function ({
         lock: getLockService({ lockStore }),
         infrastructure: application.infrastructure
       },
-      deferDomainEvent,
       requestReplay
     });
 
@@ -84,10 +75,28 @@ const processDomainEvent = async function ({
       await keepRenewingLock({ flowName, flowPromise, priorityQueue, token: metadata.token });
     })();
 
-    await flowPromise;
+    const howToProceed = await flowPromise;
+
+    switch (howToProceed) {
+      case 'acknowledge': {
+        await acknowledgeDomainEvent({ flowName, token: metadata.token, priorityQueue });
+        break;
+      }
+      case 'defer': {
+        await priorityQueue.store.defer({
+          discriminator: flowName,
+          priority: domainEvent.metadata.timestamp,
+          token: metadata.token
+        });
+        break;
+      }
+      default: {
+        throw new errors.InvalidOperation();
+      }
+    }
   } catch (ex) {
     logger.error('Failed to handle domain event.', { domainEvent, ex });
-  } finally {
+
     await acknowledgeDomainEvent({ flowName, token: metadata.token, priorityQueue });
   }
 };

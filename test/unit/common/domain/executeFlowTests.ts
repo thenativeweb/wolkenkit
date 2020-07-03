@@ -94,7 +94,6 @@ suite('executeFlow', (): void => {
           lock: lockService,
           logger: loggerService
         },
-        deferDomainEvent: noop,
         requestReplay: noop
       });
     }).is.throwingAsync(
@@ -119,7 +118,7 @@ suite('executeFlow', (): void => {
       revision: 8
     });
 
-    await executeFlow({
+    const result = await executeFlow({
       application,
       flowName: 'sampleFlow',
       domainEvent,
@@ -131,11 +130,11 @@ suite('executeFlow', (): void => {
         lock: lockService,
         logger: loggerService
       },
-      deferDomainEvent: noop,
       requestReplay: noop
     });
 
     assert.that(loggedMessages).is.equalTo([]);
+    assert.that(result).is.equalTo('acknowledge');
   });
 
   test('does nothing if the domain event revision is equal to the latest handled revision.', async (): Promise<void> => {
@@ -155,7 +154,7 @@ suite('executeFlow', (): void => {
       revision: 7
     });
 
-    await executeFlow({
+    const result = await executeFlow({
       application,
       flowName: 'sampleFlow',
       domainEvent,
@@ -167,11 +166,11 @@ suite('executeFlow', (): void => {
         lock: lockService,
         logger: loggerService
       },
-      deferDomainEvent: noop,
       requestReplay: noop
     });
 
     assert.that(loggedMessages).is.equalTo([]);
+    assert.that(result).is.equalTo('acknowledge');
   });
 
   test('executes the relevant handlers.', async (): Promise<void> => {
@@ -191,7 +190,7 @@ suite('executeFlow', (): void => {
       revision: 6
     });
 
-    await executeFlow({
+    const result = await executeFlow({
       application,
       flowName: 'sampleFlow',
       domainEvent,
@@ -203,7 +202,6 @@ suite('executeFlow', (): void => {
         lock: lockService,
         logger: loggerService
       },
-      deferDomainEvent: noop,
       requestReplay: noop
     });
 
@@ -217,6 +215,7 @@ suite('executeFlow', (): void => {
       message: 'Received domain event.',
       metadata: { domainEvent }
     });
+    assert.that(result).is.equalTo('acknowledge');
   });
 
   test('handles errors in flow handlers.', async (): Promise<void> => {
@@ -262,7 +261,6 @@ suite('executeFlow', (): void => {
           lock: lockService,
           logger: loggerService
         },
-        deferDomainEvent: noop,
         requestReplay: noop
       });
     }).is.throwingAsync(
@@ -274,4 +272,6 @@ suite('executeFlow', (): void => {
       aggregateIdentifier: domainEvent.aggregateIdentifier
     })).is.equalTo({ revision: 6, isReplaying: false });
   });
+
+  // TODO: add tests for on-demand and always flow behavior
 });

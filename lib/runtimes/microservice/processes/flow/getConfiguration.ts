@@ -57,6 +57,21 @@ const getConfiguration = function (): Configuration {
       default: 3000,
       schema: portSchema
     },
+    REPLAY_SERVER_PROTOCOL: {
+      default: 'http',
+      schema: protocolSchema
+    },
+    REPLAY_SERVER_HOST_NAME: {
+      default: 'replay',
+      schema: {
+        type: 'string',
+        format: 'hostname'
+      }
+    },
+    REPLAY_SERVER_PORT: {
+      default: 3000,
+      schema: portSchema
+    },
     AEONSTORE_PROTOCOL: {
       default: 'http',
       schema: protocolSchema
