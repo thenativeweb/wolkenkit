@@ -12,7 +12,7 @@ import { sleep } from '../../../../../lib/common/utils/sleep';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 
-suite.only('flow server', function (): void {
+suite('flow server', function (): void {
   this.timeout(60_000);
 
   let aeonstoreClient: AeonstoreClient,
@@ -225,7 +225,7 @@ suite.only('flow server', function (): void {
       });
     });
 
-    test.only('with replay.', async (): Promise<void> => {
+    test('with replay.', async (): Promise<void> => {
       const aggregateId = uuid();
       const domainEvents = [
         buildDomainEvent({
