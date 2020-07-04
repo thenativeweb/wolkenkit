@@ -1,9 +1,9 @@
 import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
 import axios from 'axios';
+import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
-import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 
 const logger = flaschenpost.getLogger();
 

@@ -8,13 +8,10 @@ import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAv
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/apis/handleCommandWithMetadata/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
-import path from 'path';
 import { Client as QueryDomainEventStoreClient } from '../../../../../lib/apis/queryDomainEventStore/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subscribeMessages/http/v2/Client';
 import { uuid } from 'uuidv4';
-
-const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
 suite('domain', function (): void {
   this.timeout(10_000);
