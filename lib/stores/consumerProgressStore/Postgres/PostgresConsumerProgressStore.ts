@@ -218,7 +218,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
       fn: async ({ connection }): Promise<void> => {
         let rowCount: any;
 
-        if (isReplaying === false) {
+        if (!isReplaying) {
           ({ rowCount } = await connection.query({
             name: 'update is replaying to false',
             text: `

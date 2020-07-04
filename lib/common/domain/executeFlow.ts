@@ -66,7 +66,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
         return 'defer';
       }
       case 'always': {
-        if (isReplaying === false) {
+        if (!isReplaying) {
           const from = latestHandledRevision + 1,
                 to = domainEvent.metadata.revision - 1;
 

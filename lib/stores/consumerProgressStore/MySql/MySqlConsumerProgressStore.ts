@@ -250,7 +250,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
       fn: async ({ connection }): Promise<void> => {
         let rows: any;
 
-        if (isReplaying === false) {
+        if (!isReplaying) {
           [ rows ] = await runQuery({
             connection,
             query: `
