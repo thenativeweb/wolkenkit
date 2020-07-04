@@ -395,7 +395,30 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           start_period: 30s
 
       replay:
-        ...
+        build: '../..'
+        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/replay/app.js'
+        environment:
+          NODE_ENV: 'production'
+          APPLICATION_DIRECTORY: '/app'
+          DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http'
+          DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'domain-event-dispatcher'
+          DOMAIN_EVENT_DISPATCHER_PORT: ${ports.private.domainEventDispatcher}
+          AEONSTORE_PROTOCOL: 'http'
+          AEONSTORE_HOST_NAME: 'aeonstore'
+          AEONSTORE_PORT: ${ports.private.aeonstore}
+          HEALTH_CORS_ORIGIN: '*'
+          HEALTH_PORT: ${ports.health.replay}
+          CORS_ORIGIN: '*'
+          PORT: ${ports.private.replay}
+        image: '${appName}'
+        init: true
+        restart: 'always'
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.replay}"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
 
       postgres:
         image: 'postgres:${versions.dockerImages.postgres}'
@@ -410,7 +433,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
 
     volumes:
       postgres:
-  `; // TODO: configure replay server
+  `;
 };
 
 export { getMicroservicePostgresManifest };
