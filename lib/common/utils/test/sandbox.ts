@@ -101,7 +101,7 @@ interface SandboxForAggregate<TState extends State> {
     };
   }): SandboxForAggregate<TState>;
 
-  when<TCommandData extends CommandData>({ name, data, id, metadata }: {
+  when <TCommandData extends CommandData>({ name, data, id, metadata }: {
     name: string;
     data: TCommandData;
     id?: string;
