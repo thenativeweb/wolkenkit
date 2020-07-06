@@ -79,12 +79,12 @@ suite('executeFlow', (): void => {
       metadata: { revision: 1 }
     });
 
-    const commandService = getCommandService({ domainEvent, onIssueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: noop });
 
     await assert.that(async (): Promise<void> => {
       await executeFlow({
         application,
-        flowName: 'non-existent',
+        flowName: 'nonExistent',
         domainEvent,
         flowProgressStore: consumerProgressStore,
         services: {
@@ -93,7 +93,8 @@ suite('executeFlow', (): void => {
           infrastructure: application.infrastructure,
           lock: lockService,
           logger: loggerService
-        }
+        },
+        requestReplay: noop
       });
     }).is.throwingAsync(
       (ex): boolean => (ex as CustomError).code === 'EFLOWNOTFOUND'
@@ -109,7 +110,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 5 }
     });
 
-    const commandService = getCommandService({ domainEvent, onIssueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: noop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',
@@ -117,7 +118,7 @@ suite('executeFlow', (): void => {
       revision: 8
     });
 
-    await executeFlow({
+    const result = await executeFlow({
       application,
       flowName: 'sampleFlow',
       domainEvent,
@@ -128,10 +129,12 @@ suite('executeFlow', (): void => {
         infrastructure: application.infrastructure,
         lock: lockService,
         logger: loggerService
-      }
+      },
+      requestReplay: noop
     });
 
     assert.that(loggedMessages).is.equalTo([]);
+    assert.that(result).is.equalTo('acknowledge');
   });
 
   test('does nothing if the domain event revision is equal to the latest handled revision.', async (): Promise<void> => {
@@ -143,7 +146,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 7 }
     });
 
-    const commandService = getCommandService({ domainEvent, onIssueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: noop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',
@@ -151,7 +154,7 @@ suite('executeFlow', (): void => {
       revision: 7
     });
 
-    await executeFlow({
+    const result = await executeFlow({
       application,
       flowName: 'sampleFlow',
       domainEvent,
@@ -162,10 +165,12 @@ suite('executeFlow', (): void => {
         infrastructure: application.infrastructure,
         lock: lockService,
         logger: loggerService
-      }
+      },
+      requestReplay: noop
     });
 
     assert.that(loggedMessages).is.equalTo([]);
+    assert.that(result).is.equalTo('acknowledge');
   });
 
   test('executes the relevant handlers.', async (): Promise<void> => {
@@ -177,7 +182,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 7 }
     });
 
-    const commandService = getCommandService({ domainEvent, onIssueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: noop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',
@@ -185,7 +190,7 @@ suite('executeFlow', (): void => {
       revision: 6
     });
 
-    await executeFlow({
+    const result = await executeFlow({
       application,
       flowName: 'sampleFlow',
       domainEvent,
@@ -196,21 +201,21 @@ suite('executeFlow', (): void => {
         infrastructure: application.infrastructure,
         lock: lockService,
         logger: loggerService
-      }
+      },
+      requestReplay: noop
     });
 
-    assert.that(
-      await consumerProgressStore.getProgress({
-        consumerId: 'sampleFlow',
-        aggregateIdentifier: domainEvent.aggregateIdentifier
-      })
-    ).is.equalTo(7);
+    assert.that(await consumerProgressStore.getProgress({
+      consumerId: 'sampleFlow',
+      aggregateIdentifier: domainEvent.aggregateIdentifier
+    })).is.equalTo({ revision: 7, isReplaying: false });
     assert.that(loggedMessages.length).is.equalTo(1);
     assert.that(loggedMessages[0]).is.equalTo({
       level: 'info',
       message: 'Received domain event.',
       metadata: { domainEvent }
     });
+    assert.that(result).is.equalTo('acknowledge');
   });
 
   test('handles errors in flow handlers.', async (): Promise<void> => {
@@ -235,7 +240,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 7 }
     });
 
-    const commandService = getCommandService({ domainEvent, onIssueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: noop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',
@@ -255,17 +260,158 @@ suite('executeFlow', (): void => {
           infrastructure: application.infrastructure,
           lock: lockService,
           logger: loggerService
-        }
+        },
+        requestReplay: noop
       });
     }).is.throwingAsync(
       (ex): boolean => ex.message === 'An expected error occured.'
     );
 
-    assert.that(
-      await consumerProgressStore.getProgress({
-        consumerId: 'sampleFlow',
-        aggregateIdentifier: domainEvent.aggregateIdentifier
+    assert.that(await consumerProgressStore.getProgress({
+      consumerId: 'sampleFlow',
+      aggregateIdentifier: domainEvent.aggregateIdentifier
+    })).is.equalTo({ revision: 6, isReplaying: false });
+  });
+
+  test(`on-demand flow returns 'defer', if a missing domain event is detected.`, async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withComplexFlow', language: 'javascript' });
+
+    application = await loadApplication({ applicationDirectory });
+
+    const repository = new Repository({
+      application,
+      domainEventStore,
+      lockStore,
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+    });
+
+    aggregatesService = getAggregatesService({ repository });
+
+    const aggregateId = uuid();
+    const domainEvents = [
+      buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'triggeredFlow',
+        data: { flowName: 'onDemandFlow' },
+        metadata: { revision: 1 }
+      }),
+      buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'triggeredFlow',
+        data: { flowName: 'onDemandFlow' },
+        metadata: { revision: 2 }
+      }),
+      buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'triggeredFlow',
+        data: { flowName: 'onDemandFlow' },
+        metadata: { revision: 3 }
       })
-    ).is.equalTo(6);
+    ];
+
+    await domainEventStore.storeDomainEvents({ domainEvents });
+
+    const commandService = getCommandService({ domainEvent: domainEvents[2], issueCommand: noop });
+
+    await consumerProgressStore.setProgress({
+      consumerId: 'onDemandFlow',
+      aggregateIdentifier: domainEvents[2].aggregateIdentifier,
+      revision: 1
+    });
+
+    let replayRequested = false;
+    const result = await executeFlow({
+      application,
+      flowName: 'onDemandFlow',
+      domainEvent: domainEvents[2],
+      flowProgressStore: consumerProgressStore,
+      services: {
+        aggregates: aggregatesService,
+        command: commandService,
+        infrastructure: application.infrastructure,
+        lock: lockService,
+        logger: loggerService
+      },
+      requestReplay (): void {
+        replayRequested = true;
+      }
+    });
+
+    assert.that(result).is.equalTo('defer');
+    assert.that(replayRequested).is.false();
+  });
+
+  test(`always flow returns 'defer' and requests replay, if a missing domain event is detected.`, async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withComplexFlow', language: 'javascript' });
+
+    application = await loadApplication({ applicationDirectory });
+
+    const repository = new Repository({
+      application,
+      domainEventStore,
+      lockStore,
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+    });
+
+    aggregatesService = getAggregatesService({ repository });
+
+    const aggregateId = uuid();
+    const domainEvents = [
+      buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'triggeredFlow',
+        data: { flowName: 'alwaysFlow' },
+        metadata: { revision: 1 }
+      }),
+      buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'triggeredFlow',
+        data: { flowName: 'alwaysFlow' },
+        metadata: { revision: 2 }
+      }),
+      buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'triggeredFlow',
+        data: { flowName: 'alwaysFlow' },
+        metadata: { revision: 3 }
+      })
+    ];
+
+    await domainEventStore.storeDomainEvents({ domainEvents });
+
+    const commandService = getCommandService({ domainEvent: domainEvents[2], issueCommand: noop });
+
+    await consumerProgressStore.setProgress({
+      consumerId: 'alwaysFlow',
+      aggregateIdentifier: domainEvents[2].aggregateIdentifier,
+      revision: 1
+    });
+
+    let replayRequested = false;
+    const result = await executeFlow({
+      application,
+      flowName: 'alwaysFlow',
+      domainEvent: domainEvents[2],
+      flowProgressStore: consumerProgressStore,
+      services: {
+        aggregates: aggregatesService,
+        command: commandService,
+        infrastructure: application.infrastructure,
+        lock: lockService,
+        logger: loggerService
+      },
+      requestReplay (): void {
+        replayRequested = true;
+      }
+    });
+
+    assert.that(result).is.equalTo('defer');
+    assert.that(replayRequested).is.true();
   });
 });

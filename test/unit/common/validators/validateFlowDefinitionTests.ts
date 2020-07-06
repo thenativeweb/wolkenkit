@@ -1,10 +1,11 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
-import { Flow } from '../../../../lib/common/elements/Flow';
+import { FlowDefinition } from '../../../../lib/common/application/FlowDefinition';
 import { validateFlowDefinition } from '../../../../lib/common/validators/validateFlowDefinition';
 
 suite('validateFlowDefinition', (): void => {
-  const flowDefinition: Flow = {
+  const flowDefinition: FlowDefinition = {
+    replayPolicy: 'never',
     domainEventHandlers: {}
   };
 

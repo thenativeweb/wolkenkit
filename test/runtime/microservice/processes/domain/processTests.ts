@@ -1,17 +1,17 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
+import { Client as AwaitDomainEventClient } from '../../../../../lib/apis/awaitItem/http/v2/Client';
 import { buildCommandWithMetadata } from '../../../../../lib/common/utils/test/buildCommandWithMetadata';
+import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
+import { DomainEventData } from '../../../../../lib/common/elements/DomainEventData';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/apis/handleCommandWithMetadata/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
-import path from 'path';
 import { Client as QueryDomainEventStoreClient } from '../../../../../lib/apis/queryDomainEventStore/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subscribeMessages/http/v2/Client';
 import { uuid } from 'uuidv4';
-
-const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
 suite('domain', function (): void {
   this.timeout(10_000);
@@ -19,12 +19,13 @@ suite('domain', function (): void {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   const publisherChannelNewDomainEvent = 'newDomainEvent',
-        publisherChannelNewDomainEventInternal = 'newDomainEventInternal',
         queueLockExpirationTime = 600,
         queuePollInterval = 600;
 
   let commandDispatcherHealthPort: number,
       commandDispatcherPort: number,
+      domainEventDispatcherHealthPort: number,
+      domainEventDispatcherPort: number,
       domainEventStoreHealthPort: number,
       domainEventStorePort: number,
       domainHealthPort: number,
@@ -32,7 +33,8 @@ suite('domain', function (): void {
       publisherHealthPort: number,
       publisherPort: number,
       queryDomainEventStoreClient: QueryDomainEventStoreClient,
-      stopDispatcherProcess: (() => Promise<void>) | undefined,
+      stopCommandDispatcherProcess: (() => Promise<void>) | undefined,
+      stopDomainEventDispatcherProcess: (() => Promise<void>) | undefined,
       stopDomainEventStoreProcess: (() => Promise<void>) | undefined,
       stopDomainProcess: (() => Promise<void>) | undefined,
       stopPublisherProcess: (() => Promise<void>) | undefined,
@@ -42,14 +44,16 @@ suite('domain', function (): void {
     [
       commandDispatcherPort,
       commandDispatcherHealthPort,
+      domainEventDispatcherPort,
+      domainEventDispatcherHealthPort,
       domainEventStorePort,
       domainEventStoreHealthPort,
       domainHealthPort,
       publisherPort,
       publisherHealthPort
-    ] = await getAvailablePorts({ count: 7 });
+    ] = await getAvailablePorts({ count: 9 });
 
-    stopDispatcherProcess = await startProcess({
+    stopCommandDispatcherProcess = await startProcess({
       runtime: 'microservice',
       name: 'commandDispatcher',
       enableDebugMode: false,
@@ -59,7 +63,6 @@ suite('domain', function (): void {
         PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${queueLockExpirationTime}}`,
         PORT: String(commandDispatcherPort),
         HEALTH_PORT: String(commandDispatcherHealthPort),
-        IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
         QUEUE_POLL_INTERVAL: String(queuePollInterval)
       }
     });
@@ -69,6 +72,20 @@ suite('domain', function (): void {
       hostName: 'localhost',
       port: commandDispatcherPort,
       path: '/handle-command/v2'
+    });
+
+    stopDomainEventDispatcherProcess = await startProcess({
+      runtime: 'microservice',
+      name: 'domainEventDispatcher',
+      enableDebugMode: false,
+      port: domainEventDispatcherHealthPort,
+      env: {
+        APPLICATION_DIRECTORY: applicationDirectory,
+        PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${queueLockExpirationTime}}`,
+        PORT: String(domainEventDispatcherPort),
+        HEALTH_PORT: String(domainEventDispatcherHealthPort),
+        QUEUE_POLL_INTERVAL: String(queuePollInterval)
+      }
     });
 
     stopDomainEventStoreProcess = await startProcess({
@@ -119,11 +136,13 @@ suite('domain', function (): void {
         COMMAND_DISPATCHER_PORT: String(commandDispatcherPort),
         COMMAND_DISPATCHER_RENEW_INTERVAL: String(5_000),
         COMMAND_DISPATCHER_ACKNOWLEDGE_RETRIES: String(0),
+        DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http',
+        DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'localhost',
+        DOMAIN_EVENT_DISPATCHER_PORT: String(domainEventDispatcherPort),
         PUBLISHER_PROTOCOL: 'http',
         PUBLISHER_HOST_NAME: 'localhost',
         PUBLISHER_PORT: String(publisherPort),
         PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT: publisherChannelNewDomainEvent,
-        PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT_INTERNAL: publisherChannelNewDomainEventInternal,
         AEONSTORE_PROTOCOL: 'http',
         AEONSTORE_HOST_NAME: 'localhost',
         AEONSTORE_PORT: String(domainEventStorePort),
@@ -136,8 +155,11 @@ suite('domain', function (): void {
   });
 
   teardown(async (): Promise<void> => {
-    if (stopDispatcherProcess) {
-      await stopDispatcherProcess();
+    if (stopCommandDispatcherProcess) {
+      await stopCommandDispatcherProcess();
+    }
+    if (stopDomainEventDispatcherProcess) {
+      await stopDomainEventDispatcherProcess();
     }
     if (stopDomainEventStoreProcess) {
       await stopDomainEventStoreProcess();
@@ -149,7 +171,8 @@ suite('domain', function (): void {
       await stopDomainProcess();
     }
 
-    stopDispatcherProcess = undefined;
+    stopCommandDispatcherProcess = undefined;
+    stopDomainEventDispatcherProcess = undefined;
     stopDomainEventStoreProcess = undefined;
     stopPublisherProcess = undefined;
     stopDomainProcess = undefined;
@@ -255,9 +278,6 @@ suite('domain', function (): void {
       const messageStreamNewDomainEvent = await subscribeMessagesClient.getMessages({
         channel: publisherChannelNewDomainEvent
       });
-      const messageStreamNewDomainEventInternal = await subscribeMessagesClient.getMessages({
-        channel: publisherChannelNewDomainEventInternal
-      });
 
       await handleCommandWithMetadataClient.postCommand({ command });
 
@@ -310,53 +330,46 @@ suite('domain', function (): void {
         ));
       });
 
-      await new Promise((resolve, reject): void => {
-        messageStreamNewDomainEventInternal.on('error', (err: any): void => {
-          reject(err);
-        });
-        messageStreamNewDomainEventInternal.on('close', (): void => {
-          resolve();
-        });
-        messageStreamNewDomainEventInternal.pipe(asJsonStream(
-          [
-            (data): void => {
-              try {
-                assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
-                  aggregateIdentifier,
-                  name: 'succeeded',
-                  data: {}
-                });
-                resolve();
-              } catch (ex) {
-                reject(ex);
-              }
-            },
-            (data): void => {
-              try {
-                assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
-                  aggregateIdentifier,
-                  name: 'executed',
-                  data: {
-                    strategy: 'succeed'
-                  }
-                });
-                resolve();
-              } catch (ex) {
-                reject(ex);
-              }
-            },
-            (): void => {
-              reject(new Error('Should only have received two messages.'));
-            }
-          ],
-          true
-        ));
+      const awaitDomainEventClient = new AwaitDomainEventClient<DomainEvent<DomainEventData>>({
+        protocol: 'http',
+        hostName: 'localhost',
+        port: domainEventDispatcherPort,
+        path: '/await-domain-event/v2',
+        createItemInstance: ({ item }): DomainEvent<DomainEventData> => new DomainEvent<DomainEventData>(item)
+      });
+
+      let { item, metadata } = await awaitDomainEventClient.awaitItem();
+
+      assert.that(item).is.atLeast({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier,
+        name: 'succeeded',
+        data: {}
+      });
+
+      await awaitDomainEventClient.acknowledge({
+        discriminator: metadata.discriminator,
+        token: metadata.token
+      });
+
+      ({ item, metadata } = await awaitDomainEventClient.awaitItem());
+
+      assert.that(item).is.atLeast({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier,
+        name: 'executed',
+        data: {
+          strategy: 'succeed'
+        }
+      });
+
+      await awaitDomainEventClient.acknowledge({
+        discriminator: metadata.discriminator,
+        token: metadata.token
       });
 
       const eventStream = await queryDomainEventStoreClient.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });

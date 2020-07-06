@@ -1,10 +1,9 @@
 import axios from 'axios';
+import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
-import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
-import { State } from '../../../../common/elements/State';
 
 const logger = flaschenpost.getLogger();
 
@@ -18,13 +17,14 @@ class Client extends HttpClient {
     super({ protocol, hostName, port, path });
   }
 
-  public async postDomainEvent ({ domainEvent }: {
-    domainEvent: DomainEventWithState<DomainEventData, State>;
+  public async postDomainEvent ({ flowNames, domainEvent }: {
+    flowNames?: string[];
+    domainEvent: DomainEvent<DomainEventData>;
   }): Promise<void> {
     const { status, data } = await axios({
       method: 'post',
       url: `${this.url}/`,
-      data: domainEvent,
+      data: { flowNames, domainEvent },
       validateStatus (): boolean {
         return true;
       }
@@ -35,6 +35,9 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
+      case 'EFLOWNOTFOUND': {
+        throw new errors.FlowNotFound(data.message);
+      }
       case 'EDOMAINEVENTMALFORMED': {
         throw new errors.DomainEventMalformed(data.message);
       }

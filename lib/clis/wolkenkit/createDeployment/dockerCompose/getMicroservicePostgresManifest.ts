@@ -15,7 +15,9 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       domainEvents: 3000,
       aeonstore: 3000,
       publisher: 3000,
-      graphql: 3000
+      graphql: 3000,
+      domainEventDispatcher: 3000,
+      replay: 3000
     },
     health: {
       command: 3001,
@@ -24,7 +26,10 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       domainEvents: 3001,
       aeonstore: 3001,
       publisher: 3001,
-      graphql: 3001
+      graphql: 3001,
+      domainEventDispatcher: 3001,
+      flow: 3001,
+      replay: 3001
     }
   };
 
@@ -60,23 +65,62 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     }
   });
 
-  const priorityQueueStoreType = 'InMemory';
-  const priorityQueueStoreOptions = JSON.stringify({
+  const commandPriorityQueueStoreType = 'Postgres';
+  const commandPriorityQueueStoreOptions = JSON.stringify({
     hostName: 'postgres',
     port: postgresOptions.port,
     userName: postgresOptions.userName,
     password: postgresOptions.password,
     database: postgresOptions.database,
     tableNames: {
-      items: 'items',
-      priorityQueue: 'priorityQueue'
+      items: 'items-command',
+      priorityQueue: 'priorityQueue-command'
     },
     expirationTime: 30000
   });
 
-  const pubSubType = 'InMemory';
-  const pubSubOptions = JSON.stringify({
+  const domainEventPriorityQueueStoreType = 'Postgres';
+  const domainEventPriorityQueueStoreOptions = JSON.stringify({
+    hostName: 'postgres',
+    port: postgresOptions.port,
+    userName: postgresOptions.userName,
+    password: postgresOptions.password,
+    database: postgresOptions.database,
+    tableNames: {
+      items: 'items-domain-event',
+      priorityQueue: 'priorityQueue-domain-event'
+    },
+    expirationTime: 30000
+  });
+
+  const flowProgressStoreType = 'Postgres';
+  const flowProgressStoreOptions = JSON.stringify({
+    hostName: 'postgres',
+    port: postgresOptions.port,
+    userName: postgresOptions.userName,
+    password: postgresOptions.password,
+    database: postgresOptions.database,
+    tableNames: {
+      progress: 'progress-flow'
+    }
+  });
+
+  const pubSubTypePublisher = 'InMemory';
+  const pubSubOptionsPublisher = JSON.stringify({
+    subscriber: {},
+    publisher: {}
+  });
+
+  const pubSubTypeCommandDispatcher = 'InMemory';
+  const pubSubOptionsCommandDispatcher = JSON.stringify({
     channel: 'newCommand',
+    subscriber: {},
+    publisher: {}
+  });
+
+  const pubSubTypeDomainEventDispatcher = 'InMemory';
+  const pubSubOptionsDomainEventDispatcher = JSON.stringify({
+    channel: 'newDomainEvent',
     subscriber: {},
     publisher: {}
   });
@@ -128,10 +172,10 @@ const getMicroservicePostgresManifest = function ({ appName }: {
         environment:
           NODE_ENV: 'production'
           APPLICATION_DIRECTORY: '/app'
-          PRIORITY_QUEUE_STORE_TYPE: '${priorityQueueStoreType}'
-          PRIORITY_QUEUE_STORE_OPTIONS: '${priorityQueueStoreOptions}'
-          PUB_SUB_TYPE: '${pubSubType}'
-          PUB_SUB_OPTIONS: '${pubSubOptions}'
+          PRIORITY_QUEUE_STORE_TYPE: '${commandPriorityQueueStoreType}'
+          PRIORITY_QUEUE_STORE_OPTIONS: '${commandPriorityQueueStoreOptions}'
+          PUB_SUB_TYPE: '${pubSubTypeCommandDispatcher}'
+          PUB_SUB_OPTIONS: '${pubSubOptionsCommandDispatcher}'
           AWAIT_COMMAND_CORS_ORIGIN: '*'
           HANDLE_COMMAND_CORS_ORIGIN: '*'
           HEALTH_CORS_ORIGIN: '*'
@@ -159,9 +203,13 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
           COMMAND_DISPATCHER_RENEW_INTERVAL: ${5000}
           COMMAND_DISPATCHER_ACKNOWLEDGE_RETRIES: ${5}
+          DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http'
+          DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'domain-event-dispatcher'
+          DOMAIN_EVENT_DISPATCHER_PORT: ${ports.private.domainEventDispatcher}
           PUBLISHER_PROTOCOL: 'http'
           PUBLISHER_HOST_NAME: 'publisher'
           PUBLISHER_PORT: ${ports.private.publisher}
+          PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT: 'newDomainEvent'
           AEONSTORE_PROTOCOL: 'http'
           AEONSTORE_HOST_NAME: 'aeonstore'
           AEONSTORE_PORT: ${ports.private.aeonstore}
@@ -242,8 +290,8 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           HEALTH_PORT: ${ports.health.publisher}
           PUBLISH_CORS_ORIGIN: '*'
           SUBSCRIBE_CORS_ORIGIN: '*'
-          PUB_SUB_TYPE: '${pubSubType}'
-          PUB_SUB_OPTIONS: '${pubSubOptions}'
+          PUB_SUB_TYPE: '${pubSubTypePublisher}'
+          PUB_SUB_OPTIONS: '${pubSubOptionsPublisher}'
         image: '${appName}'
         init: true
         restart: 'always'
@@ -278,6 +326,95 @@ const getMicroservicePostgresManifest = function ({ appName }: {
         restart: 'always'
         healthcheck:
           test: ["CMD", "curl", "-f", "http://localhost:${ports.health.graphql}"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
+
+      domain-event-dispatcher:
+        build: '../..'
+        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEventDispatcher/app.js'
+        environment:
+          NODE_ENV: 'production'
+          APPLICATION_DIRECTORY: '/app'
+          PRIORITY_QUEUE_STORE_TYPE: '${domainEventPriorityQueueStoreType}'
+          PRIORITY_QUEUE_STORE_OPTIONS: '${domainEventPriorityQueueStoreOptions}'
+          PUB_SUB_TYPE: '${pubSubTypeDomainEventDispatcher}'
+          PUB_SUB_OPTIONS: '${pubSubOptionsDomainEventDispatcher}'
+          AWAIT_DOMAIN_EVENT_CORS_ORIGIN: '*'
+          HANDLE_DOMAIN_EVENT_CORS_ORIGIN: '*'
+          HEALTH_CORS_ORIGIN: '*'
+          PORT: '${ports.private.domainEventDispatcher}'
+          HEALTH_PORT: '${ports.health.domainEventDispatcher}'
+          MISSED_DOMAIN_EVENT_RECOVERY_INTERVAL: ${5000}
+        image: '${appName}'
+        init: true
+        restart: 'always'
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.domainEventDispatcher}"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
+
+      flow:
+        build: '../..'
+        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/flow/app.js'
+        environment:
+          NODE_ENV: 'production'
+          APPLICATION_DIRECTORY: '/app'
+          DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http'
+          DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'domain-event-dispatcher'
+          DOMAIN_EVENT_DISPATCHER_PORT: '${ports.private.domainEventDispatcher}'
+          DOMAIN_EVENT_DISPATCHER_RENEW_INTERVAL: ${5000}
+          DOMAIN_EVENT_DISPATCHER_ACKNOWLEDGE_RETRIES: ${5}
+          COMMAND_DISPATCHER_PROTOCOL: 'http'
+          COMMAND_DISPATCHER_HOST_NAME: 'command-dispatcher'
+          COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
+          REPLAY_SERVER_PROTOCOL: 'http'
+          REPLAY_SERVER_HOST_NAME: 'replay'
+          REPLAY_SERVER_PORT: ${ports.private.replay}
+          AEONSTORE_PROTOCOL: 'http'
+          AEONSTORE_HOST_NAME: 'aeonstore'
+          AEONSTORE_PORT: ${ports.private.aeonstore}
+          LOCK_STORE_OPTIONS: '${lockStoreOptions}'
+          LOCK_STORE_TYPE: '${lockStoreType}'
+          CONSUMER_PROGRESS_STORE_TYPE: '${flowProgressStoreType}'
+          CONSUMER_PROGRESS_STORE_OPTIONS: '${flowProgressStoreOptions}'
+          HEALTH_CORS_ORIGIN: '*'
+          HEALTH_PORT: '${ports.health.domainEventDispatcher}'
+          CONCURRENT_FLOWS: ${1}
+        image: '${appName}'
+        init: true
+        restart: 'always'
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.flow}"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
+
+      replay:
+        build: '../..'
+        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/replay/app.js'
+        environment:
+          NODE_ENV: 'production'
+          APPLICATION_DIRECTORY: '/app'
+          DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http'
+          DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'domain-event-dispatcher'
+          DOMAIN_EVENT_DISPATCHER_PORT: ${ports.private.domainEventDispatcher}
+          AEONSTORE_PROTOCOL: 'http'
+          AEONSTORE_HOST_NAME: 'aeonstore'
+          AEONSTORE_PORT: ${ports.private.aeonstore}
+          HEALTH_CORS_ORIGIN: '*'
+          HEALTH_PORT: ${ports.health.replay}
+          CORS_ORIGIN: '*'
+          PORT: ${ports.private.replay}
+        image: '${appName}'
+        init: true
+        restart: 'always'
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.replay}"]
           interval: 30s
           timeout: 10s
           retries: 3

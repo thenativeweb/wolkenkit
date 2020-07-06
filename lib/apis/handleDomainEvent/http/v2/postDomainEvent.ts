@@ -1,13 +1,13 @@
 import { Application } from '../../../../common/application/Application';
+import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
-import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
-import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
+import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { OnReceiveDomainEvent } from '../../OnReceiveDomainEvent';
-import { State } from '../../../../common/elements/State';
 import typer from 'content-type';
-import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
+import { validateDomainEvent } from '../../../../common/validators/validateDomainEvent';
+import { validateFlowNames } from '../../../../common/validators/validateFlowNames';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
@@ -18,7 +18,19 @@ const postDomainEvent = {
   path: '',
 
   request: {
-    body: getDomainEventWithStateSchema()
+    body: {
+      type: 'object',
+      properties: {
+        flowNames: {
+          type: 'array',
+          items: { type: 'string', minLength: 1 },
+          minItems: 1
+        },
+        domainEvent: getDomainEventSchema()
+      },
+      required: [ 'domainEvent' ],
+      additionalProperties: false
+    }
   },
   response: {
     statusCodes: [ 200, 400, 415 ],
@@ -55,7 +67,7 @@ const postDomainEvent = {
       try {
         requestBodySchema.validate(req.body);
       } catch (ex) {
-        const error = new errors.DomainEventMalformed(ex.message);
+        const error = new errors.RequestMalformed(ex.message);
 
         res.status(400).json({
           code: error.code,
@@ -65,10 +77,12 @@ const postDomainEvent = {
         return;
       }
 
-      const domainEvent = new DomainEventWithState<DomainEventData, State>(req.body);
+      const flowNames = req.body.flowNames ?? Object.keys(application.flows);
+      const domainEvent = new DomainEvent<DomainEventData>(req.body.domainEvent);
 
       try {
-        validateDomainEventWithState({ domainEvent, application });
+        validateFlowNames({ flowNames, application });
+        validateDomainEvent({ domainEvent, application });
       } catch (ex) {
         res.status(400).json({
           code: ex.code,
@@ -78,10 +92,10 @@ const postDomainEvent = {
         return;
       }
 
-      logger.info('Domain event received.', { domainEvent });
+      logger.info('Domain event received.', { flowNames, domainEvent });
 
       try {
-        await onReceiveDomainEvent({ domainEvent });
+        await onReceiveDomainEvent({ flowNames, domainEvent });
 
         const response = {};
 

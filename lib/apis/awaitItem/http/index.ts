@@ -1,4 +1,3 @@
-import { Application } from '../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
 import { getV2 } from './v2';
 import { ItemIdentifier } from '../../../common/elements/ItemIdentifier';
@@ -6,8 +5,7 @@ import { PriorityQueueStore } from '../../../stores/priorityQueueStore/PriorityQ
 import { Subscriber } from '../../../messaging/pubSub/Subscriber';
 import express, { Application as ExpressApplication } from 'express';
 
-const getApi = async function<TItem, TItemIdentifier extends ItemIdentifier> ({
-  application,
+const getApi = async function<TItem> ({
   corsOrigin,
   priorityQueueStore,
   newItemSubscriber,
@@ -15,9 +13,8 @@ const getApi = async function<TItem, TItemIdentifier extends ItemIdentifier> ({
   validateOutgoingItem,
   heartbeatInterval
 }: {
-  application: Application;
   corsOrigin: CorsOrigin;
-  priorityQueueStore: PriorityQueueStore<TItem, TItemIdentifier>;
+  priorityQueueStore: PriorityQueueStore<TItem, ItemIdentifier>;
   newItemSubscriber: Subscriber<object>;
   newItemSubscriberChannel: string;
   validateOutgoingItem: ({ item }: { item: TItem }) => void | Promise<void>;
@@ -25,8 +22,7 @@ const getApi = async function<TItem, TItemIdentifier extends ItemIdentifier> ({
 }): Promise<{ api: ExpressApplication }> {
   const api = express();
 
-  const v2 = await getV2<TItem, TItemIdentifier>({
-    application,
+  const v2 = await getV2<TItem>({
     corsOrigin,
     priorityQueueStore,
     newItemSubscriber,

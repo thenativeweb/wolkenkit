@@ -2,6 +2,7 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
+import { IsReplaying } from '../IsReplaying';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { TableNames } from './TableNames';
@@ -142,6 +143,8 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
           consumerId CHAR(64) NOT NULL,
           aggregateId BINARY(16) NOT NULL,
           revision INT NOT NULL,
+          isReplayingFrom INT,
+          isReplayingTo INT,
 
           PRIMARY KEY(consumerId, aggregateId)
         );
@@ -156,7 +159,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
   public async getProgress ({ consumerId, aggregateIdentifier }: {
     consumerId: string;
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<number> {
+  }): Promise<{ revision: number; isReplaying: IsReplaying }> {
     const connection = await this.getDatabase();
     const hash = getHash({ value: consumerId });
 
@@ -164,7 +167,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
       const [ rows ] = await runQuery({
         connection,
         query: `
-          SELECT revision
+          SELECT revision, isReplayingFrom, isReplayingTo
             FROM \`${this.tableNames.progress}\`
             WHERE consumerId = ? AND aggregateId = UuidToBin(?);
         `,
@@ -172,10 +175,16 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
       });
 
       if (rows.length === 0) {
-        return 0;
+        return { revision: 0, isReplaying: false };
       }
 
-      return rows[0].revision;
+      let isReplaying: IsReplaying = false;
+
+      if (rows[0].isReplayingFrom && rows[0].isReplayingTo) {
+        isReplaying = { from: rows[0].isReplayingFrom, to: rows[0].isReplayingTo };
+      }
+
+      return { revision: rows[0].revision, isReplaying };
     } finally {
       MySqlConsumerProgressStore.releaseConnection({ connection });
     }
@@ -201,7 +210,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
           parameters: [ revision, hash, aggregateIdentifier.id, revision ]
         });
 
-        if (rows.changedRows === 1) {
+        if (rows.affectedRows === 1) {
           return;
         }
 
@@ -218,6 +227,68 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
         } catch (ex) {
           if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
             throw new errors.RevisionTooLow();
+          }
+
+          throw ex;
+        }
+      },
+      async releaseConnection ({ connection }): Promise<void> {
+        MySqlConsumerProgressStore.releaseConnection({ connection });
+      }
+    });
+  }
+
+  public async setIsReplaying ({ consumerId, aggregateIdentifier, isReplaying }: {
+    consumerId: string;
+    aggregateIdentifier: AggregateIdentifier;
+    isReplaying: IsReplaying;
+  }): Promise<void> {
+    const hash = getHash({ value: consumerId });
+
+    await withTransaction({
+      getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
+      fn: async ({ connection }): Promise<void> => {
+        let rows: any;
+
+        if (!isReplaying) {
+          [ rows ] = await runQuery({
+            connection,
+            query: `
+            UPDATE \`${this.tableNames.progress}\`
+              SET isReplayingFrom = NULL, isReplayingTo = NULL
+              WHERE consumerId = ? AND aggregateId = UuidToBin(?);
+          `,
+            parameters: [ hash, aggregateIdentifier.id ]
+          });
+        } else {
+          [ rows ] = await runQuery({
+            connection,
+            query: `
+            UPDATE \`${this.tableNames.progress}\`
+              SET isReplayingFrom = ?, isReplayingTo = ?
+              WHERE consumerId = ? AND aggregateId = UuidToBin(?) AND isReplayingFrom IS NULL AND isReplayingTo IS NULL;
+          `,
+            parameters: [ isReplaying.from, isReplaying.to, hash, aggregateIdentifier.id ]
+          });
+        }
+
+        if (rows.affectedRows === 1) {
+          return;
+        }
+
+        try {
+          await runQuery({
+            connection,
+            query: `
+              INSERT INTO \`${this.tableNames.progress}\`
+                (consumerId, aggregateId, revision, isReplayingFrom, isReplayingTo)
+                VALUES (?, UuidToBin(?), 0, ?, ?);
+            `,
+            parameters: [ hash, aggregateIdentifier.id, isReplaying ? isReplaying.from : null, isReplaying ? isReplaying.to : null ]
+          });
+        } catch (ex) {
+          if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
+            throw new errors.FlowIsAlreadyReplaying();
           }
 
           throw ex;

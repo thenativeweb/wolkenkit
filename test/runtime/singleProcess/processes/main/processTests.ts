@@ -24,7 +24,7 @@ const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 
 
 suite('main', function (): void {
   this.timeout(10_000);
-  const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
+  const applicationDirectory = getTestApplicationDirectory({ name: 'withComplexFlow', language: 'javascript' });
 
   let handleCommandClient: HandleCommandClient,
       healthPort: number,
@@ -162,6 +162,70 @@ suite('main', function (): void {
           true
         ));
       });
+    });
+
+    test('executes flows.', async (): Promise<void> => {
+      const aggregateIdentifier = {
+        name: 'sampleAggregate',
+        id: uuid()
+      };
+      const command = buildCommand({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier,
+        name: 'triggerFlow',
+        data: {
+          flowNames: [ 'neverFlow' ]
+        }
+      });
+
+      const eventStream = await observeDomainEventsClient.getDomainEvents({});
+
+      await handleCommandClient.postCommand({ command });
+
+      const counter = waitForSignals({ count: 2 });
+
+      eventStream.on('error', async (err: any): Promise<void> => {
+        await counter.fail(err);
+      });
+      eventStream.pipe(asJsonStream(
+        [
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
+                contextIdentifier: { name: 'sampleContext' },
+                aggregateIdentifier,
+                name: 'triggeredFlow',
+                data: { flowName: 'neverFlow' }
+              });
+              await counter.signal();
+            } catch (ex) {
+              await counter.fail(ex);
+            }
+          },
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
+                contextIdentifier: { name: 'sampleContext' },
+                aggregateIdentifier,
+                name: 'executedFromFlow',
+                data: {
+                  basedOnRevision: 1,
+                  flowName: 'neverFlow'
+                }
+              });
+              await counter.signal();
+            } catch (ex) {
+              await counter.fail(ex);
+            }
+          },
+          async (): Promise<void> => {
+            await counter.fail(new Error('Should only have received twe messages.'));
+          }
+        ],
+        true
+      ));
     });
   });
 

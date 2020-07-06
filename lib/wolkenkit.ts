@@ -7,13 +7,15 @@ import { ClientService } from './common/services/ClientService';
 import { Command } from './common/elements/Command';
 import { CommandData } from './common/elements/CommandData';
 import { CommandHandler } from './common/elements/CommandHandler';
+import { CommandService } from './common/services/CommandService';
 import { CommandWithMetadata } from './common/elements/CommandWithMetadata';
 import { DomainEvent } from './common/elements/DomainEvent';
 import { DomainEventData } from './common/elements/DomainEventData';
 import { DomainEventHandler } from './common/elements/DomainEventHandler';
 import { DomainEventWithState } from './common/elements/DomainEventWithState';
 import { ErrorService } from './common/services/ErrorService';
-import { Flow } from './common/elements/Flow';
+import { FlowDefinition } from './common/application/FlowDefinition';
+import { FlowHandler } from './common/application/FlowHandler';
 import { GetInitialState } from './common/elements/GetInitialState';
 import { loadApplication } from './common/application/loadApplication';
 import { LockService } from './common/services/LockService';
@@ -39,13 +41,15 @@ export {
   Command,
   CommandData,
   CommandHandler,
+  CommandService,
   CommandWithMetadata,
   DomainEvent,
   DomainEventData,
   DomainEventHandler,
   DomainEventWithState,
   ErrorService,
-  Flow,
+  FlowDefinition,
+  FlowHandler,
   loadApplication,
   GetInitialState,
   LockService,

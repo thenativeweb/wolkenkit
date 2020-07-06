@@ -1,7 +1,7 @@
+import { DomainEvent } from '../../common/elements/DomainEvent';
 import { DomainEventData } from '../../common/elements/DomainEventData';
-import { DomainEventWithState } from '../../common/elements/DomainEventWithState';
-import { State } from '../../common/elements/State';
 
-export type OnReceiveDomainEvent = ({ domainEvent }: {
-  domainEvent: DomainEventWithState<DomainEventData, State>;
+export type OnReceiveDomainEvent = ({ flowNames, domainEvent }: {
+  flowNames: string[];
+  domainEvent: DomainEvent<DomainEventData>;
 }) => Promise<void>;

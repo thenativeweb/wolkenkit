@@ -2,6 +2,7 @@ import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifie
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
+import { IsReplaying } from '../IsReplaying';
 import { retry } from 'retry-ignore-abort';
 import { TableNames } from './TableNames';
 import { withTransaction } from '../../utils/postgres/withTransaction';
@@ -105,6 +106,8 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
             "consumerId" CHAR(64) NOT NULL,
             "aggregateId" uuid NOT NULL,
             "revision" integer NOT NULL,
+            "isReplayingFrom" integer,
+            "isReplayingTo" integer,
 
             CONSTRAINT "${tableNames.progress}_pk" PRIMARY KEY("consumerId", "aggregateId")
           );
@@ -124,7 +127,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
   public async getProgress ({ consumerId, aggregateIdentifier }: {
     consumerId: string;
     aggregateIdentifier: AggregateIdentifier;
-  }): Promise<number> {
+  }): Promise<{ revision: number; isReplaying: IsReplaying }> {
     const connection = await PostgresConsumerProgressStore.getDatabase(this.pool);
     const hash = getHash({ value: consumerId });
 
@@ -132,7 +135,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
       const { rows } = await connection.query({
         name: 'get progress',
         text: `
-          SELECT "revision"
+          SELECT "revision", "isReplayingFrom", "isReplayingTo"
             FROM "${this.tableNames.progress}"
             WHERE "consumerId" = $1 AND "aggregateId" = $2;
         `,
@@ -140,10 +143,16 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
       });
 
       if (rows.length === 0) {
-        return 0;
+        return { revision: 0, isReplaying: false };
       }
 
-      return rows[0].revision;
+      let isReplaying: IsReplaying = false;
+
+      if (rows[0].isReplayingFrom && rows[0].isReplayingTo) {
+        isReplaying = { from: rows[0].isReplayingFrom, to: rows[0].isReplayingTo };
+      }
+
+      return { revision: rows[0].revision, isReplaying };
     } finally {
       connection.release();
     }
@@ -175,7 +184,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
 
         try {
           await connection.query({
-            name: 'insert progress',
+            name: 'insert progress with default is replaying',
             text: `
               INSERT INTO "${this.tableNames.progress}"
                 ("consumerId", "aggregateId", "revision")
@@ -186,6 +195,68 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
         } catch (ex) {
           if (ex.code === '23505' && ex.detail.startsWith('Key ("consumerId", "aggregateId")')) {
             throw new errors.RevisionTooLow();
+          }
+
+          throw ex;
+        }
+      },
+      async releaseConnection ({ connection }): Promise<void> {
+        connection.release();
+      }
+    });
+  }
+
+  public async setIsReplaying ({ consumerId, aggregateIdentifier, isReplaying }: {
+    consumerId: string;
+    aggregateIdentifier: AggregateIdentifier;
+    isReplaying: IsReplaying;
+  }): Promise<void> {
+    const hash = getHash({ value: consumerId });
+
+    await withTransaction({
+      getConnection: async (): Promise<PoolClient> => await PostgresConsumerProgressStore.getDatabase(this.pool),
+      fn: async ({ connection }): Promise<void> => {
+        let rowCount: any;
+
+        if (!isReplaying) {
+          ({ rowCount } = await connection.query({
+            name: 'update is replaying to false',
+            text: `
+            UPDATE "${this.tableNames.progress}"
+              SET "isReplayingFrom" = NULL, "isReplayingTo" = NULL
+              WHERE "consumerId" = $1 AND "aggregateId" = $2;
+          `,
+            values: [ hash, aggregateIdentifier.id ]
+          }));
+        } else {
+          ({ rowCount } = await connection.query({
+            name: 'update is replaying to values',
+            text: `
+            UPDATE "${this.tableNames.progress}"
+              SET "isReplayingFrom" = $1, "isReplayingTo" = $2
+              WHERE "consumerId" = $3 AND "aggregateId" = $4 AND "isReplayingFrom" IS NULL AND "isReplayingTo" IS NULL;
+          `,
+            values: [ isReplaying.from, isReplaying.to, hash, aggregateIdentifier.id ]
+          }));
+        }
+
+        if (rowCount === 1) {
+          return;
+        }
+
+        try {
+          await connection.query({
+            name: 'insert progress with default revision',
+            text: `
+              INSERT INTO "${this.tableNames.progress}"
+                ("consumerId", "aggregateId", "revision", "isReplayingFrom", "isReplayingTo")
+                VALUES ($1, $2, 0, $3, $4);
+            `,
+            values: [ hash, aggregateIdentifier.id, isReplaying ? isReplaying.from : null, isReplaying ? isReplaying.to : null ]
+          });
+        } catch (ex) {
+          if (ex.code === '23505' && ex.detail.startsWith('Key ("consumerId", "aggregateId")')) {
+            throw new errors.FlowIsAlreadyReplaying();
           }
 
           throw ex;

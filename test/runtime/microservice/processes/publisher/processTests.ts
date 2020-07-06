@@ -8,7 +8,7 @@ import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subsc
 import { waitForSignals } from 'wait-for-signals';
 
 suite('publisher', function (): void {
-  this.timeout(10 * 1000);
+  this.timeout(10_000);
 
   let healthPort: number,
       port: number,

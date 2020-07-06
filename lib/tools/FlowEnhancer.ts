@@ -1,3 +1,3 @@
-import { Flow } from '../common/elements/Flow';
+import { FlowDefinition } from '../common/application/FlowDefinition';
 
-export type FlowEnhancer = (flow: Flow) => Flow;
+export type FlowEnhancer = (flow: FlowDefinition) => FlowDefinition;

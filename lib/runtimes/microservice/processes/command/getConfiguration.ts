@@ -29,7 +29,7 @@ const getConfiguration = function (): Configuration {
       schema: protocolSchema
     },
     COMMAND_DISPATCHER_HOST_NAME: {
-      default: 'commandDispatcher',
+      default: 'command-dispatcher',
       schema: {
         type: 'string',
         format: 'hostname'

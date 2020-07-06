@@ -41,18 +41,44 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
     }
   });
 
-  const priorityQueueStoreType = 'InMemory';
-  const priorityQueueStoreOptions = JSON.stringify({
+  const priorityQueueStoreForCommandsType = 'Postgres';
+  const priorityQueueStoreForCommandsOptions = JSON.stringify({
     hostName: 'postgres',
     port: postgresOptions.port,
     userName: postgresOptions.userName,
     password: postgresOptions.password,
     database: postgresOptions.database,
     tableNames: {
-      items: 'items',
-      priorityQueue: 'priorityQueue'
+      items: 'items-command',
+      priorityQueue: 'priorityQueue-command'
     },
     expirationTime: 30000
+  });
+
+  const priorityQueueStoreForDomainEventsType = 'Postgres';
+  const priorityQueueStoreForDomainEventsOptions = JSON.stringify({
+    hostName: 'postgres',
+    port: postgresOptions.port,
+    userName: postgresOptions.userName,
+    password: postgresOptions.password,
+    database: postgresOptions.database,
+    tableNames: {
+      items: 'items-domain-event',
+      priorityQueue: 'priorityQueue-domain-event'
+    },
+    expirationTime: 30000
+  });
+
+  const flowProgressStoreType = 'Postgres';
+  const flowProgressStoreOptions = JSON.stringify({
+    hostName: 'postgres',
+    port: postgresOptions.port,
+    userName: postgresOptions.userName,
+    password: postgresOptions.password,
+    database: postgresOptions.database,
+    tableNames: {
+      progress: 'progress-flow'
+    }
   });
 
   const snapshotStrategy = JSON.stringify({
@@ -74,23 +100,29 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/singleProcess/processes/main/app.js'
         environment:
           NODE_ENV: 'production'
+          LOG_LEVEL: 'debug'
           APPLICATION_DIRECTORY: '/app'
           HTTP_API: 'true'
           GRAPHQL_API: '{"enableIntegratedClient":false}'
-          COMMAND_QUEUE_RENEW_INTERVAL: ${5_000}
-          CONCURRENT_COMMANDS: ${100}
           CORS_ORIGIN: '*'
-          DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'
           DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
-          LOCK_STORE_TYPE: '${lockStoreType}'
+          DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'
           LOCK_STORE_OPTIONS: '${lockStoreOptions}'
-          PRIORITY_QUEUE_STORE_TYPE: '${priorityQueueStoreType}'
-          PRIORITY_QUEUE_STORE_OPTIONS: '${priorityQueueStoreOptions}'
-          HEALTH_PORT: ${ports.health}
+          LOCK_STORE_TYPE: '${lockStoreType}'
+          PRIORITY_QUEUE_STORE_FOR_COMMANDS_TYPE: '${priorityQueueStoreForCommandsType}'
+          PRIORITY_QUEUE_STORE_FOR_COMMANDS_OPTIONS: '${priorityQueueStoreForCommandsOptions}'
+          PRIORITY_QUEUE_STORE_FOR_DOMAIN_EVENTS_TYPE: '${priorityQueueStoreForDomainEventsType}'
+          PRIORITY_QUEUE_STORE_FOR_DOMAIN_EVENTS_OPTIONS: '${priorityQueueStoreForDomainEventsOptions}'
+          CONSUMER_PROGRESS_STORE_TYPE: '${flowProgressStoreType}' 
+          CONSUMER_PROGRESS_STORE_OPTIONS: '${flowProgressStoreOptions}'
           IDENTITY_PROVIDERS: '${identityProviders}'
-          LOG_LEVEL: 'debug'
           PORT: ${ports.private}
+          HEALTH_PORT: ${ports.health}
           SNAPSHOT_STRATEGY: '${snapshotStrategy}'
+          CONCURRENT_COMMANDS: ${100}
+          CONCURRENT_FLOWS: ${1}
+          COMMAND_QUEUE_RENEW_INTERVAL: ${5_000}
+          ENABLE_OPEN_API_DOCUMENTATION: 'true'
         image: '${appName}'
         init: true
         ports:

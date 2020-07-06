@@ -7,18 +7,17 @@ import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAv
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/apis/handleCommandWithMetadata/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
-import { ItemIdentifier } from '../../../../../lib/common/elements/ItemIdentifier';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { uuid } from 'uuidv4';
 
 suite('commandDispatcher', function (): void {
-  this.timeout(10 * 1000);
+  this.timeout(10_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   const queueLockExpirationTime = 600;
 
-  let awaitCommandClient: AwaitCommandClient<CommandWithMetadata<CommandData>, ItemIdentifier>,
+  let awaitCommandClient: AwaitCommandClient<CommandWithMetadata<CommandData>>,
       handleCommandWithMetadataClient: HandleCommandWithMetadataClient,
       healthPort: number,
       port: number,

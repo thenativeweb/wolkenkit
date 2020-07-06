@@ -38,14 +38,14 @@ const awaitItem = {
     }
   },
 
-  getHandler <TItem, TItemIdentifier extends ItemIdentifier>({
+  getHandler <TItem>({
     priorityQueueStore,
     newItemSubscriber,
     newItemSubscriberChannel,
     validateOutgoingItem,
     heartbeatInterval
   }: {
-    priorityQueueStore: PriorityQueueStore<TItem, TItemIdentifier>;
+    priorityQueueStore: PriorityQueueStore<TItem, ItemIdentifier>;
     newItemSubscriber: Subscriber<object>;
     newItemSubscriberChannel: string;
     validateOutgoingItem: ({ item }: { item: TItem }) => void | Promise<void>;

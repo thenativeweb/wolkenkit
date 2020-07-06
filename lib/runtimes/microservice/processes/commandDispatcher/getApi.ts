@@ -39,8 +39,7 @@ const getApi = async function ({
     application
   });
 
-  const { api: awaitCommandWithMetadataApi } = await getAwaitCommandWithMetadataApi({
-    application,
+  const { api: awaitCommandWithMetadataApi } = await getAwaitCommandWithMetadataApi<CommandWithMetadata<CommandData>>({
     corsOrigin: getCorsOrigin(configuration.awaitCommandCorsOrigin),
     priorityQueueStore,
     newItemSubscriber: newCommandSubscriber,

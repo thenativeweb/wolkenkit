@@ -56,7 +56,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     });
     const onCancelCommand = getOnCancelCommand({ priorityQueueStore });
 
-    // Publish new command events on an interval even if there are no new
+    // Publish "new command" events on an interval even if there are no new
     // commands so that missed events or crashing workers will not lead to
     // unprocessed commands.
     setInterval(

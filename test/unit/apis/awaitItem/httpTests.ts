@@ -1,4 +1,3 @@
-import { Application } from '../../../../lib/common/application/Application';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildCommandWithMetadata } from '../../../../lib/common/utils/test/buildCommandWithMetadata';
@@ -9,11 +8,9 @@ import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../.
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/awaitItem/http';
 import { getCommandWithMetadataSchema } from '../../../../lib/common/schemas/getCommandWithMetadataSchema';
-import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
 import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
-import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { runAsServer } from '../../../shared/http/runAsServer';
@@ -28,17 +25,12 @@ suite('awaitItem/http', (): void => {
     const pollInterval = 500;
 
     let api: ExpressApplication,
-        application: Application,
         newItemPublisher: Publisher<object>,
         newItemSubscriber: Subscriber<object>,
         newItemSubscriberChannel: string,
         priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
 
     setup(async (): Promise<void> => {
-      const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
-
-      application = await loadApplication({ applicationDirectory });
-
       newItemSubscriber = await InMemorySubscriber.create();
       newItemSubscriberChannel = uuid();
       newItemPublisher = await InMemoryPublisher.create();
@@ -50,7 +42,6 @@ suite('awaitItem/http', (): void => {
       });
 
       ({ api } = await getApi({
-        application,
         corsOrigin: '*',
         priorityQueueStore,
         newItemSubscriber,
@@ -328,7 +319,7 @@ suite('awaitItem/http', (): void => {
     });
 
     suite('POST /renew-lock', (): void => {
-      test('returns a 400 status code if an invalid item identifier is sent.', async (): Promise<void> => {
+      test('returns a 400 status code if a too short discriminator is sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
@@ -336,7 +327,7 @@ suite('awaitItem/http', (): void => {
           url: '/v2/renew-lock',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: {},
+            discriminator: '',
             token: uuid()
           },
           validateStatus: (): boolean => true
@@ -344,8 +335,8 @@ suite('awaitItem/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EITEMIDENTIFIERMALFORMED',
-          message: 'Missing required property: contextIdentifier (at value.itemIdentifier.contextIdentifier).'
+          code: 'EREQUESTMALFORMED',
+          message: 'String is too short (0 chars), minimum 1 (at value.discriminator).'
         });
       });
 
@@ -385,7 +376,7 @@ suite('awaitItem/http', (): void => {
           url: '/v2/renew-lock',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            discriminator: commandWithMetadata.aggregateIdentifier.id,
             token: uuid()
           },
           validateStatus: (): boolean => true
@@ -394,7 +385,7 @@ suite('awaitItem/http', (): void => {
         assert.that(status).is.equalTo(403);
         assert.that(data).is.equalTo({
           code: 'ETOKENMISMATCH',
-          message: `Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`
+          message: `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
         });
       });
 
@@ -455,7 +446,7 @@ suite('awaitItem/http', (): void => {
           url: '/v2/renew-lock',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            discriminator: commandWithMetadata.aggregateIdentifier.id,
             token
           }
         });
@@ -495,7 +486,7 @@ suite('awaitItem/http', (): void => {
     });
 
     suite('POST /acknowledge', (): void => {
-      test('returns a 400 status code if an invalid item identifier is sent.', async (): Promise<void> => {
+      test('returns a 400 status code if a too short discriminator is sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
@@ -503,7 +494,7 @@ suite('awaitItem/http', (): void => {
           url: '/v2/acknowledge',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: {},
+            discriminator: '',
             token: uuid()
           },
           validateStatus: (): boolean => true
@@ -511,8 +502,8 @@ suite('awaitItem/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EITEMIDENTIFIERMALFORMED',
-          message: 'Missing required property: contextIdentifier (at value.itemIdentifier.contextIdentifier).'
+          code: 'EREQUESTMALFORMED',
+          message: 'String is too short (0 chars), minimum 1 (at value.discriminator).'
         });
       });
 
@@ -552,7 +543,7 @@ suite('awaitItem/http', (): void => {
           url: '/v2/acknowledge',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            discriminator: commandWithMetadata.aggregateIdentifier.id,
             token: uuid()
           },
           validateStatus: (): boolean => true
@@ -561,7 +552,7 @@ suite('awaitItem/http', (): void => {
         assert.that(status).is.equalTo(403);
         assert.that(data).is.equalTo({
           code: 'ETOKENMISMATCH',
-          message: `Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`
+          message: `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
         });
       });
 
@@ -631,7 +622,7 @@ suite('awaitItem/http', (): void => {
           url: '/v2/acknowledge',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            discriminator: commandWithMetadata.aggregateIdentifier.id,
             token
           }
         });
@@ -662,7 +653,7 @@ suite('awaitItem/http', (): void => {
     });
 
     suite('POST /defer', (): void => {
-      test('returns a 400 status code if an invalid item identifier is sent.', async (): Promise<void> => {
+      test('returns a 400 status code if a too short discriminator is sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
@@ -670,7 +661,7 @@ suite('awaitItem/http', (): void => {
           url: '/v2/defer',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: {},
+            discriminator: '',
             token: uuid(),
             priority: Date.now()
           },
@@ -680,7 +671,7 @@ suite('awaitItem/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: 'EREQUESTMALFORMED',
-          message: 'Missing required property: contextIdentifier (at value.itemIdentifier.contextIdentifier).'
+          message: 'String is too short (0 chars), minimum 1 (at value.discriminator).'
         });
       });
 
@@ -720,7 +711,7 @@ suite('awaitItem/http', (): void => {
           url: '/v2/defer',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            discriminator: commandWithMetadata.aggregateIdentifier.id,
             token: uuid(),
             priority: Date.now()
           },
@@ -730,7 +721,7 @@ suite('awaitItem/http', (): void => {
         assert.that(status).is.equalTo(403);
         assert.that(data).is.equalTo({
           code: 'ETOKENMISMATCH',
-          message: `Token mismatch for item 'sampleContext.sampleAggregate.${commandWithMetadata.aggregateIdentifier.id}.execute.${commandWithMetadata.id}'.`
+          message: `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
         });
       });
 
@@ -754,7 +745,7 @@ suite('awaitItem/http', (): void => {
           url: '/v2/defer',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            discriminator: commandWithMetadata.aggregateIdentifier.id,
             token: uuid(),
             priority: -1
           },
@@ -834,7 +825,7 @@ suite('awaitItem/http', (): void => {
           url: '/v2/defer',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: commandWithMetadata.getItemIdentifier(),
+            discriminator: commandWithMetadata.aggregateIdentifier.id,
             token,
             priority: Date.now()
           }
@@ -868,7 +859,7 @@ suite('awaitItem/http', (): void => {
           url: '/v2/acknowledge',
           headers: { 'content-type': 'application/json' },
           data: {
-            itemIdentifier: nextCommandWithMetadata.getItemIdentifier(),
+            discriminator: nextCommandWithMetadata.aggregateIdentifier.id,
             token: nextToken
           }
         });

@@ -1,12 +1,9 @@
-import { Application } from '../../../../common/application/Application';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
-import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { jsonSchema } from 'uuidv4';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import typer from 'content-type';
-import { validateItemIdentifier } from '../../../../common/validators/validateItemIdentifier';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
@@ -20,10 +17,10 @@ const renewLock = {
     body: {
       type: 'object',
       properties: {
-        itemIdentifier: getItemIdentifierSchema(),
+        discriminator: { type: 'string', minLength: 1 },
         token: jsonSchema.v4
       },
-      required: [ 'itemIdentifier', 'token' ],
+      required: [ 'discriminator', 'token' ],
       additionalProperties: false
     }
   },
@@ -32,12 +29,10 @@ const renewLock = {
     body: { type: 'object' }
   },
 
-  getHandler<TItem, TItemIdentifier extends ItemIdentifier> ({
-    application,
+  getHandler<TItem> ({
     priorityQueueStore
   }: {
-    application: Application;
-    priorityQueueStore: PriorityQueueStore<TItem, TItemIdentifier>;
+    priorityQueueStore: PriorityQueueStore<TItem, ItemIdentifier>;
   }): WolkenkitRequestHandler {
     const requestBodySchema = new Value(renewLock.request.body),
           responseBodySchema = new Value(renewLock.response.body);
@@ -62,9 +57,8 @@ const renewLock = {
 
       try {
         requestBodySchema.validate(req.body);
-        validateItemIdentifier({ itemIdentifier: req.body.itemIdentifier, application });
       } catch (ex) {
-        const error = new errors.ItemIdentifierMalformed(ex.message);
+        const error = new errors.RequestMalformed(ex.message);
 
         res.status(400).json({
           code: error.code,
@@ -74,11 +68,11 @@ const renewLock = {
         return;
       }
 
-      const { itemIdentifier, token } = req.body;
+      const { discriminator, token } = req.body;
 
       try {
         await priorityQueueStore.renewLock({
-          discriminator: itemIdentifier.aggregateIdentifier.id,
+          discriminator,
           token
         });
 
@@ -92,7 +86,7 @@ const renewLock = {
           case 'ETOKENMISMATCH': {
             res.status(403).json({
               code: ex.code,
-              message: `Token mismatch for item '${itemIdentifier.contextIdentifier.name}.${itemIdentifier.aggregateIdentifier.name}.${itemIdentifier.aggregateIdentifier.id}.${itemIdentifier.name}.${itemIdentifier.id}'.`
+              message: `Token mismatch for discriminator '${discriminator}'.`
             });
 
             return;
