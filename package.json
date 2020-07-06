@@ -141,7 +141,7 @@
     "flaschenpost": "4.0.17",
     "get-cors-origin": "4.0.1",
     "get-graphql-from-jsonschema": "5.0.2",
-    "graphql": "15.2.0",
+    "graphql": "15.3.0",
     "graphql-tools": "6.0.12",
     "ioredis": "4.17.3",
     "is-typescript": "4.0.0",
@@ -189,7 +189,7 @@
     "subscriptions-transport-ws": "0.9.16",
     "thenativeweb-ux": "5.6.13",
     "wait-for-signals": "1.1.0",
-    "ws": "7.3.0"
+    "ws": "7.3.1"
   },
   "scripts": {
     "concierge": "npx ts-node lib/bin/concierge.ts",
