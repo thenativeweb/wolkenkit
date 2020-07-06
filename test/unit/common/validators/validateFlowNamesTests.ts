@@ -23,13 +23,13 @@ suite('validateFlowNames', (): void => {
   test('throws an error if an unknown flow is given.', async (): Promise<void> => {
     assert.that((): void => {
       validateFlowNames({
-        flowNames: [ 'non-existent' ],
+        flowNames: [ 'nonExistent' ],
         application
       });
     }).is.throwing(
       (ex): boolean =>
         (ex as CustomError).code === 'EFLOWNOTFOUND' &&
-        ex.message === `Flow 'non-existent' not found.`
+        ex.message === `Flow 'nonExistent' not found.`
     );
   });
 });

@@ -259,7 +259,7 @@ suite('handleDomainEvent/http', (): void => {
         const { status, data } = await client({
           method: 'post',
           url: '/v2/',
-          data: { flowNames: [ 'non-existent' ], domainEvent: domainEventExecuted },
+          data: { flowNames: [ 'nonExistent' ], domainEvent: domainEventExecuted },
           responseType: 'text',
           validateStatus (): boolean {
             return true;
@@ -269,7 +269,7 @@ suite('handleDomainEvent/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: 'EFLOWNOTFOUND',
-          message: `Flow 'non-existent' not found.`
+          message: `Flow 'nonExistent' not found.`
         });
       });
 

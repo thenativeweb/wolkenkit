@@ -84,7 +84,7 @@ suite('executeFlow', (): void => {
     await assert.that(async (): Promise<void> => {
       await executeFlow({
         application,
-        flowName: 'non-existent',
+        flowName: 'nonExistent',
         domainEvent,
         flowProgressStore: consumerProgressStore,
         services: {
@@ -273,5 +273,145 @@ suite('executeFlow', (): void => {
     })).is.equalTo({ revision: 6, isReplaying: false });
   });
 
-  // TODO: add tests for on-demand and always flow behavior
+  test(`on-demand flow returns 'defer', if a missing domain event is detected.`, async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withComplexFlow', language: 'javascript' });
+
+    application = await loadApplication({ applicationDirectory });
+
+    const repository = new Repository({
+      application,
+      domainEventStore,
+      lockStore,
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+    });
+
+    aggregatesService = getAggregatesService({ repository });
+
+    const aggregateId = uuid();
+    const domainEvents = [
+      buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'triggeredFlow',
+        data: { flowName: 'onDemandFlow' },
+        metadata: { revision: 1 }
+      }),
+      buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'triggeredFlow',
+        data: { flowName: 'onDemandFlow' },
+        metadata: { revision: 2 }
+      }),
+      buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'triggeredFlow',
+        data: { flowName: 'onDemandFlow' },
+        metadata: { revision: 3 }
+      })
+    ];
+
+    await domainEventStore.storeDomainEvents({ domainEvents });
+
+    const commandService = getCommandService({ domainEvent: domainEvents[2], issueCommand: noop });
+
+    await consumerProgressStore.setProgress({
+      consumerId: 'onDemandFlow',
+      aggregateIdentifier: domainEvents[2].aggregateIdentifier,
+      revision: 1
+    });
+
+    let replayRequested = false;
+    const result = await executeFlow({
+      application,
+      flowName: 'onDemandFlow',
+      domainEvent: domainEvents[2],
+      flowProgressStore: consumerProgressStore,
+      services: {
+        aggregates: aggregatesService,
+        command: commandService,
+        infrastructure: application.infrastructure,
+        lock: lockService,
+        logger: loggerService
+      },
+      requestReplay (): void {
+        replayRequested = true;
+      }
+    });
+
+    assert.that(result).is.equalTo('defer');
+    assert.that(replayRequested).is.false();
+  });
+
+  test(`always flow returns 'defer' and requests replay, if a missing domain event is detected.`, async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withComplexFlow', language: 'javascript' });
+
+    application = await loadApplication({ applicationDirectory });
+
+    const repository = new Repository({
+      application,
+      domainEventStore,
+      lockStore,
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+    });
+
+    aggregatesService = getAggregatesService({ repository });
+
+    const aggregateId = uuid();
+    const domainEvents = [
+      buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'triggeredFlow',
+        data: { flowName: 'alwaysFlow' },
+        metadata: { revision: 1 }
+      }),
+      buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'triggeredFlow',
+        data: { flowName: 'alwaysFlow' },
+        metadata: { revision: 2 }
+      }),
+      buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'triggeredFlow',
+        data: { flowName: 'alwaysFlow' },
+        metadata: { revision: 3 }
+      })
+    ];
+
+    await domainEventStore.storeDomainEvents({ domainEvents });
+
+    const commandService = getCommandService({ domainEvent: domainEvents[2], issueCommand: noop });
+
+    await consumerProgressStore.setProgress({
+      consumerId: 'alwaysFlow',
+      aggregateIdentifier: domainEvents[2].aggregateIdentifier,
+      revision: 1
+    });
+
+    let replayRequested = false;
+    const result = await executeFlow({
+      application,
+      flowName: 'alwaysFlow',
+      domainEvent: domainEvents[2],
+      flowProgressStore: consumerProgressStore,
+      services: {
+        aggregates: aggregatesService,
+        command: commandService,
+        infrastructure: application.infrastructure,
+        lock: lockService,
+        logger: loggerService
+      },
+      requestReplay (): void {
+        replayRequested = true;
+      }
+    });
+
+    assert.that(result).is.equalTo('defer');
+    assert.that(replayRequested).is.true();
+  });
 });

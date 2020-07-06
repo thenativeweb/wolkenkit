@@ -94,6 +94,7 @@ suite('performReplay/http', (): void => {
           data: {
             flowNames: [],
             aggregates: [{
+              contextIdentifier: { name: 'sampleContext' },
               aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
               from: 23,
               to: 42
@@ -120,7 +121,7 @@ suite('performReplay/http', (): void => {
           url: `/v2/`,
           data: {
             aggregates: [{
-              contextIdentifier: { name: 'non-existent' },
+              contextIdentifier: { name: 'nonExistent' },
               aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
               from: 23,
               to: 42
@@ -135,7 +136,7 @@ suite('performReplay/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: 'ECONTEXTNOTFOUND',
-          message: `Context 'non-existent' not found.`
+          message: `Context 'nonExistent' not found.`
         });
       });
 
@@ -148,7 +149,7 @@ suite('performReplay/http', (): void => {
           data: {
             aggregates: [{
               contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'non-existent', id: uuid() },
+              aggregateIdentifier: { name: 'nonExistent', id: uuid() },
               from: 23,
               to: 42
             }]
@@ -162,7 +163,7 @@ suite('performReplay/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: 'EAGGREGATENOTFOUND',
-          message: `Aggregate 'sampleContext'.'non-existent' not found.`
+          message: `Aggregate 'sampleContext.nonExistent' not found.`
         });
       });
 
@@ -173,7 +174,7 @@ suite('performReplay/http', (): void => {
           method: 'post',
           url: `/v2/`,
           data: {
-            flowNames: [ 'non-existent' ],
+            flowNames: [ 'nonExistent' ],
             aggregates: [{
               contextIdentifier: { name: 'sampleContext' },
               aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
@@ -190,7 +191,7 @@ suite('performReplay/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: 'EFLOWNOTFOUND',
-          message: `Flow 'non-existent' not found.`
+          message: `Flow 'nonExistent' not found.`
         });
       });
 

@@ -179,10 +179,10 @@ suite('handleDomainEvent/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<void> => {
-          await client.postDomainEvent({ flowNames: [ 'non-existent' ], domainEvent: domainEventExecuted });
+          await client.postDomainEvent({ flowNames: [ 'nonExistent' ], domainEvent: domainEventExecuted });
         }).is.throwingAsync((ex): boolean =>
           (ex as CustomError).code === 'EFLOWNOTFOUND' &&
-          (ex as CustomError).message === `Flow 'non-existent' not found.`);
+          (ex as CustomError).message === `Flow 'nonExistent' not found.`);
       });
 
       test('sends domain events.', async (): Promise<void> => {

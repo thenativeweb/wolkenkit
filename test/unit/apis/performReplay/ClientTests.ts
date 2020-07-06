@@ -120,7 +120,7 @@ suite('performReplay/http/Client', (): void => {
           await client.performReplay({
             flowNames: [ 'sampleFlow' ],
             aggregates: [{
-              contextIdentifier: { name: 'non-existent' },
+              contextIdentifier: { name: 'nonExistent' },
               aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
               from: 23,
               to: 42
@@ -144,7 +144,7 @@ suite('performReplay/http/Client', (): void => {
             flowNames: [ 'sampleFlow' ],
             aggregates: [{
               contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'non-existent', id: aggregateId },
+              aggregateIdentifier: { name: 'nonExistent', id: aggregateId },
               from: 23,
               to: 42
             }]
@@ -164,7 +164,7 @@ suite('performReplay/http/Client', (): void => {
 
         await assert.that(async (): Promise<void> => {
           await client.performReplay({
-            flowNames: [ 'non-existent' ],
+            flowNames: [ 'nonExistent' ],
             aggregates: [{
               contextIdentifier: { name: 'sampleContext' },
               aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
