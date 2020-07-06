@@ -16,6 +16,7 @@ import { DomainEventWithState } from './common/elements/DomainEventWithState';
 import { ErrorService } from './common/services/ErrorService';
 import { FlowDefinition } from './common/application/FlowDefinition';
 import { FlowHandler } from './common/application/FlowHandler';
+import { sandbox as flowSandbox } from './common/utils/test/flowSandbox';
 import { GetInitialState } from './common/elements/GetInitialState';
 import { loadApplication } from './common/application/loadApplication';
 import { LockService } from './common/services/LockService';
@@ -50,6 +51,7 @@ export {
   ErrorService,
   FlowDefinition,
   FlowHandler,
+  flowSandbox,
   loadApplication,
   GetInitialState,
   LockService,
