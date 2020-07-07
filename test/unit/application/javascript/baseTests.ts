@@ -3,7 +3,7 @@ import { ExecuteData } from '../../../shared/applications/typescript/base/server
 import { ExecutedData } from '../../../shared/applications/typescript/base/server/domain/sampleContext/sampleAggregate/domainEvents/executed';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
-import { sandbox } from '../../../../lib/common/utils/test/sandbox/createSandboxForAggregate';
+import { createSandbox as sandbox } from '../../../../lib/common/utils/test/sandbox/createSandbox';
 import { SucceededData } from '../../../shared/applications/typescript/base/server/domain/sampleContext/sampleAggregate/domainEvents/succeeded';
 import { uuid } from 'uuidv4';
 
