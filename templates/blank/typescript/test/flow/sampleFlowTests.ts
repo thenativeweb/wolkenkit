@@ -24,39 +24,19 @@ suite('sampleFlow', (): void => {
         loggerServiceFactory () {
           return {
             fatal (message: string, metadata?: object): void {
-              logMessages.push({
-                level: 'fatal',
-                message,
-                metadata
-              });
+              logMessages.push({ level: 'fatal', message, metadata });
             },
             error (message: string, metadata?: object): void {
-              logMessages.push({
-                level: 'error',
-                message,
-                metadata
-              });
+              logMessages.push({ level: 'error', message, metadata });
             },
             warn (message: string, metadata?: object): void {
-              logMessages.push({
-                level: 'warn',
-                message,
-                metadata
-              });
+              logMessages.push({ level: 'warn', message, metadata });
             },
             info (message: string, metadata?: object): void {
-              logMessages.push({
-                level: 'info',
-                message,
-                metadata
-              });
+              logMessages.push({ level: 'info', message, metadata });
             },
             debug (message: string, metadata?: object): void {
-              logMessages.push({
-                level: 'debug',
-                message,
-                metadata
-              });
+              logMessages.push({ level: 'debug', message, metadata });
             }
           } as LoggerService;
         }

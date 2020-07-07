@@ -26,39 +26,19 @@ suite('sampleFlow', () => {
         loggerServiceFactory () {
           return {
             fatal (message, metadata) {
-              logMessages.push({
-                level: 'fatal',
-                message,
-                metadata
-              });
+              logMessages.push({ level: 'fatal', message, metadata });
             },
             error (message, metadata) {
-              logMessages.push({
-                level: 'error',
-                message,
-                metadata
-              });
+              logMessages.push({ level: 'error', message, metadata });
             },
             warn (message, metadata) {
-              logMessages.push({
-                level: 'warn',
-                message,
-                metadata
-              });
+              logMessages.push({ level: 'warn', message, metadata });
             },
             info (message, metadata) {
-              logMessages.push({
-                level: 'info',
-                message,
-                metadata
-              });
+              logMessages.push({ level: 'info', message, metadata });
             },
             debug (message, metadata) {
-              logMessages.push({
-                level: 'debug',
-                message,
-                metadata
-              });
+              logMessages.push({ level: 'debug', message, metadata });
             }
           };
         }
