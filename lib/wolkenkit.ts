@@ -16,7 +16,6 @@ import { DomainEventWithState } from './common/elements/DomainEventWithState';
 import { ErrorService } from './common/services/ErrorService';
 import { FlowDefinition } from './common/application/FlowDefinition';
 import { FlowHandler } from './common/application/FlowHandler';
-import { sandbox as flowSandbox } from './common/utils/test/flowSandbox';
 import { GetInitialState } from './common/elements/GetInitialState';
 import { loadApplication } from './common/application/loadApplication';
 import { LockService } from './common/services/LockService';
@@ -25,7 +24,7 @@ import { ProjectionHandler } from './common/elements/ProjectionHandler';
 import { QueryHandler } from './common/elements/QueryHandler';
 import { QueryOptions } from './common/elements/QueryOptions';
 import { QueryResultItem } from './common/elements/QueryResultItem';
-import { sandbox } from './common/utils/test/sandbox';
+import { createSandbox } from './common/utils/test/sandbox/createSandbox';
 import { Schema } from './common/elements/Schema';
 import { State } from './common/elements/State';
 import { TellInfrastructure } from './common/elements/TellInfrastructure';
@@ -51,7 +50,6 @@ export {
   ErrorService,
   FlowDefinition,
   FlowHandler,
-  flowSandbox,
   loadApplication,
   GetInitialState,
   LockService,
@@ -60,7 +58,7 @@ export {
   QueryHandler,
   QueryOptions,
   QueryResultItem,
-  sandbox,
+  createSandbox as sandbox,
   Schema,
   State,
   TellInfrastructure,
