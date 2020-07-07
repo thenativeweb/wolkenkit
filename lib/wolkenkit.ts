@@ -24,7 +24,7 @@ import { ProjectionHandler } from './common/elements/ProjectionHandler';
 import { QueryHandler } from './common/elements/QueryHandler';
 import { QueryOptions } from './common/elements/QueryOptions';
 import { QueryResultItem } from './common/elements/QueryResultItem';
-import { createSandbox } from './common/utils/test/sandbox/createSandbox';
+import { createSandbox as sandbox } from './common/utils/test/sandbox/createSandbox';
 import { Schema } from './common/elements/Schema';
 import { State } from './common/elements/State';
 import { TellInfrastructure } from './common/elements/TellInfrastructure';
@@ -58,7 +58,7 @@ export {
   QueryHandler,
   QueryOptions,
   QueryResultItem,
-  createSandbox as sandbox,
+  sandbox,
   Schema,
   State,
   TellInfrastructure,
