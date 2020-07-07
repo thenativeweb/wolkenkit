@@ -21,82 +21,6 @@ import { SandboxForFlow, SandboxForFlowWithResult } from './SandboxForFlow';
 
 const createSandboxForFlow = function (sandboxConfiguration: SandboxConfigurationForFlow): SandboxForFlow {
   return {
-    given <TDomainEventData extends DomainEventData>({
-      contextIdentifier,
-      aggregateIdentifier,
-      name,
-      data,
-      id,
-      metadata
-    }: {
-      contextIdentifier: { name: string };
-      aggregateIdentifier: { name: string; id: string };
-      name: string;
-      data: TDomainEventData;
-      id?: string;
-      metadata: {
-        causationId?: string;
-        correlationId?: string;
-        timestamp?: number;
-        initiator?: Initiator;
-        tags?: string[];
-        revision: number;
-      };
-    }): SandboxForFlow {
-      return createSandboxForFlow({
-        ...sandboxConfiguration,
-        domainEvents: [
-          ...sandboxConfiguration.domainEvents,
-          buildDomainEvent<TDomainEventData>({
-            contextIdentifier,
-            aggregateIdentifier,
-            name,
-            data,
-            id,
-            metadata: { ...metadata, revision: metadata.revision }
-          })
-        ]
-      });
-    },
-
-    and <TDomainEventData extends DomainEventData>({
-      contextIdentifier,
-      aggregateIdentifier,
-      name,
-      data,
-      id,
-      metadata
-    }: {
-      contextIdentifier: { name: string };
-      aggregateIdentifier: { name: string; id: string };
-      name: string;
-      data: TDomainEventData;
-      id?: string;
-      metadata: {
-        causationId?: string;
-        correlationId?: string;
-        timestamp?: number;
-        initiator?: Initiator;
-        tags?: string[];
-        revision: number;
-      };
-    }): SandboxForFlow {
-      return createSandboxForFlow({
-        ...sandboxConfiguration,
-        domainEvents: [
-          ...sandboxConfiguration.domainEvents,
-          buildDomainEvent<TDomainEventData>({
-            contextIdentifier,
-            aggregateIdentifier,
-            name,
-            data,
-            id,
-            metadata: { ...metadata, revision: metadata.revision }
-          })
-        ]
-      });
-    },
-
     when <TDomainEventData extends DomainEventData>({
       contextIdentifier,
       aggregateIdentifier,
@@ -140,6 +64,45 @@ const createSandboxForFlow = function (sandboxConfiguration: SandboxConfiguratio
 
 const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxConfigurationForFlow): SandboxForFlowWithResult {
   return {
+    and <TDomainEventData extends DomainEventData>({
+      contextIdentifier,
+      aggregateIdentifier,
+      name,
+      data,
+      id,
+      metadata
+    }: {
+      contextIdentifier: { name: string };
+      aggregateIdentifier: { name: string; id: string };
+      name: string;
+      data: TDomainEventData;
+      id?: string;
+      metadata: {
+        causationId?: string;
+        correlationId?: string;
+        timestamp?: number;
+        initiator?: Initiator;
+        tags?: string[];
+        revision: number;
+      };
+    }): SandboxForFlowWithResult {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      return createSandboxForFlowWithResult({
+        ...sandboxConfiguration,
+        domainEvents: [
+          ...sandboxConfiguration.domainEvents,
+          buildDomainEvent<TDomainEventData>({
+            contextIdentifier,
+            aggregateIdentifier,
+            name,
+            data,
+            id,
+            metadata: { ...metadata, revision: metadata.revision }
+          })
+        ]
+      });
+    },
+
     async then (callback: (parameters: {
       commands: CommandWithMetadata<CommandData>[];
     }) => (void | Promise<void>)): Promise<void> {
@@ -154,12 +117,6 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
       const commandServiceFactory = sandboxConfiguration.commandServiceFactory ?? getCommandService;
       const lockServiceFactory = sandboxConfiguration.lockServiceFactory ?? getLockService;
       const loggerServiceFactory = sandboxConfiguration.loggerServiceFactory ?? getLoggerService;
-
-      if (sandboxConfiguration.domainEvents.length > 1) {
-        await domainEventStore.storeDomainEvents({ domainEvents: sandboxConfiguration.domainEvents.slice(0, -1) });
-      }
-
-      const lastDomainEvent = sandboxConfiguration.domainEvents[sandboxConfiguration.domainEvents.length - 1];
 
       const repository = new Repository({
         application: sandboxConfiguration.application,
@@ -180,23 +137,25 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
         issuedCommands.push(command);
       };
 
-      await executeFlow({
-        application: sandboxConfiguration.application,
-        domainEvent: lastDomainEvent,
-        flowName: sandboxConfiguration.flowName,
-        flowProgressStore,
-        requestReplay: noop,
-        services: {
-          aggregates: aggregatesServiceFactory({ repository }),
-          command: commandServiceFactory({ domainEvent: lastDomainEvent, issueCommand }),
-          infrastructure: sandboxConfiguration.application.infrastructure,
-          logger: loggerServiceFactory({
-            packageManifest: sandboxConfiguration.application.packageManifest,
-            fileName: `<app>/server/flows/${sandboxConfiguration.flowName}`
-          }),
-          lock: lockServiceFactory({ lockStore })
-        }
-      });
+      for (const domainEvent of sandboxConfiguration.domainEvents) {
+        await executeFlow({
+          application: sandboxConfiguration.application,
+          domainEvent,
+          flowName: sandboxConfiguration.flowName,
+          flowProgressStore,
+          requestReplay: noop,
+          services: {
+            aggregates: aggregatesServiceFactory({ repository }),
+            command: commandServiceFactory({ domainEvent, issueCommand }),
+            infrastructure: sandboxConfiguration.application.infrastructure,
+            logger: loggerServiceFactory({
+              packageManifest: sandboxConfiguration.application.packageManifest,
+              fileName: `<app>/server/flows/${sandboxConfiguration.flowName}`
+            }),
+            lock: lockServiceFactory({ lockStore })
+          }
+        });
+      }
 
       // eslint-disable-next-line callback-return
       await callback({ commands: issuedCommands });
