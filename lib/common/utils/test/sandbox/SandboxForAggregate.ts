@@ -6,7 +6,7 @@ import { Initiator } from '../../../elements/Initiator';
 import { State } from '../../../elements/State';
 
 export interface SandboxForAggregate<TState extends State> {
-  given <TDomainEventData extends DomainEventData>({ name, data, id, metadata }: {
+  given <TDomainEventData extends DomainEventData>(parameters: {
     name: string;
     data: TDomainEventData;
     id?: string;
@@ -19,7 +19,7 @@ export interface SandboxForAggregate<TState extends State> {
     };
   }): SandboxForAggregate<TState>;
 
-  and <TDomainEventData extends DomainEventData>({ name, data, id, metadata }: {
+  and <TDomainEventData extends DomainEventData>(parameters: {
     name: string;
     data: TDomainEventData;
     id?: string;
@@ -32,7 +32,7 @@ export interface SandboxForAggregate<TState extends State> {
     };
   }): SandboxForAggregate<TState>;
 
-  when <TCommandData extends CommandData>({ name, data, id, metadata }: {
+  when <TCommandData extends CommandData>(parameters: {
     name: string;
     data: TCommandData;
     id?: string;
@@ -47,7 +47,7 @@ export interface SandboxForAggregate<TState extends State> {
 }
 
 export interface SandboxForAggregateWithResult<TState extends State> {
-  and<TCommandData extends CommandData>({ name, data, id, metadata }: {
+  and<TCommandData extends CommandData>(parameters: {
     name: string;
     data: TCommandData;
     id?: string;

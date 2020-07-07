@@ -22,7 +22,7 @@ export interface UninitializedSandbox {
 }
 
 export interface Sandbox {
-  withDomainEventStore({ domainEventStore }: {
+  withDomainEventStore(parameters: {
     domainEventStore: DomainEventStore;
   }): Sandbox;
 
@@ -30,23 +30,23 @@ export interface Sandbox {
     flowProgressStore: ConsumerProgressStore;
   }): Sandbox;
 
-  withLockStore({ lockStore }: {
+  withLockStore(parameters: {
     lockStore: LockStore;
   }): Sandbox;
 
-  withSnapshotStrategy({ snapshotStrategy }: {
+  withSnapshotStrategy(parameters: {
     snapshotStrategy: SnapshotStrategy;
   }): Sandbox;
 
-  withAggregateServiceFactory({ aggregateServiceFactory }: {
+  withAggregateServiceFactory(parameters: {
     aggregateServiceFactory: GetAggregateService;
   }): Sandbox;
 
-  withAggregatesServiceFactory({ aggregatesServiceFactory }: {
+  withAggregatesServiceFactory(parameters: {
     aggregatesServiceFactory: GetAggregatesService;
   }): Sandbox;
 
-  withClientServiceFactory({ clientServiceFactory }: {
+  withClientServiceFactory(parameters: {
     clientServiceFactory: GetClientService;
   }): Sandbox;
 
@@ -54,15 +54,15 @@ export interface Sandbox {
     commandServiceFactory: GetCommandService;
   }): Sandbox;
 
-  withLockServiceFactory({ lockServiceFactory }: {
+  withLockServiceFactory(parameters: {
     lockServiceFactory: GetLockService;
   }): Sandbox;
 
-  withLoggerServiceFactory({ loggerServiceFactory }: {
+  withLoggerServiceFactory(parameters: {
     loggerServiceFactory: GetLoggerService;
   }): Sandbox;
 
-  forAggregate<TState extends State>({ contextIdentifier, aggregateIdentifier }: {
+  forAggregate<TState extends State>(parameters: {
     contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
   }): SandboxForAggregate<TState>;
