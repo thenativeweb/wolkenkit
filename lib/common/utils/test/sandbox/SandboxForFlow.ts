@@ -10,12 +10,13 @@ export interface SandboxForFlow {
     name: string;
     data: TDomainEventData;
     id?: string;
-    metadata?: {
+    metadata: {
       causationId?: string;
       correlationId?: string;
       timestamp?: number;
       initiator?: Initiator;
       tags?: string[];
+      revision: number;
     };
   }): SandboxForFlowWithResult;
 }
@@ -27,12 +28,13 @@ export interface SandboxForFlowWithResult {
     name: string;
     data: TDomainEventData;
     id?: string;
-    metadata?: {
+    metadata: {
       causationId?: string;
       correlationId?: string;
       timestamp?: number;
       initiator?: Initiator;
       tags?: string[];
+      revision: number;
     };
   }): SandboxForFlowWithResult;
 
