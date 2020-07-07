@@ -1,10 +1,6 @@
 'use strict';
 
-const getInfrastructure = async function () {
-  return {
-    ask: {},
-    tell: {}
-  };
-};
+const { getInfrastructure } = require('./getInfrastructure');
+const { setupInfrastructure } = require('./setupInfrastructure');
 
-module.exports = { getInfrastructure };
+module.exports = { getInfrastructure, setupInfrastructure };
