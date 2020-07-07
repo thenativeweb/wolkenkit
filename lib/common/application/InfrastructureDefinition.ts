@@ -5,5 +5,6 @@ export interface InfrastructureDefinition<
   TAskInfrastructure extends AskInfrastructure,
   TTellInfrastructure extends TellInfrastructure
 > {
+  setupInfrastructure: () => Promise<void>;
   getInfrastructure: () => Promise<TAskInfrastructure & TTellInfrastructure>;
 }

@@ -3,15 +3,6 @@ import { processenv } from 'processenv';
 import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
 import { Collection, MongoClient } from 'mongodb';
 
-export interface Infrastructure extends AskInfrastructure, TellInfrastructure {
-  ask: {};
-  tell: {
-    viewStore: {
-      messages: Collection<Message> | Message[]
-    };
-  };
-}
-
 const getInfrastructure = async function (): Promise<AskInfrastructure & TellInfrastructure> {
   const url = processenv('MONGODB_URL') as string;
   let messages: Collection<Message> | Message[] = [];
@@ -36,8 +27,4 @@ const getInfrastructure = async function (): Promise<AskInfrastructure & TellInf
   };
 };
 
-const setupInfrastructure = async function (): Promise<void> {
-  // Intentionally left blank.
-};
-
-export default { setupInfrastructure, getInfrastructure };
+export { getInfrastructure };

@@ -1,7 +1,8 @@
 import { Message } from '../types/Message';
-import { processenv } from 'processenv';
+import { Collection } from 'mongodb';
+import { getInfrastructure } from './getInfrastructure';
+import { setupInfrastructure } from './setupInfrastructure';
 import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
-import { Collection, MongoClient } from 'mongodb';
 
 export interface Infrastructure extends AskInfrastructure, TellInfrastructure {
   ask: {};
@@ -12,28 +13,4 @@ export interface Infrastructure extends AskInfrastructure, TellInfrastructure {
   };
 }
 
-const getInfrastructure = async function (): Promise<AskInfrastructure & TellInfrastructure> {
-  const url = processenv('MONGODB_URL') as string;
-  let messages: Collection<Message> | Message[] = [];
-
-  if (url) {
-    const connection = await MongoClient.connect(url, {
-      w: 1,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-
-    messages = connection.db().collection('messages');
-  }
-
-  return {
-    ask: {},
-    tell: {
-      viewStore: {
-        messages
-      }
-    }
-  };
-}
-
-export default { getInfrastructure };
+export default { setupInfrastructure, getInfrastructure };

@@ -27,8 +27,4 @@ const getInfrastructure = async function () {
   };
 };
 
-const setupInfrastructure = async function () {
-  // Intentionally left blank.
-};
-
-module.exports = { setupInfrastructure, getInfrastructure };
+module.exports = { getInfrastructure };
