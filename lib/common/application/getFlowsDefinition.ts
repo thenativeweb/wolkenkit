@@ -11,7 +11,7 @@ const getFlowsDefinition = async function ({ flowsDirectory }: {
   flowsDirectory: string;
 }): Promise<FlowsDefinition> {
   if (!await exists({ path: flowsDirectory })) {
-    throw new errors.DirectoryNotFound(`Directory '<app>/build/flows' not found.`);
+    throw new errors.DirectoryNotFound(`Directory '<app>/build/server/flows' not found.`);
   }
 
   const flowsDefinition: FlowsDefinition = {};
@@ -31,10 +31,10 @@ const getFlowsDefinition = async function ({ flowsDirectory }: {
       rawFlow = (await import(flowPath)).default;
     } catch (ex) {
       if (ex instanceof SyntaxError) {
-        throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/flows/${flowName}'.`, { cause: ex });
+        throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/flows/${flowName}'.`, { cause: ex });
       }
 
-      throw new errors.FileNotFound(`No flow definition in '<app>/build/flows/${flowName}' found.`);
+      throw new errors.FileNotFound(`No flow definition in '<app>/build/server/flows/${flowName}' found.`);
     }
 
     try {
@@ -42,7 +42,7 @@ const getFlowsDefinition = async function ({ flowsDirectory }: {
         flowDefinition: rawFlow
       });
     } catch (ex) {
-      throw new errors.FlowDefinitionMalformed(`Flow definition '<app>/build/flows/${flowName}' is malformed: ${ex.message}`);
+      throw new errors.FlowDefinitionMalformed(`Flow definition '<app>/build/server/flows/${flowName}' is malformed: ${ex.message}`);
     }
 
     const flowEnhancers = (rawFlow.enhancers || []) as FlowEnhancer[];

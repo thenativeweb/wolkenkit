@@ -11,7 +11,7 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
   viewsDirectory: string;
 }): Promise<ViewsDefinition> {
   if (!await exists({ path: viewsDirectory })) {
-    throw new errors.DirectoryNotFound(`Directory '<app>/build/views' not found.`);
+    throw new errors.DirectoryNotFound(`Directory '<app>/build/server/views' not found.`);
   }
 
   const viewsDefinition: ViewsDefinition = {};
@@ -31,10 +31,10 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
       rawView = (await import(viewPath)).default;
     } catch (ex) {
       if (ex instanceof SyntaxError) {
-        throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/views/${viewName}'.`, { cause: ex });
+        throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/views/${viewName}'.`, { cause: ex });
       }
 
-      throw new errors.FileNotFound(`No view definition in '<app>/build/views/${viewName}' found.`);
+      throw new errors.FileNotFound(`No view definition in '<app>/build/server/views/${viewName}' found.`);
     }
 
     try {
@@ -42,7 +42,7 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
         viewDefinition: rawView
       });
     } catch (ex) {
-      throw new errors.ViewDefinitionMalformed(`View definition '<app>/build/views/${viewName}' is malformed: ${ex.message}`);
+      throw new errors.ViewDefinitionMalformed(`View definition '<app>/build/server/views/${viewName}' is malformed: ${ex.message}`);
     }
 
     const viewEnhancers = (rawView.enhancers || []) as ViewEnhancer[];

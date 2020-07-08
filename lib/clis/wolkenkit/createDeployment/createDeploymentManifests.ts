@@ -1,5 +1,4 @@
 import fs from 'fs';
-import { getMicroserviceInMemoryManifest } from './dockerCompose/getMicroserviceInMemoryManifest';
 import { getMicroservicePostgresManifest } from './dockerCompose/getMicroservicePostgresManifest';
 import { getSingleProcessInMemoryManifest } from './dockerCompose/getSingleProcessInMemoryManifest';
 import { getSingleProcessPostgresManifest } from './dockerCompose/getSingleProcessPostgresManifest';
@@ -11,10 +10,6 @@ const createDeploymentManifests = async function ({ directory, name }: {
   name: string;
 }): Promise<void> {
   const deploymentFiles = [
-    {
-      filePath: [ 'docker-compose', 'microservice.in-memory.yml' ],
-      content: getMicroserviceInMemoryManifest({ appName: name })
-    },
     {
       filePath: [ 'docker-compose', 'microservice.postgres.yml' ],
       content: getMicroservicePostgresManifest({ appName: name })
