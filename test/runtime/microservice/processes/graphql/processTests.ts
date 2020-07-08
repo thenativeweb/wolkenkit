@@ -2,6 +2,9 @@ import { ApolloClient } from 'apollo-client';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { Client } from '../../../../../lib/apis/getHealth/http/v2/Client';
+import { CommandData } from '../../../../../lib/common/elements/CommandData';
+import { Client as CommandDispatcherClient } from '../../../../../lib/apis/awaitItem/http/v2/Client';
+import { CommandWithMetadata } from '../../../../../lib/common/elements/CommandWithMetadata';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
 import fetch from 'node-fetch';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
@@ -24,16 +27,50 @@ suite('main', function (): void {
 
   const subscribeMessagesChannel = 'newDomainEvent';
 
-  let healthPort: number,
+  let commandDispatcherClient: CommandDispatcherClient<CommandWithMetadata<CommandData>>,
+      commandDispatcherHealthPort: number,
+      commandDispatcherPort: number,
+      healthPort: number,
       port: number,
       publisherHealthPort: number,
       publisherPort: number,
       publishMessageClient: PublishMessageClient,
       stopProcess: (() => Promise<void>) | undefined,
+      stopProcessCommandDispatcher: (() => Promise<void>) | undefined,
       stopProcessPublisher: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ port, healthPort, publisherPort, publisherHealthPort ] = await getAvailablePorts({ count: 4 });
+    [
+      port,
+      healthPort,
+      commandDispatcherPort,
+      commandDispatcherHealthPort,
+      publisherPort,
+      publisherHealthPort
+    ] = await getAvailablePorts({ count: 6 });
+
+    stopProcessCommandDispatcher = await startProcess({
+      runtime: 'microservice',
+      name: 'commandDispatcher',
+      enableDebugMode: false,
+      port: commandDispatcherHealthPort,
+      env: {
+        APPLICATION_DIRECTORY: applicationDirectory,
+        PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${5000}}`,
+        PORT: String(commandDispatcherPort),
+        HEALTH_PORT: String(commandDispatcherHealthPort)
+      }
+    });
+
+    commandDispatcherClient = new CommandDispatcherClient<CommandWithMetadata<CommandData>>({
+      port: commandDispatcherPort,
+      hostName: 'localhost',
+      path: '/await-command/v2',
+      protocol: 'http',
+      createItemInstance ({ item }): CommandWithMetadata<CommandData> {
+        return new CommandWithMetadata(item);
+      }
+    });
 
     stopProcessPublisher = await startProcess({
       runtime: 'microservice',
@@ -69,7 +106,11 @@ suite('main', function (): void {
         SUBSCRIBE_MESSAGES_HOST_NAME: 'localhost',
         SUBSCRIBE_MESSAGES_PORT: String(publisherPort),
         SUBSCRIBE_MESSAGES_CHANNEL: subscribeMessagesChannel,
-        SNAPSHOT_STRATEGY: `{"name":"never"}`
+        SNAPSHOT_STRATEGY: `{"name":"never"}`,
+        COMMAND_DISPATCHER_PROTOCOL: 'http',
+        COMMAND_DISPATCHER_HOST_NAME: 'localhost',
+        COMMAND_DISPATCHER_PORT: String(commandDispatcherPort),
+        COMMAND_DISPATCHER_RETRIES: String(5)
       }
     });
   });
@@ -81,9 +122,13 @@ suite('main', function (): void {
     if (stopProcessPublisher) {
       await stopProcessPublisher();
     }
+    if (stopProcessCommandDispatcher) {
+      await stopProcessCommandDispatcher();
+    }
 
     stopProcess = undefined;
     stopProcessPublisher = undefined;
+    stopProcessCommandDispatcher = undefined;
   });
 
   suite('getHealth', (): void => {
@@ -139,6 +184,10 @@ suite('main', function (): void {
       });
 
       assert.that(result?.data?.command.sampleContext?.sampleAggregate?.execute?.id).is.not.undefined();
+
+      const { item } = await commandDispatcherClient.awaitItem();
+
+      assert.that(item.id).is.equalTo(result.data.command.sampleContext.sampleAggregate.execute.id);
     });
 
     test('has a subscription endpoint.', async (): Promise<void> => {

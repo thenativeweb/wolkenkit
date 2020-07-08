@@ -37,6 +37,25 @@ const getConfiguration = function (): Configuration {
       default: 'InMemory',
       schema: { type: 'string' }
     },
+    COMMAND_DISPATCHER_PROTOCOL: {
+      default: 'http',
+      schema: protocolSchema
+    },
+    COMMAND_DISPATCHER_HOST_NAME: {
+      default: 'command-dispatcher',
+      schema: {
+        type: 'string',
+        format: 'hostname'
+      }
+    },
+    COMMAND_DISPATCHER_PORT: {
+      default: 3000,
+      schema: portSchema
+    },
+    COMMAND_DISPATCHER_RETRIES: {
+      default: 5,
+      schema: { type: 'integer' }
+    },
     IDENTITY_PROVIDERS: {
       default: [],
       schema: getIdentityProviderSchema()

@@ -310,6 +310,10 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           APPLICATION_DIRECTORY: '/app'
           GRAPHQL_PLAYGROUND: 'false'
           CORS_ORIGIN: '*'
+          COMMAND_DISPATCHER_PROTOCOL: 'http'
+          COMMAND_DISPATCHER_HOST_NAME: 'command-dispatcher'
+          COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
+          COMMAND_DISPATCHER_RETRIES: ${5}
           DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
           DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'
           IDENTITY_PROVIDERS: '${identityProviders}'

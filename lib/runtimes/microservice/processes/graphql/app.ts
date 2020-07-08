@@ -1,11 +1,8 @@
 #!/usr/bin/env node
 
-import { CommandData } from '../../../../common/elements/CommandData';
-import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
+import { Client as CommandDispatcherClient } from '../../../../apis/handleCommandWithMetadata/http/v2/Client';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
-import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
-import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
@@ -13,12 +10,11 @@ import { getApi } from './getApi';
 import { getConfiguration } from './getConfiguration';
 import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
+import { getOnCancelCommand } from './getOnCancelCommand';
+import { getOnReceiveCommand } from './getOnReceiveCommand';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
-import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { loadApplication } from '../../../../common/application/loadApplication';
-import { OnCancelCommand } from '../../../../apis/graphql/OnCancelCommand';
-import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
@@ -56,28 +52,19 @@ import { Value } from 'validate-value';
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const priorityQueueStore = await createPriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>({
-      type: 'InMemory',
-      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
-      options: {}
+    const commandDispatcherClient = new CommandDispatcherClient({
+      protocol: configuration.commandDispatcherProtocol,
+      hostName: configuration.commandDispatcherHostName,
+      port: configuration.commandDispatcherPort,
+      path: '/handle-command/v2'
     });
 
-    const onReceiveCommand: OnReceiveCommand = async ({ command }): Promise<void> => {
-      await priorityQueueStore.enqueue({
-        item: command,
-        discriminator: command.aggregateIdentifier.id,
-        priority: command.metadata.timestamp
-      });
+    const commandDispatcher = {
+      client: commandDispatcherClient,
+      retries: configuration.commandDispatcherRetries
     };
-
-    const onCancelCommand: OnCancelCommand = async ({ commandIdentifierWithClient }: {
-      commandIdentifierWithClient: ItemIdentifierWithClient;
-    }): Promise<void> => {
-      await priorityQueueStore.remove({
-        discriminator: commandIdentifierWithClient.aggregateIdentifier.id,
-        itemIdentifier: commandIdentifierWithClient
-      });
-    };
+    const onReceiveCommand = getOnReceiveCommand({ commandDispatcher });
+    const onCancelCommand = getOnCancelCommand({ commandDispatcher });
 
     const { api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
       configuration,
