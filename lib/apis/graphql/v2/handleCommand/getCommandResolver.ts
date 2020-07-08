@@ -1,3 +1,4 @@
+import { addMissingPrototype } from '../../../../common/utils/graphql/addMissingPrototype';
 import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
 import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
@@ -31,7 +32,9 @@ const getCommandResolver = function ({
   application: Application;
   onReceiveCommand: OnReceiveCommand;
 }): IFieldResolver<any, { clientMetadata: ClientMetadata }> {
-  return async ({ data }, { clientMetadata }): Promise<{ id: string }> => {
+  return async ({ data: rawData }, { clientMetadata }): Promise<{ id: string }> => {
+    const data = addMissingPrototype({ value: rawData });
+
     const command = new Command({
       contextIdentifier,
       aggregateIdentifier,
