@@ -119,7 +119,7 @@
     "@types/lodash": "4.14.157",
     "@types/minio": "7.0.5",
     "@types/mongodb": "3.5.25",
-    "@types/mssql": "6.0.2",
+    "@types/mssql": "6.0.3",
     "@types/mysql": "2.15.14",
     "@types/node": "14.0.19",
     "@types/pg": "7.14.3",
