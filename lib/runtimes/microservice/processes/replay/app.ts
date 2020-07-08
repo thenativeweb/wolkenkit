@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { AeonstoreDomainEventStore } from '../../../../stores/domainEventStore/Aeonstore';
-import { Client as DomainEventDispatcherClient } from '../../../../apis/handleDomainEvent/http/v2/Client';
 import { configurationDefinition } from './configurationDefinition';
+import { Client as DomainEventDispatcherClient } from '../../../../apis/handleDomainEvent/http/v2/Client';
 import { flaschenpost } from 'flaschenpost';
 import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getApi } from './getApi';
