@@ -2,7 +2,10 @@
   "name": "chat-javascript",
   "version": "0.0.1",
   "description": "",
-  "dependencies": {},
+  "dependencies": {
+    "mongodb": "3.5.9",
+    "processenv": "3.0.2"
+  },
   "devDependencies": {
     "assertthat": "5.1.1",
     "mocha": "8.0.1",

@@ -6,6 +6,10 @@ export interface Infrastructure extends AskInfrastructure, TellInfrastructure {
   tell: {};
 }
 
+const setupInfrastructure = async function (): Promise<void> {
+  // Intentionally left blank.
+};
+
 const getInfrastructure = async function (): Promise<AskInfrastructure & TellInfrastructure> {
   return {
     ask: {},
@@ -13,4 +17,4 @@ const getInfrastructure = async function (): Promise<AskInfrastructure & TellInf
   };
 }
 
-export default { getInfrastructure }
+export default { getInfrastructure, setupInfrastructure }
