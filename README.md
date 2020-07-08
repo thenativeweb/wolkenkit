@@ -2,7 +2,7 @@
 
 wolkenkit is a CQRS and event-sourcing framework based on Node.js. It empowers you to build and run scalable distributed web and cloud services that process and store streams of domain events. It supports JavaScript and TypeScript, and is available under an open-source license. Additionally, there are also enterprise add-ons. Since it works especially well in conjunction with domain-driven design (DDD), wolkenkit is the perfect backend framework to shape, build, and run web and cloud APIs.
 
-**BEWARE: This README.md refers to the wolkenkit 4.0 community technology preview (CTP) 2. If you are looking for the latest stable release of wolkenkit, see the [wolkenkit documentation](https://docs.wolkenkit.io/).**
+**BEWARE: This README.md refers to the wolkenkit 4.0 community technology preview (CTP) 3. If you are looking for the latest stable release of wolkenkit, see the [wolkenkit documentation](https://docs.wolkenkit.io/).**
 
 ![wolkenkit](assets/logo.png "wolkenkit")
 
@@ -21,7 +21,7 @@ wolkenkit is a CQRS and event-sourcing framework based on Node.js. It empowers y
 First you have to initialize a new application. For this, execute the following command and select a template and a language. The application is then created in a new subdirectory:
 
 ```shell
-$ npx wolkenkit@4.0.0-ctp.2 init <name>
+$ npx wolkenkit@4.0.0-ctp.3 init <name>
 ```
 
 Next, you need to install the application dependencies. To do this, change to the application directory and run the following command:
