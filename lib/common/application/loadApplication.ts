@@ -42,6 +42,8 @@ const loadApplication = async function ({ applicationDirectory }: {
     withSystemDomainEvents
   ];
 
+  await infrastructureDefinition.setupInfrastructure();
+
   const rawApplication: Application = {
     rootDirectory: applicationDirectory,
     packageManifest,

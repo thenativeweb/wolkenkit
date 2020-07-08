@@ -179,7 +179,7 @@ suite('loadApplication', (): void => {
 
     await assert.
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync(`Directory '<app>/build/domain' not found.`);
+      is.throwingAsync(`Directory '<app>/build/server/domain' not found.`);
   });
 
   test('throws an error if the domain contains an empty aggregate directory.', async (): Promise<void> => {
@@ -187,7 +187,7 @@ suite('loadApplication', (): void => {
 
     await assert.
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync(`No aggregate definition in '<app>/build/domain/sampleContext/emptyAggregate' found.`);
+      is.throwingAsync(`No aggregate definition in '<app>/build/server/domain/sampleContext/emptyAggregate' found.`);
   });
 
   test('throws an error if an aggregate is malformed.', async (): Promise<void> => {
@@ -195,7 +195,7 @@ suite('loadApplication', (): void => {
 
     await assert.
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync(`Aggregate definition '<app>/build/domain/sampleContext/invalidAggregate' is malformed: Function 'getInitialState' is missing.`);
+      is.throwingAsync(`Aggregate definition '<app>/build/server/domain/sampleContext/invalidAggregate' is malformed: Function 'getInitialState' is missing.`);
   });
 
   test('throws an error if the flows directory is missing.', async (): Promise<void> => {
@@ -203,7 +203,7 @@ suite('loadApplication', (): void => {
 
     await assert.
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync(`Directory '<app>/build/flows' not found.`);
+      is.throwingAsync(`Directory '<app>/build/server/flows' not found.`);
   });
 
   test('throws an error if the flows contain an empty flow directory.', async (): Promise<void> => {
@@ -211,7 +211,7 @@ suite('loadApplication', (): void => {
 
     await assert.
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync(`No flow definition in '<app>/build/flows/emptyFlow' found.`);
+      is.throwingAsync(`No flow definition in '<app>/build/server/flows/emptyFlow' found.`);
   });
 
   test('throws an error if a flow is malformed.', async (): Promise<void> => {
@@ -219,7 +219,7 @@ suite('loadApplication', (): void => {
 
     await assert.
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync(`Flow definition '<app>/build/flows/invalidFlow' is malformed: Object 'domainEventHandlers' is missing.`);
+      is.throwingAsync(`Flow definition '<app>/build/server/flows/invalidFlow' is malformed: Object 'domainEventHandlers' is missing.`);
   });
 
   test('throws an error if the views directory is missing.', async (): Promise<void> => {
@@ -227,7 +227,7 @@ suite('loadApplication', (): void => {
 
     await assert.
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync(`Directory '<app>/build/views' not found.`);
+      is.throwingAsync(`Directory '<app>/build/server/views' not found.`);
   });
 
   test('throws an error if the domain contains an empty view directory.', async (): Promise<void> => {
@@ -235,7 +235,7 @@ suite('loadApplication', (): void => {
 
     await assert.
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync(`No view definition in '<app>/build/views/emptyView' found.`);
+      is.throwingAsync(`No view definition in '<app>/build/server/views/emptyView' found.`);
   });
 
   test('throws an error if a view is malformed.', async (): Promise<void> => {
@@ -243,7 +243,7 @@ suite('loadApplication', (): void => {
 
     await assert.
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync(`View definition '<app>/build/views/invalidView' is malformed: Object 'initializer' is missing.`);
+      is.throwingAsync(`View definition '<app>/build/server/views/invalidView' is malformed: Object 'initializer' is missing.`);
   });
 
   test('throws an appropriate error if any file in the application contains a syntax error.', async (): Promise<void> => {
@@ -259,6 +259,6 @@ suite('loadApplication', (): void => {
 
     await assert.
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync(`Directory '<app>/build/infrastructure' not found.`);
+      is.throwingAsync(`Directory '<app>/build/server/infrastructure' not found.`);
   });
 });

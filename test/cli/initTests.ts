@@ -102,7 +102,6 @@ suite('init', function (): void {
 
     assert.that(code).is.equalTo(0);
 
-    assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/microservice.in-memory.yml') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/microservice.postgres.yml') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/single-process.in-memory.yml') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/single-process.postgres.yml') })).is.true();
@@ -129,7 +128,6 @@ suite('init', function (): void {
 
     assert.that(code).is.equalTo(0);
 
-    assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/microservice.in-memory.yml') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/microservice.postgres.yml') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/single-process.in-memory.yml') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'deployment/docker-compose/single-process.postgres.yml') })).is.true();
