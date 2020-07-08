@@ -124,6 +124,59 @@ wolkenkit provides a GraphQL endpoint under the following address:
 
 You can use it to submit commands and subscribe to domain events, however cancelling commands is currently not supported. If you point your browser to this endpoint, you will get an interactive GraphQL playground.
 
+##### Sending commands
+
+To send a command, send a mutation with the following data structure to the GraphQL endpoint of the runtime. Of course, the specific names of the context, the aggregate and the command itself, as well as the aggregate id and the command's data depend on the domain you have modeled:
+
+```
+mutation {
+  command {
+    communication {
+      message(id: "d2edbbf7-a515-4b66-9567-dd931f1690d3") {
+        send(data: { text: "Hello, world!" }) {
+          id
+        }
+      }
+    }
+  }
+}
+```
+
+###### Cancelling a command
+
+To cancel a command, send a mutation with the following data structure to the GraphQL endpoint of the runtime. Of course, the specific names of the context, the aggregate and the command itself, as well as the aggregate id and the command's data depend on the domain you have modeled:
+
+```
+mutation {
+  cancel(commandIdentifier: {
+    contextIdentifier: { name: "communication" },
+    aggregateIdentifier: { name: "message", id: "d2edbbf7-a515-4b66-9567-dd931f1690d3" },
+    name: "send",
+    id: "0a2d394c-2873-4643-84fd-dbcc43d80c5b"
+  }) {
+    success
+  }
+}
+```
+
+*Please note that you can cancel commands only as long as they are not yet being processed by the domain.*
+
+##### Subscribing to domain events
+
+To receive domain events, send a subscription to the GraphQL endpoint of the runtime. The response is a stream of objects, where the domain events' `data` has been stringified:
+
+```
+subscription {
+  domainEvents {
+    contextIdentifier { name },
+    aggregateIdentifier { name, id },
+    name,
+    id,
+    data
+  }
+}
+```
+
 #### Authenticating a user
 
 For authentication wolkenkit relies on OpenID Connect, so to use authentication you have to set up an external identity provider such as [Auth0](https://auth0.com/) or [Keycloak](https://www.keycloak.org/).

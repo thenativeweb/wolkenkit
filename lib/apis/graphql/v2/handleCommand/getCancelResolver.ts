@@ -1,3 +1,4 @@
+import { addMissingPrototype } from '../../../../common/utils/graphql/addMissingPrototype';
 import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { errors } from '../../../../common/errors';
@@ -18,7 +19,9 @@ const getCancelResolver = function ({
   application: Application;
   onCancelCommand: OnCancelCommand;
 }): IFieldResolver<any, { clientMetadata: ClientMetadata }> {
-  return async (root, { commandIdentifier }, { clientMetadata }): Promise<{ success: boolean }> => {
+  return async (root, { commandIdentifier: rawCommandIdentifier }, { clientMetadata }): Promise<{ success: boolean }> => {
+    const commandIdentifier = addMissingPrototype({ value: rawCommandIdentifier });
+
     try {
       new Value(getItemIdentifierSchema()).validate(commandIdentifier, { valueName: 'commandIdentifier' });
     } catch (ex) {
