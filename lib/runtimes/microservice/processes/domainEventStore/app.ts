@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
+import { configurationDefinition } from './configurationDefinition';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { flaschenpost } from 'flaschenpost';
+import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getApi } from './getApi';
-import { getConfiguration } from './getConfiguration';
 import http from 'http';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
@@ -15,7 +16,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
   try {
     registerExceptionHandler();
 
-    const configuration = getConfiguration();
+    const configuration = fromEnvironmentVariables({ configurationDefinition });
 
     const domainEventStore = await createDomainEventStore({
       type: configuration.domainEventStoreType,

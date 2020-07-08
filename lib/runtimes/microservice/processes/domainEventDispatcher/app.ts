@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { configurationDefinition } from './configurationDefinition';
 import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
 import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { createSubscriber } from '../../../../messaging/pubSub/createSubscriber';
@@ -7,8 +8,8 @@ import { doesItemIdentifierWithClientMatchDomainEvent } from '../../../../common
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { flaschenpost } from 'flaschenpost';
+import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getApi } from './getApi';
-import { getConfiguration } from './getConfiguration';
 import { getOnReceiveDomainEvent } from './getOnReceiveDomainEvent';
 import http from 'http';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
@@ -23,7 +24,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
   try {
     registerExceptionHandler();
 
-    const configuration = getConfiguration();
+    const configuration = fromEnvironmentVariables({ configurationDefinition });
 
     const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
