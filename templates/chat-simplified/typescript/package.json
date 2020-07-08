@@ -2,7 +2,11 @@
   "name": "chat-typescript",
   "version": "0.0.1",
   "description": "",
-  "dependencies": {},
+  "dependencies": {
+    "@types/mongodb": "3.5.25",
+    "mongodb": "3.5.9",
+    "processenv": "3.0.2"
+  },
   "devDependencies": {
     "@types/mocha": "7.0.2",
     "assertthat": "5.1.1",

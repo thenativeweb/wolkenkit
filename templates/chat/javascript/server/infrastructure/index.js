@@ -1,10 +1,7 @@
 'use strict';
 
-const getInfrastructure = async function () {
-  return {
-    ask: {},
-    tell: {}
-  };
-};
+const { Collection } = require('mongodb');
+const { getInfrastructure } = require('./getInfrastructure');
+const { setupInfrastructure } = require('./setupInfrastructure');
 
-module.exports = { getInfrastructure };
+module.exports = { setupInfrastructure, getInfrastructure };

@@ -1,15 +1,16 @@
+import { Message } from '../types/Message';
+import { Collection } from 'mongodb';
+import { getInfrastructure } from './getInfrastructure';
+import { setupInfrastructure } from './setupInfrastructure';
 import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
 
 export interface Infrastructure extends AskInfrastructure, TellInfrastructure {
   ask: {};
-  tell: {};
-}
-
-const getInfrastructure = async function (): Promise<AskInfrastructure & TellInfrastructure> {
-  return {
-    ask: {},
-    tell: {}
+  tell: {
+    viewStore: {
+      messages: Collection<Message> | Message[]
+    };
   };
 }
 
-export default { getInfrastructure }
+export default { setupInfrastructure, getInfrastructure };
