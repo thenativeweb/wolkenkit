@@ -1,5 +1,9 @@
 'use strict';
 
+const setupInfrastructure = async function () {
+  // Intentionally left blank.
+};
+
 const getInfrastructure = async function () {
   return {
     ask: {},
@@ -7,4 +11,4 @@ const getInfrastructure = async function () {
   };
 };
 
-module.exports = { getInfrastructure };
+module.exports = { getInfrastructure, setupInfrastructure };

@@ -11,7 +11,7 @@ const getDomainDefinition = async function ({ domainDirectory }: {
   domainDirectory: string;
 }): Promise<DomainDefinition> {
   if (!await exists({ path: domainDirectory })) {
-    throw new errors.DirectoryNotFound(`Directory '<app>/build/domain' not found.`);
+    throw new errors.DirectoryNotFound(`Directory '<app>/build/server/domain' not found.`);
   }
 
   const domainDefinition: DomainDefinition = {};
@@ -41,10 +41,10 @@ const getDomainDefinition = async function ({ domainDirectory }: {
         rawAggregate = (await import(aggregatePath)).default;
       } catch (ex) {
         if (ex instanceof SyntaxError) {
-          throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/domain/${contextName}/${aggregateName}'.`, { cause: ex });
+          throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/domain/${contextName}/${aggregateName}'.`, { cause: ex });
         }
 
-        throw new errors.FileNotFound(`No aggregate definition in '<app>/build/domain/${contextName}/${aggregateName}' found.`);
+        throw new errors.FileNotFound(`No aggregate definition in '<app>/build/server/domain/${contextName}/${aggregateName}' found.`);
       }
 
       try {
@@ -52,7 +52,7 @@ const getDomainDefinition = async function ({ domainDirectory }: {
           aggregateDefinition: rawAggregate
         });
       } catch (ex) {
-        throw new errors.AggregateDefinitionMalformed(`Aggregate definition '<app>/build/domain/${contextName}/${aggregateName}' is malformed: ${ex.message}`);
+        throw new errors.AggregateDefinitionMalformed(`Aggregate definition '<app>/build/server/domain/${contextName}/${aggregateName}' is malformed: ${ex.message}`);
       }
 
       const aggregateEnhancers = (rawAggregate.enhancers || []) as AggregateEnhancer[];

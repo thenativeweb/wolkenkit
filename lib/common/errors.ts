@@ -41,6 +41,7 @@ const errors = defekt({
   FlowNotFound: {},
   GraphQlError: {},
   IdentifierMismatch: {},
+  InfrastructureDefinitionMalformed: {},
   InvalidOperation: {},
   ItemAlreadyExists: {},
   ItemIdentifierMalformed: {},
