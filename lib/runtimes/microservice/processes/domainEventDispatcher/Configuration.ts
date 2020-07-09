@@ -6,7 +6,7 @@ export interface Configuration {
   healthPort: number;
   missedDomainEventRecoveryInterval: number;
   port: number;
-  priorityQueueStoreOptions: object & { expirationTime: number };
+  priorityQueueStoreOptions: Record<string, any> & { expirationTime: number };
   priorityQueueStoreType: string;
   pubSubOptions: {
     channel: string;

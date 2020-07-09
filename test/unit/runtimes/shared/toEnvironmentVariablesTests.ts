@@ -4,14 +4,16 @@ import { toEnvironmentVariables } from '../../../../lib/runtimes/shared/toEnviro
 
 interface Configuration {
   foo: string;
-  bar: number;
+  bar: {
+    baz: number;
+  };
 }
 
-suite('toEnvironmentVariables', (): void => {
+suite.only('toEnvironmentVariables', (): void => {
   test('builds a record of environment variables from a configuration and a configuration definition.', async (): Promise<void> => {
     const configuration: Configuration = {
       foo: 'baz',
-      bar: 5
+      bar: { baz: 5 }
     };
 
     const configurationDefinition: ConfigurationDefinition<Configuration> = {
@@ -22,8 +24,8 @@ suite('toEnvironmentVariables', (): void => {
       },
       bar: {
         environmentVariable: 'BAR',
-        defaultValue: 0,
-        schema: { type: 'number' }
+        defaultValue: { baz: 0 },
+        schema: { type: 'object', properties: { baz: { type: 'number' }}, required: [ 'baz' ], additionalProperties: false }
       }
     };
 
@@ -31,7 +33,7 @@ suite('toEnvironmentVariables', (): void => {
 
     assert.that(environmentVariables).is.equalTo({
       FOO_ENV_VAR: 'baz',
-      BAR: '5'
+      BAR: '{"baz":5}'
     });
   });
 });

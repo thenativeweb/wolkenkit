@@ -1,435 +1,550 @@
+import { Configuration as AeonstoreConfiguration } from '../../../../runtimes/microservice/processes/domainEventStore/Configuration';
+import { configurationDefinition as aeonstoreConfigurationDefinition } from '../../../../runtimes/microservice/processes/domainEventStore/configurationDefinition';
+import { Configuration as CommandConfiguration } from '../../../../runtimes/microservice/processes/command/Configuration';
+import { configurationDefinition as commandConfigurationDefinition } from '../../../../runtimes/microservice/processes/command/configurationDefinition';
+import { Configuration as CommandDispatcherConfiguration } from '../../../../runtimes/microservice/processes/commandDispatcher/Configuration';
+import { configurationDefinition as commandDispatcherConfigurationDefinition } from '../../../../runtimes/microservice/processes/commandDispatcher/configurationDefinition';
+import { Configuration as DomainConfiguration } from '../../../../runtimes/microservice/processes/domain/Configuration';
+import { configurationDefinition as domainConfigurationDefinition } from '../../../../runtimes/microservice/processes/domain/configurationDefinition';
+import { Configuration as DomainEventConfiguration } from '../../../../runtimes/microservice/processes/domainEvent/Configuration';
+import { configurationDefinition as domainEventConfigurationDefinition } from '../../../../runtimes/microservice/processes/domainEvent/configurationDefinition';
+import { Configuration as DomainEventDispatcherConfiguration } from '../../../../runtimes/microservice/processes/domainEventDispatcher/Configuration';
+import { configurationDefinition as domainEventDispatcherConfigurationDefinition } from '../../../../runtimes/microservice/processes/domainEventDispatcher/configurationDefinition';
+import { Configuration as FlowConfiguration } from '../../../../runtimes/microservice/processes/flow/Configuration';
+import { configurationDefinition as flowConfigurationDefinition } from '../../../../runtimes/microservice/processes/flow/configurationDefinition';
+import { Configuration as GraphqlConfiguration } from '../../../../runtimes/microservice/processes/graphql/Configuration';
+import { configurationDefinition as graphqlConfigurationDefinition } from '../../../../runtimes/microservice/processes/graphql/configurationDefinition';
+import { Configuration as PublisherConfiguration } from '../../../../runtimes/microservice/processes/publisher/Configuration';
+import { configurationDefinition as publisherConfigurationDefinition } from '../../../../runtimes/microservice/processes/publisher/configurationDefinition';
+import { Configuration as ReplayConfiguration } from '../../../../runtimes/microservice/processes/replay/Configuration';
+import { configurationDefinition as replayConfigurationDefinition } from '../../../../runtimes/microservice/processes/replay/configurationDefinition';
+import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
+import { toEnvironmentVariables } from '../../../../runtimes/shared/toEnvironmentVariables';
 import { versions } from '../../../../versions';
 
 const getMicroservicePostgresManifest = function ({ appName }: {
   appName: string;
 }): string {
-  const ports = {
-    public: {
-      command: 3000,
-      domainEvents: 3001,
-      graphql: 3002
+  const services = {
+    command: {
+      hostName: 'command',
+      publicPort: 3000,
+      privatePort: 3000,
+      healthPort: 3001
     },
-    private: {
-      command: 3000,
-      commandDispatcher: 3000,
-      domainEvents: 3000,
-      aeonstore: 3000,
-      publisher: 3000,
-      graphql: 3000,
-      domainEventDispatcher: 3000,
-      replay: 3000
+    commandDispatcher: {
+      hostName: 'command-dispatcher',
+      privatePort: 3000,
+      healthPort: 3001
     },
-    health: {
-      command: 3001,
-      commandDispatcher: 3001,
-      domain: 3001,
-      domainEvents: 3001,
-      aeonstore: 3001,
-      publisher: 3001,
-      graphql: 3001,
-      domainEventDispatcher: 3001,
-      flow: 3001,
-      replay: 3001
+    domain: {
+      hostName: 'domain',
+      privatePort: 3000,
+      healthPort: 3001
+    },
+    domainEvent: {
+      hostName: 'domain-event',
+      publicPort: 3001,
+      privatePort: 3000,
+      healthPort: 3001
+    },
+    aeonstore: {
+      hostName: 'aeonstore',
+      privatePort: 3000,
+      healthPort: 3001
+    },
+    publisher: {
+      hostName: 'publisher',
+      privatePort: 3000,
+      healthPort: 3001
+    },
+    graphql: {
+      hostName: 'graphql',
+      publicPort: 3002,
+      privatePort: 3000,
+      healthPort: 3001
+    },
+    domainEventDispatcher: {
+      hostName: 'domain-event-dispatcher',
+      privatePort: 3000,
+      healthPort: 3001
+    },
+    flow: {
+      hostName: 'flow',
+      privatePort: 3000,
+      healthPort: 3001
+    },
+    replay: {
+      hostName: 'replay',
+      privatePort: 3000,
+      healthPort: 3001
+    },
+    postgres: {
+      hostName: 'postgres',
+      privatePort: 5432,
+      userName: 'wolkenkit',
+      password: 'please-replace-this',
+      database: 'wolkenkit'
     }
   };
 
-  const postgresOptions = {
-    userName: 'wolkenkit',
-    password: 'please-replace-this',
-    database: 'wolkenkit',
-    port: 5432
+  const applicationDirectory = '/app',
+        corsOrigin = '*',
+        domainEventStoreOptions = {
+          hostName: services.postgres.hostName,
+          port: services.postgres.privatePort,
+          userName: services.postgres.userName,
+          password: services.postgres.password,
+          database: services.postgres.database,
+          tableNames: {
+            domainEvent: 'domainevents',
+            snapshots: 'snapshots'
+          }
+        },
+        domainEventStoreType = 'Postgres',
+        identityProviders: { issuer: string; certificate: string }[] = [],
+        lockStoreOptions = {
+          hostName: services.postgres.hostName,
+          port: services.postgres.privatePort,
+          userName: services.postgres.userName,
+          password: services.postgres.password,
+          database: services.postgres.database,
+          tableNames: {
+            locks: 'locks'
+          }
+        },
+        lockStoreType = 'Postgres',
+        publisherChannelNewDomainEvent = 'newDomainEvent',
+        snapshotStrategy: SnapshotStrategyConfiguration = {
+          name: 'lowest',
+          configuration: {
+            revisionLimit: 100,
+            durationLimit: 500
+          }
+        };
+
+  const commandConfiguration: CommandConfiguration = {
+    applicationDirectory,
+    commandCorsOrigin: corsOrigin,
+    commandDispatcherHostName: services.commandDispatcher.hostName,
+    commandDispatcherPort: services.commandDispatcher.privatePort,
+    commandDispatcherProtocol: 'http',
+    commandDispatcherRetries: 5,
+    enableOpenApiDocumentation: true,
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.command.healthPort,
+    identityProviders,
+    port: services.command.privatePort
   };
 
-  const lockStoreType = 'Postgres';
-  const lockStoreOptions = JSON.stringify({
-    hostName: 'postgres',
-    port: postgresOptions.port,
-    userName: postgresOptions.userName,
-    password: postgresOptions.password,
-    database: postgresOptions.database,
-    tableNames: {
-      locks: 'locks'
-    }
-  });
-
-  const domainEventStoreType = 'Postgres';
-  const domainEventStoreOptions = JSON.stringify({
-    hostName: 'postgres',
-    port: postgresOptions.port,
-    userName: postgresOptions.userName,
-    password: postgresOptions.password,
-    database: postgresOptions.database,
-    tableNames: {
-      domainEvents: 'domainevents',
-      snapshots: 'snapshots'
-    }
-  });
-
-  const commandPriorityQueueStoreType = 'Postgres';
-  const commandPriorityQueueStoreOptions = JSON.stringify({
-    hostName: 'postgres',
-    port: postgresOptions.port,
-    userName: postgresOptions.userName,
-    password: postgresOptions.password,
-    database: postgresOptions.database,
-    tableNames: {
-      items: 'items-command',
-      priorityQueue: 'priorityQueue-command'
+  const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
+    applicationDirectory,
+    awaitCommandCorsOrigin: corsOrigin,
+    handleCommandCorsOrigin: corsOrigin,
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.commandDispatcher.healthPort,
+    missedCommandRecoveryInterval: 5_000,
+    port: services.commandDispatcher.privatePort,
+    priorityQueueStoreOptions: {
+      hostName: services.postgres.hostName,
+      port: services.postgres.privatePort,
+      userName: services.postgres.userName,
+      password: services.postgres.password,
+      database: services.postgres.database,
+      tableNames: {
+        items: 'items-command',
+        priorityQueue: 'priorityQueue-command'
+      },
+      expirationTime: 30_000
     },
-    expirationTime: 30000
-  });
-
-  const domainEventPriorityQueueStoreType = 'Postgres';
-  const domainEventPriorityQueueStoreOptions = JSON.stringify({
-    hostName: 'postgres',
-    port: postgresOptions.port,
-    userName: postgresOptions.userName,
-    password: postgresOptions.password,
-    database: postgresOptions.database,
-    tableNames: {
-      items: 'items-domain-event',
-      priorityQueue: 'priorityQueue-domain-event'
+    priorityQueueStoreType: 'Postgres',
+    pubSubOptions: {
+      channel: 'newCommand',
+      subscriber: {},
+      publisher: {}
     },
-    expirationTime: 30000
-  });
+    pubSubType: 'InMemory'
+  };
 
-  const flowProgressStoreType = 'Postgres';
-  const flowProgressStoreOptions = JSON.stringify({
-    hostName: 'postgres',
-    port: postgresOptions.port,
-    userName: postgresOptions.userName,
-    password: postgresOptions.password,
-    database: postgresOptions.database,
-    tableNames: {
-      progress: 'progress-flow'
-    }
-  });
+  const domainConfiguration: DomainConfiguration = {
+    aeonstoreHostName: services.aeonstore.hostName,
+    aeonstorePort: services.aeonstore.privatePort,
+    aeonstoreProtocol: 'http',
+    applicationDirectory,
+    commandDispatcherAcknowledgeRetries: 5,
+    commandDispatcherHostName: services.commandDispatcher.hostName,
+    commandDispatcherPort: services.commandDispatcher.privatePort,
+    commandDispatcherProtocol: 'http',
+    commandDispatcherRenewInterval: 5_000,
+    concurrentCommands: 1,
+    domainEventDispatcherHostName: services.domainEventDispatcher.hostName,
+    domainEventDispatcherPort: services.domainEventDispatcher.privatePort,
+    domainEventDispatcherProtocol: 'http',
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.domain.healthPort,
+    lockStoreOptions,
+    lockStoreType,
+    publisherChannelNewDomainEvent,
+    publisherHostName: services.publisher.hostName,
+    publisherPort: services.publisher.privatePort,
+    publisherProtocol: 'http',
+    snapshotStrategy
+  };
 
-  const pubSubTypePublisher = 'InMemory';
-  const pubSubOptionsPublisher = JSON.stringify({
-    subscriber: {},
-    publisher: {}
-  });
+  const domainEventConfiguration: DomainEventConfiguration = {
+    applicationDirectory,
+    domainEventCorsOrigin: corsOrigin,
+    domainEventStoreOptions,
+    domainEventStoreType,
+    enableOpenApiDocumentation: true,
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.domainEvent.healthPort,
+    identityProviders,
+    port: services.domainEvent.privatePort,
+    snapshotStrategy,
+    subscribeMessagesChannel: publisherChannelNewDomainEvent,
+    subscribeMessagesHostName: services.publisher.hostName,
+    subscribeMessagesPort: services.publisher.privatePort,
+    subscribeMessagesProtocol: 'http'
+  };
 
-  const pubSubTypeCommandDispatcher = 'InMemory';
-  const pubSubOptionsCommandDispatcher = JSON.stringify({
-    channel: 'newCommand',
-    subscriber: {},
-    publisher: {}
-  });
+  const aeonstoreConfiguration: AeonstoreConfiguration = {
+    domainEventStoreOptions,
+    domainEventStoreType,
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.aeonstore.healthPort,
+    port: services.aeonstore.privatePort,
+    queryDomainEventsCorsOrigin: corsOrigin,
+    writeDomainEventsCorsOrigin: corsOrigin
+  };
 
-  const pubSubTypeDomainEventDispatcher = 'InMemory';
-  const pubSubOptionsDomainEventDispatcher = JSON.stringify({
-    channel: 'newDomainEvent',
-    subscriber: {},
-    publisher: {}
-  });
+  const publisherConfiguration: PublisherConfiguration = {
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.publisher.healthPort,
+    port: services.publisher.privatePort,
+    publishCorsOrigin: corsOrigin,
+    pubSubOptions: {
+      subscriber: {},
+      publisher: {}
+    },
+    pubSubType: 'InMemory',
+    subscribeCorsOrigin: corsOrigin
+  };
 
-  const snapshotStrategy = JSON.stringify({
-    name: 'lowest',
-    configuration: {
-      revisionLimit: 100,
-      durationLimit: 500
-    }
-  });
+  const graphqlConfiguration: GraphqlConfiguration = {
+    applicationDirectory,
+    commandDispatcherHostName: services.commandDispatcher.hostName,
+    commandDispatcherPort: services.commandDispatcher.privatePort,
+    commandDispatcherProtocol: 'http',
+    commandDispatcherRetries: 5,
+    corsOrigin,
+    domainEventStoreOptions,
+    domainEventStoreType,
+    enableIntegratedClient: true,
+    healthPort: services.graphql.healthPort,
+    identityProviders,
+    port: services.graphql.privatePort,
+    snapshotStrategy,
+    subscribeMessagesChannel: publisherChannelNewDomainEvent,
+    subscribeMessagesHostName: services.publisher.hostName,
+    subscribeMessagesPort: services.publisher.privatePort,
+    subscribeMessagesProtocol: 'http'
+  };
 
-  const identityProviders = JSON.stringify([]);
+  const domainEventDispatcherConfiguration: DomainEventDispatcherConfiguration = {
+    applicationDirectory,
+    awaitDomainEventCorsOrigin: corsOrigin,
+    handleDomainEventCorsOrigin: corsOrigin,
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.domainEventDispatcher.healthPort,
+    missedDomainEventRecoveryInterval: 5_000,
+    port: services.domainEventDispatcher.privatePort,
+    priorityQueueStoreOptions: {
+      hostName: services.postgres.hostName,
+      port: services.postgres.privatePort,
+      userName: services.postgres.userName,
+      password: services.postgres.password,
+      database: services.postgres.database,
+      tableNames: {
+        items: 'items-domain-event',
+        priorityQueue: 'priorityQueue-domain-event'
+      },
+      expirationTime: 30_000
+    },
+    priorityQueueStoreType: 'Postgres',
+    pubSubOptions: {
+      channel: 'newDomainEvent',
+      subscriber: {},
+      publisher: {}
+    },
+    pubSubType: 'InMemory'
+  };
+
+  const flowConfiguration: FlowConfiguration = {
+    aeonstoreHostName: services.aeonstore.hostName,
+    aeonstorePort: services.aeonstore.privatePort,
+    aeonstoreProtocol: 'http',
+    applicationDirectory,
+    commandDispatcherHostName: services.commandDispatcher.hostName,
+    commandDispatcherPort: services.commandDispatcher.privatePort,
+    commandDispatcherProtocol: 'http',
+    concurrentFlows: 1,
+    consumerProgressStoreOptions: {
+      hostName: services.postgres.hostName,
+      port: services.postgres.privatePort,
+      userName: services.postgres.userName,
+      password: services.postgres.password,
+      database: services.postgres.database,
+      tableNames: {
+        progress: 'progress-flow'
+      }
+    },
+    consumerProgressStoreType: 'Postgres',
+    domainEventDispatcherAcknowledgeRetries: 5,
+    domainEventDispatcherHostName: services.domainEventDispatcher.hostName,
+    domainEventDispatcherPort: services.domainEventDispatcher.privatePort,
+    domainEventDispatcherProtocol: 'http',
+    domainEventDispatcherRenewInterval: 5_000,
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.flow.healthPort,
+    lockStoreOptions,
+    lockStoreType,
+    replayServerHostName: services.replay.hostName,
+    replayServerPort: services.replay.privatePort,
+    replayServerProtocol: 'http',
+    snapshotStrategy
+  };
+
+  const replayConfiguration: ReplayConfiguration = {
+    aeonstoreHostName: services.aeonstore.hostName,
+    aeonstorePort: services.aeonstore.privatePort,
+    aeonstoreProtocol: 'http',
+    applicationDirectory,
+    corsOrigin,
+    domainEventDispatcherHostName: services.domainEventDispatcher.hostName,
+    domainEventDispatcherPort: services.domainEventDispatcher.privatePort,
+    domainEventDispatcherProtocol: 'http',
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.replay.healthPort,
+    port: services.replay.privatePort
+  };
 
   return `
     version: '${versions.infrastructure['docker-compose']}'
 
     services:
-      command:
+      ${services.command.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/command/app.js'
         environment:
           NODE_ENV: 'production'
-          APPLICATION_DIRECTORY: '/app'
-          COMMAND_CORS_ORIGIN: '*'
-          COMMAND_DISPATCHER_PROTOCOL: 'http'
-          COMMAND_DISPATCHER_HOST_NAME: 'command-dispatcher'
-          COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
-          COMMAND_DISPATCHER_RETRIES: ${5}
-          HEALTH_CORS_ORIGIN: '*'
-          IDENTITY_PROVIDERS: '${identityProviders}'
-          PORT: ${ports.private.command}
-          HEALTH_PORT: ${ports.health.command}
+${
+  Object.entries(
+    toEnvironmentVariables({ configuration: commandConfiguration, configurationDefinition: commandConfigurationDefinition })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
         image: '${appName}'
         init: true
         ports:
-          - '${ports.public.command}:${ports.private.command}'
+          - '${services.command.publicPort}:${services.command.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.command}"]
+          test: ["CMD", "curl", "-f", "http://localhost:${services.command.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      command-dispatcher:
+      ${services.commandDispatcher.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/commandDispatcher/app.js'
         environment:
           NODE_ENV: 'production'
-          APPLICATION_DIRECTORY: '/app'
-          PRIORITY_QUEUE_STORE_TYPE: '${commandPriorityQueueStoreType}'
-          PRIORITY_QUEUE_STORE_OPTIONS: '${commandPriorityQueueStoreOptions}'
-          PUB_SUB_TYPE: '${pubSubTypeCommandDispatcher}'
-          PUB_SUB_OPTIONS: '${pubSubOptionsCommandDispatcher}'
-          AWAIT_COMMAND_CORS_ORIGIN: '*'
-          HANDLE_COMMAND_CORS_ORIGIN: '*'
-          HEALTH_CORS_ORIGIN: '*'
-          PORT: ${ports.private.commandDispatcher}
-          HEALTH_PORT: ${ports.health.commandDispatcher}
-          MISSED_COMMAND_RECOVERY_INTERVAL: ${5000}
+${
+  Object.entries(
+    toEnvironmentVariables({ configuration: commandDispatcherConfiguration, configurationDefinition: commandDispatcherConfigurationDefinition })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
         image: '${appName}'
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.commandDispatcher}"]
+          test: ["CMD", "curl", "-f", "http://localhost:${services.commandDispatcher.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      domain:
+      ${services.domain.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domain/app.js'
         environment:
           NODE_ENV: 'production'
-          APPLICATION_DIRECTORY: '/app'
-          COMMAND_DISPATCHER_PROTOCOL: 'http'
-          COMMAND_DISPATCHER_HOST_NAME: 'command-dispatcher'
-          COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
-          COMMAND_DISPATCHER_RENEW_INTERVAL: ${5000}
-          COMMAND_DISPATCHER_ACKNOWLEDGE_RETRIES: ${5}
-          DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http'
-          DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'domain-event-dispatcher'
-          DOMAIN_EVENT_DISPATCHER_PORT: ${ports.private.domainEventDispatcher}
-          PUBLISHER_PROTOCOL: 'http'
-          PUBLISHER_HOST_NAME: 'publisher'
-          PUBLISHER_PORT: ${ports.private.publisher}
-          PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT: 'newDomainEvent'
-          AEONSTORE_PROTOCOL: 'http'
-          AEONSTORE_HOST_NAME: 'aeonstore'
-          AEONSTORE_PORT: ${ports.private.aeonstore}
-          LOCK_STORE_OPTIONS: '${lockStoreOptions}'
-          LOCK_STORE_TYPE: '${lockStoreType}'
-          HEALTH_CORS_ORIGIN: '*'
-          HEALTH_PORT: ${ports.health.domain}
-          CONCURRENT_COMMAND: ${1}
-          SNAPSHOT_STRATEGY: '${snapshotStrategy}'
+${
+  Object.entries(
+    toEnvironmentVariables({ configuration: domainConfiguration, configurationDefinition: domainConfigurationDefinition })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
         image: '${appName}'
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.domain}"]
+          test: ["CMD", "curl", "-f", "http://localhost:${services.domain.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      domain-event:
+      ${services.domainEvent.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEvent/app.js'
         environment:
           NODE_ENV: 'production'
-          APPLICATION_DIRECTORY: '/app'
-          DOMAIN_EVENT_CORS_ORIGIN: '*'
-          DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
-          DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'
-          HEALTH_CORS_ORIGIN: '*'
-          IDENTITY_PROVIDERS: '${identityProviders}'
-          PORT: ${ports.private.domainEvents}
-          HEALTH_PORT: ${ports.health.domainEvents}
-          SUBSCRIBE_MESSAGES_PROTOCOL: 'http'
-          SUBSCRIBE_MESSAGES_HOST_NAME: 'publisher'
-          SUBSCRIBE_MESSAGES_PORT: ${ports.private.publisher}
-          SNAPSHOT_STRATEGY: '${snapshotStrategy}'
+${
+  Object.entries(
+    toEnvironmentVariables({ configuration: domainEventConfiguration, configurationDefinition: domainEventConfigurationDefinition })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
         image: '${appName}'
         init: true
         ports:
-          - '${ports.public.domainEvents}:${ports.private.domainEvents}'
+          - '${services.domainEvent.publicPort}:${services.domainEvent.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.domainEvents}"]
+          test: ["CMD", "curl", "-f", "http://localhost:${services.domainEvent.privatePort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      aeonstore:
+      ${services.aeonstore.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEventStore/app.js'
         environment:
           NODE_ENV: 'production'
-          DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'
-          DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
-          QUERY_DOMAIN_EVENT_CORS_ORIGIN: '*'
-          WRITE_DOMAIN_EVENT_CORS_ORIGIN: '*'
-          HEALTH_CORS_ORIGIN: '*'
-          PORT: ${ports.private.aeonstore}
-          HEALTH_PORT: ${ports.health.aeonstore}
+${
+  Object.entries(
+    toEnvironmentVariables({ configuration: aeonstoreConfiguration, configurationDefinition: aeonstoreConfigurationDefinition })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
         image: '${appName}'
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.aeonstore}"]
+          test: ["CMD", "curl", "-f", "http://localhost:${services.aeonstore.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      publisher:
+      ${services.publisher.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/publisher/app.js'
         environment:
           NODE_ENV: 'production'
-          HEALTH_CORS_ORIGIN: '*'
-          PORT: ${ports.private.publisher}
-          HEALTH_PORT: ${ports.health.publisher}
-          PUBLISH_CORS_ORIGIN: '*'
-          SUBSCRIBE_CORS_ORIGIN: '*'
-          PUB_SUB_TYPE: '${pubSubTypePublisher}'
-          PUB_SUB_OPTIONS: '${pubSubOptionsPublisher}'
+${
+  Object.entries(
+    toEnvironmentVariables({ configuration: publisherConfiguration, configurationDefinition: publisherConfigurationDefinition })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
         image: '${appName}'
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.publisher}"]
+          test: ["CMD", "curl", "-f", "http://localhost:${services.publisher.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      graphql:
+      ${services.graphql.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/graphql/app.js'
         environment:
           NODE_ENV: 'production'
-          APPLICATION_DIRECTORY: '/app'
-          GRAPHQL_PLAYGROUND: 'false'
-          CORS_ORIGIN: '*'
-          COMMAND_DISPATCHER_PROTOCOL: 'http'
-          COMMAND_DISPATCHER_HOST_NAME: 'command-dispatcher'
-          COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
-          COMMAND_DISPATCHER_RETRIES: ${5}
-          DOMAIN_EVENT_STORE_OPTIONS: '${domainEventStoreOptions}'
-          DOMAIN_EVENT_STORE_TYPE: '${domainEventStoreType}'
-          IDENTITY_PROVIDERS: '${identityProviders}'
-          PORT: ${ports.private.graphql}
-          HEALTH_PORT: ${ports.health.graphql}
-          SUBSCRIBE_MESSAGES_PROTOCOL: 'http'
-          SUBSCRIBE_MESSAGES_HOST_NAME: 'publisher'
-          SUBSCRIBE_MESSAGES_PORT: '${ports.private.publisher}'
-          SNAPSHOT_STRATEGY: '${snapshotStrategy}'
+${
+  Object.entries(
+    toEnvironmentVariables({ configuration: graphqlConfiguration, configurationDefinition: graphqlConfigurationDefinition })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
         image: '${appName}'
         init: true
         ports:
-          - '${ports.public.graphql}:${ports.private.graphql}'
+          - '${services.graphql.publicPort}:${services.graphql.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.graphql}"]
+          test: ["CMD", "curl", "-f", "http://localhost:${services.graphql.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      domain-event-dispatcher:
+      ${services.domainEventDispatcher.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEventDispatcher/app.js'
         environment:
           NODE_ENV: 'production'
-          APPLICATION_DIRECTORY: '/app'
-          PRIORITY_QUEUE_STORE_TYPE: '${domainEventPriorityQueueStoreType}'
-          PRIORITY_QUEUE_STORE_OPTIONS: '${domainEventPriorityQueueStoreOptions}'
-          PUB_SUB_TYPE: '${pubSubTypeDomainEventDispatcher}'
-          PUB_SUB_OPTIONS: '${pubSubOptionsDomainEventDispatcher}'
-          AWAIT_DOMAIN_EVENT_CORS_ORIGIN: '*'
-          HANDLE_DOMAIN_EVENT_CORS_ORIGIN: '*'
-          HEALTH_CORS_ORIGIN: '*'
-          PORT: '${ports.private.domainEventDispatcher}'
-          HEALTH_PORT: '${ports.health.domainEventDispatcher}'
-          MISSED_DOMAIN_EVENT_RECOVERY_INTERVAL: ${5000}
+${
+  Object.entries(
+    toEnvironmentVariables({ configuration: domainEventDispatcherConfiguration, configurationDefinition: domainEventDispatcherConfigurationDefinition })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
         image: '${appName}'
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.domainEventDispatcher}"]
+          test: ["CMD", "curl", "-f", "http://localhost:${services.domainEventDispatcher.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      flow:
+      ${services.flow.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/flow/app.js'
         environment:
           NODE_ENV: 'production'
-          APPLICATION_DIRECTORY: '/app'
-          DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http'
-          DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'domain-event-dispatcher'
-          DOMAIN_EVENT_DISPATCHER_PORT: '${ports.private.domainEventDispatcher}'
-          DOMAIN_EVENT_DISPATCHER_RENEW_INTERVAL: ${5000}
-          DOMAIN_EVENT_DISPATCHER_ACKNOWLEDGE_RETRIES: ${5}
-          COMMAND_DISPATCHER_PROTOCOL: 'http'
-          COMMAND_DISPATCHER_HOST_NAME: 'command-dispatcher'
-          COMMAND_DISPATCHER_PORT: ${ports.private.commandDispatcher}
-          REPLAY_SERVER_PROTOCOL: 'http'
-          REPLAY_SERVER_HOST_NAME: 'replay'
-          REPLAY_SERVER_PORT: ${ports.private.replay}
-          AEONSTORE_PROTOCOL: 'http'
-          AEONSTORE_HOST_NAME: 'aeonstore'
-          AEONSTORE_PORT: ${ports.private.aeonstore}
-          LOCK_STORE_OPTIONS: '${lockStoreOptions}'
-          LOCK_STORE_TYPE: '${lockStoreType}'
-          CONSUMER_PROGRESS_STORE_TYPE: '${flowProgressStoreType}'
-          CONSUMER_PROGRESS_STORE_OPTIONS: '${flowProgressStoreOptions}'
-          HEALTH_CORS_ORIGIN: '*'
-          HEALTH_PORT: '${ports.health.domainEventDispatcher}'
-          CONCURRENT_FLOWS: ${1}
+${
+  Object.entries(
+    toEnvironmentVariables({ configuration: flowConfiguration, configurationDefinition: flowConfigurationDefinition })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
         image: '${appName}'
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.flow}"]
+          test: ["CMD", "curl", "-f", "http://localhost:${services.flow.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      replay:
+      ${services.replay.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/replay/app.js'
         environment:
           NODE_ENV: 'production'
-          APPLICATION_DIRECTORY: '/app'
-          DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http'
-          DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'domain-event-dispatcher'
-          DOMAIN_EVENT_DISPATCHER_PORT: ${ports.private.domainEventDispatcher}
-          AEONSTORE_PROTOCOL: 'http'
-          AEONSTORE_HOST_NAME: 'aeonstore'
-          AEONSTORE_PORT: ${ports.private.aeonstore}
-          HEALTH_CORS_ORIGIN: '*'
-          HEALTH_PORT: ${ports.health.replay}
-          CORS_ORIGIN: '*'
-          PORT: ${ports.private.replay}
+${
+  Object.entries(
+    toEnvironmentVariables({ configuration: replayConfiguration, configurationDefinition: replayConfigurationDefinition })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
         image: '${appName}'
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${ports.health.replay}"]
+          test: ["CMD", "curl", "-f", "http://localhost:${services.replay.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      postgres:
+      ${services.postgres.hostName}:
         image: 'postgres:${versions.dockerImages.postgres}'
         environment:
-          POSTGRES_DB: '${postgresOptions.database}'
-          POSTGRES_USER: '${postgresOptions.userName}'
-          POSTGRES_PASSWORD: '${postgresOptions.password}'
+          POSTGRES_DB: '${services.postgres.database}'
+          POSTGRES_USER: '${services.postgres.userName}'
+          POSTGRES_PASSWORD: '${services.postgres.password}'
           PGDATA: '/var/lib/postgresql/data'
         restart: 'always'
         volumes:

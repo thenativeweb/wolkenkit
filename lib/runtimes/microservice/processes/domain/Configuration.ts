@@ -16,7 +16,7 @@ export interface Configuration {
   domainEventDispatcherProtocol: string;
   healthCorsOrigin: string | string[];
   healthPort: number;
-  lockStoreOptions: object;
+  lockStoreOptions: Record<string, any>;
   lockStoreType: string;
   publisherChannelNewDomainEvent: string;
   publisherHostName: string;

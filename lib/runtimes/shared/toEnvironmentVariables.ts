@@ -9,8 +9,13 @@ const toEnvironmentVariables = function <TConfiguration extends object> ({ confi
 
   for (const [ key, rawDefinition ] of Object.entries(configurationDefinition)) {
     const definition = rawDefinition as ConfigurationDefinitionItem<any>;
+    const value = (configuration as any)[key];
 
-    environmentVariables[definition.environmentVariable] = String((configuration as any)[key]);
+    if (typeof value === 'object') {
+      environmentVariables[definition.environmentVariable] = JSON.stringify(value);
+    } else {
+      environmentVariables[definition.environmentVariable] = String(value);
+    }
   }
 
   return environmentVariables;
