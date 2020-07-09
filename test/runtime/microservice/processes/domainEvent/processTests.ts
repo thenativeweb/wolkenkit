@@ -4,6 +4,8 @@ import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDoma
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { Configuration as DomainEventConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEvent/Configuration';
 import { configurationDefinition as domainEventConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEvent/configurationDefinition';
+import { Configuration as DomainEventStoreConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/Configuration';
+import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
 import { errors } from '../../../../../lib/common/errors';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
@@ -28,19 +30,29 @@ suite('domain event', function (): void {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
   const subscribeMessagesChannel = 'newDomainEvent';
 
-  let healthPort: number,
+  let domainEventStoreHealthPort: number,
+      domainEventStorePort: number,
+      healthPort: number,
       observeDomainEventsClient: ObserveDomainEventsClient,
       port: number,
       publisherHealthPort: number,
       publisherPort: number,
       publishMessageClient: PublishMessageClient,
       stopProcess: (() => Promise<void>) | undefined,
+      stopProcessDomainEventStore: (() => Promise<void>) | undefined,
       stopProcessPublisher: (() => Promise<void>) | undefined;
 
   setup(async function (): Promise<void> {
     this.timeout(60_000);
 
-    [ port, healthPort, publisherPort, publisherHealthPort ] = await getAvailablePorts({ count: 4 });
+    [
+      port,
+      healthPort,
+      publisherPort,
+      publisherHealthPort,
+      domainEventStorePort,
+      domainEventStoreHealthPort
+    ] = await getAvailablePorts({ count: 6 });
 
     const publisherConfiguration: PublisherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: publisherConfigurationDefinition }),
@@ -66,8 +78,27 @@ suite('domain event', function (): void {
       path: '/publish/v2'
     });
 
+    const domainEventStoreConfiguration: DomainEventStoreConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: domainEventStoreConfigurationDefinition }),
+      port: domainEventStorePort,
+      healthPort: domainEventStoreHealthPort
+    };
+
+    stopProcessDomainEventStore = await startProcess({
+      runtime: 'microservice',
+      name: 'domainEventStore',
+      enableDebugMode: false,
+      port: domainEventStoreHealthPort,
+      env: toEnvironmentVariables({
+        configuration: domainEventStoreConfiguration,
+        configurationDefinition: domainEventStoreConfigurationDefinition
+      })
+    });
+
     const domainEventConfiguration: DomainEventConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventConfigurationDefinition }),
+      aeonstoreHostName: 'localhost',
+      aeonstorePort: domainEventStorePort,
       applicationDirectory,
       port,
       healthPort,
@@ -104,9 +135,13 @@ suite('domain event', function (): void {
     if (stopProcessPublisher) {
       await stopProcessPublisher();
     }
+    if (stopProcessDomainEventStore) {
+      await stopProcessDomainEventStore();
+    }
 
     stopProcess = undefined;
     stopProcessPublisher = undefined;
+    stopProcessDomainEventStore = undefined;
   });
 
   suite('getHealth', (): void => {

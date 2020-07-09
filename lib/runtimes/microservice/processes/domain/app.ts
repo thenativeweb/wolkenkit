@@ -36,6 +36,7 @@ import { State } from '../../../../common/elements/State';
     });
 
     const domainEventStore = await AeonstoreDomainEventStore.create({
+      protocol: configuration.aeonstoreProtocol,
       hostName: configuration.aeonstoreHostName,
       port: configuration.aeonstorePort
     });

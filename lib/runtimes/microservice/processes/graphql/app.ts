@@ -23,6 +23,7 @@ import { State } from '../../../../common/elements/State';
 import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
 import { Value } from 'validate-value';
+import {AeonstoreDomainEventStore} from "../../../../stores/domainEventStore/Aeonstore";
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -41,9 +42,10 @@ import { Value } from 'validate-value';
       applicationDirectory: configuration.applicationDirectory
     });
 
-    const domainEventStore = await createDomainEventStore({
-      type: configuration.domainEventStoreType,
-      options: configuration.domainEventStoreOptions
+    const domainEventStore = await AeonstoreDomainEventStore.create({
+      protocol: configuration.aeonstoreProtocol,
+      hostName: configuration.aeonstoreHostName,
+      port: configuration.aeonstorePort
     });
 
     const repository = new Repository({

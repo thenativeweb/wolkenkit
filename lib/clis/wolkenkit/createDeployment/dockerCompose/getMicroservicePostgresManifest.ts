@@ -192,10 +192,11 @@ const getMicroservicePostgresManifest = function ({ appName }: {
   };
 
   const domainEventConfiguration: DomainEventConfiguration = {
+    aeonstoreHostName: services.aeonstore.hostName,
+    aeonstorePort: services.aeonstore.privatePort,
+    aeonstoreProtocol: 'http',
     applicationDirectory,
     domainEventCorsOrigin: corsOrigin,
-    domainEventStoreOptions,
-    domainEventStoreType,
     enableOpenApiDocumentation: true,
     healthCorsOrigin: corsOrigin,
     healthPort: services.domainEvent.healthPort,
@@ -232,14 +233,15 @@ const getMicroservicePostgresManifest = function ({ appName }: {
   };
 
   const graphqlConfiguration: GraphqlConfiguration = {
+    aeonstoreHostName: services.aeonstore.hostName,
+    aeonstorePort: services.aeonstore.privatePort,
+    aeonstoreProtocol: 'http',
     applicationDirectory,
     commandDispatcherHostName: services.commandDispatcher.hostName,
     commandDispatcherPort: services.commandDispatcher.privatePort,
     commandDispatcherProtocol: 'http',
     commandDispatcherRetries: 5,
     corsOrigin,
-    domainEventStoreOptions,
-    domainEventStoreType,
     enableIntegratedClient: true,
     healthPort: services.graphql.healthPort,
     identityProviders,

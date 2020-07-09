@@ -14,6 +14,21 @@ const corsSchema = getCorsSchema(),
       snapshotStrategySchema = getSnapshotStrategySchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
+  aeonstoreHostName: {
+    environmentVariable: 'AEONSTORE_HOST_NAME',
+    defaultValue: 'aeonstore',
+    schema: { type: 'string', format: 'hostname' }
+  },
+  aeonstorePort: {
+    environmentVariable: 'AEONSTORE_PORT',
+    defaultValue: 3000,
+    schema: portSchema
+  },
+  aeonstoreProtocol: {
+    environmentVariable: 'AEONSTORE_PROTOCOL',
+    defaultValue: 'http',
+    schema: protocolSchema
+  },
   applicationDirectory: {
     environmentVariable: 'APPLICATION_DIRECTORY',
     defaultValue: path.join(__dirname, '..', '..', '..', '..', '..', 'test', 'shared', 'applications', 'javascript', 'base'),
@@ -43,16 +58,6 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     environmentVariable: 'CORS_ORIGIN',
     defaultValue: '*',
     schema: corsSchema
-  },
-  domainEventStoreOptions: {
-    environmentVariable: 'DOMAIN_EVENT_STORE_OPTIONS',
-    defaultValue: {},
-    schema: { type: 'object' }
-  },
-  domainEventStoreType: {
-    environmentVariable: 'DOMAIN_EVENT_STORE_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string' }
   },
   enableIntegratedClient: {
     environmentVariable: 'ENABLE_INTEGRATED_CLIENT',

@@ -37,6 +37,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     });
 
     const domainEventStore = await AeonstoreDomainEventStore.create({
+      protocol: configuration.aeonstoreProtocol,
       hostName: configuration.aeonstoreHostName,
       port: configuration.aeonstorePort
     });

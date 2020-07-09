@@ -1,10 +1,11 @@
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 
 export interface Configuration {
+  aeonstoreHostName: string;
+  aeonstorePort: number;
+  aeonstoreProtocol: string;
   applicationDirectory: string;
   domainEventCorsOrigin: string | string[];
-  domainEventStoreOptions: object;
-  domainEventStoreType: string;
   enableOpenApiDocumentation: boolean;
   healthCorsOrigin: string | string[];
   healthPort: number;

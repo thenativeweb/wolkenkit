@@ -7,6 +7,8 @@ import { Client as CommandDispatcherClient } from '../../../../../lib/apis/await
 import { Configuration as CommandDispatcherConfiguration } from '../../../../../lib/runtimes/microservice/processes/commandDispatcher/Configuration';
 import { configurationDefinition as commandDispatcherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/commandDispatcher/configurationDefinition';
 import { CommandWithMetadata } from '../../../../../lib/common/elements/CommandWithMetadata';
+import { Configuration as DomainEventStoreConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/Configuration';
+import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
 import fetch from 'node-fetch';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
@@ -39,6 +41,8 @@ suite('main', function (): void {
   let commandDispatcherClient: CommandDispatcherClient<CommandWithMetadata<CommandData>>,
       commandDispatcherHealthPort: number,
       commandDispatcherPort: number,
+      domainEventStoreHealthPort: number,
+      domainEventStorePort: number,
       healthPort: number,
       port: number,
       publisherHealthPort: number,
@@ -46,6 +50,7 @@ suite('main', function (): void {
       publishMessageClient: PublishMessageClient,
       stopProcess: (() => Promise<void>) | undefined,
       stopProcessCommandDispatcher: (() => Promise<void>) | undefined,
+      stopProcessDomainEventStore: (() => Promise<void>) | undefined,
       stopProcessPublisher: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
@@ -54,9 +59,28 @@ suite('main', function (): void {
       healthPort,
       commandDispatcherPort,
       commandDispatcherHealthPort,
+      domainEventStorePort,
+      domainEventStoreHealthPort,
       publisherPort,
       publisherHealthPort
-    ] = await getAvailablePorts({ count: 6 });
+    ] = await getAvailablePorts({ count: 8 });
+
+    const domainEventStoreConfiguration: DomainEventStoreConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: domainEventStoreConfigurationDefinition }),
+      port: domainEventStorePort,
+      healthPort: domainEventStoreHealthPort
+    };
+
+    stopProcessDomainEventStore = await startProcess({
+      runtime: 'microservice',
+      name: 'domainEventStore',
+      enableDebugMode: false,
+      port: domainEventStoreHealthPort,
+      env: toEnvironmentVariables({
+        configuration: domainEventStoreConfiguration,
+        configurationDefinition: domainEventStoreConfigurationDefinition
+      })
+    });
 
     const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: commandDispatcherConfigurationDefinition }),
@@ -118,8 +142,6 @@ suite('main', function (): void {
       commandDispatcherHostName: 'localhost',
       commandDispatcherPort,
       commandDispatcherRetries: 5,
-      domainEventStoreOptions: {},
-      domainEventStoreType: 'InMemory',
       healthPort,
       port,
       subscribeMessagesHostName: 'localhost',
@@ -150,10 +172,14 @@ suite('main', function (): void {
     if (stopProcessCommandDispatcher) {
       await stopProcessCommandDispatcher();
     }
+    if (stopProcessDomainEventStore) {
+      await stopProcessDomainEventStore();
+    }
 
     stopProcess = undefined;
     stopProcessPublisher = undefined;
     stopProcessCommandDispatcher = undefined;
+    stopProcessDomainEventStore = undefined;
   });
 
   suite('getHealth', (): void => {
