@@ -4,12 +4,13 @@ import { AeonstoreDomainEventStore } from '../../../../stores/domainEventStore/A
 import { CommandData } from '../../../../common/elements/CommandData';
 import { Client as CommandDispatcherClient } from '../../../../apis/awaitItem/http/v2/Client';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
+import { configurationDefinition } from './configurationDefinition';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { Client as DomainEventDispatcherClient } from '../../../../apis/handleDomainEvent/http/v2/Client';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
-import { getConfiguration } from './getConfiguration';
+import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import { loadApplication } from '../../../../common/application/loadApplication';
 import pForever from 'p-forever';
@@ -28,13 +29,14 @@ import { State } from '../../../../common/elements/State';
   try {
     registerExceptionHandler();
 
-    const configuration = getConfiguration();
+    const configuration = fromEnvironmentVariables({ configurationDefinition });
 
     const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
 
     const domainEventStore = await AeonstoreDomainEventStore.create({
+      protocol: configuration.aeonstoreProtocol,
       hostName: configuration.aeonstoreHostName,
       port: configuration.aeonstorePort
     });

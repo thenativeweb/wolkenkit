@@ -5,6 +5,7 @@ import { AggregateIdentifier } from '../../../../common/elements/AggregateIdenti
 import { CommandData } from '../../../../common/elements/CommandData';
 import { Client as CommandDispatcherClient } from '../../../../apis/handleCommandWithMetadata/http/v2/Client';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
+import { configurationDefinition } from './configurationDefinition';
 import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { createConsumerProgressStore } from '../../../../stores/consumerProgressStore/createConsumerProgressStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
@@ -12,7 +13,7 @@ import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { Client as DomainEventDispatcherClient } from '../../../../apis/awaitItem/http/v2/Client';
 import { flaschenpost } from 'flaschenpost';
-import { getConfiguration } from './getConfiguration';
+import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import { loadApplication } from '../../../../common/application/loadApplication';
 import pForever from 'p-forever';
@@ -29,13 +30,14 @@ import { runHealthServer } from '../../../shared/runHealthServer';
   try {
     registerExceptionHandler();
 
-    const configuration = getConfiguration();
+    const configuration = fromEnvironmentVariables({ configurationDefinition });
 
     const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
 
     const domainEventStore = await AeonstoreDomainEventStore.create({
+      protocol: configuration.aeonstoreProtocol,
       hostName: configuration.aeonstoreHostName,
       port: configuration.aeonstorePort
     });

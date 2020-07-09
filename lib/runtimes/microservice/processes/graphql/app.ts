@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
+import { AeonstoreDomainEventStore } from '../../../../stores/domainEventStore/Aeonstore';
 import { Client as CommandDispatcherClient } from '../../../../apis/handleCommandWithMetadata/http/v2/Client';
-import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
+import { configurationDefinition } from './configurationDefinition';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
+import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getApi } from './getApi';
-import { getConfiguration } from './getConfiguration';
 import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getOnCancelCommand } from './getOnCancelCommand';
@@ -30,7 +31,7 @@ import { Value } from 'validate-value';
   try {
     registerExceptionHandler();
 
-    const configuration = getConfiguration();
+    const configuration = fromEnvironmentVariables({ configurationDefinition });
 
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
@@ -40,9 +41,10 @@ import { Value } from 'validate-value';
       applicationDirectory: configuration.applicationDirectory
     });
 
-    const domainEventStore = await createDomainEventStore({
-      type: configuration.domainEventStoreType,
-      options: configuration.domainEventStoreOptions
+    const domainEventStore = await AeonstoreDomainEventStore.create({
+      protocol: configuration.aeonstoreProtocol,
+      hostName: configuration.aeonstoreHostName,
+      port: configuration.aeonstorePort
     });
 
     const repository = new Repository({

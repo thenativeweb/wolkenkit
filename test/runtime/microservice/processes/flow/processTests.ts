@@ -3,13 +3,25 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { CommandData } from '../../../../../lib/common/elements/CommandData';
 import { Client as CommandDispatcherClient } from '../../../../../lib/apis/awaitItem/http/v2/Client';
+import { Configuration as CommandDispatcherConfiguration } from '../../../../../lib/runtimes/microservice/processes/commandDispatcher/Configuration';
+import { configurationDefinition as commandDispatcherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/commandDispatcher/configurationDefinition';
 import { CommandWithMetadata } from '../../../../../lib/common/elements/CommandWithMetadata';
+import { Configuration as DomainEventDispatcherConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventDispatcher/Configuration';
+import { configurationDefinition as domainEventDispatcherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventDispatcher/configurationDefinition';
+import { Configuration as DomainEventStoreConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/Configuration';
+import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
+import { Configuration as FlowConfiguration } from '../../../../../lib/runtimes/microservice/processes/flow/Configuration';
+import { configurationDefinition as flowConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/flow/configurationDefinition';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleDomainEventClient } from '../../../../../lib/apis/handleDomainEvent/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
+import { Configuration as ReplayConfiguration } from '../../../../../lib/runtimes/microservice/processes/replay/Configuration';
+import { configurationDefinition as replayConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/replay/configurationDefinition';
 import { sleep } from '../../../../../lib/common/utils/sleep';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
+import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { uuid } from 'uuidv4';
 
 suite('flow server', function (): void {
@@ -49,17 +61,23 @@ suite('flow server', function (): void {
       healthPortAeonstore
     ] = await getAvailablePorts({ count: 9 });
 
+    const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: commandDispatcherConfigurationDefinition }),
+      applicationDirectory,
+      priorityQueueStoreOptions: { expirationTime: 5_000 },
+      port: portCommandDispatcher,
+      healthPort: healthPortCommandDispatcher
+    };
+
     stopProcessCommandDispatcher = await startProcess({
       runtime: 'microservice',
       name: 'commandDispatcher',
       enableDebugMode: false,
       port: healthPortCommandDispatcher,
-      env: {
-        APPLICATION_DIRECTORY: applicationDirectory,
-        PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":5000}`,
-        PORT: String(portCommandDispatcher),
-        HEALTH_PORT: String(healthPortCommandDispatcher)
-      }
+      env: toEnvironmentVariables({
+        configuration: commandDispatcherConfiguration,
+        configurationDefinition: commandDispatcherConfigurationDefinition
+      })
     });
 
     commandDispatcherClient = new CommandDispatcherClient<CommandWithMetadata<CommandData>>({
@@ -70,17 +88,23 @@ suite('flow server', function (): void {
       createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
     });
 
+    const domainEventDispatcherConfiguration: DomainEventDispatcherConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: domainEventDispatcherConfigurationDefinition }),
+      applicationDirectory,
+      priorityQueueStoreOptions: { expirationTime: 5_000 },
+      port: portDomainEventDispatcher,
+      healthPort: healthPortDomainEventDispatcher
+    };
+
     stopProcessDomainEventDispatcher = await startProcess({
       runtime: 'microservice',
       name: 'domainEventDispatcher',
       enableDebugMode: false,
       port: healthPortDomainEventDispatcher,
-      env: {
-        APPLICATION_DIRECTORY: applicationDirectory,
-        PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":5000}`,
-        PORT: String(portDomainEventDispatcher),
-        HEALTH_PORT: String(healthPortDomainEventDispatcher)
-      }
+      env: toEnvironmentVariables({
+        configuration: domainEventDispatcherConfiguration,
+        configurationDefinition: domainEventDispatcherConfigurationDefinition
+      })
     });
 
     handleDomainEventClient = new HandleDomainEventClient({
@@ -90,34 +114,43 @@ suite('flow server', function (): void {
       path: '/handle-domain-event/v2'
     });
 
+    const replayConfiguration: ReplayConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: replayConfigurationDefinition }),
+      applicationDirectory,
+      domainEventDispatcherHostName: 'localhost',
+      domainEventDispatcherPort: portDomainEventDispatcher,
+      aeonstoreHostName: 'localhost',
+      aeonstorePort: portAeonstore,
+      port: portReplay,
+      healthPort: healthPortReplay
+    };
+
     stopReplayServer = await startProcess({
       runtime: 'microservice',
       name: 'replay',
       enableDebugMode: false,
       port: healthPortReplay,
-      env: {
-        APPLICATION_DIRECTORY: applicationDirectory,
-        DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http',
-        DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'localhost',
-        DOMAIN_EVENT_DISPATCHER_PORT: String(portDomainEventDispatcher),
-        AEONSTORE_PROTOCOL: 'http',
-        AEONSTORE_HOST_NAME: 'localhost',
-        AEONSTORE_PORT: String(portAeonstore),
-        AEONSTORE_RETRIES: String(0),
-        PORT: String(portReplay),
-        HEALTH_PORT: String(healthPortReplay)
-      }
+      env: toEnvironmentVariables({
+        configuration: replayConfiguration,
+        configurationDefinition: replayConfigurationDefinition
+      })
     });
+
+    const domainEventStoreConfiguration: DomainEventStoreConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: domainEventStoreConfigurationDefinition }),
+      port: portAeonstore,
+      healthPort: healthPortAeonstore
+    };
 
     stopProcessAeonstore = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
       enableDebugMode: false,
       port: healthPortAeonstore,
-      env: {
-        PORT: String(portAeonstore),
-        HEALTH_PORT: String(healthPortAeonstore)
-      }
+      env: toEnvironmentVariables({
+        configuration: domainEventStoreConfiguration,
+        configurationDefinition: domainEventStoreConfigurationDefinition
+      })
     });
 
     aeonstoreClient = new AeonstoreClient({
@@ -127,35 +160,36 @@ suite('flow server', function (): void {
       path: '/write/v2'
     });
 
+    const flowConfiguration: FlowConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: flowConfigurationDefinition }),
+      applicationDirectory,
+      domainEventDispatcherHostName: 'localhost',
+      domainEventDispatcherPort: portDomainEventDispatcher,
+      domainEventDispatcherRenewInterval: 5_000,
+      domainEventDispatcherAcknowledgeRetries: 5,
+      commandDispatcherHostName: 'localhost',
+      commandDispatcherPort: portCommandDispatcher,
+      replayServerHostName: 'localhost',
+      replayServerPort: portReplay,
+      aeonstoreHostName: 'localhost',
+      aeonstorePort: portAeonstore,
+      lockStoreOptions: {},
+      lockStoreType: 'InMemory',
+      consumerProgressStoreOptions: {},
+      consumerProgressStoreType: 'InMemory',
+      healthPort,
+      concurrentFlows: 1
+    };
+
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'flow',
       enableDebugMode: false,
       port: healthPort,
-      env: {
-        APPLICATION_DIRECTORY: applicationDirectory,
-        DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http',
-        DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'localhost',
-        DOMAIN_EVENT_DISPATCHER_PORT: String(portDomainEventDispatcher),
-        DOMAIN_EVENT_DISPATCHER_RENEW_INTERVAL: String(5000),
-        DOMAIN_EVENT_DISPATCHER_ACKNOWLEDGE_RETRIES: String(5),
-        COMMAND_DISPATCHER_PROTOCOL: 'http',
-        COMMAND_DISPATCHER_HOST_NAME: 'localhost',
-        COMMAND_DISPATCHER_PORT: String(portCommandDispatcher),
-        REPLAY_SERVER_PROTOCOL: 'http',
-        REPLAY_SERVER_HOST_NAME: 'localhost',
-        REPLAY_SERVER_PORT: String(portReplay),
-        AEONSTORE_PROTOCOL: 'http',
-        AEONSTORE_HOST_NAME: 'localhost',
-        AEONSTORE_PORT: String(portAeonstore),
-        LOCK_STORE_TYPE: 'InMemory',
-        LOCK_STORE_OPTIONS: '{}',
-        CONSUMER_PROGRESS_STORE_TYPE: 'InMemory',
-        CONSUMER_PROGRESS_STORE_OPTIONS: '{}',
-        HEALTH_CORS_ORIGIN: '*',
-        HEALTH_PORT: String(healthPort),
-        CONCURRENT_FLOWS: String(1)
-      }
+      env: toEnvironmentVariables({
+        configuration: flowConfiguration,
+        configurationDefinition: flowConfigurationDefinition
+      })
     });
   });
 

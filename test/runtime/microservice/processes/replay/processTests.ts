@@ -3,11 +3,19 @@ import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDoma
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../../lib/common/elements/DomainEventData';
 import { Client as DomainEventDispatcherClient } from '../../../../../lib/apis/awaitItem/http/v2/Client';
+import { Configuration as DomainEventDispatcherConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventDispatcher/Configuration';
+import { configurationDefinition as domainEventDispatcherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventDispatcher/configurationDefinition';
+import { Configuration as DomainEventStoreConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/Configuration';
+import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Client as ReplayClient } from '../../../../../lib/apis/performReplay/http/v2/Client';
+import { Configuration as ReplayConfiguration } from '../../../../../lib/runtimes/microservice/processes/replay/Configuration';
+import { configurationDefinition as replayConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/replay/configurationDefinition';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
+import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { uuid } from 'uuidv4';
 import { Client as WriteDomainEventStoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
 
@@ -42,18 +50,24 @@ suite('replay', function (): void {
       replayPort
     ] = await getAvailablePorts({ count: 6 });
 
+    const domainEventDispatcherConfiguration: DomainEventDispatcherConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: domainEventDispatcherConfigurationDefinition }),
+      applicationDirectory,
+      priorityQueueStoreOptions: { expirationTime: queueLockExpirationTime },
+      port: domainEventDispatcherPort,
+      healthPort: domainEventDispatcherHealthPort,
+      missedDomainEventRecoveryInterval: queuePollInterval
+    };
+
     stopDomainEventDispatcherProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEventDispatcher',
       enableDebugMode: false,
       port: domainEventDispatcherHealthPort,
-      env: {
-        APPLICATION_DIRECTORY: applicationDirectory,
-        PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${queueLockExpirationTime}}`,
-        PORT: String(domainEventDispatcherPort),
-        HEALTH_PORT: String(domainEventDispatcherHealthPort),
-        QUEUE_POLL_INTERVAL: String(queuePollInterval)
-      }
+      env: toEnvironmentVariables({
+        configuration: domainEventDispatcherConfiguration,
+        configurationDefinition: domainEventDispatcherConfigurationDefinition
+      })
     });
 
     domainEventDispatcherClient = new DomainEventDispatcherClient<DomainEvent<DomainEventData>>({
@@ -64,15 +78,21 @@ suite('replay', function (): void {
       createItemInstance: ({ item }): DomainEvent<DomainEventData> => new DomainEvent<DomainEventData>(item)
     });
 
+    const domainEventStoreConfiguration: DomainEventStoreConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: domainEventStoreConfigurationDefinition }),
+      port: domainEventStorePort,
+      healthPort: domainEventStoreHealthPort
+    };
+
     stopDomainEventStoreProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
       enableDebugMode: false,
       port: domainEventStoreHealthPort,
-      env: {
-        PORT: String(domainEventStorePort),
-        HEALTH_PORT: String(domainEventStoreHealthPort)
-      }
+      env: toEnvironmentVariables({
+        configuration: domainEventStoreConfiguration,
+        configurationDefinition: domainEventStoreConfigurationDefinition
+      })
     });
 
     writeDomainEventStoreClient = new WriteDomainEventStoreClient({
@@ -82,23 +102,26 @@ suite('replay', function (): void {
       path: '/write/v2'
     });
 
+    const replayConfiguration: ReplayConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: replayConfigurationDefinition }),
+      applicationDirectory,
+      domainEventDispatcherHostName: 'localhost',
+      domainEventDispatcherPort,
+      aeonstoreHostName: 'localhost',
+      aeonstorePort: domainEventStorePort,
+      port: replayPort,
+      healthPort: replayHealthPort
+    };
+
     stopReplayProcess = await startProcess({
       runtime: 'microservice',
       name: 'replay',
       enableDebugMode: false,
       port: replayHealthPort,
-      env: {
-        APPLICATION_DIRECTORY: applicationDirectory,
-        DOMAIN_EVENT_DISPATCHER_PROTOCOL: 'http',
-        DOMAIN_EVENT_DISPATCHER_HOST_NAME: 'localhost',
-        DOMAIN_EVENT_DISPATCHER_PORT: String(domainEventDispatcherPort),
-        AEONSTORE_PROTOCOL: 'http',
-        AEONSTORE_HOST_NAME: 'localhost',
-        AEONSTORE_PORT: String(domainEventStorePort),
-        AEONSTORE_RETRIES: String(0),
-        HEALTH_PORT: String(replayHealthPort),
-        PORT: String(replayPort)
-      }
+      env: toEnvironmentVariables({
+        configuration: replayConfiguration,
+        configurationDefinition: replayConfigurationDefinition
+      })
     });
 
     replayClient = new ReplayClient({

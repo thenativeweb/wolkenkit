@@ -3,11 +3,15 @@ import { Client as AwaitCommandClient } from '../../../../../lib/apis/awaitItem/
 import { buildCommandWithMetadata } from '../../../../../lib/common/utils/test/buildCommandWithMetadata';
 import { CommandData } from '../../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../../lib/common/elements/CommandWithMetadata';
+import { Configuration } from '../../../../../lib/runtimes/microservice/processes/commandDispatcher/Configuration';
+import { configurationDefinition } from '../../../../../lib/runtimes/microservice/processes/commandDispatcher/configurationDefinition';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/apis/handleCommandWithMetadata/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
+import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { uuid } from 'uuidv4';
 
 suite('commandDispatcher', function (): void {
@@ -18,6 +22,7 @@ suite('commandDispatcher', function (): void {
   const queueLockExpirationTime = 600;
 
   let awaitCommandClient: AwaitCommandClient<CommandWithMetadata<CommandData>>,
+      commandDispatcherConfiguration: Configuration,
       handleCommandWithMetadataClient: HandleCommandWithMetadataClient,
       healthPort: number,
       port: number,
@@ -26,17 +31,20 @@ suite('commandDispatcher', function (): void {
   setup(async (): Promise<void> => {
     [ port, healthPort ] = await getAvailablePorts({ count: 2 });
 
+    commandDispatcherConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition }),
+      applicationDirectory,
+      priorityQueueStoreOptions: { expirationTime: queueLockExpirationTime },
+      port,
+      healthPort
+    };
+
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'commandDispatcher',
       enableDebugMode: false,
       port: healthPort,
-      env: {
-        APPLICATION_DIRECTORY: applicationDirectory,
-        PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${queueLockExpirationTime}}`,
-        PORT: String(port),
-        HEALTH_PORT: String(healthPort)
-      }
+      env: toEnvironmentVariables({ configuration: commandDispatcherConfiguration, configurationDefinition })
     });
 
     awaitCommandClient = new AwaitCommandClient({

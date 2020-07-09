@@ -3,11 +3,15 @@ import { Client as AwaitDomainEventClient } from '../../../../../lib/apis/awaitI
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../../lib/common/elements/DomainEventData';
+import { Configuration as DomainEventDispatcherConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventDispatcher/Configuration';
+import { configurationDefinition as domainEventDispatcherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventDispatcher/configurationDefinition';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleDomainEventClient } from '../../../../../lib/apis/handleDomainEvent/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
+import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { uuid } from 'uuidv4';
 
 suite('domainEventDispatcher', function (): void {
@@ -27,17 +31,23 @@ suite('domainEventDispatcher', function (): void {
   setup(async (): Promise<void> => {
     [ portDomainEventDispatcher, healthPortDomainEventDispatcher ] = await getAvailablePorts({ count: 2 });
 
+    const domainEventDispatcherConfiguration: DomainEventDispatcherConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: domainEventDispatcherConfigurationDefinition }),
+      applicationDirectory,
+      priorityQueueStoreOptions: { expirationTime: queueLockExpirationTime },
+      port: portDomainEventDispatcher,
+      healthPort: healthPortDomainEventDispatcher
+    };
+
     stopProcessDomainEventDispatcher = await startProcess({
       runtime: 'microservice',
       name: 'domainEventDispatcher',
       enableDebugMode: false,
       port: healthPortDomainEventDispatcher,
-      env: {
-        APPLICATION_DIRECTORY: applicationDirectory,
-        PRIORITY_QUEUE_STORE_OPTIONS: `{"expirationTime":${queueLockExpirationTime}}`,
-        PORT: String(portDomainEventDispatcher),
-        HEALTH_PORT: String(healthPortDomainEventDispatcher)
-      }
+      env: toEnvironmentVariables({
+        configuration: domainEventDispatcherConfiguration,
+        configurationDefinition: domainEventDispatcherConfigurationDefinition
+      })
     });
 
     awaitDomainEventClient = new AwaitDomainEventClient({

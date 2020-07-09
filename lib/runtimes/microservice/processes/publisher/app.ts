@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
+import { configurationDefinition } from './configurationDefinition';
 import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { createSubscriber } from '../../../../messaging/pubSub/createSubscriber';
 import { flaschenpost } from 'flaschenpost';
+import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getApi } from './getApi';
-import { getConfiguration } from './getConfiguration';
 import { getOnReceiveMessage } from './getOnReceiveMessage';
 import http from 'http';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
@@ -17,7 +18,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
   try {
     registerExceptionHandler();
 
-    const configuration = getConfiguration();
+    const configuration = fromEnvironmentVariables({ configurationDefinition });
 
     const subscriber = await createSubscriber<object>({
       type: configuration.pubSubType,

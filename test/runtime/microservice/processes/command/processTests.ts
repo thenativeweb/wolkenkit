@@ -1,6 +1,9 @@
 import { assert } from 'assertthat';
 import { Command } from '../../../../../lib/common/elements/Command';
+import { Configuration } from '../../../../../lib/runtimes/microservice/processes/command/Configuration';
+import { configurationDefinition } from '../../../../../lib/runtimes/microservice/processes/command/configurationDefinition';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
@@ -8,6 +11,7 @@ import { ItemIdentifier } from '../../../../../lib/common/elements/ItemIdentifie
 import path from 'path';
 import { startCatchAllServer } from '../../../../shared/runtime/startCatchAllServer';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
+import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { uuid } from 'uuidv4';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
@@ -16,9 +20,11 @@ suite('command', (): void => {
   suite('without retries', function (): void {
     this.timeout(10_000);
 
-    const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
+    const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
+          identityProviders = [{ issuer: 'https://token.invalid', certificate: certificateDirectory }];
 
-    let commandDispatcherPort: number,
+    let commandConfiguration: Configuration,
+        commandDispatcherPort: number,
         commandReceivedByDispatcher: object | undefined,
         endpointCommandWasSentTo: string | undefined,
         handleCommandClient: HandleCommandClient,
@@ -28,6 +34,17 @@ suite('command', (): void => {
 
     setup(async (): Promise<void> => {
       [ port, healthPort, commandDispatcherPort ] = await getAvailablePorts({ count: 3 });
+
+      commandConfiguration = {
+        ...getDefaultConfiguration<Configuration>({ configurationDefinition }),
+        applicationDirectory,
+        port,
+        healthPort,
+        commandDispatcherHostName: 'localhost',
+        commandDispatcherPort,
+        commandDispatcherRetries: 0,
+        identityProviders
+      };
 
       await startCatchAllServer({
         port: commandDispatcherPort,
@@ -43,16 +60,7 @@ suite('command', (): void => {
         name: 'command',
         enableDebugMode: false,
         port: healthPort,
-        env: {
-          APPLICATION_DIRECTORY: applicationDirectory,
-          PORT: String(port),
-          HEALTH_PORT: String(healthPort),
-          COMMAND_DISPATCHER_PROTOCOL: 'http',
-          COMMAND_DISPATCHER_HOST_NAME: 'localhost',
-          COMMAND_DISPATCHER_PORT: String(commandDispatcherPort),
-          COMMAND_DISPATCHER_RETRIES: String(0),
-          IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
-        }
+        env: toEnvironmentVariables({ configuration: commandConfiguration, configurationDefinition })
       });
 
       handleCommandClient = new HandleCommandClient({
@@ -122,16 +130,14 @@ suite('command', (): void => {
           name: 'command',
           enableDebugMode: false,
           port: healthPort,
-          env: {
-            APPLICATION_DIRECTORY: applicationDirectory,
-            PORT: String(port),
-            HEALTH_PORT: String(healthPort),
-            COMMAND_DISPATCHER_PROTOCOL: 'http',
-            COMMAND_DISPATCHER_HOST_NAME: 'non-existent',
-            COMMAND_DISPATCHER_PORT: String(12345),
-            COMMAND_DISPATCHER_RETRIES: String(0),
-            IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
-          }
+          env: toEnvironmentVariables({
+            configuration: {
+              ...commandConfiguration,
+              commandDispatcherHostName: 'non-existent',
+              commandDispatcherPort: 12345
+            },
+            configurationDefinition
+          })
         });
 
         const command = new Command({
@@ -174,16 +180,14 @@ suite('command', (): void => {
           name: 'command',
           enableDebugMode: false,
           port: healthPort,
-          env: {
-            APPLICATION_DIRECTORY: applicationDirectory,
-            PORT: String(port),
-            HEALTH_PORT: String(healthPort),
-            COMMAND_DISPATCHER_PROTOCOL: 'http',
-            COMMAND_DISPATCHER_HOST_NAME: 'non-existent',
-            COMMAND_DISPATCHER_PORT: String(12345),
-            COMMAND_DISPATCHER_RETRIES: String(0),
-            IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
-          }
+          env: toEnvironmentVariables({
+            configuration: {
+              ...commandConfiguration,
+              commandDispatcherHostName: 'non-existent',
+              commandDispatcherPort: 12345
+            },
+            configurationDefinition
+          })
         });
 
         const commandIdentifier: ItemIdentifier = {
@@ -206,9 +210,11 @@ suite('command', (): void => {
     this.timeout(10_000);
 
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
-          commandDispatcherRetries = 5;
+          commandDispatcherRetries = 5,
+          identityProviders = [{ issuer: 'https://token.invalid', certificate: certificateDirectory }];
 
-    let commandDispatcherPort: number,
+    let commandConfiguration: Configuration,
+        commandDispatcherPort: number,
         handleCommandClient: HandleCommandClient,
         healthPort: number,
         port: number,
@@ -217,6 +223,17 @@ suite('command', (): void => {
 
     setup(async (): Promise<void> => {
       [ port, healthPort, commandDispatcherPort ] = await getAvailablePorts({ count: 3 });
+
+      commandConfiguration = {
+        ...getDefaultConfiguration<Configuration>({ configurationDefinition }),
+        applicationDirectory,
+        port,
+        healthPort,
+        commandDispatcherHostName: 'localhost',
+        commandDispatcherPort,
+        commandDispatcherRetries,
+        identityProviders
+      };
 
       requestCount = 0;
       await startCatchAllServer({
@@ -232,16 +249,7 @@ suite('command', (): void => {
         name: 'command',
         enableDebugMode: false,
         port: healthPort,
-        env: {
-          APPLICATION_DIRECTORY: applicationDirectory,
-          PORT: String(port),
-          HEALTH_PORT: String(healthPort),
-          COMMAND_DISPATCHER_PROTOCOL: 'http',
-          COMMAND_DISPATCHER_HOST_NAME: 'localhost',
-          COMMAND_DISPATCHER_PORT: String(commandDispatcherPort),
-          COMMAND_DISPATCHER_RETRIES: String(commandDispatcherRetries),
-          IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
-        }
+        env: toEnvironmentVariables({ configuration: commandConfiguration, configurationDefinition })
       });
 
       handleCommandClient = new HandleCommandClient({
@@ -281,9 +289,11 @@ suite('command', (): void => {
 
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
           commandDispatcherRetries = 5,
+          identityProviders = [{ issuer: 'https://token.invalid', certificate: certificateDirectory }],
           succeedAfterTries = 3;
 
-    let commandDispatcherPort: number,
+    let commandConfiguration: Configuration,
+        commandDispatcherPort: number,
         handleCommandClient: HandleCommandClient,
         healthPort: number,
         port: number,
@@ -292,6 +302,17 @@ suite('command', (): void => {
 
     setup(async (): Promise<void> => {
       [ port, healthPort, commandDispatcherPort ] = await getAvailablePorts({ count: 3 });
+
+      commandConfiguration = {
+        ...getDefaultConfiguration<Configuration>({ configurationDefinition }),
+        applicationDirectory,
+        port,
+        healthPort,
+        commandDispatcherHostName: 'localhost',
+        commandDispatcherPort,
+        commandDispatcherRetries,
+        identityProviders
+      };
 
       requestCount = 0;
       await startCatchAllServer({
@@ -310,16 +331,7 @@ suite('command', (): void => {
         name: 'command',
         enableDebugMode: false,
         port: healthPort,
-        env: {
-          APPLICATION_DIRECTORY: applicationDirectory,
-          PORT: String(port),
-          HEALTH_PORT: String(healthPort),
-          COMMAND_DISPATCHER_PROTOCOL: 'http',
-          COMMAND_DISPATCHER_HOST_NAME: 'localhost',
-          COMMAND_DISPATCHER_PORT: String(commandDispatcherPort),
-          COMMAND_DISPATCHER_RETRIES: String(commandDispatcherRetries),
-          IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`
-        }
+        env: toEnvironmentVariables({ configuration: commandConfiguration, configurationDefinition })
       });
 
       handleCommandClient = new HandleCommandClient({

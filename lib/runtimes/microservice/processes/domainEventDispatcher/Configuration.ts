@@ -1,17 +1,17 @@
 export interface Configuration {
   applicationDirectory: string;
-  priorityQueueStoreType: string;
-  priorityQueueStoreOptions: object & { expirationTime: number };
-  pubSubType: string;
-  pubSubOptions: {
-    channel: string;
-    subscriber: object;
-    publisher: object;
-  };
   awaitDomainEventCorsOrigin: string | string[];
   handleDomainEventCorsOrigin: string | string[];
   healthCorsOrigin: string | string[];
-  port: number;
   healthPort: number;
   missedDomainEventRecoveryInterval: number;
+  port: number;
+  priorityQueueStoreOptions: Record<string, any> & { expirationTime: number };
+  priorityQueueStoreType: string;
+  pubSubOptions: {
+    channel: string;
+    publisher: object;
+    subscriber: object;
+  };
+  pubSubType: string;
 }

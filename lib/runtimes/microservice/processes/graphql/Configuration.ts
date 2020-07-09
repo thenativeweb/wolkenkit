@@ -1,21 +1,22 @@
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 
 export interface Configuration {
+  aeonstoreHostName: string;
+  aeonstorePort: number;
+  aeonstoreProtocol: string;
   applicationDirectory: string;
-  enableIntegratedClient: boolean;
-  corsOrigin: string | string[];
-  commandDispatcherProtocol: string;
   commandDispatcherHostName: string;
   commandDispatcherPort: number;
+  commandDispatcherProtocol: string;
   commandDispatcherRetries: number;
-  domainEventStoreOptions: object;
-  domainEventStoreType: string;
+  corsOrigin: string | string[];
+  enableIntegratedClient: boolean;
+  healthPort: number;
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
-  healthPort: number;
-  subscribeMessagesProtocol: string;
+  snapshotStrategy: SnapshotStrategyConfiguration;
+  subscribeMessagesChannel: string;
   subscribeMessagesHostName: string;
   subscribeMessagesPort: number;
-  subscribeMessagesChannel: string;
-  snapshotStrategy: SnapshotStrategyConfiguration;
+  subscribeMessagesProtocol: string;
 }
