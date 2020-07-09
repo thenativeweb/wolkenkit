@@ -1,12 +1,12 @@
 export interface Configuration {
   healthCorsOrigin: string | string[];
-  port: number;
   healthPort: number;
+  port: number;
   publishCorsOrigin: string | string[];
-  subscribeCorsOrigin: string | string[];
-  pubSubType: string;
   pubSubOptions: {
     subscriber: object;
     publisher: object;
   };
+  pubSubType: string;
+  subscribeCorsOrigin: string | string[];
 }

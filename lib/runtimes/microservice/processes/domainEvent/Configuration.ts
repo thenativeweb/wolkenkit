@@ -5,14 +5,14 @@ export interface Configuration {
   domainEventCorsOrigin: string | string[];
   domainEventStoreOptions: object;
   domainEventStoreType: string;
+  enableOpenApiDocumentation: boolean;
   healthCorsOrigin: string | string[];
+  healthPort: number;
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
-  healthPort: number;
-  subscribeMessagesProtocol: string;
+  snapshotStrategy: SnapshotStrategyConfiguration;
+  subscribeMessagesChannel: string;
   subscribeMessagesHostName: string;
   subscribeMessagesPort: number;
-  subscribeMessagesChannel: string;
-  snapshotStrategy: SnapshotStrategyConfiguration;
-  enableOpenApiDocumentation: boolean;
+  subscribeMessagesProtocol: string;
 }

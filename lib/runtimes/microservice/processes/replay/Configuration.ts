@@ -1,13 +1,13 @@
 export interface Configuration {
-  applicationDirectory: string;
-  domainEventDispatcherProtocol: string;
-  domainEventDispatcherHostName: string;
-  domainEventDispatcherPort: number;
-  aeonstoreProtocol: string;
   aeonstoreHostName: string;
   aeonstorePort: number;
+  aeonstoreProtocol: string;
+  applicationDirectory: string;
+  corsOrigin: string | string[];
+  domainEventDispatcherHostName: string;
+  domainEventDispatcherPort: number;
+  domainEventDispatcherProtocol: string;
   healthCorsOrigin: string | string[];
   healthPort: number;
-  corsOrigin: string | string[];
   port: number;
 }

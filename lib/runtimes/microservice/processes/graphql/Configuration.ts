@@ -2,20 +2,20 @@ import { SnapshotStrategyConfiguration } from '../../../../common/domain/Snapsho
 
 export interface Configuration {
   applicationDirectory: string;
-  enableIntegratedClient: boolean;
-  corsOrigin: string | string[];
-  commandDispatcherProtocol: string;
   commandDispatcherHostName: string;
   commandDispatcherPort: number;
+  commandDispatcherProtocol: string;
   commandDispatcherRetries: number;
+  corsOrigin: string | string[];
   domainEventStoreOptions: object;
   domainEventStoreType: string;
+  enableIntegratedClient: boolean;
+  healthPort: number;
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
-  healthPort: number;
-  subscribeMessagesProtocol: string;
+  snapshotStrategy: SnapshotStrategyConfiguration;
+  subscribeMessagesChannel: string;
   subscribeMessagesHostName: string;
   subscribeMessagesPort: number;
-  subscribeMessagesChannel: string;
-  snapshotStrategy: SnapshotStrategyConfiguration;
+  subscribeMessagesProtocol: string;
 }

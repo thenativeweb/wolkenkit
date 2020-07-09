@@ -2,25 +2,25 @@ import { SnapshotStrategyConfiguration } from '../../../../common/domain/Snapsho
 
 export interface Configuration {
   applicationDirectory: string;
-  httpApi: boolean;
-  graphqlApi: false | { enableIntegratedClient: boolean };
+  commandQueueRenewInterval: number;
+  concurrentCommands: number;
+  concurrentFlows: number;
+  consumerProgressStoreOptions: object;
+  consumerProgressStoreType: string;
   corsOrigin: string | string[];
   domainEventStoreOptions: object;
   domainEventStoreType: string;
+  enableOpenApiDocumentation: boolean;
+  graphqlApi: false | { enableIntegratedClient: boolean };
+  healthPort: number;
+  httpApi: boolean;
+  identityProviders: { issuer: string; certificate: string }[];
   lockStoreOptions: object;
   lockStoreType: string;
-  priorityQueueStoreForCommandsType: string;
-  priorityQueueStoreForCommandsOptions: object & { expirationTime: number };
-  priorityQueueStoreForDomainEventsType: string;
-  priorityQueueStoreForDomainEventsOptions: object & { expirationTime: number };
-  consumerProgressStoreType: string;
-  consumerProgressStoreOptions: object;
-  identityProviders: { issuer: string; certificate: string }[];
   port: number;
-  healthPort: number;
+  priorityQueueStoreForCommandsOptions: object & { expirationTime: number };
+  priorityQueueStoreForCommandsType: string;
+  priorityQueueStoreForDomainEventsOptions: object & { expirationTime: number };
+  priorityQueueStoreForDomainEventsType: string;
   snapshotStrategy: SnapshotStrategyConfiguration;
-  concurrentCommands: number;
-  concurrentFlows: number;
-  commandQueueRenewInterval: number;
-  enableOpenApiDocumentation: boolean;
 }

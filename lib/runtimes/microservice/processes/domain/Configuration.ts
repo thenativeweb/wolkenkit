@@ -1,26 +1,26 @@
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 
 export interface Configuration {
-  applicationDirectory: string;
-  commandDispatcherProtocol: string;
-  commandDispatcherHostName: string;
-  commandDispatcherPort: number;
-  commandDispatcherRenewInterval: number;
-  commandDispatcherAcknowledgeRetries: number;
-  domainEventDispatcherProtocol: string;
-  domainEventDispatcherHostName: string;
-  domainEventDispatcherPort: number;
-  publisherProtocol: string;
-  publisherHostName: string;
-  publisherPort: number;
-  publisherChannelNewDomainEvent: string;
-  aeonstoreProtocol: string;
   aeonstoreHostName: string;
   aeonstorePort: number;
-  lockStoreOptions: object;
-  lockStoreType: string;
+  aeonstoreProtocol: string;
+  applicationDirectory: string;
+  commandDispatcherAcknowledgeRetries: number;
+  commandDispatcherHostName: string;
+  commandDispatcherPort: number;
+  commandDispatcherProtocol: string;
+  commandDispatcherRenewInterval: number;
+  concurrentCommands: number;
+  domainEventDispatcherHostName: string;
+  domainEventDispatcherPort: number;
+  domainEventDispatcherProtocol: string;
   healthCorsOrigin: string | string[];
   healthPort: number;
-  concurrentCommands: number;
+  lockStoreOptions: object;
+  lockStoreType: string;
+  publisherChannelNewDomainEvent: string;
+  publisherHostName: string;
+  publisherPort: number;
+  publisherProtocol: string;
   snapshotStrategy: SnapshotStrategyConfiguration;
 }
