@@ -9,7 +9,7 @@ interface Configuration {
   };
 }
 
-suite.only('toEnvironmentVariables', (): void => {
+suite('toEnvironmentVariables', (): void => {
   test('builds a record of environment variables from a configuration and a configuration definition.', async (): Promise<void> => {
     const configuration: Configuration = {
       foo: 'baz',
