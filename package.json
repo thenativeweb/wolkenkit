@@ -178,7 +178,7 @@
     "apollo-link-http": "1.5.17",
     "apollo-link-ws": "1.0.20",
     "assertthat": "5.1.1",
-    "graphql-tag": "2.10.3",
+    "graphql-tag": "2.10.4",
     "next": "9.4.4",
     "node-fetch": "2.6.0",
     "nodeenv": "3.0.2",
