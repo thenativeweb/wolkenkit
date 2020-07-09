@@ -138,6 +138,8 @@ suite('main', function (): void {
     const graphqlConfiguration: GraphqlConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: graphqlConfigurationDefinition }),
       applicationDirectory,
+      aeonstoreHostName: 'localhost',
+      aeonstorePort: domainEventStorePort,
       enableIntegratedClient: false,
       commandDispatcherHostName: 'localhost',
       commandDispatcherPort,
