@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
+import { AeonstoreDomainEventStore } from '../../../../stores/domainEventStore/Aeonstore';
 import { Client as CommandDispatcherClient } from '../../../../apis/handleCommandWithMetadata/http/v2/Client';
 import { configurationDefinition } from './configurationDefinition';
-import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
@@ -23,7 +23,6 @@ import { State } from '../../../../common/elements/State';
 import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
 import { Value } from 'validate-value';
-import {AeonstoreDomainEventStore} from "../../../../stores/domainEventStore/Aeonstore";
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
