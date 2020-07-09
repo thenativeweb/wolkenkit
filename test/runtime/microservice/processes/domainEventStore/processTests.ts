@@ -1,10 +1,14 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
+import { Configuration as DomainEventStoreConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/Configuration';
+import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Client as QueryDomainEventStoreClient } from '../../../../../lib/apis/queryDomainEventStore/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
+import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { uuid } from 'uuidv4';
 import { waitForSignals } from 'wait-for-signals';
 import { Client as WriteDomainEventStoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
@@ -21,15 +25,21 @@ suite('domain event store', function (): void {
   setup(async (): Promise<void> => {
     [ port, healthPort ] = await getAvailablePorts({ count: 2 });
 
+    const domainEventStoreConfiguration: DomainEventStoreConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: domainEventStoreConfigurationDefinition }),
+      port,
+      healthPort
+    };
+
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
       enableDebugMode: false,
       port: healthPort,
-      env: {
-        PORT: String(port),
-        HEALTH_PORT: String(healthPort)
-      }
+      env: toEnvironmentVariables({
+        configuration: domainEventStoreConfiguration,
+        configurationDefinition: domainEventStoreConfigurationDefinition
+      })
     });
 
     queryDomainEventStoreClient = new QueryDomainEventStoreClient({

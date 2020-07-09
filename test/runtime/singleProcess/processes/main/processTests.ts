@@ -3,8 +3,11 @@ import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildCommand } from '../../../../../lib/common/utils/test/buildCommand';
 import { Client } from '../../../../../lib/apis/getHealth/http/v2/Client';
+import { Configuration } from '../../../../../lib/runtimes/singleProcess/processes/main/Configuration';
+import { configurationDefinition } from '../../../../../lib/runtimes/singleProcess/processes/main/configurationDefinition';
 import fetch from 'node-fetch';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import gql from 'graphql-tag';
 import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
@@ -12,8 +15,10 @@ import { HttpLink } from 'apollo-link-http';
 import { Client as ObserveDomainEventsClient } from '../../../../../lib/apis/observeDomainEvents/http/v2/Client';
 import path from 'path';
 import { sleep } from '../../../../../lib/common/utils/sleep';
+import { SnapshotStrategyConfiguration } from '../../../../../lib/common/domain/SnapshotStrategyConfiguration';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
+import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { uuid } from 'uuidv4';
 import { waitForSignals } from 'wait-for-signals';
 import { WebSocketLink } from 'apollo-link-ws';
@@ -35,24 +40,30 @@ suite('main', function (): void {
   setup(async (): Promise<void> => {
     [ port, healthPort ] = await getAvailablePorts({ count: 2 });
 
+    const configuration: Configuration = {
+      ...getDefaultConfiguration({
+        configurationDefinition
+      }),
+      applicationDirectory,
+      domainEventStoreType: 'InMemory',
+      domainEventStoreOptions: {},
+      graphqlApi: { enableIntegratedClient: false },
+      httpApi: true,
+      identityProviders: [{ issuer: 'https://token.invalid', certificate: certificateDirectory }],
+      port,
+      healthPort,
+      snapshotStrategy: { name: 'never' } as SnapshotStrategyConfiguration
+    };
+
     stopProcess = await startProcess({
       runtime: 'singleProcess',
       name: 'main',
       enableDebugMode: false,
       port: healthPort,
-      env: {
-        APPLICATION_DIRECTORY: applicationDirectory,
-        HEALTH_CORS_ORIGIN: '*',
-        COMMAND_CORS_ORIGIN: '*',
-        DOMAIN_EVENT_CORS_ORIGIN: '*',
-        DOMAIN_EVENT_STORE_TYPE: 'InMemory',
-        IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
-        PORT: String(port),
-        HEALTH_PORT: String(healthPort),
-        SNAPSHOT_STRATEGY: `{"name":"never"}`,
-        HTTP_API: String(true),
-        GRAPHQL_API: `{"enableIntegratedClient":false}`
-      }
+      env: toEnvironmentVariables({
+        configuration,
+        configurationDefinition
+      })
     });
 
     handleCommandClient = new HandleCommandClient({

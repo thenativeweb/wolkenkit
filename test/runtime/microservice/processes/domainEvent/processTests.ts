@@ -2,15 +2,22 @@ import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
+import { Configuration as DomainEventConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEvent/Configuration';
+import { configurationDefinition as domainEventConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEvent/configurationDefinition';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
 import { errors } from '../../../../../lib/common/errors';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Client as ObserveDomainEventsClient } from '../../../../../lib/apis/observeDomainEvents/http/v2/Client';
 import path from 'path';
+import { Configuration as PublisherConfiguration } from '../../../../../lib/runtimes/microservice/processes/publisher/Configuration';
+import { configurationDefinition as publisherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/publisher/configurationDefinition';
 import { Client as PublishMessageClient } from '../../../../../lib/apis/publishMessage/http/v2/Client';
+import { SnapshotStrategyConfiguration } from '../../../../../lib/common/domain/SnapshotStrategyConfiguration';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
+import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { uuid } from 'uuidv4';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
@@ -35,15 +42,21 @@ suite('domain event', function (): void {
 
     [ port, healthPort, publisherPort, publisherHealthPort ] = await getAvailablePorts({ count: 4 });
 
+    const publisherConfiguration: PublisherConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: publisherConfigurationDefinition }),
+      port: publisherPort,
+      healthPort: publisherHealthPort
+    };
+
     stopProcessPublisher = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
       enableDebugMode: false,
       port: publisherHealthPort,
-      env: {
-        PORT: String(publisherPort),
-        HEALTH_PORT: String(publisherHealthPort)
-      }
+      env: toEnvironmentVariables({
+        configuration: publisherConfiguration,
+        configurationDefinition: publisherConfigurationDefinition
+      })
     });
 
     publishMessageClient = new PublishMessageClient({
@@ -53,21 +66,27 @@ suite('domain event', function (): void {
       path: '/publish/v2'
     });
 
+    const domainEventConfiguration: DomainEventConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: domainEventConfigurationDefinition }),
+      applicationDirectory,
+      port,
+      healthPort,
+      identityProviders: [{ issuer: 'https://token.invalid', certificate: certificateDirectory }],
+      subscribeMessagesHostName: 'localhost',
+      subscribeMessagesPort: publisherPort,
+      subscribeMessagesChannel,
+      snapshotStrategy: { name: 'never' } as SnapshotStrategyConfiguration
+    };
+
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEvent',
       enableDebugMode: false,
       port: healthPort,
-      env: {
-        APPLICATION_DIRECTORY: applicationDirectory,
-        PORT: String(port),
-        HEALTH_PORT: String(healthPort),
-        IDENTITY_PROVIDERS: `[{"issuer": "https://token.invalid", "certificate": "${certificateDirectory}"}]`,
-        SUBSCRIBE_MESSAGES_HOST_NAME: 'localhost',
-        SUBSCRIBE_MESSAGES_PORT: String(publisherPort),
-        SUBSCRIBE_MESSAGES_CHANNEL: subscribeMessagesChannel,
-        SNAPSHOT_STRATEGY: `{"name":"never"}`
-      }
+      env: toEnvironmentVariables({
+        configuration: domainEventConfiguration,
+        configurationDefinition: domainEventConfigurationDefinition
+      })
     });
 
     observeDomainEventsClient = new ObserveDomainEventsClient({

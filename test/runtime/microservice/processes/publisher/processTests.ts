@@ -1,10 +1,14 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
+import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
+import { Configuration as PublisherConfiguration } from '../../../../../lib/runtimes/microservice/processes/publisher/Configuration';
+import { configurationDefinition as publisherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/publisher/configurationDefinition';
 import { Client as PublishMessageClient } from '../../../../../lib/apis/publishMessage/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subscribeMessages/http/v2/Client';
+import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { waitForSignals } from 'wait-for-signals';
 
 suite('publisher', function (): void {
@@ -19,15 +23,21 @@ suite('publisher', function (): void {
   setup(async (): Promise<void> => {
     [ port, healthPort ] = await getAvailablePorts({ count: 2 });
 
+    const publisherConfiguration: PublisherConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: publisherConfigurationDefinition }),
+      port,
+      healthPort
+    };
+
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
       enableDebugMode: false,
       port: healthPort,
-      env: {
-        PORT: String(port),
-        HEALTH_PORT: String(healthPort)
-      }
+      env: toEnvironmentVariables({
+        configuration: publisherConfiguration,
+        configurationDefinition: publisherConfigurationDefinition
+      })
     });
 
     publishMessageClient = new PublishMessageClient({
