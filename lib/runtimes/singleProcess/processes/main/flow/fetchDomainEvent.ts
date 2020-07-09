@@ -26,7 +26,7 @@ const fetchDomainEvent = async function ({ priorityQueue }: {
     { retries: Number.POSITIVE_INFINITY, minTimeout: 10, maxTimeout: 500 }
   );
 
-  return { domainEvent: item, metadata };
+  return { domainEvent: new DomainEvent<DomainEventData>(item), metadata };
 };
 
 export {
