@@ -1,12 +1,11 @@
+import { Infrastructure } from '../../../infrastructure';
 import { SampleViewItem } from '../SampleViewItem';
-import { Readable, PassThrough } from 'stream';
-import { QueryHandler, QueryResultItem, QueryOptions, Schema } from 'wolkenkit';
-
-export interface AllOptions extends QueryOptions {}
+import { Readable } from 'stream';
+import { QueryHandler, QueryResultItem, Schema } from 'wolkenkit';
 
 export interface AllResultItem extends SampleViewItem, QueryResultItem {};
 
-export const all: QueryHandler<SampleViewItem[], AllOptions, AllResultItem> = {
+export const all: QueryHandler<AllResultItem, Infrastructure> = {
   getResultItemSchema (): Schema {
     return {
       type: 'object',
@@ -15,20 +14,19 @@ export const all: QueryHandler<SampleViewItem[], AllOptions, AllResultItem> = {
         createdAt: { type: 'number' },
         updatedAt: { type: 'number' }
       },
-      required: [ 'id', 'createdAt' ],
+      required: [ 'id', 'createdAt', 'updatedAt' ],
       additionalProperties: false
     };
   },
 
-  async handle (sampleItems): Promise<Readable> {
-    const stream = new PassThrough({ objectMode: true });
-
-    for (const sampleItem of sampleItems) {
-      stream.write(sampleItem);
+  async handle (_options, { infrastructure }): Promise<Readable> {
+    if (Array.isArray(infrastructure.ask.viewStore.aggregates)) {
+      return Readable.from(infrastructure.ask.viewStore.aggregates);
     }
-    stream.end();
 
-    return stream;
+    return infrastructure.ask.viewStore.aggregates.find({}, {
+      projection: { id: 1, createdAd: 1, updatedAt: 1 }
+    }).stream();
   },
 
   isAuthorized (): boolean {

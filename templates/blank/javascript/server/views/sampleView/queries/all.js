@@ -1,6 +1,6 @@
 'use strict';
 
-const { PassThrough } = require('stream');
+const { Readable } = require('stream');
 
 const all = {
   getResultItemSchema () {
@@ -11,20 +11,19 @@ const all = {
         createdAt: { type: 'number' },
         updatedAt: { type: 'number' }
       },
-      required: [ 'id', 'createdAt' ],
+      required: [ 'id', 'createdAt', 'updatedAt' ],
       additionalProperties: false
     };
   },
 
-  async handle (sampleItems) {
-    const stream = new PassThrough({ objectMode: true });
-
-    for (const sampleItem of sampleItems) {
-      stream.write(sampleItem);
+  async handle (_options, { infrastructure }) {
+    if (Array.isArray(infrastructure.ask.viewStore.aggregates)) {
+      return Readable.from(infrastructure.ask.viewStore.aggregates);
     }
-    stream.end();
 
-    return stream;
+    return infrastructure.ask.viewStore.aggregates.find({}, {
+      projection: { id: 1, createdAd: 1, updatedAt: 1 }
+    }).stream();
   },
 
   isAuthorized () {
