@@ -18,7 +18,11 @@ const getInfrastructure = async function () {
   }
 
   return {
-    ask: {},
+    ask: {
+      viewStore: {
+        messages
+      }
+    },
     tell: {
       viewStore: {
         messages

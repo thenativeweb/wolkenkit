@@ -4,10 +4,14 @@ import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
 import { Collection, MongoClient } from 'mongodb';
 
 export interface Infrastructure extends AskInfrastructure, TellInfrastructure {
-  ask: {};
+  ask: {
+    viewStore: {
+      messages: Collection<Message> | Message[];
+    }
+  };
   tell: {
     viewStore: {
-      messages: Collection<Message> | Message[]
+      messages: Collection<Message> | Message[];
     };
   };
 }
