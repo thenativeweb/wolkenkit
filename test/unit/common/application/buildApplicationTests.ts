@@ -38,12 +38,6 @@ const getExpectedApplication = ({ applicationDirectory, packageName }: {
   },
   views: {
     sampleView: {
-      initializer: {
-        storeType: 'infrastructure/inmemory'
-      },
-      projectionHandlers: {
-        executed: {}
-      },
       queryHandlers: {
         all: {}
       }

@@ -69,10 +69,6 @@ suite('loadApplication', (): void => {
       },
       views: {
         sampleView: {
-          initializer: {},
-          projectionHandlers: {
-            executed: {}
-          },
           queryHandlers: {
             all: {}
           }
@@ -163,9 +159,6 @@ suite('loadApplication', (): void => {
     assert.that(application).is.atLeast({
       views: {
         sampleView: {
-          projectionHandlers: {
-            enhancedProjection: {}
-          },
           queryHandlers: {
             enhancedQuery: {}
           }
@@ -243,7 +236,7 @@ suite('loadApplication', (): void => {
 
     await assert.
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync(`View definition '<app>/build/server/views/invalidView' is malformed: Object 'initializer' is missing.`);
+      is.throwingAsync(`View definition '<app>/build/server/views/invalidView' is malformed: Object 'queryHandlers' is missing.`);
   });
 
   test('throws an appropriate error if any file in the application contains a syntax error.', async (): Promise<void> => {

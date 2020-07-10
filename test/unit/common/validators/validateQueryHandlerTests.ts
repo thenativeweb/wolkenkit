@@ -4,6 +4,7 @@ import { validateQueryHandler } from '../../../../lib/common/validators/validate
 
 suite('validateQueryHandler', (): void => {
   const queryHandler = {
+    type: 'stream',
     isAuthorized (): void {
       // Intentionally left blank.
     },
@@ -22,6 +23,24 @@ suite('validateQueryHandler', (): void => {
     assert.that((): void => {
       validateQueryHandler({ queryHandler: undefined });
     }).is.throwing((ex): boolean => (ex as CustomError).code === 'EQUERYHANDLERMALFORMED' && ex.message === `Query handler is not an object.`);
+  });
+
+  test('throws an error if type is missing.', async (): Promise<void> => {
+    assert.that((): void => {
+      validateQueryHandler({ queryHandler: {
+        ...queryHandler,
+        type: undefined
+      }});
+    }).is.throwing((ex): boolean => (ex as CustomError).code === 'EQUERYHANDLERMALFORMED' && ex.message === `Property 'type' is missing.`);
+  });
+
+  test('throws an error if type is an invalid value.', async (): Promise<void> => {
+    assert.that((): void => {
+      validateQueryHandler({ queryHandler: {
+        ...queryHandler,
+        type: 'invalid'
+      }});
+    }).is.throwing((ex): boolean => (ex as CustomError).code === 'EQUERYHANDLERMALFORMED' && ex.message === `Property 'type' must either be 'value' or 'stream'.`);
   });
 
   test('throws an error if handle is missing.', async (): Promise<void> => {

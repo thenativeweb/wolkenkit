@@ -1,15 +1,18 @@
-import { SampleViewItem } from '../SampleViewItem';
-import { Readable, PassThrough } from 'stream';
+import { Infrastructure } from '../../../infrastructure';
+import { Readable } from 'stream';
 // @ts-ignore
 import { QueryHandler, QueryResultItem, QueryOptions, Schema } from 'wolkenkit';
 
-/* eslint-disable @typescript-eslint/no-empty-interface */
-export interface AllOptions extends QueryOptions {}
-/* eslint-enable @typescript-eslint/no-empty-interface */
+export interface AllResultItem extends QueryResultItem {
+  id: string;
+  createdAt: number;
+  updatedAt: number;
+  strategy: 'succeed' | 'fail' | 'reject';
+};
 
-export interface AllResultItem extends SampleViewItem, QueryResultItem {};
+export const all: QueryHandler<AllResultItem, Infrastructure> = {
+  type: 'stream',
 
-export const all: QueryHandler<SampleViewItem[], AllOptions, AllResultItem> = {
   getResultItemSchema (): Schema {
     return {
       type: 'object',
@@ -24,15 +27,10 @@ export const all: QueryHandler<SampleViewItem[], AllOptions, AllResultItem> = {
     };
   },
 
-  async handle (sampleItems: any): Promise<Readable> {
-    const stream = new PassThrough({ objectMode: true });
-
-    for (const item of sampleItems) {
-      stream.write(item);
-    }
-    stream.end();
-
-    return stream;
+  async handle (_options: QueryOptions, { infrastructure }: {
+    infrastructure: Infrastructure;
+  }): Promise<Readable> {
+    return Readable.from(infrastructure.ask.viewStore.domainEvents);
   },
 
   isAuthorized (): boolean {

@@ -24,16 +24,13 @@ import { Limes } from 'limes';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { PublishDomainEvent } from '../../../../lib/apis/graphql/PublishDomainEvent';
 import { Repository } from '../../../../lib/common/domain/Repository';
+import { sleep } from '../../../../lib/common/utils/sleep';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { uuid } from 'uuidv4';
 import { waitForSignals } from 'wait-for-signals';
 import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
-
-const sleep = async function (ms: number): Promise<void> {
-  return new Promise((resolve): any => setTimeout(resolve, ms));
-};
 
 suite('graphql', function (): void {
   this.timeout(15_000);
@@ -367,7 +364,7 @@ suite('graphql', function (): void {
         }
       });
 
-      await sleep(100);
+      await sleep({ ms: 100 });
 
       publishDomainEvent!({ domainEvent });
 
@@ -454,7 +451,7 @@ suite('graphql', function (): void {
         }
       });
 
-      await sleep(100);
+      await sleep({ ms: 100 });
 
       publishDomainEvent!({ domainEvent: domainEvent1 });
       publishDomainEvent!({ domainEvent: domainEvent2 });
@@ -552,7 +549,7 @@ suite('graphql', function (): void {
         }
       });
 
-      await sleep(100);
+      await sleep({ ms: 100 });
 
       publishDomainEvent!({ domainEvent });
 
@@ -655,7 +652,7 @@ suite('graphql', function (): void {
         }
       });
 
-      await sleep(100);
+      await sleep({ ms: 100 });
 
       publishDomainEvent!({ domainEvent: domainEvent1 });
       publishDomainEvent!({ domainEvent: domainEvent2 });
@@ -751,7 +748,7 @@ suite('graphql', function (): void {
         await collector.fail();
       });
 
-      await sleep(100);
+      await sleep({ ms: 100 });
 
       publishDomainEvent!({ domainEvent: domainEvent1 });
       publishDomainEvent!({ domainEvent: domainEvent2 });

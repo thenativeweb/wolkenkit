@@ -1,8 +1,10 @@
 'use strict';
 
-const { PassThrough } = require('stream');
+const { Readable } = require('stream');
 
 const all = {
+  type: 'stream',
+
   getResultItemSchema () {
     return {
       type: 'object',
@@ -17,15 +19,8 @@ const all = {
     };
   },
 
-  async handle (sampleItems) {
-    const stream = new PassThrough({ objectMode: true });
-
-    for (const item of sampleItems) {
-      stream.write(item);
-    }
-    stream.end();
-
-    return stream;
+  async handle (options, { infrastructure }) {
+    return Readable.from(infrastructure.ask.viewStore.domainEvents);
   },
 
   isAuthorized () {
@@ -33,6 +28,4 @@ const all = {
   }
 };
 
-module.exportrs = {
-  all
-};
+module.exports = { all };
