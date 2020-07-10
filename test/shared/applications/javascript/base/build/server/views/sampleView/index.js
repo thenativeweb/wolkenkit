@@ -1,10 +1,12 @@
 'use strict';
 
 const { all } = require('./queries/all');
+const { first } = require('./queries/first');
 
 const sampleView = {
   queryHandlers: {
-    all
+    all,
+    first
   }
 };
 

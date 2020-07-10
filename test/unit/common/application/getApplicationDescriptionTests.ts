@@ -164,12 +164,27 @@ suite('getApplicationDescription', (): void => {
               itemSchema: {
                 type: 'object',
                 properties: {
-                  id: { type: 'string' },
-                  createdAt: { type: 'number' },
-                  updatedAt: { type: 'number' },
-                  strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+                  contextIdentifier: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string', minLength: 1 }
+                    },
+                    required: [ 'name' ],
+                    additionalProperties: false
+                  },
+                  aggregateIdentifier: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string', minLength: 1 },
+                      id: { type: 'string' }
+                    },
+                    required: [ 'name', 'id' ],
+                    additionalProperties: false
+                  },
+                  name: { type: 'string', minLength: 1 },
+                  id: { type: 'string' }
                 },
-                required: [ 'id', 'createdAt', 'strategy' ],
+                required: [ 'contextIdentifier', 'aggregateIdentifier', 'name', 'id' ],
                 additionalProperties: false
               }
             }

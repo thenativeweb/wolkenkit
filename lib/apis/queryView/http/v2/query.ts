@@ -1,5 +1,8 @@
 import { Application } from '../../../../common/application/Application';
+import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
+import { executeQueryHandler } from '../../../../common/domain/executeQueryHandler';
 import { flaschenpost } from 'flaschenpost';
+import { getClientService } from '../../../../common/services/getClientService';
 import { pipeline } from 'stream';
 import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandlerIdentifier';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
@@ -49,7 +52,10 @@ const query = {
         result = await executeQueryHandler({
           application,
           queryHandlerIdentifier,
-          options: req.query
+          options: req.query,
+          services: {
+            client: getClientService({ clientMetadata: new ClientMetadata({ req }) })
+          }
         });
       } catch (ex) {
         switch (ex.code) {

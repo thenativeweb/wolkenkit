@@ -2,6 +2,7 @@ import { Application } from '../../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
 import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
+import { query } from './query';
 
 const getV2 = async function<TItem> ({ corsOrigin, application }: {
   corsOrigin: CorsOrigin;
@@ -18,6 +19,9 @@ const getV2 = async function<TItem> ({ corsOrigin, application }: {
     }
   });
 
+  api.get(query.path, query.getHandler({
+    application
+  }));
 
   return { api };
 };

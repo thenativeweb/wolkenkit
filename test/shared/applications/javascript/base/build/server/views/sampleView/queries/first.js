@@ -1,9 +1,7 @@
 'use strict';
 
-const { Readable } = require('stream');
-
-const all = {
-  type: 'stream',
+const first = {
+  type: 'value',
 
   getResultItemSchema () {
     return {
@@ -35,7 +33,7 @@ const all = {
   },
 
   async handle (options, { infrastructure }) {
-    return Readable.from(infrastructure.ask.viewStore.domainEvents);
+    return infrastructure.ask.viewStore.domainEvents[0];
   },
 
   isAuthorized () {
@@ -43,4 +41,4 @@ const all = {
   }
 };
 
-module.exports = { all };
+module.exports = { first };

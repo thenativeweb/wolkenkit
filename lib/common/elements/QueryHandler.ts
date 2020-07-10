@@ -1,4 +1,4 @@
-import { AskInfrastructure } from '../elements/AskInfrastructure';
+import { AskInfrastructure } from './AskInfrastructure';
 import { ClientService } from '../services/ClientService';
 import { LoggerService } from '../services/LoggerService';
 import { QueryOptions } from './QueryOptions';
