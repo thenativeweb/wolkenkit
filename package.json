@@ -129,7 +129,7 @@
     "apollo-server-express": "2.15.1",
     "axios": "0.19.2",
     "body-parser": "1.19.0",
-    "buntstift": "4.0.7",
+    "buntstift": "4.0.8",
     "command-line-interface": "3.6.0",
     "common-tags": "1.8.0",
     "compression": "1.7.4",
