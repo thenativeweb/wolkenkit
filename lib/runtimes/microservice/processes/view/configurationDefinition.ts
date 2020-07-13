@@ -23,6 +23,11 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: '*',
     schema: corsSchema
   },
+  enableOpenApiDocumentation: {
+    environmentVariable: 'ENABLE_OPEN_API_DOCUMENTATION',
+    defaultValue: false,
+    schema: { type: 'boolean' }
+  },
   healthCorsOrigin: {
     environmentVariable: 'HEALTH_CORS_ORIGIN',
     defaultValue: '*',

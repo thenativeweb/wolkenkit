@@ -59,7 +59,7 @@ const getApi = async function ({
       identityProviders
     });
 
-    const { api: viewsApi } = await getViewsApi({
+    const { api: viewsApi, getApiDefinitions: getQueryViewApiDefinitions } = await getViewsApi({
       corsOrigin,
       application,
       identityProviders
@@ -77,7 +77,8 @@ const getApi = async function ({
         schemes: [ 'http' ],
         apis: [
           ...getHandleCommandApiDefinitions('command'),
-          ...getObserveDomainEventApiDefinitions('domain-events')
+          ...getObserveDomainEventApiDefinitions('domain-events'),
+          ...getQueryViewApiDefinitions('views')
         ]
       });
 

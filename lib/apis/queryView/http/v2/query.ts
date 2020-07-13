@@ -5,6 +5,7 @@ import { executeQueryHandler } from '../../../../common/domain/executeQueryHandl
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandlerIdentifier';
+import { Schema } from '../../../../common/elements/Schema';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -18,10 +19,9 @@ const query = {
   request: {
     query: {
       type: 'object',
-      properties: {
-      },
+      properties: {},
       additionalProperties: false
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400, 403, 404, 415 ]
