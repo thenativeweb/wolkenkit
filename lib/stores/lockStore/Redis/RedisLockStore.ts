@@ -71,9 +71,7 @@ class RedisLockStore implements LockStore {
     const key = this.getKey({ value });
     const expiration = RedisLockStore.getExpiration({ expiresAt });
 
-    // The return type of `set` is wrong. Typings say it's always 'OK', but
-    // actually it can also be null, if the key already exists.
-    const result = await this.client.set(key, '', 'PX', expiration, 'NX') as 'OK' | null;
+    const result = await this.client.set(key, '', 'PX', expiration, 'NX');
 
     if (!result) {
       throw new errors.LockAcquireFailed('Failed to acquire lock.');
