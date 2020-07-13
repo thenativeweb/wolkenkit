@@ -5,7 +5,7 @@ import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
 
 const getInfrastructure = async function (): Promise<AskInfrastructure & TellInfrastructure> {
   const url = processenv('MONGODB_URL') as string;
-  let messages: Collection<Message> | Message[] = [];
+  let aggregates: Collection<Message> | Message[] = [];
 
   if (url) {
     const connection = await MongoClient.connect(url, {
@@ -14,18 +14,18 @@ const getInfrastructure = async function (): Promise<AskInfrastructure & TellInf
       useUnifiedTopology: true
     });
 
-    messages = connection.db().collection('messages');
+    aggregates = connection.db().collection('aggregates');
   }
 
   return {
     ask: {
       viewStore: {
-        messages
+        aggregates
       }
     },
     tell: {
       viewStore: {
-        messages
+        aggregates
       }
     }
   };

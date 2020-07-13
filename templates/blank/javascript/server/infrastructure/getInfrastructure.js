@@ -5,7 +5,7 @@ const { MongoClient } = require('mongodb');
 
 const getInfrastructure = async function () {
   const url = processenv('MONGODB_URL');
-  let messages = [];
+  let aggregates = [];
 
   if (url) {
     const connection = await MongoClient.connect(url, {
@@ -14,18 +14,18 @@ const getInfrastructure = async function () {
       useUnifiedTopology: true
     });
 
-    messages = connection.db().collection('messages');
+    aggregates = connection.db().collection('aggregates');
   }
 
   return {
     ask: {
       viewStore: {
-        messages
+        aggregates
       }
     },
     tell: {
       viewStore: {
-        messages
+        aggregates
       }
     }
   };
