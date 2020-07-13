@@ -112,9 +112,12 @@ suite('init', function (): void {
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'domain', 'sampleContext', 'sampleAggregate', 'SampleState.js') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'domain', 'sampleContext', 'sampleAggregate', 'domainEvents', 'sampleDomainEvent.js') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'domain', 'sampleContext', 'sampleAggregate', 'commands', 'sampleCommand.js') })).is.true();
+    assert.that(await exists({ path: path.join(appDirectory, 'server', 'flows', 'sampleFlow', 'index.js') })).is.true();
+    assert.that(await exists({ path: path.join(appDirectory, 'server', 'flows', 'sampleFlow', 'handlers', 'sampleHandler.js') })).is.true();
+    assert.that(await exists({ path: path.join(appDirectory, 'server', 'infrastructure', 'getInfrastructure.js') })).is.true();
+    assert.that(await exists({ path: path.join(appDirectory, 'server', 'infrastructure', 'index.js') })).is.true();
+    assert.that(await exists({ path: path.join(appDirectory, 'server', 'infrastructure', 'setupInfrastructure.js') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'index.js') })).is.true();
-    assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'initializer.js') })).is.true();
-    assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'projections', 'sampleProjection.js') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'queries', 'all.js') })).is.true();
   });
 
@@ -139,10 +142,13 @@ suite('init', function (): void {
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'domain', 'sampleContext', 'sampleAggregate', 'SampleState.ts') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'domain', 'sampleContext', 'sampleAggregate', 'domainEvents', 'sampleDomainEvent.ts') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'domain', 'sampleContext', 'sampleAggregate', 'commands', 'sampleCommand.ts') })).is.true();
+    assert.that(await exists({ path: path.join(appDirectory, 'server', 'flows', 'sampleFlow', 'index.ts') })).is.true();
+    assert.that(await exists({ path: path.join(appDirectory, 'server', 'flows', 'sampleFlow', 'handlers', 'sampleHandler.ts') })).is.true();
+    assert.that(await exists({ path: path.join(appDirectory, 'server', 'infrastructure', 'getInfrastructure.ts') })).is.true();
+    assert.that(await exists({ path: path.join(appDirectory, 'server', 'infrastructure', 'index.ts') })).is.true();
+    assert.that(await exists({ path: path.join(appDirectory, 'server', 'infrastructure', 'setupInfrastructure.ts') })).is.true();
+    assert.that(await exists({ path: path.join(appDirectory, 'server', 'types', 'AggregateItem.ts') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'index.ts') })).is.true();
-    assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'initializer.ts') })).is.true();
-    assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'SampleViewItem.ts') })).is.true();
-    assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'projections', 'sampleProjection.ts') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'queries', 'all.ts') })).is.true();
   });
 });
