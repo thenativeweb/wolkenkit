@@ -57,6 +57,8 @@ const errors = defekt({
   PublisherTypeInvalid: {},
   QueryHandlerMalformed: {},
   QueryHandlerNotFound: {},
+  QueryOptionsInvalid: {},
+  QueryResultInvalid: {},
   ReplayFailed: {},
   RequestFailed: {},
   RequestMalformed: {},

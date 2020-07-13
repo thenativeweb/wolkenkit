@@ -79,8 +79,7 @@ suite('handleCommand/http', (): void => {
         // Convert and parse as JSON, to get rid of any values that are undefined.
         // This is what the HTTP API does internally, and here we need to simulate
         // this to make things work.
-        const expectedCommandsDescription =
-          JSON.parse(JSON.stringify(commandsDescription));
+        const expectedCommandsDescription = JSON.parse(JSON.stringify(commandsDescription));
 
         assert.that(data).is.equalTo(expectedCommandsDescription);
       });
