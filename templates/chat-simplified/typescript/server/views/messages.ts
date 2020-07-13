@@ -40,8 +40,8 @@ const messages: View = {
       isAuthorized (): boolean {
         return true;
       }
-    }
-  } as QueryHandler<AllResultItem, Infrastructure>
+    } as QueryHandler<AllResultItem, Infrastructure>
+  }
 };
 
 export default messages;
