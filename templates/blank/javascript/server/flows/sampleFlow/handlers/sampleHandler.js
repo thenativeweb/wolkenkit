@@ -26,6 +26,8 @@ const sampleHandler = {
       };
 
       infrastructure.tell.viewStore.aggregates.push(aggregate);
+
+      return;
     }
 
     const aggregate = await infrastructure.tell.viewStore.aggregates.findOne(

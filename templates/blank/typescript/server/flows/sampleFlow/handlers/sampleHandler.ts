@@ -27,6 +27,8 @@ const sampleHandler: FlowHandler<DomainEventData, Infrastructure> = {
       };
 
       infrastructure.tell.viewStore.aggregates.push(aggregate);
+
+      return;
     }
 
     const aggregate = await infrastructure.tell.viewStore.aggregates.findOne(
