@@ -1,11 +1,11 @@
-import { Message } from '../../../../chat/typescript/server/types/Message';
+import { AggregateItem } from '../types/AggregateItem';
 import { processenv } from 'processenv';
 import { Collection, MongoClient } from 'mongodb';
 import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
 
 const getInfrastructure = async function (): Promise<AskInfrastructure & TellInfrastructure> {
   const url = processenv('MONGODB_URL') as string;
-  let aggregates: Collection<Message> | Message[] = [];
+  let aggregates: Collection<AggregateItem> | AggregateItem[] = [];
 
   if (url) {
     const connection = await MongoClient.connect(url, {
