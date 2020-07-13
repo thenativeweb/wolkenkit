@@ -3,6 +3,7 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { QueryDescription } from '../../../../common/application/QueryDescription';
+import streamToString from 'stream-to-string';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -35,15 +36,15 @@ class Client extends HttpClient {
     throw new errors.UnknownError();
   }
 
-  public async query ({ viewName, queryName, options = {}}: {
+  public async query ({ viewName, queryName, queryOptions = {}}: {
     viewName: string;
     queryName: string;
-    options?: object;
+    queryOptions?: object;
   }): Promise<PassThrough> {
     const { data, status } = await axios({
       method: 'get',
       url: `${this.url}/${viewName}/${queryName}`,
-      params: { options },
+      params: queryOptions,
       paramsSerializer (params): string {
         return Object.entries(params).
           map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
@@ -56,9 +57,24 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.', { ex: data, status });
+      const error = JSON.parse(await streamToString(data));
 
-      throw new errors.UnknownError();
+      switch (error.code) {
+        case 'EVIEWNOTFOUND': {
+          throw new errors.ViewNotFound(error.message);
+        }
+        case 'EQUERYHANDLERNOTFOUND': {
+          throw new errors.QueryHandlerNotFound(error.message);
+        }
+        case 'EQUERYOPTIONSINVALID': {
+          throw new errors.QueryOptionsInvalid(error.message);
+        }
+        default: {
+          logger.error('An unknown error occured.', { ex: error, status });
+
+          throw new errors.UnknownError();
+        }
+      }
     }
 
     const passThrough = new PassThrough({ objectMode: true });

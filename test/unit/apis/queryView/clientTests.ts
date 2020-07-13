@@ -1,0 +1,203 @@
+import { Application } from '../../../../lib/common/application/Application';
+import { assert } from 'assertthat';
+import { Client } from '../../../../lib/apis/queryView/http/v2/Client';
+import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
+import { Application as ExpressApplication } from 'express';
+import { getApi } from '../../../../lib/apis/queryView/http';
+import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
+import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
+import { identityProvider } from '../../../shared/identityProvider';
+import { loadApplication } from '../../../../lib/common/application/loadApplication';
+import { runAsServer } from '../../../shared/http/runAsServer';
+import streamToString from 'stream-to-string';
+import { uuid } from 'uuidv4';
+
+suite('queryView/http/Client', (): void => {
+  const identityProviders = [ identityProvider ];
+
+  let application: Application;
+
+  suite('/v2', (): void => {
+    suiteSetup(async (): Promise<void> => {
+      const applicationDirectory = getTestApplicationDirectory({ name: 'withComplexQueries' });
+
+      application = await loadApplication({ applicationDirectory });
+    });
+
+    suite('getDescription', (): void => {
+      let api: ExpressApplication;
+
+      setup(async (): Promise<void> => {
+        ({ api } = await getApi({
+          corsOrigin: '*',
+          application,
+          identityProviders
+        }));
+      });
+
+      test('returns the views description.', async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const description = await client.getDescription();
+
+        const { views: viewsDescription } = getApplicationDescription({
+          application
+        });
+
+        // Convert and parse as JSON, to get rid of any values that are undefined.
+        // This is what the HTTP API does internally, and here we need to simulate
+        // this to make things work.
+        const expectedViewsDescription =
+          JSON.parse(JSON.stringify(viewsDescription));
+
+        assert.that(description).is.equalTo(expectedViewsDescription);
+      });
+    });
+
+    suite('query', (): void => {
+      let api: ExpressApplication;
+
+      setup(async (): Promise<void> => {
+        ({ api } = await getApi({
+          corsOrigin: '*',
+          application,
+          identityProviders
+        }));
+      });
+
+      test('throws an exception if an invalid view name is given.', async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.query({ viewName: 'nonExistent', queryName: 'all' });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as CustomError).code === errors.ViewNotFound.code &&
+          (ex as CustomError).message === `View 'nonExistent' not found.`);
+      });
+
+      test('throws an exception if an invalid query name is given.', async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.query({ viewName: 'sampleView', queryName: 'nonExistent' });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as CustomError).code === errors.QueryHandlerNotFound.code &&
+          (ex as CustomError).message === `Query handler 'sampleView.nonExistent' not found.`);
+      });
+
+      test('throws an exception if invalid options are given.', async (): Promise<void> => {
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.query({
+            viewName: 'sampleView',
+            queryName: 'withOptions',
+            queryOptions: { foo: 'bar' }
+          });
+        }).is.throwingAsync((ex): boolean =>
+          (ex as CustomError).code === errors.QueryOptionsInvalid.code &&
+          (ex as CustomError).message === `Missing required property: filter (at value.filter).`);
+      });
+
+      test('streams the result items.', async (): Promise<void> => {
+        const domainEvents = [
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'executed',
+            id: uuid()
+          },
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'not-executed',
+            id: uuid()
+          }
+        ];
+
+        (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const result = await client.query({
+          viewName: 'sampleView',
+          queryName: 'all'
+        });
+
+        const streamContent = await streamToString(result);
+        const parsedStreamContent = streamContent.
+          split('\n').
+          filter((line): boolean => line !== '').
+          map((line): any => JSON.parse(line));
+
+        assert.that(parsedStreamContent).is.equalTo(domainEvents);
+      });
+
+      test('streams the result items based on options.', async (): Promise<void> => {
+        const domainEvents = [
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'executed',
+            id: uuid()
+          },
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            name: 'not-executed',
+            id: uuid()
+          }
+        ];
+
+        (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        const result = await client.query({
+          viewName: 'sampleView',
+          queryName: 'withOptions',
+          queryOptions: { filter: { domainEventName: 'executed' }}
+        });
+
+        const streamContent = await streamToString(result);
+        const parsedStreamContent = streamContent.
+          split('\n').
+          filter((line): boolean => line !== '').
+          map((line): any => JSON.parse(line));
+
+        assert.that(parsedStreamContent).is.equalTo([ domainEvents[0] ]);
+      });
+    });
+  });
+});
