@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { errors } from '../../../../common/errors';
-import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/utils/http/FilterHeartbeatsFromJsonStreamTransform';
+import { FilterHeartbeatsTransform } from '../../../../common/utils/http/FilterHeartbeatsTransform';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { LockMetadata } from '../../../../stores/priorityQueueStore/LockMetadata';
+import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -37,7 +38,6 @@ class Client<TItem> extends HttpClient {
     });
 
     const passThrough = new PassThrough({ objectMode: true });
-    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
 
     const { item, metadata } = await new Promise((resolve, reject): void => {
       let unsubscribe: () => void;
@@ -59,8 +59,12 @@ class Client<TItem> extends HttpClient {
       passThrough.on('data', onData);
       passThrough.on('error', onError);
 
+      const jsonParser = new ParseJsonTransform();
+      const heartbeatFilter = new FilterHeartbeatsTransform();
+
       pipeline(
         data,
+        jsonParser,
         heartbeatFilter,
         passThrough,
         (err): void => {

@@ -43,6 +43,7 @@ const executeQueryHandler = async function ({
     fileName: `<app>/server/views/${queryHandlerIdentifier.view.name}/queryHandlers/${queryHandlerIdentifier.name}`,
     packageManifest: application.packageManifest
   });
+  // eslint-disable-next-line @typescript-eslint/await-thenable
   const result = await queryHandler.handle(options, {
     client: services.client,
     infrastructure: application.infrastructure,
@@ -84,7 +85,9 @@ const executeQueryHandler = async function ({
     resultStream,
     validateStream,
     (err): void => {
-      logger.error('An error occured during stream piping.', { err });
+      if (err) {
+        logger.error('An error occured during stream piping.', {err});
+      }
     }
   );
 

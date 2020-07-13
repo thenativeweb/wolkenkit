@@ -2,6 +2,7 @@ import axios from 'axios';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
+import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
 import { QueryDescription } from '../../../../common/application/QueryDescription';
 import streamToString from 'stream-to-string';
 import { PassThrough, pipeline } from 'stream';
@@ -77,11 +78,11 @@ class Client extends HttpClient {
       }
     }
 
-    const passThrough = new PassThrough({ objectMode: true });
+    const jsonParser = new ParseJsonTransform();
 
     return pipeline(
       data,
-      passThrough,
+      jsonParser,
       (err): void => {
         if (err) {
           // Do not handle errors explicitly. The returned stream will just close.

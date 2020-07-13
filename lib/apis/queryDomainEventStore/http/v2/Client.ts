@@ -3,9 +3,10 @@ import axios from 'axios';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { errors } from '../../../../common/errors';
-import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/utils/http/FilterHeartbeatsFromJsonStreamTransform';
+import { FilterHeartbeatsTransform } from '../../../../common/utils/http/FilterHeartbeatsTransform';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
+import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
 import { Snapshot } from '../../../../stores/domainEventStore/Snapshot';
 import { State } from '../../../../common/elements/State';
 import { toArray } from 'streamtoarray';
@@ -73,10 +74,12 @@ class Client extends HttpClient {
     }
 
     const passThrough = new PassThrough({ objectMode: true });
-    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
+    const jsonParser = new ParseJsonTransform();
+    const heartbeatFilter = new FilterHeartbeatsTransform();
 
     return pipeline(
       data,
+      jsonParser,
       heartbeatFilter,
       passThrough,
       (err): void => {
@@ -127,10 +130,12 @@ class Client extends HttpClient {
     }
 
     const passThrough = new PassThrough({ objectMode: true });
-    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
+    const jsonParser = new ParseJsonTransform();
+    const heartbeatFilter = new FilterHeartbeatsTransform();
 
     return pipeline(
       data,
+      jsonParser,
       heartbeatFilter,
       passThrough,
       (err): void => {
@@ -165,10 +170,12 @@ class Client extends HttpClient {
     }
 
     const passThrough = new PassThrough({ objectMode: true });
-    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
+    const jsonParser = new ParseJsonTransform();
+    const heartbeatFilter = new FilterHeartbeatsTransform();
 
     return pipeline(
       data,
+      jsonParser,
       heartbeatFilter,
       passThrough,
       (err): void => {
@@ -211,10 +218,12 @@ class Client extends HttpClient {
     }
 
     const passThrough = new PassThrough({ objectMode: true });
-    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
+    const jsonParser = new ParseJsonTransform();
+    const heartbeatFilter = new FilterHeartbeatsTransform();
 
     return pipeline(
       data,
+      jsonParser,
       heartbeatFilter,
       passThrough,
       (err): void => {

@@ -7,7 +7,7 @@ import { getClientService } from '../../../../common/services/getClientService';
 import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandlerIdentifier';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import {writeLine} from "../../../base/writeLine";
+import { writeLine } from '../../../base/writeLine';
 
 const logger = flaschenpost.getLogger();
 
