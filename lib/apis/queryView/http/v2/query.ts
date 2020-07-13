@@ -1,12 +1,13 @@
 import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
+import { errors } from '../../../../common/errors';
 import { executeQueryHandler } from '../../../../common/domain/executeQueryHandler';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
-import { pipeline } from 'stream';
 import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandlerIdentifier';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import {writeLine} from "../../../base/writeLine";
 
 const logger = flaschenpost.getLogger();
 
@@ -46,10 +47,10 @@ const query = {
         return;
       }
 
-      let result;
+      let resultStream;
 
       try {
-        result = await executeQueryHandler({
+        resultStream = await executeQueryHandler({
           application,
           queryHandlerIdentifier,
           options: req.query,
@@ -59,12 +60,26 @@ const query = {
         });
       } catch (ex) {
         switch (ex.code) {
+          case errors.QueryOptionsInvalid.code: {
+            res.status(400).json({
+              code: ex.code,
+              message: ex.message
+            });
+            break;
+          }
+          case errors.QueryResultInvalid.code: {
+            logger.error('An invalid query result was caught.', { ex });
+
+            res.status(500).json({
+              code: ex.code
+            });
+            break;
+          }
           default: {
             logger.error('Unknown error occured.', { ex });
 
             res.status(500).json({
-              code: ex.code ?? 'EUNKNOWNERROR',
-              message: ex.message
+              code: ex.code ?? 'EUNKNOWNERROR'
             });
           }
         }
@@ -72,14 +87,13 @@ const query = {
         return;
       }
 
-      pipeline(
-        result,
-        res,
-        (err): void => {
-          // Do not handle errors explicitly. The returned stream will just close.
-          logger.error('An error occured during stream piping.', { err });
-        }
-      );
+      res.startStream({ heartbeatInterval: false });
+
+      for await (const resultItem of resultStream) {
+        writeLine({ res, data: resultItem });
+      }
+
+      res.end();
     };
   }
 };

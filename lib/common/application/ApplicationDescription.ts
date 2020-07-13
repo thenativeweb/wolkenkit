@@ -1,11 +1,11 @@
-import { CommandDescription } from './CommandDescription';
-import { DomainEventDescription } from './DomainEventDescription';
-import { ViewDescription } from './ViewDescription';
+import { CommandsDescription } from './CommandsDescription';
+import { DomainEventsDescription } from './DomainEventsDescription';
+import { ViewsDescription } from './ViewsDescription';
 
 export interface ApplicationDescription {
-  commands: Record<string, Record<string, Record<string, CommandDescription>>>;
+  commands: CommandsDescription;
 
-  domainEvents: Record<string, Record<string, Record<string, DomainEventDescription>>>;
+  domainEvents: DomainEventsDescription;
 
-  views: Record<string, ViewDescription>;
+  views: ViewsDescription;
 }

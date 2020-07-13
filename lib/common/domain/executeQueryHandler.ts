@@ -1,5 +1,6 @@
 import { Application } from '../application/Application';
 import { ClientService } from '../services/ClientService';
+import { errors } from '../errors';
 import { flaschenpost } from 'flaschenpost';
 import { getLoggerService } from '../services/getLoggerService';
 import { LoggerService } from '../services/LoggerService';
@@ -32,7 +33,11 @@ const executeQueryHandler = async function ({
   const optionsSchema = new Value(queryHandler.getOptionsSchema ? queryHandler.getOptionsSchema() : {}),
         resultItemSchema = new Value(queryHandler.getResultItemSchema ? queryHandler.getResultItemSchema() : {});
 
-  optionsSchema.validate(options);
+  try {
+    optionsSchema.validate(options);
+  } catch (ex) {
+    throw new errors.QueryOptionsInvalid(ex.message);
+  }
 
   const loggerService = services.logger ?? getLoggerService({
     fileName: `<app>/server/views/${queryHandlerIdentifier.view.name}/queryHandlers/${queryHandlerIdentifier.name}`,
@@ -60,16 +65,18 @@ const executeQueryHandler = async function ({
     objectMode: true,
     transform (resultItem, encoding, callback): void {
       if (!queryHandler.isAuthorized(resultItem, isAuthorizedServices)) {
-        return callback();
+        return callback(null);
       }
 
       try {
         resultItemSchema.validate(resultItem);
-
-        return callback(null, resultItem);
       } catch (ex) {
-        return callback(ex);
+        const error = new errors.QueryResultInvalid(ex.message);
+
+        return callback(error);
       }
+
+      return callback(null, resultItem);
     }
   });
 
