@@ -3,6 +3,8 @@
 const { Readable } = require('stream');
 
 const all = {
+  type: 'stream',
+
   getResultItemSchema () {
     return {
       type: 'object',

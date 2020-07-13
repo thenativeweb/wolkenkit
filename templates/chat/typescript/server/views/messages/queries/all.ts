@@ -3,9 +3,11 @@ import { Message } from '../../../types/Message';
 import { Readable } from 'stream';
 import { QueryHandler, QueryResultItem, Schema } from 'wolkenkit';
 
-export interface AllResultItem extends QueryResultItem, Message {};
+export interface AllResultItem extends QueryResultItem, Message {}
 
 export const all: QueryHandler<AllResultItem, Infrastructure> = {
+  type: 'stream',
+
   getResultItemSchema (): Schema {
     return {
       type: 'object',

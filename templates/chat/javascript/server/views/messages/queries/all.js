@@ -2,8 +2,10 @@
 
 const { Readable } = require('stream');
 
-all = {
-  getResultItemSchema (): Schema {
+const all = {
+  type: 'stream',
+
+  getResultItemSchema () {
     return {
       type: 'object',
       properties: {

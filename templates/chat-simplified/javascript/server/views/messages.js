@@ -5,6 +5,8 @@ const { Readable } = require('stream');
 const messages = {
   queryHandlers: {
     all: {
+      type: 'stream',
+
       getResultItemSchema () {
         return {
           type: 'object',
