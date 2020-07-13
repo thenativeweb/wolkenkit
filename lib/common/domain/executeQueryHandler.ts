@@ -86,7 +86,7 @@ const executeQueryHandler = async function ({
     validateStream,
     (err): void => {
       if (err) {
-        logger.error('An error occured during stream piping.', {err});
+        logger.error('An error occured during stream piping.', { err });
       }
     }
   );
