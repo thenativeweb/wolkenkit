@@ -10,7 +10,6 @@ import { getTestApplicationDirectory } from '../../../shared/applications/getTes
 import { identityProvider } from '../../../shared/identityProvider';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
-import streamToString from 'stream-to-string';
 import { uuid } from 'uuidv4';
 
 suite('queryView/http/Client', (): void => {
@@ -145,18 +144,17 @@ suite('queryView/http/Client', (): void => {
           path: '/v2'
         });
 
-        const result = await client.query({
+        const resultStream = await client.query({
           viewName: 'sampleView',
           queryName: 'all'
         });
+        const resultItems = [];
 
-        const streamContent = await streamToString(result);
-        const parsedStreamContent = streamContent.
-          split('\n').
-          filter((line): boolean => line !== '').
-          map((line): any => JSON.parse(line));
+        for await (const resultItem of resultStream) {
+          resultItems.push(resultItem);
+        }
 
-        assert.that(parsedStreamContent).is.equalTo(domainEvents);
+        assert.that(resultItems).is.equalTo(domainEvents);
       });
 
       test('streams the result items based on options.', async (): Promise<void> => {
@@ -184,19 +182,18 @@ suite('queryView/http/Client', (): void => {
           path: '/v2'
         });
 
-        const result = await client.query({
+        const resultStream = await client.query({
           viewName: 'sampleView',
           queryName: 'withOptions',
           queryOptions: { filter: { domainEventName: 'executed' }}
         });
+        const resultItems = [];
 
-        const streamContent = await streamToString(result);
-        const parsedStreamContent = streamContent.
-          split('\n').
-          filter((line): boolean => line !== '').
-          map((line): any => JSON.parse(line));
+        for await (const resultItem of resultStream) {
+          resultItems.push(resultItem);
+        }
 
-        assert.that(parsedStreamContent).is.equalTo([ domainEvents[0] ]);
+        assert.that(resultItems).is.equalTo([ domainEvents[0] ]);
       });
     });
   });

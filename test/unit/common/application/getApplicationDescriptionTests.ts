@@ -157,36 +157,55 @@ suite('getApplicationDescription', (): void => {
       },
       views: {
         sampleView: {
-          queries: {
-            all: {
-              documentation: undefined,
-              optionsSchema: undefined,
-              itemSchema: {
-                type: 'object',
-                properties: {
-                  contextIdentifier: {
-                    type: 'object',
-                    properties: {
-                      name: { type: 'string', minLength: 1 }
-                    },
-                    required: [ 'name' ],
-                    additionalProperties: false
+          all: {
+            itemSchema: {
+              type: 'object',
+              properties: {
+                contextIdentifier: {
+                  type: 'object',
+                  properties: {
+                    name: {
+                      type: 'string',
+                      minLength: 1
+                    }
                   },
-                  aggregateIdentifier: {
-                    type: 'object',
-                    properties: {
-                      name: { type: 'string', minLength: 1 },
-                      id: { type: 'string' }
-                    },
-                    required: [ 'name', 'id' ],
-                    additionalProperties: false
-                  },
-                  name: { type: 'string', minLength: 1 },
-                  id: { type: 'string' }
+                  required: [
+                    'name'
+                  ],
+                  additionalProperties: false
                 },
-                required: [ 'contextIdentifier', 'aggregateIdentifier', 'name', 'id' ],
-                additionalProperties: false
-              }
+                aggregateIdentifier: {
+                  type: 'object',
+                  properties: {
+                    name: {
+                      type: 'string',
+                      minLength: 1
+                    },
+                    id: {
+                      type: 'string'
+                    }
+                  },
+                  required: [
+                    'name',
+                    'id'
+                  ],
+                  additionalProperties: false
+                },
+                name: {
+                  type: 'string',
+                  minLength: 1
+                },
+                id: {
+                  type: 'string'
+                }
+              },
+              required: [
+                'contextIdentifier',
+                'aggregateIdentifier',
+                'name',
+                'id'
+              ],
+              additionalProperties: false
             }
           }
         }

@@ -8,9 +8,7 @@ const getViewsDescription = function ({ viewsDefinition }: {
   const viewsDescription: ViewsDescription = {};
 
   for (const [ viewName, viewDefinition ] of Object.entries(viewsDefinition)) {
-    viewsDescription[viewName] = {
-      queries: {}
-    };
+    viewsDescription[viewName] = {};
 
     for (const [ queryName, queryHandler ] of Object.entries(viewDefinition.queryHandlers)) {
       const { getDocumentation, getOptionsSchema, getResultItemSchema: getItemSchema } = queryHandler;
