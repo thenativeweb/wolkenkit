@@ -21,6 +21,8 @@ import { configurationDefinition as replayConfigurationDefinition } from '../../
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 import { toEnvironmentVariables } from '../../../../runtimes/shared/toEnvironmentVariables';
 import { versions } from '../../../../versions';
+import { Configuration as ViewConfiguration } from '../../../../runtimes/microservice/processes/view/Configuration';
+import { configurationDefinition as viewConfigurationDefinition } from '../../../../runtimes/microservice/processes/view/configurationDefinition';
 
 const getMicroservicePostgresManifest = function ({ appName }: {
   appName: string;
@@ -60,7 +62,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     },
     graphql: {
       hostName: 'graphql',
-      publicPort: 3002,
+      publicPort: 3003,
       privatePort: 3000,
       healthPort: 3001
     },
@@ -76,6 +78,12 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     },
     replay: {
       hostName: 'replay',
+      privatePort: 3000,
+      healthPort: 3001
+    },
+    view: {
+      hostName: 'view',
+      publicPort: 3002,
       privatePort: 3000,
       healthPort: 3001
     },
@@ -331,6 +339,16 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     port: services.replay.privatePort
   };
 
+  const viewConfiguration: ViewConfiguration = {
+    applicationDirectory,
+    corsOrigin,
+    enableOpenApiDocumentation: true,
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.view.healthPort,
+    identityProviders,
+    port: services.view.privatePort
+  };
+
   return `
     version: '${versions.infrastructure['docker-compose']}'
 
@@ -536,6 +554,26 @@ ${
         restart: 'always'
         healthcheck:
           test: ["CMD", "curl", "-f", "http://localhost:${services.replay.healthPort}"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
+
+      ${services.view.hostName}:
+        build: '../..'
+        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/view/app.js'
+        environment:
+          NODE_ENV: 'production'
+${
+  Object.entries(
+    toEnvironmentVariables({ configuration: viewConfiguration, configurationDefinition: viewConfigurationDefinition })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
+        image: '${appName}'
+        init: true
+        restart: 'always'
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:${services.view.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
