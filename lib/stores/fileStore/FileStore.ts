@@ -1,23 +1,23 @@
-import { Metadata } from './Metadata';
-import { OwnedAuthorizationOptions } from '../../apis/getFile/http/v2/isAuthorized/AuthorizationOptions';
+import { FileMetadata } from './FileMetadata';
 import { Readable } from 'stream';
 
 export interface FileStore {
-  addFile (args: {
+  addFile ({ id, fileName, contentType, stream }: {
     id: string;
     fileName: string;
     contentType: string;
-    isAuthorized: OwnedAuthorizationOptions;
     stream: Readable;
   }): Promise<void>;
 
-  getMetadata (args: { id: string }): Promise<Metadata>;
+  getFile ({ id }: {
+    id: string;
+  }): Promise<Readable>;
 
-  getFile (args: { id: string }): Promise<Readable>;
+  getMetadata ({ id }: {
+    id: string;
+  }): Promise<FileMetadata>;
 
-  removeFile (args: { id: string }): Promise<void>;
-
-  transferOwnership (args: { id: string; to: string }): Promise<void>;
-
-  authorize (args: { id: string; isAuthorized: OwnedAuthorizationOptions }): Promise<void>;
+  removeFile ({ id }: {
+    id: string;
+  }): Promise<void>;
 }

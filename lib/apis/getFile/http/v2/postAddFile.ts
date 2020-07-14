@@ -2,10 +2,7 @@ import { errors } from '../../../../common/errors';
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { isUuid } from 'uuidv4';
-import { merge } from 'lodash';
-import { SpecificAuthorizationOption } from './isAuthorized/AuthorizationOptions';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import { getDefaults, hasAccess, isValid } from './isAuthorized';
 
 const logger = flaschenpost.getLogger();
 
@@ -18,30 +15,14 @@ const postAddFile = {
     statusCodes: [ 200, 400, 401, 409 ]
   },
 
-  getHandler ({ addFileAuthorizationOptions, fileStore }: {
-    addFileAuthorizationOptions: SpecificAuthorizationOption;
+  getHandler ({ fileStore }: {
     fileStore: FileStore;
   }): WolkenkitRequestHandler {
-    const rawAuthorizationOptions = merge({}, getDefaults(), {
-      commands: {
-        addFile: addFileAuthorizationOptions
-      }
-    });
-
     return async function (req, res): Promise<any> {
       const { user } = req;
 
       if (!user) {
         throw new errors.InvalidOperation();
-      }
-
-      const owner = user.id;
-      const authorizationOptions = merge({}, rawAuthorizationOptions, {
-        owner
-      });
-
-      if (!hasAccess({ user, to: 'commands.addFile', authorizationOptions, isConstructor: true })) {
-        return res.status(401).end();
       }
 
       let metadata;
@@ -68,14 +49,8 @@ const postAddFile = {
         return res.status(400).send('File name is missing.');
       }
 
-      const isAuthorized = merge({}, getDefaults(), metadata.isAuthorized || {}, { owner });
-
-      if (!isValid(isAuthorized)) {
-        return res.status(400).send('Is authorized is malformed.');
-      }
-
       try {
-        await fileStore.addFile({ id, fileName, contentType, isAuthorized, stream: req });
+        await fileStore.addFile({ id, fileName, contentType, stream: req });
 
         res.status(200).end();
       } catch (ex) {

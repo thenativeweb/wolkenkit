@@ -1,6 +1,5 @@
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
-import { hasAccess } from './isAuthorized';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
@@ -31,15 +30,7 @@ const postRemoveFile = {
       return res.status(400).send('Id is missing.');
     }
 
-    const { user } = req;
-
     try {
-      const { isAuthorized } = await fileStore.getMetadata({ id });
-
-      if (!hasAccess({ user, to: 'commands.removeFile', authorizationOptions: isAuthorized })) {
-        return res.status(401).end();
-      }
-
       await fileStore.removeFile({ id });
 
       res.status(200).end();

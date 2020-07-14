@@ -1,7 +1,6 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import { FileStore } from '../../../../lib/stores/fileStore/FileStore';
-import { OwnedAuthorizationOptions } from '../../../../lib/apis/getFile/http/v2/isAuthorized/AuthorizationOptions';
 import path from 'path';
 import streamToString from 'stream-to-string';
 import { uuid } from 'uuidv4';
@@ -11,17 +10,6 @@ import { createReadStream, ReadStream } from 'fs';
 const getTestsFor = function ({ createFileStore }: {
   createFileStore (): Promise<FileStore>;
 }): void {
-  const isAuthorized: OwnedAuthorizationOptions = {
-    commands: {
-      removeFile: { forAuthenticated: true, forPublic: true },
-      transferOwnership: { forAuthenticated: true, forPublic: true },
-      authorize: { forAuthenticated: true, forPublic: true }
-    },
-    queries: {
-      getFile: { forAuthenticated: true, forPublic: true }
-    },
-    owner: 'Jane.Doe'
-  };
   const contentType = 'application/json',
         fileName = 'someFile.json';
 
@@ -48,15 +36,15 @@ const getTestsFor = function ({ createFileStore }: {
 
     test('does not throw an error.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
-        await fileStore.addFile({ id, fileName, contentType, isAuthorized, stream });
+        await fileStore.addFile({ id, fileName, contentType, stream });
       }).is.not.throwingAsync();
     });
 
     test('throws an error if the id is already being used.', async (): Promise<void> => {
-      await fileStore.addFile({ id, fileName, contentType, isAuthorized, stream });
+      await fileStore.addFile({ id, fileName, contentType, stream });
 
       await assert.that(async (): Promise<void> => {
-        await fileStore.addFile({ id, fileName, contentType, isAuthorized, stream });
+        await fileStore.addFile({ id, fileName, contentType, stream });
       }).is.throwingAsync((ex: Error): boolean => (ex as CustomError).code === 'EFILEALREADYEXISTS');
     });
   });
@@ -73,11 +61,11 @@ const getTestsFor = function ({ createFileStore }: {
     });
 
     test('return the metadata.', async (): Promise<void> => {
-      await fileStore.addFile({ id, fileName, contentType, isAuthorized, stream });
+      await fileStore.addFile({ id, fileName, contentType, stream });
 
       const metadata = await fileStore.getMetadata({ id });
 
-      assert.that(metadata).is.equalTo({ id, fileName, contentType, contentLength, isAuthorized });
+      assert.that(metadata).is.equalTo({ id, fileName, contentType, contentLength });
     });
   });
 
@@ -93,7 +81,7 @@ const getTestsFor = function ({ createFileStore }: {
     });
 
     test('return the file stream.', async (): Promise<void> => {
-      await fileStore.addFile({ id, fileName, contentType, isAuthorized, stream });
+      await fileStore.addFile({ id, fileName, contentType, stream });
 
       const fileStream = await fileStore.getFile({ id });
       const fileData = await streamToString(fileStream);
@@ -114,7 +102,7 @@ const getTestsFor = function ({ createFileStore }: {
     });
 
     test('does not throw an error.', async (): Promise<void> => {
-      await fileStore.addFile({ id, fileName, contentType, isAuthorized, stream });
+      await fileStore.addFile({ id, fileName, contentType, stream });
 
       await assert.that(async (): Promise<void> => {
         await fileStore.removeFile({ id });

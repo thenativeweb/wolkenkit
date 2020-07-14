@@ -7,19 +7,10 @@ import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMidd
 import { getFile } from './getFile';
 import { IdentityProvider } from 'limes';
 import { postAddFile } from './postAddFile';
-import { postAuthorize } from './postAuthorize';
 import { postRemoveFile } from './postRemoveFile';
-import { postTransferOwnership } from './postTransferOwnership';
-import { SpecificAuthorizationOption } from './isAuthorized/AuthorizationOptions';
 
-const getV2 = async function ({
-  corsOrigin,
-  addFileAuthorizationOptions,
-  identityProviders,
-  fileStore
-}: {
+const getV2 = async function ({ corsOrigin, identityProviders, fileStore }: {
   corsOrigin: CorsOrigin;
-  addFileAuthorizationOptions: SpecificAuthorizationOption;
   identityProviders: IdentityProvider[];
   fileStore: FileStore;
 }): Promise<{ api: Application }> {
@@ -38,15 +29,13 @@ const getV2 = async function ({
 
   api.use(cors({
     origin: corsOrigin,
-    allowedHeaders: [ 'content-type', 'authorization', 'x-metadata', 'x-to' ],
+    allowedHeaders: [ 'content-type', 'x-metadata' ],
     exposedHeaders: [ 'content-length', 'content-type', 'content-disposition', 'x-metadata' ]
   }));
 
   api.get(`/${getFile.path}`, authenticationMiddleware, getFile.getHandler({ fileStore }));
-  api.post(`/${postAddFile.path}`, authenticationMiddleware, postAddFile.getHandler({ addFileAuthorizationOptions, fileStore }));
+  api.post(`/${postAddFile.path}`, authenticationMiddleware, postAddFile.getHandler({ fileStore }));
   api.post(`/${postRemoveFile.path}`, authenticationMiddleware, postRemoveFile.getHandler({ fileStore }));
-  api.post(`/{${postTransferOwnership.path}`, authenticationMiddleware, postTransferOwnership.getHandler({ fileStore }));
-  api.post(`/${postAuthorize.path}`, authenticationMiddleware, postAuthorize.getHandler({ fileStore }));
 
   return { api };
 };

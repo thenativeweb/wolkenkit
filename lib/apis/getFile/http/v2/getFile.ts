@@ -1,6 +1,5 @@
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
-import { hasAccess } from './isAuthorized';
 import { pipeline as pipelineCallback } from 'stream';
 import { promisify } from 'util';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -21,14 +20,9 @@ const getFile = {
   getHandler ({ fileStore }: { fileStore: FileStore }): WolkenkitRequestHandler {
     return async function (req, res): Promise<any> {
       const { id } = req.params;
-      const { user } = req;
 
       try {
-        const { fileName, contentType, contentLength, isAuthorized } = await fileStore.getMetadata({ id });
-
-        if (!hasAccess({ user, to: 'queries.getFile', authorizationOptions: isAuthorized })) {
-          return res.status(401).end();
-        }
+        const { fileName, contentType, contentLength } = await fileStore.getMetadata({ id });
 
         const stream = await fileStore.getFile({ id });
 

@@ -17,6 +17,7 @@ import { ErrorService } from './common/services/ErrorService';
 import { Flow } from './common/elements/Flow';
 import { FlowHandler } from './common/elements/FlowHandler';
 import { GetInitialState } from './common/elements/GetInitialState';
+import { Hooks } from './common/elements/Hooks';
 import { loadApplication } from './common/application/loadApplication';
 import { LockService } from './common/services/LockService';
 import { LoggerService } from './common/services/LoggerService';
@@ -50,6 +51,7 @@ export {
   ErrorService,
   Flow,
   FlowHandler,
+  Hooks,
   loadApplication,
   GetInitialState,
   LockService,
