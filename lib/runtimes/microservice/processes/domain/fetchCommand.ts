@@ -8,7 +8,7 @@ const fetchCommand = async function ({ commandDispatcher }: {
   commandDispatcher: CommandDispatcher;
 }): Promise<{
     command: CommandWithMetadata<CommandData>;
-    token: string;
+    metadata: LockMetadata;
   }> {
   const { item, metadata } = await retry(
     async (): Promise<{
@@ -18,7 +18,7 @@ const fetchCommand = async function ({ commandDispatcher }: {
     { retries: Number.POSITIVE_INFINITY, minTimeout: 10, maxTimeout: 1000 }
   );
 
-  return { command: item, token: metadata.token };
+  return { command: item, metadata };
 };
 
 export {
