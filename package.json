@@ -159,7 +159,7 @@
     "pg": "8.3.0",
     "pg-query-stream": "3.2.0",
     "processenv": "3.0.2",
-    "retry-ignore-abort": "2.2.3",
+    "retry-ignore-abort": "2.2.4",
     "runfork": "3.1.4",
     "saslprep": "1.0.3",
     "shelljs": "0.8.4",
