@@ -2,7 +2,7 @@ import { SampleDomainEventData } from '../domainEvents/sampleDomainEvent';
 import { SampleState } from '../SampleState';
 import { AskInfrastructure, CommandData, CommandHandler, Schema, TellInfrastructure } from 'wolkenkit';
 
-export interface SampleCommandData extends CommandData {}
+export type SampleCommandData = CommandData;
 
 export const sampleCommand: CommandHandler<SampleState, SampleCommandData, AskInfrastructure & TellInfrastructure> = {
   getSchema (): Schema {

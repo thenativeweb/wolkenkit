@@ -8,11 +8,11 @@ const messages: Flow = {
 
   domainEventHandlers: {
     handleMessageSent: {
-      isRelevant ({ fullyQualifiedName }) {
+      isRelevant ({ fullyQualifiedName }): boolean {
         return fullyQualifiedName === 'communication.message.sent';
       },
 
-      async handle (domainEvent, { infrastructure }) {
+      async handle (domainEvent, { infrastructure }): Promise<void> {
         const message: Message = {
           id: domainEvent.aggregateIdentifier.id,
           timestamp: domainEvent.metadata.timestamp,
@@ -31,16 +31,17 @@ const messages: Flow = {
     } as FlowHandler<SentData, Infrastructure>,
 
     handleMessageLiked: {
-      isRelevant ({ fullyQualifiedName }) {
+      isRelevant ({ fullyQualifiedName }): boolean {
         return fullyQualifiedName === 'communication.message.liked';
       },
 
-      async handle (domainEvent, { infrastructure }) {
+      async handle (domainEvent, { infrastructure }): Promise<void> {
         if (Array.isArray(infrastructure.tell.viewStore.messages)) {
-          const message = infrastructure.tell.viewStore.messages.find(
-            (message): boolean => message.id === domainEvent.aggregateIdentifier.id);
+          const messageToUpdate = infrastructure.tell.viewStore.messages.find(
+            (message): boolean => message.id === domainEvent.aggregateIdentifier.id
+          );
 
-          message.likes = domainEvent.data.likes;
+          messageToUpdate.likes = domainEvent.data.likes;
 
           return;
         }

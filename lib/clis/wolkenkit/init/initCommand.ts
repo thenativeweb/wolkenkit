@@ -1,4 +1,5 @@
 import { adjustPackageJson } from './adjustPackageJson';
+import { adjustTsConfig } from './adjustTsConfig';
 import { arrayToSentence } from '../../../common/utils/arrayToSentence';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
@@ -144,6 +145,16 @@ const initCommand = function (): Command<InitOptions> {
           addTypeScript: selectedLanguage === 'typescript'
         });
         buntstift.verbose('Adjusted package.json.');
+
+        if (selectedLanguage === 'typescript') {
+          const tsconfig = path.join(targetDirectory, 'tsconfig.json');
+
+          buntstift.verbose(`Adjusting ${tsconfig}...`);
+          await adjustTsConfig({
+            tsconfig
+          });
+          buntstift.verbose('Adjusted tsconfig.json.');
+        }
 
         buntstift.verbose('Creating Docker configuration...');
         await createDockerConfiguration({ directory: targetDirectory });

@@ -9,23 +9,23 @@ const sampleHandler = {
     logger.info('Received domain event.', { domainEvent });
 
     if (Array.isArray(infrastructure.tell.viewStore.aggregates)) {
-      let aggregate = infrastructure.tell.viewStore.aggregates.find(
-        (aggregate) => aggregate.id === domainEvent.aggregateIdentifier.id
+      let aggregateForUpdate = infrastructure.tell.viewStore.aggregates.find(
+        aggregate => aggregate.id === domainEvent.aggregateIdentifier.id
       );
 
-      if (aggregate) {
-        aggregate.updatedAt = domainEvent.metadata.timestamp;
+      if (aggregateForUpdate) {
+        aggregateForUpdate.updatedAt = domainEvent.metadata.timestamp;
 
         return;
       }
 
-      aggregate = {
+      aggregateForUpdate = {
         id: domainEvent.aggregateIdentifier.id,
         createdAt: domainEvent.metadata.timestamp,
         updatedAt: domainEvent.metadata.timestamp
       };
 
-      infrastructure.tell.viewStore.aggregates.push(aggregate);
+      infrastructure.tell.viewStore.aggregates.push(aggregateForUpdate);
 
       return;
     }

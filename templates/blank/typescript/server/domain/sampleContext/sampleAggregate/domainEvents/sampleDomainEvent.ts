@@ -1,7 +1,7 @@
 import { SampleState } from '../SampleState';
 import { AskInfrastructure, DomainEventData, DomainEventHandler, Schema, TellInfrastructure } from 'wolkenkit';
 
-export interface SampleDomainEventData extends DomainEventData {}
+export type SampleDomainEventData = DomainEventData;
 
 export const sampleDomainEvent: DomainEventHandler<SampleState, SampleDomainEventData, AskInfrastructure & TellInfrastructure> = {
   getSchema (): Schema {

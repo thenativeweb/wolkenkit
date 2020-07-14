@@ -1,7 +1,7 @@
 import { AggregateItem } from '../types/AggregateItem';
 import { processenv } from 'processenv';
-import { Collection, MongoClient } from 'mongodb';
 import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
+import { Collection, MongoClient } from 'mongodb';
 
 const getInfrastructure = async function (): Promise<AskInfrastructure & TellInfrastructure> {
   const url = processenv('MONGODB_URL') as string;
@@ -9,6 +9,7 @@ const getInfrastructure = async function (): Promise<AskInfrastructure & TellInf
 
   if (url) {
     const connection = await MongoClient.connect(url, {
+      // eslint-disable-next-line id-length
       w: 1,
       useNewUrlParser: true,
       useUnifiedTopology: true
@@ -29,6 +30,6 @@ const getInfrastructure = async function (): Promise<AskInfrastructure & TellInf
       }
     }
   };
-}
+};
 
 export { getInfrastructure };

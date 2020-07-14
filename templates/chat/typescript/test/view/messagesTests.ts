@@ -1,6 +1,4 @@
 import { assert } from 'assertthat';
-import { Infrastructure } from '../../server/infrastructure';
-import { Message } from '../../server/types/Message';
 import path from 'path';
 import { uuid } from 'uuidv4';
 import { Application, loadApplication, sandbox } from 'wolkenkit';
@@ -47,7 +45,7 @@ suite('messages', (): void => {
         }).
         then(async (): Promise<void> => {
           // Intentionally left empty.
-        // The flow sandbox is ran so that data is written for the views.
+          // The flow sandbox is ran so that data is written for the views.
         });
 
       const sandboxForView = sandboxWithApplication.forView({ viewName: 'messages' });

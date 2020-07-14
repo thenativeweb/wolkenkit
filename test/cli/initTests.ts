@@ -150,5 +150,10 @@ suite('init', function (): void {
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'types', 'AggregateItem.ts') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'index.ts') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'queries', 'all.ts') })).is.true();
+
+    const parsedTsConfig = JSON.parse(await fs.promises.readFile(path.join(appDirectory, 'tsconfig.json'), 'utf-8'));
+
+    assert.that(parsedTsConfig.compilerOptions.baseUrl).is.undefined();
+    assert.that(parsedTsConfig.compilerOptions.paths).is.undefined();
   });
 });

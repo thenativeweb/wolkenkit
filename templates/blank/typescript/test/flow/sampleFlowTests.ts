@@ -21,7 +21,7 @@ suite('sampleFlow', (): void => {
     await sandbox().
       withApplication({ application }).
       withLoggerServiceFactory({
-        loggerServiceFactory () {
+        loggerServiceFactory (): LoggerService {
           return {
             fatal (message: string, metadata?: object): void {
               logMessages.push({ level: 'fatal', message, metadata });
@@ -52,7 +52,7 @@ suite('sampleFlow', (): void => {
           timestamp
         }
       }).
-      then(async () => {
+      then(async (): Promise<void> => {
         assert.that(logMessages.length).is.equalTo(1);
         assert.that(logMessages[0]).is.atLeast({
           level: 'info',

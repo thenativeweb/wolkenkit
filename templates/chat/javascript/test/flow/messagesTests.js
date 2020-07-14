@@ -33,7 +33,7 @@ suite('messages', () => {
         }
       }).
       then(async () => {
-        const messages = application.infrastructure.tell.viewStore.messages;
+        const { messages } = application.infrastructure.tell.viewStore;
 
         assert.that(messages.length).is.equalTo(1);
         assert.that(messages[0]).is.equalTo({
@@ -70,7 +70,7 @@ suite('messages', () => {
         }
       }).
       then(async () => {
-        const messages = application.infrastructure.tell.viewStore.messages;
+        const { messages } = application.infrastructure.tell.viewStore;
 
         assert.that(messages.length).is.equalTo(1);
         assert.that(messages[0]).is.atLeast({

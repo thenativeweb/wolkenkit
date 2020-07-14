@@ -9,6 +9,7 @@ const getInfrastructure = async function () {
 
   if (url) {
     const connection = await MongoClient.connect(url, {
+      // eslint-disable-next-line id-length
       w: 1,
       useNewUrlParser: true,
       useUnifiedTopology: true
@@ -29,6 +30,6 @@ const getInfrastructure = async function () {
       }
     }
   };
-}
+};
 
 module.exports = { getInfrastructure };

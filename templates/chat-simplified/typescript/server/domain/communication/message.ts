@@ -24,14 +24,14 @@ export interface SentData extends DomainEventData {
   text: string;
 }
 
-export interface LikeData extends CommandData {}
+export type LikeData = CommandData;
 
 export interface LikedData extends DomainEventData {
   likes: number;
 }
 
 const message: Aggregate = {
-  getInitialState: function () {
+  getInitialState: function (): MessageState {
     return {
       text: '',
       likes: 0

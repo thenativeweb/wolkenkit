@@ -47,7 +47,7 @@ suite('messages', () => {
         }).
         then(async () => {
           // Intentionally left empty.
-        // The flow sandbox is ran so that data is written for the views.
+          // The flow sandbox is ran so that data is written for the views.
         });
 
       const sandboxForView = sandboxWithApplication.forView({ viewName: 'messages' });

@@ -2,7 +2,11 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "rootDir": ".",
-    "sourceMap": true
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "wolkenkit": ["../../../lib/wolkenkit"]
+    }
   },
   "include": [
     "./**/*.ts"

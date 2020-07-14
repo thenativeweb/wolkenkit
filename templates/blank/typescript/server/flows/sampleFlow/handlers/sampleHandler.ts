@@ -2,31 +2,32 @@ import { Infrastructure } from '../../../infrastructure';
 import { DomainEventData, FlowHandler } from 'wolkenkit';
 
 const sampleHandler: FlowHandler<DomainEventData, Infrastructure> = {
-  isRelevant () {
+  isRelevant (): boolean {
     return true;
   },
 
-  async handle (domainEvent, { infrastructure, logger }) {
+  async handle (domainEvent, { infrastructure, logger }): Promise<void> {
     logger.info('Received domain event.', { domainEvent });
 
     if (Array.isArray(infrastructure.tell.viewStore.aggregates)) {
-      let aggregate = infrastructure.tell.viewStore.aggregates.find(
+      let aggregateToUpdate = infrastructure.tell.viewStore.aggregates.find(
         (aggregate): boolean => aggregate.id === domainEvent.aggregateIdentifier.id
       );
 
-      if (aggregate) {
-        aggregate.updatedAt = domainEvent.metadata.timestamp;
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (aggregateToUpdate) {
+        aggregateToUpdate.updatedAt = domainEvent.metadata.timestamp;
 
         return;
       }
 
-      aggregate = {
+      aggregateToUpdate = {
         id: domainEvent.aggregateIdentifier.id,
         createdAt: domainEvent.metadata.timestamp,
         updatedAt: domainEvent.metadata.timestamp
       };
 
-      infrastructure.tell.viewStore.aggregates.push(aggregate);
+      infrastructure.tell.viewStore.aggregates.push(aggregateToUpdate);
 
       return;
     }
@@ -35,6 +36,7 @@ const sampleHandler: FlowHandler<DomainEventData, Infrastructure> = {
       { id: domainEvent.aggregateIdentifier.id }
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (aggregate) {
       await infrastructure.tell.viewStore.aggregates.updateOne(
         { id: domainEvent.aggregateIdentifier.id },

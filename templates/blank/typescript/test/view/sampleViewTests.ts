@@ -33,8 +33,8 @@ suite('sampleView', (): void => {
           }
         }).
         then(async (): Promise<void> => {
-        // Intentionally left empty.
-        // The flow sandbox is ran so that data is written for the views.
+          // Intentionally left empty.
+          // The flow sandbox is ran so that data is written for the views.
         });
 
       const sandboxForView = sandboxWithApplication.forView({ viewName: 'sampleView' });

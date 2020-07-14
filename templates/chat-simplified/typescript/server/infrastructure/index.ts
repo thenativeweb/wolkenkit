@@ -22,6 +22,7 @@ const getInfrastructure = async function (): Promise<AskInfrastructure & TellInf
 
   if (url) {
     const connection = await MongoClient.connect(url, {
+      // eslint-disable-next-line id-length
       w: 1,
       useNewUrlParser: true,
       useUnifiedTopology: true
