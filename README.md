@@ -38,7 +38,7 @@ $ npx wolkenkit dev
 
 *Please note that the local development mode processes all data in-memory only, so any data will be lost when the application is closed.*
 
-### Sending commands and receiving domain events
+### Sending commands, receiving domain events and querying views
 
 To send commands or receive domain events, the current version offers an HTTP and a GraphQL interface.
 
@@ -114,6 +114,18 @@ A sample call to `curl` might look like this:
 $ curl \
     -i \
     http://localhost:3000/domain-events/v2
+```
+
+##### Querying a view
+
+To query a view, send a `GET` request to the views endpoint of the runtime. The response is a stream of newline separated JSON objects, using `application/x-ndjson` as its content-type. This response stream does _not_ contain heartbeats and ends as soon as the last item is streamed.
+
+A sample call to `curl` might look like this:
+
+```shell
+$ curl \
+    -i \
+    http://localhost:3000/views/v2/messages/all
 ```
 
 #### Using the GraphQL interface
