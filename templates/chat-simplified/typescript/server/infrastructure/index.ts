@@ -1,5 +1,5 @@
 import { Message } from '../types/Message';
-import { processenv } from 'processenv';
+import { processenv } from 'processenv';
 import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
 import { Collection, MongoClient } from 'mongodb';
 
@@ -7,7 +7,7 @@ export interface Infrastructure extends AskInfrastructure, TellInfrastructure {
   ask: {
     viewStore: {
       messages: Collection<Message> | Message[];
-    }
+    };
   };
   tell: {
     viewStore: {
@@ -31,7 +31,11 @@ const getInfrastructure = async function (): Promise<AskInfrastructure & TellInf
   }
 
   return {
-    ask: {},
+    ask: {
+      viewStore: {
+        messages
+      }
+    },
     tell: {
       viewStore: {
         messages

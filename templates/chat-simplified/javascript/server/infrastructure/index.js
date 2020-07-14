@@ -1,7 +1,7 @@
 'use strict';
 
-const { processenv } = require('processenv');
-const { Collection, MongoClient } = require('mongodb');
+const { processenv } = require('processenv');
+const { MongoClient } = require('mongodb');
 
 const getInfrastructure = async function () {
   const url = processenv('MONGODB_URL');
