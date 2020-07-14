@@ -571,6 +571,8 @@ ${
 }
         image: '${appName}'
         init: true
+        ports:
+          - '${services.view.publicPort}:${services.view.privatePort}'
         restart: 'always'
         healthcheck:
           test: ["CMD", "curl", "-f", "http://localhost:${services.view.healthPort}"]
