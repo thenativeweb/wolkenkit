@@ -12,10 +12,10 @@ const getSendCommandFieldConfiguration = function ({ application, onReceiveComma
   application: Application;
   onReceiveCommand: OnReceiveCommand;
 }): GraphQLFieldConfig<any, ResolverContext> {
-  const commandObjectTypeFields: GraphQLFieldConfigMap<any, ResolverContext> = {};
+  const commandFieldConfigurations: GraphQLFieldConfigMap<any, ResolverContext> = {};
 
   for (const [ contextName, context ] of Object.entries(application.domain)) {
-    commandObjectTypeFields[contextName] = getContextFieldConfiguration({
+    commandFieldConfigurations[contextName] = getContextFieldConfiguration({
       application,
       context,
       contextName,
@@ -26,7 +26,7 @@ const getSendCommandFieldConfiguration = function ({ application, onReceiveComma
   return {
     type: new GraphQLObjectType({
       name: 'command',
-      fields: commandObjectTypeFields
+      fields: commandFieldConfigurations
     }),
     resolve (): any {
       return {};

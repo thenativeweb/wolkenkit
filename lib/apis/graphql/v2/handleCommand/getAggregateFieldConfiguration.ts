@@ -25,10 +25,10 @@ const getAggregateFieldConfiguration = function ({
   aggregate: AggregateDefinition;
   onReceiveCommand: OnReceiveCommand;
 }): GraphQLFieldConfig<any, ResolverContext> {
-  const aggregateObjectTypeFields: GraphQLFieldConfigMap<{ contextIdentifier: ContextIdentifier; aggregateIdentifier: AggregateIdentifier }, ResolverContext> = {};
+  const aggregateFieldConfigurations: GraphQLFieldConfigMap<{ contextIdentifier: ContextIdentifier; aggregateIdentifier: AggregateIdentifier }, ResolverContext> = {};
 
   for (const [ commandName, commandHandler ] of Object.entries(aggregate.commandHandlers)) {
-    aggregateObjectTypeFields[commandName] = getCommandFieldConfiguration({
+    aggregateFieldConfigurations[commandName] = getCommandFieldConfiguration({
       application,
       contextName,
       aggregateName,
@@ -41,7 +41,7 @@ const getAggregateFieldConfiguration = function ({
   return {
     type: new GraphQLObjectType({
       name: `${contextName}_${aggregateName}`,
-      fields: aggregateObjectTypeFields
+      fields: aggregateFieldConfigurations
     }),
     args: {
       id: {

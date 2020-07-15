@@ -16,10 +16,10 @@ const getContextFieldConfiguration = function ({ application, contextName, conte
   contextName: string;
   onReceiveCommand: OnReceiveCommand;
 }): GraphQLFieldConfig<any, ResolverContext> {
-  const contextObjectTypeFields: GraphQLFieldConfigMap<{ contextIdentifier: ContextIdentifier }, ResolverContext> = {};
+  const contextFieldConfigurations: GraphQLFieldConfigMap<{ contextIdentifier: ContextIdentifier }, ResolverContext> = {};
 
   for (const [ aggregateName, aggregate ] of Object.entries(context)) {
-    contextObjectTypeFields[aggregateName] = getAggregateFieldConfiguration({
+    contextFieldConfigurations[aggregateName] = getAggregateFieldConfiguration({
       application,
       contextName,
       aggregate,
@@ -31,7 +31,7 @@ const getContextFieldConfiguration = function ({ application, contextName, conte
   return {
     type: new GraphQLObjectType({
       name: contextName,
-      fields: contextObjectTypeFields
+      fields: contextFieldConfigurations
     }),
     resolve (): { contextIdentifier: ContextIdentifier } {
       return { contextIdentifier: { name: contextName }};

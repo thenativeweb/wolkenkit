@@ -1,4 +1,5 @@
 import { addMissingPrototype } from '../../../../common/utils/graphql/addMissingPrototype';
+import { Application } from '../../../../common/application/Application';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
@@ -9,7 +10,6 @@ import { ResolverContext } from '../ResolverContext';
 import { validateItemIdentifier } from '../../../../common/validators/validateItemIdentifier';
 import { Value } from 'validate-value';
 import { buildSchema, GraphQLBoolean, GraphQLFieldConfig, GraphQLInputObjectType, GraphQLObjectType } from 'graphql';
-import {Application} from "../../../../common/application/Application";
 
 const logger = flaschenpost.getLogger();
 
