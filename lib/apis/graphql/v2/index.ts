@@ -13,6 +13,7 @@ import { OnCancelCommand } from '../OnCancelCommand';
 import { OnReceiveCommand } from '../OnReceiveCommand';
 import { PublishDomainEvent } from '../PublishDomainEvent';
 import { Repository } from '../../../common/domain/Repository';
+import { ResolverContext } from './ResolverContext';
 import { Server } from 'http';
 
 const getV2 = async function ({
@@ -65,7 +66,7 @@ const getV2 = async function ({
     context ({
       req,
       connection
-    }): { clientMetadata: ClientMetadata } {
+    }): ResolverContext {
       if (observeDomainEvents !== false && connection) {
         // If observeDomainEvents is true, the value returned here will be added
         // to the connection context when a WebSocket connection is initialized.
