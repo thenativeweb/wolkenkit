@@ -147,7 +147,6 @@ suite('init', function (): void {
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'infrastructure', 'getInfrastructure.ts') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'infrastructure', 'index.ts') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'infrastructure', 'setupInfrastructure.ts') })).is.true();
-    assert.that(await exists({ path: path.join(appDirectory, 'server', 'types', 'AggregateItem.ts') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'index.ts') })).is.true();
     assert.that(await exists({ path: path.join(appDirectory, 'server', 'views', 'sampleView', 'queries', 'all.ts') })).is.true();
 
