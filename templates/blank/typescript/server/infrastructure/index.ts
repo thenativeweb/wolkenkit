@@ -1,20 +1,10 @@
-import { AggregateItem } from '../types/AggregateItem';
-import { Collection } from 'mongodb';
 import { getInfrastructure } from './getInfrastructure';
 import { setupInfrastructure } from './setupInfrastructure';
 import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
 
 export interface Infrastructure extends AskInfrastructure, TellInfrastructure {
-  ask: {
-    viewStore: {
-      aggregates: Collection<AggregateItem> | AggregateItem[];
-    };
-  };
-  tell: {
-    viewStore: {
-      aggregates: Collection<AggregateItem> | AggregateItem[];
-    };
-  };
+  ask: {};
+  tell: {};
 }
 
 export default { getInfrastructure, setupInfrastructure };

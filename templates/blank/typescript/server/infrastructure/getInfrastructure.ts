@@ -1,34 +1,9 @@
-import { AggregateItem } from '../types/AggregateItem';
-import { processenv } from 'processenv';
-import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
-import { Collection, MongoClient } from 'mongodb';
+import { Infrastructure } from '.';
 
-const getInfrastructure = async function (): Promise<AskInfrastructure & TellInfrastructure> {
-  const url = processenv('MONGODB_URL') as string;
-  let aggregates: Collection<AggregateItem> | AggregateItem[] = [];
-
-  if (url) {
-    const connection = await MongoClient.connect(url, {
-      // eslint-disable-next-line id-length
-      w: 1,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-
-    aggregates = connection.db().collection('aggregates');
-  }
-
+const getInfrastructure = async function (): Promise<Infrastructure> {
   return {
-    ask: {
-      viewStore: {
-        aggregates
-      }
-    },
-    tell: {
-      viewStore: {
-        aggregates
-      }
-    }
+    ask: {},
+    tell: {}
   };
 };
 
