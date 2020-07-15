@@ -1,10 +1,11 @@
+import { Infrastructure } from '../../../../infrastructure';
 import { LikedData } from '../domainEvents/liked';
 import { MessageState } from '../MessageState';
-import { AskInfrastructure, CommandData, CommandHandler, Schema, TellInfrastructure } from 'wolkenkit';
+import { CommandData, CommandHandler, Schema } from 'wolkenkit';
 
 export type LikeData = CommandData;
 
-export const like: CommandHandler<MessageState, LikeData, AskInfrastructure & TellInfrastructure> = {
+export const like: CommandHandler<MessageState, LikeData, Infrastructure> = {
   getSchema (): Schema {
     return {
       type: 'object',

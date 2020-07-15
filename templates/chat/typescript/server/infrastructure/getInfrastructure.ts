@@ -1,9 +1,9 @@
+import { Infrastructure } from '.';
 import { Message } from '../types/Message';
 import { processenv } from 'processenv';
-import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
 import { Collection, MongoClient } from 'mongodb';
 
-const getInfrastructure = async function (): Promise<AskInfrastructure & TellInfrastructure> {
+const getInfrastructure = async function (): Promise<Infrastructure> {
   const url = processenv('MONGODB_URL') as string;
   let messages: Collection<Message> | Message[] = [];
 

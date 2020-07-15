@@ -16,7 +16,7 @@ export interface Infrastructure extends AskInfrastructure, TellInfrastructure {
   };
 }
 
-const getInfrastructure = async function (): Promise<AskInfrastructure & TellInfrastructure> {
+const getInfrastructure = async function (): Promise<Infrastructure> {
   const url = processenv('MONGODB_URL') as string;
   let messages: Collection<Message> | Message[] = [];
 

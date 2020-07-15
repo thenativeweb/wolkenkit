@@ -5,7 +5,7 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "wolkenkit": ["../../../lib/wolkenkit"]
+      "wolkenkit": [ "../../../lib/wolkenkit" ]
     }
   },
   "include": [

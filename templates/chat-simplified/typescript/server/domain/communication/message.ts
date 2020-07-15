@@ -1,14 +1,13 @@
+import { Infrastructure } from '../../infrastructure';
 import {
   Aggregate,
-  AskInfrastructure,
   CommandData,
   CommandHandler,
   DomainEventData,
   DomainEventHandler,
   GetInitialState,
   Schema,
-  State,
-  TellInfrastructure
+  State
 } from 'wolkenkit';
 
 export interface MessageState extends State {
@@ -67,7 +66,7 @@ const message: Aggregate = {
           text: command.data.text
         });
       }
-    } as CommandHandler<MessageState, SendData, AskInfrastructure & TellInfrastructure>,
+    } as CommandHandler<MessageState, SendData, Infrastructure>,
 
     like: {
       getSchema (): Schema {
@@ -92,7 +91,7 @@ const message: Aggregate = {
           likes: state.likes + 1
         });
       }
-    } as CommandHandler<MessageState, LikeData, AskInfrastructure & TellInfrastructure>
+    } as CommandHandler<MessageState, LikeData, Infrastructure>
   },
 
   domainEventHandlers: {
@@ -118,7 +117,7 @@ const message: Aggregate = {
       isAuthorized (): boolean {
         return true;
       }
-    } as DomainEventHandler<MessageState, SentData, AskInfrastructure & TellInfrastructure>,
+    } as DomainEventHandler<MessageState, SentData, Infrastructure>,
 
     liked: {
       getSchema (): Schema {
@@ -142,7 +141,7 @@ const message: Aggregate = {
       isAuthorized (): boolean {
         return true;
       }
-    } as DomainEventHandler<MessageState, LikedData, AskInfrastructure & TellInfrastructure>
+    } as DomainEventHandler<MessageState, LikedData, Infrastructure>
   }
 };
 

@@ -28,31 +28,23 @@ suite('messages', (): void => {
           aggregateIdentifier: { name: 'message', id: aggregateId },
           name: 'sent',
           data: { text },
-          metadata: {
-            revision: 1,
-            timestamp
-          }
+          metadata: { revision: 1, timestamp }
         }).
         and({
           contextIdentifier: { name: 'communication' },
           aggregateIdentifier: { name: 'message', id: aggregateId },
           name: 'liked',
           data: { likes: 5 },
-          metadata: {
-            revision: 2,
-            timestamp
-          }
+          metadata: { revision: 2, timestamp }
         }).
         then(async (): Promise<void> => {
-          // Intentionally left empty.
-          // The flow sandbox is ran so that data is written for the views.
+          // Run the flow sandbox so that data gets written for the views, but
+          // do not do any assertions here.
         });
 
       const sandboxForView = sandboxWithApplication.forView({ viewName: 'messages' });
 
-      const resultStream = await sandboxForView.query({
-        queryName: 'all'
-      });
+      const resultStream = await sandboxForView.query({ queryName: 'all' });
       const resultItems = [];
 
       for await (const resultItem of resultStream) {

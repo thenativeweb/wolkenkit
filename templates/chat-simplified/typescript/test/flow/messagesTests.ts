@@ -27,10 +27,7 @@ suite('messages', (): void => {
         aggregateIdentifier: { name: 'message', id: aggregateId },
         name: 'sent',
         data: { text },
-        metadata: {
-          revision: 1,
-          timestamp
-        }
+        metadata: { revision: 1, timestamp }
       }).
       then(async (): Promise<void> => {
         const messages = (application.infrastructure as Infrastructure).tell.viewStore.messages as Message[];
@@ -56,18 +53,14 @@ suite('messages', (): void => {
         aggregateIdentifier: { name: 'message', id: aggregateId },
         name: 'sent',
         data: { text: 'Hello world!' },
-        metadata: {
-          revision: 1
-        }
+        metadata: { revision: 1 }
       }).
       and({
         contextIdentifier: { name: 'communication' },
         aggregateIdentifier: { name: 'message', id: aggregateId },
         name: 'liked',
         data: { likes: 5 },
-        metadata: {
-          revision: 2
-        }
+        metadata: { revision: 2 }
       }).
       then(async (): Promise<void> => {
         const messages = (application.infrastructure as Infrastructure).tell.viewStore.messages as Message[];
