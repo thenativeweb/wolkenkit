@@ -1,5 +1,6 @@
 import { Application } from '../../../common/application/Application';
 import { getMutationSchema } from './handleCommand/getMutationSchema';
+import { getQuerySchema } from './queryView/getQuerySchema';
 import { getSubscriptionSchema } from './observeDomainEvents/getSubscriptionSchema';
 import { OnCancelCommand } from '../OnCancelCommand';
 import { OnReceiveCommand } from '../OnReceiveCommand';
@@ -7,10 +8,11 @@ import { PublishDomainEvent } from '../PublishDomainEvent';
 import { Repository } from '../../../common/domain/Repository';
 import { GraphQLBoolean, GraphQLObjectType, GraphQLSchema, GraphQLSchemaConfig } from 'graphql';
 
-const getSchema = function ({ application, handleCommand, observeDomainEvents }: {
+const getSchema = function ({ application, handleCommand, observeDomainEvents, queryView }: {
   application: Application;
   handleCommand: false | { onReceiveCommand: OnReceiveCommand; onCancelCommand: OnCancelCommand };
   observeDomainEvents: false | { repository: Repository; webSocketEndpoint: string };
+  queryView: boolean;
 }): { schema: GraphQLSchema; publishDomainEvent?: PublishDomainEvent } {
   const graphQlSchemaConfig: GraphQLSchemaConfig = {};
   let publishDomainEvent: PublishDomainEvent | undefined;
@@ -34,15 +36,21 @@ const getSchema = function ({ application, handleCommand, observeDomainEvents }:
     publishDomainEvent = subscriptionSchemaParts.publishDomainEvent;
   }
 
-  graphQlSchemaConfig.query = new GraphQLObjectType({
-    name: 'Query',
-    fields: {
-      _: {
-        type: GraphQLBoolean,
-        resolve: (): boolean => false
+  if (queryView) {
+    graphQlSchemaConfig.query = getQuerySchema({
+      application
+    });
+  } else {
+    graphQlSchemaConfig.query = new GraphQLObjectType({
+      name: 'Query',
+      fields: {
+        _: {
+          type: GraphQLBoolean,
+          resolve: (): boolean => false
+        }
       }
-    }
-  });
+    });
+  }
 
   const schema = new GraphQLSchema(graphQlSchemaConfig);
 

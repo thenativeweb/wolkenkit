@@ -21,6 +21,7 @@ const getV2 = async function ({
   identityProviders,
   handleCommand,
   observeDomainEvents,
+  queryView,
   enableIntegratedClient
 }: {
   corsOrigin: CorsOrigin;
@@ -28,6 +29,7 @@ const getV2 = async function ({
   identityProviders: IdentityProvider[];
   handleCommand: false | { onReceiveCommand: OnReceiveCommand; onCancelCommand: OnCancelCommand };
   observeDomainEvents: false | { repository: Repository; webSocketEndpoint: string };
+  queryView: boolean;
   enableIntegratedClient: boolean;
 }): Promise<{
     api: ExpressApplication;
@@ -54,7 +56,8 @@ const getV2 = async function ({
   const { schema, publishDomainEvent } = getSchema({
     application,
     handleCommand,
-    observeDomainEvents
+    observeDomainEvents,
+    queryView
   });
 
   const graphqlServer = new ApolloServer({

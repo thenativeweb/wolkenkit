@@ -79,6 +79,7 @@ suite('graphql', function (): void {
         webSocketEndpoint: '/v2/',
         repository
       },
+      queryView: true,
       enableIntegratedClient: false
     }));
 
@@ -219,6 +220,7 @@ suite('graphql', function (): void {
           webSocketEndpoint: '/v2/',
           repository
         },
+        queryView: true,
         enableIntegratedClient: false
       }));
 

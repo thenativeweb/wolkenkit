@@ -99,6 +99,7 @@ const getApi = async function ({
         repository,
         webSocketEndpoint: '/graphql/v2/'
       },
+      queryView: true,
       enableIntegratedClient: configuration.graphqlApi.enableIntegratedClient
     });
 
