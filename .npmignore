@@ -1,6 +1,9 @@
 /.dependabot
 /.github
+/.idea
+/.vscode
 /assets
+/build/test
 /docker
 /lib
 /test

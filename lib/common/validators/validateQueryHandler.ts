@@ -8,6 +8,13 @@ const validateQueryHandler = function ({ queryHandler }: {
     throw new errors.QueryHandlerMalformed(`Query handler is not an object.`);
   }
 
+  if (isUndefined(queryHandler.type)) {
+    throw new errors.QueryHandlerMalformed(`Property 'type' is missing.`);
+  }
+  if (queryHandler.type !== 'value' && queryHandler.type !== 'stream') {
+    throw new errors.QueryHandlerMalformed(`Property 'type' must either be 'value' or 'stream'.`);
+  }
+
   if (isUndefined(queryHandler.handle)) {
     throw new errors.QueryHandlerMalformed(`Function 'handle' is missing.`);
   }

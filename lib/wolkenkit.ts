@@ -21,7 +21,6 @@ import { Hooks } from './common/elements/Hooks';
 import { loadApplication } from './common/application/loadApplication';
 import { LockService } from './common/services/LockService';
 import { LoggerService } from './common/services/LoggerService';
-import { ProjectionHandler } from './common/elements/ProjectionHandler';
 import { QueryHandler } from './common/elements/QueryHandler';
 import { QueryOptions } from './common/elements/QueryOptions';
 import { QueryResultItem } from './common/elements/QueryResultItem';
@@ -30,7 +29,6 @@ import { Schema } from './common/elements/Schema';
 import { State } from './common/elements/State';
 import { TellInfrastructure } from './common/elements/TellInfrastructure';
 import { View } from './common/elements/View';
-import { ViewInitializer } from './common/elements/ViewInitializer';
 
 export {
   Aggregate,
@@ -56,7 +54,6 @@ export {
   GetInitialState,
   LockService,
   LoggerService,
-  ProjectionHandler,
   QueryHandler,
   QueryOptions,
   QueryResultItem,
@@ -64,6 +61,5 @@ export {
   Schema,
   State,
   TellInfrastructure,
-  View,
-  ViewInitializer
+  View
 };

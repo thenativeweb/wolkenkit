@@ -1,35 +1,38 @@
-import { MessagesItem } from '../MessagesItem';
-import { Readable, PassThrough } from 'stream';
-import { QueryHandler, QueryResultItem, QueryOptions, Schema } from 'wolkenkit';
+import { Infrastructure } from '../../../infrastructure';
+import { Message } from '../../../types/Message';
+import { Readable } from 'stream';
+import { QueryHandler, QueryResultItem, Schema } from 'wolkenkit';
 
-export interface AllOptions extends QueryOptions {}
+export interface AllResultItem extends QueryResultItem, Message {}
 
-export interface AllResultItem extends MessagesItem, QueryResultItem {};
+export const all: QueryHandler<AllResultItem, Infrastructure> = {
+  type: 'stream',
 
-export const all: QueryHandler<MessagesItem[], AllOptions, AllResultItem> = {
   getResultItemSchema (): Schema {
     return {
       type: 'object',
       properties: {
         id: { type: 'string' },
+        timestamp: { type: 'number' },
         text: { type: 'string' },
-        likes: { type: 'number' },
-        timestamp: { type: 'number' }
+        likes: { type: 'number' }
       },
-      required: [ 'id', 'text', 'likes', 'timestamp' ],
+      required: [ 'id', 'timestamp', 'text', 'likes' ],
       additionalProperties: false
     };
   },
 
-  async handle (messageItems): Promise<Readable> {
-    const stream = new PassThrough({ objectMode: true });
+  async handle (_options, { infrastructure }): Promise<Readable> {
+    if (Array.isArray(infrastructure.ask.viewStore.messages)) {
+      const sortedMessages = [ ...infrastructure.ask.viewStore.messages ].reverse();
 
-    for (const messageItem of messageItems) {
-      stream.write(messageItem);
+      return Readable.from(sortedMessages);
     }
-    stream.end();
 
-    return stream;
+    return infrastructure.ask.viewStore.messages.find({}, {
+      projection: { id: 1, timestamp: 1, text: 1, likes: 1 },
+      sort: [[ 'timestamp', -1 ]]
+    }).stream();
   },
 
   isAuthorized (): boolean {

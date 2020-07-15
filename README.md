@@ -2,7 +2,7 @@
 
 wolkenkit is a CQRS and event-sourcing framework based on Node.js. It empowers you to build and run scalable distributed web and cloud services that process and store streams of domain events. It supports JavaScript and TypeScript, and is available under an open-source license. Additionally, there are also enterprise add-ons. Since it works especially well in conjunction with domain-driven design (DDD), wolkenkit is the perfect backend framework to shape, build, and run web and cloud APIs.
 
-**BEWARE: This README.md refers to the wolkenkit 4.0 community technology preview (CTP) 3. If you are looking for the latest stable release of wolkenkit, see the [wolkenkit documentation](https://docs.wolkenkit.io/).**
+**BEWARE: This README.md refers to the wolkenkit 4.0 community technology preview (CTP) 4. If you are looking for the latest stable release of wolkenkit, see the [wolkenkit documentation](https://docs.wolkenkit.io/).**
 
 ![wolkenkit](assets/logo.png "wolkenkit")
 
@@ -21,7 +21,7 @@ wolkenkit is a CQRS and event-sourcing framework based on Node.js. It empowers y
 First you have to initialize a new application. For this, execute the following command and select a template and a language. The application is then created in a new subdirectory:
 
 ```shell
-$ npx wolkenkit@4.0.0-ctp.3 init <name>
+$ npx wolkenkit@4.0.0-ctp.4 init <name>
 ```
 
 Next, you need to install the application dependencies. To do this, change to the application directory and run the following command:
@@ -38,7 +38,7 @@ $ npx wolkenkit dev
 
 *Please note that the local development mode processes all data in-memory only, so any data will be lost when the application is closed.*
 
-### Sending commands and receiving domain events
+### Sending commands, receiving domain events, and querying views
 
 To send commands or receive domain events, the current version offers an HTTP and a GraphQL interface.
 
@@ -114,6 +114,18 @@ A sample call to `curl` might look like this:
 $ curl \
     -i \
     http://localhost:3000/domain-events/v2
+```
+
+##### Querying a view
+
+To query a view, send a `GET` request to the views endpoint of the runtime. The response is a stream of newline separated JSON objects, using `application/x-ndjson` as its content-type. This response stream does _not_ contain heartbeats and ends as soon as the last item is streamed.
+
+A sample call to `curl` might look like this:
+
+```shell
+$ curl \
+    -i \
+    http://localhost:3000/views/v2/messages/all
 ```
 
 #### Using the GraphQL interface

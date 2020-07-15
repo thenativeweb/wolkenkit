@@ -4,6 +4,7 @@ import { ConsumerProgressStore } from '../../../../stores/consumerProgressStore/
 import { ContextIdentifier } from '../../../elements/ContextIdentifier';
 import { createSandboxForAggregate } from './createSandboxForAggregate';
 import { createSandboxForFlow } from './createSandboxForFlow';
+import { createSandboxForView } from './createSandboxForView';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { GetAggregateService } from '../../../services/types/GetAggregateService';
 import { GetAggregatesService } from '../../../services/types/GetAggregatesService';
@@ -15,6 +16,7 @@ import { LockStore } from '../../../../stores/lockStore/LockStore';
 import { SandboxConfiguration } from './SandboxConfiguration';
 import { SandboxForAggregate } from './SandboxForAggregate';
 import { SandboxForFlow } from './SandboxForFlow';
+import { SandboxForView } from './SandboxForView';
 import { SnapshotStrategy } from '../../../domain/SnapshotStrategy';
 import { State } from '../../../elements/State';
 import { Sandbox, UninitializedSandbox } from './Sandbox';
@@ -146,6 +148,15 @@ const initializedSandbox = function (sandboxConfiguration: SandboxConfiguration)
         ...sandboxConfiguration,
         flowName,
         domainEvents: []
+      });
+    },
+
+    forView ({ viewName }: {
+      viewName: string;
+    }): SandboxForView {
+      return createSandboxForView({
+        ...sandboxConfiguration,
+        viewName
       });
     }
   };

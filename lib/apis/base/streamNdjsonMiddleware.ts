@@ -25,17 +25,21 @@ const streamNdjsonMiddleware: WolkenkitRequestHandler = async function (
       res.writeHead(200, { 'content-type': 'application/x-ndjson' });
 
       res.connection.once('close', (): void => {
-        clearInterval(heartbeatIntervalId);
+        if (heartbeatInterval !== false) {
+          clearInterval(heartbeatIntervalId);
+        }
       });
 
-      // Send an initial heartbeat to initialize the connection. If we do not do
-      // this, sometimes the connection does not become open until the first data
-      // is sent.
-      writeLine({ res, data: heartbeat });
-
-      heartbeatIntervalId = setInterval((): void => {
+      if (heartbeatInterval !== false) {
+        // Send an initial heartbeat to initialize the connection. If we do not do
+        // this, sometimes the connection does not become open until the first data
+        // is sent.
         writeLine({ res, data: heartbeat });
-      }, heartbeatInterval);
+
+        heartbeatIntervalId = setInterval((): void => {
+          writeLine({ res, data: heartbeat });
+        }, heartbeatInterval);
+      }
 
       return next();
     } catch (ex) {

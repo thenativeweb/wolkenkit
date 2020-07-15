@@ -57,6 +57,9 @@ const errors = defekt({
   ProjectionHandlerMalformed: {},
   PublisherTypeInvalid: {},
   QueryHandlerMalformed: {},
+  QueryHandlerNotFound: {},
+  QueryOptionsInvalid: {},
+  QueryResultInvalid: {},
   ReplayFailed: {},
   RequestFailed: {},
   RequestMalformed: {},
@@ -67,7 +70,8 @@ const errors = defekt({
   TokenMismatch: {},
   TypeInvalid: {},
   UnknownError: {},
-  ViewDefinitionMalformed: {}
+  ViewDefinitionMalformed: {},
+  ViewNotFound: {}
 });
 
 export { errors };

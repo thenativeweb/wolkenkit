@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "esModuleInterop": true,
+    "paths": {
+      "wolkenkit": [ "../../../lib/wolkenkit" ]
+    },
     "rootDir": ".",
     "sourceMap": true
   },

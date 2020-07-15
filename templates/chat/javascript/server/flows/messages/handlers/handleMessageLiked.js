@@ -7,10 +7,11 @@ const handleMessageLiked = {
 
   async handle (domainEvent, { infrastructure }) {
     if (Array.isArray(infrastructure.tell.viewStore.messages)) {
-      const message = infrastructure.tell.viewStore.messages.find(
-        message => message.id === domainEvent.aggregateIdentifier.id);
+      const messageToUpdate = infrastructure.tell.viewStore.messages.find(
+        message => message.id === domainEvent.aggregateIdentifier.id
+      );
 
-      message.likes = domainEvent.data.likes;
+      messageToUpdate.likes = domainEvent.data.likes;
 
       return;
     }

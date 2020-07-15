@@ -5,8 +5,15 @@ const sampleHandler = {
     return fullyQualifiedName === 'sampleContext.sampleAggregate.executed';
   },
 
-  handle (domainEvent, { logger }) {
+  handle (domainEvent, { infrastructure, logger }) {
     logger.info('Received domain event.', { domainEvent });
+
+    infrastructure.tell.viewStore.domainEvents.push({
+      contextIdentifier: domainEvent.contextIdentifier,
+      aggregateIdentifier: domainEvent.aggregateIdentifier,
+      name: domainEvent.name,
+      id: domainEvent.id
+    });
   }
 };
 
