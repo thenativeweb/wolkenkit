@@ -38,7 +38,7 @@ $ npx wolkenkit dev
 
 *Please note that the local development mode processes all data in-memory only, so any data will be lost when the application is closed.*
 
-### Sending commands, receiving domain events and querying views
+### Sending commands, receiving domain events, and querying views
 
 To send commands or receive domain events, the current version offers an HTTP and a GraphQL interface.
 
