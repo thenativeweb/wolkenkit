@@ -15,7 +15,7 @@ suite('dev', function (): void {
 
   test('starts the application.', async (): Promise<void> => {
     const appDirectory = path.join(await isolated(), appName);
-    const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
+    const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template chat --language javascript ${appName}`;
 
     shell.exec(initCommand);
     shell.exec(`npm install --production`, {
