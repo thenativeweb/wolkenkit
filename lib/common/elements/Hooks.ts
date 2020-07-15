@@ -9,7 +9,7 @@ export interface Hooks<
   TFileMetadata extends FileMetadata = FileMetadata
 > {
   apis?: {
-    getFile?: {
+    manageFile?: {
       addingFile?: (
         addFileParameters: { id: string; fileName: string; contentType: string },
         services: {

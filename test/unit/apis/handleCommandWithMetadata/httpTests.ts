@@ -2,6 +2,7 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
+import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/handleCommandWithMetadata/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
@@ -58,7 +59,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -81,7 +82,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -101,7 +102,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECOMMANDMALFORMED',
+          code: errors.CommandMalformed.code,
           message: 'Missing required property: contextIdentifier (at value.contextIdentifier).'
         });
       });
@@ -142,7 +143,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECONTEXTNOTFOUND',
+          code: errors.ContextNotFound.code,
           message: `Context 'nonExistent' not found.`
         });
       });
@@ -183,7 +184,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EAGGREGATENOTFOUND',
+          code: errors.AggregateNotFound.code,
           message: `Aggregate 'sampleContext.nonExistent' not found.`
         });
       });
@@ -224,7 +225,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECOMMANDNOTFOUND',
+          code: errors.CommandNotFound.code,
           message: `Command 'sampleContext.sampleAggregate.nonExistent' not found.`
         });
       });
@@ -265,7 +266,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECOMMANDMALFORMED',
+          code: errors.CommandMalformed.code,
           message: 'No enum match (invalid-value), expects: succeed, fail, reject (at command.data.strategy).'
         });
       });
@@ -416,7 +417,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(500);
         assert.that(data).is.equalTo({
-          code: 'EUNKNOWNERROR',
+          code: errors.UnknownError.code,
           message: 'Unknown error.'
         });
       });
@@ -471,7 +472,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -504,7 +505,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -524,7 +525,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Missing required property: contextIdentifier (at value.contextIdentifier).'
         });
       });
@@ -554,7 +555,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECONTEXTNOTFOUND',
+          code: errors.ContextNotFound.code,
           message: `Context 'nonExistent' not found.`
         });
       });
@@ -584,7 +585,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EAGGREGATENOTFOUND',
+          code: errors.AggregateNotFound.code,
           message: `Aggregate 'sampleContext.nonExistent' not found.`
         });
       });
@@ -614,7 +615,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECOMMANDNOTFOUND',
+          code: errors.CommandNotFound.code,
           message: `Command 'sampleContext.sampleAggregate.nonExistent' not found.`
         });
       });
@@ -701,7 +702,7 @@ suite('handleCommandWithMetadata/http', (): void => {
 
         assert.that(status).is.equalTo(500);
         assert.that(data).is.equalTo({
-          code: 'EUNKNOWNERROR',
+          code: errors.UnknownError.code,
           message: 'Unknown error.'
         });
       });

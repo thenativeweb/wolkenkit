@@ -87,7 +87,7 @@ const defer = {
         res.status(200).json(response);
       } catch (ex) {
         switch (ex.code) {
-          case 'ETOKENMISMATCH': {
+          case errors.TokenMismatch.code: {
             res.status(403).json({
               code: ex.code,
               message: `Token mismatch for discriminator '${discriminator}'.`
@@ -95,7 +95,7 @@ const defer = {
 
             return;
           }
-          case 'EITEMNOTFOUND': {
+          case errors.ItemNotFound.code: {
             res.status(404).json({
               code: ex.code,
               message: ex.message
@@ -107,7 +107,7 @@ const defer = {
             logger.error('Unknown error occured.', { ex });
 
             res.status(500).json({
-              code: ex.code ?? 'EUNKNOWNERROR',
+              code: ex.code ?? errors.UnknownError.code,
               message: ex.message
             });
           }

@@ -124,7 +124,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -146,7 +146,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -166,7 +166,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'String does not match pattern: (?:^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}$)|(?:^0{8}-0{4}-0{4}-0{4}-0{12}$)/ (at value.aggregateIdentifier.id).'
         });
       });
@@ -186,7 +186,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECONTEXTNOTFOUND',
+          code: errors.ContextNotFound.code,
           message: `Context 'nonExistent' not found.`
         });
       });
@@ -206,7 +206,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EAGGREGATENOTFOUND',
+          code: errors.AggregateNotFound.code,
           message: `Aggregate 'sampleContext.nonExistent' not found.`
         });
       });
@@ -226,7 +226,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECOMMANDNOTFOUND',
+          code: errors.CommandNotFound.code,
           message: `Command 'sampleContext.sampleAggregate.nonExistent' not found.`
         });
       });
@@ -246,7 +246,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECOMMANDMALFORMED',
+          code: errors.CommandMalformed.code,
           message: 'No enum match (invalid-value), expects: succeed, fail, reject (at command.data.strategy).'
         });
       });
@@ -338,7 +338,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(500);
         assert.that(data).is.equalTo({
-          code: 'EUNKNOWNERROR',
+          code: errors.UnknownError.code,
           message: 'Unknown error.'
         });
       });
@@ -389,7 +389,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -417,7 +417,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -439,7 +439,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Missing required property: contextIdentifier (at value.contextIdentifier).'
         });
       });
@@ -464,7 +464,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECONTEXTNOTFOUND',
+          code: errors.ContextNotFound.code,
           message: `Context 'nonExistent' not found.`
         });
       });
@@ -489,7 +489,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EAGGREGATENOTFOUND',
+          code: errors.AggregateNotFound.code,
           message: `Aggregate 'sampleContext.nonExistent' not found.`
         });
       });
@@ -514,7 +514,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECOMMANDNOTFOUND',
+          code: errors.CommandNotFound.code,
           message: `Command 'sampleContext.sampleAggregate.nonExistent' not found.`
         });
       });
@@ -626,7 +626,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(500);
         assert.that(data).is.equalTo({
-          code: 'EUNKNOWNERROR',
+          code: errors.UnknownError.code,
           message: 'Unknown error.'
         });
       });

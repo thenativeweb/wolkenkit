@@ -1,6 +1,7 @@
 import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { validateQueryHandlerIdentifier } from '../../../../lib/common/validators/validateQueryHandlerIdentifier';
@@ -36,7 +37,7 @@ suite('validateQueryHandlerIdentifier', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EVIEWNOTFOUND' &&
+        (ex as CustomError).code === errors.ViewNotFound.code &&
         ex.message === `View 'someView' not found.`
     );
   });
@@ -52,7 +53,7 @@ suite('validateQueryHandlerIdentifier', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EQUERYHANDLERNOTFOUND' &&
+        (ex as CustomError).code === errors.QueryHandlerNotFound.code &&
         ex.message === `Query handler 'sampleView.someQueryHandler' not found.`
     );
   });

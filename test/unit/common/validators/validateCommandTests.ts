@@ -2,6 +2,7 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { Command } from '../../../../lib/common/elements/Command';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { uuid } from 'uuidv4';
@@ -44,7 +45,7 @@ suite('validateCommand', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'ECONTEXTNOTFOUND' &&
+        (ex as CustomError).code === errors.ContextNotFound.code &&
         ex.message === `Context 'someContext' not found.`
     );
   });
@@ -63,7 +64,7 @@ suite('validateCommand', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EAGGREGATENOTFOUND' &&
+        (ex as CustomError).code === errors.AggregateNotFound.code &&
         ex.message === `Aggregate 'sampleContext.someAggregate' not found.`
     );
   });
@@ -79,7 +80,7 @@ suite('validateCommand', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'ECOMMANDNOTFOUND' &&
+        (ex as CustomError).code === errors.CommandNotFound.code &&
         ex.message === `Command 'sampleContext.sampleAggregate.someCommand' not found.`
     );
   });
@@ -97,7 +98,7 @@ suite('validateCommand', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'ECOMMANDMALFORMED' &&
+        (ex as CustomError).code === errors.CommandMalformed.code &&
         ex.message === `Missing required property: strategy (at command.data.strategy).`
     );
   });

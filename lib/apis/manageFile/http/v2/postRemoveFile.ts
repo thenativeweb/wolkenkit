@@ -1,3 +1,4 @@
+import { errors } from '../../../../common/errors';
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -37,7 +38,7 @@ const postRemoveFile = {
     } catch (ex) {
       logger.error('Failed to remove file.', { id, err: ex });
 
-      if (ex.code === 'EFILENOTFOUND') {
+      if (ex.code === errors.FileNotFound.code) {
         return res.status(404).end();
       }
 

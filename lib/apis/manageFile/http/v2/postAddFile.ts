@@ -65,7 +65,7 @@ const postAddFile = {
       // } catch (ex) {
       //   logger.error('Failed to add file.', { err: ex });
       //
-      //   if (ex.code === 'EFILEALREADYEXISTS') {
+      //   if (ex.code === errors.FileAlreadyExists.code) {
       //     return res.status(409).end();
       //   }
       //

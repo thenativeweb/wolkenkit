@@ -1,6 +1,7 @@
 import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateIdentifier';
 import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
+import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/performReplay/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
@@ -58,7 +59,7 @@ suite('performReplay/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -80,7 +81,7 @@ suite('performReplay/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -108,7 +109,7 @@ suite('performReplay/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Array is too short (0), minimum 1 (at value.flowNames).'
         });
       });
@@ -135,7 +136,7 @@ suite('performReplay/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECONTEXTNOTFOUND',
+          code: errors.ContextNotFound.code,
           message: `Context 'nonExistent' not found.`
         });
       });
@@ -162,7 +163,7 @@ suite('performReplay/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EAGGREGATENOTFOUND',
+          code: errors.AggregateNotFound.code,
           message: `Aggregate 'sampleContext.nonExistent' not found.`
         });
       });
@@ -190,7 +191,7 @@ suite('performReplay/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EFLOWNOTFOUND',
+          code: errors.FlowNotFound.code,
           message: `Flow 'nonExistent' not found.`
         });
       });
@@ -304,7 +305,7 @@ suite('performReplay/http', (): void => {
 
         assert.that(status).is.equalTo(500);
         assert.that(data).is.equalTo({
-          code: 'EUNKNOWNERROR',
+          code: errors.UnknownError.code,
           message: 'Unknown error.'
         });
       });

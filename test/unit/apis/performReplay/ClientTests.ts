@@ -3,6 +3,7 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { Client } from '../../../../lib/apis/performReplay/http/v2/Client';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/performReplay/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
@@ -126,7 +127,7 @@ suite('performReplay/http/Client', (): void => {
               to: 42
             }]
           });
-        }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'ECONTEXTNOTFOUND');
+        }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.ContextNotFound.code);
       });
 
       test('throws an error if an unknown aggregate is given.', async (): Promise<void> => {
@@ -149,7 +150,7 @@ suite('performReplay/http/Client', (): void => {
               to: 42
             }]
           });
-        }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EAGGREGATENOTFOUND');
+        }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.AggregateNotFound.code);
       });
 
       test('throws an error if an unknown flow is given.', async (): Promise<void> => {
@@ -172,7 +173,7 @@ suite('performReplay/http/Client', (): void => {
               to: 42
             }]
           });
-        }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EFLOWNOTFOUND');
+        }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.FlowNotFound.code);
       });
     });
   });

@@ -1,4 +1,5 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
+import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
 import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
@@ -58,7 +59,7 @@ const getSnapshot = {
         logger.error('Unknown error occured.', { ex });
 
         return res.status(400).json({
-          code: ex.code ?? 'EUNKNOWNERROR',
+          code: ex.code ?? errors.UnknownError.code,
           message: ex.message
         });
       }

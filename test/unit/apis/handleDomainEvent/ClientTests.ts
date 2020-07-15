@@ -5,6 +5,7 @@ import { Client } from '../../../../lib/apis/handleDomainEvent/http/v2/Client';
 import { CustomError } from 'defekt';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
+import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/handleDomainEvent/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
@@ -65,7 +66,7 @@ suite('handleDomainEvent/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.postDomainEvent({ domainEvent: domainEventExecuted });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'ECONTEXTNOTFOUND' &&
+          (ex as CustomError).code === errors.ContextNotFound.code &&
           (ex as CustomError).message === `Context 'nonExistent' not found.`);
       });
 
@@ -94,7 +95,7 @@ suite('handleDomainEvent/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.postDomainEvent({ domainEvent: domainEventExecuted });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'EAGGREGATENOTFOUND' &&
+          (ex as CustomError).code === errors.AggregateNotFound.code &&
           (ex as CustomError).message === `Aggregate 'sampleContext.nonExistent' not found.`);
       });
 
@@ -123,7 +124,7 @@ suite('handleDomainEvent/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.postDomainEvent({ domainEvent: domainEventExecuted });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'EDOMAINEVENTNOTFOUND' &&
+          (ex as CustomError).code === errors.DomainEventNotFound.code &&
           (ex as CustomError).message === `Domain event 'sampleContext.sampleAggregate.nonExistent' not found.`);
       });
 
@@ -152,7 +153,7 @@ suite('handleDomainEvent/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.postDomainEvent({ domainEvent: domainEventExecuted });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'EDOMAINEVENTMALFORMED' &&
+          (ex as CustomError).code === errors.DomainEventMalformed.code &&
           (ex as CustomError).message === 'No enum match (invalidValue), expects: succeed, fail, reject (at domainEvent.data.strategy).');
       });
 
@@ -181,7 +182,7 @@ suite('handleDomainEvent/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.postDomainEvent({ flowNames: [ 'nonExistent' ], domainEvent: domainEventExecuted });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'EFLOWNOTFOUND' &&
+          (ex as CustomError).code === errors.FlowNotFound.code &&
           (ex as CustomError).message === `Flow 'nonExistent' not found.`);
       });
 
@@ -259,7 +260,7 @@ suite('handleDomainEvent/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.postDomainEvent({ domainEvent: domainEventExecuted });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'EUNKNOWNERROR' &&
+          (ex as CustomError).code === errors.UnknownError.code &&
           (ex as CustomError).message === 'Unknown error.');
       });
     });

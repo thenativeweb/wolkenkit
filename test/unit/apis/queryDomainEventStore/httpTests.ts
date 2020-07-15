@@ -5,6 +5,7 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
+import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
@@ -667,7 +668,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EAGGREGATEIDENTIFIERMALFORMED',
+          code: errors.AggregateIdentifierMalformed.code,
           message: 'Missing required property: name (at value.aggregateIdentifier.name).'
         });
       });

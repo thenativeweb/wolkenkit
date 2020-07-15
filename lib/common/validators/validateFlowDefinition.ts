@@ -24,7 +24,7 @@ const validateFlowDefinition = function ({ flowDefinition }: {
     }
   }
 
-  if (flowDefinition.enhancers) {
+  if (!isUndefined(flowDefinition.enhancers)) {
     if (!isArray(flowDefinition.enhancers)) {
       throw new errors.FlowDefinitionMalformed(`Property 'enhancers' is not an array.`);
     }

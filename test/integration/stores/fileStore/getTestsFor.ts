@@ -1,5 +1,6 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { FileStore } from '../../../../lib/stores/fileStore/FileStore';
 import path from 'path';
 import streamToString from 'stream-to-string';
@@ -45,7 +46,7 @@ const getTestsFor = function ({ createFileStore }: {
 
       await assert.that(async (): Promise<void> => {
         await fileStore.addFile({ id, fileName, contentType, stream });
-      }).is.throwingAsync((ex: Error): boolean => (ex as CustomError).code === 'EFILEALREADYEXISTS');
+      }).is.throwingAsync((ex: Error): boolean => (ex as CustomError).code === errors.FileAlreadyExists.code);
     });
   });
 
@@ -57,7 +58,7 @@ const getTestsFor = function ({ createFileStore }: {
     test('throws an error if the id does not exist.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
         await fileStore.getMetadata({ id });
-      }).is.throwingAsync((ex: Error): boolean => (ex as CustomError).code === 'EFILENOTFOUND');
+      }).is.throwingAsync((ex: Error): boolean => (ex as CustomError).code === errors.FileNotFound.code);
     });
 
     test('return the metadata.', async (): Promise<void> => {
@@ -77,7 +78,7 @@ const getTestsFor = function ({ createFileStore }: {
     test('throws an error if the id does not exist.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
         await fileStore.getFile({ id });
-      }).is.throwingAsync((ex: Error): boolean => (ex as CustomError).code === 'EFILENOTFOUND');
+      }).is.throwingAsync((ex: Error): boolean => (ex as CustomError).code === errors.FileNotFound.code);
     });
 
     test('return the file stream.', async (): Promise<void> => {
@@ -98,7 +99,7 @@ const getTestsFor = function ({ createFileStore }: {
     test('throws an error if the id does not exist.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
         await fileStore.removeFile({ id });
-      }).is.throwingAsync((ex: Error): boolean => (ex as CustomError).code === 'EFILENOTFOUND');
+      }).is.throwingAsync((ex: Error): boolean => (ex as CustomError).code === errors.FileNotFound.code);
     });
 
     test('does not throw an error.', async (): Promise<void> => {

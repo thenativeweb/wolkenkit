@@ -79,7 +79,7 @@ const query = {
             logger.error('Unknown error occured.', { ex });
 
             res.status(500).json({
-              code: ex.code ?? 'EUNKNOWNERROR'
+              code: ex.code ?? errors.UnknownError.code
             });
           }
         }

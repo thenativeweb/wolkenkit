@@ -1,4 +1,5 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
+import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { jsonSchema } from 'uuidv4';
 import { Value } from 'validate-value';
@@ -65,7 +66,7 @@ const hasDomainEventsWithCausationId = {
         logger.error('Unknown error occured.', { ex });
 
         return res.status(400).json({
-          code: ex.code ?? 'EUNKNOWNERROR',
+          code: ex.code ?? errors.UnknownError.code,
           message: ex.message
         });
       }

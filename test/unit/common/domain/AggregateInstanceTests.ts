@@ -11,6 +11,7 @@ import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
+import { errors } from '../../../../lib/common/errors';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
@@ -106,7 +107,7 @@ suite('AggregateInstance', (): void => {
             }
           }
         });
-      }).is.throwing((ex): boolean => (ex as CustomError).code === 'EIDENTIFIERMISMATCH' && ex.message === 'Failed to apply snapshot. Aggregate id does not match.');
+      }).is.throwing((ex): boolean => (ex as CustomError).code === errors.IdentifierMismatch.code && ex.message === 'Failed to apply snapshot. Aggregate id does not match.');
     });
 
     test('updates the state.', async (): Promise<void> => {
@@ -282,7 +283,7 @@ suite('AggregateInstance', (): void => {
           command
         })).is.throwingAsync(
           (ex): boolean =>
-            (ex as CustomError).code === 'ECOMMANDMALFORMED' &&
+            (ex as CustomError).code === errors.CommandMalformed.code &&
               ex.message === 'Missing required property: strategy (at command.data.strategy).'
         );
       });

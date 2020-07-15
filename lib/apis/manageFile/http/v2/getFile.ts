@@ -1,3 +1,4 @@
+import { errors } from '../../../../common/errors';
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { pipeline as pipelineCallback } from 'stream';
@@ -35,7 +36,7 @@ const getFile = {
       } catch (ex) {
         logger.error('Failed to get file.', { id, err: ex });
 
-        if (ex.code === 'EFILENOTFOUND') {
+        if (ex.code === errors.FileNotFound.code) {
           return res.status(404).end();
         }
 
