@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "run-script-os",
-    "test:win32": "npx wolkenkit build && npx mocha --async-only --bail --require ts-node/register --recursive --ui tdd '.\\test\\**\\*.ts'",
-    "test:default": "npx wolkenkit build && npx mocha --async-only --bail --require ts-node/register --recursive --ui tdd './test/**/*.ts'"
+    "test:win32": "npx wolkenkit build && npx mocha --async-only --bail --recursive --ui tdd '.\\test\\**\\*.js'",
+    "test:default": "npx wolkenkit build && npx mocha --async-only --bail --recursive --ui tdd './test/**/*.js'"
   }
 }
