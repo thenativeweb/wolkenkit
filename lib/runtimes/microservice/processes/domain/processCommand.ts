@@ -20,7 +20,9 @@ const processCommand = async function ({
   repository: Repository;
   publishDomainEvents: PublishDomainEvents;
 }): Promise<void> {
-  const { command, token } = await fetchCommand({ commandDispatcher });
+  const { command, metadata } = await fetchCommand({ commandDispatcher });
+
+  logger.debug('Fetched and locked command for domain server.', { itemIdentifier: command.getItemIdentifier(), metadata });
 
   try {
     try {
@@ -38,7 +40,7 @@ const processCommand = async function ({
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async (): Promise<void> => {
-      await keepRenewingLock({ command, handleCommandPromise, commandDispatcher, token });
+      await keepRenewingLock({ command, handleCommandPromise, commandDispatcher, token: metadata.token });
     })();
 
     const domainEvents = await handleCommandPromise;
@@ -47,7 +49,9 @@ const processCommand = async function ({
   } catch (ex) {
     logger.error('Failed to handle command.', { command, ex });
   } finally {
-    await acknowledgeCommand({ command, token, commandDispatcher });
+    await acknowledgeCommand({ command, token: metadata.token, commandDispatcher });
+
+    logger.debug('Processed and acknowledged command.', { itemIdentifier: command.getItemIdentifier(), metadata });
   }
 };
 

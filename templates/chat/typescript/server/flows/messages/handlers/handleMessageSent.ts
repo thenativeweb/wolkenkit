@@ -4,11 +4,11 @@ import { Message } from '../../../types/Message';
 import { SentData } from '../../../domain/communication/message/domainEvents/sent';
 
 const handleMessageSent: FlowHandler<SentData, Infrastructure> = {
-  isRelevant ({ fullyQualifiedName }) {
+  isRelevant ({ fullyQualifiedName }): boolean {
     return fullyQualifiedName === 'communication.message.sent';
   },
 
-  async handle (domainEvent, { infrastructure }) {
+  async handle (domainEvent, { infrastructure }): Promise<void> {
     const message: Message = {
       id: domainEvent.aggregateIdentifier.id,
       timestamp: domainEvent.metadata.timestamp,

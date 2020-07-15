@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { errors } from '../../../../common/errors';
-import { FilterHeartbeatsFromJsonStreamTransform } from '../../../../common/utils/http/FilterHeartbeatsFromJsonStreamTransform';
+import { FilterHeartbeatsTransform } from '../../../../common/utils/http/FilterHeartbeatsTransform';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
+import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -34,10 +35,12 @@ class Client extends HttpClient {
     }
 
     const passThrough = new PassThrough({ objectMode: true });
-    const heartbeatFilter = new FilterHeartbeatsFromJsonStreamTransform();
+    const jsonParser = new ParseJsonTransform();
+    const heartbeatFilter = new FilterHeartbeatsTransform();
 
     return pipeline(
       data,
+      jsonParser,
       heartbeatFilter,
       passThrough,
       (err): void => {

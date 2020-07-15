@@ -5,9 +5,19 @@ const setupInfrastructure = async function () {
 };
 
 const getInfrastructure = async function () {
+  const domainEvents = [];
+
   return {
-    ask: {},
-    tell: {}
+    ask: {
+      viewStore: {
+        domainEvents
+      }
+    },
+    tell: {
+      viewStore: {
+        domainEvents
+      }
+    }
   };
 };
 

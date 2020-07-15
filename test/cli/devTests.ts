@@ -11,13 +11,16 @@ const rootPath = path.join(__dirname, '..', '..');
 const cliPath = path.join(rootPath, 'build', 'lib', 'bin', 'wolkenkit.js');
 
 suite('dev', function (): void {
-  this.timeout(30_000);
+  this.timeout(300_000);
 
   test('starts the application.', async (): Promise<void> => {
     const appDirectory = path.join(await isolated(), appName);
     const initCommand = `node ${cliPath} --verbose init --directory ${appDirectory} --template blank --language javascript ${appName}`;
 
     shell.exec(initCommand);
+    shell.exec(`npm install --production`, {
+      cwd: appDirectory
+    });
 
     const [ port, healthPort ] = await getAvailablePorts({ count: 2 });
     const devCommand = `node ${cliPath} --verbose dev --port ${port} --health-port ${healthPort}`;

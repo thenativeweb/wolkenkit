@@ -14,6 +14,7 @@ import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCom
 import { HttpLink } from 'apollo-link-http';
 import { Client as ObserveDomainEventsClient } from '../../../../../lib/apis/observeDomainEvents/http/v2/Client';
 import path from 'path';
+import { Client as QueryViewsClient } from '../../../../../lib/apis/queryView/http/v2/Client';
 import { sleep } from '../../../../../lib/common/utils/sleep';
 import { SnapshotStrategyConfiguration } from '../../../../../lib/common/domain/SnapshotStrategyConfiguration';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
@@ -35,6 +36,7 @@ suite('main', function (): void {
       healthPort: number,
       observeDomainEventsClient: ObserveDomainEventsClient,
       port: number,
+      queryViewsClient: QueryViewsClient,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
@@ -78,6 +80,13 @@ suite('main', function (): void {
       hostName: 'localhost',
       port,
       path: '/domain-events/v2'
+    });
+
+    queryViewsClient = new QueryViewsClient({
+      protocol: 'http',
+      hostName: 'localhost',
+      port,
+      path: '/views/v2'
     });
   });
 
@@ -232,7 +241,7 @@ suite('main', function (): void {
             }
           },
           async (): Promise<void> => {
-            await counter.fail(new Error('Should only have received twe messages.'));
+            await counter.fail(new Error('Should only have received two messages.'));
           }
         ],
         true
@@ -325,6 +334,46 @@ suite('main', function (): void {
       await handleCommandClient.postCommand({ command });
 
       await collector.promise;
+    });
+  });
+
+  suite('views', (): void => {
+    test('runs queries against the views.', async (): Promise<void> => {
+      const aggregateIdentifier = {
+        name: 'sampleAggregate',
+        id: uuid()
+      };
+      const command = buildCommand({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier,
+        name: 'execute',
+        data: {
+          strategy: 'succeed'
+        }
+      });
+
+      await handleCommandClient.postCommand({ command });
+
+      await sleep({ ms: 500 });
+
+      const resultStream = await queryViewsClient.query({
+        viewName: 'sampleView',
+        queryName: 'all'
+      });
+      const resultItems = [];
+
+      for await (const resultItem of resultStream) {
+        resultItems.push(resultItem);
+      }
+
+      assert.that(resultItems.length).is.equalTo(1);
+      assert.that(resultItems[0]).is.atLeast({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate' },
+        name: 'executed'
+      });
     });
   });
 });

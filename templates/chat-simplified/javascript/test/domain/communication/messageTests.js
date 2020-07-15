@@ -1,9 +1,10 @@
 'use strict';
 
-const { assert } = require('assertthat');
 const path = require('path');
-const { uuid } = require('uuidv4');
-const { loadApplication, sandbox } = require('wolkenkit');
+
+const { assert } = require('assertthat'),
+      { uuid } = require('uuidv4'),
+      { loadApplication, sandbox } = require('wolkenkit');
 
 suite('message', () => {
   let application;

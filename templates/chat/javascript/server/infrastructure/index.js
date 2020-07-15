@@ -1,7 +1,6 @@
 'use strict';
 
-const { Collection } = require('mongodb');
-const { getInfrastructure } = require('./getInfrastructure');
-const { setupInfrastructure } = require('./setupInfrastructure');
+const { getInfrastructure } = require('./getInfrastructure'),
+      { setupInfrastructure } = require('./setupInfrastructure');
 
 module.exports = { setupInfrastructure, getInfrastructure };

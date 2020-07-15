@@ -8,7 +8,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     export interface Response {
-      startStream(parameters: { heartbeatInterval: number }): void;
+      startStream(parameters: { heartbeatInterval: number | false }): void;
     }
   }
 }

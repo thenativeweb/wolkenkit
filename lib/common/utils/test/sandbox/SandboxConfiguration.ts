@@ -45,3 +45,7 @@ export interface SandboxConfigurationForFlow extends SandboxConfiguration {
 
   domainEvents: DomainEvent<DomainEventData>[];
 }
+
+export interface SandboxConfigurationForView extends SandboxConfiguration {
+  viewName: string;
+}

@@ -8,18 +8,24 @@ const getViewsDescription = function ({ viewsDefinition }: {
   const viewsDescription: ViewsDescription = {};
 
   for (const [ viewName, viewDefinition ] of Object.entries(viewsDefinition)) {
-    viewsDescription[viewName] = {
-      queries: {}
-    };
+    viewsDescription[viewName] = {};
 
     for (const [ queryName, queryHandler ] of Object.entries(viewDefinition.queryHandlers)) {
       const { getDocumentation, getOptionsSchema, getResultItemSchema: getItemSchema } = queryHandler;
 
-      viewsDescription[viewName].queries[queryName] = {
-        documentation: getDocumentation ? stripIndent(getDocumentation().trim()) : undefined,
-        optionsSchema: getOptionsSchema ? getOptionsSchema() : undefined,
-        itemSchema: getItemSchema ? getItemSchema() : undefined
-      };
+      const queryDescription = {} as any;
+
+      if (getDocumentation) {
+        queryDescription.documentation = stripIndent(getDocumentation().trim());
+      }
+      if (getOptionsSchema) {
+        queryDescription.optionsSchema = getOptionsSchema();
+      }
+      if (getItemSchema) {
+        queryDescription.itemSchema = getItemSchema();
+      }
+
+      viewsDescription[viewName][queryName] = queryDescription;
     }
   }
 

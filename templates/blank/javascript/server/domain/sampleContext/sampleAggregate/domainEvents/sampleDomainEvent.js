@@ -10,9 +10,9 @@ const sampleDomainEvent = {
     };
   },
 
-  handle (state) {
+  handle () {
     return {
-      domainEventNames: [ ...state.domainEventNames, 'sampleDomainEvent' ]
+      // ...
     };
   },
 

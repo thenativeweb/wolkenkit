@@ -1,9 +1,10 @@
 'use strict';
 
-const { assert } = require('assertthat');
 const path = require('path');
-const { uuid } = require('uuidv4');
-const { loadApplication, sandbox } = require('wolkenkit');
+
+const { assert } = require('assertthat'),
+      { uuid } = require('uuidv4'),
+      { loadApplication, sandbox } = require('wolkenkit');
 
 suite('messages', () => {
   let application;
@@ -33,7 +34,7 @@ suite('messages', () => {
         }
       }).
       then(async () => {
-        const messages = application.infrastructure.tell.viewStore.messages;
+        const { messages } = application.infrastructure.tell.viewStore;
 
         assert.that(messages.length).is.equalTo(1);
         assert.that(messages[0]).is.equalTo({
@@ -70,7 +71,7 @@ suite('messages', () => {
         }
       }).
       then(async () => {
-        const messages = application.infrastructure.tell.viewStore.messages;
+        const { messages } = application.infrastructure.tell.viewStore;
 
         assert.that(messages.length).is.equalTo(1);
         assert.that(messages[0]).is.atLeast({

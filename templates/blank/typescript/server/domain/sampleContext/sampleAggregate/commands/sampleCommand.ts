@@ -1,10 +1,10 @@
-import { SampleDomainEventData } from '../domainEvents/sampleDomainEvent';
+import { Infrastructure } from '../../../../infrastructure';
 import { SampleState } from '../SampleState';
-import { AskInfrastructure, CommandData, CommandHandler, Schema, TellInfrastructure } from 'wolkenkit';
+import { CommandData, CommandHandler, Schema } from 'wolkenkit';
 
-export interface SampleCommandData extends CommandData {}
+export type SampleCommandData = CommandData;
 
-export const sampleCommand: CommandHandler<SampleState, SampleCommandData, AskInfrastructure & TellInfrastructure> = {
+export const sampleCommand: CommandHandler<SampleState, SampleCommandData, Infrastructure> = {
   getSchema (): Schema {
     return {
       type: 'object',
@@ -18,7 +18,7 @@ export const sampleCommand: CommandHandler<SampleState, SampleCommandData, AskIn
     return true;
   },
 
-  handle (_state, _command, { aggregate }): void {
-    aggregate.publishDomainEvent<SampleDomainEventData>('sampleDomainEvent', {});
+  handle (): void {
+    // ...
   }
 };

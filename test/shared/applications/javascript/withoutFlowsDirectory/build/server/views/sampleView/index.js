@@ -1,14 +1,8 @@
 'use strict';
 
-const { all } = require('./queries/all'),
-      { executed } = require('./projections/executed'),
-      { initializer } = require('./initializer');
+const { all } = require('./queries/all');
 
 const sampleView = {
-  initializer,
-  projectionHandlers: {
-    executed
-  },
   queryHandlers: {
     all
   }
