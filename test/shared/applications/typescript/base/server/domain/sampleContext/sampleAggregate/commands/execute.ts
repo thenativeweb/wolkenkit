@@ -23,7 +23,7 @@ export const execute: CommandHandler<SampleState, ExecuteData, Infrastructure> =
     return true;
   },
 
-  handle (state: any, command: any, { aggregate, error }: { aggregate: AggregateService<SampleState>; error: ErrorService }): void {
+  handle (_state: any, command: any, { aggregate, error }: { aggregate: AggregateService<SampleState>; error: ErrorService<'CommandRejected'> }): void {
     const { strategy } = command.data;
 
     if (strategy === 'fail') {
