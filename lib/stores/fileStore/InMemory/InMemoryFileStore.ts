@@ -5,7 +5,7 @@ import { FileStore } from '../FileStore';
 import { Readable } from 'stream';
 
 class InMemoryFileStore implements FileStore {
-  protected files: Record<string, { data: Buffer; metadata: FileMetadata }>;
+  protected files: Record<string, { data: Buffer; metadata: FileMetadata } | undefined>;
 
   protected constructor () {
     this.files = {};
@@ -22,8 +22,8 @@ class InMemoryFileStore implements FileStore {
       throw new errors.FileAlreadyExists();
     }
 
-    let chunks: Buffer[] = [],
-        contentLength = 0;
+    const chunks: Buffer[] = [];
+    let contentLength = 0;
 
     for await (const chunk of stream) {
       chunks.push(chunk);
@@ -44,11 +44,13 @@ class InMemoryFileStore implements FileStore {
   public async getFile ({ id }: {
     id: string;
   }): Promise<Readable> {
-    if (!this.files[id]) {
+    const file = this.files[id];
+
+    if (!file) {
       throw new errors.FileNotFound();
     }
 
-    const stream = Readable.from(this.files[id].data);
+    const stream = Readable.from(file.data);
 
     return stream;
   }
@@ -56,19 +58,21 @@ class InMemoryFileStore implements FileStore {
   public async getMetadata ({ id }: {
     id: string;
   }): Promise<FileMetadata> {
-    if (!this.files[id]) {
+    const file = this.files[id];
+
+    if (!file) {
       throw new errors.FileNotFound();
     }
 
-    const metadata = this.files[id].metadata;
-
-    return metadata;
+    return file.metadata;
   }
 
   public async removeFile ({ id }: {
     id: string;
   }): Promise<void> {
-    if (!this.files[id]) {
+    const file = this.files[id];
+
+    if (!file) {
       throw new errors.FileNotFound();
     }
 

@@ -1,6 +1,6 @@
 import { FileStore } from '../../../../lib/stores/fileStore/FileStore';
-import { InMemoryFileStore } from '../../../../lib/stores/fileStore/InMemory';
 import { getTestsFor } from './getTestsFor';
+import { InMemoryFileStore } from '../../../../lib/stores/fileStore/InMemory';
 
 suite('InMemory', (): void => {
   getTestsFor({
