@@ -104,7 +104,7 @@ const defer = {
             return;
           }
           default: {
-            logger.error('Unknown error occured.', { ex });
+            logger.error('An unknown error occured.', { ex });
 
             res.status(500).json({
               code: ex.code ?? errors.UnknownError.code,

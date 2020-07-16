@@ -2,7 +2,6 @@ import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { errors } from '../../../../common/errors';
 import { FileAddMetadata } from '../../../../stores/fileStore/FileAddMetadata';
-import { FileMetadata } from '../../../../stores/fileStore/FileMetadata';
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
@@ -20,7 +19,7 @@ const postAddFile = {
 
   request: {},
   response: {
-    statusCodes: [ 200, 400, 409 ],
+    statusCodes: [ 200, 400, 401, 409, 500 ],
     body: {
       type: 'object',
       properties: {},
@@ -39,10 +38,7 @@ const postAddFile = {
       if (!req.token || !req.user) {
         const ex = new errors.NotAuthenticated('Client information missing in request.');
 
-        res.status(401).json({
-          code: ex.code,
-          message: ex.message
-        });
+        res.status(401).json({ code: ex.code, message: ex.message });
 
         throw ex;
       }
@@ -58,21 +54,18 @@ const postAddFile = {
       } catch (ex) {
         const error = new errors.RequestMalformed(ex.message);
 
-        res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
+        res.status(400).json({ code: error.code, message: error.message });
 
         return;
       }
 
-      const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
-      let fileAddMetadata = fileAddMetadataCandidate as FileAddMetadata;
+      try {
+        const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
+        let fileAddMetadata = fileAddMetadataCandidate as FileAddMetadata;
 
-      if (application.hooks.addingFile) {
-        const errorService = getErrorService({ errors: [ 'NotAuthenticated' ]});
+        if (application.hooks.addingFile) {
+          const errorService = getErrorService({ errors: [ 'NotAuthenticated' ]});
 
-        try {
           fileAddMetadata = {
             ...fileAddMetadata,
             ...await application.hooks.addingFile(fileAddMetadata, {
@@ -85,44 +78,14 @@ const postAddFile = {
               })
             })
           };
-        } catch (ex) {
-          if (ex.code === errorService.NotAuthenticated.code) {
-            res.status(401).json({
-              code: ex.code,
-              message: ex.message
-            });
-
-            return;
-          }
-
-          const error = new errors.UnknownError(ex.message);
-
-          res.status(500).json({
-            code: error.code,
-            message: error.message
-          });
-
-          return;
         }
-      }
 
-      let fileMetadata: FileMetadata;
-
-      try {
-        fileMetadata = await fileStore.addFile({ ...fileAddMetadata, stream: req.body });
-      } catch (ex) {
-        const error = new errors.UnknownError(ex.message);
-
-        res.status(500).json({
-          code: error.code,
-          message: error.message
+        const fileMetadata = await fileStore.addFile({
+          ...fileAddMetadata,
+          stream: req.body
         });
 
-        return;
-      }
-
-      if (application.hooks.addedFile) {
-        try {
+        if (application.hooks.addedFile) {
           await application.hooks.addedFile(fileMetadata, {
             client: clientService,
             infrastructure: application.infrastructure,
@@ -131,33 +94,31 @@ const postAddFile = {
               packageManifest: application.packageManifest
             })
           });
-        } catch (ex) {
-          const error = new errors.UnknownError(ex.message);
-
-          res.status(500).json({
-            code: error.code,
-            message: error.message
-          });
-
-          return;
         }
-      }
 
-      try {
         const response = {};
 
         responseBodySchema.validate(response);
 
         res.status(200).json(response);
       } catch (ex) {
-        logger.error('Unknown error occured.', { ex });
+        switch (ex.code) {
+          case errors.NotAuthenticated.code: {
+            res.status(401).json({ code: ex.code, message: ex.message });
+            break;
+          }
+          case errors.FileAlreadyExists.code: {
+            res.status(409).json({ code: ex.code, message: ex.message });
+            break;
+          }
+          default: {
+            logger.error('An unknown error occured.', { ex });
 
-        const error = new errors.UnknownError();
+            const error = new errors.UnknownError(ex.message);
 
-        res.status(500).json({
-          code: error.code,
-          message: error.message
-        });
+            res.status(500).json({ code: error.code, message: error.message });
+          }
+        }
       }
     };
   }

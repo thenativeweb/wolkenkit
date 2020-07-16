@@ -1,8 +1,15 @@
+import { Application } from '../../../../common/application/Application';
+import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { errors } from '../../../../common/errors';
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
+import { getClientService } from '../../../../common/services/getClientService';
+import { getErrorService } from '../../../../common/services/getErrorService';
+import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { jsonSchema } from 'uuidv4';
 import { pipeline as pipelineCallback } from 'stream';
 import { promisify } from 'util';
+import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const pipeline = promisify(pipelineCallback);
@@ -14,33 +21,82 @@ const getFile = {
 
   request: {},
   response: {
-    statusCodes: [ 200, 401, 404 ],
+    statusCodes: [ 200, 400, 401, 404, 500 ],
     stream: true
   },
 
-  getHandler ({ fileStore }: { fileStore: FileStore }): WolkenkitRequestHandler {
+  getHandler ({ application, fileStore }: {
+    application: Application;
+    fileStore: FileStore;
+  }): WolkenkitRequestHandler {
     return async function (req, res): Promise<any> {
       const { id } = req.params;
 
       try {
-        const { name, contentType, contentLength } = await fileStore.getMetadata({ id });
+        new Value(jsonSchema).validate(id);
+      } catch (ex) {
+        const error = new errors.RequestMalformed(ex.message);
+
+        res.status(400).json({ code: error.code, message: error.message });
+
+        return;
+      }
+
+      try {
+        const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
+
+        const fileMetadata = await fileStore.getMetadata({ id });
+
+        if (application.hooks.gettingFile) {
+          const errorService = getErrorService({ errors: [ 'NotAuthenticated' ]});
+
+          await application.hooks.gettingFile(fileMetadata, {
+            client: clientService,
+            error: errorService,
+            infrastructure: application.infrastructure,
+            logger: getLoggerService({
+              fileName: '<app>/server/hooks/gettingFile',
+              packageManifest: application.packageManifest
+            })
+          });
+        }
 
         const stream = await fileStore.getFile({ id });
 
-        res.set('content-type', contentType);
-        res.set('content-length', String(contentLength));
-        res.set('content-disposition', `inline; filename=${name}`);
-        res.set('x-metadata', JSON.stringify({ id, name, contentType, contentLength }));
+        res.set('content-type', fileMetadata.contentType);
+        res.set('content-length', String(fileMetadata.contentLength));
+        res.set('content-disposition', `inline; filename=${fileMetadata.name}`);
 
         await pipeline(stream, res);
-      } catch (ex) {
-        logger.error('Failed to get file.', { id, err: ex });
 
-        if (ex.code === errors.FileNotFound.code) {
-          return res.status(404).end();
+        if (application.hooks.gotFile) {
+          await application.hooks.gotFile(fileMetadata, {
+            client: clientService,
+            infrastructure: application.infrastructure,
+            logger: getLoggerService({
+              fileName: '<app>/server/hooks/gotFile',
+              packageManifest: application.packageManifest
+            })
+          });
         }
+      } catch (ex) {
+        switch (ex.code) {
+          case errors.NotAuthenticated.code: {
+            res.status(401).json({ code: ex.code, message: ex.message });
+            break;
+          }
+          case errors.FileNotFound.code: {
+            res.status(404).json({ code: ex.code, message: ex.message });
+            break;
+          }
+          default: {
+            logger.error('An unknown error occured.', { ex });
 
-        res.status(500).end();
+            const error = new errors.UnknownError(ex.message);
+
+            res.status(500).json({ code: error.code, message: error.message });
+          }
+        }
       }
     };
   }

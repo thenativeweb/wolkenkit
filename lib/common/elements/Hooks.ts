@@ -9,15 +9,6 @@ export interface Hooks<
   TInfrastructure extends AskInfrastructure & TellInfrastructure,
   TFileMetadata extends FileMetadata = FileMetadata
 > {
-  addedFile?: (
-    fileMetadata: TFileMetadata,
-    services: {
-      client: ClientService;
-      infrastructure: TInfrastructure;
-      logger: LoggerService;
-    }
-  ) => Promise<void> | void;
-
   addingFile?: (
     file: {
       id: string;
@@ -31,4 +22,51 @@ export interface Hooks<
       logger: LoggerService;
     }
   ) => Promise<{ name: string; contentType: string }> | { name: string; contentType: string };
+
+  addedFile?: (
+    fileMetadata: TFileMetadata,
+    services: {
+      client: ClientService;
+      infrastructure: TInfrastructure;
+      logger: LoggerService;
+    }
+  ) => Promise<void> | void;
+
+  gettingFile?: (
+    fileMetadata: TFileMetadata,
+    services: {
+      client: ClientService;
+      error: ErrorService<'NotAuthenticated'>;
+      infrastructure: TInfrastructure;
+      logger: LoggerService;
+    }
+  ) => Promise<void> | void;
+
+  gotFile?: (
+    fileMetadata: TFileMetadata,
+    services: {
+      client: ClientService;
+      infrastructure: TInfrastructure;
+      logger: LoggerService;
+    }
+  ) => Promise<void> | void;
+
+  removingFile?: (
+    fileMetadata: TFileMetadata,
+    services: {
+      client: ClientService;
+      error: ErrorService<'NotAuthenticated'>;
+      infrastructure: TInfrastructure;
+      logger: LoggerService;
+    }
+  ) => Promise<void> | void;
+
+  removedFile?: (
+    fileMetadata: TFileMetadata,
+    services: {
+      client: ClientService;
+      infrastructure: TInfrastructure;
+      logger: LoggerService;
+    }
+  ) => Promise<void> | void;
 }

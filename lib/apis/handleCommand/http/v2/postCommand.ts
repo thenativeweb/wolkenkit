@@ -129,7 +129,7 @@ const postCommand = {
 
         res.status(200).json(response);
       } catch (ex) {
-        logger.error('Unknown error occured.', { ex });
+        logger.error('An unknown error occured.', { ex });
 
         const error = new errors.UnknownError();
 

@@ -18,6 +18,14 @@ suite('validateHooksDefinition', (): void => {
         name: uuid(),
         contentType: 'text/plain'
       };
+    },
+
+    async removedFile (): Promise<void> {
+      // Intentionally left blank.
+    },
+
+    async removingFile (): Promise<void> {
+      // Intentionally left blank.
     }
   };
 
@@ -62,6 +70,36 @@ suite('validateHooksDefinition', (): void => {
       (ex): boolean =>
         (ex as CustomError).code === errors.HooksDefinitionMalformed.code &&
         ex.message === `Property 'addingFile' is not a function.`
+    );
+  });
+
+  test('throws an error if removedFile is not a function.', async (): Promise<void> => {
+    assert.that((): void => {
+      validateHooksDefinition({
+        hooksDefinition: {
+          ...hooksDefinition,
+          removedFile: false
+        }
+      });
+    }).is.throwing(
+      (ex): boolean =>
+        (ex as CustomError).code === errors.HooksDefinitionMalformed.code &&
+        ex.message === `Property 'removedFile' is not a function.`
+    );
+  });
+
+  test('throws an error if removingFile is not a function.', async (): Promise<void> => {
+    assert.that((): void => {
+      validateHooksDefinition({
+        hooksDefinition: {
+          ...hooksDefinition,
+          removingFile: false
+        }
+      });
+    }).is.throwing(
+      (ex): boolean =>
+        (ex as CustomError).code === errors.HooksDefinitionMalformed.code &&
+        ex.message === `Property 'removingFile' is not a function.`
     );
   });
 });

@@ -63,7 +63,7 @@ const hasDomainEventsWithCausationId = {
 
         res.json(response);
       } catch (ex) {
-        logger.error('Unknown error occured.', { ex });
+        logger.error('An unknown error occured.', { ex });
 
         return res.status(400).json({
           code: ex.code ?? errors.UnknownError.code,
