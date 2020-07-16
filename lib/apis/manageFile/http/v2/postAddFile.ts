@@ -1,7 +1,14 @@
+import { Application } from '../../../../common/application/Application';
+import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { errors } from '../../../../common/errors';
+import { FileAddMetadata } from '../../../../stores/fileStore/FileAddMetadata';
+import { FileMetadata } from '../../../../stores/fileStore/FileMetadata';
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
-import { isUuid } from 'uuidv4';
+import { getClientService } from '../../../../common/services/getClientService';
+import { getErrorService } from '../../../../common/services/getErrorService';
+import { getFileAddMetadataSchema } from '../../../../common/schemas/getFileAddMetadataSchema';
+import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
@@ -13,7 +20,7 @@ const postAddFile = {
 
   request: {},
   response: {
-    statusCodes: [ 200, 400, 401, 409 ],
+    statusCodes: [ 200, 400, 409 ],
     body: {
       type: 'object',
       properties: {},
@@ -22,55 +29,119 @@ const postAddFile = {
     }
   },
 
-  getHandler ({ fileStore }: {
+  getHandler ({ application, fileStore }: {
+    application: Application;
     fileStore: FileStore;
   }): WolkenkitRequestHandler {
     const responseBodySchema = new Value(postAddFile.response.body);
 
     return async function (req, res): Promise<any> {
-      // const { user } = req;
-      //
-      // if (!user) {
-      //   throw new errors.InvalidOperation();
-      // }
-      //
-      // let metadata;
-      //
-      // try {
-      //   metadata = JSON.parse(req.headers['x-metadata'] as string);
-      // } catch {
-      //   return res.status(400).send('Header x-metadata is malformed.');
-      // }
-      //
-      // const {
-      //   id,
-      //   fileName,
-      //   contentType = 'application/octet-stream'
-      // } = metadata;
-      //
-      // if (!id) {
-      //   return res.status(400).send('Id is missing.');
-      // }
-      // if (!isUuid(id)) {
-      //   return res.status(400).send('Id is malformed.');
-      // }
-      // if (!fileName) {
-      //   return res.status(400).send('File name is missing.');
-      // }
-      //
-      // try {
-      //   await fileStore.addFile({ id, fileName, contentType, stream: req });
-      //
-      //   res.status(200).end();
-      // } catch (ex) {
-      //   logger.error('Failed to add file.', { err: ex });
-      //
-      //   if (ex.code === errors.FileAlreadyExists.code) {
-      //     return res.status(409).end();
-      //   }
-      //
-      //   res.status(500).end();
-      // }
+      if (!req.token || !req.user) {
+        const ex = new errors.NotAuthenticated('Client information missing in request.');
+
+        res.status(401).json({
+          code: ex.code,
+          message: ex.message
+        });
+
+        throw ex;
+      }
+
+      const fileAddMetadataCandidate = {
+        id: req.headers['x-id'],
+        name: req.headers['x-name'],
+        contentType: req.headers['content-type']
+      };
+
+      try {
+        new Value(getFileAddMetadataSchema()).validate(fileAddMetadataCandidate);
+      } catch (ex) {
+        const error = new errors.RequestMalformed(ex.message);
+
+        res.status(400).json({
+          code: error.code,
+          message: error.message
+        });
+
+        return;
+      }
+
+      const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
+      let fileAddMetadata = fileAddMetadataCandidate as FileAddMetadata;
+
+      if (application.hooks.addingFile) {
+        const errorService = getErrorService({ errors: [ 'NotAuthenticated' ]});
+
+        try {
+          fileAddMetadata = {
+            ...fileAddMetadata,
+            ...await application.hooks.addingFile(fileAddMetadata, {
+              client: clientService,
+              error: errorService,
+              infrastructure: application.infrastructure,
+              logger: getLoggerService({
+                fileName: '<app>/server/hooks/addingFile',
+                packageManifest: application.packageManifest
+              })
+            })
+          };
+        } catch (ex) {
+          if (ex.code === errorService.NotAuthenticated.code) {
+            res.status(401).json({
+              code: ex.code,
+              message: ex.message
+            });
+
+            return;
+          }
+
+          const error = new errors.UnknownError(ex.message);
+
+          res.status(500).json({
+            code: error.code,
+            message: error.message
+          });
+
+          return;
+        }
+      }
+
+      let fileMetadata: FileMetadata;
+
+      try {
+        fileMetadata = await fileStore.addFile({ ...fileAddMetadata, stream: req.body });
+      } catch (ex) {
+        const error = new errors.UnknownError(ex.message);
+
+        res.status(500).json({
+          code: error.code,
+          message: error.message
+        });
+
+        return;
+      }
+
+      if (application.hooks.addedFile) {
+        try {
+          await application.hooks.addedFile(fileMetadata, {
+            client: clientService,
+            infrastructure: application.infrastructure,
+            logger: getLoggerService({
+              fileName: '<app>/server/hooks/addedFile',
+              packageManifest: application.packageManifest
+            })
+          });
+        } catch (ex) {
+          const error = new errors.UnknownError(ex.message);
+
+          res.status(500).json({
+            code: error.code,
+            message: error.message
+          });
+
+          return;
+        }
+      }
 
       try {
         const response = {};

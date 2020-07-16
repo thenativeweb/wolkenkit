@@ -23,14 +23,14 @@ const getFile = {
       const { id } = req.params;
 
       try {
-        const { fileName, contentType, contentLength } = await fileStore.getMetadata({ id });
+        const { name, contentType, contentLength } = await fileStore.getMetadata({ id });
 
         const stream = await fileStore.getFile({ id });
 
         res.set('content-type', contentType);
         res.set('content-length', String(contentLength));
-        res.set('content-disposition', `inline; filename=${fileName}`);
-        res.set('x-metadata', JSON.stringify({ id, fileName, contentType, contentLength }));
+        res.set('content-disposition', `inline; filename=${name}`);
+        res.set('x-metadata', JSON.stringify({ id, name, contentType, contentLength }));
 
         await pipeline(stream, res);
       } catch (ex) {

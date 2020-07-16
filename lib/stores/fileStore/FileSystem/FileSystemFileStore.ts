@@ -1,5 +1,6 @@
 import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
+import { FileAddMetadata } from '../FileAddMetadata';
 import { FileMetadata } from '../FileMetadata';
 import { FileStore } from '../FileStore';
 import fs from 'fs';
@@ -27,12 +28,9 @@ class FileSystemFileStore implements FileStore {
     });
   }
 
-  public async addFile ({ id, fileName, contentType, stream }: {
-    id: string;
-    fileName: string;
-    contentType: string;
+  public async addFile ({ id, name, contentType, stream }: FileAddMetadata & {
     stream: Readable;
-  }): Promise<void> {
+  }): Promise<FileMetadata> {
     const fileDirectory = path.join(this.directory, id);
     const fileData = path.join(fileDirectory, 'data');
     const fileMetadata = path.join(fileDirectory, 'metadata.json');
@@ -55,12 +53,14 @@ class FileSystemFileStore implements FileStore {
 
     const metadata = {
       id,
-      fileName,
+      name,
       contentType,
       contentLength
     };
 
     await fs.promises.writeFile(fileMetadata, JSON.stringify(metadata), 'utf8');
+
+    return metadata;
   }
 
   public async getFile ({ id }: {
@@ -93,7 +93,7 @@ class FileSystemFileStore implements FileStore {
 
     return {
       id,
-      fileName: metadata.fileName,
+      name: metadata.name,
       contentType: metadata.contentType,
       contentLength: metadata.contentLength
     };

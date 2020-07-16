@@ -52,7 +52,7 @@ const errors = defekt({
   LockAcquireFailed: {},
   LockExpired: {},
   LockRenewalFailed: {},
-  NotAuthenticatedError: {},
+  NotAuthenticated: {},
   ParameterInvalid: {},
   ProjectionHandlerMalformed: {},
   PublisherTypeInvalid: {},

@@ -12,7 +12,7 @@ const getTestsFor = function ({ createFileStore }: {
   createFileStore (): Promise<FileStore>;
 }): void {
   const contentType = 'application/json',
-        fileName = 'someFile.json';
+        name = 'someFile.json';
 
   let content: string,
       contentLength: number,
@@ -37,15 +37,21 @@ const getTestsFor = function ({ createFileStore }: {
 
     test('does not throw an error.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
-        await fileStore.addFile({ id, fileName, contentType, stream });
+        await fileStore.addFile({ id, name, contentType, stream });
       }).is.not.throwingAsync();
     });
 
+    test('returns the metadata.', async (): Promise<void> => {
+      const metadata = await fileStore.addFile({ id, name, contentType, stream });
+
+      assert.that(metadata).is.equalTo({ id, name, contentType, contentLength });
+    });
+
     test('throws an error if the id is already being used.', async (): Promise<void> => {
-      await fileStore.addFile({ id, fileName, contentType, stream });
+      await fileStore.addFile({ id, name, contentType, stream });
 
       await assert.that(async (): Promise<void> => {
-        await fileStore.addFile({ id, fileName, contentType, stream });
+        await fileStore.addFile({ id, name, contentType, stream });
       }).is.throwingAsync((ex: Error): boolean => (ex as CustomError).code === errors.FileAlreadyExists.code);
     });
   });
@@ -61,12 +67,12 @@ const getTestsFor = function ({ createFileStore }: {
       }).is.throwingAsync((ex: Error): boolean => (ex as CustomError).code === errors.FileNotFound.code);
     });
 
-    test('return the metadata.', async (): Promise<void> => {
-      await fileStore.addFile({ id, fileName, contentType, stream });
+    test('returns the metadata.', async (): Promise<void> => {
+      await fileStore.addFile({ id, name, contentType, stream });
 
       const metadata = await fileStore.getMetadata({ id });
 
-      assert.that(metadata).is.equalTo({ id, fileName, contentType, contentLength });
+      assert.that(metadata).is.equalTo({ id, name, contentType, contentLength });
     });
   });
 
@@ -81,8 +87,8 @@ const getTestsFor = function ({ createFileStore }: {
       }).is.throwingAsync((ex: Error): boolean => (ex as CustomError).code === errors.FileNotFound.code);
     });
 
-    test('return the file stream.', async (): Promise<void> => {
-      await fileStore.addFile({ id, fileName, contentType, stream });
+    test('returns the file stream.', async (): Promise<void> => {
+      await fileStore.addFile({ id, name, contentType, stream });
 
       const fileStream = await fileStore.getFile({ id });
       const fileData = await streamToString(fileStream);
@@ -103,7 +109,7 @@ const getTestsFor = function ({ createFileStore }: {
     });
 
     test('does not throw an error.', async (): Promise<void> => {
-      await fileStore.addFile({ id, fileName, contentType, stream });
+      await fileStore.addFile({ id, name, contentType, stream });
 
       await assert.that(async (): Promise<void> => {
         await fileStore.removeFile({ id });

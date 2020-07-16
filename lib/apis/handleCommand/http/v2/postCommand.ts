@@ -42,7 +42,7 @@ const postCommand = {
 
     return async function (req, res): Promise<void> {
       if (!req.token || !req.user) {
-        const ex = new errors.NotAuthenticatedError('Client information missing in request.');
+        const ex = new errors.NotAuthenticated('Client information missing in request.');
 
         res.status(401).json({
           code: ex.code,

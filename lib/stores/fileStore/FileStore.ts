@@ -1,13 +1,11 @@
+import { FileAddMetadata } from './FileAddMetadata';
 import { FileMetadata } from './FileMetadata';
 import { Readable } from 'stream';
 
 export interface FileStore {
-  addFile ({ id, fileName, contentType, stream }: {
-    id: string;
-    fileName: string;
-    contentType: string;
+  addFile ({ id, name, contentType, stream }: FileAddMetadata & {
     stream: Readable;
-  }): Promise<void>;
+  }): Promise<FileMetadata>;
 
   getFile ({ id }: {
     id: string;

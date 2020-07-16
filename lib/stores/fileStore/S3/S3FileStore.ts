@@ -1,5 +1,6 @@
 import { Client } from 'minio';
 import { errors } from '../../../common/errors';
+import { FileAddMetadata } from '../FileAddMetadata';
 import { FileMetadata } from '../FileMetadata';
 import { FileStore } from '../FileStore';
 import { Readable } from 'stream';
@@ -90,12 +91,9 @@ class S3FileStore implements FileStore {
     }
   }
 
-  public async addFile ({ id, fileName, contentType, stream }: {
-    id: string;
-    fileName: string;
-    contentType: string;
+  public async addFile ({ id, name, contentType, stream }: FileAddMetadata & {
     stream: Readable;
-  }): Promise<void> {
+  }): Promise<FileMetadata> {
     let statsData,
         statsMetadata;
 
@@ -124,12 +122,14 @@ class S3FileStore implements FileStore {
 
     const metadata = {
       id,
-      fileName,
+      name,
       contentType,
       contentLength
     };
 
     await this.client.putObject(this.bucketName, `${id}/metadata.json`, JSON.stringify(metadata));
+
+    return metadata;
   }
 
   public async getFile ({ id }: {
@@ -172,7 +172,7 @@ class S3FileStore implements FileStore {
 
     return {
       id,
-      fileName: metadata.fileName,
+      name: metadata.name,
       contentType: metadata.contentType,
       contentLength: metadata.contentLength
     };

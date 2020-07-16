@@ -1,6 +1,6 @@
 export interface FileMetadata {
   id: string;
-  fileName: string;
+  name: string;
   contentType: string;
   contentLength: number;
 }

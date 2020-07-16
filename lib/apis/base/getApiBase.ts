@@ -13,11 +13,15 @@ const getApiBase = async function ({ request, response }: GetApiBaseParameters):
     api.options('*', cors({
       methods: [ 'GET', 'POST' ],
       origin: request.headers.cors.origin,
+      allowedHeaders: request.headers.cors.allowedHeaders,
+      exposedHeaders: request.headers.cors.exposedHeaders,
       optionsSuccessStatus: 200
     }));
     api.use(cors({
       methods: [ 'GET', 'POST' ],
       origin: request.headers.cors.origin,
+      allowedHeaders: request.headers.cors.allowedHeaders,
+      exposedHeaders: request.headers.cors.exposedHeaders,
       optionsSuccessStatus: 200
     }));
   }

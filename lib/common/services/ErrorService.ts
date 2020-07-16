@@ -1,11 +1,3 @@
-import { CustomError } from 'defekt';
+import { errors } from '../errors';
 
-export interface ErrorService {
-  CommandRejected: new(
-    message?: string,
-    metadata?: {
-      cause?: Error;
-      data?: any;
-    }
-  ) => CustomError;
-}
+export type ErrorService<TKey extends keyof typeof errors> = Pick<typeof errors, TKey>;

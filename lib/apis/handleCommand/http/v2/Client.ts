@@ -48,8 +48,8 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case errors.NotAuthenticatedError.code: {
-        throw new errors.NotAuthenticatedError(data.message);
+      case errors.NotAuthenticated.code: {
+        throw new errors.NotAuthenticated(data.message);
       }
       case errors.CommandMalformed.code: {
         throw new errors.CommandMalformed(data.message);
