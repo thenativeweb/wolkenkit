@@ -91,12 +91,7 @@ class FileSystemFileStore implements FileStore {
     const rawMetadata = await fs.promises.readFile(fileMetadata, 'utf8');
     const metadata = JSON.parse(rawMetadata);
 
-    return {
-      id,
-      name: metadata.name,
-      contentType: metadata.contentType,
-      contentLength: metadata.contentLength
-    };
+    return metadata;
   }
 
   public async removeFile ({ id }: {
