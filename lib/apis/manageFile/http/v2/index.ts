@@ -36,7 +36,7 @@ const getV2 = async function ({ application, corsOrigin, identityProviders, file
 
   api.get(`/${getFile.path}`,
     authenticationMiddleware,
-    getFile.getHandler({ fileStore }));
+    getFile.getHandler({ application, fileStore }));
 
   api.post(`/${postAddFile.path}`,
     authenticationMiddleware,
@@ -44,7 +44,7 @@ const getV2 = async function ({ application, corsOrigin, identityProviders, file
 
   api.post(`/${postRemoveFile.path}`,
     authenticationMiddleware,
-    postRemoveFile.getHandler({ fileStore }));
+    postRemoveFile.getHandler({ application, fileStore }));
 
   return { api };
 };

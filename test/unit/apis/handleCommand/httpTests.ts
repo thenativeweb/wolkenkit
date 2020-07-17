@@ -32,7 +32,7 @@ suite('handleCommand/http', (): void => {
         ({ api } = await getApi({
           corsOrigin: '*',
           async onReceiveCommand (): Promise<void> {
-          // Intentionally left blank.
+            // Intentionally left blank.
           },
           async onCancelCommand (): Promise<void> {
             // Intentionally left blank.

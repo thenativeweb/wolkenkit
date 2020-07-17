@@ -1,20 +1,14 @@
 import { AskInfrastructure } from './AskInfrastructure';
 import { ClientService } from '../services/ClientService';
 import { ErrorService } from '../services/ErrorService';
+import { FileAddMetadata } from '../../stores/fileStore/FileAddMetadata';
 import { FileMetadata } from '../../stores/fileStore/FileMetadata';
 import { LoggerService } from '../services/LoggerService';
 import { TellInfrastructure } from './TellInfrastructure';
 
-export interface Hooks<
-  TInfrastructure extends AskInfrastructure & TellInfrastructure,
-  TFileMetadata extends FileMetadata = FileMetadata
-> {
+export interface Hooks<TInfrastructure extends AskInfrastructure & TellInfrastructure> {
   addingFile?: (
-    file: {
-      id: string;
-      name: string;
-      contentType: string;
-    },
+    fileMetadata: FileAddMetadata,
     services: {
       client: ClientService;
       error: ErrorService<'NotAuthenticated'>;
@@ -24,7 +18,7 @@ export interface Hooks<
   ) => Promise<{ name: string; contentType: string }> | { name: string; contentType: string };
 
   addedFile?: (
-    fileMetadata: TFileMetadata,
+    fileMetadata: FileMetadata,
     services: {
       client: ClientService;
       infrastructure: TInfrastructure;
@@ -33,7 +27,7 @@ export interface Hooks<
   ) => Promise<void> | void;
 
   gettingFile?: (
-    fileMetadata: TFileMetadata,
+    fileMetadata: FileMetadata,
     services: {
       client: ClientService;
       error: ErrorService<'NotAuthenticated'>;
@@ -43,7 +37,7 @@ export interface Hooks<
   ) => Promise<void> | void;
 
   gotFile?: (
-    fileMetadata: TFileMetadata,
+    fileMetadata: FileMetadata,
     services: {
       client: ClientService;
       infrastructure: TInfrastructure;
@@ -52,7 +46,7 @@ export interface Hooks<
   ) => Promise<void> | void;
 
   removingFile?: (
-    fileMetadata: TFileMetadata,
+    fileMetadata: FileMetadata,
     services: {
       client: ClientService;
       error: ErrorService<'NotAuthenticated'>;
@@ -62,7 +56,7 @@ export interface Hooks<
   ) => Promise<void> | void;
 
   removedFile?: (
-    fileMetadata: TFileMetadata,
+    fileMetadata: FileMetadata,
     services: {
       client: ClientService;
       infrastructure: TInfrastructure;

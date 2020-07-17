@@ -2,10 +2,10 @@ import { jsonSchema } from 'uuidv4';
 import { Schema } from '../elements/Schema';
 
 const getFileAddMetadataSchema = function (): Schema {
-  const contentTypeRegex = /^\w+\/[-.\w]+(?:+[-.\w]+)?$/u;
+  const contentTypeRegex = /^\w+\/[-.\w]+(?:\+[-.\w]+)?$/u;
 
   // eslint-disable-next-line @typescript-eslint/no-base-to-string
-  const contentTypeRegexAsString = contentTypeRegex.toString().slice(1, -1);
+  const contentTypeRegexAsString = contentTypeRegex.toString().slice(1, -2);
 
   return {
     type: 'object',
