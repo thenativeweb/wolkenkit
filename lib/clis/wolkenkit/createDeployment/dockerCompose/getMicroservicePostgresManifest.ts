@@ -10,6 +10,8 @@ import { Configuration as DomainEventConfiguration } from '../../../../runtimes/
 import { configurationDefinition as domainEventConfigurationDefinition } from '../../../../runtimes/microservice/processes/domainEvent/configurationDefinition';
 import { Configuration as DomainEventDispatcherConfiguration } from '../../../../runtimes/microservice/processes/domainEventDispatcher/Configuration';
 import { configurationDefinition as domainEventDispatcherConfigurationDefinition } from '../../../../runtimes/microservice/processes/domainEventDispatcher/configurationDefinition';
+import { Configuration as FileConfiguration } from '../../../../runtimes/microservice/processes/file/Configuration';
+import { configurationDefinition as fileConfigurationDefinition } from '../../../../runtimes/microservice/processes/file/configurationDefinition';
 import { Configuration as FlowConfiguration } from '../../../../runtimes/microservice/processes/flow/Configuration';
 import { configurationDefinition as flowConfigurationDefinition } from '../../../../runtimes/microservice/processes/flow/configurationDefinition';
 import { Configuration as GraphqlConfiguration } from '../../../../runtimes/microservice/processes/graphql/Configuration';
@@ -87,12 +89,25 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       privatePort: 3000,
       healthPort: 3001
     },
+    file: {
+      hostName: 'file',
+      publicPort: 3004,
+      privatePort: 3000,
+      healthPort: 3001
+    },
     postgres: {
       hostName: 'postgres',
       privatePort: 5432,
       userName: 'wolkenkit',
       password: 'please-replace-this',
       database: 'wolkenkit'
+    },
+    minio: {
+      hostName: 'minio',
+      privatePort: 9000,
+      accessKey: 'wolkenkit',
+      secretKey: 'please-replace-this',
+      encryptConnection: false
     }
   };
 
@@ -110,6 +125,14 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           }
         },
         domainEventStoreType = 'Postgres',
+        fileStoreOptions = {
+          hostName: services.minio.hostName,
+          port: services.minio.privatePort,
+          encryptConnection: services.minio.encryptConnection,
+          accessKey: services.minio.accessKey,
+          secretKey: services.minio.secretKey
+        },
+        fileStoreType = 'S3',
         identityProviders: { issuer: string; certificate: string }[] = [],
         lockStoreOptions = {
           hostName: services.postgres.hostName,
@@ -341,12 +364,24 @@ const getMicroservicePostgresManifest = function ({ appName }: {
 
   const viewConfiguration: ViewConfiguration = {
     applicationDirectory,
-    corsOrigin,
     enableOpenApiDocumentation: true,
     healthCorsOrigin: corsOrigin,
     healthPort: services.view.healthPort,
     identityProviders,
-    port: services.view.privatePort
+    port: services.view.privatePort,
+    viewCorsOrigin: corsOrigin
+  };
+
+  const fileConfiguration: FileConfiguration = {
+    applicationDirectory,
+    enableOpenApiDocumentation: true,
+    fileCorsOrigin: corsOrigin,
+    fileStoreOptions,
+    fileStoreType,
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.file.healthPort,
+    identityProviders,
+    port: services.file.privatePort
   };
 
   return `
@@ -581,6 +616,28 @@ ${
           retries: 3
           start_period: 30s
 
+      ${services.file.hostName}:
+        build: '../..'
+        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/file/app.js'
+        environment:
+          NODE_ENV: 'production'
+${
+  Object.entries(
+    toEnvironmentVariables({ configuration: fileConfiguration, configurationDefinition: fileConfigurationDefinition })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
+        image: '${appName}'
+        init: true
+        ports:
+          - '${services.file.publicPort}:${services.file.privatePort}'
+        restart: 'always'
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:${services.file.healthPort}"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
+
       ${services.postgres.hostName}:
         image: 'postgres:${versions.dockerImages.postgres}'
         environment:
@@ -592,8 +649,19 @@ ${
         volumes:
           - 'postgres:/var/lib/postgresql/data'
 
+      ${services.minio.hostName}:
+        image: 'minio:${versions.dockerImages.minio}'
+        command: 'server /data'
+        environment:
+          MINIO_ACCESS_KEY: '${services.minio.accessKey}'
+          MINIO_SECRET_KEY: '${services.minio.secretKey}'
+        restart: 'always'
+        volumes:
+          - 'minio:/data'
+
     volumes:
       postgres:
+      minio:
   `;
 };
 

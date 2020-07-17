@@ -18,6 +18,8 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
 
   const domainEventStoreOptions = {},
         domainEventStoreType = 'InMemory',
+        fileStoreOptions = {},
+        fileStoreType = 'InMemory',
         flowProgressStoreOptions = {},
         flowProgressStoreType = 'InMemory',
         identityProviders: { issuer: string; certificate: string }[] = [],
@@ -46,6 +48,8 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
     domainEventStoreOptions,
     domainEventStoreType,
     enableOpenApiDocumentation: true,
+    fileStoreOptions,
+    fileStoreType,
     graphqlApi: { enableIntegratedClient: true },
     healthPort: services.main.healthPort,
     httpApi: true,

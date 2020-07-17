@@ -1,23 +1,39 @@
 import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { errors } from '../../../../common/errors';
-import { FileAddMetadata } from '../../../../stores/fileStore/FileAddMetadata';
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
-import { getFileAddMetadataSchema } from '../../../../common/schemas/getFileAddMetadataSchema';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { jsonSchema } from 'uuidv4';
+import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
+const contentTypeRegex = /^\w+\/[-.\w]+(?:\+[-.\w]+)?$/u;
+
+// eslint-disable-next-line @typescript-eslint/no-base-to-string
+const contentTypeRegexAsString = contentTypeRegex.toString().slice(1, -2);
+
 const postAddFile = {
   description: 'Adds a file.',
   path: 'add-file',
 
-  request: {},
+  request: {
+    headers: {
+      type: 'object',
+      properties: {
+        'x-id': jsonSchema.v4 as Schema,
+        'x-name': { type: 'string', minLength: 1 },
+        'content-type': { type: 'string', pattern: contentTypeRegexAsString }
+      },
+      required: [],
+      additionalProperties: true
+    } as Schema
+  },
   response: {
     statusCodes: [ 200, 400, 401, 409, 500 ],
     body: {
@@ -25,14 +41,15 @@ const postAddFile = {
       properties: {},
       required: [],
       additionalProperties: false
-    }
+    } as Schema
   },
 
   getHandler ({ application, fileStore }: {
     application: Application;
     fileStore: FileStore;
   }): WolkenkitRequestHandler {
-    const responseBodySchema = new Value(postAddFile.response.body);
+    const requestHeadersSchema = new Value(postAddFile.request.headers),
+          responseBodySchema = new Value(postAddFile.response.body);
 
     return async function (req, res): Promise<any> {
       if (!req.token || !req.user) {
@@ -43,14 +60,8 @@ const postAddFile = {
         throw ex;
       }
 
-      const fileAddMetadataCandidate = {
-        id: req.headers['x-id'],
-        name: req.headers['x-name'],
-        contentType: req.headers['content-type']
-      };
-
       try {
-        new Value(getFileAddMetadataSchema()).validate(fileAddMetadataCandidate);
+        requestHeadersSchema.validate(req.headers);
       } catch (ex) {
         const error = new errors.RequestMalformed(ex.message);
 
@@ -61,7 +72,11 @@ const postAddFile = {
 
       try {
         const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
-        let fileAddMetadata = fileAddMetadataCandidate as FileAddMetadata;
+        let fileAddMetadata = {
+          id: req.headers['x-id'] as string,
+          name: req.headers['x-name'] as string,
+          contentType: req.headers['content-type'] as string
+        };
 
         if (application.hooks.addingFile) {
           const errorService = getErrorService({ errors: [ 'NotAuthenticated' ]});

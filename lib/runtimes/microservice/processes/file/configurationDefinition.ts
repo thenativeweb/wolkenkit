@@ -18,6 +18,21 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
       minLength: 1
     }
   },
+  fileCorsOrigin: {
+    environmentVariable: 'FILE_CORS_ORIGIN',
+    defaultValue: '*',
+    schema: corsSchema
+  },
+  fileStoreOptions: {
+    environmentVariable: 'FILE_STORE_OPTIONS',
+    defaultValue: {},
+    schema: { type: 'object' }
+  },
+  fileStoreType: {
+    environmentVariable: 'FILE_STORE_TYPE',
+    defaultValue: 'InMemory',
+    schema: { type: 'string' }
+  },
   enableOpenApiDocumentation: {
     environmentVariable: 'ENABLE_OPEN_API_DOCUMENTATION',
     defaultValue: false,
@@ -45,11 +60,6 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     environmentVariable: 'PORT',
     defaultValue: 3000,
     schema: portSchema
-  },
-  viewCorsOrigin: {
-    environmentVariable: 'VIEW_CORS_ORIGIN',
-    defaultValue: '*',
-    schema: corsSchema
   }
 };
 

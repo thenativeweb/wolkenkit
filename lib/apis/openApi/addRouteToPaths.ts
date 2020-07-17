@@ -45,6 +45,18 @@ const addRouteToPaths = function ({ route, method, basePath, tags, paths }: {
     }
   }
 
+  if (route.request.headers && route.request.headers.properties) {
+    for (const [ headerName, headerSchema ] of Object.entries(route.request.headers.properties)) {
+      routeObject[method].parameters.push({
+        name: headerName,
+        in: 'header',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        required: (route.request.headers.required || []).includes(headerName),
+        schema: headerSchema
+      });
+    }
+  }
+
   if (route.request.body) {
     routeObject[method].requestBody = {
       required: true,

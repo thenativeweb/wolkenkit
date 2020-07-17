@@ -1,6 +1,7 @@
 import { buildApplication } from '../../../common/application/buildApplication';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
+import { configurationDefinition } from '../../../runtimes/singleProcess/processes/main/configurationDefinition';
 import { DevOptions } from './DevOptions';
 import { errors } from '../../../common/errors';
 import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
@@ -8,6 +9,7 @@ import { getApplicationPackageJson } from '../../../common/application/getApplic
 import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
 import { processenv } from 'processenv';
 import { startProcess } from '../../../runtimes/shared/startProcess';
+import { toEnvironmentVariables } from '../../../runtimes/shared/toEnvironmentVariables';
 import { validatePort } from './validatePort';
 
 const devCommand = function (): Command<DevOptions> {
@@ -119,28 +121,40 @@ const devCommand = function (): Command<DevOptions> {
           enableDebugMode: debug,
           port: healthPort,
           env: {
-            ...processenv() as NodeJS.ProcessEnv,
-            APPLICATION_DIRECTORY: applicationDirectory,
-            HTTP_API: String(true),
-            GRAPHQL_API: JSON.stringify({ enableIntegratedClient: true }),
-            COMMAND_QUEUE_RENEW_INTERVAL: String(5_000),
-            CONCURRENT_COMMANDS: String(100),
-            CORS_ORIGIN: '*',
-            DOMAIN_EVENT_STORE_OPTIONS: JSON.stringify({}),
-            DOMAIN_EVENT_STORE_TYPE: 'InMemory',
-            HEALTH_PORT: String(healthPort),
-            IDENTITY_PROVIDERS: JSON.stringify(identityProviders),
-            LOCK_STORE_OPTIONS: JSON.stringify({}),
-            LOCK_STORE_TYPE: 'InMemory',
-            LOG_LEVEL: 'debug',
-            PORT: String(port),
-            SNAPSHOT_STRATEGY: JSON.stringify({
-              name: 'revision',
+            ...toEnvironmentVariables({
               configuration: {
-                revisionLimit: 100
-              }
+                applicationDirectory,
+                commandQueueRenewInterval: 5_000,
+                concurrentCommands: 100,
+                concurrentFlows: configurationDefinition.concurrentFlows.defaultValue,
+                consumerProgressStoreOptions: configurationDefinition.consumerProgressStoreOptions.defaultValue,
+                consumerProgressStoreType: configurationDefinition.consumerProgressStoreType.defaultValue,
+                corsOrigin: '*',
+                domainEventStoreOptions: {},
+                domainEventStoreType: 'InMemory',
+                enableOpenApiDocumentation: true,
+                fileStoreOptions: {},
+                fileStoreType: 'InMemory',
+                graphqlApi: { enableIntegratedClient: true },
+                healthPort,
+                httpApi: true,
+                identityProviders,
+                lockStoreOptions: {},
+                lockStoreType: 'InMemory',
+                port,
+                priorityQueueStoreForCommandsOptions: configurationDefinition.priorityQueueStoreForCommandsOptions.defaultValue,
+                priorityQueueStoreForCommandsType: configurationDefinition.priorityQueueStoreForCommandsType.defaultValue,
+                priorityQueueStoreForDomainEventsOptions: configurationDefinition.priorityQueueStoreForDomainEventsOptions.defaultValue,
+                priorityQueueStoreForDomainEventsType: configurationDefinition.priorityQueueStoreForDomainEventsType.defaultValue,
+                snapshotStrategy: {
+                  name: 'revision',
+                  configuration: { revisionLimit: 100 }
+                }
+              },
+              configurationDefinition
             }),
-            ENABLE_OPEN_API_DOCUMENTATION: String(true)
+            LOG_LEVEL: 'debug',
+            ...processenv() as NodeJS.ProcessEnv
           },
           onExit (exitCode): void {
             // eslint-disable-next-line unicorn/no-process-exit

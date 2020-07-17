@@ -69,7 +69,10 @@ const getApi = async function ({
 
   logger.debug('Constructed openApi definition for documentation route', { openApiDefinition });
 
-  const { api: staticApi } = await getStaticApi({ directory: path.join(__dirname, '..', '..', '..', '..', 'assets'), corsOrigin });
+  const { api: staticApi } = await getStaticApi({
+    directory: path.join(__dirname, '..', '..', '..', '..', 'assets'),
+    corsOrigin
+  });
 
   api.use('/assets', staticApi);
   api.use('/', swaggerUi.serve, swaggerUi.setup(

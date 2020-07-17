@@ -7,6 +7,7 @@ import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { jsonSchema } from 'uuidv4';
+import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
@@ -24,7 +25,7 @@ const postRemoveFile = {
       },
       required: [ 'id' ],
       additionalProperties: false
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400, 401, 404, 500 ],
@@ -33,7 +34,7 @@ const postRemoveFile = {
       properties: {},
       required: [],
       additionalProperties: false
-    }
+    } as Schema
   },
 
   getHandler ({ application, fileStore }: {
