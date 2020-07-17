@@ -1,6 +1,7 @@
 import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { errors } from '../../../../common/errors';
+import { FileMetadata } from '../../../../stores/fileStore/FileMetadata';
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
@@ -42,10 +43,11 @@ const getFile = {
         return;
       }
 
-      try {
-        const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
+      const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
+      let fileMetadata: FileMetadata;
 
-        const fileMetadata = await fileStore.getMetadata({ id });
+      try {
+        fileMetadata = await fileStore.getMetadata({ id });
 
         if (application.hooks.gettingFile) {
           const errorService = getErrorService({ errors: [ 'NotAuthenticated' ]});
@@ -68,17 +70,6 @@ const getFile = {
         res.set('content-disposition', `inline; filename=${fileMetadata.name}`);
 
         await pipeline(stream, res);
-
-        if (application.hooks.gotFile) {
-          await application.hooks.gotFile(fileMetadata, {
-            client: clientService,
-            infrastructure: application.infrastructure,
-            logger: getLoggerService({
-              fileName: '<app>/server/hooks/gotFile',
-              packageManifest: application.packageManifest
-            })
-          });
-        }
       } catch (ex) {
         switch (ex.code) {
           case errors.NotAuthenticated.code: {
@@ -97,6 +88,23 @@ const getFile = {
             res.status(500).json({ code: error.code, message: error.message });
           }
         }
+
+        return;
+      }
+
+      try {
+        if (application.hooks.gotFile) {
+          await application.hooks.gotFile(fileMetadata, {
+            client: clientService,
+            infrastructure: application.infrastructure,
+            logger: getLoggerService({
+              fileName: '<app>/server/hooks/gotFile',
+              packageManifest: application.packageManifest
+            })
+          });
+        }
+      } catch (ex) {
+        logger.error('An unknown error occured.', { ex });
       }
     };
   }

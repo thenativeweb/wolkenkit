@@ -97,7 +97,7 @@ const postAddFile = {
 
         const fileMetadata = await fileStore.addFile({
           ...fileAddMetadata,
-          stream: req.body
+          stream: req
         });
 
         if (application.hooks.addedFile) {

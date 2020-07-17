@@ -1,5 +1,7 @@
 import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
+import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { FileStore } from '../../../../lib/stores/fileStore/FileStore';
 import { getApi } from '../../../../lib/apis/manageFile/http';
@@ -7,19 +9,29 @@ import { getTestApplicationDirectory } from '../../../shared/applications/getTes
 import { identityProvider } from '../../../shared/identityProvider';
 import { InMemoryFileStore } from '../../../../lib/stores/fileStore/InMemory/InMemoryFileStore';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
+import { Readable } from 'stream';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { uuid } from 'uuidv4';
 
 suite('manageFile/http', (): void => {
   const identityProviders = [ identityProvider ];
 
-  let application: Application;
+  let application: Application,
+      file: { id: string; name: string; content: string };
 
   suite('/v2', (): void => {
     suiteSetup(async (): Promise<void> => {
       const applicationDirectory = getTestApplicationDirectory({ name: 'withHooksForFiles' });
 
       application = await loadApplication({ applicationDirectory });
+    });
+
+    setup(async (): Promise<void> => {
+      file = {
+        id: uuid(),
+        name: uuid(),
+        content: 'Hello world!'
+      };
     });
 
     suite('POST /add-file', (): void => {
@@ -92,6 +104,370 @@ suite('manageFile/http', (): void => {
         });
 
         assert.that(status).is.equalTo(500);
+      });
+
+      test('returns a 500 if the added file hook throws an exception.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/add-file',
+          headers: {
+            'x-id': uuid(),
+            'x-name': 'addedFile-failure',
+            'content-type': 'text/plain'
+          },
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(500);
+      });
+
+      test('adds the given file.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/add-file',
+          headers: {
+            'x-id': file.id,
+            'x-name': file.name,
+            'content-type': 'text/plain'
+          },
+          data: Readable.from(file.content),
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(await fileStore.getMetadata({ id: file.id })).is.equalTo({
+          id: file.id,
+          name: file.name,
+          contentType: 'text/plain',
+          contentLength: file.content.length
+        });
+      });
+
+      test('returns a 409 when the file to upload already exists.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/add-file',
+          headers: {
+            'x-id': file.id,
+            'x-name': file.name,
+            'content-type': 'text/plain'
+          },
+          data: Readable.from(file.content)
+        });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/add-file',
+          headers: {
+            'x-id': file.id,
+            'x-name': file.name,
+            'content-type': 'text/plain'
+          },
+          data: Readable.from(file.content),
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(409);
+      });
+    });
+
+    suite('GET /file/:id', (): void => {
+      let api: ExpressApplication,
+          fileStore: FileStore;
+
+      setup(async (): Promise<void> => {
+        fileStore = await InMemoryFileStore.create();
+
+        ({ api } = await getApi({
+          application,
+          corsOrigin: '*',
+          identityProviders,
+          fileStore
+        }));
+      });
+
+      test('returns a 401 if the getting file hook throws a not authorized exception.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/add-file',
+          headers: {
+            'x-id': file.id,
+            'x-name': 'gettingFile-unauthorized',
+            'content-type': 'text/plain'
+          },
+          data: Readable.from(file.content)
+        });
+
+        const { status } = await client({
+          method: 'get',
+          url: `/v2/file/${file.id}`,
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(401);
+      });
+
+      test('returns a 500 if the getting file hook throws any other exception.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/add-file',
+          headers: {
+            'x-id': file.id,
+            'x-name': 'gettingFile-failure',
+            'content-type': 'text/plain'
+          },
+          data: Readable.from(file.content)
+        });
+
+        const { status } = await client({
+          method: 'get',
+          url: `/v2/file/${file.id}`,
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(500);
+      });
+
+      test('returns a 200 even if the got file hook throws an exception.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/add-file',
+          headers: {
+            'x-id': file.id,
+            'x-name': 'gotFile-failure',
+            'content-type': 'text/plain'
+          },
+          data: Readable.from(file.content)
+        });
+
+        const { status } = await client({
+          method: 'get',
+          url: `/v2/file/${file.id}`,
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(200);
+      });
+
+      test('returns a 404 if the requested file does not exist.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'get',
+          url: `/v2/file/${file.id}`,
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(404);
+      });
+
+      test('returns the requested file.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/add-file',
+          headers: {
+            'x-id': file.id,
+            'x-name': file.name,
+            'content-type': 'text/plain'
+          },
+          data: Readable.from(file.content)
+        });
+
+        const { status, headers, data } = await client({
+          method: 'get',
+          url: `/v2/file/${file.id}`,
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo(file.content.length);
+        assert.that(data).is.equalTo(file.content);
+      });
+    });
+
+    suite('POST /remove-file', (): void => {
+      let api: ExpressApplication,
+          fileStore: FileStore;
+
+      setup(async (): Promise<void> => {
+        fileStore = await InMemoryFileStore.create();
+
+        ({ api } = await getApi({
+          application,
+          corsOrigin: '*',
+          identityProviders,
+          fileStore
+        }));
+      });
+
+      test('returns a 415 if the content-type header is not set to application/json.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/remove-file',
+          headers: {
+            'content-type': 'invalid-content-type'
+          },
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(415);
+      });
+
+      test('returns a 401 if the removing file hook throws a not authorized exception.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/add-file',
+          headers: {
+            'x-id': file.id,
+            'x-name': 'removingFile-unauthorized',
+            'content-type': 'text/plain'
+          },
+          data: Readable.from(file.content)
+        });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/remove-file',
+          data: { id: file.id },
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(401);
+      });
+
+      test('returns a 500 if the removing file hook throws another exception.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/add-file',
+          headers: {
+            'x-id': file.id,
+            'x-name': 'removingFile-failure',
+            'content-type': 'text/plain'
+          },
+          data: Readable.from(file.content)
+        });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/remove-file',
+          data: { id: file.id },
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(500);
+      });
+
+      test('returns a 500 if the removed file hook throws an exception.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/add-file',
+          headers: {
+            'x-id': file.id,
+            'x-name': 'removedFile-failure',
+            'content-type': 'text/plain'
+          },
+          data: Readable.from(file.content)
+        });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/remove-file',
+          data: { id: file.id },
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(500);
+      });
+
+      test('removes the given file.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        await client({
+          method: 'post',
+          url: '/v2/add-file',
+          headers: {
+            'x-id': file.id,
+            'x-name': file.name,
+            'content-type': 'text/plain'
+          },
+          data: Readable.from(file.content)
+        });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/remove-file',
+          data: { id: file.id },
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(200);
+        await assert.that(async (): Promise<void> => {
+          await fileStore.getMetadata({ id: file.id });
+        }).is.throwingAsync<CustomError>((ex): boolean => ex.code === errors.FileNotFound.code);
+      });
+
+      test('returns a 404 if the given file does not exist.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'post',
+          url: '/v2/remove-file',
+          data: { id: file.id },
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(404);
       });
     });
   });

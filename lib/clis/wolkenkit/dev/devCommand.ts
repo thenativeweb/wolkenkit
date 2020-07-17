@@ -7,7 +7,6 @@ import { errors } from '../../../common/errors';
 import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
 import { getApplicationPackageJson } from '../../../common/application/getApplicationPackageJson';
 import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
-import { processenv } from 'processenv';
 import { startProcess } from '../../../runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../runtimes/shared/toEnvironmentVariables';
 import { validatePort } from './validatePort';
@@ -154,7 +153,12 @@ const devCommand = function (): Command<DevOptions> {
               configurationDefinition
             }),
             LOG_LEVEL: 'debug',
-            ...processenv() as NodeJS.ProcessEnv
+
+            // Here, we don't want the environment variables to be parsed, but
+            // instead we need their raw values. This is why we do not use the
+            // processenv module here, but rely on process.env directly.
+            // eslint-disable-next-line no-process-env
+            ...process.env
           },
           onExit (exitCode): void {
             // eslint-disable-next-line unicorn/no-process-exit
