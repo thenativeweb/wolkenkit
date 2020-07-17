@@ -311,7 +311,8 @@ suite('manageFile/http', (): void => {
         });
 
         assert.that(status).is.equalTo(200);
-        assert.that(headers['content-type']).is.equalTo(file.content.length);
+        assert.that(headers['content-type']).is.startingWith('text/plain');
+        assert.that(headers['content-length']).is.equalTo(`${file.content.length}`);
         assert.that(data).is.equalTo(file.content);
       });
     });

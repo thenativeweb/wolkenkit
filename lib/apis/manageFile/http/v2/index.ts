@@ -1,4 +1,5 @@
 import { Application } from '../../../../common/application/Application';
+import bodyParser from 'body-parser';
 import { CorsOrigin } from 'get-cors-origin';
 import { Application as ExpressApplication } from 'express';
 import { FileStore } from '../../../../stores/fileStore/FileStore';
@@ -36,6 +37,7 @@ const getV2 = async function ({ application, corsOrigin, identityProviders, file
 
   api.get(`/${getFile.path}`,
     authenticationMiddleware,
+    bodyParser({ limit: 100_000 }),
     getFile.getHandler({ application, fileStore }));
 
   api.post(`/${postAddFile.path}`,
@@ -44,6 +46,7 @@ const getV2 = async function ({ application, corsOrigin, identityProviders, file
 
   api.post(`/${postRemoveFile.path}`,
     authenticationMiddleware,
+    bodyParser({ limit: 100_000 }),
     postRemoveFile.getHandler({ application, fileStore }));
 
   return { api };

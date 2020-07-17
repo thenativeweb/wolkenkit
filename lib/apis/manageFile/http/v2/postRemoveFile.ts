@@ -8,6 +8,7 @@ import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { jsonSchema } from 'uuidv4';
 import { Schema } from '../../../../common/elements/Schema';
+import typer from 'content-type';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
@@ -28,7 +29,7 @@ const postRemoveFile = {
     } as Schema
   },
   response: {
-    statusCodes: [ 200, 400, 401, 404, 500 ],
+    statusCodes: [ 200, 400, 401, 404, 415, 500 ],
     body: {
       type: 'object',
       properties: {},
@@ -51,6 +52,20 @@ const postRemoveFile = {
         res.status(401).json({ code: ex.code, message: ex.message });
 
         throw ex;
+      }
+
+      try {
+        const contentType = typer.parse(req);
+
+        if (contentType.type !== 'application/json') {
+          throw new errors.RequestMalformed();
+        }
+      } catch {
+        const ex = new errors.RequestMalformed('Header content-type must be application/json.');
+
+        res.status(415).json({ code: ex.code, message: ex.message });
+
+        return;
       }
 
       try {
