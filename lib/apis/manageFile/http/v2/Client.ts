@@ -19,7 +19,7 @@ class Client extends HttpClient {
 
   public async getFile ({ id }: {
     id: string;
-  }): Promise<void> {
+  }): Promise<Readable> {
     const { status, data } = await axios({
       method: 'get',
       url: `${this.url}/file/${id}`,
@@ -35,7 +35,7 @@ class Client extends HttpClient {
 
     const error = JSON.parse(await streamToString(data));
 
-    switch (data.code) {
+    switch (error.code) {
       case errors.NotAuthenticated.code: {
         throw new errors.NotAuthenticated(error.message);
       }
@@ -50,7 +50,7 @@ class Client extends HttpClient {
     }
   }
 
-  public async postAddFile ({ id, name, contentType, stream }: {
+  public async addFile ({ id, name, contentType, stream }: {
     id: string;
     name: string;
     contentType: string;
@@ -89,7 +89,7 @@ class Client extends HttpClient {
     }
   }
 
-  public async postRemoveFile ({ id }: {
+  public async removeFile ({ id }: {
     id: string;
   }): Promise<void> {
     const { status, data } = await axios({
