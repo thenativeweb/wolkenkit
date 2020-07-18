@@ -147,7 +147,7 @@ class S3FileStore implements FileStore {
       throw ex;
     }
 
-    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`) as Readable;
+    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`);
     const rawMetadata = await streamToString(metadataStream);
 
     const metadata = JSON.parse(rawMetadata);
@@ -173,7 +173,7 @@ class S3FileStore implements FileStore {
       throw ex;
     }
 
-    const stream = await this.client.getObject(this.bucketName, `${id}/data`) as Readable;
+    const stream = await this.client.getObject(this.bucketName, `${id}/data`);
 
     return stream;
   }
@@ -216,7 +216,7 @@ class S3FileStore implements FileStore {
       throw ex;
     }
 
-    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`) as Readable;
+    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`);
     const rawMetadata = await streamToString(metadataStream);
 
     const metadata = JSON.parse(rawMetadata);
@@ -241,7 +241,7 @@ class S3FileStore implements FileStore {
       throw ex;
     }
 
-    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`) as Readable;
+    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`);
     const rawMetadata = await streamToString(metadataStream);
 
     const metadata = JSON.parse(rawMetadata);
