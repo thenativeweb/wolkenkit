@@ -1,9 +1,17 @@
 // @ts-ignore
-import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
+import { AskInfrastructure, DomainEvent, DomainEventData, TellInfrastructure } from 'wolkenkit';
 
 export interface Infrastructure extends AskInfrastructure, TellInfrastructure {
-  ask: {};
-  tell: {};
+  ask: {
+    viewStore: {
+      domainEvents: DomainEvent<DomainEventData>[];
+    }
+  };
+  tell: {
+    viewStore: {
+      domainEvents: DomainEvent<DomainEventData>[];
+    }
+  };
 }
 
 const setupInfrastructure = async function (): Promise<void> {
@@ -11,10 +19,20 @@ const setupInfrastructure = async function (): Promise<void> {
 };
 
 const getInfrastructure = async function (): Promise<AskInfrastructure & TellInfrastructure> {
-  return {
-    ask: {},
-    tell: {}
-  };
-}
+  const domainEvents: DomainEvent<DomainEventData>[] = [];
 
-export default { getInfrastructure, setupInfrastructure }
+  return {
+    ask: {
+      viewStore: {
+        domainEvents
+      }
+    },
+    tell: {
+      viewStore: {
+        domainEvents
+      }
+    }
+  };
+};
+
+export default { getInfrastructure, setupInfrastructure };

@@ -1,10 +1,8 @@
 import { assert } from 'assertthat';
 import path from 'path';
-import { LikeData } from '../../../server/domain/communication/message';
-import { SendData } from '../../../server/domain/communication/message';
-import { SentData } from '../../../server/domain/communication/message';
 import { uuid } from 'uuidv4';
 import { Application, loadApplication, sandbox } from 'wolkenkit';
+import { LikeData, SendData, SentData } from '../../../server/domain/communication/message';
 
 suite('message', (): void => {
   let application: Application;

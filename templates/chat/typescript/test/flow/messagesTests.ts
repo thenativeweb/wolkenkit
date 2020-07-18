@@ -1,6 +1,6 @@
 import { assert } from 'assertthat';
-import { Infrastructure } from "../../server/infrastructure";
-import { Message } from "../../server/types/Message";
+import { Infrastructure } from '../../server/infrastructure';
+import { Message } from '../../server/types/Message';
 import path from 'path';
 import { uuid } from 'uuidv4';
 import { Application, loadApplication, sandbox } from 'wolkenkit';
@@ -27,12 +27,9 @@ suite('messages', (): void => {
         aggregateIdentifier: { name: 'message', id: aggregateId },
         name: 'sent',
         data: { text },
-        metadata: {
-          revision: 1,
-          timestamp
-        }
+        metadata: { revision: 1, timestamp }
       }).
-      then(async () => {
+      then(async (): Promise<void> => {
         const messages = (application.infrastructure as Infrastructure).tell.viewStore.messages as Message[];
 
         assert.that(messages.length).is.equalTo(1);
@@ -56,20 +53,16 @@ suite('messages', (): void => {
         aggregateIdentifier: { name: 'message', id: aggregateId },
         name: 'sent',
         data: { text: 'Hello world!' },
-        metadata: {
-          revision: 1
-        }
+        metadata: { revision: 1 }
       }).
       and({
         contextIdentifier: { name: 'communication' },
         aggregateIdentifier: { name: 'message', id: aggregateId },
         name: 'liked',
         data: { likes: 5 },
-        metadata: {
-          revision: 2
-        }
+        metadata: { revision: 2 }
       }).
-      then(async () => {
+      then(async (): Promise<void> => {
         const messages = (application.infrastructure as Infrastructure).tell.viewStore.messages as Message[];
 
         assert.that(messages.length).is.equalTo(1);

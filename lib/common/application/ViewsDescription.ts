@@ -1,3 +1,3 @@
-import { ViewDescription } from './ViewDescription';
+import { QueryDescription } from './QueryDescription';
 
-export type ViewsDescription = Record<string, ViewDescription>;
+export type ViewsDescription = Record<string, Record<string, QueryDescription>>;

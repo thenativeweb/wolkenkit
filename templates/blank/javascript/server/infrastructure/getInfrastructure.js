@@ -5,6 +5,6 @@ const getInfrastructure = async function () {
     ask: {},
     tell: {}
   };
-}
+};
 
 module.exports = { getInfrastructure };

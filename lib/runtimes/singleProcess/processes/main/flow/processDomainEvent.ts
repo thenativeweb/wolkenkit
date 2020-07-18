@@ -41,6 +41,8 @@ const processDomainEvent = async function ({
   const { domainEvent, metadata } = await fetchDomainEvent({ priorityQueue });
   const flowName = metadata.discriminator;
 
+  logger.debug('Fetched and locked domain event for flow execution.', { itemIdentifier: domainEvent.getItemIdentifier(), metadata });
+
   try {
     try {
       new Value(getDomainEventSchema()).validate(domainEvent, { valueName: 'domainEvent' });
@@ -80,6 +82,8 @@ const processDomainEvent = async function ({
     switch (howToProceed) {
       case 'acknowledge': {
         await acknowledgeDomainEvent({ flowName, token: metadata.token, priorityQueue });
+
+        logger.debug('Acknowledged domain event.', { itemIdentifier: domainEvent.getItemIdentifier(), metadata });
         break;
       }
       case 'defer': {
@@ -88,6 +92,8 @@ const processDomainEvent = async function ({
           priority: domainEvent.metadata.timestamp,
           token: metadata.token
         });
+
+        logger.debug('Skipped and deferred domain event.', { itemIdentifier: domainEvent.getItemIdentifier(), metadata });
         break;
       }
       default: {

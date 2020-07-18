@@ -1,31 +1,41 @@
 'use strict';
 
-const { PassThrough } = require('stream');
+const { Readable } = require('stream');
 
 const all = {
+  type: 'stream',
+
   getResultItemSchema () {
     return {
       type: 'object',
       properties: {
-        id: { type: 'string' },
-        createdAt: { type: 'number' },
-        updatedAt: { type: 'number' },
-        strategy: { type: 'string', enum: [ 'succeed', 'fail', 'reject' ]}
+        contextIdentifier: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', minLength: 1 }
+          },
+          required: [ 'name' ],
+          additionalProperties: false
+        },
+        aggregateIdentifier: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', minLength: 1 },
+            id: { type: 'string' }
+          },
+          required: [ 'name', 'id' ],
+          additionalProperties: false
+        },
+        name: { type: 'string', minLength: 1 },
+        id: { type: 'string' }
       },
-      required: [ 'id', 'createdAt', 'strategy' ],
+      required: [ 'contextIdentifier', 'aggregateIdentifier', 'name', 'id' ],
       additionalProperties: false
     };
   },
 
-  async handle (sampleItems) {
-    const stream = new PassThrough({ objectMode: true });
-
-    for (const item of sampleItems) {
-      stream.write(item);
-    }
-    stream.end();
-
-    return stream;
+  async handle (options, { infrastructure }) {
+    return Readable.from(infrastructure.ask.viewStore.domainEvents);
   },
 
   isAuthorized () {
@@ -33,6 +43,4 @@ const all = {
   }
 };
 
-module.exportrs = {
-  all
-};
+module.exports = { all };

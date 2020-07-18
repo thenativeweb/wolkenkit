@@ -20,7 +20,9 @@ const processCommand = async function ({ repository, priorityQueue, publishDomai
   priorityQueue: DomainPriorityQueue;
   publishDomainEvents: PublishDomainEvents;
 }): Promise<void> {
-  const { command, token } = await fetchCommand({ priorityQueue });
+  const { command, metadata } = await fetchCommand({ priorityQueue });
+
+  logger.debug('Fetched and locked command for domain server.', { itemIdentifier: command.getItemIdentifier(), metadata });
 
   try {
     try {
@@ -38,7 +40,7 @@ const processCommand = async function ({ repository, priorityQueue, publishDomai
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     (async (): Promise<void> => {
-      await keepRenewingLock({ command, handleCommandPromise, priorityQueue, token });
+      await keepRenewingLock({ command, handleCommandPromise, priorityQueue, token: metadata.token });
     })();
 
     const domainEvents = await handleCommandPromise;
@@ -47,7 +49,9 @@ const processCommand = async function ({ repository, priorityQueue, publishDomai
   } catch (ex) {
     logger.error('Failed to handle command.', { command, ex });
   } finally {
-    await acknowledgeCommand({ command, token, priorityQueue });
+    await acknowledgeCommand({ command, token: metadata.token, priorityQueue });
+
+    logger.debug('Processed and acknowledged command.', { itemIdentifier: command.getItemIdentifier(), metadata });
   }
 };
 

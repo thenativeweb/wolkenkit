@@ -5,6 +5,7 @@ import { getApi as getGraphqlApi } from '../../../../apis/graphql';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
 import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
 import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
+import { getApi as getViewsApi } from '../../../../apis/queryView/http';
 import { IdentityProvider } from 'limes';
 import { InitializeGraphQlOnServer } from '../../../../apis/graphql/InitializeGraphQlOnServer';
 import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
@@ -58,8 +59,15 @@ const getApi = async function ({
       identityProviders
     });
 
+    const { api: viewsApi, getApiDefinitions: getQueryViewApiDefinitions } = await getViewsApi({
+      corsOrigin,
+      application,
+      identityProviders
+    });
+
     api.use('/domain-events', observeDomainEventsApi);
     api.use('/command', handleCommandApi);
+    api.use('/views', viewsApi);
 
     if (configuration.enableOpenApiDocumentation) {
       const { api: openApiApi } = await getOpenApiApi({
@@ -69,7 +77,8 @@ const getApi = async function ({
         schemes: [ 'http' ],
         apis: [
           ...getHandleCommandApiDefinitions('command'),
-          ...getObserveDomainEventApiDefinitions('domain-events')
+          ...getObserveDomainEventApiDefinitions('domain-events'),
+          ...getQueryViewApiDefinitions('views')
         ]
       });
 

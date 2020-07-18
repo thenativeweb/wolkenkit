@@ -5,8 +5,8 @@ const sampleHandler = {
     return true;
   },
 
-  async handle (domainEvent, { logger }) {
-    logger.info('Received domain event.', { domainEvent });
+  async handle () {
+    // ...
   }
 };
 

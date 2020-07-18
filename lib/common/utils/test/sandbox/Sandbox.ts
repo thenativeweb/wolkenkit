@@ -12,6 +12,7 @@ import { GetLoggerService } from '../../../services/types/GetLoggerService';
 import { LockStore } from '../../../../stores/lockStore/LockStore';
 import { SandboxForAggregate } from './SandboxForAggregate';
 import { SandboxForFlow } from './SandboxForFlow';
+import { SandboxForView } from './SandboxForView';
 import { SnapshotStrategy } from '../../../domain/SnapshotStrategy';
 import { State } from '../../../elements/State';
 
@@ -70,4 +71,8 @@ export interface Sandbox {
   forFlow(parameters: {
     flowName: string;
   }): SandboxForFlow;
+
+  forView(parameters: {
+    viewName: string;
+  }): SandboxForView;
 }

@@ -1,29 +1,35 @@
 'use strict';
 
+const { Readable } = require('stream');
+
 const all = {
+  type: 'stream',
+
   getResultItemSchema () {
     return {
       type: 'object',
       properties: {
         id: { type: 'string' },
+        timestamp: { type: 'number' },
         text: { type: 'string' },
-        likes: { type: 'number' },
-        timestamp: { type: 'number' }
+        likes: { type: 'number' }
       },
-      required: [ 'id', 'text', 'likes', 'timestamp' ],
+      required: [ 'id', 'timestamp', 'text', 'likes' ],
       additionalProperties: false
     };
   },
 
-  async handle (messageItems) {
-    const stream = new PassThrough({ objectMode: true });
+  async handle (options, { infrastructure }) {
+    if (Array.isArray(infrastructure.ask.viewStore.messages)) {
+      const sortedMessages = [ ...infrastructure.ask.viewStore.messages ].reverse();
 
-    for (const messageItem of messageItems) {
-      stream.write(messageItem);
+      return Readable.from(sortedMessages);
     }
-    stream.end();
 
-    return stream;
+    return infrastructure.ask.viewStore.messages.find({}, {
+      projection: { id: 1, timestamp: 1, text: 1, likes: 1 },
+      sort: [[ 'timestamp', -1 ]]
+    }).stream();
   },
 
   isAuthorized () {

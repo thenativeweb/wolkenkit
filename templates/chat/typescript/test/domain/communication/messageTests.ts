@@ -1,6 +1,6 @@
 import { assert } from 'assertthat';
-import path from 'path';
 import { LikeData } from '../../../server/domain/communication/message/commands/like';
+import path from 'path';
 import { SendData } from '../../../server/domain/communication/message/commands/send';
 import { SentData } from '../../../server/domain/communication/message/domainEvents/sent';
 import { uuid } from 'uuidv4';

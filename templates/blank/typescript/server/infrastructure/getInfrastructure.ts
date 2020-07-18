@@ -1,10 +1,10 @@
-import { AskInfrastructure, TellInfrastructure } from 'wolkenkit';
+import { Infrastructure } from '.';
 
-const getInfrastructure = async function (): Promise<AskInfrastructure & TellInfrastructure> {
+const getInfrastructure = async function (): Promise<Infrastructure> {
   return {
     ask: {},
     tell: {}
   };
-}
+};
 
 export { getInfrastructure };

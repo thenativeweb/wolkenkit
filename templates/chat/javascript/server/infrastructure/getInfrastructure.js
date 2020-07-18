@@ -1,7 +1,7 @@
 'use strict';
 
-const { processenv } = require('processenv');
-const { Collection, MongoClient } = require('mongodb');
+const { MongoClient } = require('mongodb'),
+      { processenv } = require('processenv');
 
 const getInfrastructure = async function () {
   const url = processenv('MONGODB_URL');
@@ -9,6 +9,7 @@ const getInfrastructure = async function () {
 
   if (url) {
     const connection = await MongoClient.connect(url, {
+      // eslint-disable-next-line id-length
       w: 1,
       useNewUrlParser: true,
       useUnifiedTopology: true
@@ -18,7 +19,11 @@ const getInfrastructure = async function () {
   }
 
   return {
-    ask: {},
+    ask: {
+      viewStore: {
+        messages
+      }
+    },
     tell: {
       viewStore: {
         messages

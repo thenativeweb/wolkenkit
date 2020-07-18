@@ -3,16 +3,17 @@ import { Infrastructure } from '../../../infrastructure';
 import { LikedData } from '../../../domain/communication/message/domainEvents/liked';
 
 const handleMessageLiked: FlowHandler<LikedData, Infrastructure> = {
-  isRelevant ({ fullyQualifiedName }) {
+  isRelevant ({ fullyQualifiedName }): boolean {
     return fullyQualifiedName === 'communication.message.liked';
   },
 
-  async handle (domainEvent, { infrastructure }) {
+  async handle (domainEvent, { infrastructure }): Promise<void> {
     if (Array.isArray(infrastructure.tell.viewStore.messages)) {
-      const message = infrastructure.tell.viewStore.messages.find(
-        (message): boolean => message.id === domainEvent.aggregateIdentifier.id);
+      const messageToUpdate = infrastructure.tell.viewStore.messages.find(
+        (message): boolean => message.id === domainEvent.aggregateIdentifier.id
+      );
 
-      message.likes = domainEvent.data.likes;
+      messageToUpdate.likes = domainEvent.data.likes;
 
       return;
     }
