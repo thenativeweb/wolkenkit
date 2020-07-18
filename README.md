@@ -189,11 +189,75 @@ subscription {
 }
 ```
 
-#### Authenticating a user
+### Managing files
+
+wolkenkit provides a file storage service that acts as a facade to a storage backend such as S3 or the local file system. It can be addressed using an HTTP API.
+
+#### Using the HTTP interface
+
+wolkenkit provides three primary endpoints in local development mode:
+
+- `http://localhost:3000/files/v2/add-file` adds a file
+- `http://localhost:3000/files/v2/file/:id` gets a file
+- `http://localhost:3000/files/v2/remove-file` removes a file
+
+##### Adding files
+
+To add a file, send a `POST` request with the file to be stored in its body to the add-file endpoint of the runtime. Send the file's id, its name and its content type using the `x-id`, `x-name` and `content-type` headers.
+
+A sample call to `curl` might look like this:
+
+```shell
+$ curl \
+    -i \
+    -X POST \
+    -H 'x-id: 03edebb0-7a36-4902-a082-ef979982a12c' \
+    -H 'x-name: hello.txt' \
+    -H 'content-type: text/plain' \
+    -d 'Hello, world!' \
+    http://localhost:3000/files/v2/add-file
+```
+
+##### Getting files
+
+To get a file, send a `GET` request with the file id as part of the URL to the file endpoint of the runtime.
+
+A sample call to `curl` might look like this:
+
+```shell
+$ curl \
+    -i \
+    http://localhost:3000/files/v2/file/03edebb0-7a36-4902-a082-ef979982a12c
+```
+
+You will get the file's id, name and its content-type in the `x-id`, `x-name` and `content-type` headers.
+
+##### Removing files
+
+To remove a file, send a `POST` request with the following JSON structure to the remove-file endpoint of the runtime:
+
+```json
+{
+  "id": "03edebb0-7a36-4902-a082-ef979982a12c"
+}
+```
+
+A sample call to `curl` might look like this:
+
+```shell
+$ curl \
+    -i \
+    -X POST \
+    -H 'content-type: application/json' \
+    -d '{"id":"03edebb0-7a36-4902-a082-ef979982a12c"}' \
+    http://localhost:3000/files/v2/remove-file
+```
+
+### Authenticating a user
 
 For authentication wolkenkit relies on OpenID Connect, so to use authentication you have to set up an external identity provider such as [Auth0](https://auth0.com/) or [Keycloak](https://www.keycloak.org/).
 
-Configure it to use the `implicit flow`, copy its certificate to your application directory, and set the `--identity-provider-issuer` and `--identity-provider-certificate` flags when running `npx wolkenkit dev`. For details, see the CLI's integrated help. Please make sure that your identity provider issues token using the `RS256` algorithm, otherwise wolkenkit won't be able to decode and verify the token.
+Configure it to use the *implicit flow*, copy its certificate to your application directory, and set the `--identity-provider-issuer` and `--identity-provider-certificate` flags when running `npx wolkenkit dev`. For details, see the CLI's integrated help. Please make sure that your identity provider issues token using the `RS256` algorithm, otherwise wolkenkit won't be able to decode and verify the token.
 
 If a user tries to authenticate with an invalid or expired token, they will receive a `401`. If the user doesn't send a token at all, they will be given a token that identifies them as `anonymous`. By default, you can not differentiate between multiple anonymous users. If you need this, set the `x-anonymous-id` header in the client accordingly.
 
