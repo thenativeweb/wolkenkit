@@ -121,12 +121,12 @@
     "@types/mongodb": "3.5.25",
     "@types/mssql": "6.0.3",
     "@types/mysql": "2.15.15",
-    "@types/node": "14.0.20",
+    "@types/node": "14.0.23",
     "@types/pg": "7.14.4",
     "@types/pg-query-stream": "1.0.3",
     "@types/shelljs": "0.8.8",
     "@types/swagger-ui-express": "4.1.2",
-    "apollo-server-express": "2.15.1",
+    "apollo-server-express": "2.16.0",
     "axios": "0.19.2",
     "body-parser": "1.19.0",
     "buntstift": "4.0.9",
@@ -167,7 +167,7 @@
     "streamtoarray": "3.0.0",
     "swagger-ui-express": "4.1.4",
     "untildify": "4.0.0",
-    "uuidv4": "6.1.1",
+    "uuidv4": "6.2.0",
     "validate-value": "7.0.0"
   },
   "devDependencies": {
