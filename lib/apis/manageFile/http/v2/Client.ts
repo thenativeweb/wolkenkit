@@ -19,8 +19,8 @@ class Client extends HttpClient {
 
   public async getFile ({ id }: {
     id: string;
-  }): Promise<Readable> {
-    const { status, data } = await axios({
+  }): Promise<{ id: string; name: string; contentType: string; stream: Readable }> {
+    const { status, headers, data } = await axios({
       method: 'get',
       url: `${this.url}/file/${id}`,
       responseType: 'stream',
@@ -30,7 +30,12 @@ class Client extends HttpClient {
     });
 
     if (status === 200) {
-      return data;
+      return {
+        id,
+        name: headers['x-name'],
+        contentType: headers['content-type'],
+        stream: data
+      };
     }
 
     const error = JSON.parse(await streamToString(data));

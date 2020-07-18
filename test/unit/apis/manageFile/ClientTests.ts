@@ -208,10 +208,10 @@ suite('manageFile/http/Client', (): void => {
           stream: Readable.from(file.content)
         });
 
-        const content = await client.getFile({ id: file.id });
-        const contentAsString = await streamToString(content);
+        const { stream } = await client.getFile({ id: file.id });
+        const content = await streamToString(stream);
 
-        assert.that(contentAsString).is.equalTo(file.content);
+        assert.that(content).is.equalTo(file.content);
       });
 
       test('throws a file not found exception if the requested file does not exist.', async (): Promise<void> => {
@@ -227,7 +227,7 @@ suite('manageFile/http/Client', (): void => {
         }).is.throwingAsync<CustomError>((ex): boolean => ex.code === errors.FileNotFound.code);
       });
 
-      test('returns the requested file.', async (): Promise<void> => {
+      test('returns the requested file and its metadata.', async (): Promise<void> => {
         const { port } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
@@ -242,10 +242,13 @@ suite('manageFile/http/Client', (): void => {
           stream: Readable.from(file.content)
         });
 
-        const content = await client.getFile({ id: file.id });
-        const contentAsString = await streamToString(content);
+        const { id, name, contentType, stream } = await client.getFile({ id: file.id });
+        const content = await streamToString(stream);
 
-        assert.that(contentAsString).is.equalTo(file.content);
+        assert.that(id).is.equalTo(file.id);
+        assert.that(name).is.equalTo(file.name);
+        assert.that(contentType).is.startingWith('text/plain');
+        assert.that(content).is.equalTo(file.content);
       });
     });
 

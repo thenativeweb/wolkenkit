@@ -5,6 +5,8 @@ import { buildCommand } from '../../../../../lib/common/utils/test/buildCommand'
 import { Client } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Configuration } from '../../../../../lib/runtimes/singleProcess/processes/main/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/singleProcess/processes/main/configurationDefinition';
+import { CustomError } from 'defekt';
+import { errors } from '../../../../../lib/common/errors';
 import fetch from 'node-fetch';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
@@ -12,12 +14,15 @@ import { getTestApplicationDirectory } from '../../../../shared/applications/get
 import gql from 'graphql-tag';
 import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
 import { HttpLink } from 'apollo-link-http';
+import { Client as ManageFileClient } from '../../../../../lib/apis/manageFile/http/v2/Client';
 import { Client as ObserveDomainEventsClient } from '../../../../../lib/apis/observeDomainEvents/http/v2/Client';
 import path from 'path';
 import { Client as QueryViewsClient } from '../../../../../lib/apis/queryView/http/v2/Client';
+import { Readable } from 'stream';
 import { sleep } from '../../../../../lib/common/utils/sleep';
 import { SnapshotStrategyConfiguration } from '../../../../../lib/common/domain/SnapshotStrategyConfiguration';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
+import streamToString from 'stream-to-string';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { uuid } from 'uuidv4';
@@ -34,6 +39,7 @@ suite('main', function (): void {
 
   let handleCommandClient: HandleCommandClient,
       healthPort: number,
+      manageFileClient: ManageFileClient,
       observeDomainEventsClient: ObserveDomainEventsClient,
       port: number,
       queryViewsClient: QueryViewsClient,
@@ -87,6 +93,13 @@ suite('main', function (): void {
       hostName: 'localhost',
       port,
       path: '/views/v2'
+    });
+
+    manageFileClient = new ManageFileClient({
+      protocol: 'http',
+      hostName: 'localhost',
+      port,
+      path: '/files/v2'
     });
   });
 
@@ -374,6 +387,49 @@ suite('main', function (): void {
         aggregateIdentifier: { name: 'sampleAggregate' },
         name: 'executed'
       });
+    });
+  });
+
+  suite('files', (): void => {
+    test('stores files.', async (): Promise<void> => {
+      const file = {
+        id: uuid(),
+        name: uuid(),
+        content: 'Hello world!'
+      };
+
+      await manageFileClient.addFile({
+        id: file.id,
+        name: file.name,
+        contentType: 'text/plain',
+        stream: Readable.from(file.content)
+      });
+
+      const { stream } = await manageFileClient.getFile({ id: file.id });
+      const content = await streamToString(stream);
+
+      assert.that(content).is.equalTo(file.content);
+    });
+
+    test('removes files.', async (): Promise<void> => {
+      const file = {
+        id: uuid(),
+        name: uuid(),
+        content: 'Hello world!'
+      };
+
+      await manageFileClient.addFile({
+        id: file.id,
+        name: file.name,
+        contentType: 'text/plain',
+        stream: Readable.from(file.content)
+      });
+
+      await manageFileClient.removeFile({ id: file.id });
+
+      await assert.that(async (): Promise<void> => {
+        await manageFileClient.getFile({ id: file.id });
+      }).is.throwingAsync<CustomError>((ex): boolean => ex.code === errors.FileNotFound.code);
     });
   });
 });

@@ -65,6 +65,8 @@ const getFile = {
 
         const stream = await fileStore.getFile({ id });
 
+        res.set('x-id', fileMetadata.id);
+        res.set('x-name', fileMetadata.name);
         res.set('content-type', fileMetadata.contentType);
         res.set('content-length', String(fileMetadata.contentLength));
         res.set('content-disposition', `inline; filename=${fileMetadata.name}`);

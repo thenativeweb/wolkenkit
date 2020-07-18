@@ -22,7 +22,7 @@ const getV2 = async function ({ application, corsOrigin, identityProviders, file
         cors: {
           origin: corsOrigin,
           allowedHeaders: [ 'content-type', 'x-id', 'x-name' ],
-          exposedHeaders: [ 'content-length', 'content-type', 'content-disposition' ]
+          exposedHeaders: [ 'content-length', 'content-type', 'content-disposition', 'x-id', 'x-name' ]
         }
       },
       body: { parser: false },

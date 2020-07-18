@@ -20,6 +20,9 @@ suite('manageFile/http', (): void => {
       file: { id: string; name: string; content: string };
 
   suite('/v2', (): void => {
+    let api: ExpressApplication,
+        fileStore: FileStore;
+
     suiteSetup(async (): Promise<void> => {
       const applicationDirectory = getTestApplicationDirectory({ name: 'withHooksForFiles' });
 
@@ -27,6 +30,15 @@ suite('manageFile/http', (): void => {
     });
 
     setup(async (): Promise<void> => {
+      fileStore = await InMemoryFileStore.create();
+
+      ({ api } = await getApi({
+        application,
+        corsOrigin: '*',
+        identityProviders,
+        fileStore
+      }));
+
       file = {
         id: uuid(),
         name: uuid(),
@@ -35,20 +47,6 @@ suite('manageFile/http', (): void => {
     });
 
     suite('POST /add-file', (): void => {
-      let api: ExpressApplication,
-          fileStore: FileStore;
-
-      setup(async (): Promise<void> => {
-        fileStore = await InMemoryFileStore.create();
-
-        ({ api } = await getApi({
-          application,
-          corsOrigin: '*',
-          identityProviders,
-          fileStore
-        }));
-      });
-
       test('returns a 400 if invalid headers are sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
@@ -184,20 +182,6 @@ suite('manageFile/http', (): void => {
     });
 
     suite('GET /file/:id', (): void => {
-      let api: ExpressApplication,
-          fileStore: FileStore;
-
-      setup(async (): Promise<void> => {
-        fileStore = await InMemoryFileStore.create();
-
-        ({ api } = await getApi({
-          application,
-          corsOrigin: '*',
-          identityProviders,
-          fileStore
-        }));
-      });
-
       test('returns a 401 if the getting file hook throws a not authorized exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
@@ -311,6 +295,8 @@ suite('manageFile/http', (): void => {
         });
 
         assert.that(status).is.equalTo(200);
+        assert.that(headers['x-id']).is.startingWith(file.id);
+        assert.that(headers['x-name']).is.startingWith(file.name);
         assert.that(headers['content-type']).is.startingWith('text/plain');
         assert.that(headers['content-length']).is.equalTo(`${file.content.length}`);
         assert.that(data).is.equalTo(file.content);
@@ -318,20 +304,6 @@ suite('manageFile/http', (): void => {
     });
 
     suite('POST /remove-file', (): void => {
-      let api: ExpressApplication,
-          fileStore: FileStore;
-
-      setup(async (): Promise<void> => {
-        fileStore = await InMemoryFileStore.create();
-
-        ({ api } = await getApi({
-          application,
-          corsOrigin: '*',
-          identityProviders,
-          fileStore
-        }));
-      });
-
       test('returns a 415 if the content-type header is not set to application/json.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
