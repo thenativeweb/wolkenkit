@@ -24,7 +24,7 @@ const validateViewDefinition = function ({ viewDefinition }: {
     }
   }
 
-  if (viewDefinition.enhancers) {
+  if (!isUndefined(viewDefinition.enhancers)) {
     if (!isArray(viewDefinition.enhancers)) {
       throw new errors.ViewDefinitionMalformed(`Property 'enhancers' is not an array.`);
     }

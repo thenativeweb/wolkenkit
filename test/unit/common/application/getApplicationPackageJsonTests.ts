@@ -1,5 +1,6 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import fs from 'fs';
 import { getApplicationPackageJson } from '../../../../lib/common/application/getApplicationPackageJson';
 import { isolated } from 'isolated';
@@ -57,12 +58,12 @@ suite('getApplicationPackageJson', (): void => {
 
     await assert.that(async (): Promise<void> => {
       await getApplicationPackageJson({ directory });
-    }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EAPPLICATIONNOTFOUND');
+    }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.ApplicationNotFound.code);
   });
 
   test('throws an error if the given directory does not exist.', async (): Promise<void> => {
     await assert.that(async (): Promise<void> => {
       await getApplicationPackageJson({ directory: path.join(__dirname, 'does', 'not', 'exist') });
-    }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EDIRECTORYNOTFOUND');
+    }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.DirectoryNotFound.code);
   });
 });

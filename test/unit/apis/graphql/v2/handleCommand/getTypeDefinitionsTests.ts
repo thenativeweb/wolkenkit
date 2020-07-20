@@ -42,6 +42,7 @@ suite('getTypeDefinitions', (): void => {
         ask: {},
         tell: {}
       },
+      hooks: {},
       views: {},
       packageManifest: {
         name: 'empty',

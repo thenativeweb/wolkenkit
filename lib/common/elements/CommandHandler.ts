@@ -31,7 +31,7 @@ export interface CommandHandler<
     aggregate: AggregateService<TState>;
     aggregates: AggregatesService;
     client: ClientService;
-    error: ErrorService;
+    error: ErrorService<'CommandRejected'>;
     lock: LockService;
     logger: LoggerService;
     infrastructure: TInfrastructure;

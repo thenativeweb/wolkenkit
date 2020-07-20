@@ -14,7 +14,7 @@ class ClientMetadata {
     req: Request;
   }) {
     if (!req.token || !req.user) {
-      throw new errors.NotAuthenticatedError('Client information missing in request.');
+      throw new errors.NotAuthenticated('Client information missing in request.');
     }
     this.token = req.token;
     this.user = { id: req.user.id, claims: req.user.claims };

@@ -1,5 +1,6 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { validateViewDefinition } from '../../../../lib/common/validators/validateViewDefinition';
 import { View } from '../../../../lib/common/elements/View';
 
@@ -17,7 +18,7 @@ suite('validateViewDefinition', (): void => {
   test('throws an error if the given view definition is not an object.', async (): Promise<void> => {
     assert.that((): void => {
       validateViewDefinition({ viewDefinition: undefined });
-    }).is.throwing((ex): boolean => (ex as CustomError).code === 'EVIEWDEFINITIONMALFORMED' && ex.message === `View handler is not an object.`);
+    }).is.throwing((ex): boolean => (ex as CustomError).code === errors.ViewDefinitionMalformed.code && ex.message === `View handler is not an object.`);
   });
 
   test('throws an error if query handlers are missing.', async (): Promise<void> => {
@@ -30,7 +31,7 @@ suite('validateViewDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EVIEWDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.ViewDefinitionMalformed.code &&
         ex.message === `Object 'queryHandlers' is missing.`
     );
   });
@@ -45,7 +46,7 @@ suite('validateViewDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EVIEWDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.ViewDefinitionMalformed.code &&
         ex.message === `Property 'queryHandlers' is not an object.`
     );
   });
@@ -62,7 +63,7 @@ suite('validateViewDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EVIEWDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.ViewDefinitionMalformed.code &&
         ex.message === `Query handler 'sampleQuery' is malformed: Query handler is not an object.`
     );
   });

@@ -1,5 +1,6 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { FlowDefinition } from '../../../../lib/common/application/FlowDefinition';
 import { validateFlowDefinition } from '../../../../lib/common/validators/validateFlowDefinition';
 
@@ -18,7 +19,7 @@ suite('validateFlowDefinition', (): void => {
   test('throws an error if the given flow definition is not an object.', async (): Promise<void> => {
     assert.that((): void => {
       validateFlowDefinition({ flowDefinition: undefined });
-    }).is.throwing((ex): boolean => (ex as CustomError).code === 'EFLOWDEFINITIONMALFORMED' && ex.message === 'Flow handler is not an object.');
+    }).is.throwing((ex): boolean => (ex as CustomError).code === errors.FlowDefinitionMalformed.code && ex.message === 'Flow handler is not an object.');
   });
 
   test('throws an error if domain event handlers are missing.', async (): Promise<void> => {
@@ -31,7 +32,7 @@ suite('validateFlowDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EFLOWDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.FlowDefinitionMalformed.code &&
         ex.message === `Object 'domainEventHandlers' is missing.`
     );
   });
@@ -46,7 +47,7 @@ suite('validateFlowDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EFLOWDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.FlowDefinitionMalformed.code &&
         ex.message === `Property 'domainEventHandlers' is not an object.`
     );
   });
@@ -63,7 +64,7 @@ suite('validateFlowDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EFLOWDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.FlowDefinitionMalformed.code &&
         ex.message === `Domain event handler 'sampleHandler' is malformed: Property 'domainEventHandler' is not an object.`
     );
   });

@@ -44,7 +44,7 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case 'EAGGREGATEIDENTIFIERMALFORMED': {
+      case errors.AggregateIdentifierMalformed.code: {
         throw new errors.AggregateIdentifierMalformed(data.message);
       }
       default: {
@@ -255,7 +255,7 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case 'EAGGREGATEIDENTIFIERMALFORMED': {
+      case errors.AggregateIdentifierMalformed.code: {
         throw new errors.AggregateIdentifierMalformed(data.message);
       }
       default: {

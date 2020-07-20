@@ -99,16 +99,16 @@ class Client<TItem> extends HttpClient {
     }
 
     switch (data.code) {
-      case 'ETOKENMISMATCH': {
+      case errors.TokenMismatch.code: {
         throw new errors.TokenMismatch(data.message);
       }
-      case 'EREQUESTMALFORMED': {
+      case errors.RequestMalformed.code: {
         throw new errors.RequestMalformed(data.message);
       }
-      case 'EITEMNOTFOUND': {
+      case errors.ItemNotFound.code: {
         throw new errors.ItemNotFound(data.message);
       }
-      case 'EITEMNOTLOCKED': {
+      case errors.ItemNotLocked.code: {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {
@@ -137,16 +137,16 @@ class Client<TItem> extends HttpClient {
     }
 
     switch (data.code) {
-      case 'ETOKENMISMATCH': {
+      case errors.TokenMismatch.code: {
         throw new errors.TokenMismatch(data.message);
       }
-      case 'EREQUESTMALFORMED': {
+      case errors.RequestMalformed.code: {
         throw new errors.RequestMalformed(data.message);
       }
-      case 'EITEMNOTFOUND': {
+      case errors.ItemNotFound.code: {
         throw new errors.ItemNotFound(data.message);
       }
-      case 'EITEMNOTLOCKED': {
+      case errors.ItemNotLocked.code: {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {
@@ -176,16 +176,16 @@ class Client<TItem> extends HttpClient {
     }
 
     switch (data.code) {
-      case 'ETOKENMISMATCH': {
+      case errors.TokenMismatch.code: {
         throw new errors.TokenMismatch(data.message);
       }
-      case 'EREQUESTMALFORMED': {
+      case errors.RequestMalformed.code: {
         throw new errors.RequestMalformed(data.message);
       }
-      case 'EITEMNOTFOUND': {
+      case errors.ItemNotFound.code: {
         throw new errors.ItemNotFound(data.message);
       }
-      case 'EITEMNOTLOCKED': {
+      case errors.ItemNotLocked.code: {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {

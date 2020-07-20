@@ -11,7 +11,7 @@ const getApi = async function ({ application, configuration, identityProviders }
   configuration: Configuration;
   identityProviders: IdentityProvider[];
 }): Promise<{ api: ExpressApplication }> {
-  const corsOrigin = getCorsOrigin(configuration.corsOrigin);
+  const corsOrigin = getCorsOrigin(configuration.viewCorsOrigin);
 
   const { api: queryViewsApi, getApiDefinitions } = await getQueryViewApi({
     corsOrigin,

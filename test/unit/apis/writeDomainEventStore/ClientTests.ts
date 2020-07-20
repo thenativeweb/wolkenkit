@@ -7,6 +7,7 @@ import { Client } from '../../../../lib/apis/writeDomainEventStore/http/v2/Clien
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
+import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/writeDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
@@ -105,7 +106,7 @@ suite('writeDomainEventStore/http/Client', (): void => {
         await assert.that(
           async (): Promise<any> => client.storeDomainEvents({ domainEvents: []})
         ).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === 'Domain events are missing.'
+          (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === 'Domain events are missing.'
         );
       });
     });

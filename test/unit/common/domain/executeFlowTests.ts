@@ -8,6 +8,7 @@ import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
+import { errors } from '../../../../lib/common/errors';
 import { executeFlow } from '../../../../lib/common/domain/executeFlow';
 import { getAggregatesService } from '../../../../lib/common/services/getAggregatesService';
 import { getCommandService } from '../../../../lib/common/services/getCommandService';
@@ -97,7 +98,7 @@ suite('executeFlow', (): void => {
         requestReplay: noop
       });
     }).is.throwingAsync(
-      (ex): boolean => (ex as CustomError).code === 'EFLOWNOTFOUND'
+      (ex): boolean => (ex as CustomError).code === errors.FlowNotFound.code
     );
   });
 

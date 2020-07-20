@@ -40,13 +40,13 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case 'ECONTEXTNOTFOUND': {
+      case errors.ContextNotFound.code: {
         throw new errors.ContextNotFound(data.message);
       }
-      case 'EAGGREGATENOTFOUND': {
+      case errors.AggregateNotFound.code: {
         throw new errors.AggregateNotFound(data.message);
       }
-      case 'EFLOWNOTFOUND': {
+      case errors.FlowNotFound.code: {
         throw new errors.FlowNotFound(data.message);
       }
       default: {

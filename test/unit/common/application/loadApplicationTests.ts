@@ -1,6 +1,7 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
+import { errors } from '../../../../lib/common/errors';
 import fs from 'fs';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { isolated } from 'isolated';
@@ -13,7 +14,7 @@ suite('loadApplication', (): void => {
   test('throws an error if a non-existent directory is given.', async (): Promise<void> => {
     await assert.that(async (): Promise<void> => {
       await loadApplication({ applicationDirectory: path.join(__dirname, 'does', 'not', 'exist') });
-    }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EAPPLICATIONNOTFOUND');
+    }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.ApplicationNotFound.code);
   });
 
   test('throws an error if the given directory does not contain a package.json.', async (): Promise<void> => {
@@ -21,7 +22,7 @@ suite('loadApplication', (): void => {
 
     await assert.that(async (): Promise<void> => {
       await loadApplication({ applicationDirectory });
-    }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EFILENOTFOUND' && ex.message === `File '<app>/package.json' not found.`);
+    }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.FileNotFound.code && ex.message === `File '<app>/package.json' not found.`);
   });
 
   test('throws an error if the given directory does not contain a build directory.', async (): Promise<void> => {
@@ -35,7 +36,7 @@ suite('loadApplication', (): void => {
 
     await assert.that(async (): Promise<void> => {
       await loadApplication({ applicationDirectory });
-    }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EDIRECTORYNOTFOUND' && ex.message === `Directory '<app>/build' not found.`);
+    }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.DirectoryNotFound.code && ex.message === `Directory '<app>/build' not found.`);
   });
 
   test('loads the base application.', async (): Promise<void> => {
@@ -63,6 +64,7 @@ suite('loadApplication', (): void => {
           }
         }
       },
+      hooks: {},
       infrastructure: {
         ask: {},
         tell: {}
@@ -215,6 +217,22 @@ suite('loadApplication', (): void => {
       is.throwingAsync(`Flow definition '<app>/build/server/flows/invalidFlow' is malformed: Object 'domainEventHandlers' is missing.`);
   });
 
+  test('throws an error if the hooks directory is missing.', async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withoutHooksDirectory' });
+
+    await assert.
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
+      is.throwingAsync(`Directory '<app>/build/server/hooks' not found.`);
+  });
+
+  test('throws an error if the infrastructure directory is missing.', async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withoutInfrastructureDirectory' });
+
+    await assert.
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
+      is.throwingAsync(`Directory '<app>/build/server/infrastructure' not found.`);
+  });
+
   test('throws an error if the views directory is missing.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withoutViewsDirectory' });
 
@@ -244,14 +262,6 @@ suite('loadApplication', (): void => {
 
     await assert.
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EAPPLICATIONMALFORMED');
-  });
-
-  test('throws an error if the infrastructure directory is missing.', async (): Promise<void> => {
-    const applicationDirectory = getTestApplicationDirectory({ name: 'withoutInfrastructureDirectory' });
-
-    await assert.
-      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
-      is.throwingAsync(`Directory '<app>/build/server/infrastructure' not found.`);
+      is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.ApplicationMalformed.code);
   });
 });

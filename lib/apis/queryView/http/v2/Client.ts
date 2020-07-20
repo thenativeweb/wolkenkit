@@ -61,13 +61,13 @@ class Client extends HttpClient {
       const error = JSON.parse(await streamToString(data));
 
       switch (error.code) {
-        case 'EVIEWNOTFOUND': {
+        case errors.ViewNotFound.code: {
           throw new errors.ViewNotFound(error.message);
         }
-        case 'EQUERYHANDLERNOTFOUND': {
+        case errors.QueryHandlerNotFound.code: {
           throw new errors.QueryHandlerNotFound(error.message);
         }
-        case 'EQUERYOPTIONSINVALID': {
+        case errors.QueryOptionsInvalid.code: {
           throw new errors.QueryOptionsInvalid(error.message);
         }
         default: {
