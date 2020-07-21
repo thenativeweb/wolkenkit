@@ -26,9 +26,7 @@ const getInfrastructureDefinition = async function ({ infrastructureDirectory }:
   }
 
   try {
-    validateInfrastructureDefinition({
-      infrastructureDefinition
-    });
+    validateInfrastructureDefinition({ infrastructureDefinition });
   } catch (ex) {
     throw new errors.InfrastructureDefinitionMalformed(`Infrastructure definition '<app>/build/server/infrastructure' is malformed: ${ex.message}`);
   }

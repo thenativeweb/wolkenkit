@@ -238,7 +238,7 @@ class AggregateInstance<TState extends State> {
       aggregate: getAggregateService({ application, command, aggregateInstance: this }),
       aggregates: getAggregatesService({ repository: this.repository }),
       client: getClientService({ clientMetadata: command.metadata.client }),
-      error: getErrorService(),
+      error: getErrorService({ errors: [ 'CommandRejected' ]}),
       lock: getLockService({ lockStore: this.lockStore }),
       logger: getLoggerService({
         fileName: `<app>/server/domain/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/`,
@@ -275,8 +275,8 @@ class AggregateInstance<TState extends State> {
       domainEvents = this.unstoredDomainEvents;
     } catch (ex) {
       switch (ex.code) {
-        case 'ECOMMANDNOTAUTHORIZED':
-        case 'ECOMMANDREJECTED': {
+        case errors.CommandNotAuthorized.code:
+        case errors.CommandRejected.code: {
           handleServices.aggregate.publishDomainEvent(`${command.name}Rejected`, {
             reason: ex.message
           });

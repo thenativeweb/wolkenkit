@@ -4,6 +4,7 @@ import { CustomError } from 'defekt';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
+import { errors } from '../../../../lib/common/errors';
 import { getShortId } from '../../../shared/getShortId';
 import { toArray } from 'streamtoarray';
 import { uuid } from 'uuidv4';
@@ -658,7 +659,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       await assert.that(
         async (): Promise<any> => await domainEventStore.getReplayForAggregate({ aggregateId: uuid(), fromRevision: 0 })
       ).is.throwingAsync(
-        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'fromRevision' must be at least 1.`
+        (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === `Parameter 'fromRevision' must be at least 1.`
       );
     });
 
@@ -666,7 +667,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       await assert.that(
         async (): Promise<any> => await domainEventStore.getReplayForAggregate({ aggregateId: uuid(), toRevision: 0 })
       ).is.throwingAsync(
-        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'toRevision' must be at least 1.`
+        (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === `Parameter 'toRevision' must be at least 1.`
       );
     });
 
@@ -674,7 +675,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       await assert.that(
         async (): Promise<any> => await domainEventStore.getReplayForAggregate({ aggregateId: uuid(), fromRevision: 5, toRevision: 3 })
       ).is.throwingAsync(
-        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'toRevision' must be greater or equal to 'fromRevision'.`
+        (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === `Parameter 'toRevision' must be greater or equal to 'fromRevision'.`
       );
     });
   });
@@ -698,7 +699,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       await assert.that(async (): Promise<void> => {
         await domainEventStore.storeDomainEvents({ domainEvents: []});
       }).is.throwingAsync(
-        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === 'Domain events are missing.'
+        (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === 'Domain events are missing.'
       );
     });
 
@@ -766,7 +767,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       await assert.that(async (): Promise<void> => {
         await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
       }).is.throwingAsync(
-        (ex): boolean => (ex as CustomError).code === 'EREVISIONALREADYEXISTS' && ex.message === 'Aggregate id and revision already exist.'
+        (ex): boolean => (ex as CustomError).code === errors.RevisionAlreadyExists.code && ex.message === 'Aggregate id and revision already exist.'
       );
     });
 
@@ -1158,7 +1159,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       await assert.that(
         async (): Promise<any> => await domainEventStore.getReplay({ fromTimestamp: -1 })
       ).is.throwingAsync(
-        (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'fromTimestamp' must be at least 0.`
+        (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === `Parameter 'fromTimestamp' must be at least 0.`
       );
     });
   });

@@ -4,6 +4,7 @@ import { Client } from '../../../../lib/apis/handleCommandWithMetadata/http/v2/C
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/handleCommandWithMetadata/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
@@ -75,7 +76,7 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.postCommand({ command });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'ECONTEXTNOTFOUND' &&
+          (ex as CustomError).code === errors.ContextNotFound.code &&
           (ex as CustomError).message === `Context 'nonExistent' not found.`);
       });
 
@@ -111,7 +112,7 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.postCommand({ command });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'EAGGREGATENOTFOUND' &&
+          (ex as CustomError).code === errors.AggregateNotFound.code &&
           (ex as CustomError).message === `Aggregate 'sampleContext.nonExistent' not found.`);
       });
 
@@ -147,7 +148,7 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.postCommand({ command });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'ECOMMANDNOTFOUND' &&
+          (ex as CustomError).code === errors.CommandNotFound.code &&
           (ex as CustomError).message === `Command 'sampleContext.sampleAggregate.nonExistent' not found.`);
       });
 
@@ -183,7 +184,7 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.postCommand({ command });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'ECOMMANDMALFORMED' &&
+          (ex as CustomError).code === errors.CommandMalformed.code &&
           (ex as CustomError).message === 'No enum match (invalid-value), expects: succeed, fail, reject (at command.data.strategy).');
       });
 
@@ -319,7 +320,7 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.postCommand({ command });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'EUNKNOWNERROR' &&
+          (ex as CustomError).code === errors.UnknownError.code &&
           (ex as CustomError).message === 'Unknown error.');
       });
     });
@@ -368,7 +369,7 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.cancelCommand({ commandIdentifierWithClient });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'ECONTEXTNOTFOUND' &&
+          (ex as CustomError).code === errors.ContextNotFound.code &&
           (ex as CustomError).message === `Context 'nonExistent' not found.`);
       });
 
@@ -395,7 +396,7 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.cancelCommand({ commandIdentifierWithClient });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'EAGGREGATENOTFOUND' &&
+          (ex as CustomError).code === errors.AggregateNotFound.code &&
           (ex as CustomError).message === `Aggregate 'sampleContext.nonExistent' not found.`);
       });
 
@@ -422,7 +423,7 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.cancelCommand({ commandIdentifierWithClient });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'ECOMMANDNOTFOUND' &&
+          (ex as CustomError).code === errors.CommandNotFound.code &&
           (ex as CustomError).message === `Command 'sampleContext.sampleAggregate.nonExistent' not found.`);
       });
 
@@ -486,7 +487,7 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.cancelCommand({ commandIdentifierWithClient });
         }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === 'EUNKNOWNERROR' &&
+          (ex as CustomError).code === errors.UnknownError.code &&
           (ex as CustomError).message === 'Unknown error.');
       });
     });

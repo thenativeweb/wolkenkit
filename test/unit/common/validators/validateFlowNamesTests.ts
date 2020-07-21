@@ -1,6 +1,7 @@
 import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { validateFlowNames } from '../../../../lib/common/validators/validateFlowNames';
@@ -28,7 +29,7 @@ suite('validateFlowNames', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EFLOWNOTFOUND' &&
+        (ex as CustomError).code === errors.FlowNotFound.code &&
         ex.message === `Flow 'nonExistent' not found.`
     );
   });

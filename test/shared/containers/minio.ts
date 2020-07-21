@@ -5,7 +5,6 @@ import { oneLine } from 'common-tags';
 import { retry } from 'retry-ignore-abort';
 import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
-import { uuid } from 'uuidv4';
 
 const minio = {
   async start (): Promise<void> {
@@ -39,7 +38,7 @@ const minio = {
           secretKey
         });
 
-        await client.bucketExists(uuid());
+        await client.listBuckets();
       }, retryOptions);
     } catch (ex) {
       buntstift.info(ex.message);

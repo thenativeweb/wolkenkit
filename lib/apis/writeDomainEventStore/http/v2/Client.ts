@@ -36,16 +36,16 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case 'EREQUESTMALFORMED': {
+      case errors.RequestMalformed.code: {
         throw new errors.RequestMalformed(data.message);
       }
-      case 'EDOMAINEVENTMALFORMED': {
+      case errors.DomainEventMalformed.code: {
         throw new errors.DomainEventMalformed(data.message);
       }
-      case 'EPARAMETERINVALID': {
+      case errors.ParameterInvalid.code: {
         throw new errors.ParameterInvalid(data.message);
       }
-      case 'EREVISIONALREADYEXISTS': {
+      case errors.RevisionAlreadyExists.code: {
         throw new errors.RevisionAlreadyExists(data.message);
       }
       default: {
@@ -72,10 +72,10 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case 'EREQUESTMALFORMED': {
+      case errors.RequestMalformed.code: {
         throw new errors.RequestMalformed(data.message);
       }
-      case 'ESNAPSHOTMALFORMED': {
+      case errors.SnapshotMalformed.code: {
         throw new errors.SnapshotMalformed(data.message);
       }
       default: {

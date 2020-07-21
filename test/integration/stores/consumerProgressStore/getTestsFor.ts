@@ -2,6 +2,7 @@ import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateId
 import { assert } from 'assertthat';
 import { ConsumerProgressStore } from '../../../../lib/stores/consumerProgressStore/ConsumerProgressStore';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { getShortId } from '../../../shared/getShortId';
 import { uuid } from 'uuidv4';
 
@@ -149,7 +150,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
           aggregateIdentifier,
           revision: 1
         });
-      }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EREVISIONTOOLOW');
+      }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.RevisionTooLow.code);
     });
 
     test('does not update the revision if the revision decreased.', async (): Promise<void> => {
@@ -165,7 +166,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
           aggregateIdentifier,
           revision: 1
         });
-      }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EREVISIONTOOLOW');
+      }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.RevisionTooLow.code);
     });
 
     test('does not update the replaying state.', async (): Promise<void> => {
@@ -249,7 +250,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
           aggregateIdentifier,
           isReplaying: { from: 2, to: 20 }
         });
-      }).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EFLOWISALREADYREPLAYING');
+      }).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.FlowIsAlreadyReplaying.code);
     });
 
     test('does not change the revision when enabling replays.', async (): Promise<void> => {

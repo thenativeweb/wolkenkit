@@ -1,5 +1,6 @@
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { validateCommandHandler } from '../../../../lib/common/validators/validateCommandHandler';
 
 suite('validateCommandHandler', (): void => {
@@ -27,7 +28,7 @@ suite('validateCommandHandler', (): void => {
   test('throws an error if the given command handler is not an object.', async (): Promise<void> => {
     assert.that((): void => {
       validateCommandHandler({ commandHandler: undefined });
-    }).is.throwing((ex): boolean => (ex as CustomError).code === 'ECOMMANDHANDLERMALFORMED' && ex.message === `Property 'commandHandler' is not an object.`);
+    }).is.throwing((ex): boolean => (ex as CustomError).code === errors.CommandHandlerMalformed.code && ex.message === `Property 'commandHandler' is not an object.`);
   });
 
   test('throws an error if isAuthorized is missing.', async (): Promise<void> => {
@@ -36,7 +37,7 @@ suite('validateCommandHandler', (): void => {
         ...commandHandler,
         isAuthorized: undefined
       }});
-    }).is.throwing((ex): boolean => (ex as CustomError).code === 'ECOMMANDHANDLERMALFORMED' && ex.message === `Function 'isAuthorized' is missing.`);
+    }).is.throwing((ex): boolean => (ex as CustomError).code === errors.CommandHandlerMalformed.code && ex.message === `Function 'isAuthorized' is missing.`);
   });
 
   test('throws an error if isAuthorized is not a function.', async (): Promise<void> => {
@@ -45,7 +46,7 @@ suite('validateCommandHandler', (): void => {
         ...commandHandler,
         isAuthorized: {}
       }});
-    }).is.throwing((ex): boolean => (ex as CustomError).code === 'ECOMMANDHANDLERMALFORMED' && ex.message === `Property 'isAuthorized' is not a function.`);
+    }).is.throwing((ex): boolean => (ex as CustomError).code === errors.CommandHandlerMalformed.code && ex.message === `Property 'isAuthorized' is not a function.`);
   });
 
   test('throws an error if handle is missing.', async (): Promise<void> => {
@@ -54,7 +55,7 @@ suite('validateCommandHandler', (): void => {
         ...commandHandler,
         handle: undefined
       }});
-    }).is.throwing((ex): boolean => (ex as CustomError).code === 'ECOMMANDHANDLERMALFORMED' && ex.message === `Function 'handle' is missing.`);
+    }).is.throwing((ex): boolean => (ex as CustomError).code === errors.CommandHandlerMalformed.code && ex.message === `Function 'handle' is missing.`);
   });
 
   test('throws an error if handle is not a function.', async (): Promise<void> => {
@@ -63,7 +64,7 @@ suite('validateCommandHandler', (): void => {
         ...commandHandler,
         handle: {}
       }});
-    }).is.throwing((ex): boolean => (ex as CustomError).code === 'ECOMMANDHANDLERMALFORMED' && ex.message === `Property 'handle' is not a function.`);
+    }).is.throwing((ex): boolean => (ex as CustomError).code === errors.CommandHandlerMalformed.code && ex.message === `Property 'handle' is not a function.`);
   });
 
   test('throws an error if getDocumentation is not a function.', async (): Promise<void> => {
@@ -72,7 +73,7 @@ suite('validateCommandHandler', (): void => {
         ...commandHandler,
         getDocumentation: {}
       }});
-    }).is.throwing((ex): boolean => (ex as CustomError).code === 'ECOMMANDHANDLERMALFORMED' && ex.message === `Property 'getDocumentation' is not a function.`);
+    }).is.throwing((ex): boolean => (ex as CustomError).code === errors.CommandHandlerMalformed.code && ex.message === `Property 'getDocumentation' is not a function.`);
   });
 
   test('throws an error if getSchema is not a function.', async (): Promise<void> => {
@@ -81,6 +82,6 @@ suite('validateCommandHandler', (): void => {
         ...commandHandler,
         getSchema: {}
       }});
-    }).is.throwing((ex): boolean => (ex as CustomError).code === 'ECOMMANDHANDLERMALFORMED' && ex.message === `Property 'getSchema' is not a function.`);
+    }).is.throwing((ex): boolean => (ex as CustomError).code === errors.CommandHandlerMalformed.code && ex.message === `Property 'getSchema' is not a function.`);
   });
 });

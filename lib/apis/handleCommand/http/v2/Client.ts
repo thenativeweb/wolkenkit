@@ -48,19 +48,19 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case 'ENOTAUTHENTICATEDERROR': {
-        throw new errors.NotAuthenticatedError(data.message);
+      case errors.NotAuthenticated.code: {
+        throw new errors.NotAuthenticated(data.message);
       }
-      case 'ECOMMANDMALFORMED': {
+      case errors.CommandMalformed.code: {
         throw new errors.CommandMalformed(data.message);
       }
-      case 'ECONTEXTNOTFOUND': {
+      case errors.ContextNotFound.code: {
         throw new errors.ContextNotFound(data.message);
       }
-      case 'EAGGREGATENOTFOUND': {
+      case errors.AggregateNotFound.code: {
         throw new errors.AggregateNotFound(data.message);
       }
-      case 'ECOMMANDNOTFOUND': {
+      case errors.CommandNotFound.code: {
         throw new errors.CommandNotFound(data.message);
       }
       default: {
@@ -89,13 +89,13 @@ class Client extends HttpClient {
       }
       case 400: {
         switch (data.code) {
-          case 'ECONTEXTNOTFOUND': {
+          case errors.ContextNotFound.code: {
             throw new errors.ContextNotFound(data.message);
           }
-          case 'EAGGREGATENOTFOUND': {
+          case errors.AggregateNotFound.code: {
             throw new errors.AggregateNotFound(data.message);
           }
-          case 'ECOMMANDNOTFOUND': {
+          case errors.CommandNotFound.code: {
             throw new errors.CommandNotFound(data.message);
           }
           default: {

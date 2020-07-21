@@ -1,11 +1,13 @@
 import { Application } from '../../../../common/application/Application';
 import { Configuration } from './Configuration';
+import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getGraphqlApi } from '../../../../apis/graphql';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
+import { getApi as getManageFileApi } from '../../../../apis/manageFile/http';
 import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
 import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
-import { getApi as getViewsApi } from '../../../../apis/queryView/http';
+import { getApi as getQueryViewApi } from '../../../../apis/queryView/http';
 import { IdentityProvider } from 'limes';
 import { InitializeGraphQlOnServer } from '../../../../apis/graphql/InitializeGraphQlOnServer';
 import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
@@ -20,7 +22,8 @@ const getApi = async function ({
   identityProviders,
   onReceiveCommand,
   onCancelCommand,
-  repository
+  repository,
+  fileStore
 }: {
   configuration: Configuration;
   application: Application;
@@ -28,6 +31,7 @@ const getApi = async function ({
   onReceiveCommand: OnReceiveCommand;
   onCancelCommand: OnCancelCommand;
   repository: Repository;
+  fileStore: FileStore;
 }): Promise<{
     api: ExpressApplication;
     publishDomainEvent: PublishDomainEvent;
@@ -59,15 +63,23 @@ const getApi = async function ({
       identityProviders
     });
 
-    const { api: viewsApi, getApiDefinitions: getQueryViewApiDefinitions } = await getViewsApi({
+    const { api: queryViewApi, getApiDefinitions: getQueryViewApiDefinitions } = await getQueryViewApi({
       corsOrigin,
       application,
       identityProviders
     });
 
-    api.use('/domain-events', observeDomainEventsApi);
+    const { api: manageFileApi, getApiDefinitions: getManageFileApiDefinitions } = await getManageFileApi({
+      application,
+      corsOrigin,
+      identityProviders,
+      fileStore
+    });
+
     api.use('/command', handleCommandApi);
-    api.use('/views', viewsApi);
+    api.use('/domain-events', observeDomainEventsApi);
+    api.use('/files', manageFileApi);
+    api.use('/views', queryViewApi);
 
     if (configuration.enableOpenApiDocumentation) {
       const { api: openApiApi } = await getOpenApiApi({
@@ -78,6 +90,7 @@ const getApi = async function ({
         apis: [
           ...getHandleCommandApiDefinitions('command'),
           ...getObserveDomainEventApiDefinitions('domain-events'),
+          ...getManageFileApiDefinitions('files'),
           ...getQueryViewApiDefinitions('views')
         ]
       });

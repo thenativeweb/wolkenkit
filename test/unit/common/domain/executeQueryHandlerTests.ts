@@ -2,6 +2,7 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { ClientService } from '../../../../lib/common/services/ClientService';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { executeQueryHandler } from '../../../../lib/common/domain/executeQueryHandler';
 import { getClientService } from '../../../../lib/common/services/getClientService';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
@@ -42,7 +43,7 @@ suite('executeQueryHandler', (): void => {
         options: {}
       });
     }).is.throwingAsync(
-      (ex): boolean => (ex as CustomError).code === 'EVIEWNOTFOUND'
+      (ex): boolean => (ex as CustomError).code === errors.ViewNotFound.code
     );
   });
 
@@ -62,7 +63,7 @@ suite('executeQueryHandler', (): void => {
         options: {}
       });
     }).is.throwingAsync(
-      (ex): boolean => (ex as CustomError).code === 'EQUERYHANDLERNOTFOUND'
+      (ex): boolean => (ex as CustomError).code === errors.QueryHandlerNotFound.code
     );
   });
 
@@ -257,7 +258,7 @@ suite('executeQueryHandler', (): void => {
           options: {}
         });
       }).is.throwingAsync(
-        (ex): boolean => (ex as CustomError).code === 'EQUERYOPTIONSINVALID'
+        (ex): boolean => (ex as CustomError).code === errors.QueryOptionsInvalid.code
       );
     });
   });

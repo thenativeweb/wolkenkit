@@ -1,10 +1,10 @@
 import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
+import { FileAddMetadata } from '../FileAddMetadata';
+import { FileMetadata } from '../FileMetadata';
 import { FileStore } from '../FileStore';
 import fs from 'fs';
 import { isolated } from 'isolated';
-import { Metadata } from '../Metadata';
-import { OwnedAuthorizationOptions } from '../../../apis/getFile/http/v2/isAuthorized/AuthorizationOptions';
 import path from 'path';
 import { promisify } from 'util';
 import { pipeline as pipelineCallback, Readable } from 'stream';
@@ -28,13 +28,9 @@ class FileSystemFileStore implements FileStore {
     });
   }
 
-  public async addFile ({ id, fileName, contentType, isAuthorized, stream }: {
-    id: string;
-    fileName: string;
-    contentType: string;
-    isAuthorized: OwnedAuthorizationOptions;
+  public async addFile ({ id, name, contentType, stream }: FileAddMetadata & {
     stream: Readable;
-  }): Promise<void> {
+  }): Promise<FileMetadata> {
     const fileDirectory = path.join(this.directory, id);
     const fileData = path.join(fileDirectory, 'data');
     const fileMetadata = path.join(fileDirectory, 'metadata.json');
@@ -57,36 +53,19 @@ class FileSystemFileStore implements FileStore {
 
     const metadata = {
       id,
-      fileName,
+      name,
       contentType,
-      contentLength,
-      isAuthorized
+      contentLength
     };
 
     await fs.promises.writeFile(fileMetadata, JSON.stringify(metadata), 'utf8');
+
+    return metadata;
   }
 
-  public async getMetadata ({ id }: { id: string }): Promise<Metadata> {
-    const fileDirectory = path.join(this.directory, id);
-    const fileMetadata = path.join(fileDirectory, 'metadata.json');
-
-    if (!await exists({ path: fileDirectory })) {
-      throw new errors.FileNotFound();
-    }
-
-    const rawMetadata = await fs.promises.readFile(fileMetadata, 'utf8');
-    const metadata = JSON.parse(rawMetadata);
-
-    return {
-      id,
-      fileName: metadata.fileName,
-      contentType: metadata.contentType,
-      contentLength: metadata.contentLength,
-      isAuthorized: metadata.isAuthorized
-    };
-  }
-
-  public async getFile ({ id }: { id: string }): Promise<Readable> {
+  public async getFile ({ id }: {
+    id: string;
+  }): Promise<Readable> {
     const fileDirectory = path.join(this.directory, id);
     const fileData = path.join(fileDirectory, 'data');
 
@@ -99,7 +78,25 @@ class FileSystemFileStore implements FileStore {
     return stream;
   }
 
-  public async removeFile ({ id }: { id: string }): Promise<void> {
+  public async getMetadata ({ id }: {
+    id: string;
+  }): Promise<FileMetadata> {
+    const fileDirectory = path.join(this.directory, id);
+    const fileMetadata = path.join(fileDirectory, 'metadata.json');
+
+    if (!await exists({ path: fileDirectory })) {
+      throw new errors.FileNotFound();
+    }
+
+    const rawMetadata = await fs.promises.readFile(fileMetadata, 'utf8');
+    const metadata = JSON.parse(rawMetadata);
+
+    return metadata;
+  }
+
+  public async removeFile ({ id }: {
+    id: string;
+  }): Promise<void> {
     const fileDirectory = path.join(this.directory, id);
 
     if (!await exists({ path: fileDirectory })) {
@@ -107,44 +104,6 @@ class FileSystemFileStore implements FileStore {
     }
 
     await fs.promises.rmdir(fileDirectory, { recursive: true });
-  }
-
-  public async transferOwnership ({ id, to }: {
-    id: string;
-    to: string;
-  }): Promise<void> {
-    const fileDirectory = path.join(this.directory, id);
-    const fileMetadata = path.join(fileDirectory, 'metadata.json');
-
-    if (!await exists({ path: fileDirectory })) {
-      throw new errors.FileNotFound();
-    }
-
-    const rawMetadata = await fs.promises.readFile(fileMetadata, 'utf8');
-    const metadata = JSON.parse(rawMetadata);
-
-    metadata.isAuthorized.owner = to;
-
-    await fs.promises.writeFile(fileMetadata, JSON.stringify(metadata), 'utf8');
-  }
-
-  public async authorize ({ id, isAuthorized }: {
-    id: string;
-    isAuthorized: OwnedAuthorizationOptions;
-  }): Promise<void> {
-    const fileDirectory = path.join(this.directory, id);
-    const fileMetadata = path.join(fileDirectory, 'metadata.json');
-
-    if (!await exists({ path: fileDirectory })) {
-      throw new errors.FileNotFound();
-    }
-
-    const rawMetadata = await fs.promises.readFile(fileMetadata, 'utf8');
-    const metadata = JSON.parse(rawMetadata);
-
-    metadata.isAuthorized = isAuthorized;
-
-    await fs.promises.writeFile(fileMetadata, JSON.stringify(metadata), 'utf8');
   }
 }
 

@@ -1,6 +1,7 @@
 import { Aggregate } from '../../../../lib/common/elements/Aggregate';
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { State } from '../../../../lib/common/elements/State';
 import { validateAggregateDefinition } from '../../../../lib/common/validators/validateAggregateDefinition';
 
@@ -35,7 +36,7 @@ suite('validateAggregateDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EAGGREGATEDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.AggregateDefinitionMalformed.code &&
         ex.message === `Function 'getInitialState' is missing.`
     );
   });
@@ -50,7 +51,7 @@ suite('validateAggregateDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EAGGREGATEDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.AggregateDefinitionMalformed.code &&
         ex.message === `Property 'getInitialState' is not a function.`
     );
   });
@@ -65,7 +66,7 @@ suite('validateAggregateDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EAGGREGATEDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.AggregateDefinitionMalformed.code &&
         ex.message === `Object 'commandHandlers' is missing.`
     );
   });
@@ -80,7 +81,7 @@ suite('validateAggregateDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EAGGREGATEDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.AggregateDefinitionMalformed.code &&
         ex.message === `Property 'commandHandlers' is not an object.`
     );
   });
@@ -97,7 +98,7 @@ suite('validateAggregateDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EAGGREGATEDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.AggregateDefinitionMalformed.code &&
         ex.message === `Command handler 'sampleCommand' is malformed: Property 'commandHandler' is not an object.`
     );
   });
@@ -112,7 +113,7 @@ suite('validateAggregateDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EAGGREGATEDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.AggregateDefinitionMalformed.code &&
         ex.message === `Object 'domainEventHandlers' is missing.`
     );
   });
@@ -127,7 +128,7 @@ suite('validateAggregateDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EAGGREGATEDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.AggregateDefinitionMalformed.code &&
         ex.message === `Property 'domainEventHandlers' is not an object.`
     );
   });
@@ -144,7 +145,7 @@ suite('validateAggregateDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EAGGREGATEDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.AggregateDefinitionMalformed.code &&
         ex.message === `Domain event handler 'sampleDomainEvent' is malformed: Property 'domainEventHandler' is not an object.`
     );
   });

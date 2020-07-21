@@ -3,6 +3,7 @@ import { buildCommandWithMetadata } from '../../../../lib/common/utils/test/buil
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { getShortId } from '../../../shared/getShortId';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
@@ -316,7 +317,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
           token: 'non-existent'
         });
       }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'EITEMNOTFOUND' &&
+        (ex as CustomError).code === errors.ItemNotFound.code &&
         ex.message === `Item for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}' not found.`);
     });
 
@@ -333,7 +334,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
           token: 'non-existent'
         });
       }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'EITEMNOTLOCKED' &&
+        (ex as CustomError).code === errors.ItemNotLocked.code &&
         ex.message === `Item for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}' not locked.`);
     });
 
@@ -351,7 +352,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
           token: 'wrong-token'
         });
       }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'ETOKENMISMATCH' &&
+        (ex as CustomError).code === errors.TokenMismatch.code &&
         ex.message === `Token mismatch for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}'.`);
     });
 
@@ -385,7 +386,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
           token: 'non-existent'
         });
       }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'EITEMNOTFOUND' &&
+        (ex as CustomError).code === errors.ItemNotFound.code &&
         ex.message === `Item for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}' not found.`);
     });
 
@@ -402,7 +403,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
           token: 'non-existent'
         });
       }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'EITEMNOTLOCKED' &&
+        (ex as CustomError).code === errors.ItemNotLocked.code &&
         ex.message === `Item for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}' not locked.`);
     });
 
@@ -420,7 +421,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
           token: 'wrong-token'
         });
       }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'ETOKENMISMATCH' &&
+        (ex as CustomError).code === errors.TokenMismatch.code &&
         ex.message === `Token mismatch for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}'.`);
     });
 
@@ -477,7 +478,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
           priority: commands.firstAggregate.firstCommand.metadata.timestamp
         });
       }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'EITEMNOTFOUND' &&
+        (ex as CustomError).code === errors.ItemNotFound.code &&
         ex.message === `Item for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}' not found.`);
     });
 
@@ -495,7 +496,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
           priority: commands.firstAggregate.firstCommand.metadata.timestamp
         });
       }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'EITEMNOTLOCKED' &&
+        (ex as CustomError).code === errors.ItemNotLocked.code &&
         ex.message === `Item for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}' not locked.`);
     });
 
@@ -514,7 +515,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
           priority: commands.firstAggregate.firstCommand.metadata.timestamp
         });
       }).is.throwingAsync((ex): boolean =>
-        (ex as CustomError).code === 'ETOKENMISMATCH' &&
+        (ex as CustomError).code === errors.TokenMismatch.code &&
         ex.message === `Token mismatch for discriminator '${commands.firstAggregate.firstCommand.aggregateIdentifier.id}'.`);
     });
 
@@ -558,7 +559,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       await assert.that(async (): Promise<void> => await priorityQueueStore.remove({
         discriminator: uuid(),
         itemIdentifier: { id: uuid() }
-      })).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EITEMNOTFOUND');
+      })).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.ItemNotFound.code);
     });
 
     test('throws an error if no item in the queue matches the identifier.', async (): Promise<void> => {
@@ -569,7 +570,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       await assert.that(async (): Promise<void> => await priorityQueueStore.remove({
         discriminator,
         itemIdentifier: { id: uuid() }
-      })).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EITEMNOTFOUND');
+      })).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.ItemNotFound.code);
     });
 
     test('throws an error if the item is in the front of the queue and currently locked.', async (): Promise<void> => {
@@ -582,7 +583,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       await assert.that(async (): Promise<void> => await priorityQueueStore.remove({
         discriminator,
         itemIdentifier: item
-      })).is.throwingAsync((ex): boolean => (ex as CustomError).code === 'EITEMNOTFOUND');
+      })).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.ItemNotFound.code);
     });
 
     test('removes the item from the front of the queue and repairs up if necessary.', async (): Promise<void> => {

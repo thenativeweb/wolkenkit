@@ -35,19 +35,19 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case 'EFLOWNOTFOUND': {
+      case errors.FlowNotFound.code: {
         throw new errors.FlowNotFound(data.message);
       }
-      case 'EDOMAINEVENTMALFORMED': {
+      case errors.DomainEventMalformed.code: {
         throw new errors.DomainEventMalformed(data.message);
       }
-      case 'ECONTEXTNOTFOUND': {
+      case errors.ContextNotFound.code: {
         throw new errors.ContextNotFound(data.message);
       }
-      case 'EAGGREGATENOTFOUND': {
+      case errors.AggregateNotFound.code: {
         throw new errors.AggregateNotFound(data.message);
       }
-      case 'EDOMAINEVENTNOTFOUND': {
+      case errors.DomainEventNotFound.code: {
         throw new errors.DomainEventNotFound(data.message);
       }
       default: {

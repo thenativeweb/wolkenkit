@@ -1,5 +1,6 @@
 import { Application } from 'express';
 import { assert } from 'assertthat';
+import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/publishMessage/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 
@@ -40,7 +41,7 @@ suite('publishMessage/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -63,7 +64,7 @@ suite('publishMessage/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -159,7 +160,7 @@ suite('publishMessage/http', (): void => {
 
         assert.that(status).is.equalTo(500);
         assert.that(data).is.equalTo({
-          code: 'EUNKNOWNERROR',
+          code: errors.UnknownError.code,
           message: 'Unknown error.'
         });
       });
