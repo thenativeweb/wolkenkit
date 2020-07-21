@@ -25,7 +25,7 @@ const getDescription = {
     return function (_req: Request, res: Response): void {
       const response = applicationDescription.domainEvents;
 
-      responseBodySchema.validate(response);
+      responseBodySchema.validate(response, { valueName: 'responseBody' });
 
       res.send(response);
     };

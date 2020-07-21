@@ -38,7 +38,7 @@ const getDomainEventsByCausationId = {
 
     return async function (req, res): Promise<any> {
       try {
-        querySchema.validate(req.query);
+        querySchema.validate(req.query, { valueName: 'requestQuery' });
       } catch (ex) {
         res.status(400).end(ex.message);
       }
@@ -50,7 +50,7 @@ const getDomainEventsByCausationId = {
       const domainEventStream = await domainEventStore.getDomainEventsByCausationId({ causationId });
 
       for await (const domainEvent of domainEventStream) {
-        responseBodySchema.validate(domainEvent);
+        responseBodySchema.validate(domainEvent, { valueName: 'responseBody' });
 
         writeLine({ res, data: domainEvent });
       }

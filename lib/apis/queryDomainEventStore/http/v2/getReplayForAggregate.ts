@@ -39,7 +39,7 @@ const getReplayForAggregate = {
 
     return async function (req, res): Promise<any> {
       try {
-        querySchema.validate(req.query);
+        querySchema.validate(req.query, { valueName: 'requestQuery' });
       } catch (ex) {
         return res.status(400).send(ex.message);
       }
@@ -62,7 +62,7 @@ const getReplayForAggregate = {
       const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId, fromRevision, toRevision });
 
       for await (const domainEvent of domainEventStream) {
-        responseBodySchema.validate(domainEvent);
+        responseBodySchema.validate(domainEvent, { valueName: 'responseBody' });
 
         writeLine({ res, data: domainEvent });
       }

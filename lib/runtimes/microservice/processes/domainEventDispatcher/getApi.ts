@@ -43,7 +43,7 @@ const getApi = async function ({
     validateOutgoingItem ({ item }: {
       item: DomainEvent<DomainEventData>;
     }): void {
-      new Value(getDomainEventSchema()).validate(item);
+      new Value(getDomainEventSchema()).validate(item, { valueName: 'domainEvent' });
       validateDomainEvent({ application, domainEvent: item });
     }
   });

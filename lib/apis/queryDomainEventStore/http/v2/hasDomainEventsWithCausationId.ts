@@ -46,7 +46,7 @@ const hasDomainEventsWithCausationId = {
       let causationId;
 
       try {
-        querySchema.validate(req.query);
+        querySchema.validate(req.query, { valueName: 'requestQuery' });
 
         causationId = req.query['causation-id'] as string;
       } catch (ex) {
@@ -59,7 +59,7 @@ const hasDomainEventsWithCausationId = {
         const hasDomainEvents = await domainEventStore.hasDomainEventsWithCausationId({ causationId }),
               response = { hasDomainEventsWithCausationId: hasDomainEvents };
 
-        responseBodySchema.validate(response);
+        responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.json(response);
       } catch (ex) {

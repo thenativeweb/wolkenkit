@@ -50,7 +50,7 @@ const getAggregateService: GetAggregateService = function <TState extends State>
         const schema = domainEventHandler.getSchema();
         const value = new Value(schema);
 
-        value.validate(data, { valueName: 'data', separator: '.' });
+        value.validate(data, { valueName: 'data' });
       }
 
       const domainEvent = new DomainEvent({

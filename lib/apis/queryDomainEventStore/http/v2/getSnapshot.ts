@@ -40,7 +40,7 @@ const getSnapshot = {
       const { aggregateIdentifier } = req.query;
 
       try {
-        querySchema.validate(req.query);
+        querySchema.validate(req.query, { valueName: 'requestQuery' });
       } catch (ex) {
         return res.status(400).send(ex.message);
       }
@@ -52,7 +52,7 @@ const getSnapshot = {
           return res.status(404).end();
         }
 
-        responseBodySchema.validate(snapshot);
+        responseBodySchema.validate(snapshot, { valueName: 'responseBody' });
 
         res.json(snapshot);
       } catch (ex) {

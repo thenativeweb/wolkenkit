@@ -34,7 +34,7 @@ const executeQueryHandler = async function ({
         resultItemSchema = new Value(queryHandler.getResultItemSchema ? queryHandler.getResultItemSchema() : {});
 
   try {
-    optionsSchema.validate(options);
+    optionsSchema.validate(options, { valueName: 'queryHandlerOptions' });
   } catch (ex) {
     throw new errors.QueryOptionsInvalid(ex.message);
   }
@@ -70,7 +70,7 @@ const executeQueryHandler = async function ({
       }
 
       try {
-        resultItemSchema.validate(resultItem);
+        resultItemSchema.validate(resultItem, { valueName: 'resultItem' });
       } catch (ex) {
         const error = new errors.QueryResultInvalid(ex.message);
 

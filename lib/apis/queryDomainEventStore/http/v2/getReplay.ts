@@ -37,7 +37,7 @@ const getReplay = {
 
     return async function (req, res): Promise<any> {
       try {
-        querySchema.validate(req.query);
+        querySchema.validate(req.query, { valueName: 'requestQuery' });
       } catch (ex) {
         return res.status(400).send(ex.message);
       }
@@ -49,7 +49,7 @@ const getReplay = {
       const domainEventStream = await domainEventStore.getReplay({ fromTimestamp });
 
       for await (const domainEvent of domainEventStream) {
-        responseBodySchema.validate(domainEvent);
+        responseBodySchema.validate(domainEvent, { valueName: 'responseBody' });
 
         writeLine({ res, data: domainEvent });
       }

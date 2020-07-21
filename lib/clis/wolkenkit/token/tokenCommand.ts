@@ -116,7 +116,7 @@ const tokenCommand = function (): Command<TokenOptions> {
         const value = new Value(getJwtSchema());
 
         try {
-          value.validate(claims);
+          value.validate(claims, { valueName: 'jwt' });
         } catch (ex) {
           buntstift.info('Claims malformed.');
           throw ex;

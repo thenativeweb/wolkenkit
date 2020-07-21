@@ -81,7 +81,7 @@ const postPerformReplay = {
       }
 
       try {
-        requestBodySchema.validate(req.body);
+        requestBodySchema.validate(req.body, { valueName: 'requestBody' });
       } catch (ex) {
         const error = new errors.RequestMalformed(ex.message);
 
@@ -124,7 +124,7 @@ const postPerformReplay = {
 
         const response = {};
 
-        responseBodySchema.validate(response);
+        responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
       } catch (ex) {

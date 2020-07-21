@@ -24,7 +24,7 @@ const getDescription = {
     return function (_req, res): void {
       const response = applicationDescription.commands;
 
-      responseBodySchema.validate(response);
+      responseBodySchema.validate(response, { valueName: 'responseBody' });
 
       res.send(response);
     };
