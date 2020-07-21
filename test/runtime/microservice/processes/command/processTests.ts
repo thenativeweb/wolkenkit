@@ -1,5 +1,10 @@
 import { assert } from 'assertthat';
+import { Client as AwaitCommandClient } from '../../../../../lib/apis/awaitItem/http/v2/Client';
 import { Command } from '../../../../../lib/common/elements/Command';
+import { CommandData } from '../../../../../lib/common/elements/CommandData';
+import { Configuration as CommandDispatcherConfiguration } from '../../../../../lib/runtimes/microservice/processes/commandDispatcher/Configuration';
+import { configurationDefinition as commandDispatcherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/commandDispatcher/configurationDefinition';
+import { CommandWithMetadata } from '../../../../../lib/common/elements/CommandWithMetadata';
 import { Configuration } from '../../../../../lib/runtimes/microservice/processes/command/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/microservice/processes/command/configurationDefinition';
 import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
@@ -9,6 +14,7 @@ import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCom
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { ItemIdentifier } from '../../../../../lib/common/elements/ItemIdentifier';
 import path from 'path';
+import { sleep } from '../../../../../lib/common/utils/sleep';
 import { startCatchAllServer } from '../../../../shared/runtime/startCatchAllServer';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
@@ -23,17 +29,46 @@ suite('command', (): void => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
           identityProviders = [{ issuer: 'https://token.invalid', certificate: certificateDirectory }];
 
-    let commandConfiguration: Configuration,
+    let awaitCommandClient: AwaitCommandClient<CommandWithMetadata<CommandData>>,
+        commandConfiguration: Configuration,
+        commandDispatcherHealthPort: number,
         commandDispatcherPort: number,
-        commandReceivedByDispatcher: object | undefined,
-        endpointCommandWasSentTo: string | undefined,
         handleCommandClient: HandleCommandClient,
         healthPort: number,
         port: number,
+        stopCommandDispatcherProcess: (() => Promise<void>) | undefined,
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, healthPort, commandDispatcherPort ] = await getAvailablePorts({ count: 3 });
+      [ port, healthPort, commandDispatcherPort, commandDispatcherHealthPort ] = await getAvailablePorts({ count: 4 });
+
+      const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
+        ...getDefaultConfiguration({ configurationDefinition: commandDispatcherConfigurationDefinition }),
+        applicationDirectory,
+        priorityQueueStoreOptions: { expirationTime: 600 },
+        port: commandDispatcherPort,
+        healthPort: commandDispatcherHealthPort,
+        missedCommandRecoveryInterval: 600
+      };
+
+      stopCommandDispatcherProcess = await startProcess({
+        runtime: 'microservice',
+        name: 'commandDispatcher',
+        enableDebugMode: false,
+        port: commandDispatcherHealthPort,
+        env: toEnvironmentVariables({
+          configuration: commandDispatcherConfiguration,
+          configurationDefinition: commandDispatcherConfigurationDefinition
+        })
+      });
+
+      awaitCommandClient = new AwaitCommandClient({
+        protocol: 'http',
+        hostName: 'localhost',
+        port: commandDispatcherPort,
+        path: '/await-command/v2',
+        createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
+      });
 
       commandConfiguration = {
         ...getDefaultConfiguration<Configuration>({ configurationDefinition }),
@@ -45,15 +80,6 @@ suite('command', (): void => {
         commandDispatcherRetries: 0,
         identityProviders
       };
-
-      await startCatchAllServer({
-        port: commandDispatcherPort,
-        onRequest (req, res): void {
-          endpointCommandWasSentTo = req.path;
-          commandReceivedByDispatcher = req.body;
-          res.status(200).end();
-        }
-      });
 
       stopProcess = await startProcess({
         runtime: 'microservice',
@@ -75,9 +101,12 @@ suite('command', (): void => {
       if (stopProcess) {
         await stopProcess();
       }
+      if (stopCommandDispatcherProcess) {
+        await stopCommandDispatcherProcess();
+      }
 
       stopProcess = undefined;
-      commandReceivedByDispatcher = undefined;
+      stopCommandDispatcherProcess = undefined;
     });
 
     suite('getHealth', (): void => {
@@ -106,8 +135,9 @@ suite('command', (): void => {
 
         await handleCommandClient.postCommand({ command });
 
-        assert.that(endpointCommandWasSentTo).is.equalTo('/handle-command/v2/');
-        assert.that(commandReceivedByDispatcher).is.atLeast({
+        const result = await awaitCommandClient.awaitItem();
+
+        assert.that(result.item).is.atLeast({
           ...command,
           metadata: {
             client: {
@@ -150,24 +180,35 @@ suite('command', (): void => {
         await assert.that(async (): Promise<void> => {
           await handleCommandClient.postCommand({ command });
         }).is.throwingAsync();
-
-        assert.that(commandReceivedByDispatcher).is.undefined();
       });
     });
 
     suite('cancelCommand', (): void => {
       test('sends a cancel request to the correct endpoint at the command dispatcher.', async (): Promise<void> => {
-        const commandIdentifier: ItemIdentifier = {
+        const command = new Command({
           contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
           name: 'execute',
-          id: uuid()
+          data: { strategy: 'succeed' }
+        });
+
+        const { id } = await handleCommandClient.postCommand({ command });
+
+        const commandIdentifier = {
+          contextIdentifier: command.contextIdentifier,
+          aggregateIdentifier: command.aggregateIdentifier,
+          name: command.name,
+          id
         };
 
         await handleCommandClient.cancelCommand({ commandIdentifier });
 
-        assert.that(endpointCommandWasSentTo).is.equalTo('/handle-command/v2/cancel');
-        assert.that(commandReceivedByDispatcher).is.atLeast(commandIdentifier);
+        const awaitItemPromise = awaitCommandClient.awaitItem();
+        const shortSleep = sleep({ ms: 100 });
+
+        const result = await Promise.race([ awaitItemPromise, shortSleep ]);
+
+        assert.that(result).is.undefined();
       });
 
       test('fails if sending the cancel request to the command dispatcher fails.', async (): Promise<void> => {
@@ -200,8 +241,6 @@ suite('command', (): void => {
         await assert.that(async (): Promise<void> => {
           await handleCommandClient.cancelCommand({ commandIdentifier });
         }).is.throwingAsync();
-
-        assert.that(commandReceivedByDispatcher).is.undefined();
       });
     });
   });
