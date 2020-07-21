@@ -120,7 +120,7 @@ suite('writeDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'Missing required property: contextIdentifier (at value[0].contextIdentifier).'
+          message: 'Missing required property: contextIdentifier (at requestBody[0].contextIdentifier).'
         });
       });
 
@@ -229,7 +229,7 @@ suite('writeDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.SnapshotMalformed.code,
-          message: 'Missing required property: aggregateIdentifier (at value.aggregateIdentifier).'
+          message: 'Missing required property: aggregateIdentifier (at requestBody.aggregateIdentifier).'
         });
       });
     });

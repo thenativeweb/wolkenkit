@@ -222,7 +222,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Value -1 is less than minimum 0 (at value.fromTimestamp).`);
+        assert.that(data).is.equalTo(`Value -1 is less than minimum 0 (at requestQuery.fromTimestamp).`);
       });
 
       test('returns 400 if the parameter fromTimestamp is not a number.', async (): Promise<void> => {
@@ -235,7 +235,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Invalid type: string should be number (at value.fromTimestamp).`);
+        assert.that(data).is.equalTo(`Invalid type: string should be number (at requestQuery.fromTimestamp).`);
       });
     });
 
@@ -524,7 +524,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Value 0 is less than minimum 1 (at value.fromRevision).`);
+        assert.that(data).is.equalTo(`Value 0 is less than minimum 1 (at requestQuery.fromRevision).`);
       });
 
       test('returns 400 if the parameter fromRevision is not a number.', async (): Promise<void> => {
@@ -537,7 +537,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Invalid type: string should be number (at value.fromRevision).`);
+        assert.that(data).is.equalTo(`Invalid type: string should be number (at requestQuery.fromRevision).`);
       });
 
       test('returns 400 if the parameter toRevision is less than 1.', async (): Promise<void> => {
@@ -550,7 +550,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Value 0 is less than minimum 1 (at value.toRevision).`);
+        assert.that(data).is.equalTo(`Value 0 is less than minimum 1 (at requestQuery.toRevision).`);
       });
 
       test('returns 400 if the parameter toRevision is not a number.', async (): Promise<void> => {
@@ -563,7 +563,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo(`Invalid type: string should be number (at value.toRevision).`);
+        assert.that(data).is.equalTo(`Invalid type: string should be number (at requestQuery.toRevision).`);
       });
 
       test(`returns 400 if the parameter 'fromRevision' is greater than 'toRevision'.`, async (): Promise<void> => {
@@ -669,7 +669,7 @@ suite('queryDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.AggregateIdentifierMalformed.code,
-          message: 'Missing required property: name (at value.aggregateIdentifier.name).'
+          message: 'Missing required property: name (at requestQuery.aggregateIdentifier.name).'
         });
       });
 
@@ -1180,7 +1180,7 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo('Missing required property: name (at value.aggregateIdentifier.name).');
+        assert.that(data).is.equalTo('Missing required property: name (at requestQuery.aggregateIdentifier.name).');
       });
 
       test('returns 404 if no snapshot exists for the given aggregate identifier.', async (): Promise<void> => {

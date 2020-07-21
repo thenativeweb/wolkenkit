@@ -110,7 +110,7 @@ suite('performReplay/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'Array is too short (0), minimum 1 (at value.flowNames).'
+          message: 'Array is too short (0), minimum 1 (at requestBody.flowNames).'
         });
       });
 

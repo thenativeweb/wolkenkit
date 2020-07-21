@@ -103,7 +103,7 @@ suite('handleCommandWithMetadata/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.CommandMalformed.code,
-          message: 'Missing required property: contextIdentifier (at value.contextIdentifier).'
+          message: 'Missing required property: contextIdentifier (at requestBody.contextIdentifier).'
         });
       });
 
@@ -526,7 +526,7 @@ suite('handleCommandWithMetadata/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'Missing required property: contextIdentifier (at value.contextIdentifier).'
+          message: 'Missing required property: contextIdentifier (at requestBody.contextIdentifier).'
         });
       });
 
