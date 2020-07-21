@@ -52,7 +52,7 @@ const storeSnapshot = {
       const snapshot = req.body;
 
       try {
-        requestBodySchema.validate(snapshot);
+        requestBodySchema.validate(snapshot, { valueName: 'requestBody' });
       } catch (ex) {
         const error = new errors.SnapshotMalformed(ex.message);
 
@@ -67,7 +67,7 @@ const storeSnapshot = {
 
         const response = {};
 
-        responseBodySchema.validate(response);
+        responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
       } catch (ex) {

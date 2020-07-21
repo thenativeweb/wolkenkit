@@ -58,7 +58,7 @@ const getDomainEvents = {
 
     return async function (req: Request, res: Response): Promise<void> {
       try {
-        querySchema.validate(req.query);
+        querySchema.validate(req.query, { valueName: 'requestQuery' });
       } catch (ex) {
         res.status(400).end(ex.message);
 
@@ -98,7 +98,7 @@ const getDomainEvents = {
               return;
             }
 
-            responseBodySchema.validate(domainEvent);
+            responseBodySchema.validate(domainEvent, { valueName: 'responseBody' });
 
             writeLine({ res, data: domainEvent });
           });

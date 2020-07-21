@@ -69,7 +69,7 @@ const postRemoveFile = {
       }
 
       try {
-        new Value(requestBodySchema).validate(req.body);
+        new Value(requestBodySchema).validate(req.body, { valueName: 'requestBody' });
       } catch (ex) {
         const error = new errors.RequestMalformed(ex.message);
 
@@ -113,7 +113,7 @@ const postRemoveFile = {
 
         const response = {};
 
-        responseBodySchema.validate(response);
+        responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
       } catch (ex) {

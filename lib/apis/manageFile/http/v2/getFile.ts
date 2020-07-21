@@ -34,7 +34,7 @@ const getFile = {
       const { id } = req.params;
 
       try {
-        new Value(jsonSchema).validate(id);
+        new Value(jsonSchema).validate(id, { valueName: 'uuid' });
       } catch (ex) {
         const error = new errors.RequestMalformed(ex.message);
 

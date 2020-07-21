@@ -131,7 +131,7 @@ suite('queryView/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.QueryOptionsInvalid.code,
-          message: `Missing required property: filter (at value.filter).`
+          message: `Missing required property: filter (at queryHandlerOptions.filter).`
         });
       });
 

@@ -88,7 +88,7 @@ import { Value } from 'validate-value';
       const domainEvent = new DomainEventWithState<DomainEventData, State>(message);
 
       try {
-        new Value(getDomainEventWithStateSchema()).validate(domainEvent);
+        new Value(getDomainEventWithStateSchema()).validate(domainEvent, { valueName: 'domainEvent' });
         validateDomainEventWithState({ domainEvent, application });
       } catch (ex) {
         logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, ex });

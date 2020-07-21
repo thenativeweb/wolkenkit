@@ -64,7 +64,7 @@ const awaitItem = {
         logger.info('Locked priority queue item.', nextLock);
 
         await validateOutgoingItem({ item: nextLock.item });
-        responseBodySchema.validate(nextLock);
+        responseBodySchema.validate(nextLock, { valueName: 'responseBody' });
 
         writeLine({ res, data: nextLock });
         res.end();

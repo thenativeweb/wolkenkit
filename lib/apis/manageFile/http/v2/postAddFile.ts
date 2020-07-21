@@ -61,7 +61,7 @@ const postAddFile = {
       }
 
       try {
-        requestHeadersSchema.validate(req.headers);
+        requestHeadersSchema.validate(req.headers, { valueName: 'requestHeaders' });
       } catch (ex) {
         const error = new errors.RequestMalformed(ex.message);
 
@@ -113,7 +113,7 @@ const postAddFile = {
 
         const response = {};
 
-        responseBodySchema.validate(response);
+        responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
       } catch (ex) {

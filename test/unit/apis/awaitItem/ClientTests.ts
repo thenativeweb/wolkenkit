@@ -110,7 +110,7 @@ suite('awaitItem/http/Client', (): void => {
           token: uuid()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.RequestMalformed.code &&
-            ex.message === 'String is too short (0 chars), minimum 1 (at value.discriminator).'
+            ex.message === 'String is too short (0 chars), minimum 1 (at requestBody.discriminator).'
         );
       });
 
@@ -274,7 +274,7 @@ suite('awaitItem/http/Client', (): void => {
           token: uuid()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.RequestMalformed.code &&
-            ex.message === 'String is too short (0 chars), minimum 1 (at value.discriminator).'
+            ex.message === 'String is too short (0 chars), minimum 1 (at requestBody.discriminator).'
         );
       });
 
@@ -451,7 +451,7 @@ suite('awaitItem/http/Client', (): void => {
           priority: Date.now()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.RequestMalformed.code &&
-            ex.message === 'String is too short (0 chars), minimum 1 (at value.discriminator).'
+            ex.message === 'String is too short (0 chars), minimum 1 (at requestBody.discriminator).'
         );
       });
 

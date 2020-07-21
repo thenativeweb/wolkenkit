@@ -116,7 +116,7 @@ suite('queryView/http/Client', (): void => {
           });
         }).is.throwingAsync((ex): boolean =>
           (ex as CustomError).code === errors.QueryOptionsInvalid.code &&
-          (ex as CustomError).message === `Missing required property: filter (at value.filter).`);
+          (ex as CustomError).message === `Missing required property: filter (at queryHandlerOptions.filter).`);
       });
 
       test('streams the result items.', async (): Promise<void> => {
