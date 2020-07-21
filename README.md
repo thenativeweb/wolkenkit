@@ -189,6 +189,28 @@ subscription {
 }
 ```
 
+###### Qerying a view
+
+To query a view, send a query to the GraphQL endpoint of the runtime.
+
+```
+query {
+  sampleView {
+    all {
+      contextIdentifier {
+        name
+      }
+      aggregateIdentifier {
+        id
+        name
+      }
+      name
+      id
+    }
+  }
+}
+```
+
 #### Authenticating a user
 
 For authentication wolkenkit relies on OpenID Connect, so to use authentication you have to set up an external identity provider such as [Auth0](https://auth0.com/) or [Keycloak](https://www.keycloak.org/).
