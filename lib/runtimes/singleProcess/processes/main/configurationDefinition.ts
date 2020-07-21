@@ -73,6 +73,16 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: false,
     schema: { type: 'boolean' }
   },
+  fileStoreOptions: {
+    environmentVariable: 'FILE_STORE_OPTIONS',
+    defaultValue: {},
+    schema: { type: 'object' }
+  },
+  fileStoreType: {
+    environmentVariable: 'FILE_STORE_TYPE',
+    defaultValue: 'InMemory',
+    schema: { type: 'string' }
+  },
   graphqlApi: {
     environmentVariable: 'GRAPHQL_API',
     defaultValue: false,

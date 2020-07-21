@@ -6,6 +6,7 @@ import { CommandWithMetadata } from '../../../../common/elements/CommandWithMeta
 import { configurationDefinition } from './configurationDefinition';
 import { createConsumerProgressStore } from '../../../../stores/consumerProgressStore/createConsumerProgressStore';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
+import { createFileStore } from '../../../../stores/fileStore/createFileStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
@@ -102,13 +103,19 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       });
     };
 
+    const fileStore = await createFileStore({
+      type: configuration.fileStoreType,
+      options: configuration.fileStoreOptions
+    });
+
     const { api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
       configuration,
       application,
       identityProviders,
       onReceiveCommand,
       onCancelCommand,
-      repository
+      repository,
+      fileStore
     });
 
     const server = http.createServer(api);

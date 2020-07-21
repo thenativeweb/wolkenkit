@@ -4,6 +4,7 @@ import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
 import { getDomainDefinition } from './getDomainDefinition';
 import { getFlowsDefinition } from './getFlowsDefinition';
+import { getHooksDefinition } from './getHooksDefinition';
 import { getInfrastructureDefinition } from './getInfrastructureDefinition';
 import { getViewsDefinition } from './getViewsDefinition';
 import path from 'path';
@@ -30,10 +31,12 @@ const loadApplication = async function ({ applicationDirectory }: {
 
   const domainDirectory = path.join(serverDirectory, 'domain');
   const flowsDirectory = path.join(serverDirectory, 'flows');
+  const hooksDirectory = path.join(serverDirectory, 'hooks');
   const infrastructureDirectory = path.join(serverDirectory, 'infrastructure');
   const viewsDirectory = path.join(serverDirectory, 'views');
 
   const domainDefinition = await getDomainDefinition({ domainDirectory });
+  const hooksDefinition = await getHooksDefinition({ hooksDirectory });
   const infrastructureDefinition = await getInfrastructureDefinition({ infrastructureDirectory });
   const flowsDefinition = await getFlowsDefinition({ flowsDirectory });
   const viewsDefinition = await getViewsDefinition({ viewsDirectory });
@@ -49,6 +52,7 @@ const loadApplication = async function ({ applicationDirectory }: {
     packageManifest,
     domain: domainDefinition,
     flows: flowsDefinition,
+    hooks: hooksDefinition,
     infrastructure: await infrastructureDefinition.getInfrastructure(),
     views: viewsDefinition
   };

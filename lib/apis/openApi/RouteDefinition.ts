@@ -5,12 +5,15 @@ export interface RouteDefinition {
   path: string;
 
   request: {
+    headers?: Schema;
     body?: Schema;
     query?: Schema;
   };
+
   response: {
     statusCodes: number[];
     stream?: boolean;
+    headers?: Schema;
     body?: Schema;
   };
 }

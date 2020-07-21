@@ -7,6 +7,7 @@ import { Client } from '../../../../lib/apis/queryDomainEventStore/http/v2/Clien
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
+import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
@@ -210,7 +211,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => await client.getReplay({ fromTimestamp: -1 })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'fromTimestamp' must be at least 0.`
+          (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === `Parameter 'fromTimestamp' must be at least 0.`
         );
       });
     });
@@ -488,7 +489,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => await client.getReplayForAggregate({ aggregateId: uuid(), fromRevision: 0 })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'fromRevision' must be at least 1.`
+          (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === `Parameter 'fromRevision' must be at least 1.`
         );
       });
 
@@ -501,7 +502,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => await client.getReplayForAggregate({ aggregateId: uuid(), toRevision: 0 })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'toRevision' must be at least 1.`
+          (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === `Parameter 'toRevision' must be at least 1.`
         );
       });
 
@@ -514,7 +515,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => await client.getReplayForAggregate({ aggregateId: uuid(), fromRevision: 5, toRevision: 3 })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EPARAMETERINVALID' && ex.message === `Parameter 'toRevision' must be greater or equal to 'fromRevision'.`
+          (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === `Parameter 'toRevision' must be greater or equal to 'fromRevision'.`
         );
       });
     });

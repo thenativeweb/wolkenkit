@@ -2,6 +2,7 @@ import { Application } from '../../application/Application';
 import { DomainEvent } from '../../elements/DomainEvent';
 import { DomainEventData } from '../../elements/DomainEventData';
 import { DomainEventWithState } from '../../elements/DomainEventWithState';
+import { errors } from '../../errors';
 import { filterDomainEvent } from './filterDomainEvent';
 import { isDomainEventAuthorized } from './isDomainEventAuthorized';
 import { mapDomainEvent } from './mapDomainEvent';
@@ -53,8 +54,8 @@ const prepareForPublication = async function ({
     return domainEvent;
   } catch (ex) {
     switch (ex.code) {
-      case 'EDOMAINEVENTNOTAUTHORIZED':
-      case 'EDOMAINEVENTREJECTED':
+      case errors.DomainEventNotAuthorized.code:
+      case errors.DomainEventRejected.code:
         // Ignore these exceptions, as this is usual control flow in this case,
         // which means that we simply don't want the domain event to be served.
         // Hence, we return nothing here.

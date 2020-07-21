@@ -1,6 +1,7 @@
 import { AskInfrastructure } from '../../../../lib/common/elements/AskInfrastructure';
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import { InfrastructureDefinition } from '../../../../lib/common/application/InfrastructureDefinition';
 import { TellInfrastructure } from '../../../../lib/common/elements/TellInfrastructure';
 import { validateInfrastructureDefinition } from '../../../../lib/common/validators/validateInfrastructureDefinition';
@@ -28,7 +29,7 @@ suite('validateInfrastructureDefinition', (): void => {
     assert.that((): void => {
       validateInfrastructureDefinition({ infrastructureDefinition: undefined });
     }).is.throwing((ex): boolean =>
-      (ex as CustomError).code === 'EINFRASTRUCTUREDEFINITIONMALFORMED' &&
+      (ex as CustomError).code === errors.InfrastructureDefinitionMalformed.code &&
       ex.message === 'Infrastructure definition is not an object.');
   });
 
@@ -42,7 +43,7 @@ suite('validateInfrastructureDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EINFRASTRUCTUREDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.InfrastructureDefinitionMalformed.code &&
         ex.message === `Function 'setupInfrastructure' is missing.`
     );
   });
@@ -57,7 +58,7 @@ suite('validateInfrastructureDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EINFRASTRUCTUREDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.InfrastructureDefinitionMalformed.code &&
         ex.message === `Property 'setupInfrastructure' is not a function.`
     );
   });
@@ -72,7 +73,7 @@ suite('validateInfrastructureDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EINFRASTRUCTUREDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.InfrastructureDefinitionMalformed.code &&
         ex.message === `Function 'getInfrastructure' is missing.`
     );
   });
@@ -87,7 +88,7 @@ suite('validateInfrastructureDefinition', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EINFRASTRUCTUREDEFINITIONMALFORMED' &&
+        (ex as CustomError).code === errors.InfrastructureDefinitionMalformed.code &&
         ex.message === `Property 'getInfrastructure' is not a function.`
     );
   });

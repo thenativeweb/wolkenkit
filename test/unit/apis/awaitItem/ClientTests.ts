@@ -6,6 +6,7 @@ import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWith
 import { createPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/createPriorityQueueStore';
 import { CustomError } from 'defekt';
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../lib/common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
+import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/awaitItem/http';
 import { getCommandWithMetadataSchema } from '../../../../lib/common/schemas/getCommandWithMetadataSchema';
@@ -108,7 +109,7 @@ suite('awaitItem/http/Client', (): void => {
           discriminator: '' as any,
           token: uuid()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EREQUESTMALFORMED' &&
+          (ex): boolean => (ex as CustomError).code === errors.RequestMalformed.code &&
             ex.message === 'String is too short (0 chars), minimum 1 (at value.discriminator).'
         );
       });
@@ -126,7 +127,7 @@ suite('awaitItem/http/Client', (): void => {
           discriminator: uuid(),
           token: uuid()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EITEMNOTFOUND'
+          (ex): boolean => (ex as CustomError).code === errors.ItemNotFound.code
         );
       });
 
@@ -165,7 +166,7 @@ suite('awaitItem/http/Client', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           token: uuid()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EITEMNOTLOCKED'
+          (ex): boolean => (ex as CustomError).code === errors.ItemNotLocked.code
         );
       });
 
@@ -206,7 +207,7 @@ suite('awaitItem/http/Client', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           token: uuid()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'ETOKENMISMATCH' &&
+          (ex): boolean => (ex as CustomError).code === errors.TokenMismatch.code &&
             ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
         );
       });
@@ -272,7 +273,7 @@ suite('awaitItem/http/Client', (): void => {
           discriminator: '',
           token: uuid()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EREQUESTMALFORMED' &&
+          (ex): boolean => (ex as CustomError).code === errors.RequestMalformed.code &&
             ex.message === 'String is too short (0 chars), minimum 1 (at value.discriminator).'
         );
       });
@@ -290,7 +291,7 @@ suite('awaitItem/http/Client', (): void => {
           discriminator: uuid(),
           token: uuid()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EITEMNOTFOUND'
+          (ex): boolean => (ex as CustomError).code === errors.ItemNotFound.code
         );
       });
 
@@ -329,7 +330,7 @@ suite('awaitItem/http/Client', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           token: uuid()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EITEMNOTLOCKED'
+          (ex): boolean => (ex as CustomError).code === errors.ItemNotLocked.code
         );
       });
 
@@ -370,7 +371,7 @@ suite('awaitItem/http/Client', (): void => {
           discriminator: commandWithMetadata.aggregateIdentifier.id,
           token: uuid()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'ETOKENMISMATCH' &&
+          (ex): boolean => (ex as CustomError).code === errors.TokenMismatch.code &&
             ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
         );
       });
@@ -449,7 +450,7 @@ suite('awaitItem/http/Client', (): void => {
           token: uuid(),
           priority: Date.now()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EREQUESTMALFORMED' &&
+          (ex): boolean => (ex as CustomError).code === errors.RequestMalformed.code &&
             ex.message === 'String is too short (0 chars), minimum 1 (at value.discriminator).'
         );
       });
@@ -468,7 +469,7 @@ suite('awaitItem/http/Client', (): void => {
           token: uuid(),
           priority: Date.now()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EITEMNOTFOUND'
+          (ex): boolean => (ex as CustomError).code === errors.ItemNotFound.code
         );
       });
 
@@ -508,7 +509,7 @@ suite('awaitItem/http/Client', (): void => {
           token: uuid(),
           priority: Date.now()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'EITEMNOTLOCKED'
+          (ex): boolean => (ex as CustomError).code === errors.ItemNotLocked.code
         );
       });
 
@@ -550,7 +551,7 @@ suite('awaitItem/http/Client', (): void => {
           token: uuid(),
           priority: Date.now()
         })).is.throwingAsync(
-          (ex): boolean => (ex as CustomError).code === 'ETOKENMISMATCH' &&
+          (ex): boolean => (ex as CustomError).code === errors.TokenMismatch.code &&
                 ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
         );
       });

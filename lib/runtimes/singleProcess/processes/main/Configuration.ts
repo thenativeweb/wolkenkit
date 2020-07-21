@@ -11,6 +11,8 @@ export interface Configuration {
   domainEventStoreOptions: Record<string, any>;
   domainEventStoreType: string;
   enableOpenApiDocumentation: boolean;
+  fileStoreType: string;
+  fileStoreOptions: Record<string, any>;
   graphqlApi: false | { enableIntegratedClient: boolean };
   healthPort: number;
   httpApi: boolean;

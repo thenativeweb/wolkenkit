@@ -1,8 +1,8 @@
 import { Client } from 'minio';
 import { errors } from '../../../common/errors';
+import { FileAddMetadata } from '../FileAddMetadata';
+import { FileMetadata } from '../FileMetadata';
 import { FileStore } from '../FileStore';
-import { Metadata } from '../Metadata';
-import { OwnedAuthorizationOptions } from '../../../apis/getFile/http/v2/isAuthorized/AuthorizationOptions';
 import { Readable } from 'stream';
 import streamToString from 'stream-to-string';
 
@@ -91,13 +91,9 @@ class S3FileStore implements FileStore {
     }
   }
 
-  public async addFile ({ id, fileName, contentType, isAuthorized, stream }: {
-    id: string;
-    fileName: string;
-    contentType: string;
-    isAuthorized: OwnedAuthorizationOptions;
+  public async addFile ({ id, name, contentType, stream }: FileAddMetadata & {
     stream: Readable;
-  }): Promise<void> {
+  }): Promise<FileMetadata> {
     let statsData,
         statsMetadata;
 
@@ -126,16 +122,19 @@ class S3FileStore implements FileStore {
 
     const metadata = {
       id,
-      fileName,
+      name,
       contentType,
-      contentLength,
-      isAuthorized
+      contentLength
     };
 
     await this.client.putObject(this.bucketName, `${id}/metadata.json`, JSON.stringify(metadata));
+
+    return metadata;
   }
 
-  public async getMetadata ({ id }: { id: string }): Promise<Metadata> {
+  public async getFile ({ id }: {
+    id: string;
+  }): Promise<Readable> {
     try {
       await this.client.statObject(this.bucketName, `${id}/data`);
       await this.client.statObject(this.bucketName, `${id}/metadata.json`);
@@ -147,38 +146,36 @@ class S3FileStore implements FileStore {
       throw ex;
     }
 
-    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`) as Readable;
-    const rawMetadata = await streamToString(metadataStream);
-
-    const metadata = JSON.parse(rawMetadata);
-
-    return {
-      id,
-      fileName: metadata.fileName,
-      contentType: metadata.contentType,
-      contentLength: metadata.contentLength,
-      isAuthorized: metadata.isAuthorized
-    };
-  }
-
-  public async getFile ({ id }: { id: string }): Promise<Readable> {
-    try {
-      await this.client.statObject(this.bucketName, `${id}/data`);
-      await this.client.statObject(this.bucketName, `${id}/metadata.json`);
-    } catch (ex) {
-      if (ex.code === 'NotFound') {
-        throw new errors.FileNotFound();
-      }
-
-      throw ex;
-    }
-
-    const stream = await this.client.getObject(this.bucketName, `${id}/data`) as Readable;
+    const stream = await this.client.getObject(this.bucketName, `${id}/data`);
 
     return stream;
   }
 
-  public async removeFile ({ id }: { id: string }): Promise<void> {
+  public async getMetadata ({ id }: {
+    id: string;
+  }): Promise<FileMetadata> {
+    try {
+      await this.client.statObject(this.bucketName, `${id}/data`);
+      await this.client.statObject(this.bucketName, `${id}/metadata.json`);
+    } catch (ex) {
+      if (ex.code === 'NotFound') {
+        throw new errors.FileNotFound();
+      }
+
+      throw ex;
+    }
+
+    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`);
+    const rawMetadata = await streamToString(metadataStream);
+
+    const metadata = JSON.parse(rawMetadata);
+
+    return metadata;
+  }
+
+  public async removeFile ({ id }: {
+    id: string;
+  }): Promise<void> {
     const files = [ `${id}/data`, `${id}/metadata.json` ];
 
     let notFoundErrors = 0;
@@ -199,56 +196,6 @@ class S3FileStore implements FileStore {
     if (notFoundErrors === files.length) {
       throw new errors.FileNotFound();
     }
-  }
-
-  public async transferOwnership ({ id, to }: {
-    id: string;
-    to: string;
-  }): Promise<void> {
-    try {
-      await this.client.statObject(this.bucketName, `${id}/data`);
-      await this.client.statObject(this.bucketName, `${id}/metadata.json`);
-    } catch (ex) {
-      if (ex.code === 'NotFound') {
-        throw new errors.FileNotFound();
-      }
-
-      throw ex;
-    }
-
-    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`) as Readable;
-    const rawMetadata = await streamToString(metadataStream);
-
-    const metadata = JSON.parse(rawMetadata);
-
-    metadata.isAuthorized.owner = to;
-
-    await this.client.putObject(this.bucketName, `${id}/metadata.json`, JSON.stringify(metadata));
-  }
-
-  public async authorize ({ id, isAuthorized }: {
-    id: string;
-    isAuthorized: OwnedAuthorizationOptions;
-  }): Promise<void> {
-    try {
-      await this.client.statObject(this.bucketName, `${id}/data`);
-      await this.client.statObject(this.bucketName, `${id}/metadata.json`);
-    } catch (ex) {
-      if (ex.code === 'NotFound') {
-        throw new errors.FileNotFound();
-      }
-
-      throw ex;
-    }
-
-    const metadataStream = await this.client.getObject(this.bucketName, `${id}/metadata.json`) as Readable;
-    const rawMetadata = await streamToString(metadataStream);
-
-    const metadata = JSON.parse(rawMetadata);
-
-    metadata.isAuthorized = isAuthorized;
-
-    await this.client.putObject(this.bucketName, `${id}/metadata.json`, JSON.stringify(metadata));
   }
 }
 

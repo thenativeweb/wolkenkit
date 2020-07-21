@@ -43,7 +43,7 @@ const validateAggregateDefinition = function ({ aggregateDefinition }: {
     }
   }
 
-  if (aggregateDefinition.enhancers) {
+  if (!isUndefined(aggregateDefinition.enhancers)) {
     if (!isArray(aggregateDefinition.enhancers)) {
       throw new errors.AggregateDefinitionMalformed(`Property 'enhancers' is not an array.`);
     }

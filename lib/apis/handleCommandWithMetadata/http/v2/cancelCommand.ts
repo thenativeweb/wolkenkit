@@ -86,14 +86,14 @@ const cancelCommand = {
         res.status(200).json(response);
       } catch (ex) {
         switch (ex.code) {
-          case 'EITEMNOTFOUND': {
+          case errors.ItemNotFound.code: {
             return res.status(404).json({
               code: ex.code,
               message: ex.message
             });
           }
           default: {
-            logger.error('Unknown error occured.', { ex });
+            logger.error('An unknown error occured.', { ex });
 
             const error = new errors.UnknownError();
 

@@ -1,6 +1,7 @@
 import { assert } from 'assertthat';
 import { compileWithTypeScript } from '../../../../lib/common/application/compileWithTypeScript';
 import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 import fs from 'fs';
 import { isolated } from 'isolated';
 import path from 'path';
@@ -96,7 +97,7 @@ suite('compileApplication', function (): void {
       async (): Promise<void> => await compileWithTypeScript({ sourceDirectory, targetDirectory })
     ).is.throwingAsync(
       (ex): boolean =>
-        (ex as CustomError).code === 'ECOMPILATIONFAILED' &&
+        (ex as CustomError).code === errors.CompilationFailed.code &&
         ex.message === 'Compilation failed.'
     );
   });
@@ -112,7 +113,7 @@ suite('compileApplication', function (): void {
       })
     ).is.throwingAsync(
       (ex): boolean =>
-        (ex as CustomError).code === 'ECOMPILATIONFAILED' &&
+        (ex as CustomError).code === errors.CompilationFailed.code &&
         ex.message === 'Source folder does not exist.'
     );
   });

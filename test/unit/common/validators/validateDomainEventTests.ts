@@ -3,6 +3,7 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { CustomError } from 'defekt';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
+import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { uuid } from 'uuidv4';
@@ -53,7 +54,7 @@ suite('validateDomainEvent', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'ECONTEXTNOTFOUND' &&
+        (ex as CustomError).code === errors.ContextNotFound.code &&
         ex.message === `Context 'someContext' not found.`
     );
   });
@@ -72,7 +73,7 @@ suite('validateDomainEvent', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EAGGREGATENOTFOUND' &&
+        (ex as CustomError).code === errors.AggregateNotFound.code &&
         ex.message === `Aggregate 'sampleContext.someAggregate' not found.`
     );
   });
@@ -88,7 +89,7 @@ suite('validateDomainEvent', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EDOMAINEVENTNOTFOUND' &&
+        (ex as CustomError).code === errors.DomainEventNotFound.code &&
         ex.message === `Domain event 'sampleContext.sampleAggregate.someDomainEvent' not found.`
     );
   });
@@ -106,7 +107,7 @@ suite('validateDomainEvent', (): void => {
       });
     }).is.throwing(
       (ex): boolean =>
-        (ex as CustomError).code === 'EDOMAINEVENTMALFORMED' &&
+        (ex as CustomError).code === errors.DomainEventMalformed.code &&
         ex.message === `Missing required property: strategy (at domainEvent.data.strategy).`
     );
   });

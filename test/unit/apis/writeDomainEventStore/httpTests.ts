@@ -5,6 +5,7 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
+import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/writeDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
@@ -101,7 +102,7 @@ suite('writeDomainEventStore/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Request body must be an array of domain events.'
         });
       });
@@ -118,7 +119,7 @@ suite('writeDomainEventStore/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Missing required property: contextIdentifier (at value[0].contextIdentifier).'
         });
       });
@@ -135,7 +136,7 @@ suite('writeDomainEventStore/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EPARAMETERINVALID',
+          code: errors.ParameterInvalid.code,
           message: 'Domain events are missing.'
         });
       });
@@ -151,7 +152,7 @@ suite('writeDomainEventStore/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'ECONTENTTYPEMISMATCH',
+          code: errors.ContentTypeMismatch.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -227,7 +228,7 @@ suite('writeDomainEventStore/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ESNAPSHOTMALFORMED',
+          code: errors.SnapshotMalformed.code,
           message: 'Missing required property: aggregateIdentifier (at value.aggregateIdentifier).'
         });
       });

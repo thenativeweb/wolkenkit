@@ -39,6 +39,10 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
           }
         },
         domainEventStoreType = 'Postgres',
+        fileStoreOptions = {
+          directory: '/mnt/files'
+        },
+        fileStoreType = 'FileSystem',
         flowProgressStoreOptions = {
           ...postgresOptions,
           tableNames: {
@@ -91,6 +95,8 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
     domainEventStoreOptions,
     domainEventStoreType,
     enableOpenApiDocumentation: true,
+    fileStoreOptions,
+    fileStoreType,
     graphqlApi: { enableIntegratedClient: true },
     healthPort: services.main.healthPort,
     httpApi: true,
@@ -125,6 +131,8 @@ ${
         ports:
           - '${services.main.publicPort}:${services.main.privatePort}'
         restart: 'always'
+        volumes:
+          - 'files:/mnt/files'
         healthcheck:
           test: ["CMD", "curl", "-f", "http://localhost:${services.main.healthPort}"]
           interval: 30s
@@ -144,6 +152,7 @@ ${
           - 'postgres:/var/lib/postgresql/data'
 
     volumes:
+      files:
       postgres:
   `;
 };

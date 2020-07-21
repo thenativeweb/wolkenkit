@@ -3,6 +3,7 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
+import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/handleDomainEvent/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
@@ -55,7 +56,7 @@ suite('handleDomainEvent/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -78,7 +79,7 @@ suite('handleDomainEvent/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -98,7 +99,7 @@ suite('handleDomainEvent/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EREQUESTMALFORMED',
+          code: errors.RequestMalformed.code,
           message: 'Missing required property: contextIdentifier (at value.domainEvent.contextIdentifier).'
         });
       });
@@ -132,7 +133,7 @@ suite('handleDomainEvent/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'ECONTEXTNOTFOUND',
+          code: errors.ContextNotFound.code,
           message: `Context 'nonExistent' not found.`
         });
       });
@@ -166,7 +167,7 @@ suite('handleDomainEvent/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EAGGREGATENOTFOUND',
+          code: errors.AggregateNotFound.code,
           message: `Aggregate 'sampleContext.nonExistent' not found.`
         });
       });
@@ -200,7 +201,7 @@ suite('handleDomainEvent/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EDOMAINEVENTNOTFOUND',
+          code: errors.DomainEventNotFound.code,
           message: `Domain event 'sampleContext.sampleAggregate.nonExistent' not found.`
         });
       });
@@ -234,7 +235,7 @@ suite('handleDomainEvent/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EDOMAINEVENTMALFORMED',
+          code: errors.DomainEventMalformed.code,
           message: 'No enum match (invalidValue), expects: succeed, fail, reject (at domainEvent.data.strategy).'
         });
       });
@@ -268,7 +269,7 @@ suite('handleDomainEvent/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: 'EFLOWNOTFOUND',
+          code: errors.FlowNotFound.code,
           message: `Flow 'nonExistent' not found.`
         });
       });
@@ -468,7 +469,7 @@ suite('handleDomainEvent/http', (): void => {
 
         assert.that(status).is.equalTo(500);
         assert.that(data).is.equalTo({
-          code: 'EUNKNOWNERROR',
+          code: errors.UnknownError.code,
           message: 'Unknown error.'
         });
       });
