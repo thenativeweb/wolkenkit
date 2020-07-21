@@ -191,7 +191,7 @@ subscription {
 
 ###### Qerying a view
 
-To query a view, send a query to the GraphQL endpoint of the runtime.
+To query a view, send a query to the GraphQL endpoint of the runtime:
 
 ```
 query {
