@@ -138,7 +138,7 @@
     "defekt": "5.1.0",
     "eventemitter2": "6.4.3",
     "express": "4.17.1",
-    "flaschenpost": "4.0.24",
+    "flaschenpost": "4.0.25",
     "get-cors-origin": "4.0.2",
     "get-graphql-from-jsonschema": "5.0.3",
     "graphql": "15.3.0",
