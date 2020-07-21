@@ -337,7 +337,7 @@ suite('awaitItem/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'String is too short (0 chars), minimum 1 (at value.discriminator).'
+          message: 'String is too short (0 chars), minimum 1 (at requestBody.discriminator).'
         });
       });
 
@@ -504,7 +504,7 @@ suite('awaitItem/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'String is too short (0 chars), minimum 1 (at value.discriminator).'
+          message: 'String is too short (0 chars), minimum 1 (at requestBody.discriminator).'
         });
       });
 
@@ -672,7 +672,7 @@ suite('awaitItem/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'String is too short (0 chars), minimum 1 (at value.discriminator).'
+          message: 'String is too short (0 chars), minimum 1 (at requestBody.discriminator).'
         });
       });
 
@@ -756,7 +756,7 @@ suite('awaitItem/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'Value -1 is less than minimum 0 (at value.priority).'
+          message: 'Value -1 is less than minimum 0 (at requestBody.priority).'
         });
       });
 

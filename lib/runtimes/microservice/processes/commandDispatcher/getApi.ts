@@ -45,7 +45,7 @@ const getApi = async function ({
     newItemSubscriber: newCommandSubscriber,
     newItemSubscriberChannel: newCommandPubSubChannel,
     validateOutgoingItem ({ item }: { item: any }): void {
-      new Value(getCommandWithMetadataSchema()).validate(item);
+      new Value(getCommandWithMetadataSchema()).validate(item, { valueName: 'command' });
       validateCommandWithMetadata({ application, command: item });
     }
   });

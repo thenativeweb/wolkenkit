@@ -40,7 +40,7 @@ const getLastDomainEvent = {
       const { aggregateIdentifier } = req.query;
 
       try {
-        querySchema.validate(req.query);
+        querySchema.validate(req.query, { valueName: 'requestQuery' });
       } catch (ex) {
         const error = new errors.AggregateIdentifierMalformed(ex.message);
 
@@ -57,7 +57,7 @@ const getLastDomainEvent = {
           return res.status(404).end();
         }
 
-        responseBodySchema.validate(lastDomainEvent);
+        responseBodySchema.validate(lastDomainEvent, { valueName: 'responseBody' });
 
         res.json(lastDomainEvent);
       } catch (ex) {

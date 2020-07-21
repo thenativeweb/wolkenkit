@@ -58,7 +58,7 @@ const postCommand = {
       }
 
       try {
-        requestBodySchema.validate(req.body);
+        requestBodySchema.validate(req.body, { valueName: 'requestBody' });
       } catch (ex) {
         const error = new errors.CommandMalformed(ex.message);
 
@@ -90,7 +90,7 @@ const postCommand = {
 
         const response = { id: command.id };
 
-        responseBodySchema.validate(response);
+        responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
       } catch (ex) {

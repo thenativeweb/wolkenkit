@@ -82,7 +82,7 @@ const postCommand = {
       });
 
       try {
-        new Value(getCommandSchema()).validate(command);
+        new Value(getCommandSchema()).validate(command, { valueName: 'command' });
       } catch (ex) {
         const error = new errors.RequestMalformed(ex.message);
 
@@ -125,7 +125,7 @@ const postCommand = {
 
         const response = { id: commandId };
 
-        responseBodySchema.validate(response);
+        responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
       } catch (ex) {
