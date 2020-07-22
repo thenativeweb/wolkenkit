@@ -650,7 +650,7 @@ ${
           - 'postgres:/var/lib/postgresql/data'
 
       ${services.minio.hostName}:
-        image: 'minio:${versions.dockerImages.minio}'
+        image: 'minio/minio:${versions.dockerImages.minio}'
         command: 'server /data'
         environment:
           MINIO_ACCESS_KEY: '${services.minio.accessKey}'
