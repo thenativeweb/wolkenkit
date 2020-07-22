@@ -1,0 +1,52 @@
+import { Application } from '../../../../common/application/Application';
+import { DomainEventData } from '../../../../common/elements/DomainEventData';
+import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
+import { errors } from '../../../../common/errors';
+import { getDomainEventsFieldConfiguration } from './getDomainEventsFieldConfiguration';
+import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
+import { GraphQLObjectType } from 'graphql';
+import { PublishDomainEvent } from '../../PublishDomainEvent';
+import { Repository } from '../../../../common/domain/Repository';
+import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
+import { State } from '../../../../common/elements/State';
+import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
+import { Value } from 'validate-value';
+
+const domainEventWithStateSchema = new Value(getDomainEventWithStateSchema());
+
+const getSubscriptionSchema = function ({ application, repository }: {
+  application: Application;
+  repository: Repository;
+}): { schema: GraphQLObjectType; publishDomainEvent: PublishDomainEvent } {
+  const domainEventEmitter = new SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>();
+  const publishDomainEvent = function ({ domainEvent }: {
+    domainEvent: DomainEventWithState<DomainEventData, State>;
+  }): void {
+    try {
+      domainEventWithStateSchema.validate(domainEvent, { valueName: 'domainEvent' });
+    } catch (ex) {
+      throw new errors.DomainEventMalformed(ex.message);
+    }
+    validateDomainEventWithState({ domainEvent, application });
+
+    domainEventEmitter.emit(domainEvent);
+  };
+
+  const schema = new GraphQLObjectType({
+    name: 'Subscription',
+    fields: {
+      domainEvents: getDomainEventsFieldConfiguration({
+        application,
+        repository,
+        domainEventEmitter
+      })
+    }
+  });
+
+  return {
+    schema,
+    publishDomainEvent
+  };
+};
+
+export { getSubscriptionSchema };
