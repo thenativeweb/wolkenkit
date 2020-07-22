@@ -10,14 +10,20 @@ export const all: QueryHandler<AllResultItem, Infrastructure> = {
   getResultItemSchema (): Schema {
     return {
       type: 'object',
-      properties: {},
+      properties: {
+        id: { type: 'number' },
+        task: { type: 'string' }
+      },
       required: [],
       additionalProperties: false
     };
   },
 
   async handle (): Promise<Readable> {
-    return Readable.from([]);
+    return Readable.from([
+      { id: 1, task: 'task 1' },
+      { id: 2, task: 'task 2' }
+    ]);
   },
 
   isAuthorized (): boolean {
