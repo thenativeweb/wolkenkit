@@ -27,7 +27,7 @@ const all = {
     }
 
     return infrastructure.ask.viewStore.messages.find({}, {
-      projection: { id: 1, timestamp: 1, text: 1, likes: 1 },
+      projection: { _id: 0, id: 1, timestamp: 1, text: 1, likes: 1 },
       sort: [[ 'timestamp', -1 ]]
     }).stream();
   },
