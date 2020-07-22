@@ -195,17 +195,12 @@ To query a view, send a query to the GraphQL endpoint of the runtime:
 
 ```
 query {
-  sampleView {
+  messages {
     all {
-      contextIdentifier {
-        name
-      }
-      aggregateIdentifier {
-        id
-        name
-      }
-      name
       id
+      timestamp
+      text
+      likes
     }
   }
 }
