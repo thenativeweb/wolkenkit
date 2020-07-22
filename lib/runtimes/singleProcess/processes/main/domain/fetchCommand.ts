@@ -26,7 +26,7 @@ const fetchCommand = async function ({ priorityQueue }: {
     { retries: Number.POSITIVE_INFINITY, minTimeout: 10, maxTimeout: 500 }
   );
 
-  return { command: item, metadata };
+  return { command: new CommandWithMetadata<CommandData>(item), metadata };
 };
 
 export {
