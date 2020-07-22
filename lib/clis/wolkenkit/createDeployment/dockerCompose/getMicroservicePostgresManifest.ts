@@ -130,7 +130,8 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           port: services.minio.privatePort,
           encryptConnection: services.minio.encryptConnection,
           accessKey: services.minio.accessKey,
-          secretKey: services.minio.secretKey
+          secretKey: services.minio.secretKey,
+          bucketName: 'files'
         },
         fileStoreType = 'S3',
         identityProviders: { issuer: string; certificate: string }[] = [],
