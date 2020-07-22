@@ -130,7 +130,8 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           port: services.minio.privatePort,
           encryptConnection: services.minio.encryptConnection,
           accessKey: services.minio.accessKey,
-          secretKey: services.minio.secretKey
+          secretKey: services.minio.secretKey,
+          bucketName: 'files'
         },
         fileStoreType = 'S3',
         identityProviders: { issuer: string; certificate: string }[] = [],
@@ -650,7 +651,7 @@ ${
           - 'postgres:/var/lib/postgresql/data'
 
       ${services.minio.hostName}:
-        image: 'minio:${versions.dockerImages.minio}'
+        image: 'minio/minio:${versions.dockerImages.minio}'
         command: 'server /data'
         environment:
           MINIO_ACCESS_KEY: '${services.minio.accessKey}'
