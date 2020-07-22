@@ -189,6 +189,23 @@ subscription {
 }
 ```
 
+###### Qerying a view
+
+To query a view, send a query to the GraphQL endpoint of the runtime:
+
+```
+query {
+  messages {
+    all {
+      id
+      timestamp
+      text
+      likes
+    }
+  }
+}
+```
+
 ### Managing files
 
 wolkenkit provides a file storage service that acts as a facade to a storage backend such as S3 or the local file system. It can be addressed using an HTTP API.

@@ -15,6 +15,7 @@ const getApi = async function ({
   identityProviders,
   handleCommand,
   observeDomainEvents,
+  queryView,
   enableIntegratedClient
 }: {
   corsOrigin: CorsOrigin;
@@ -22,6 +23,7 @@ const getApi = async function ({
   identityProviders: IdentityProvider[];
   handleCommand: false | { onReceiveCommand: OnReceiveCommand; onCancelCommand: OnCancelCommand };
   observeDomainEvents: false | { repository: Repository; webSocketEndpoint: string };
+  queryView: boolean;
   enableIntegratedClient: boolean;
 }): Promise<{
     api: ExpressApplication;
@@ -36,6 +38,7 @@ const getApi = async function ({
     identityProviders,
     handleCommand,
     observeDomainEvents,
+    queryView,
     enableIntegratedClient
   });
 

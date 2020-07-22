@@ -307,5 +307,43 @@ suite('main', function (): void {
 
       await collector.promise;
     });
+
+    test('has a query view endpoint.', async (): Promise<void> => {
+      const link = new HttpLink({
+        uri: `http://localhost:${port}/graphql/v2`,
+        fetch: fetch as any
+      });
+      const cache = new InMemoryCache();
+
+      const client = new ApolloClient<NormalizedCacheObject>({
+        link,
+        cache
+      });
+
+      const query = gql`
+        query {
+          sampleView {
+            all {
+              contextIdentifier {
+                name
+              }
+              id
+            }
+          }
+        }
+      `;
+
+      const result = await client.query({
+        query,
+        variables: {
+          aggregateId: uuid(),
+          data: {
+            strategy: 'succeed'
+          }
+        }
+      });
+
+      assert.that(result?.data?.sampleView.all).is.equalTo([]);
+    });
   });
 });

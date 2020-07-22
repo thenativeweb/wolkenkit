@@ -47,7 +47,7 @@ suite('graphql', function (): void {
       repository: Repository;
 
   setup(async (): Promise<void> => {
-    const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
+    const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' });
 
     application = await loadApplication({ applicationDirectory });
     domainEventStore = await createDomainEventStore({
@@ -79,6 +79,7 @@ suite('graphql', function (): void {
         webSocketEndpoint: '/v2/',
         repository
       },
+      queryView: true,
       enableIntegratedClient: false
     }));
 
@@ -219,6 +220,7 @@ suite('graphql', function (): void {
           webSocketEndpoint: '/v2/',
           repository
         },
+        queryView: true,
         enableIntegratedClient: false
       }));
 
@@ -758,6 +760,72 @@ suite('graphql', function (): void {
       }, 200);
 
       await collector.promise;
+    });
+  });
+
+  suite('queryView', (): void => {
+    let client: ApolloClient<NormalizedCacheObject>;
+
+    setup(async (): Promise<void> => {
+      const link = new HttpLink({
+        uri: `http://localhost:${port}/v2/`,
+        fetch: fetch as any
+      });
+      const cache = new InMemoryCache();
+
+      client = new ApolloClient<NormalizedCacheObject>({
+        link,
+        cache
+      });
+    });
+
+    test('returns the result items returned by the query.', async (): Promise<void> => {
+      const viewItems = [
+        {
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          name: 'executed',
+          id: uuid()
+        },
+        {
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          name: 'executed',
+          id: uuid()
+        }
+      ];
+
+      (application.infrastructure.ask as any).viewStore.domainEvents.push(...viewItems);
+
+      const query = gql`
+        query {
+          sampleView {
+            all {
+              contextIdentifier {
+                name
+              }
+              id
+            }
+          }
+        }
+      `;
+
+      const response = await client.query({ query });
+
+      assert.that(response.data).is.atLeast({
+        sampleView: {
+          all: [
+            {
+              contextIdentifier: { name: 'sampleContext' },
+              id: viewItems[0].id
+            },
+            {
+              contextIdentifier: { name: 'sampleContext' },
+              id: viewItems[1].id
+            }
+          ]
+        }
+      });
     });
   });
 });

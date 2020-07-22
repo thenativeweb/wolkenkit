@@ -1,4 +1,5 @@
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
+import { ResolverContext } from '../ResolverContext';
 import { SubscriptionServerOptions } from 'apollo-server-core/src/types';
 import { IdentityProvider, Limes } from 'limes';
 
@@ -13,7 +14,7 @@ const getSubscriptionOptions = function ({ identityProviders, webSocketEndpoint,
     async onConnect (
       connectionParams: any,
       webSocket
-    ): Promise<ClientMetadata> {
+    ): Promise<ResolverContext> {
       let clientMetadata: ClientMetadata;
 
       if (!connectionParams.token) {
@@ -53,7 +54,7 @@ const getSubscriptionOptions = function ({ identityProviders, webSocketEndpoint,
         };
       }
 
-      return clientMetadata;
+      return { clientMetadata };
     },
     path: webSocketEndpoint
   };
