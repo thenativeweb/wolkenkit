@@ -405,7 +405,7 @@ ${
           - '${services.command.publicPort}:${services.command.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.command.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.command.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -425,7 +425,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.commandDispatcher.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.commandDispatcher.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -445,7 +445,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.domain.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.domain.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -467,7 +467,7 @@ ${
           - '${services.domainEvent.publicPort}:${services.domainEvent.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.domainEvent.privatePort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.domainEvent.privatePort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -487,7 +487,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.aeonstore.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.aeonstore.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -507,7 +507,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.publisher.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.publisher.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -529,7 +529,7 @@ ${
           - '${services.graphql.publicPort}:${services.graphql.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.graphql.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.graphql.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -549,7 +549,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.domainEventDispatcher.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.domainEventDispatcher.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -569,7 +569,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.flow.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.flow.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -589,7 +589,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.replay.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.replay.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -611,7 +611,7 @@ ${
           - '${services.view.publicPort}:${services.view.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.view.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.view.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -633,7 +633,7 @@ ${
           - '${services.file.publicPort}:${services.file.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.file.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.file.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3

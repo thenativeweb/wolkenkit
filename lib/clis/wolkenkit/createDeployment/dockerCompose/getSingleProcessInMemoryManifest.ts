@@ -85,7 +85,7 @@ ${
           - '${services.main.publicPort}:${services.main.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.main.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.main.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
