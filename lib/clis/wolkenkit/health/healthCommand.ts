@@ -29,7 +29,7 @@ const healthCommand = function (): Command<HealthOptions> {
       {
         name: 'health-port',
         alias: 'e',
-        description: 'set a port for the health endpoint',
+        description: 'set the health port',
         parameterName: 'port',
         type: 'number',
         isRequired: false,
