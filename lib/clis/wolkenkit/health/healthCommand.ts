@@ -20,7 +20,7 @@ const healthCommand = function (): Command<HealthOptions> {
       },
       {
         name: 'host-name',
-        description: 'set the host name of the server',
+        description: 'set the host name',
         parameterName: 'hostName',
         type: 'string',
         isRequired: false,
