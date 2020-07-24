@@ -7,7 +7,7 @@ import { validatePort } from '../dev/validatePort';
 const healthCommand = function (): Command<HealthOptions> {
   return {
     name: 'health',
-    description: 'Run a health check against a process.',
+    description: 'Verify the health of a wolkenkit application process.',
 
     optionDefinitions: [
       {
