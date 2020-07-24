@@ -61,7 +61,7 @@ const healthCommand = function (): Command<HealthOptions> {
           withVerboseMode(verbose)
       );
 
-      buntstift.verbose(`Sending health request to ${protocol}://${hostName}:${healthPort}${basePath}.`);
+      buntstift.info(`Sending health request to '${protocol}://${hostName}:${healthPort}${basePath}'.`);
 
       const healthClient = new Client({
         protocol,
@@ -73,13 +73,13 @@ const healthCommand = function (): Command<HealthOptions> {
       try {
         const healthData = await healthClient.getHealth();
 
-        buntstift.verbose('Health check successful.');
+        buntstift.success('Health check successful.');
         buntstift.verbose(JSON.stringify(healthData, null, 2));
 
         // eslint-disable-next-line unicorn/no-process-exit
         process.exit(0);
       } catch (ex) {
-        buntstift.verbose('Health check failed.');
+        buntstift.error('Health check failed.');
 
         // eslint-disable-next-line unicorn/no-process-exit
         process.exit(1);
