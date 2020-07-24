@@ -8,7 +8,8 @@ const versions = {
   },
   dockerImages: {
     minio: 'RELEASE.2019-10-12T01-39-57Z',
-    postgres: '12.3-alpine'
+    postgres: '12.3-alpine',
+    traefik: '2.3'
   }
 };
 

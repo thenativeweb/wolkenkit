@@ -690,7 +690,7 @@ ${
           - 'minio:/data'
           
       ${services.traefik.hostName}:
-        image: 'traefik:v2.2'
+        image: 'traefik:${versions.dockerImages.traefik}'
         command:
           - '--log.level=DEBUG'
           - '--api.insecure=true'
