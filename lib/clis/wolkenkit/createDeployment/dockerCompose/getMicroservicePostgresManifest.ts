@@ -400,8 +400,6 @@ ${
 }
         image: '${appName}'
         init: true
-        expose:
-          - '${services.command.privatePort}'
         restart: 'always'
         healthcheck:
           test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.command.healthPort}"]
@@ -413,8 +411,9 @@ ${
           - 'traefik.enable=true'
           - 'traefik.http.routers.${services.command.hostName}.rule=PathPrefix(\`/command\`)'
           - 'traefik.http.routers.${services.command.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.command.hostName}-service.loadBalancer.healthCheck.path=/health/v2/'
-          - 'traefik.http.services.${services.command.hostName}-service.loadBalancer.healthCheck.port=${services.command.healthPort}'
+          - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.port=${services.command.privatePort}'
+          - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.healthcheck.port=${services.command.healthPort}'
 
       ${services.commandDispatcher.hostName}:
         build: '../..'
@@ -468,8 +467,6 @@ ${
 }
         image: '${appName}'
         init: true
-        expose:
-          - '${services.domainEvent.privatePort}'
         restart: 'always'
         healthcheck:
           test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.domainEvent.healthPort}"]
@@ -481,8 +478,9 @@ ${
           - 'traefik.enable=true'
           - 'traefik.http.routers.${services.domainEvent.hostName}.rule=PathPrefix(\`/domain-events\`)'
           - 'traefik.http.routers.${services.domainEvent.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadBalancer.healthCheck.path=/health/v2/'
-          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadBalancer.healthCheck.port=${services.domainEvent.healthPort}'
+          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.port=${services.domainEvent.privatePort}'
+          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.healthcheck.port=${services.domainEvent.healthPort}'
 
       ${services.aeonstore.hostName}:
         build: '../..'
@@ -536,8 +534,6 @@ ${
 }
         image: '${appName}'
         init: true
-        expose:
-          - '${services.graphql.privatePort}'
         restart: 'always'
         healthcheck:
           test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.graphql.healthPort}"]
@@ -549,8 +545,9 @@ ${
           - 'traefik.enable=true'
           - 'traefik.http.routers.${services.graphql.hostName}.rule=PathPrefix(\`/graphql\`)'
           - 'traefik.http.routers.${services.graphql.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.graphql.hostName}-service.loadBalancer.healthCheck.path=/health/v2/'
-          - 'traefik.http.services.${services.graphql.hostName}-service.loadBalancer.healthCheck.port=${services.graphql.healthPort}'
+          - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.port=${services.graphql.privatePort}'
+          - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.healthcheck.port=${services.graphql.healthPort}'
 
       ${services.domainEventDispatcher.hostName}:
         build: '../..'
@@ -624,8 +621,6 @@ ${
 }
         image: '${appName}'
         init: true
-        expose:
-          - '${services.view.privatePort}'
         restart: 'always'
         healthcheck:
           test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.view.healthPort}"]
@@ -637,8 +632,9 @@ ${
           - 'traefik.enable=true'
           - 'traefik.http.routers.${services.view.hostName}.rule=PathPrefix(\`/views\`)'
           - 'traefik.http.routers.${services.view.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.view.hostName}-service.loadBalancer.healthCheck.path=/health/v2/'
-          - 'traefik.http.services.${services.view.hostName}-service.loadBalancer.healthCheck.port=${services.view.healthPort}'
+          - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.port=${services.view.privatePort}'
+          - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.healthcheck.port=${services.view.healthPort}'
 
       ${services.file.hostName}:
         build: '../..'
@@ -652,8 +648,6 @@ ${
 }
         image: '${appName}'
         init: true
-        expose:
-          - '${services.file.privatePort}'
         restart: 'always'
         healthcheck:
           test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.file.healthPort}"]
@@ -665,8 +659,9 @@ ${
           - 'traefik.enable=true'
           - 'traefik.http.routers.${services.file.hostName}.rule=PathPrefix(\`/files\`)'
           - 'traefik.http.routers.${services.file.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.file.hostName}-service.loadBalancer.healthCheck.path=/health/v2/'
-          - 'traefik.http.services.${services.file.hostName}-service.loadBalancer.healthCheck.port=${services.file.healthPort}'
+          - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.port=${services.file.privatePort}'
+          - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.healthcheck.port=${services.file.healthPort}'
 
       ${services.postgres.hostName}:
         image: 'postgres:${versions.dockerImages.postgres}'
