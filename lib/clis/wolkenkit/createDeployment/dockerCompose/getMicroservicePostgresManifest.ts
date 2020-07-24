@@ -697,6 +697,12 @@ ${
           - '8080:8080'
         volumes:
           - '/var/run/docker.sock:/var/run/docker.sock:ro'
+        healthcheck:
+          test: ["CMD", "traefik", "healthcheck", "--ping"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
 
     volumes:
       postgres:
