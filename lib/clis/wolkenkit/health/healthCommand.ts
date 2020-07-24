@@ -41,7 +41,7 @@ const healthCommand = function (): Command<HealthOptions> {
       {
         name: 'base-path',
         alias: 'b',
-        description: 'set the base path of the health api',
+        description: 'set the health base path',
         parameterName: 'basePath',
         type: 'string',
         isRequired: false,
