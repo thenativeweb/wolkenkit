@@ -6,10 +6,10 @@ import { getDomainDefinition } from './getDomainDefinition';
 import { getFlowsDefinition } from './getFlowsDefinition';
 import { getHooksDefinition } from './getHooksDefinition';
 import { getInfrastructureDefinition } from './getInfrastructureDefinition';
+import { getLoggerService } from '../services/getLoggerService';
 import { getViewsDefinition } from './getViewsDefinition';
 import path from 'path';
 import { withSystemDomainEvents } from '../../tools/withSystemDomainEvents';
-import { getLoggerService } from '../services/getLoggerService';
 
 const loadApplication = async function ({ applicationDirectory }: {
   applicationDirectory: string;
