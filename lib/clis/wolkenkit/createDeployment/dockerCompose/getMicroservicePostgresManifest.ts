@@ -692,6 +692,7 @@ ${
           - '--providers.docker=true'
           - '--providers.docker.exposedbydefault=false'
           - '--entrypoints.web.address=:3000'
+          - '--ping'
         ports:
           - '3000:3000'
           - '8080:8080'
