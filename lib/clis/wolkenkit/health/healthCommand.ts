@@ -12,6 +12,7 @@ const healthCommand = function (): Command<HealthOptions> {
     optionDefinitions: [
       {
         name: 'protocol',
+        alias: 'r',
         description: 'set the protocol',
         parameterName: 'protocol',
         type: 'string',
@@ -20,6 +21,7 @@ const healthCommand = function (): Command<HealthOptions> {
       },
       {
         name: 'host-name',
+        alias: 'n',
         description: 'set the host name',
         parameterName: 'hostName',
         type: 'string',
@@ -28,7 +30,7 @@ const healthCommand = function (): Command<HealthOptions> {
       },
       {
         name: 'health-port',
-        alias: 'e',
+        alias: 'p',
         description: 'set the health port',
         parameterName: 'port',
         type: 'number',
@@ -38,6 +40,7 @@ const healthCommand = function (): Command<HealthOptions> {
       },
       {
         name: 'base-path',
+        alias: 'b',
         description: 'set the base path of the health api',
         parameterName: 'basePath',
         type: 'string',
