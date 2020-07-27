@@ -6,6 +6,7 @@ import { getDomainDefinition } from './getDomainDefinition';
 import { getFlowsDefinition } from './getFlowsDefinition';
 import { getHooksDefinition } from './getHooksDefinition';
 import { getInfrastructureDefinition } from './getInfrastructureDefinition';
+import { getLoggerService } from '../services/getLoggerService';
 import { getViewsDefinition } from './getViewsDefinition';
 import path from 'path';
 import { withSystemDomainEvents } from '../../tools/withSystemDomainEvents';
@@ -45,7 +46,12 @@ const loadApplication = async function ({ applicationDirectory }: {
     withSystemDomainEvents
   ];
 
-  await infrastructureDefinition.setupInfrastructure();
+  await infrastructureDefinition.setupInfrastructure({
+    logger: getLoggerService({
+      fileName: '<app>/build/server/infrastructure/setupInfrastructure',
+      packageManifest
+    })
+  });
 
   const rawApplication: Application = {
     rootDirectory: applicationDirectory,
@@ -53,7 +59,12 @@ const loadApplication = async function ({ applicationDirectory }: {
     domain: domainDefinition,
     flows: flowsDefinition,
     hooks: hooksDefinition,
-    infrastructure: await infrastructureDefinition.getInfrastructure(),
+    infrastructure: await infrastructureDefinition.getInfrastructure({
+      logger: getLoggerService({
+        fileName: '<app>/build/server/infrastructure/getInfrastructure',
+        packageManifest
+      })
+    }),
     views: viewsDefinition
   };
 
