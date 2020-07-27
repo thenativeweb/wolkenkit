@@ -14,6 +14,7 @@ import { uuid } from 'uuidv4';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { ClientSession, Collection, Db, MongoClient } from 'mongodb';
 import { escapeFieldNames, unescapeFieldNames } from '../../utils/mongoDb/escapeFieldNames';
+import {MongoDbPriorityQueueStoreOptions} from "./MongDbPriorityQueueStoreOptions";
 
 class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected client: MongoClient;
@@ -63,34 +64,17 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> ({
-    doesIdentifierMatchItem,
-    options: {
-      hostName,
-      port,
-      userName,
-      password,
-      database,
-      collectionNames,
-      expirationTime = 15_000
-    }
-  }: {
-    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
-    options: {
-      hostName: string;
-      port: number;
-      userName: string;
-      password: string;
-      database: string;
-      collectionNames: CollectionNames;
-      expirationTime?: number;
-    };
-  }): Promise<MongoDbPriorityQueueStore<TItem, TItemIdentifier>> {
-    const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
-
+  public static async create<TItem, TItemIdentifier> (
+    {
+      doesIdentifierMatchItem,
+      expirationTime = 15_000,
+      connectionString,
+      collectionNames
+    }: MongoDbPriorityQueueStoreOptions<TItem, TItemIdentifier>
+  ): Promise<MongoDbPriorityQueueStore<TItem, TItemIdentifier>> {
     const client = await retry(async (): Promise<MongoClient> => {
       const connection = await MongoClient.connect(
-        url,
+        connectionString,
         // eslint-disable-next-line id-length
         { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
       );
@@ -98,7 +82,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
       return connection;
     });
 
-    const { pathname } = parse(url);
+    const { pathname } = parse(connectionString);
 
     if (!pathname) {
       throw new Error('Pathname is missing.');

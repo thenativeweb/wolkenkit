@@ -8,6 +8,7 @@ import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
 import { uuid } from 'uuidv4';
+import { InMemoryPriorityQueueStoreOptions } from './InMemoryPriorityQueueStoreOptions';
 
 class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
@@ -43,12 +44,12 @@ class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> ({ doesIdentifierMatchItem, options: { expirationTime = 15_000 }}: {
-    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
-    options: {
-      expirationTime?: number;
-    };
-  }): Promise<InMemoryPriorityQueueStore<TItem, TItemIdentifier>> {
+  public static async create<TItem, TItemIdentifier> (
+    {
+      doesIdentifierMatchItem,
+      expirationTime = 15_000
+    }: InMemoryPriorityQueueStoreOptions<TItem, TItemIdentifier>
+  ): Promise<InMemoryPriorityQueueStore<TItem, TItemIdentifier>> {
     return new InMemoryPriorityQueueStore<TItem, TItemIdentifier>({ doesIdentifierMatchItem, options: { expirationTime }});
   }
 

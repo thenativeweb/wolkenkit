@@ -12,6 +12,7 @@ import { TableNames } from './TableNames';
 import { uuid } from 'uuidv4';
 import { withTransaction } from '../../utils/postgres/withTransaction';
 import { Client, Pool, PoolClient } from 'pg';
+import { PostgresPriorityQueueStoreOptions } from './PostgresPriorityQueueStoreOptions';
 
 class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;
@@ -63,31 +64,19 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> ({
-    doesIdentifierMatchItem,
-    options: {
+  public static async create<TItem, TItemIdentifier> (
+    {
+      doesIdentifierMatchItem,
+      expirationTime = 15_000,
       hostName,
       port,
       userName,
       password,
       database,
       encryptConnection = false,
-      tableNames,
-      expirationTime = 15_000
-    }
-  }: {
-    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
-    options: {
-      hostName: string;
-      port: number;
-      userName: string;
-      password: string;
-      database: string;
-      encryptConnection?: boolean;
-      tableNames: TableNames;
-      expirationTime?: number;
-    };
-  }): Promise<PostgresPriorityQueueStore<TItem, TItemIdentifier>> {
+      tableNames
+    }: PostgresPriorityQueueStoreOptions<TItem, TItemIdentifier>
+  ): Promise<PostgresPriorityQueueStore<TItem, TItemIdentifier>> {
     const pool = new Pool({
       host: hostName,
       port,

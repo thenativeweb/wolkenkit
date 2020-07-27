@@ -13,6 +13,7 @@ import { TableNames } from './TableNames';
 import { uuid } from 'uuidv4';
 import { withTransaction } from '../../utils/mySql/withTransaction';
 import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
+import { MySqlPriorityQueueStoreOptions } from './MySqlPriorityQueueStoreOptions';
 
 class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;
@@ -72,29 +73,18 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> ({
-    doesIdentifierMatchItem,
-    options: {
+  public static async create<TItem, TItemIdentifier> (
+    {
+      doesIdentifierMatchItem,
+      expirationTime = 15_000,
       hostName,
       port,
       userName,
       password,
       database,
-      tableNames,
-      expirationTime = 15_000
-    }
-  }: {
-    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
-    options: {
-      hostName: string;
-      port: number;
-      userName: string;
-      password: string;
-      database: string;
-      tableNames: TableNames;
-      expirationTime?: number;
-    };
-  }): Promise<MySqlPriorityQueueStore<TItem, TItemIdentifier>> {
+      tableNames
+    }: MySqlPriorityQueueStoreOptions<TItem, TItemIdentifier>
+  ): Promise<MySqlPriorityQueueStore<TItem, TItemIdentifier>> {
     const pool = createPool({
       host: hostName,
       port,
