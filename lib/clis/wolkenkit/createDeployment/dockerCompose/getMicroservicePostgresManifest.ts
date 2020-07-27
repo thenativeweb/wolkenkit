@@ -32,7 +32,6 @@ const getMicroservicePostgresManifest = function ({ appName }: {
   const services = {
     command: {
       hostName: 'command',
-      publicPort: 3000,
       privatePort: 3000,
       healthPort: 3001
     },
@@ -48,7 +47,6 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     },
     domainEvent: {
       hostName: 'domain-event',
-      publicPort: 3001,
       privatePort: 3000,
       healthPort: 3001
     },
@@ -64,7 +62,6 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     },
     graphql: {
       hostName: 'graphql',
-      publicPort: 3003,
       privatePort: 3000,
       healthPort: 3001
     },
@@ -85,13 +82,11 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     },
     view: {
       hostName: 'view',
-      publicPort: 3002,
       privatePort: 3000,
       healthPort: 3001
     },
     file: {
       hostName: 'file',
-      publicPort: 3004,
       privatePort: 3000,
       healthPort: 3001
     },
@@ -108,6 +103,10 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       accessKey: 'wolkenkit',
       secretKey: 'please-replace-this',
       encryptConnection: false
+    },
+    traefik: {
+      hostName: 'traefik',
+      publicPort: 3000
     }
   };
 
@@ -401,15 +400,20 @@ ${
 }
         image: '${appName}'
         init: true
-        ports:
-          - '${services.command.publicPort}:${services.command.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.command.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.command.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
+        labels:
+          - 'traefik.enable=true'
+          - 'traefik.http.routers.${services.command.hostName}.rule=PathPrefix(\`/command\`)'
+          - 'traefik.http.routers.${services.command.hostName}.entrypoints=web'
+          - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.port=${services.command.privatePort}'
+          - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.healthcheck.port=${services.command.healthPort}'
 
       ${services.commandDispatcher.hostName}:
         build: '../..'
@@ -425,7 +429,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.commandDispatcher.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.commandDispatcher.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -445,7 +449,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.domain.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.domain.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -463,15 +467,20 @@ ${
 }
         image: '${appName}'
         init: true
-        ports:
-          - '${services.domainEvent.publicPort}:${services.domainEvent.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.domainEvent.privatePort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.domainEvent.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
+        labels:
+          - 'traefik.enable=true'
+          - 'traefik.http.routers.${services.domainEvent.hostName}.rule=PathPrefix(\`/domain-events\`)'
+          - 'traefik.http.routers.${services.domainEvent.hostName}.entrypoints=web'
+          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.port=${services.domainEvent.privatePort}'
+          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.healthcheck.port=${services.domainEvent.healthPort}'
 
       ${services.aeonstore.hostName}:
         build: '../..'
@@ -487,7 +496,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.aeonstore.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.aeonstore.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -507,7 +516,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.publisher.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.publisher.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -525,15 +534,20 @@ ${
 }
         image: '${appName}'
         init: true
-        ports:
-          - '${services.graphql.publicPort}:${services.graphql.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.graphql.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.graphql.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
+        labels:
+          - 'traefik.enable=true'
+          - 'traefik.http.routers.${services.graphql.hostName}.rule=PathPrefix(\`/graphql\`)'
+          - 'traefik.http.routers.${services.graphql.hostName}.entrypoints=web'
+          - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.port=${services.graphql.privatePort}'
+          - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.healthcheck.port=${services.graphql.healthPort}'
 
       ${services.domainEventDispatcher.hostName}:
         build: '../..'
@@ -549,7 +563,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.domainEventDispatcher.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.domainEventDispatcher.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -569,7 +583,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.flow.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.flow.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -589,7 +603,7 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.replay.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.replay.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -607,15 +621,20 @@ ${
 }
         image: '${appName}'
         init: true
-        ports:
-          - '${services.view.publicPort}:${services.view.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.view.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.view.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
+        labels:
+          - 'traefik.enable=true'
+          - 'traefik.http.routers.${services.view.hostName}.rule=PathPrefix(\`/views\`)'
+          - 'traefik.http.routers.${services.view.hostName}.entrypoints=web'
+          - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.port=${services.view.privatePort}'
+          - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.healthcheck.port=${services.view.healthPort}'
 
       ${services.file.hostName}:
         build: '../..'
@@ -629,15 +648,20 @@ ${
 }
         image: '${appName}'
         init: true
-        ports:
-          - '${services.file.publicPort}:${services.file.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:${services.file.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.file.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
+        labels:
+          - 'traefik.enable=true'
+          - 'traefik.http.routers.${services.file.hostName}.rule=PathPrefix(\`/files\`)'
+          - 'traefik.http.routers.${services.file.hostName}.entrypoints=web'
+          - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.port=${services.file.privatePort}'
+          - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.healthcheck.port=${services.file.healthPort}'
 
       ${services.postgres.hostName}:
         image: 'postgres:${versions.dockerImages.postgres}'
@@ -659,6 +683,27 @@ ${
         restart: 'always'
         volumes:
           - 'minio:/data'
+          
+      ${services.traefik.hostName}:
+        image: 'traefik:${versions.dockerImages.traefik}'
+        command:
+          - '--log.level=DEBUG'
+          - '--api.insecure=true'
+          - '--providers.docker=true'
+          - '--providers.docker.exposedbydefault=false'
+          - '--entrypoints.web.address=:3000'
+          - '--ping'
+        ports:
+          - '3000:3000'
+          - '8080:8080'
+        volumes:
+          - '/var/run/docker.sock:/var/run/docker.sock:ro'
+        healthcheck:
+          test: ["CMD", "traefik", "healthcheck", "--ping"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
 
     volumes:
       postgres:

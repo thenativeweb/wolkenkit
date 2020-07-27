@@ -3,6 +3,7 @@ import { Command } from 'command-line-interface';
 import { createDeploymentCommand } from './createDeployment/createDeploymentCommand';
 import { devCommand } from './dev/devCommand';
 import { documentationCommand } from './documentation/documentationCommand';
+import { healthCommand } from './health/healthCommand';
 import { initCommand } from './init/initCommand';
 import { RootOptions } from './RootOptions';
 import { tokenCommand } from './token/tokenCommand';
@@ -35,6 +36,7 @@ const rootCommand = function (): Command<RootOptions> {
       build: buildCommand(),
       'create-deployment': createDeploymentCommand(),
       documentation: documentationCommand(),
+      health: healthCommand(),
       token: tokenCommand()
     }
   };
