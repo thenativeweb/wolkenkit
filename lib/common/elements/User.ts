@@ -1,7 +1,7 @@
 export interface User {
   id: string;
 
-  claims: {
+  claims: Record<string, any> & {
     sub: string;
   };
 }
