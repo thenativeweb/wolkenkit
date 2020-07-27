@@ -3,6 +3,7 @@ import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { IsReplaying } from '../IsReplaying';
+import { PostgresConsumerProgressStoreOptions } from './PostgresConsumerProgressStoreOptions';
 import { retry } from 'retry-ignore-abort';
 import { TableNames } from './TableNames';
 import { withTransaction } from '../../utils/postgres/withTransaction';
@@ -47,15 +48,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
     database,
     encryptConnection = false,
     tableNames
-  }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    encryptConnection?: boolean;
-    tableNames: TableNames;
-  }): Promise<PostgresConsumerProgressStore> {
+  }: PostgresConsumerProgressStoreOptions): Promise<PostgresConsumerProgressStore> {
     const pool = new Pool({
       host: hostName,
       port,

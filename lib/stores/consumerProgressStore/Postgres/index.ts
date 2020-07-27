@@ -1,3 +1,7 @@
 import { PostgresConsumerProgressStore } from './PostgresConsumerProgressStore';
+import { PostgresConsumerProgressStoreOptions } from './PostgresConsumerProgressStoreOptions';
 
-export { PostgresConsumerProgressStore };
+export {
+  PostgresConsumerProgressStore,
+  PostgresConsumerProgressStoreOptions
+};

@@ -4,6 +4,7 @@ import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
+import { PostgresDomainEventStoreOptions } from './PostgresDomainEventStoreOptions';
 import QueryStream from 'pg-query-stream';
 import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
@@ -51,15 +52,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     database,
     encryptConnection = false,
     tableNames
-  }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    encryptConnection?: boolean;
-    tableNames: TableNames;
-  }): Promise<PostgresDomainEventStore> {
+  }: PostgresDomainEventStoreOptions): Promise<PostgresDomainEventStore> {
     const pool = new Pool({
       host: hostName,
       port,

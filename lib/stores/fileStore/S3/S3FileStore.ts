@@ -4,6 +4,7 @@ import { FileAddMetadata } from '../FileAddMetadata';
 import { FileMetadata } from '../FileMetadata';
 import { FileStore } from '../FileStore';
 import { Readable } from 'stream';
+import { S3FileStoreOptions } from './S3FileStoreOptions';
 import streamToString from 'stream-to-string';
 
 class S3FileStore implements FileStore {
@@ -13,32 +14,12 @@ class S3FileStore implements FileStore {
 
   protected region: string;
 
-  protected constructor ({
-    hostName,
-    port,
-    encryptConnection,
-    accessKey,
-    secretKey,
-    region,
-    bucketName
-  }: {
-    hostName: string;
-    port: number;
-    encryptConnection: boolean;
-    accessKey: string;
-    secretKey: string;
+  protected constructor ({ client, region, bucketName }: {
+    client: Client;
     region: string;
     bucketName: string;
   }) {
-    this.client = new Client({
-      endPoint: hostName,
-      port,
-      accessKey,
-      secretKey,
-      region,
-      useSSL: encryptConnection
-    });
-
+    this.client = client;
     this.bucketName = bucketName;
     this.region = region;
   }
@@ -51,24 +32,17 @@ class S3FileStore implements FileStore {
     secretKey,
     region = 'eu-central-1a',
     bucketName
-  }: {
-    hostName?: string;
-    port?: number;
-    encryptConnection?: boolean;
-    accessKey: string;
-    secretKey: string;
-    region?: string;
-    bucketName: string;
-  }): Promise<S3FileStore> {
-    const s3 = new S3FileStore({
-      hostName,
+  }: S3FileStoreOptions): Promise<S3FileStore> {
+    const client = new Client({
+      endPoint: hostName,
       port,
-      encryptConnection,
       accessKey,
       secretKey,
       region,
-      bucketName
+      useSSL: encryptConnection
     });
+
+    const s3 = new S3FileStore({ client, region, bucketName });
 
     await s3.ensureBucket();
 
