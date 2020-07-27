@@ -745,6 +745,34 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       assert.that(aggregateDomainEvents[1].name).is.equalTo('joined');
     });
 
+    test('stores domain events with special characters in keys.', async (): Promise<void> => {
+      const aggregateIdentifier = {
+        id: uuid(),
+        name: 'peerGroup'
+      };
+
+      const domainEventStarted = buildDomainEvent({
+        contextIdentifier: { name: 'planning' },
+        aggregateIdentifier,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          initiator: { user: { id: 'jane.doe',
+            claims: {
+              'https://invalid.token/is-anonymous': true,
+              sub: 'jane.doe'
+            }}}
+        }
+      });
+
+      await assert.that(async (): Promise<void> => {
+        await domainEventStore.storeDomainEvents<DomainEventData>({
+          domainEvents: [ domainEventStarted ]
+        });
+      }).is.not.throwingAsync();
+    });
+
     test('throws an error if the aggregate id and revision of the new domain event are already in use.', async (): Promise<void> => {
       const aggregateIdentifier = {
         id: uuid(),

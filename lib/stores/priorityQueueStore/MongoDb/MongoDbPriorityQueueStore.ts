@@ -13,6 +13,7 @@ import { retry } from 'retry-ignore-abort';
 import { uuid } from 'uuidv4';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { ClientSession, Collection, Db, MongoClient } from 'mongodb';
+import { escapeFieldNames, unescapeFieldNames } from '../../utils/mongoDb/escapeFieldNames';
 
 class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected client: MongoClient;
@@ -374,7 +375,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
 
     await this.collections.queues.updateOne(
       { discriminator },
-      { $push: { items: { item, priority }}},
+      { $push: { items: { item: escapeFieldNames(item), priority }}},
       { session }
     );
 
@@ -423,7 +424,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
 
     await this.repairDown({ session, discriminator: queue.discriminator });
 
-    return { item: item.item, metadata: { discriminator: queue.discriminator, token }};
+    return { item: unescapeFieldNames(item.item) as any, metadata: { discriminator: queue.discriminator, token }};
   }
 
   public async lockNext (): Promise<{ item: TItem; metadata: LockMetadata } | undefined> {
@@ -525,7 +526,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
     const item = queue.items[0];
 
     await this.acknowledgeInternal({ session, discriminator: queue.discriminator, token });
-    await this.enqueueInternal({ session, item: item.item, discriminator: queue.discriminator, priority });
+    await this.enqueueInternal({ session, item: unescapeFieldNames(item.item) as any, discriminator: queue.discriminator, priority });
   }
 
   public async defer ({ discriminator, token, priority }: {
@@ -556,7 +557,8 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
       throw new errors.ItemNotFound();
     }
 
-    const foundItemIndex = queue.items.findIndex(({ item }: { item: TItem }): boolean => this.doesIdentifierMatchItem({ item, itemIdentifier }));
+    const foundItemIndex = queue.items.findIndex(({ item }: { item: TItem }): boolean =>
+      this.doesIdentifierMatchItem({ item: unescapeFieldNames(item) as any, itemIdentifier }));
 
     if (foundItemIndex === -1) {
       throw new errors.ItemNotFound();
