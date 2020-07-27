@@ -11,6 +11,7 @@ import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { Collection, Db, MongoClient } from 'mongodb';
+import { escapeFieldNames, unescapeFieldNames } from '../../utils/mongoDb/escapeFieldNames';
 import { PassThrough, Readable } from 'stream';
 
 class MongoDbDomainEventStore implements DomainEventStore {
@@ -135,7 +136,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
       return;
     }
 
-    return new DomainEvent<TDomainEventData>(lastDomainEvent);
+    return new DomainEvent<TDomainEventData>(unescapeFieldNames(lastDomainEvent) as any);
   }
 
   public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
@@ -171,7 +172,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     };
 
     onData = function (data: any): void {
-      passThrough.write(new DomainEvent<DomainEventData>(data));
+      passThrough.write(new DomainEvent<DomainEventData>(unescapeFieldNames(data) as any));
     };
 
     domainEventStream.on('data', onData);
@@ -224,7 +225,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     };
 
     onData = function (data: any): void {
-      passThrough.write(new DomainEvent<DomainEventData>(data));
+      passThrough.write(new DomainEvent<DomainEventData>(unescapeFieldNames(data) as any));
     };
 
     domainEventStream.on('data', onData);
@@ -262,7 +263,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     };
 
     onData = function (data: any): void {
-      passThrough.write(new DomainEvent<DomainEventData>(data));
+      passThrough.write(new DomainEvent<DomainEventData>(unescapeFieldNames(data) as any));
     };
 
     onEnd = function (): void {
@@ -335,7 +336,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     };
 
     onData = function (data: any): void {
-      passThrough.write(new DomainEvent<DomainEventData>(data));
+      passThrough.write(new DomainEvent<DomainEventData>(unescapeFieldNames(data) as any));
     };
 
     onEnd = function (): void {
@@ -373,10 +374,11 @@ class MongoDbDomainEventStore implements DomainEventStore {
       throw new errors.ParameterInvalid('Domain events are missing.');
     }
 
-    const sanitizedDomainEvents = domainEvents.map((domainEvent): DomainEvent<TDomainEventData> => new DomainEvent<TDomainEventData>({
-      ...domainEvent,
-      data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
-    }));
+    const sanitizedDomainEvents = domainEvents.map((domainEvent): any =>
+      escapeFieldNames({ ...new DomainEvent<TDomainEventData>({
+        ...domainEvent,
+        data: omitDeepBy(domainEvent.data, (value): boolean => value === undefined)
+      }) }));
 
     try {
       await withTransaction({
@@ -409,10 +411,12 @@ class MongoDbDomainEventStore implements DomainEventStore {
       return;
     }
 
+    const unescapedSnapshot = unescapeFieldNames(snapshot) as any;
+
     const mappedSnapshot = {
       aggregateIdentifier,
-      revision: snapshot.revision,
-      state: snapshot.state
+      revision: unescapedSnapshot.revision,
+      state: unescapedSnapshot.state
     };
 
     return mappedSnapshot;
@@ -425,7 +429,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
       { aggregateIdentifier: snapshot.aggregateIdentifier },
       { $set: {
         ...snapshot,
-        state: omitDeepBy(snapshot.state, (value): boolean => value === undefined)
+        state: escapeFieldNames(omitDeepBy(snapshot.state, (value): boolean => value === undefined))
       }},
       { upsert: true }
     );

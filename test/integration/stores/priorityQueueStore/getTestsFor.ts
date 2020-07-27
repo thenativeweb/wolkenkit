@@ -132,11 +132,13 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       }).is.not.throwingAsync();
     });
 
-    test('enqueues commands for discriminators with special characters.', async (): Promise<void> => {
+    test('enqueues commands with special characters in keys.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => {
         await priorityQueueStore.enqueue({
-          item: commands.firstAggregate.firstCommand,
-          discriminator: 'bar.baz\\bat',
+          item: {
+            'foo.bar': 'baz'
+          },
+          discriminator: 'foo',
           priority: commands.firstAggregate.firstCommand.metadata.timestamp
         });
       }).is.not.throwingAsync();

@@ -8,7 +8,8 @@ suite('escapeFieldNames', (): void => {
       'bar.baz': {
         $bas: 42
       },
-      '\\.$': 7
+      '\\.$': 7,
+      'https://invalid.token/is-anonymous': true
     });
 
     assert.that(escaped).is.equalTo({
@@ -16,7 +17,8 @@ suite('escapeFieldNames', (): void => {
       'bar\\dotbaz': {
         '\\dollarbas': 42
       },
-      '\\\\\\dot\\dollar': 7
+      '\\\\\\dot\\dollar': 7,
+      'https://invalid\\dottoken/is-anonymous': true
     });
   });
 });
