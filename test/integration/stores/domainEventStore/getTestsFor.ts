@@ -745,7 +745,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       assert.that(aggregateDomainEvents[1].name).is.equalTo('joined');
     });
 
-    test.only('stores domain events with special characters in keys.', async (): Promise<void> => {
+    test('stores domain events with special characters in keys.', async (): Promise<void> => {
       const aggregateIdentifier = {
         id: uuid(),
         name: 'peerGroup'

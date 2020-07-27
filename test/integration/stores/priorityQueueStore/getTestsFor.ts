@@ -131,6 +131,16 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         });
       }).is.not.throwingAsync();
     });
+
+    test('enqueues commands for discriminators with special characters.', async (): Promise<void> => {
+      await assert.that(async (): Promise<void> => {
+        await priorityQueueStore.enqueue({
+          item: commands.firstAggregate.firstCommand,
+          discriminator: 'bar.baz\\bat',
+          priority: commands.firstAggregate.firstCommand.metadata.timestamp
+        });
+      }).is.not.throwingAsync();
+    });
   });
 
   suite('lockNext', (): void => {
