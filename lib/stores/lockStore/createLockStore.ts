@@ -1,6 +1,6 @@
 import { errors } from '../../common/errors';
-import { InMemoryLockStore, InMemoryLockStoreOptions } from './InMemory';
 import { LockStore } from './LockStore';
+import { InMemoryLockStore, InMemoryLockStoreOptions } from './InMemory';
 import { MongoDbLockStore, MongoDbLockStoreOptions } from './MongoDb';
 import { MySqlLockStore, MySqlLockStoreOptions } from './MySql';
 import { PostgresLockStore, PostgresLockStoreOptions } from './Postgres';

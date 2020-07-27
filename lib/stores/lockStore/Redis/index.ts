@@ -1,3 +1,7 @@
 import { RedisLockStore } from './RedisLockStore';
+import { RedisLockStoreOptions } from './RedisLockStoreOptions';
 
-export { RedisLockStore };
+export {
+  RedisLockStore,
+  RedisLockStoreOptions
+};

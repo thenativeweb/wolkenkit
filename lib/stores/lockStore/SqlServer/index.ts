@@ -1,3 +1,7 @@
 import { SqlServerLockStore } from './SqlServerLockStore';
+import { SqlServerLockStoreOptions } from './SqlServerLockStoreOptions';
 
-export { SqlServerLockStore };
+export {
+  SqlServerLockStore,
+  SqlServerLockStoreOptions
+};
