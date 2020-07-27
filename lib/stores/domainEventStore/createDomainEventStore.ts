@@ -1,13 +1,14 @@
 import { DomainEventStore } from './DomainEventStore';
+import { DomainEventStoreOptions } from './DomainEventStoreOptions';
 import { errors } from '../../common/errors';
-import { InMemoryDomainEventStore, InMemoryDomainEventStoreOptions } from './InMemory';
-import { MongoDbDomainEventStore, MongoDbDomainEventStoreOptions } from './MongoDb';
-import { MySqlDomainEventStore, MySqlDomainEventStoreOptions } from './MySql';
-import { PostgresDomainEventStore, PostgresDomainEventStoreOptions } from './Postgres';
-import { SqlServerDomainEventStore, SqlServerDomainEventStoreOptions } from './SqlServer';
+import { InMemoryDomainEventStore } from './InMemory';
+import { MongoDbDomainEventStore } from './MongoDb';
+import { MySqlDomainEventStore } from './MySql';
+import { PostgresDomainEventStore } from './Postgres';
+import { SqlServerDomainEventStore } from './SqlServer';
 
 const createDomainEventStore = async function (
-  options: InMemoryDomainEventStoreOptions | MongoDbDomainEventStoreOptions | MySqlDomainEventStoreOptions | PostgresDomainEventStoreOptions | SqlServerDomainEventStoreOptions
+  options: DomainEventStoreOptions
 ): Promise<DomainEventStore> {
   switch (options.type) {
     case 'InMemory': {

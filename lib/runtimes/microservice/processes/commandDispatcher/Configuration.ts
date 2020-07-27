@@ -1,3 +1,9 @@
+import { CommandData } from '../../../../common/elements/CommandData';
+import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
+import { DistributiveOmit } from '../../../../common/types/DistributiveOmit';
+import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { PriorityQueueStoreOptions } from '../../../../stores/priorityQueueStore/PriorityQueueStoreOptions';
+
 export interface Configuration {
   applicationDirectory: string;
   awaitCommandCorsOrigin: string | string[];
@@ -6,8 +12,7 @@ export interface Configuration {
   healthPort: number;
   missedCommandRecoveryInterval: number;
   port: number;
-  priorityQueueStoreOptions: Record<string, any> & { expirationTime: number };
-  priorityQueueStoreType: string;
+  priorityQueueStoreOptions: DistributiveOmit<PriorityQueueStoreOptions<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   pubSubOptions: {
     channel: string;
     subscriber: object;

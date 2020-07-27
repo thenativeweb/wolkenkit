@@ -32,12 +32,8 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     });
 
     const priorityQueueStore = await createPriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>({
-      type: configuration.priorityQueueStoreType,
-      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
-      options: {
-        ...configuration.priorityQueueStoreOptions,
-        expirationTime: configuration.priorityQueueStoreOptions.expirationTime
-      }
+      ...configuration.priorityQueueStoreOptions,
+      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata
     });
 
     const newCommandSubscriber = await createSubscriber<object>({

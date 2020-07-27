@@ -3,12 +3,12 @@ import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
+import { InMemoryPriorityQueueStoreOptions } from './InMemoryPriorityQueueStoreOptions';
 import { LockMetadata } from '../LockMetadata';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
 import { uuid } from 'uuidv4';
-import { InMemoryPriorityQueueStoreOptions } from './InMemoryPriorityQueueStoreOptions';
 
 class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;

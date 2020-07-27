@@ -2,10 +2,12 @@ import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getPriorityQueueStoreOptionsSchema } from '../../../shared/schemas/getPriorityQueueStoreOptionsSchema';
 import path from 'path';
 
 const corsSchema = getCorsSchema();
 const portSchema = getPortSchema();
+const priorityQueueStoreOptionsSchema = getPriorityQueueStoreOptionsSchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
   applicationDirectory: {
@@ -45,20 +47,8 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   priorityQueueStoreOptions: {
     environmentVariable: 'PRIORITY_QUEUE_STORE_OPTIONS',
-    defaultValue: { expirationTime: 30_000 },
-    schema: {
-      type: 'object',
-      properties: {
-        expirationTime: { type: 'number', minimum: 1 }
-      },
-      required: [ 'expirationTime' ],
-      additionalProperties: true
-    }
-  },
-  priorityQueueStoreType: {
-    environmentVariable: 'PRIORITY_QUEUE_STORE_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string', minLength: 1 }
+    defaultValue: { type: 'InMemory', expirationTime: 30_000 },
+    schema: priorityQueueStoreOptionsSchema
   },
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',

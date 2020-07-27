@@ -7,10 +7,10 @@ import { LockMetadata } from '../LockMetadata';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
+import { SqlServerPriorityQueueStoreOptions } from './SqlServerPriorityQueueStoreOptions';
 import { TableNames } from './TableNames';
 import { uuid } from 'uuidv4';
 import { ConnectionPool, Transaction, TYPES as Types } from 'mssql';
-import { SqlServerPriorityQueueStoreOptions } from './SqlServerPriorityQueueStoreOptions';
 
 class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;

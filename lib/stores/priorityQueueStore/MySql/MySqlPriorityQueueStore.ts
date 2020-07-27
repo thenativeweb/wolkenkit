@@ -4,6 +4,7 @@ import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
 import { LockMetadata } from '../LockMetadata';
+import { MySqlPriorityQueueStoreOptions } from './MySqlPriorityQueueStoreOptions';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
@@ -13,7 +14,6 @@ import { TableNames } from './TableNames';
 import { uuid } from 'uuidv4';
 import { withTransaction } from '../../utils/mySql/withTransaction';
 import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
-import { MySqlPriorityQueueStoreOptions } from './MySqlPriorityQueueStoreOptions';
 
 class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;

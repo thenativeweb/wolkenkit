@@ -5,6 +5,7 @@ import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
 import { LockMetadata } from '../LockMetadata';
+import { MongoDbPriorityQueueStoreOptions } from './MongDbPriorityQueueStoreOptions';
 import { parse } from 'url';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
@@ -14,7 +15,6 @@ import { uuid } from 'uuidv4';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { ClientSession, Collection, Db, MongoClient } from 'mongodb';
 import { escapeFieldNames, unescapeFieldNames } from '../../utils/mongoDb/escapeFieldNames';
-import {MongoDbPriorityQueueStoreOptions} from "./MongDbPriorityQueueStoreOptions";
 
 class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected client: MongoClient;

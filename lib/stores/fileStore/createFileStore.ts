@@ -1,11 +1,12 @@
 import { errors } from '../../common/errors';
 import { FileStore } from './FileStore';
-import { FileSystemFileStore, FileSystemFileStoreOptions } from './FileSystem';
-import { InMemoryFileStore, InMemoryFileStoreOptions } from './InMemory';
-import { S3FileStore, S3FileStoreOptions } from './S3';
+import { FileStoreOptions } from './FileStoreOptions';
+import { FileSystemFileStore } from './FileSystem';
+import { InMemoryFileStore } from './InMemory';
+import { S3FileStore } from './S3';
 
 const createFileStore = async function (
-  options: FileSystemFileStoreOptions | InMemoryFileStoreOptions | S3FileStoreOptions
+  options: FileStoreOptions
 ): Promise<FileStore> {
   switch (options.type) {
     case 'FileSystem': {

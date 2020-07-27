@@ -8,6 +8,4 @@ const getPortSchema = function (): Schema {
   };
 };
 
-export {
-  getPortSchema
-};
+export { getPortSchema };

@@ -1,13 +1,14 @@
 import { ConsumerProgressStore } from './ConsumerProgressStore';
+import { ConsumerProgressStoreOptions } from './ConsumerProgressStoreOptions';
 import { errors } from '../../common/errors';
-import { InMemoryConsumerProgressStore, InMemoryConsumerProgressStoreOptions } from './InMemory';
-import { MongoDbConsumerProgressStore, MongoDbConsumerProgressStoreOptions } from './MongoDb';
-import { MySqlConsumerProgressStore, MySqlConsumerProgressStoreOptions } from './MySql';
-import { PostgresConsumerProgressStore, PostgresConsumerProgressStoreOptions } from './Postgres';
-import { SqlServerConsumerProgressStore, SqlServerConsumerProgressStoreOptions } from './SqlServer';
+import { InMemoryConsumerProgressStore } from './InMemory';
+import { MongoDbConsumerProgressStore } from './MongoDb';
+import { MySqlConsumerProgressStore } from './MySql';
+import { PostgresConsumerProgressStore } from './Postgres';
+import { SqlServerConsumerProgressStore } from './SqlServer';
 
 const createConsumerProgressStore = async function (
-  options: InMemoryConsumerProgressStoreOptions | MongoDbConsumerProgressStoreOptions | MySqlConsumerProgressStoreOptions | PostgresConsumerProgressStoreOptions | SqlServerConsumerProgressStoreOptions
+  options: ConsumerProgressStoreOptions
 ): Promise<ConsumerProgressStore> {
   switch (options.type) {
     case 'InMemory': {
