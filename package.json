@@ -180,7 +180,7 @@
     "graphql-tag": "2.11.0",
     "next": "9.5.0",
     "node-fetch": "2.6.0",
-    "nodeenv": "3.0.8",
+    "nodeenv": "3.0.9",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "record-stdstreams": "3.0.9",
