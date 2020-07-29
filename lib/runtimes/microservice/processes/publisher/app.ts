@@ -20,15 +20,8 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const configuration = fromEnvironmentVariables({ configurationDefinition });
 
-    const subscriber = await createSubscriber<object>({
-      type: configuration.pubSubType,
-      options: configuration.pubSubOptions.subscriber
-    });
-
-    const publisher = await createPublisher<object>({
-      type: configuration.pubSubType,
-      options: configuration.pubSubOptions.publisher
-    });
+    const subscriber = await createSubscriber<object>(configuration.pubSubOptions.subscriber);
+    const publisher = await createPublisher<object>(configuration.pubSubOptions.publisher);
 
     const onReceiveMessage = getOnReceiveMessage({
       publisher
