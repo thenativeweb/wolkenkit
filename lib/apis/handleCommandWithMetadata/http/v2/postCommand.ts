@@ -3,7 +3,7 @@ import { CommandWithMetadata } from '../../../../common/elements/CommandWithMeta
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
-import { jsonSchema } from 'uuidv4';
+import { jsonSchema } from '../../../../common/utils/uuid';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import typer from 'content-type';
 import { validateCommandWithMetadata } from '../../../../common/validators/validateCommandWithMetadata';
@@ -25,7 +25,7 @@ const postCommand = {
     body: {
       type: 'object',
       properties: {
-        id: jsonSchema.v4
+        id: jsonSchema
       },
       required: [ 'id' ],
       additionalProperties: false

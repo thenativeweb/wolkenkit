@@ -17,7 +17,7 @@ import { loadApplication } from '../../../../lib/common/application/loadApplicat
 import { PublishDomainEvent } from '../../../../lib/apis/observeDomainEvents/PublishDomainEvent';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { runAsServer } from '../../../shared/http/runAsServer';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('observeDomainEvents/http/Client', function (): void {
   this.timeout(5_000);
@@ -99,7 +99,7 @@ suite('observeDomainEvents/http/Client', function (): void {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -148,7 +148,7 @@ suite('observeDomainEvents/http/Client', function (): void {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'succeeded',
             data: {},
             metadata: {
@@ -161,7 +161,7 @@ suite('observeDomainEvents/http/Client', function (): void {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -216,7 +216,7 @@ suite('observeDomainEvents/http/Client', function (): void {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'succeeded',
             data: {},
             metadata: {
@@ -229,7 +229,7 @@ suite('observeDomainEvents/http/Client', function (): void {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -280,7 +280,7 @@ suite('observeDomainEvents/http/Client', function (): void {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'succeeded',
             data: {},
             metadata: {
@@ -293,7 +293,7 @@ suite('observeDomainEvents/http/Client', function (): void {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -347,7 +347,7 @@ suite('observeDomainEvents/http/Client', function (): void {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {

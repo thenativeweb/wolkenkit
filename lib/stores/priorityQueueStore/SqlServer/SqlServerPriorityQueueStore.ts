@@ -9,7 +9,7 @@ import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
 import { SqlServerPriorityQueueStoreOptions } from './SqlServerPriorityQueueStoreOptions';
 import { TableNames } from './TableNames';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { ConnectionPool, Transaction, TYPES as Types } from 'mssql';
 
 class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
@@ -525,7 +525,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
     const item = await this.getFirstItemInQueue({ transaction, discriminator });
 
     const until = Date.now() + this.expirationTime;
-    const token = uuid();
+    const token = v4();
 
     const requestUpdate = transaction.request();
 

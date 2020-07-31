@@ -9,7 +9,7 @@ import { getApi } from '../../../../lib/apis/performReplay/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('performReplay/http/Client', (): void => {
   let application: Application;
@@ -52,7 +52,7 @@ suite('performReplay/http/Client', (): void => {
           path: '/v2'
         });
 
-        const aggregateId = uuid();
+        const aggregateId = v4();
 
         await client.performReplay({
           flowNames: [ 'sampleFlow' ],
@@ -84,7 +84,7 @@ suite('performReplay/http/Client', (): void => {
           path: '/v2'
         });
 
-        const aggregateId = uuid();
+        const aggregateId = v4();
 
         await client.performReplay({
           aggregates: [{
@@ -115,7 +115,7 @@ suite('performReplay/http/Client', (): void => {
           path: '/v2'
         });
 
-        const aggregateId = uuid();
+        const aggregateId = v4();
 
         await assert.that(async (): Promise<void> => {
           await client.performReplay({
@@ -138,7 +138,7 @@ suite('performReplay/http/Client', (): void => {
           path: '/v2'
         });
 
-        const aggregateId = uuid();
+        const aggregateId = v4();
 
         await assert.that(async (): Promise<void> => {
           await client.performReplay({
@@ -161,7 +161,7 @@ suite('performReplay/http/Client', (): void => {
           path: '/v2'
         });
 
-        const aggregateId = uuid();
+        const aggregateId = v4();
 
         await assert.that(async (): Promise<void> => {
           await client.performReplay({

@@ -1,7 +1,7 @@
 import { assert } from 'assertthat';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
@@ -18,8 +18,8 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
   });
 
   test('published messages are received by the subscriber.', async (): Promise<void> => {
-    const channel = uuid();
-    const message = { data: uuid() };
+    const channel = v4();
+    const message = { data: v4() };
 
     const counter = waitForSignals({ count: 1 });
 
@@ -40,8 +40,8 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
   test('published messages are received by all subscribers.', async (): Promise<void> => {
     const secondSubscriber = await createSubscriber();
 
-    const channel = uuid();
-    const message = { data: uuid() };
+    const channel = v4();
+    const message = { data: v4() };
 
     const counterOne = waitForSignals({ count: 1 });
 
@@ -71,8 +71,8 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
   });
 
   test('after unsubscribing no more messages are received.', async (): Promise<void> => {
-    const channel = uuid();
-    const message = { data: uuid() };
+    const channel = v4();
+    const message = { data: v4() };
 
     let receivedMessageCount = 0;
 
@@ -92,8 +92,8 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
   });
 
   test('can subscribe to all channels simultaneously.', async (): Promise<void> => {
-    const messageOne = { data: uuid() };
-    const messageTwo = { data: uuid() };
+    const messageOne = { data: v4() };
+    const messageTwo = { data: v4() };
     const receivedMessages: object[] = [];
 
     const counter = waitForSignals({ count: 2 });
@@ -107,8 +107,8 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
       }
     });
 
-    await publisher.publish({ channel: uuid(), message: messageOne });
-    await publisher.publish({ channel: uuid(), message: messageTwo });
+    await publisher.publish({ channel: v4(), message: messageOne });
+    await publisher.publish({ channel: v4(), message: messageTwo });
 
     await counter.promise;
 

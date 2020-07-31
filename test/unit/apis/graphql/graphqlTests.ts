@@ -26,7 +26,7 @@ import { PublishDomainEvent } from '../../../../lib/apis/graphql/PublishDomainEv
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
@@ -129,7 +129,7 @@ suite('graphql', function (): void {
           }
         }
       `;
-      const aggregateId = uuid();
+      const aggregateId = v4();
 
       const response = await client.mutate({
         mutation,
@@ -176,10 +176,10 @@ suite('graphql', function (): void {
         },
         aggregateIdentifier: {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         },
         name: 'execute',
-        id: uuid()
+        id: v4()
       };
       const mutation = gql`
         mutation ($data: CommandIdentifierT0!) {
@@ -256,10 +256,10 @@ suite('graphql', function (): void {
         },
         aggregateIdentifier: {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         },
         name: 'execute',
-        id: uuid()
+        id: v4()
       };
       const mutation = gql`
         mutation ($data: CommandIdentifierT0!) {
@@ -301,7 +301,7 @@ suite('graphql', function (): void {
     test('publishes domain events via graphql subscription.', async (): Promise<void> => {
       const collector = waitForSignals({ count: 1 });
 
-      const aggregateId = uuid();
+      const aggregateId = v4();
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
           contextIdentifier: {
@@ -375,7 +375,7 @@ suite('graphql', function (): void {
     test('does not publish the authenticated event to anonymous clients.', async (): Promise<void> => {
       const collector = waitForSignals({ count: 1 });
 
-      const aggregateId = uuid();
+      const aggregateId = v4();
       const domainEvent1 = new DomainEventWithState({
         ...buildDomainEvent({
           contextIdentifier: {
@@ -463,7 +463,7 @@ suite('graphql', function (): void {
     test('publishes the authenticated event to legitimate clients.', async (): Promise<void> => {
       const collector = waitForSignals({ count: 1 });
 
-      const aggregateId = uuid();
+      const aggregateId = v4();
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
           contextIdentifier: {
@@ -560,7 +560,7 @@ suite('graphql', function (): void {
     test('publishes rejected/failed events to their initiator.', async (): Promise<void> => {
       const collector = waitForSignals({ count: 2 });
 
-      const aggregateId = uuid();
+      const aggregateId = v4();
       const domainEvent1 = new DomainEventWithState({
         ...buildDomainEvent({
           contextIdentifier: {
@@ -662,7 +662,7 @@ suite('graphql', function (): void {
     });
 
     test('does not publish rejected/failed events to other clients than the initiator.', async (): Promise<void> => {
-      const aggregateId = uuid();
+      const aggregateId = v4();
       const domainEvent1 = new DomainEventWithState({
         ...buildDomainEvent({
           contextIdentifier: {
@@ -782,15 +782,15 @@ suite('graphql', function (): void {
       const viewItems = [
         {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'executed',
-          id: uuid()
+          id: v4()
         },
         {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'executed',
-          id: uuid()
+          id: v4()
         }
       ];
 

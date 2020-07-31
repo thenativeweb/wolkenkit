@@ -1,6 +1,6 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { isUuid } from 'uuidv4';
+import { regex } from '../../../../common/utils/uuid';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -53,7 +53,7 @@ const getReplayForAggregate = {
 
       const { aggregateId } = req.params;
 
-      if (!isUuid(aggregateId)) {
+      if (!regex.test(aggregateId)) {
         return res.status(400).end('Aggregate id must be a uuid.');
       }
 

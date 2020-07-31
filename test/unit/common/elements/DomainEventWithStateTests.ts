@@ -1,13 +1,13 @@
 import { assert } from 'assertthat';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('DomainEventWithState', (): void => {
   test('sets the given values.', async (): Promise<void> => {
-    const aggregateId = uuid(),
-          causationId = uuid(),
-          correlationId = uuid(),
-          id = uuid(),
+    const aggregateId = v4(),
+          causationId = v4(),
+          correlationId = v4(),
+          id = v4(),
           timestamp = Date.now();
 
     const domainEvent = new DomainEventWithState({

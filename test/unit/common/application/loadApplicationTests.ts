@@ -8,7 +8,7 @@ import { isolated } from 'isolated';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import path from 'path';
 import { Services } from '../../../../lib/common/domain/domainEvent/Services';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('loadApplication', (): void => {
   test('throws an error if a non-existent directory is given.', async (): Promise<void> => {
@@ -100,7 +100,7 @@ suite('loadApplication', (): void => {
       }
     });
 
-    const userId = uuid();
+    const userId = v4();
 
     assert.that(
       application.domain.sampleContext.sampleAggregate.domainEventHandlers.authenticateFailed.isAuthorized(
@@ -114,7 +114,7 @@ suite('loadApplication', (): void => {
       application.domain.sampleContext.sampleAggregate.domainEventHandlers.authenticateFailed.isAuthorized(
         {},
         { metadata: { initiator: { user: { id: userId }}}} as DomainEventWithState<any, any>,
-        { client: { user: { id: uuid() }}} as Services
+        { client: { user: { id: v4() }}} as Services
       )
     ).is.false();
   });

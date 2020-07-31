@@ -9,7 +9,7 @@ import { getApi } from '../../../../lib/apis/handleDomainEvent/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('handleDomainEvent/http', (): void => {
   let application: Application;
@@ -108,10 +108,10 @@ suite('handleDomainEvent/http', (): void => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'nonExistent' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
-            id: uuid(),
+            id: v4(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
@@ -142,10 +142,10 @@ suite('handleDomainEvent/http', (): void => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'nonExistent', id: uuid() },
+            aggregateIdentifier: { name: 'nonExistent', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
-            id: uuid(),
+            id: v4(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
@@ -176,10 +176,10 @@ suite('handleDomainEvent/http', (): void => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'nonExistent',
             data: { strategy: 'succeed' },
-            id: uuid(),
+            id: v4(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
@@ -210,10 +210,10 @@ suite('handleDomainEvent/http', (): void => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'invalidValue' },
-            id: uuid(),
+            id: v4(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
@@ -244,10 +244,10 @@ suite('handleDomainEvent/http', (): void => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
-            id: uuid(),
+            id: v4(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
@@ -278,10 +278,10 @@ suite('handleDomainEvent/http', (): void => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
-            id: uuid(),
+            id: v4(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
@@ -304,10 +304,10 @@ suite('handleDomainEvent/http', (): void => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
-            id: uuid(),
+            id: v4(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
@@ -330,10 +330,10 @@ suite('handleDomainEvent/http', (): void => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
-            id: uuid(),
+            id: v4(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
@@ -370,10 +370,10 @@ suite('handleDomainEvent/http', (): void => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
-            id: uuid(),
+            id: v4(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
@@ -410,10 +410,10 @@ suite('handleDomainEvent/http', (): void => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
-            id: uuid(),
+            id: v4(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1
@@ -444,10 +444,10 @@ suite('handleDomainEvent/http', (): void => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
-            id: uuid(),
+            id: v4(),
             metadata: {
               initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
               revision: 1

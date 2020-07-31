@@ -4,7 +4,7 @@ import { errors } from '../../../../lib/common/errors';
 import { FileStore } from '../../../../lib/stores/fileStore/FileStore';
 import path from 'path';
 import streamToString from 'stream-to-string';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { createReadStream, ReadStream } from 'fs';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
@@ -21,7 +21,7 @@ const getTestsFor = function ({ createFileStore }: {
       stream: ReadStream;
 
   setup(async (): Promise<void> => {
-    id = uuid();
+    id = v4();
 
     const filePath = path.join(__dirname, '..', '..', '..', 'shared', 'files', 'someFile.json');
 

@@ -16,7 +16,7 @@ import { Configuration as ReplayConfiguration } from '../../../../../lib/runtime
 import { configurationDefinition as replayConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/replay/configurationDefinition';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { Client as WriteDomainEventStoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
 
 suite('replay', function (): void {
@@ -165,7 +165,7 @@ suite('replay', function (): void {
 
   suite('performing replay', (): void => {
     test('dispatches domain events for the requested aggregate.', async (): Promise<void> => {
-      const aggregateId = uuid();
+      const aggregateId = v4();
 
       await writeDomainEventStoreClient.storeDomainEvents({
         domainEvents: [

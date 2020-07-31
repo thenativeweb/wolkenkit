@@ -3,7 +3,7 @@ import { LikeData } from '../../../server/domain/communication/message/commands/
 import path from 'path';
 import { SendData } from '../../../server/domain/communication/message/commands/send';
 import { SentData } from '../../../server/domain/communication/message/domainEvents/sent';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { Application, loadApplication, sandbox } from 'wolkenkit';
 
 suite('message', (): void => {
@@ -18,7 +18,7 @@ suite('message', (): void => {
   suite('send', (): void => {
     test('sends a message.', async (): Promise<void> => {
       const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: uuid() };
+      const aggregateIdentifier = { name: 'message', id: v4() };
 
       await sandbox().
         withApplication({ application }).
@@ -34,7 +34,7 @@ suite('message', (): void => {
 
     test('fails if the message was already sent.', async (): Promise<void> => {
       const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: uuid() };
+      const aggregateIdentifier = { name: 'message', id: v4() };
 
       await sandbox().
         withApplication({ application }).
@@ -53,7 +53,7 @@ suite('message', (): void => {
   suite('like', (): void => {
     test('likes a message.', async (): Promise<void> => {
       const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: uuid() };
+      const aggregateIdentifier = { name: 'message', id: v4() };
 
       await sandbox().
         withApplication({ application }).
@@ -70,7 +70,7 @@ suite('message', (): void => {
 
     test('fails if the message was not yet sent.', async (): Promise<void> => {
       const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: uuid() };
+      const aggregateIdentifier = { name: 'message', id: v4() };
 
       await sandbox().
         withApplication({ application }).

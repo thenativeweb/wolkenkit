@@ -5,13 +5,14 @@ import { CommandWithMetadata } from '../../../../common/elements/CommandWithMeta
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
+import { jsonSchema } from '../../../../common/utils/uuid';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
+import { v4 } from 'uuid';
 import { validateCommand } from '../../../../common/validators/validateCommand';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import { jsonSchema, uuid } from 'uuidv4';
 
 const logger = flaschenpost.getLogger();
 
@@ -27,7 +28,7 @@ const postCommand = {
     body: {
       type: 'object',
       properties: {
-        id: jsonSchema.v4
+        id: jsonSchema
       },
       required: [ 'id' ],
       additionalProperties: false
@@ -105,7 +106,7 @@ const postCommand = {
         return;
       }
 
-      const commandId = uuid();
+      const commandId = v4();
       const commandWithMetadata = new CommandWithMetadata({
         ...command,
         id: commandId,

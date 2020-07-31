@@ -5,7 +5,7 @@ import { getTestApplicationDirectory } from '../../../shared/applications/getTes
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { createSandbox as sandbox } from '../../../../lib/common/utils/test/sandbox/createSandbox';
 import { SucceededData } from '../../../shared/applications/typescript/base/server/domain/sampleContext/sampleAggregate/domainEvents/succeeded';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('javascript/base', (): void => {
   test('runs a command on a pristine aggregate.', async (): Promise<void> => {
@@ -13,7 +13,7 @@ suite('javascript/base', (): void => {
     const application = await loadApplication({ applicationDirectory });
 
     const contextIdentifier = { name: 'sampleContext' };
-    const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
+    const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
 
     await sandbox().
       withApplication({ application }).
@@ -31,7 +31,7 @@ suite('javascript/base', (): void => {
     const application = await loadApplication({ applicationDirectory });
 
     const contextIdentifier = { name: 'sampleContext' };
-    const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
+    const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
 
     await sandbox().
       withApplication({ application }).

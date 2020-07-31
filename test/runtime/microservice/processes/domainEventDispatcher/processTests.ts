@@ -12,7 +12,7 @@ import { Client as HandleDomainEventClient } from '../../../../../lib/apis/handl
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('domainEventDispatcher', function (): void {
   this.timeout(10_000);
@@ -101,7 +101,7 @@ suite('domainEventDispatcher', function (): void {
         },
         aggregateIdentifier: {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         },
         name: 'executed',
         data: { strategy: 'succeed' },

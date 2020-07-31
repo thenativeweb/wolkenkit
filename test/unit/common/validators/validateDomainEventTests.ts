@@ -6,7 +6,7 @@ import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { validateDomainEvent } from '../../../../lib/common/validators/validateDomainEvent';
 
 suite('validateDomainEvent', (): void => {
@@ -18,7 +18,7 @@ suite('validateDomainEvent', (): void => {
 
   const domainEvent = buildDomainEvent({
     contextIdentifier: { name: 'sampleContext' },
-    aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+    aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
     name: 'executed',
     data: {
       strategy: 'succeed'
@@ -66,7 +66,7 @@ suite('validateDomainEvent', (): void => {
           ...domainEvent,
           aggregateIdentifier: {
             name: 'someAggregate',
-            id: uuid()
+            id: v4()
           }
         }),
         application

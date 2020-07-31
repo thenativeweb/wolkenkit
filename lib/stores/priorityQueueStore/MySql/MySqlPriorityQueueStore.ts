@@ -11,7 +11,7 @@ import { Queue } from './Queue';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { TableNames } from './TableNames';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { withTransaction } from '../../utils/mySql/withTransaction';
 import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
 
@@ -568,7 +568,7 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
     const item = await this.getFirstItemInQueue({ connection, discriminator });
 
     const until = Date.now() + this.expirationTime;
-    const token = uuid();
+    const token = v4();
 
     await runQuery({
       connection,

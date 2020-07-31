@@ -1,7 +1,7 @@
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
-import { jsonSchema } from 'uuidv4';
+import { jsonSchema } from '../../../../common/utils/uuid';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import typer from 'content-type';
 import { Value } from 'validate-value';
@@ -18,7 +18,7 @@ const acknowledge = {
       type: 'object',
       properties: {
         discriminator: { type: 'string', minLength: 1 },
-        token: jsonSchema.v4
+        token: jsonSchema
       },
       required: [ 'discriminator', 'token' ],
       additionalProperties: false

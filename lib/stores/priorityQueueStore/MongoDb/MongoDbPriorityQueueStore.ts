@@ -11,7 +11,7 @@ import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
 import { retry } from 'retry-ignore-abort';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { ClientSession, Collection, Db, MongoClient } from 'mongodb';
 import { escapeFieldNames, unescapeFieldNames } from '../../utils/mongoDb/escapeFieldNames';
@@ -398,7 +398,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
     const item = queue.items[0];
 
     const until = Date.now() + this.expirationTime;
-    const token = uuid();
+    const token = v4();
 
     await this.collections.queues.updateOne(
       { discriminator: queue.discriminator },

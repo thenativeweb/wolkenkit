@@ -2,7 +2,7 @@ import { assert } from 'assertthat';
 import { Infrastructure } from '../../server/infrastructure';
 import { Message } from '../../server/types/Message';
 import path from 'path';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { Application, loadApplication, sandbox } from 'wolkenkit';
 
 suite('messages', (): void => {
@@ -15,7 +15,7 @@ suite('messages', (): void => {
   });
 
   test('adds sent messages to the messages view.', async (): Promise<void> => {
-    const aggregateId = uuid(),
+    const aggregateId = v4(),
           text = 'Hello world!',
           timestamp = Date.now();
 
@@ -43,7 +43,7 @@ suite('messages', (): void => {
   });
 
   test('increases likes.', async (): Promise<void> => {
-    const aggregateId = uuid();
+    const aggregateId = v4();
 
     await sandbox().
       withApplication({ application }).

@@ -11,7 +11,7 @@ import { getTestApplicationDirectory } from '../../../shared/applications/getTes
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('handleCommandWithMetadata/http/Client', (): void => {
   let application: Application;
@@ -47,13 +47,13 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
       test('throws an exception if a command is sent with a non-existent context name.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
           contextIdentifier: { name: 'nonExistent' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'execute',
           data: { strategy: 'succeed' },
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             timestamp: Date.now(),
             client: {
               ip: '127.0.0.1',
@@ -83,13 +83,13 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
       test('throws an exception if a command is sent with a non-existent aggregate name.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'nonExistent', id: uuid() },
+          aggregateIdentifier: { name: 'nonExistent', id: v4() },
           name: 'execute',
           data: { strategy: 'succeed' },
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             timestamp: Date.now(),
             client: {
               ip: '127.0.0.1',
@@ -119,13 +119,13 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
       test('throws an exception if a command is sent with a non-existent command name.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'nonExistent',
           data: { strategy: 'succeed' },
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             timestamp: Date.now(),
             client: {
               ip: '127.0.0.1',
@@ -155,13 +155,13 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
       test('throws an exception if a command is sent with a payload that does not match the schema.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'execute',
           data: { strategy: 'invalid-value' },
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             timestamp: Date.now(),
             client: {
               ip: '127.0.0.1',
@@ -191,13 +191,13 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
       test('sends commands.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'execute',
           data: { strategy: 'succeed' },
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             timestamp: Date.now(),
             client: {
               ip: '127.0.0.1',
@@ -246,13 +246,13 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
       test('returns the ID of the sent command.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'execute',
           data: { strategy: 'succeed' },
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             timestamp: Date.now(),
             client: {
               ip: '127.0.0.1',
@@ -291,13 +291,13 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
 
         const command = new CommandWithMetadata({
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'execute',
           data: { strategy: 'succeed' },
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             timestamp: Date.now(),
             client: {
               ip: '127.0.0.1',
@@ -349,9 +349,9 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
       test('throws an exception if a non-existent context name is given.', async (): Promise<void> => {
         const commandIdentifierWithClient: ItemIdentifierWithClient = {
           contextIdentifier: { name: 'nonExistent' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'execute',
-          id: uuid(),
+          id: v4(),
           client: {
             ip: '127.0.0.1',
             user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
@@ -376,9 +376,9 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
       test('throws an exception if a non-existent aggregate name is given.', async (): Promise<void> => {
         const commandIdentifierWithClient: ItemIdentifierWithClient = {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'nonExistent', id: uuid() },
+          aggregateIdentifier: { name: 'nonExistent', id: v4() },
           name: 'execute',
-          id: uuid(),
+          id: v4(),
           client: {
             ip: '127.0.0.1',
             user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
@@ -403,9 +403,9 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
       test('throws an exception if a non-existent command name is given.', async (): Promise<void> => {
         const commandIdentifierWithClient: ItemIdentifierWithClient = {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'nonExistent',
-          id: uuid(),
+          id: v4(),
           client: {
             ip: '127.0.0.1',
             user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
@@ -430,9 +430,9 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
       test('cancels commands.', async (): Promise<void> => {
         const commandIdentifierWithClient: ItemIdentifierWithClient = {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'execute',
-          id: uuid(),
+          id: v4(),
           client: {
             ip: '127.0.0.1',
             user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},
@@ -467,9 +467,9 @@ suite('handleCommandWithMetadata/http/Client', (): void => {
 
         const commandIdentifierWithClient: ItemIdentifierWithClient = {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'execute',
-          id: uuid(),
+          id: v4(),
           client: {
             ip: '127.0.0.1',
             user: { id: 'jane.doe', claims: { sub: 'jane.doe' }},

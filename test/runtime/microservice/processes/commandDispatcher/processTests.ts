@@ -12,7 +12,7 @@ import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/ap
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('commandDispatcher', function (): void {
   this.timeout(10_000);
@@ -94,7 +94,7 @@ suite('commandDispatcher', function (): void {
         },
         aggregateIdentifier: {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         },
         name: 'execute',
         data: {

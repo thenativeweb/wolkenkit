@@ -10,7 +10,7 @@ import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStor
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('getAggregatesService', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
@@ -44,7 +44,7 @@ suite('getAggregatesService', (): void => {
 
   suite('AggregatesService', (): void => {
     test('returns the current state of a requested aggregate.', async (): Promise<void> => {
-      const id = uuid();
+      const id = v4();
       const user = {
         id: 'jane.doe',
         claims: {
@@ -78,7 +78,7 @@ suite('getAggregatesService', (): void => {
 
     test('throws an error if a requested aggregate does not exist.', async (): Promise<void> => {
       const aggregatesService = getAggregatesService({ repository });
-      const id = uuid();
+      const id = v4();
 
       await assert.that(async (): Promise<void> => {
         await aggregatesService.read({

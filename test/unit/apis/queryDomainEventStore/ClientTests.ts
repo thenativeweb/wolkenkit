@@ -12,7 +12,7 @@ import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
 import { toArray } from 'streamtoarray';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('queryDomainEventStore/http/Client', (): void => {
   suite('/v2', (): void => {
@@ -53,7 +53,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
       test('returns a stream that sends all domain events.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const firstDomainEvent = buildDomainEvent({
@@ -123,7 +123,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
       test('returns a stream that sends all domain events that match the given timestamp constraint.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const firstDomainEvent = buildDomainEvent({
@@ -219,11 +219,11 @@ suite('queryDomainEventStore/http/Client', (): void => {
       test('returns a stream that ends instantly if there are no domain events in the selected aggregate to deliver.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
         const differentAggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const firstDomainEvent = buildDomainEvent({
@@ -266,7 +266,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
       test('returns a stream that sends all domain events in the selected aggregate.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const firstDomainEvent = buildDomainEvent({
@@ -336,7 +336,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
       test('returns a stream that sends all domain events in the selected aggregate that match the given revision constraints.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const firstDomainEvent = buildDomainEvent({
@@ -414,7 +414,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
       test('closes the stream once the given to-revision-global is reached.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const firstDomainEvent = buildDomainEvent({
@@ -487,7 +487,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        await assert.that(async (): Promise<any> => await client.getReplayForAggregate({ aggregateId: uuid(), fromRevision: 0 })).is.throwingAsync(
+        await assert.that(async (): Promise<any> => await client.getReplayForAggregate({ aggregateId: v4(), fromRevision: 0 })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === `Parameter 'fromRevision' must be at least 1.`
         );
       });
@@ -500,7 +500,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        await assert.that(async (): Promise<any> => await client.getReplayForAggregate({ aggregateId: uuid(), toRevision: 0 })).is.throwingAsync(
+        await assert.that(async (): Promise<any> => await client.getReplayForAggregate({ aggregateId: v4(), toRevision: 0 })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === `Parameter 'toRevision' must be at least 1.`
         );
       });
@@ -513,7 +513,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        await assert.that(async (): Promise<any> => await client.getReplayForAggregate({ aggregateId: uuid(), fromRevision: 5, toRevision: 3 })).is.throwingAsync(
+        await assert.that(async (): Promise<any> => await client.getReplayForAggregate({ aggregateId: v4(), fromRevision: 5, toRevision: 3 })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ParameterInvalid.code && ex.message === `Parameter 'toRevision' must be greater or equal to 'fromRevision'.`
         );
       });
@@ -523,7 +523,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
       test('retrieves the last domain event for a given aggregate idententifier.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const domainEvent = buildDomainEvent({
@@ -556,7 +556,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
       test('retrieves the latest domain event if multiple were stored.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const firstDomainEvent = buildDomainEvent({
@@ -601,7 +601,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
       test('returns undefined if no domain event exists for the given aggregate identifier.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const { port } = await runAsServer({ app: api });
@@ -625,14 +625,14 @@ suite('queryDomainEventStore/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {},
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
@@ -647,13 +647,13 @@ suite('queryDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        const domainEventsByCausationId = await toArray(await client.getDomainEventsByCausationId({ causationId: uuid() }));
+        const domainEventsByCausationId = await toArray(await client.getDomainEventsByCausationId({ causationId: v4() }));
 
         assert.that(domainEventsByCausationId).is.equalTo([]);
       });
 
       test('returns all domain events with a matching causation id.', async (): Promise<void> => {
-        const causationId = uuid();
+        const causationId = v4();
 
         const domainEvent1 = buildDomainEvent({
           contextIdentifier: {
@@ -661,14 +661,14 @@ suite('queryDomainEventStore/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {},
-          id: uuid(),
+          id: v4(),
           metadata: {
             causationId,
-            correlationId: uuid(),
+            correlationId: v4(),
             revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
@@ -679,14 +679,14 @@ suite('queryDomainEventStore/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {},
-          id: uuid(),
+          id: v4(),
           metadata: {
             causationId,
-            correlationId: uuid(),
+            correlationId: v4(),
             revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
@@ -697,14 +697,14 @@ suite('queryDomainEventStore/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {},
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
@@ -735,14 +735,14 @@ suite('queryDomainEventStore/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {},
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
@@ -757,13 +757,13 @@ suite('queryDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        const domainEventsByCausationId = await client.hasDomainEventsWithCausationId({ causationId: uuid() });
+        const domainEventsByCausationId = await client.hasDomainEventsWithCausationId({ causationId: v4() });
 
         assert.that(domainEventsByCausationId).is.false();
       });
 
       test('returns true if events with a matching causation id exist.', async (): Promise<void> => {
-        const causationId = uuid();
+        const causationId = v4();
 
         const domainEvent1 = buildDomainEvent({
           contextIdentifier: {
@@ -771,14 +771,14 @@ suite('queryDomainEventStore/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {},
-          id: uuid(),
+          id: v4(),
           metadata: {
             causationId,
-            correlationId: uuid(),
+            correlationId: v4(),
             revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
@@ -789,14 +789,14 @@ suite('queryDomainEventStore/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {},
-          id: uuid(),
+          id: v4(),
           metadata: {
             causationId,
-            correlationId: uuid(),
+            correlationId: v4(),
             revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
@@ -807,14 +807,14 @@ suite('queryDomainEventStore/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {},
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
@@ -843,14 +843,14 @@ suite('queryDomainEventStore/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {},
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
@@ -865,13 +865,13 @@ suite('queryDomainEventStore/http/Client', (): void => {
           path: '/v2'
         });
 
-        const domainEventsByCorrelationId = await toArray(await client.getDomainEventsByCorrelationId({ correlationId: uuid() }));
+        const domainEventsByCorrelationId = await toArray(await client.getDomainEventsByCorrelationId({ correlationId: v4() }));
 
         assert.that(domainEventsByCorrelationId).is.equalTo([]);
       });
 
       test('returns all domain events with a matching correlation id.', async (): Promise<void> => {
-        const correlationId = uuid();
+        const correlationId = v4();
 
         const domainEvent1 = buildDomainEvent({
           contextIdentifier: {
@@ -879,13 +879,13 @@ suite('queryDomainEventStore/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {},
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
+            causationId: v4(),
             correlationId,
             revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
@@ -897,13 +897,13 @@ suite('queryDomainEventStore/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {},
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
+            causationId: v4(),
             correlationId,
             revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
@@ -915,14 +915,14 @@ suite('queryDomainEventStore/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {},
-          id: uuid(),
+          id: v4(),
           metadata: {
-            causationId: uuid(),
-            correlationId: uuid(),
+            causationId: v4(),
+            correlationId: v4(),
             revision: 1,
             initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
           }
@@ -949,7 +949,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
       test('retrieves the snapshot for a given aggregate identifier.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const snapshot: Snapshot<object> = {
@@ -977,7 +977,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
       test('retrieves the latest snapshot if multiple were stored.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const firstSnapshot: Snapshot<object> = {
@@ -1013,7 +1013,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
       test('returns undefined if no snapshot exists for the given aggregate identifier.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const { port } = await runAsServer({ app: api });

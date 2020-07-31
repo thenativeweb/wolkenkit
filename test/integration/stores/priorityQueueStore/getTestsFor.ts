@@ -8,7 +8,7 @@ import { getShortId } from '../../../shared/getShortId';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { sleep } from '../../../../lib/common/utils/sleep';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createPriorityQueueStore }: {
@@ -19,8 +19,8 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 }): void {
   const expirationTime = 250;
 
-  const firstAggregateId = uuid(),
-        secondAggregateId = uuid();
+  const firstAggregateId = v4(),
+        secondAggregateId = v4();
 
   const commands = {
     firstAggregate: {
@@ -295,8 +295,8 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test(`returns an item if a locked queue's until timestamp is lower than all other priorities.`, async (): Promise<void> => {
-      const item1 = { id: uuid() },
-            item2 = { id: uuid() };
+      const item1 = { id: v4() },
+            item2 = { id: v4() };
 
       await priorityQueueStore.enqueue({
         item: item1,
@@ -569,25 +569,25 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
   suite('remove', (): void => {
     test('throws an error if no queue exists for the discriminator.', async (): Promise<void> => {
       await assert.that(async (): Promise<void> => await priorityQueueStore.remove({
-        discriminator: uuid(),
-        itemIdentifier: { id: uuid() }
+        discriminator: v4(),
+        itemIdentifier: { id: v4() }
       })).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.ItemNotFound.code);
     });
 
     test('throws an error if no item in the queue matches the identifier.', async (): Promise<void> => {
-      const discriminator = uuid();
+      const discriminator = v4();
 
-      await priorityQueueStore.enqueue({ item: { id: uuid() }, discriminator, priority: 5 });
+      await priorityQueueStore.enqueue({ item: { id: v4() }, discriminator, priority: 5 });
 
       await assert.that(async (): Promise<void> => await priorityQueueStore.remove({
         discriminator,
-        itemIdentifier: { id: uuid() }
+        itemIdentifier: { id: v4() }
       })).is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.ItemNotFound.code);
     });
 
     test('throws an error if the item is in the front of the queue and currently locked.', async (): Promise<void> => {
-      const discriminator = uuid();
-      const item = { id: uuid() };
+      const discriminator = v4();
+      const item = { id: v4() };
 
       await priorityQueueStore.enqueue({ item, discriminator, priority: 5 });
       await priorityQueueStore.lockNext();
@@ -599,12 +599,12 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('removes the item from the front of the queue and repairs up if necessary.', async (): Promise<void> => {
-      const discriminatorOne = uuid();
-      const discriminatorTwo = uuid();
+      const discriminatorOne = v4();
+      const discriminatorTwo = v4();
 
-      const itemPrioOne = { id: uuid() };
-      const itemPrioTwo = { id: uuid() };
-      const itemPrioThree = { id: uuid() };
+      const itemPrioOne = { id: v4() };
+      const itemPrioTwo = { id: v4() };
+      const itemPrioThree = { id: v4() };
 
       await priorityQueueStore.enqueue({ item: itemPrioThree, discriminator: discriminatorOne, priority: 3 });
       await priorityQueueStore.enqueue({ item: itemPrioOne, discriminator: discriminatorOne, priority: 1 });
@@ -618,12 +618,12 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('removes the item from the front of the queue and repairs down if necessary.', async (): Promise<void> => {
-      const discriminatorOne = uuid();
-      const discriminatorTwo = uuid();
+      const discriminatorOne = v4();
+      const discriminatorTwo = v4();
 
-      const itemPrioOne = { id: uuid() };
-      const itemPrioTwo = { id: uuid() };
-      const itemPrioThree = { id: uuid() };
+      const itemPrioOne = { id: v4() };
+      const itemPrioTwo = { id: v4() };
+      const itemPrioThree = { id: v4() };
 
       await priorityQueueStore.enqueue({ item: itemPrioOne, discriminator: discriminatorOne, priority: 1 });
       await priorityQueueStore.enqueue({ item: itemPrioThree, discriminator: discriminatorOne, priority: 3 });
@@ -637,10 +637,10 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
     });
 
     test('removes the item from anywhere else in the queue.', async (): Promise<void> => {
-      const discriminator = uuid();
+      const discriminator = v4();
 
-      const itemPrioOne = { id: uuid() };
-      const itemPrioTwo = { id: uuid() };
+      const itemPrioOne = { id: v4() };
+      const itemPrioTwo = { id: v4() };
 
       await priorityQueueStore.enqueue({ item: itemPrioOne, discriminator, priority: 1 });
       await priorityQueueStore.enqueue({ item: itemPrioTwo, discriminator, priority: 2 });

@@ -19,7 +19,7 @@ import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { State } from '../../../../lib/common/elements/State';
 import { toArray } from 'streamtoarray';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('AggregateInstance', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
@@ -32,7 +32,7 @@ suite('AggregateInstance', (): void => {
       repository: Repository;
 
   setup(async (): Promise<void> => {
-    aggregateId = uuid();
+    aggregateId = v4();
 
     application = await loadApplication({ applicationDirectory });
 
@@ -95,7 +95,7 @@ suite('AggregateInstance', (): void => {
 
   suite('applySnapshot', (): void => {
     test(`throws an error if the id of the snapshot's aggregate identifier does not match.`, async (): Promise<void> => {
-      const snapshotAggregateIdentifierId = uuid();
+      const snapshotAggregateIdentifierId = v4();
 
       assert.that((): void => {
         aggregateInstance.applySnapshot({
@@ -203,7 +203,7 @@ suite('AggregateInstance', (): void => {
     test('throws an error if the aggregate id does not match.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
         name: 'executed',
         data: {
           strategy: 'succeed'
@@ -265,7 +265,7 @@ suite('AggregateInstance', (): void => {
       test(`throws an error if the data of a command doesn't match its schema.`, async (): Promise<void> => {
         const aggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const command = buildCommandWithMetadata({

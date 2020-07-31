@@ -13,7 +13,7 @@ import { loadApplication } from '../../../../lib/common/application/loadApplicat
 import { Readable } from 'stream';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import streamToString from 'stream-to-string';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('manageFile/http/Client', (): void => {
   const identityProviders = [ identityProvider ];
@@ -42,8 +42,8 @@ suite('manageFile/http/Client', (): void => {
       }));
 
       file = {
-        id: uuid(),
-        name: uuid(),
+        id: v4(),
+        name: v4(),
         content: 'Hello world!'
       };
     });

@@ -8,7 +8,7 @@ import { LockMetadata } from '../LockMetadata';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
@@ -221,7 +221,7 @@ class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     const item = queue.items[0];
 
     const until = Date.now() + this.expirationTime;
-    const token = uuid();
+    const token = v4();
 
     queue.lock = { until, token };
 

@@ -19,7 +19,7 @@ import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { Value } from 'validate-value';
 
 suite('awaitItem/http/Client', (): void => {
@@ -35,7 +35,7 @@ suite('awaitItem/http/Client', (): void => {
 
     setup(async (): Promise<void> => {
       newItemSubscriber = await InMemorySubscriber.create({ type: 'InMemory' });
-      newItemSubscriberChannel = uuid();
+      newItemSubscriberChannel = v4();
       newItemPublisher = await InMemoryPublisher.create({ type: 'InMemory' });
 
       priorityQueueStore = await createPriorityQueueStore({
@@ -71,7 +71,7 @@ suite('awaitItem/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -107,7 +107,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await assert.that(async (): Promise<any> => await client.renewLock({
           discriminator: '' as any,
-          token: uuid()
+          token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.RequestMalformed.code &&
             ex.message === 'String is too short (0 chars), minimum 1 (at requestBody.discriminator).'
@@ -124,8 +124,8 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.renewLock({
-          discriminator: uuid(),
-          token: uuid()
+          discriminator: v4(),
+          token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ItemNotFound.code
         );
@@ -146,7 +146,7 @@ suite('awaitItem/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -164,7 +164,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await assert.that(async (): Promise<any> => client.renewLock({
           discriminator: commandWithMetadata.aggregateIdentifier.id,
-          token: uuid()
+          token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ItemNotLocked.code
         );
@@ -185,7 +185,7 @@ suite('awaitItem/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -205,7 +205,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await assert.that(async (): Promise<any> => client.renewLock({
           discriminator: commandWithMetadata.aggregateIdentifier.id,
-          token: uuid()
+          token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.TokenMismatch.code &&
             ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
@@ -227,7 +227,7 @@ suite('awaitItem/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -271,7 +271,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await assert.that(async (): Promise<any> => await client.acknowledge({
           discriminator: '',
-          token: uuid()
+          token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.RequestMalformed.code &&
             ex.message === 'String is too short (0 chars), minimum 1 (at requestBody.discriminator).'
@@ -288,8 +288,8 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.acknowledge({
-          discriminator: uuid(),
-          token: uuid()
+          discriminator: v4(),
+          token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ItemNotFound.code
         );
@@ -310,7 +310,7 @@ suite('awaitItem/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -328,7 +328,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await assert.that(async (): Promise<any> => client.acknowledge({
           discriminator: commandWithMetadata.aggregateIdentifier.id,
-          token: uuid()
+          token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ItemNotLocked.code
         );
@@ -349,7 +349,7 @@ suite('awaitItem/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -369,7 +369,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await assert.that(async (): Promise<any> => client.acknowledge({
           discriminator: commandWithMetadata.aggregateIdentifier.id,
-          token: uuid()
+          token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.TokenMismatch.code &&
             ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
@@ -385,7 +385,7 @@ suite('awaitItem/http/Client', (): void => {
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
-        const aggregateId = uuid();
+        const aggregateId = v4();
         const commandOne = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
@@ -447,7 +447,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await assert.that(async (): Promise<any> => await client.defer({
           discriminator: '',
-          token: uuid(),
+          token: v4(),
           priority: Date.now()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.RequestMalformed.code &&
@@ -465,8 +465,8 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.defer({
-          discriminator: uuid(),
-          token: uuid(),
+          discriminator: v4(),
+          token: v4(),
           priority: Date.now()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ItemNotFound.code
@@ -488,7 +488,7 @@ suite('awaitItem/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -506,7 +506,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await assert.that(async (): Promise<any> => client.defer({
           discriminator: commandWithMetadata.aggregateIdentifier.id,
-          token: uuid(),
+          token: v4(),
           priority: Date.now()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ItemNotLocked.code
@@ -528,7 +528,7 @@ suite('awaitItem/http/Client', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -548,7 +548,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await assert.that(async (): Promise<any> => client.defer({
           discriminator: commandWithMetadata.aggregateIdentifier.id,
-          token: uuid(),
+          token: v4(),
           priority: Date.now()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.TokenMismatch.code &&
@@ -565,7 +565,7 @@ suite('awaitItem/http/Client', (): void => {
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
-        const aggregateId = uuid();
+        const aggregateId = v4();
         const commandOne = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
