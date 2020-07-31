@@ -14,7 +14,7 @@ import { loadApplication } from '../../../../lib/common/application/loadApplicat
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { State } from '../../../../lib/common/elements/State';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('getAggregateService', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
@@ -23,7 +23,7 @@ suite('getAggregateService', (): void => {
   const aggregateName = 'sampleAggregate';
   const commandName = 'execute';
   const domainEventName = 'executed';
-  const commandId = uuid();
+  const commandId = v4();
   const user = {
     id: 'jane.doe',
     claims: {
@@ -32,7 +32,7 @@ suite('getAggregateService', (): void => {
   };
   const command = new CommandWithMetadata({
     contextIdentifier: { name: contextName },
-    aggregateIdentifier: { id: uuid(), name: aggregateName },
+    aggregateIdentifier: { id: v4(), name: aggregateName },
     name: commandName,
     data: {
       strategy: 'succeed'
@@ -40,7 +40,7 @@ suite('getAggregateService', (): void => {
     id: commandId,
     metadata: {
       causationId: commandId,
-      correlationId: uuid(),
+      correlationId: v4(),
       client: { ip: '127.0.0.0', token: 'some-token', user },
       initiator: { user },
       timestamp: Date.now()
@@ -91,7 +91,7 @@ suite('getAggregateService', (): void => {
       },
       aggregateIdentifier: {
         name: aggregateName,
-        id: uuid()
+        id: v4()
       }
     });
 

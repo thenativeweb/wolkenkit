@@ -7,7 +7,7 @@ import { getApi } from '../../../../lib/apis/performReplay/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('performReplay/http', (): void => {
   let application: Application;
@@ -96,7 +96,7 @@ suite('performReplay/http', (): void => {
             flowNames: [],
             aggregates: [{
               contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+              aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
               from: 23,
               to: 42
             }]
@@ -123,7 +123,7 @@ suite('performReplay/http', (): void => {
           data: {
             aggregates: [{
               contextIdentifier: { name: 'nonExistent' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+              aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
               from: 23,
               to: 42
             }]
@@ -150,7 +150,7 @@ suite('performReplay/http', (): void => {
           data: {
             aggregates: [{
               contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'nonExistent', id: uuid() },
+              aggregateIdentifier: { name: 'nonExistent', id: v4() },
               from: 23,
               to: 42
             }]
@@ -178,7 +178,7 @@ suite('performReplay/http', (): void => {
             flowNames: [ 'nonExistent' ],
             aggregates: [{
               contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+              aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
               from: 23,
               to: 42
             }]
@@ -206,7 +206,7 @@ suite('performReplay/http', (): void => {
             flowNames: [ 'sampleFlow' ],
             aggregates: [{
               contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+              aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
               from: 23,
               to: 42
             }]
@@ -218,7 +218,7 @@ suite('performReplay/http', (): void => {
 
       test('receives replay requests.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
-        const aggregateId = uuid();
+        const aggregateId = v4();
 
         await client({
           method: 'post',
@@ -248,7 +248,7 @@ suite('performReplay/http', (): void => {
 
       test('replays all flows if no flow is given.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
-        const aggregateId = uuid();
+        const aggregateId = v4();
 
         await client({
           method: 'post',
@@ -293,7 +293,7 @@ suite('performReplay/http', (): void => {
             flowNames: [ 'sampleFlow' ],
             aggregates: [{
               contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+              aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
               from: 23,
               to: 42
             }]

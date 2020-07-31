@@ -18,7 +18,7 @@ import { sleep } from '../../../../../lib/common/utils/sleep';
 import { startCatchAllServer } from '../../../../shared/runtime/startCatchAllServer';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
@@ -128,7 +128,7 @@ suite('command', (): void => {
       test('sends commands to the correct endpoint at the command dispatcher.', async (): Promise<void> => {
         const command = new Command({
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'execute',
           data: { strategy: 'succeed' }
         });
@@ -172,7 +172,7 @@ suite('command', (): void => {
 
         const command = new Command({
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'execute',
           data: { strategy: 'succeed' }
         });
@@ -187,7 +187,7 @@ suite('command', (): void => {
       test('sends a cancel request to the correct endpoint at the command dispatcher.', async (): Promise<void> => {
         const command = new Command({
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'execute',
           data: { strategy: 'succeed' }
         });
@@ -233,9 +233,9 @@ suite('command', (): void => {
 
         const commandIdentifier: ItemIdentifier = {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'execute',
-          id: uuid()
+          id: v4()
         };
 
         await assert.that(async (): Promise<void> => {
@@ -310,7 +310,7 @@ suite('command', (): void => {
     test('retries as many times as configured and then crashes.', async (): Promise<void> => {
       const command = new Command({
         contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
         name: 'execute',
         data: { strategy: 'succeed' }
       });
@@ -392,7 +392,7 @@ suite('command', (): void => {
     test('retries and succeeds at some point.', async (): Promise<void> => {
       const command = new Command({
         contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
         name: 'execute',
         data: { strategy: 'succeed' }
       });

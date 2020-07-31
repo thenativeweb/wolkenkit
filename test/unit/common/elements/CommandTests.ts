@@ -1,10 +1,10 @@
 import { assert } from 'assertthat';
 import { Command } from '../../../../lib/common/elements/Command';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('Command', (): void => {
   test('sets the given values.', async (): Promise<void> => {
-    const aggregateId = uuid();
+    const aggregateId = v4();
 
     const command = new Command({
       contextIdentifier: { name: 'sampleContext' },

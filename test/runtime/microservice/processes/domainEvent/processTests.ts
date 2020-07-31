@@ -20,7 +20,7 @@ import { Client as PublishMessageClient } from '../../../../../lib/apis/publishM
 import { SnapshotStrategyConfiguration } from '../../../../../lib/common/domain/SnapshotStrategyConfiguration';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
@@ -163,12 +163,12 @@ suite('domain event', function (): void {
     test('does not stream invalid domain events.', async (): Promise<void> => {
       const domainEventWithoutState = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
         name: 'nonExistent',
         data: {},
         metadata: {
           revision: 1,
-          initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
+          initiator: { user: { id: v4(), claims: { sub: v4() }}}
         }
       });
 
@@ -205,12 +205,12 @@ suite('domain event', function (): void {
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
             revision: 1,
-            initiator: { user: { id: uuid(), claims: { sub: uuid() }}}
+            initiator: { user: { id: v4(), claims: { sub: v4() }}}
           }
         }),
         state: {

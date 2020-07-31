@@ -5,12 +5,12 @@ import { CustomError } from 'defekt';
 import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { validateCommandWithMetadata } from '../../../../lib/common/validators/validateCommandWithMetadata';
 
 suite('validateCommandWithMetadata', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
-  const commandId = uuid();
+  const commandId = v4();
 
   const user = {
     id: 'jane.doe',
@@ -19,7 +19,7 @@ suite('validateCommandWithMetadata', (): void => {
 
   const command = new CommandWithMetadata({
     contextIdentifier: { name: 'sampleContext' },
-    aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+    aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
     name: 'execute',
     data: {
       strategy: 'succeed'
@@ -71,7 +71,7 @@ suite('validateCommandWithMetadata', (): void => {
           ...command,
           aggregateIdentifier: {
             name: 'someAggregate',
-            id: uuid()
+            id: v4()
           }
         }) as any,
         application

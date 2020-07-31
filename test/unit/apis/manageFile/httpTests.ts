@@ -11,7 +11,7 @@ import { InMemoryFileStore } from '../../../../lib/stores/fileStore/InMemory/InM
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { Readable } from 'stream';
 import { runAsServer } from '../../../shared/http/runAsServer';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('manageFile/http', (): void => {
   const identityProviders = [ identityProvider ];
@@ -40,8 +40,8 @@ suite('manageFile/http', (): void => {
       }));
 
       file = {
-        id: uuid(),
-        name: uuid(),
+        id: v4(),
+        name: v4(),
         content: 'Hello world!'
       };
     });
@@ -54,8 +54,8 @@ suite('manageFile/http', (): void => {
           method: 'post',
           url: '/v2/add-file',
           headers: {
-            'x-id': uuid(),
-            'x-name': uuid(),
+            'x-id': v4(),
+            'x-name': v4(),
             'content-type': 'invalid-content-type'
           },
           validateStatus (): boolean {
@@ -73,7 +73,7 @@ suite('manageFile/http', (): void => {
           method: 'post',
           url: '/v2/add-file',
           headers: {
-            'x-id': uuid(),
+            'x-id': v4(),
             'x-name': 'addingFile-unauthorized',
             'content-type': 'text/plain'
           },
@@ -92,7 +92,7 @@ suite('manageFile/http', (): void => {
           method: 'post',
           url: '/v2/add-file',
           headers: {
-            'x-id': uuid(),
+            'x-id': v4(),
             'x-name': 'addingFile-failure',
             'content-type': 'text/plain'
           },
@@ -111,7 +111,7 @@ suite('manageFile/http', (): void => {
           method: 'post',
           url: '/v2/add-file',
           headers: {
-            'x-id': uuid(),
+            'x-id': v4(),
             'x-name': 'addedFile-failure',
             'content-type': 'text/plain'
           },

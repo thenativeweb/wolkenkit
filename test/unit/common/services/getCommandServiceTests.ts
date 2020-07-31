@@ -4,7 +4,8 @@ import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainE
 import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { getCommandService } from '../../../../lib/common/services/getCommandService';
-import { regex, uuid } from 'uuidv4';
+import { regex } from '../../../../lib/common/utils/uuid';
+import { v4 } from 'uuid';
 
 suite('getCommandService', (): void => {
   test('calls onIssueCommand with the created command with metadata.', async (): Promise<void> => {
@@ -15,7 +16,7 @@ suite('getCommandService', (): void => {
 
     const domainEvent = buildDomainEvent({
       contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
       name: 'executed',
       data: { strategy: 'succeed' },
       metadata: {
@@ -30,7 +31,7 @@ suite('getCommandService', (): void => {
 
     const command = buildCommand({
       contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
       name: 'execute',
       data: { strategy: 'succeed' }
     });
@@ -43,7 +44,7 @@ suite('getCommandService', (): void => {
       initiator
     );
 
-    assert.that(commandId).is.matching(regex.v4);
+    assert.that(commandId).is.matching(regex);
     assert.that(issuedCommands.length).is.equalTo(1);
     assert.that(issuedCommands[0]).is.atLeast({
       ...command,
@@ -67,7 +68,7 @@ suite('getCommandService', (): void => {
 
     const domainEvent = buildDomainEvent({
       contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
       name: 'executed',
       data: { strategy: 'succeed' },
       metadata: {
@@ -82,7 +83,7 @@ suite('getCommandService', (): void => {
 
     const command = buildCommand({
       contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
       name: 'execute',
       data: { strategy: 'succeed' }
     });

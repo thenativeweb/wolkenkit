@@ -4,7 +4,7 @@ import { ConsumerProgressStore } from '../../../../lib/stores/consumerProgressSt
 import { CustomError } from 'defekt';
 import { errors } from '../../../../lib/common/errors';
 import { getShortId } from '../../../shared/getShortId';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createConsumerProgressStore }: {
@@ -19,8 +19,8 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
     suffix = getShortId();
     consumerProgressStore = await createConsumerProgressStore({ suffix });
 
-    aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
-    consumerId = uuid();
+    aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
+    consumerId = v4();
   });
 
   teardown(async function (): Promise<void> {
@@ -42,7 +42,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
     test('returns revision 0 and is replaying false for unknown aggregates.', async (): Promise<void> => {
       await consumerProgressStore.setProgress({
         consumerId,
-        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
         revision: 1
       });
 
@@ -56,7 +56,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
 
     test('returns 0 and is replaying false for new consumers even if the aggregate is known to other consumers.', async (): Promise<void> => {
       await consumerProgressStore.setProgress({
-        consumerId: uuid(),
+        consumerId: v4(),
         aggregateIdentifier,
         revision: 1
       });
@@ -334,7 +334,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
     });
 
     test('does not reset the revisions for other consumers.', async (): Promise<void> => {
-      const otherConsumerId = uuid();
+      const otherConsumerId = v4();
 
       await consumerProgressStore.setProgress({
         consumerId,
@@ -359,7 +359,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
     });
 
     test('does not reset anything for an unknown consumer.', async (): Promise<void> => {
-      const otherConsumerId = uuid();
+      const otherConsumerId = v4();
 
       await consumerProgressStore.setProgress({
         consumerId: otherConsumerId,

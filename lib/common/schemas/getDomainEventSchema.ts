@@ -1,4 +1,4 @@
-import { jsonSchema } from 'uuidv4';
+import { jsonSchema } from '../utils/uuid';
 import { Schema } from '../elements/Schema';
 
 const getDomainEventSchema = function (): Schema {
@@ -17,7 +17,7 @@ const getDomainEventSchema = function (): Schema {
         type: 'object',
         properties: {
           name: { type: 'string', minLength: 1, format: 'alphanumeric' },
-          id: jsonSchema.v4 as Schema
+          id: jsonSchema
         },
         required: [ 'name', 'id' ],
         additionalProperties: false
@@ -29,12 +29,12 @@ const getDomainEventSchema = function (): Schema {
         required: [],
         additionalProperties: true
       },
-      id: jsonSchema.v4 as Schema,
+      id: jsonSchema,
       metadata: {
         type: 'object',
         properties: {
-          causationId: jsonSchema.v4 as Schema,
-          correlationId: jsonSchema.v4 as Schema,
+          causationId: jsonSchema,
+          correlationId: jsonSchema,
           timestamp: { type: 'number', minimum: 0 },
           revision: { type: 'number', minimum: 1 },
           initiator: {

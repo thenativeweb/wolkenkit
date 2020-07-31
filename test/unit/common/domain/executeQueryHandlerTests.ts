@@ -7,7 +7,7 @@ import { executeQueryHandler } from '../../../../lib/common/domain/executeQueryH
 import { getClientService } from '../../../../lib/common/services/getClientService';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 import { PassThrough, pipeline } from 'stream';
 
@@ -77,15 +77,15 @@ suite('executeQueryHandler', (): void => {
       const domainEvents = [
         {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'executed',
-          id: uuid()
+          id: v4()
         },
         {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'executed',
-          id: uuid()
+          id: v4()
         }
       ];
 
@@ -152,15 +152,15 @@ suite('executeQueryHandler', (): void => {
       const domainEvents = [
         {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'executed',
-          id: uuid()
+          id: v4()
         },
         {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'executed',
-          id: uuid()
+          id: v4()
         }
       ];
 
@@ -197,15 +197,15 @@ suite('executeQueryHandler', (): void => {
       const domainEvents = [
         {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'executed',
-          id: uuid()
+          id: v4()
         },
         {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'not-executed',
-          id: uuid()
+          id: v4()
         }
       ];
 
@@ -236,15 +236,15 @@ suite('executeQueryHandler', (): void => {
       const domainEvents = [
         {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'executed',
-          id: uuid()
+          id: v4()
         },
         {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'not-executed',
-          id: uuid()
+          id: v4()
         }
       ];
 
@@ -273,15 +273,15 @@ suite('executeQueryHandler', (): void => {
       const domainEvents = [
         {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'executed',
-          id: uuid()
+          id: v4()
         },
         {
           contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
           name: 'executed',
-          id: uuid()
+          id: v4()
         }
       ];
 

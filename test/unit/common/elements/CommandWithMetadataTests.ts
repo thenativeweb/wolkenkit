@@ -1,13 +1,13 @@
 import { assert } from 'assertthat';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('CommandWithMetadata', (): void => {
   test('sets the given values.', async (): Promise<void> => {
-    const aggregateId = uuid(),
-          causationId = uuid(),
-          correlationId = uuid(),
-          id = uuid(),
+    const aggregateId = v4(),
+          causationId = v4(),
+          correlationId = v4(),
+          id = v4(),
           timestamp = Date.now();
 
     const command = new CommandWithMetadata({
@@ -47,10 +47,10 @@ suite('CommandWithMetadata', (): void => {
 
   suite('getItemIdentifier', (): void => {
     test('returns the item identifier for the command.', async (): Promise<void> => {
-      const aggregateId = uuid(),
-            causationId = uuid(),
-            correlationId = uuid(),
-            id = uuid(),
+      const aggregateId = v4(),
+            causationId = v4(),
+            correlationId = v4(),
+            id = v4(),
             timestamp = Date.now();
 
       const command = new CommandWithMetadata({

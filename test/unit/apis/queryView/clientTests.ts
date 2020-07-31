@@ -10,7 +10,7 @@ import { getTestApplicationDirectory } from '../../../shared/applications/getTes
 import { identityProvider } from '../../../shared/identityProvider';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('queryView/http/Client', (): void => {
   const identityProviders = [ identityProvider ];
@@ -123,15 +123,15 @@ suite('queryView/http/Client', (): void => {
         const domainEvents = [
           {
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
-            id: uuid()
+            id: v4()
           },
           {
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'not-executed',
-            id: uuid()
+            id: v4()
           }
         ];
 
@@ -161,15 +161,15 @@ suite('queryView/http/Client', (): void => {
         const domainEvents = [
           {
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
-            id: uuid()
+            id: v4()
           },
           {
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'not-executed',
-            id: uuid()
+            id: v4()
           }
         ];
 

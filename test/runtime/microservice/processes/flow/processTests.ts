@@ -22,7 +22,7 @@ import { configurationDefinition as replayConfigurationDefinition } from '../../
 import { sleep } from '../../../../../lib/common/utils/sleep';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('flow server', function (): void {
   this.timeout(60_000);
@@ -234,7 +234,7 @@ suite('flow server', function (): void {
 
   suite('executes flow', (): void => {
     test('for a domain received via the domain event dispatcher.', async (): Promise<void> => {
-      const aggregateId = uuid();
+      const aggregateId = v4();
       const domainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
@@ -260,7 +260,7 @@ suite('flow server', function (): void {
     });
 
     test('with replay.', async (): Promise<void> => {
-      const aggregateId = uuid();
+      const aggregateId = v4();
       const domainEvents = [
         buildDomainEvent({
           contextIdentifier: { name: 'sampleContext' },

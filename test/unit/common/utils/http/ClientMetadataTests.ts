@@ -1,13 +1,13 @@
 import { assert } from 'assertthat';
 import { ClientMetadata } from '../../../../../lib/common/utils/http/ClientMetadata';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('ClientMetadata', (): void => {
   suite('token', (): void => {
     test('contains the token.', async (): Promise<void> => {
       const req = {
         token: '...',
-        user: { id: uuid(), claims: {}},
+        user: { id: v4(), claims: {}},
         connection: { remoteAddress: '127.0.0.1' },
         headers: {}
       } as any;
@@ -23,7 +23,7 @@ suite('ClientMetadata', (): void => {
   suite('user', (): void => {
     test('contains the user.', async (): Promise<void> => {
       const claims = {},
-            id = uuid(),
+            id = v4(),
             req = {
               token: '...',
               user: { id, claims },
@@ -43,7 +43,7 @@ suite('ClientMetadata', (): void => {
     test('contains the remote address.', async (): Promise<void> => {
       const req = {
         token: '...',
-        user: { id: uuid(), claims: {}},
+        user: { id: v4(), claims: {}},
         connection: { remoteAddress: '127.0.0.1' },
         headers: {}
       } as any;
@@ -58,7 +58,7 @@ suite('ClientMetadata', (): void => {
     test('prefers the x-forwarded-for header if set.', async (): Promise<void> => {
       const req = {
         token: '...',
-        user: { id: uuid(), claims: {}},
+        user: { id: v4(), claims: {}},
         connection: { remoteAddress: '127.0.0.1' },
         headers: { 'x-forwarded-for': '192.168.0.1' }
       } as any;

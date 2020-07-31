@@ -5,7 +5,7 @@ import { CustomError } from 'defekt';
 import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { validateCommand } from '../../../../lib/common/validators/validateCommand';
 
 suite('validateCommand', (): void => {
@@ -13,7 +13,7 @@ suite('validateCommand', (): void => {
 
   const command = new Command({
     contextIdentifier: { name: 'sampleContext' },
-    aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+    aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
     name: 'execute',
     data: {
       strategy: 'succeed'
@@ -57,7 +57,7 @@ suite('validateCommand', (): void => {
           ...command,
           aggregateIdentifier: {
             name: 'someAggregate',
-            id: uuid()
+            id: v4()
           }
         },
         application

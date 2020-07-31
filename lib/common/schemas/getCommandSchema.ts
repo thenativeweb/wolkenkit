@@ -1,4 +1,4 @@
-import { jsonSchema } from 'uuidv4';
+import { jsonSchema } from '../utils/uuid';
 import { Schema } from '../elements/Schema';
 
 const getCommandSchema = function (): Schema {
@@ -17,7 +17,7 @@ const getCommandSchema = function (): Schema {
         type: 'object',
         properties: {
           name: { type: 'string', minLength: 1, format: 'alphanumeric' },
-          id: jsonSchema.v4 as Schema
+          id: jsonSchema
         },
         required: [ 'name', 'id' ],
         additionalProperties: false

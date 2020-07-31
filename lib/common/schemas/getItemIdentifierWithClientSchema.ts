@@ -1,5 +1,5 @@
 import { getClientSchema } from './getClientSchema';
-import { jsonSchema } from 'uuidv4';
+import { jsonSchema } from '../utils/uuid';
 import { Schema } from '../elements/Schema';
 
 const getItemIdentifierWithClientSchema = function (): Schema {
@@ -18,12 +18,12 @@ const getItemIdentifierWithClientSchema = function (): Schema {
         type: 'object',
         properties: {
           name: { type: 'string', minLength: 1, format: 'alphanumeric' },
-          id: jsonSchema.v4 as Schema
+          id: jsonSchema
         },
         required: [ 'name', 'id' ],
         additionalProperties: false
       },
-      id: jsonSchema.v4 as Schema,
+      id: jsonSchema,
       name: { type: 'string', minLength: 1, format: 'alphanumeric' },
       client: getClientSchema()
     },

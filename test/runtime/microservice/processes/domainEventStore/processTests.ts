@@ -9,7 +9,7 @@ import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v
 import { Client as QueryDomainEventStoreClient } from '../../../../../lib/apis/queryDomainEventStore/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 import { Client as WriteDomainEventStoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
 
@@ -84,7 +84,7 @@ suite('domain event store', function (): void {
     test('streams all previously stored domain events.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
         name: 'execute',
         data: {},
         metadata: {
@@ -118,7 +118,7 @@ suite('domain event store', function (): void {
     test('streams only domain events for the requested aggregate.', async (): Promise<void> => {
       const wrongDomainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
         name: 'execute',
         data: {},
         metadata: {
@@ -127,7 +127,7 @@ suite('domain event store', function (): void {
         }
       });
 
-      const aggregateId = uuid();
+      const aggregateId = v4();
 
       const rightDomainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
@@ -163,7 +163,7 @@ suite('domain event store', function (): void {
 
   suite('getLastDomainEvent', (): void => {
     test('returns the last stored domain event.', async (): Promise<void> => {
-      const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
+      const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
       const firstDomainEvent = buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier,
@@ -195,7 +195,7 @@ suite('domain event store', function (): void {
 
   suite('getSnapshot', (): void => {
     test('returns the previously stored snapshot.', async (): Promise<void> => {
-      const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
+      const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
       const snapshot = {
         aggregateIdentifier,
         revision: 1,
