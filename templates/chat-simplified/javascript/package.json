@@ -10,7 +10,7 @@
     "assertthat": "5.2.1",
     "mocha": "8.1.0",
     "run-script-os": "1.1.1",
-    "uuidv4": "6.2.0"
+    "uuidv4": "6.2.1"
   },
   "scripts": {
     "test": "run-script-os",
