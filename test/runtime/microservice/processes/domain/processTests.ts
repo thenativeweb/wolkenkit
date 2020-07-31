@@ -69,7 +69,7 @@ suite('domain', function (): void {
     const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: commandDispatcherConfigurationDefinition }),
       applicationDirectory,
-      priorityQueueStoreOptions: { expirationTime: queueLockExpirationTime },
+      priorityQueueStoreOptions: { type: 'InMemory', expirationTime: queueLockExpirationTime },
       port: commandDispatcherPort,
       healthPort: commandDispatcherHealthPort,
       missedCommandRecoveryInterval: queuePollInterval
@@ -96,7 +96,7 @@ suite('domain', function (): void {
     const domainEventDispatcherConfiguration: DomainEventDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventDispatcherConfigurationDefinition }),
       applicationDirectory,
-      priorityQueueStoreOptions: { expirationTime: queueLockExpirationTime },
+      priorityQueueStoreOptions: { type: 'InMemory', expirationTime: queueLockExpirationTime },
       port: domainEventDispatcherPort,
       healthPort: domainEventDispatcherHealthPort,
       missedDomainEventRecoveryInterval: queuePollInterval

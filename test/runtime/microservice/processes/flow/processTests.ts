@@ -64,7 +64,7 @@ suite('flow server', function (): void {
     const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: commandDispatcherConfigurationDefinition }),
       applicationDirectory,
-      priorityQueueStoreOptions: { expirationTime: 5_000 },
+      priorityQueueStoreOptions: { type: 'InMemory', expirationTime: 5_000 },
       port: portCommandDispatcher,
       healthPort: healthPortCommandDispatcher
     };
@@ -91,7 +91,7 @@ suite('flow server', function (): void {
     const domainEventDispatcherConfiguration: DomainEventDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventDispatcherConfigurationDefinition }),
       applicationDirectory,
-      priorityQueueStoreOptions: { expirationTime: 5_000 },
+      priorityQueueStoreOptions: { type: 'InMemory', expirationTime: 5_000 },
       port: portDomainEventDispatcher,
       healthPort: healthPortDomainEventDispatcher
     };
@@ -173,10 +173,8 @@ suite('flow server', function (): void {
       replayServerPort: portReplay,
       aeonstoreHostName: 'localhost',
       aeonstorePort: portAeonstore,
-      lockStoreOptions: {},
-      lockStoreType: 'InMemory',
-      consumerProgressStoreOptions: {},
-      consumerProgressStoreType: 'InMemory',
+      lockStoreOptions: { type: 'InMemory' },
+      consumerProgressStoreOptions: { type: 'InMemory' },
       healthPort,
       concurrentFlows: 1
     };

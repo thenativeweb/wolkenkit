@@ -53,7 +53,7 @@ suite('replay', function (): void {
     const domainEventDispatcherConfiguration: DomainEventDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventDispatcherConfigurationDefinition }),
       applicationDirectory,
-      priorityQueueStoreOptions: { expirationTime: queueLockExpirationTime },
+      priorityQueueStoreOptions: { type: 'InMemory', expirationTime: queueLockExpirationTime },
       port: domainEventDispatcherPort,
       healthPort: domainEventDispatcherHealthPort,
       missedDomainEventRecoveryInterval: queuePollInterval

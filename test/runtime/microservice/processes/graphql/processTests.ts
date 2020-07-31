@@ -85,7 +85,7 @@ suite('main', function (): void {
     const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: commandDispatcherConfigurationDefinition }),
       applicationDirectory,
-      priorityQueueStoreOptions: { expirationTime: 5_000 },
+      priorityQueueStoreOptions: { type: 'InMemory', expirationTime: 5_000 },
       port: commandDispatcherPort,
       healthPort: commandDispatcherHealthPort
     };

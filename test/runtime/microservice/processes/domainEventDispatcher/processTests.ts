@@ -34,7 +34,7 @@ suite('domainEventDispatcher', function (): void {
     const domainEventDispatcherConfiguration: DomainEventDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventDispatcherConfigurationDefinition }),
       applicationDirectory,
-      priorityQueueStoreOptions: { expirationTime: queueLockExpirationTime },
+      priorityQueueStoreOptions: { type: 'InMemory', expirationTime: queueLockExpirationTime },
       port: portDomainEventDispatcher,
       healthPort: healthPortDomainEventDispatcher
     };

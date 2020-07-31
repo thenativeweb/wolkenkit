@@ -10,12 +10,15 @@ import { Configuration as DomainEventConfiguration } from '../../../../runtimes/
 import { configurationDefinition as domainEventConfigurationDefinition } from '../../../../runtimes/microservice/processes/domainEvent/configurationDefinition';
 import { Configuration as DomainEventDispatcherConfiguration } from '../../../../runtimes/microservice/processes/domainEventDispatcher/Configuration';
 import { configurationDefinition as domainEventDispatcherConfigurationDefinition } from '../../../../runtimes/microservice/processes/domainEventDispatcher/configurationDefinition';
+import { DomainEventStoreOptions } from '../../../../stores/domainEventStore/DomainEventStoreOptions';
 import { Configuration as FileConfiguration } from '../../../../runtimes/microservice/processes/file/Configuration';
 import { configurationDefinition as fileConfigurationDefinition } from '../../../../runtimes/microservice/processes/file/configurationDefinition';
+import { FileStoreOptions } from '../../../../stores/fileStore/FileStoreOptions';
 import { Configuration as FlowConfiguration } from '../../../../runtimes/microservice/processes/flow/Configuration';
 import { configurationDefinition as flowConfigurationDefinition } from '../../../../runtimes/microservice/processes/flow/configurationDefinition';
 import { Configuration as GraphqlConfiguration } from '../../../../runtimes/microservice/processes/graphql/Configuration';
 import { configurationDefinition as graphqlConfigurationDefinition } from '../../../../runtimes/microservice/processes/graphql/configurationDefinition';
+import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
 import { Configuration as PublisherConfiguration } from '../../../../runtimes/microservice/processes/publisher/Configuration';
 import { configurationDefinition as publisherConfigurationDefinition } from '../../../../runtimes/microservice/processes/publisher/configurationDefinition';
 import { Configuration as ReplayConfiguration } from '../../../../runtimes/microservice/processes/replay/Configuration';
@@ -112,19 +115,20 @@ const getMicroservicePostgresManifest = function ({ appName }: {
 
   const applicationDirectory = '/app',
         corsOrigin = '*',
-        domainEventStoreOptions = {
+        domainEventStoreOptions: DomainEventStoreOptions = {
+          type: 'Postgres',
           hostName: services.postgres.hostName,
           port: services.postgres.privatePort,
           userName: services.postgres.userName,
           password: services.postgres.password,
           database: services.postgres.database,
           tableNames: {
-            domainEvent: 'domainevents',
+            domainEvents: 'domainevents',
             snapshots: 'snapshots'
           }
         },
-        domainEventStoreType = 'Postgres',
-        fileStoreOptions = {
+        fileStoreOptions: FileStoreOptions = {
+          type: 'S3',
           hostName: services.minio.hostName,
           port: services.minio.privatePort,
           encryptConnection: services.minio.encryptConnection,
@@ -132,9 +136,9 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           secretKey: services.minio.secretKey,
           bucketName: 'files'
         },
-        fileStoreType = 'S3',
         identityProviders: { issuer: string; certificate: string }[] = [],
-        lockStoreOptions = {
+        lockStoreOptions: LockStoreOptions = {
+          type: 'Postgres',
           hostName: services.postgres.hostName,
           port: services.postgres.privatePort,
           userName: services.postgres.userName,
@@ -144,7 +148,6 @@ const getMicroservicePostgresManifest = function ({ appName }: {
             locks: 'locks'
           }
         },
-        lockStoreType = 'Postgres',
         publisherChannelNewDomainEvent = 'newDomainEvent',
         snapshotStrategy: SnapshotStrategyConfiguration = {
           name: 'lowest',
@@ -177,6 +180,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     missedCommandRecoveryInterval: 5_000,
     port: services.commandDispatcher.privatePort,
     priorityQueueStoreOptions: {
+      type: 'Postgres',
       hostName: services.postgres.hostName,
       port: services.postgres.privatePort,
       userName: services.postgres.userName,
@@ -188,13 +192,11 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       },
       expirationTime: 30_000
     },
-    priorityQueueStoreType: 'Postgres',
     pubSubOptions: {
       channel: 'newCommand',
-      subscriber: {},
-      publisher: {}
-    },
-    pubSubType: 'InMemory'
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    }
   };
 
   const domainConfiguration: DomainConfiguration = {
@@ -214,7 +216,6 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthCorsOrigin: corsOrigin,
     healthPort: services.domain.healthPort,
     lockStoreOptions,
-    lockStoreType,
     publisherChannelNewDomainEvent,
     publisherHostName: services.publisher.hostName,
     publisherPort: services.publisher.privatePort,
@@ -242,7 +243,6 @@ const getMicroservicePostgresManifest = function ({ appName }: {
 
   const aeonstoreConfiguration: AeonstoreConfiguration = {
     domainEventStoreOptions,
-    domainEventStoreType,
     healthCorsOrigin: corsOrigin,
     healthPort: services.aeonstore.healthPort,
     port: services.aeonstore.privatePort,
@@ -256,10 +256,9 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     port: services.publisher.privatePort,
     publishCorsOrigin: corsOrigin,
     pubSubOptions: {
-      subscriber: {},
-      publisher: {}
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
     },
-    pubSubType: 'InMemory',
     subscribeCorsOrigin: corsOrigin
   };
 
@@ -293,6 +292,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     missedDomainEventRecoveryInterval: 5_000,
     port: services.domainEventDispatcher.privatePort,
     priorityQueueStoreOptions: {
+      type: 'Postgres',
       hostName: services.postgres.hostName,
       port: services.postgres.privatePort,
       userName: services.postgres.userName,
@@ -304,13 +304,11 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       },
       expirationTime: 30_000
     },
-    priorityQueueStoreType: 'Postgres',
     pubSubOptions: {
       channel: 'newDomainEvent',
-      subscriber: {},
-      publisher: {}
-    },
-    pubSubType: 'InMemory'
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    }
   };
 
   const flowConfiguration: FlowConfiguration = {
@@ -323,6 +321,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     commandDispatcherProtocol: 'http',
     concurrentFlows: 1,
     consumerProgressStoreOptions: {
+      type: 'Postgres',
       hostName: services.postgres.hostName,
       port: services.postgres.privatePort,
       userName: services.postgres.userName,
@@ -332,7 +331,6 @@ const getMicroservicePostgresManifest = function ({ appName }: {
         progress: 'progress-flow'
       }
     },
-    consumerProgressStoreType: 'Postgres',
     domainEventDispatcherAcknowledgeRetries: 5,
     domainEventDispatcherHostName: services.domainEventDispatcher.hostName,
     domainEventDispatcherPort: services.domainEventDispatcher.privatePort,
@@ -341,7 +339,6 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthCorsOrigin: corsOrigin,
     healthPort: services.flow.healthPort,
     lockStoreOptions,
-    lockStoreType,
     replayServerHostName: services.replay.hostName,
     replayServerPort: services.replay.privatePort,
     replayServerProtocol: 'http',
@@ -377,7 +374,6 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     enableOpenApiDocumentation: true,
     fileCorsOrigin: corsOrigin,
     fileStoreOptions,
-    fileStoreType,
     healthCorsOrigin: corsOrigin,
     healthPort: services.file.healthPort,
     identityProviders,
