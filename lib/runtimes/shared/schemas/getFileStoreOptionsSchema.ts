@@ -11,14 +11,16 @@ const getFileStoreOptionsSchema = function (): Schema {
         properties: {
           type: { type: 'string', enum: [ 'InMemory' ]}
         },
-        required: [ 'type' ]
+        required: [ 'type' ],
+        additionalProperties: false
       },
       {
         properties: {
           type: { type: 'string', enum: [ 'FileSystem' ]},
           directory: { type: 'string', minLength: 1 }
         },
-        required: [ 'type' ]
+        required: [ 'type' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -31,10 +33,10 @@ const getFileStoreOptionsSchema = function (): Schema {
           region: { type: 'string', minLegnth: 1 },
           bucketName: { type: 'string', minLegnth: 1 }
         },
-        required: [ 'type', 'accessKey', 'secretKey', 'bucketName' ]
+        required: [ 'type', 'accessKey', 'secretKey', 'bucketName' ],
+        additionalProperties: false
       }
-    ],
-    additionalProperties: false
+    ]
   };
 };
 

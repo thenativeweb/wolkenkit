@@ -5,7 +5,7 @@ import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 suite('InMemory', (): void => {
   getTestsFor({
     async createLockStore (): Promise<LockStore> {
-      return await InMemoryLockStore.create();
+      return await InMemoryLockStore.create({ type: 'InMemory' });
     }
   });
 });

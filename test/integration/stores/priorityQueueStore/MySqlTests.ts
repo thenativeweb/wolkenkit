@@ -16,12 +16,11 @@ suite('MySql', (): void => {
       };
 
       return await MySqlPriorityQueueStore.create({
+        type: 'MySql',
         doesIdentifierMatchItem: ({ item, itemIdentifier }): boolean => isEqual(item, itemIdentifier),
-        options: {
-          ...connectionOptions.mySql,
-          tableNames,
-          expirationTime
-        }
+        ...connectionOptions.mySql,
+        tableNames,
+        expirationTime
       });
     }
   });

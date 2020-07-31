@@ -9,6 +9,7 @@ suite('Postgres', (): void => {
       suffix: string;
     }): Promise<DomainEventStore> {
       return await PostgresDomainEventStore.create({
+        type: 'Postgres',
         ...connectionOptions.postgres,
         tableNames: {
           domainEvents: `domainevents_${suffix}`,

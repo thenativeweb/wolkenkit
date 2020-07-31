@@ -12,7 +12,8 @@ const getPriorityQueueStoreOptionsSchema = function (): Schema {
           type: { type: 'string', enum: [ 'InMemory' ]},
           expirationTime: { type: 'number', minimum: 1 }
         },
-        required: [ 'type', 'expirationTime' ]
+        required: [ 'type', 'expirationTime' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -28,7 +29,8 @@ const getPriorityQueueStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'expirationTime', 'connectionString', 'collectionNames' ]
+        required: [ 'type', 'connectionString', 'collectionNames' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -49,7 +51,8 @@ const getPriorityQueueStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'expirationTime', 'hostName', 'port', 'userName', 'password', 'database', 'tableNames' ]
+        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'tableNames' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -71,7 +74,8 @@ const getPriorityQueueStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'expirationTime', 'hostName', 'port', 'userName', 'password', 'database', 'encryptConnection', 'tableNames' ]
+        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'tableNames' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -93,10 +97,10 @@ const getPriorityQueueStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'expirationTime', 'hostName', 'port', 'userName', 'password', 'database', 'encryptConnection', 'tableNames' ]
+        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'tableNames' ],
+        additionalProperties: false
       }
-    ],
-    additionalProperties: false
+    ]
   };
 };
 

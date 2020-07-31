@@ -38,9 +38,9 @@ suite('executeFlow', (): void => {
 
     application = await loadApplication({ applicationDirectory });
 
-    domainEventStore = await createDomainEventStore({ type: 'InMemory', options: {}});
-    lockStore = await createLockStore({ type: 'InMemory', options: {}});
-    consumerProgressStore = await createConsumerProgressStore({ type: 'InMemory', options: {}});
+    domainEventStore = await createDomainEventStore({ type: 'InMemory' });
+    lockStore = await createLockStore({ type: 'InMemory' });
+    consumerProgressStore = await createConsumerProgressStore({ type: 'InMemory' });
     lockService = getLockService({ lockStore });
     loggedMessages = [];
     loggerService = {

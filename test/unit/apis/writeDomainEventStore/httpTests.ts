@@ -18,8 +18,7 @@ suite('writeDomainEventStore/http', (): void => {
 
     setup(async (): Promise<void> => {
       domainEventStore = await createDomainEventStore({
-        type: 'InMemory',
-        options: {}
+        type: 'InMemory'
       });
 
       ({ api } = await getApi({

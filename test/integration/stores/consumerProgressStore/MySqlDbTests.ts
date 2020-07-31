@@ -9,6 +9,7 @@ suite('MySql', (): void => {
       suffix: string;
     }): Promise<ConsumerProgressStore> {
       return await MySqlConsumerProgressStore.create({
+        type: 'MySql',
         ...connectionOptions.mySql,
         tableNames: {
           progress: `progress_${suffix}`

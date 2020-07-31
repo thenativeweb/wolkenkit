@@ -9,6 +9,7 @@ suite('MariaDb', (): void => {
       suffix: string;
     }): Promise<DomainEventStore> {
       return await MySqlDomainEventStore.create({
+        type: 'MariaDb',
         ...connectionOptions.mariaDb,
         tableNames: {
           domainEvents: `domainevents_${suffix}`,

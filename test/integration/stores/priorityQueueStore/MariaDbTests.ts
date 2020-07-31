@@ -11,15 +11,14 @@ suite('MariaDb', (): void => {
       expirationTime: number;
     }): Promise<PriorityQueueStore<any, any>> {
       return await MySqlPriorityQueueStore.create({
+        type: 'MariaDb',
         doesIdentifierMatchItem: ({ item, itemIdentifier }): boolean => isEqual(item, itemIdentifier),
-        options: {
-          ...connectionOptions.mariaDb,
-          tableNames: {
-            items: `items_${suffix}`,
-            priorityQueue: `priorityQueue_${suffix}`
-          },
-          expirationTime
-        }
+        ...connectionOptions.mariaDb,
+        tableNames: {
+          items: `items_${suffix}`,
+          priorityQueue: `priorityQueue_${suffix}`
+        },
+        expirationTime
       });
     }
   });

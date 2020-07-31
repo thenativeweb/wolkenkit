@@ -9,8 +9,9 @@ suite('InMemory', (): void => {
       expirationTime: number;
     }): Promise<PriorityQueueStore<any, any>> {
       return await InMemoryPriorityQueueStore.create({
+        type: 'InMemory',
         doesIdentifierMatchItem: ({ item, itemIdentifier }): boolean => isEqual(item, itemIdentifier),
-        options: { expirationTime }
+        expirationTime
       });
     }
   });

@@ -11,7 +11,8 @@ const getConsumerProgressStoreOptionsSchema = function (): Schema {
         properties: {
           type: { type: 'string', enum: [ 'InMemory' ]}
         },
-        required: [ 'type' ]
+        required: [ 'type' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -26,7 +27,8 @@ const getConsumerProgressStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'connectionString', 'collectionNames' ]
+        required: [ 'type', 'connectionString', 'collectionNames' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -45,7 +47,8 @@ const getConsumerProgressStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'tableNames' ]
+        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'tableNames' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -65,7 +68,8 @@ const getConsumerProgressStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'encryptConnection', 'tableNames' ]
+        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'tableNames' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -85,10 +89,10 @@ const getConsumerProgressStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'encryptConnection', 'tableNames' ]
+        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'tableNames' ],
+        additionalProperties: false
       }
-    ],
-    additionalProperties: false
+    ]
   };
 };
 

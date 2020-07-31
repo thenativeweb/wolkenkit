@@ -5,7 +5,7 @@ import { InMemoryConsumerProgressStore } from '../../../../lib/stores/consumerPr
 suite('InMemory', (): void => {
   getTestsFor({
     async createConsumerProgressStore (): Promise<ConsumerProgressStore> {
-      return await InMemoryConsumerProgressStore.create();
+      return await InMemoryConsumerProgressStore.create({ type: 'InMemory' });
     }
   });
 });

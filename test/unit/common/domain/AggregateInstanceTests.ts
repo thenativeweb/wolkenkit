@@ -36,8 +36,8 @@ suite('AggregateInstance', (): void => {
 
     application = await loadApplication({ applicationDirectory });
 
-    domainEventStore = await createDomainEventStore({ type: 'InMemory', options: {}});
-    lockStore = await createLockStore({ type: 'InMemory', options: {}});
+    domainEventStore = await createDomainEventStore({ type: 'InMemory' });
+    lockStore = await createLockStore({ type: 'InMemory' });
     repository = new Repository({
       application,
       lockStore,

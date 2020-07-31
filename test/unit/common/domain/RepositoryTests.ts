@@ -24,8 +24,8 @@ suite('Repository', (): void => {
     application = await loadApplication({ applicationDirectory });
 
     aggregateId = uuid();
-    domainEventStore = await InMemoryDomainEventStore.create();
-    lockStore = await createLockStore({ type: 'InMemory', options: {}});
+    domainEventStore = await InMemoryDomainEventStore.create({ type: 'InMemory' });
+    lockStore = await createLockStore({ type: 'InMemory' });
     repository = new Repository({
       application,
       lockStore,

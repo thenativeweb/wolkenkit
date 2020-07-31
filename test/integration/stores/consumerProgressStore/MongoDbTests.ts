@@ -9,6 +9,7 @@ suite('MongoDb', (): void => {
       suffix: string;
     }): Promise<ConsumerProgressStore> {
       return await MongoDbConsumerProgressStore.create({
+        type: 'MongoDb',
         ...connectionOptions.mongoDb,
         collectionNames: {
           progress: `progress_${suffix}`

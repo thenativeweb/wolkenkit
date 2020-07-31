@@ -11,7 +11,8 @@ const getLockStoreOptionsSchema = function (): Schema {
         properties: {
           type: { type: 'string', enum: [ 'InMemory' ]}
         },
-        required: [ 'type' ]
+        required: [ 'type' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -30,7 +31,8 @@ const getLockStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'collectionNames' ]
+        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'collectionNames' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -49,7 +51,8 @@ const getLockStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'tableNames' ]
+        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'tableNames' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -69,7 +72,8 @@ const getLockStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'encryptConnection', 'tableNames' ]
+        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'tableNames' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -87,7 +91,8 @@ const getLockStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'hostName', 'port', 'password', 'database', 'listNames' ]
+        required: [ 'type', 'hostName', 'port', 'password', 'database', 'listNames' ],
+        additionalProperties: false
       },
       {
         properties: {
@@ -107,10 +112,10 @@ const getLockStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'encryptConnection', 'tableNames' ]
+        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'tableNames' ],
+        additionalProperties: false
       }
-    ],
-    additionalProperties: false
+    ]
   };
 };
 

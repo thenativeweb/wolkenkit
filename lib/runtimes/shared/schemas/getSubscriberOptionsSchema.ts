@@ -6,13 +6,12 @@ const getSubscriberOptionsSchema = function (): Schema {
     oneOf: [
       {
         properties: {
-          type: { type: 'string', enum: [ 'InMemory' ]},
-          expirationTime: { type: 'number', minimum: 1 }
+          type: { type: 'string', enum: [ 'InMemory' ]}
         },
-        required: [ 'type', 'expirationTime' ]
+        required: [ 'type' ],
+        additionalProperties: false
       }
-    ],
-    additionalProperties: false
+    ]
   };
 };
 

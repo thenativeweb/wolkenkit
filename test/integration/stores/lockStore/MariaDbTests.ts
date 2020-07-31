@@ -9,6 +9,7 @@ suite('MariaDb', (): void => {
       suffix: string;
     }): Promise<LockStore> {
       return await MySqlLockStore.create({
+        type: 'MariaDb',
         ...connectionOptions.mariaDb,
         tableNames: {
           locks: `locks_${suffix}`

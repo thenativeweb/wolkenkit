@@ -51,13 +51,12 @@ suite('graphql', function (): void {
 
     application = await loadApplication({ applicationDirectory });
     domainEventStore = await createDomainEventStore({
-      type: 'InMemory',
-      options: {}
+      type: 'InMemory'
     });
     repository = new Repository({
       application,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
-      lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+      lockStore: await createLockStore({ type: 'InMemory' }),
       domainEventStore
     });
     receivedCommands = [];

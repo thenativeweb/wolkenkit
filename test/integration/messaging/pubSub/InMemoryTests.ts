@@ -7,10 +7,10 @@ import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 suite('InMemory', (): void => {
   getTestsFor({
     async createPublisher<T extends object> (): Promise<Publisher<T>> {
-      return await InMemoryPublisher.create();
+      return await InMemoryPublisher.create({ type: 'InMemory' });
     },
     async createSubscriber<T extends object> (): Promise<Subscriber<T>> {
-      return await InMemorySubscriber.create();
+      return await InMemorySubscriber.create({ type: 'InMemory' });
     }
   });
 });
