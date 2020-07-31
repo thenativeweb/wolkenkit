@@ -1,6 +1,7 @@
+import { DomainEventStoreOptions } from '../../../../stores/domainEventStore/DomainEventStoreOptions';
+
 export interface Configuration {
-  domainEventStoreOptions: object;
-  domainEventStoreType: string;
+  domainEventStoreOptions: DomainEventStoreOptions;
   healthCorsOrigin: string | string[];
   healthPort: number;
   port: number;

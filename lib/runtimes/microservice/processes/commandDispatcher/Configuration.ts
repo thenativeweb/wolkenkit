@@ -3,6 +3,8 @@ import { CommandWithMetadata } from '../../../../common/elements/CommandWithMeta
 import { DistributiveOmit } from '../../../../common/types/DistributiveOmit';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { PriorityQueueStoreOptions } from '../../../../stores/priorityQueueStore/PriorityQueueStoreOptions';
+import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
+import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOptions';
 
 export interface Configuration {
   applicationDirectory: string;
@@ -15,8 +17,7 @@ export interface Configuration {
   priorityQueueStoreOptions: DistributiveOmit<PriorityQueueStoreOptions<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   pubSubOptions: {
     channel: string;
-    subscriber: object;
-    publisher: object;
+    publisher: PublisherOptions;
+    subscriber: SubscriberOptions;
   };
-  pubSubType: string;
 }

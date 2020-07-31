@@ -18,10 +18,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const configuration = fromEnvironmentVariables({ configurationDefinition });
 
-    const domainEventStore = await createDomainEventStore({
-      type: configuration.domainEventStoreType,
-      options: configuration.domainEventStoreOptions
-    });
+    const domainEventStore = await createDomainEventStore(configuration.domainEventStoreOptions);
 
     const { api } = await getApi({
       configuration,

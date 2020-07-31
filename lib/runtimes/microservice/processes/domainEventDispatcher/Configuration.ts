@@ -1,3 +1,11 @@
+import { DistributiveOmit } from '../../../../common/types/DistributiveOmit';
+import { DomainEvent } from '../../../../common/elements/DomainEvent';
+import { DomainEventData } from '../../../../common/elements/DomainEventData';
+import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { PriorityQueueStoreOptions } from '../../../../stores/priorityQueueStore/PriorityQueueStoreOptions';
+import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
+import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOptions';
+
 export interface Configuration {
   applicationDirectory: string;
   awaitDomainEventCorsOrigin: string | string[];
@@ -6,12 +14,10 @@ export interface Configuration {
   healthPort: number;
   missedDomainEventRecoveryInterval: number;
   port: number;
-  priorityQueueStoreOptions: Record<string, any> & { expirationTime: number };
-  priorityQueueStoreType: string;
+  priorityQueueStoreOptions: DistributiveOmit<PriorityQueueStoreOptions<DomainEvent<DomainEventData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   pubSubOptions: {
     channel: string;
-    publisher: object;
-    subscriber: object;
+    publisher: PublisherOptions;
+    subscriber: SubscriberOptions;
   };
-  pubSubType: string;
 }

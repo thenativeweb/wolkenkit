@@ -31,23 +31,13 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     });
 
     const priorityQueueStore = await createPriorityQueueStore<DomainEvent<DomainEventData>, ItemIdentifierWithClient>({
-      type: configuration.priorityQueueStoreType,
-      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchDomainEvent,
-      options: {
-        ...configuration.priorityQueueStoreOptions,
-        expirationTime: configuration.priorityQueueStoreOptions.expirationTime
-      }
+      ...configuration.priorityQueueStoreOptions,
+      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchDomainEvent
     });
 
-    const internalNewDomainEventSubscriber = await createSubscriber<object>({
-      type: configuration.pubSubType,
-      options: configuration.pubSubOptions.subscriber
-    });
+    const internalNewDomainEventSubscriber = await createSubscriber<object>(configuration.pubSubOptions.subscriber);
 
-    const internalNewDomainEventPublisher = await createPublisher<object>({
-      type: configuration.pubSubType,
-      options: configuration.pubSubOptions.publisher
-    });
+    const internalNewDomainEventPublisher = await createPublisher<object>(configuration.pubSubOptions.publisher);
 
     // Publish "new domain event" events on an interval even if there are no new
     // domain events so that missed events or crashing workers will not lead to

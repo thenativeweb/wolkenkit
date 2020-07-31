@@ -1,21 +1,18 @@
 import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
+import { getDomainEventStoreOptionsSchema } from '../../../shared/schemas/getDomainEventStoreOptionsSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 
-const corsSchema = getCorsSchema();
-const portSchema = getPortSchema();
+const corsSchema = getCorsSchema(),
+      domainEventStoreOptionsSchema = getDomainEventStoreOptionsSchema(),
+      portSchema = getPortSchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
   domainEventStoreOptions: {
     environmentVariable: 'DOMAIN_EVENT_STORE_OPTIONS',
-    defaultValue: {},
-    schema: { type: 'object' }
-  },
-  domainEventStoreType: {
-    environmentVariable: 'DOMAIN_EVENT_STORE_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string', minLength: 1 }
+    defaultValue: { type: 'InMemory' },
+    schema: domainEventStoreOptionsSchema
   },
   healthCorsOrigin: {
     environmentVariable: 'HEALTH_CORS_ORIGIN',

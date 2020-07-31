@@ -36,15 +36,9 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata
     });
 
-    const newCommandSubscriber = await createSubscriber<object>({
-      type: configuration.pubSubType,
-      options: configuration.pubSubOptions.subscriber
-    });
+    const newCommandSubscriber = await createSubscriber<object>(configuration.pubSubOptions.subscriber);
 
-    const newCommandPublisher = await createPublisher<object>({
-      type: configuration.pubSubType,
-      options: configuration.pubSubOptions.publisher
-    });
+    const newCommandPublisher = await createPublisher<object>(configuration.pubSubOptions.publisher);
 
     const onReceiveCommand = getOnReceiveCommand({
       priorityQueueStore,
