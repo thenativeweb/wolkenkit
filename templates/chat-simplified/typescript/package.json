@@ -4,13 +4,13 @@
   "description": "",
   "dependencies": {
     "@types/mongodb": "3.5.25",
-    "mongodb": "3.5.9",
+    "mongodb": "3.6.0",
     "processenv": "3.0.2"
   },
   "devDependencies": {
     "@types/mocha": "8.0.0",
     "assertthat": "5.2.1",
-    "mocha": "8.0.1",
+    "mocha": "8.1.0",
     "run-script-os": "1.1.1",
     "ts-node": "8.10.2",
     "uuidv4": "6.2.0"
