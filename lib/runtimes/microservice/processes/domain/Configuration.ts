@@ -1,3 +1,4 @@
+import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 
 export interface Configuration {
@@ -16,8 +17,7 @@ export interface Configuration {
   domainEventDispatcherProtocol: string;
   healthCorsOrigin: string | string[];
   healthPort: number;
-  lockStoreOptions: Record<string, any>;
-  lockStoreType: string;
+  lockStoreOptions: LockStoreOptions;
   publisherChannelNewDomainEvent: string;
   publisherHostName: string;
   publisherPort: number;

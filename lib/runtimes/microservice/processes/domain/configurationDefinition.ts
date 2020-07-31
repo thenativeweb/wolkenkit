@@ -1,12 +1,14 @@
 import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
+import { getLockStoreOptionsSchema } from '../../../shared/schemas/getLockStoreOptionsSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
 import path from 'path';
 
 const corsSchema = getCorsSchema(),
+      lockStoreOptionsSchema = getLockStoreOptionsSchema(),
       portSchema = getPortSchema(),
       protocolSchema = getProtocolSchema(),
       snapshotStrategySchema = getSnapshotStrategySchema();
@@ -92,13 +94,8 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   lockStoreOptions: {
     environmentVariable: 'LOCK_STORE_OPTIONS',
-    defaultValue: {},
-    schema: { type: 'object' }
-  },
-  lockStoreType: {
-    environmentVariable: 'LOCK_STORE_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string' }
+    defaultValue: { type: 'InMemory' },
+    schema: lockStoreOptionsSchema
   },
   publisherChannelNewDomainEvent: {
     environmentVariable: 'PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT',

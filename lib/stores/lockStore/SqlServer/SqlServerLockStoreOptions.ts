@@ -1,6 +1,7 @@
 import { TableNames } from './TableNames';
 
 export interface SqlServerLockStoreOptions {
+  type: 'SqlServer';
   hostName: string;
   port: number;
   userName: string;
