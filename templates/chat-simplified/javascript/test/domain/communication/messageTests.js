@@ -3,7 +3,7 @@
 const path = require('path');
 
 const { assert } = require('assertthat'),
-      { uuid } = require('uuidv4'),
+      { v4 } = require('uuid'),
       { loadApplication, sandbox } = require('wolkenkit');
 
 suite('message', () => {
@@ -18,7 +18,7 @@ suite('message', () => {
   suite('send', () => {
     test('sends a message.', async () => {
       const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: uuid() };
+      const aggregateIdentifier = { name: 'message', id: v4() };
 
       await sandbox().
         withApplication({ application }).
@@ -34,7 +34,7 @@ suite('message', () => {
 
     test('fails if the message was already sent.', async () => {
       const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: uuid() };
+      const aggregateIdentifier = { name: 'message', id: v4() };
 
       await sandbox().
         withApplication({ application }).
@@ -53,7 +53,7 @@ suite('message', () => {
   suite('like', () => {
     test('likes a message.', async () => {
       const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: uuid() };
+      const aggregateIdentifier = { name: 'message', id: v4() };
 
       await sandbox().
         withApplication({ application }).
@@ -70,7 +70,7 @@ suite('message', () => {
 
     test('fails if the message was not yet sent.', async () => {
       const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: uuid() };
+      const aggregateIdentifier = { name: 'message', id: v4() };
 
       await sandbox().
         withApplication({ application }).

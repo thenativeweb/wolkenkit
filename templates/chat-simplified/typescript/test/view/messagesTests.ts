@@ -1,6 +1,6 @@
 import { assert } from 'assertthat';
 import path from 'path';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { Application, loadApplication, sandbox } from 'wolkenkit';
 
 suite('messages', (): void => {
@@ -14,7 +14,7 @@ suite('messages', (): void => {
 
   suite('all', (): void => {
     test('returns alls messages.', async (): Promise<void> => {
-      const aggregateId = uuid(),
+      const aggregateId = v4(),
             text = 'Hello world!',
             timestamp = Date.now();
 

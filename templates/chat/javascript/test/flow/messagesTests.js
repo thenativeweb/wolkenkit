@@ -3,7 +3,7 @@
 const path = require('path');
 
 const { assert } = require('assertthat'),
-      { uuid } = require('uuidv4'),
+      { v4 } = require('uuid'),
       { loadApplication, sandbox } = require('wolkenkit');
 
 suite('messages', () => {
@@ -16,7 +16,7 @@ suite('messages', () => {
   });
 
   test('adds sent messages to the messages view.', async () => {
-    const aggregateId = uuid(),
+    const aggregateId = v4(),
           text = 'Hello world!',
           timestamp = Date.now();
 
@@ -47,7 +47,7 @@ suite('messages', () => {
   });
 
   test('increases likes.', async () => {
-    const aggregateId = uuid();
+    const aggregateId = v4();
 
     await sandbox().
       withApplication({ application }).

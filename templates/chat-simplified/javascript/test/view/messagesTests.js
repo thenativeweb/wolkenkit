@@ -3,7 +3,7 @@
 const path = require('path');
 
 const { assert } = require('assertthat'),
-      { uuid } = require('uuidv4'),
+      { v4 } = require('uuid'),
       { loadApplication, sandbox } = require('wolkenkit');
 
 suite('messages', () => {
@@ -17,7 +17,7 @@ suite('messages', () => {
 
   suite('all', () => {
     test('returns alls messages.', async () => {
-      const aggregateId = uuid(),
+      const aggregateId = v4(),
             text = 'Hello world!',
             timestamp = Date.now();
 
