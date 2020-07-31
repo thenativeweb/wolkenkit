@@ -17,7 +17,7 @@ import { PublishDomainEvent } from '../../../../lib/apis/observeDomainEvents/Pub
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 
 suite('observeDomainEvents/http', (): void => {
@@ -131,7 +131,7 @@ suite('observeDomainEvents/http', (): void => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -179,7 +179,7 @@ suite('observeDomainEvents/http', (): void => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'succeeded',
             data: {},
             metadata: {
@@ -192,7 +192,7 @@ suite('observeDomainEvents/http', (): void => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -246,7 +246,7 @@ suite('observeDomainEvents/http', (): void => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'succeeded',
             data: {},
             metadata: {
@@ -259,7 +259,7 @@ suite('observeDomainEvents/http', (): void => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -315,7 +315,7 @@ suite('observeDomainEvents/http', (): void => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'succeeded',
             data: {},
             metadata: {
@@ -328,7 +328,7 @@ suite('observeDomainEvents/http', (): void => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -387,7 +387,7 @@ suite('observeDomainEvents/http', (): void => {
         const failed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'authenticateFailed',
             data: { reason: 'test' },
             metadata: {
@@ -400,7 +400,7 @@ suite('observeDomainEvents/http', (): void => {
         const rejected = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'authenticateRejected',
             data: { reason: 'test' },
             metadata: {
@@ -466,7 +466,7 @@ suite('observeDomainEvents/http', (): void => {
         const failed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'authenticateFailed',
             data: { reason: 'test' },
             metadata: {
@@ -479,7 +479,7 @@ suite('observeDomainEvents/http', (): void => {
         const rejected = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'authenticateRejected',
             data: { reason: 'test' },
             metadata: {
@@ -536,7 +536,7 @@ suite('observeDomainEvents/http', (): void => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -584,7 +584,7 @@ suite('observeDomainEvents/http', (): void => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -641,7 +641,7 @@ suite('observeDomainEvents/http', (): void => {
             identityProviders
           }));
 
-          const aggregateId = uuid();
+          const aggregateId = v4();
 
           const authorizationDenied = new DomainEventWithState({
             ...buildDomainEvent({
@@ -724,7 +724,7 @@ suite('observeDomainEvents/http', (): void => {
             identityProviders
           }));
 
-          const aggregateId = uuid();
+          const aggregateId = v4();
 
           const authorizationFailed = new DomainEventWithState({
             ...buildDomainEvent({
@@ -805,7 +805,7 @@ suite('observeDomainEvents/http', (): void => {
             identityProviders
           }));
 
-          const aggregateId = uuid();
+          const aggregateId = v4();
 
           const authorizationWithMutation = new DomainEventWithState({
             ...buildDomainEvent({
@@ -876,7 +876,7 @@ suite('observeDomainEvents/http', (): void => {
             identityProviders
           }));
 
-          const aggregateId = uuid();
+          const aggregateId = v4();
 
           const filterPassed = new DomainEventWithState({
             ...buildDomainEvent({
@@ -943,7 +943,7 @@ suite('observeDomainEvents/http', (): void => {
             identityProviders
           }));
 
-          const aggregateId = uuid();
+          const aggregateId = v4();
 
           const filterDenied = new DomainEventWithState({
             ...buildDomainEvent({
@@ -1024,7 +1024,7 @@ suite('observeDomainEvents/http', (): void => {
             identityProviders
           }));
 
-          const aggregateId = uuid();
+          const aggregateId = v4();
 
           const filterFailed = new DomainEventWithState({
             ...buildDomainEvent({
@@ -1105,7 +1105,7 @@ suite('observeDomainEvents/http', (): void => {
             identityProviders
           }));
 
-          const aggregateId = uuid();
+          const aggregateId = v4();
 
           const filterWithMutation = new DomainEventWithState({
             ...buildDomainEvent({
@@ -1176,7 +1176,7 @@ suite('observeDomainEvents/http', (): void => {
             identityProviders
           }));
 
-          const aggregateId = uuid();
+          const aggregateId = v4();
 
           const mapApplied = new DomainEventWithState({
             ...buildDomainEvent({
@@ -1244,7 +1244,7 @@ suite('observeDomainEvents/http', (): void => {
             identityProviders
           }));
 
-          const aggregateId = uuid();
+          const aggregateId = v4();
 
           const mapToUndefined = new DomainEventWithState({
             ...buildDomainEvent({
@@ -1325,7 +1325,7 @@ suite('observeDomainEvents/http', (): void => {
             identityProviders
           }));
 
-          const aggregateId = uuid();
+          const aggregateId = v4();
 
           const mapFailed = new DomainEventWithState({
             ...buildDomainEvent({
@@ -1406,7 +1406,7 @@ suite('observeDomainEvents/http', (): void => {
             identityProviders
           }));
 
-          const aggregateId = uuid();
+          const aggregateId = v4();
 
           const mapWithMutation = new DomainEventWithState({
             ...buildDomainEvent({

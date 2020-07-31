@@ -9,7 +9,7 @@ import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStor
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { Repository } from '../../../../lib/common/domain/Repository';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('Repository', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
@@ -23,7 +23,7 @@ suite('Repository', (): void => {
   setup(async (): Promise<void> => {
     application = await loadApplication({ applicationDirectory });
 
-    aggregateId = uuid();
+    aggregateId = v4();
     domainEventStore = await InMemoryDomainEventStore.create();
     lockStore = await createLockStore({ type: 'InMemory', options: {}});
     repository = new Repository({
@@ -85,7 +85,7 @@ suite('Repository', (): void => {
         snapshotStrategy: getSnapshotStrategy({ name: 'always' })
       });
 
-      const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
+      const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
 
       const domainEvents = [
         buildDomainEvent({
@@ -148,7 +148,7 @@ suite('Repository', (): void => {
         snapshotStrategy
       });
 
-      const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() };
+      const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
 
       await repository.getAggregateInstance({
         contextIdentifier: { name: 'sampleContext' },

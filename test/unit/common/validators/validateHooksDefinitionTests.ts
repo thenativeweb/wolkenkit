@@ -4,7 +4,7 @@ import { CustomError } from 'defekt';
 import { errors } from '../../../../lib/common/errors';
 import { Hooks } from '../../../../lib/common/elements/Hooks';
 import { TellInfrastructure } from '../../../../lib/common/elements/TellInfrastructure';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { validateHooksDefinition } from '../../../../lib/common/validators/validateHooksDefinition';
 
 suite('validateHooksDefinition', (): void => {
@@ -15,7 +15,7 @@ suite('validateHooksDefinition', (): void => {
 
     async addingFile (): Promise<{ name: string; contentType: string }> {
       return {
-        name: uuid(),
+        name: v4(),
         contentType: 'text/plain'
       };
     },

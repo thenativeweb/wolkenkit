@@ -6,7 +6,7 @@ import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
 import { Initiator } from '../elements/Initiator';
 import { Limes } from 'limes';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 const getCommandService = function ({
   domainEvent, issueCommand
@@ -18,7 +18,7 @@ const getCommandService = function ({
     async issueCommand<TCommandData extends CommandData>(command: Command<TCommandData>, initiator?: Initiator): Promise<string> {
       const commandWithMetadata = new CommandWithMetadata<TCommandData>({
         ...command,
-        id: uuid(),
+        id: v4(),
         metadata: {
           causationId: domainEvent.id,
           correlationId: domainEvent.metadata.correlationId,

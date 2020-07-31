@@ -9,7 +9,7 @@ import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/writeDomainEventStore/http';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { Snapshot } from '../../../../lib/stores/domainEventStore/Snapshot';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('writeDomainEventStore/http', (): void => {
   suite('/v2', (): void => {
@@ -32,7 +32,7 @@ suite('writeDomainEventStore/http', (): void => {
       test('stores the given domain events.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const firstDomainEvent = buildDomainEvent({
@@ -162,7 +162,7 @@ suite('writeDomainEventStore/http', (): void => {
       test('stores the given snapshot.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const snapshot: Snapshot<object> = {
@@ -186,7 +186,7 @@ suite('writeDomainEventStore/http', (): void => {
       test('overwrites the previous snapshot if one existed.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         };
 
         const firstSnapshot: Snapshot<object> = {

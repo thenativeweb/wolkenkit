@@ -12,7 +12,7 @@ import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { ResolverContext } from '../ResolverContext';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { validateCommand } from '../../../../common/validators/validateCommand';
 import { Value } from 'validate-value';
 import {
@@ -98,7 +98,7 @@ const getCommandFieldConfiguration = function ({
       }
       validateCommand({ command, application });
 
-      const commandId = uuid();
+      const commandId = v4();
       const commandWithMetadata = new CommandWithMetadata({
         ...command,
         id: commandId,

@@ -4,13 +4,13 @@ import { CustomError } from 'defekt';
 import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { validateContextAndAggregateIdentifier } from '../../../../lib/common/validators/validateContextAndAggregateIdentifier';
 
 suite('validateContextAndAggregateIdentifier', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-  const aggregateIdentifier = { name: 'sampleAggregate', id: uuid() },
+  const aggregateIdentifier = { name: 'sampleAggregate', id: v4() },
         contextIdentifier = { name: 'sampleContext' };
 
   let application: Application;
@@ -43,7 +43,7 @@ suite('validateContextAndAggregateIdentifier', (): void => {
     assert.that((): void => {
       validateContextAndAggregateIdentifier({
         contextIdentifier,
-        aggregateIdentifier: { name: 'someAggregate', id: uuid() },
+        aggregateIdentifier: { name: 'someAggregate', id: v4() },
         application
       });
     }).is.throwing(

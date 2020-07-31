@@ -26,7 +26,7 @@ import { SnapshotStrategyConfiguration } from '../../../../../lib/common/domain/
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
@@ -229,7 +229,7 @@ suite('main', function (): void {
       const result = await client.mutate({
         mutation,
         variables: {
-          aggregateId: uuid(),
+          aggregateId: v4(),
           data: {
             strategy: 'succeed'
           }
@@ -269,7 +269,7 @@ suite('main', function (): void {
         query
       });
 
-      const aggregateId = uuid();
+      const aggregateId = v4();
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
           contextIdentifier: {
@@ -336,7 +336,7 @@ suite('main', function (): void {
       const result = await client.query({
         query,
         variables: {
-          aggregateId: uuid(),
+          aggregateId: v4(),
           data: {
             strategy: 'succeed'
           }

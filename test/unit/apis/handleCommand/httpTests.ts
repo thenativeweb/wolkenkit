@@ -11,7 +11,7 @@ import { identityProvider } from '../../../shared/identityProvider';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { runAsServer } from '../../../shared/http/runAsServer';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('handleCommand/http', (): void => {
   const identityProviders = [ identityProvider ];
@@ -112,7 +112,7 @@ suite('handleCommand/http', (): void => {
 
         const { status, data } = await client({
           method: 'post',
-          url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
+          url: `/v2/sampleContext/sampleAggregate/${v4()}/execute`,
           headers: {
             'content-type': ''
           },
@@ -134,7 +134,7 @@ suite('handleCommand/http', (): void => {
 
         const { status, data } = await client({
           method: 'post',
-          url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
+          url: `/v2/sampleContext/sampleAggregate/${v4()}/execute`,
           headers: {
             'content-type': 'text/plain'
           },
@@ -176,7 +176,7 @@ suite('handleCommand/http', (): void => {
 
         const { status, data } = await client({
           method: 'post',
-          url: `/v2/nonExistent/sampleAggregate/${uuid()}/execute`,
+          url: `/v2/nonExistent/sampleAggregate/${v4()}/execute`,
           data: { strategy: 'succeed' },
           responseType: 'text',
           validateStatus (): boolean {
@@ -196,7 +196,7 @@ suite('handleCommand/http', (): void => {
 
         const { status, data } = await client({
           method: 'post',
-          url: `/v2/sampleContext/nonExistent/${uuid()}/execute`,
+          url: `/v2/sampleContext/nonExistent/${v4()}/execute`,
           data: { strategy: 'succeed' },
           responseType: 'text',
           validateStatus (): boolean {
@@ -216,7 +216,7 @@ suite('handleCommand/http', (): void => {
 
         const { status, data } = await client({
           method: 'post',
-          url: `/v2/sampleContext/sampleAggregate/${uuid()}/nonExistent`,
+          url: `/v2/sampleContext/sampleAggregate/${v4()}/nonExistent`,
           data: { strategy: 'succeed' },
           responseType: 'text',
           validateStatus (): boolean {
@@ -236,7 +236,7 @@ suite('handleCommand/http', (): void => {
 
         const { status, data } = await client({
           method: 'post',
-          url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
+          url: `/v2/sampleContext/sampleAggregate/${v4()}/execute`,
           data: { strategy: 'invalid-value' },
           responseType: 'text',
           validateStatus (): boolean {
@@ -256,7 +256,7 @@ suite('handleCommand/http', (): void => {
 
         const { status } = await client({
           method: 'post',
-          url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
+          url: `/v2/sampleContext/sampleAggregate/${v4()}/execute`,
           data: { strategy: 'succeed' }
         });
 
@@ -266,7 +266,7 @@ suite('handleCommand/http', (): void => {
       test('receives commands.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
-        const id = uuid();
+        const id = v4();
 
         await client({
           method: 'post',
@@ -303,7 +303,7 @@ suite('handleCommand/http', (): void => {
 
         const { data } = await client({
           method: 'post',
-          url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
+          url: `/v2/sampleContext/sampleAggregate/${v4()}/execute`,
           data: { strategy: 'succeed' }
         });
 
@@ -329,7 +329,7 @@ suite('handleCommand/http', (): void => {
 
         const { status, data } = await client({
           method: 'post',
-          url: `/v2/sampleContext/sampleAggregate/${uuid()}/execute`,
+          url: `/v2/sampleContext/sampleAggregate/${v4()}/execute`,
           data: { strategy: 'succeed' },
           validateStatus (): boolean {
             return true;
@@ -377,9 +377,9 @@ suite('handleCommand/http', (): void => {
           },
           data: {
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'execute',
-            id: uuid()
+            id: v4()
           },
           responseType: 'text',
           validateStatus (): boolean {
@@ -405,9 +405,9 @@ suite('handleCommand/http', (): void => {
           },
           data: {
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'execute',
-            id: uuid()
+            id: v4()
           },
           responseType: 'text',
           validateStatus (): boolean {
@@ -452,9 +452,9 @@ suite('handleCommand/http', (): void => {
           url: `/v2/cancel`,
           data: {
             contextIdentifier: { name: 'nonExistent' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'execute',
-            id: uuid()
+            id: v4()
           },
           responseType: 'text',
           validateStatus (): boolean {
@@ -477,9 +477,9 @@ suite('handleCommand/http', (): void => {
           url: `/v2/cancel`,
           data: {
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'nonExistent', id: uuid() },
+            aggregateIdentifier: { name: 'nonExistent', id: v4() },
             name: 'execute',
-            id: uuid()
+            id: v4()
           },
           responseType: 'text',
           validateStatus (): boolean {
@@ -502,9 +502,9 @@ suite('handleCommand/http', (): void => {
           url: `/v2/cancel`,
           data: {
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'nonExistent',
-            id: uuid()
+            id: v4()
           },
           responseType: 'text',
           validateStatus (): boolean {
@@ -527,9 +527,9 @@ suite('handleCommand/http', (): void => {
           url: `/v2/cancel`,
           data: {
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'execute',
-            id: uuid()
+            id: v4()
           }
         });
 
@@ -556,9 +556,9 @@ suite('handleCommand/http', (): void => {
           url: `/v2/cancel`,
           data: {
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'execute',
-            id: uuid()
+            id: v4()
           },
           validateStatus: (): boolean => true
         });
@@ -569,8 +569,8 @@ suite('handleCommand/http', (): void => {
       test('cancels commands.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
-        const aggregateId = uuid(),
-              commandId = uuid();
+        const aggregateId = v4(),
+              commandId = v4();
 
         await client({
           method: 'post',
@@ -615,9 +615,9 @@ suite('handleCommand/http', (): void => {
           url: `/v2/cancel`,
           data: {
             contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
             name: 'execute',
-            id: uuid()
+            id: v4()
           },
           validateStatus (): boolean {
             return true;

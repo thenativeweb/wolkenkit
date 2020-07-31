@@ -3,7 +3,7 @@ import { ContextIdentifier } from '../../elements/ContextIdentifier';
 import { DomainEvent } from '../../elements/DomainEvent';
 import { DomainEventData } from '../../elements/DomainEventData';
 import { Initiator } from '../../elements/Initiator';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
   contextIdentifier,
@@ -32,10 +32,10 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
     aggregateIdentifier,
     name,
     data,
-    id: id ?? uuid(),
+    id: id ?? v4(),
     metadata: {
-      causationId: metadata.causationId ?? uuid(),
-      correlationId: metadata.correlationId ?? uuid(),
+      causationId: metadata.causationId ?? v4(),
+      correlationId: metadata.correlationId ?? v4(),
       timestamp: metadata.timestamp ?? Date.now(),
       revision: metadata.revision,
       initiator: metadata.initiator ?? {

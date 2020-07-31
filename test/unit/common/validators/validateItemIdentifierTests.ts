@@ -4,7 +4,7 @@ import { CustomError } from 'defekt';
 import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { validateItemIdentifier } from '../../../../lib/common/validators/validateItemIdentifier';
 
 suite('validateItemIdentifier', (): void => {
@@ -12,8 +12,8 @@ suite('validateItemIdentifier', (): void => {
 
   const itemIdentifier = {
     contextIdentifier: { name: 'sampleContext' },
-    aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
-    id: uuid(),
+    aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+    id: v4(),
     name: 'execute'
   };
 
@@ -54,7 +54,7 @@ suite('validateItemIdentifier', (): void => {
           ...itemIdentifier,
           aggregateIdentifier: {
             name: 'someAggregate',
-            id: uuid()
+            id: v4()
           }
         },
         application

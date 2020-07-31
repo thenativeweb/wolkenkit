@@ -11,7 +11,7 @@ import { errors } from '../errors';
 import { GetAggregateService } from './types/GetAggregateService';
 import { State } from '../elements/State';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { Value } from 'validate-value';
 import { cloneDeep, get } from 'lodash';
 
@@ -58,7 +58,7 @@ const getAggregateService: GetAggregateService = function <TState extends State>
         aggregateIdentifier: aggregateInstance.aggregateIdentifier,
         name: domainEventName,
         data,
-        id: uuid(),
+        id: v4(),
         metadata: {
           causationId: command.id,
           correlationId: command.metadata.correlationId,

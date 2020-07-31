@@ -25,7 +25,7 @@ import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import streamToString from 'stream-to-string';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
@@ -130,7 +130,7 @@ suite('main', function (): void {
     test('handles commands and publishes events.', async (): Promise<void> => {
       const aggregateIdentifier = {
         name: 'sampleAggregate',
-        id: uuid()
+        id: v4()
       };
       const command = buildCommand({
         contextIdentifier: {
@@ -200,7 +200,7 @@ suite('main', function (): void {
     test('executes flows.', async (): Promise<void> => {
       const aggregateIdentifier = {
         name: 'sampleAggregate',
-        id: uuid()
+        id: v4()
       };
       const command = buildCommand({
         contextIdentifier: {
@@ -292,7 +292,7 @@ suite('main', function (): void {
       const result = await client.mutate({
         mutation,
         variables: {
-          aggregateId: uuid(),
+          aggregateId: v4(),
           data: {
             strategy: 'succeed'
           }
@@ -328,7 +328,7 @@ suite('main', function (): void {
         query
       });
 
-      const aggregateId = uuid();
+      const aggregateId = v4();
       const command = buildCommand({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
@@ -354,7 +354,7 @@ suite('main', function (): void {
     test('runs queries against the views.', async (): Promise<void> => {
       const aggregateIdentifier = {
         name: 'sampleAggregate',
-        id: uuid()
+        id: v4()
       };
       const command = buildCommand({
         contextIdentifier: {
@@ -393,8 +393,8 @@ suite('main', function (): void {
   suite('files', (): void => {
     test('stores files.', async (): Promise<void> => {
       const file = {
-        id: uuid(),
-        name: uuid(),
+        id: v4(),
+        name: v4(),
         content: 'Hello world!'
       };
 
@@ -413,8 +413,8 @@ suite('main', function (): void {
 
     test('removes files.', async (): Promise<void> => {
       const file = {
-        id: uuid(),
-        name: uuid(),
+        id: v4(),
+        name: v4(),
         content: 'Hello world!'
       };
 

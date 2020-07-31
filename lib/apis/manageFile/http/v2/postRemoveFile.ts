@@ -6,7 +6,7 @@ import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
-import { jsonSchema } from 'uuidv4';
+import { jsonSchema } from '../../../../common/utils/uuid';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
@@ -22,7 +22,7 @@ const postRemoveFile = {
     body: {
       type: 'object',
       properties: {
-        id: jsonSchema.v4
+        id: jsonSchema
       },
       required: [ 'id' ],
       additionalProperties: false

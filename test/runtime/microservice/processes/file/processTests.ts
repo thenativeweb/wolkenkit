@@ -12,7 +12,7 @@ import { Readable } from 'stream';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import streamToString from 'stream-to-string';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('file', function (): void {
   this.timeout(10_000);
@@ -79,8 +79,8 @@ suite('file', function (): void {
   suite('files', (): void => {
     test('stores files.', async (): Promise<void> => {
       const file = {
-        id: uuid(),
-        name: uuid(),
+        id: v4(),
+        name: v4(),
         content: 'Hello world!'
       };
 
@@ -99,8 +99,8 @@ suite('file', function (): void {
 
     test('removes files.', async (): Promise<void> => {
       const file = {
-        id: uuid(),
-        name: uuid(),
+        id: v4(),
+        name: v4(),
         content: 'Hello world!'
       };
 

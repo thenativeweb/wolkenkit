@@ -126,6 +126,7 @@
     "@types/pg-query-stream": "1.0.3",
     "@types/shelljs": "0.8.8",
     "@types/swagger-ui-express": "4.1.2",
+    "@types/uuid": "8.0.0",
     "apollo-server-express": "2.16.1",
     "axios": "0.19.2",
     "body-parser": "1.19.0",
@@ -166,7 +167,7 @@
     "streamtoarray": "3.0.0",
     "swagger-ui-express": "4.1.4",
     "untildify": "4.0.0",
-    "uuidv4": "6.2.0",
+    "uuid": "8.3.0",
     "validate-value": "7.0.0"
   },
   "devDependencies": {

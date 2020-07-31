@@ -4,7 +4,7 @@ import { CommandData } from '../../elements/CommandData';
 import { CommandWithMetadata } from '../../elements/CommandWithMetadata';
 import { ContextIdentifier } from '../../elements/ContextIdentifier';
 import { Initiator } from '../../elements/Initiator';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 const buildCommandWithMetadata = function <TCommandData extends CommandData> ({
   contextIdentifier,
@@ -32,10 +32,10 @@ const buildCommandWithMetadata = function <TCommandData extends CommandData> ({
     aggregateIdentifier,
     name,
     data,
-    id: id ?? uuid(),
+    id: id ?? v4(),
     metadata: {
-      causationId: metadata?.causationId ?? uuid(),
-      correlationId: metadata?.correlationId ?? uuid(),
+      causationId: metadata?.causationId ?? v4(),
+      correlationId: metadata?.correlationId ?? v4(),
       timestamp: metadata?.timestamp ?? Date.now(),
       client: metadata?.client ?? {
         ip: '127.0.0.1',

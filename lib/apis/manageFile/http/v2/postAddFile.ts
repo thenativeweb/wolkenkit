@@ -6,7 +6,7 @@ import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
-import { jsonSchema } from 'uuidv4';
+import { jsonSchema } from '../../../../common/utils/uuid';
 import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -26,7 +26,7 @@ const postAddFile = {
     headers: {
       type: 'object',
       properties: {
-        'x-id': jsonSchema.v4 as Schema,
+        'x-id': jsonSchema,
         'x-name': { type: 'string', minLength: 1 },
         'content-type': { type: 'string', pattern: contentTypeRegexAsString }
       },

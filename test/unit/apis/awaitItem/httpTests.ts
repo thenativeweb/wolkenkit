@@ -14,11 +14,12 @@ import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/In
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
+import { regex } from '../../../../lib/common/utils/uuid';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
+import { v4 } from 'uuid';
 import { Value } from 'validate-value';
-import { isUuid, uuid } from 'uuidv4';
 
 suite('awaitItem/http', (): void => {
   suite('/v2', (): void => {
@@ -33,7 +34,7 @@ suite('awaitItem/http', (): void => {
 
     setup(async (): Promise<void> => {
       newItemSubscriber = await InMemorySubscriber.create();
-      newItemSubscriberChannel = uuid();
+      newItemSubscriberChannel = v4();
       newItemPublisher = await InMemoryPublisher.create();
 
       priorityQueueStore = await createPriorityQueueStore({
@@ -123,7 +124,7 @@ suite('awaitItem/http', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -154,7 +155,7 @@ suite('awaitItem/http', (): void => {
             },
             (streamElement: any): void => {
               assert.that(streamElement.item).is.equalTo(commandWithMetadata);
-              assert.that(isUuid(streamElement.metadata.token)).is.true();
+              assert.that(streamElement.metadata.token).is.matching(regex);
             }
           ]));
         });
@@ -171,7 +172,7 @@ suite('awaitItem/http', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleContext',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -200,7 +201,7 @@ suite('awaitItem/http', (): void => {
             },
             (streamElement: any): void => {
               assert.that(streamElement.item).is.equalTo(commandWithMetadata);
-              assert.that(isUuid(streamElement.metadata.token)).is.true();
+              assert.that(streamElement.metadata.token).is.matching(regex);
 
               resolve();
             }
@@ -226,7 +227,7 @@ suite('awaitItem/http', (): void => {
             },
             (streamElement: any): void => {
               assert.that(streamElement.item).is.equalTo(commandWithMetadata);
-              assert.that(isUuid(streamElement.metadata.token)).is.true();
+              assert.that(streamElement.metadata.token).is.matching(regex);
 
               resolve();
             }
@@ -243,7 +244,7 @@ suite('awaitItem/http', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleContext',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -254,7 +255,7 @@ suite('awaitItem/http', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleContext',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -329,7 +330,7 @@ suite('awaitItem/http', (): void => {
           headers: { 'content-type': 'application/json' },
           data: {
             discriminator: '',
-            token: uuid()
+            token: v4()
           },
           validateStatus: (): boolean => true
         });
@@ -350,7 +351,7 @@ suite('awaitItem/http', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -378,7 +379,7 @@ suite('awaitItem/http', (): void => {
           headers: { 'content-type': 'application/json' },
           data: {
             discriminator: commandWithMetadata.aggregateIdentifier.id,
-            token: uuid()
+            token: v4()
           },
           validateStatus: (): boolean => true
         });
@@ -399,7 +400,7 @@ suite('awaitItem/http', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -496,7 +497,7 @@ suite('awaitItem/http', (): void => {
           headers: { 'content-type': 'application/json' },
           data: {
             discriminator: '',
-            token: uuid()
+            token: v4()
           },
           validateStatus: (): boolean => true
         });
@@ -517,7 +518,7 @@ suite('awaitItem/http', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -545,7 +546,7 @@ suite('awaitItem/http', (): void => {
           headers: { 'content-type': 'application/json' },
           data: {
             discriminator: commandWithMetadata.aggregateIdentifier.id,
-            token: uuid()
+            token: v4()
           },
           validateStatus: (): boolean => true
         });
@@ -560,7 +561,7 @@ suite('awaitItem/http', (): void => {
       test('removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
-        const aggregateId = uuid();
+        const aggregateId = v4();
         const commandOne = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'
@@ -663,7 +664,7 @@ suite('awaitItem/http', (): void => {
           headers: { 'content-type': 'application/json' },
           data: {
             discriminator: '',
-            token: uuid(),
+            token: v4(),
             priority: Date.now()
           },
           validateStatus: (): boolean => true
@@ -685,7 +686,7 @@ suite('awaitItem/http', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -713,7 +714,7 @@ suite('awaitItem/http', (): void => {
           headers: { 'content-type': 'application/json' },
           data: {
             discriminator: commandWithMetadata.aggregateIdentifier.id,
-            token: uuid(),
+            token: v4(),
             priority: Date.now()
           },
           validateStatus: (): boolean => true
@@ -735,7 +736,7 @@ suite('awaitItem/http', (): void => {
           },
           aggregateIdentifier: {
             name: 'sampleAggregate',
-            id: uuid()
+            id: v4()
           },
           name: 'execute',
           data: {}
@@ -747,7 +748,7 @@ suite('awaitItem/http', (): void => {
           headers: { 'content-type': 'application/json' },
           data: {
             discriminator: commandWithMetadata.aggregateIdentifier.id,
-            token: uuid(),
+            token: v4(),
             priority: -1
           },
           validateStatus: (): boolean => true
@@ -763,7 +764,7 @@ suite('awaitItem/http', (): void => {
       test('defers the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
-        const aggregateId = uuid();
+        const aggregateId = v4();
         const commandOne = buildCommandWithMetadata({
           contextIdentifier: {
             name: 'sampleContext'

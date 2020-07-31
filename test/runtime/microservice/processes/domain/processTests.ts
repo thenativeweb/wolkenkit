@@ -24,7 +24,7 @@ import { SnapshotStrategyConfiguration } from '../../../../../lib/common/domain/
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subscribeMessages/http/v2/Client';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('domain', function (): void {
   this.timeout(10_000);
@@ -235,7 +235,7 @@ suite('domain', function (): void {
     test(`publishes (and does not store) a rejected event if the sender of a command is not authorized.`, async (): Promise<void> => {
       const aggregateIdentifier = {
         name: 'sampleAggregate',
-        id: uuid()
+        id: v4()
       };
 
       const command = buildCommandWithMetadata({
@@ -299,7 +299,7 @@ suite('domain', function (): void {
     test('publishes (and stores) an appropriate event for the incoming command.', async (): Promise<void> => {
       const aggregateIdentifier = {
         name: 'sampleAggregate',
-        id: uuid()
+        id: v4()
       };
 
       const command = buildCommandWithMetadata({
@@ -469,7 +469,7 @@ suite('domain', function (): void {
         },
         aggregateIdentifier: {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         },
         name: 'execute',
         data: {
@@ -482,7 +482,7 @@ suite('domain', function (): void {
         },
         aggregateIdentifier: {
           name: 'sampleAggregate',
-          id: uuid()
+          id: v4()
         },
         name: 'execute',
         data: {

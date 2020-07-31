@@ -21,7 +21,7 @@ import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
 import { LoggerService } from '../../../../lib/common/services/LoggerService';
 import { noop } from 'lodash';
 import { Repository } from '../../../../lib/common/domain/Repository';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 suite('executeFlow', (): void => {
   let aggregatesService: AggregatesService,
@@ -74,7 +74,7 @@ suite('executeFlow', (): void => {
   test('throws an error if the flow name does not exist.', async (): Promise<void> => {
     const domainEvent = buildDomainEvent({
       contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
       name: 'executed',
       data: {},
       metadata: { revision: 1 }
@@ -105,7 +105,7 @@ suite('executeFlow', (): void => {
   test('does nothing if the domain event revision is lower than the latest handled revision.', async (): Promise<void> => {
     const domainEvent = buildDomainEvent({
       contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
       name: 'executed',
       data: {},
       metadata: { revision: 5 }
@@ -141,7 +141,7 @@ suite('executeFlow', (): void => {
   test('does nothing if the domain event revision is equal to the latest handled revision.', async (): Promise<void> => {
     const domainEvent = buildDomainEvent({
       contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
       name: 'executed',
       data: {},
       metadata: { revision: 7 }
@@ -177,7 +177,7 @@ suite('executeFlow', (): void => {
   test('executes the relevant handlers.', async (): Promise<void> => {
     const domainEvent = buildDomainEvent({
       contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
       name: 'executed',
       data: {},
       metadata: { revision: 7 }
@@ -235,7 +235,7 @@ suite('executeFlow', (): void => {
 
     const domainEvent = buildDomainEvent({
       contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
       name: 'executed',
       data: {},
       metadata: { revision: 7 }
@@ -288,7 +288,7 @@ suite('executeFlow', (): void => {
 
     aggregatesService = getAggregatesService({ repository });
 
-    const aggregateId = uuid();
+    const aggregateId = v4();
     const domainEvents = [
       buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },
@@ -359,7 +359,7 @@ suite('executeFlow', (): void => {
 
     aggregatesService = getAggregatesService({ repository });
 
-    const aggregateId = uuid();
+    const aggregateId = v4();
     const domainEvents = [
       buildDomainEvent({
         contextIdentifier: { name: 'sampleContext' },

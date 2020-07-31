@@ -6,7 +6,7 @@ import { DomainEventWithState } from '../../../../lib/wolkenkit';
 import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { validateDomainEventWithState } from '../../../../lib/common/validators/validateDomainEventWithState';
 
 suite('validateDomainEventWithState', (): void => {
@@ -19,7 +19,7 @@ suite('validateDomainEventWithState', (): void => {
   const domainEvent = new DomainEventWithState({
     ...buildDomainEvent({
       contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: uuid() },
+      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
       name: 'executed',
       data: {
         strategy: 'succeed'
@@ -72,7 +72,7 @@ suite('validateDomainEventWithState', (): void => {
           ...domainEvent,
           aggregateIdentifier: {
             name: 'someAggregate',
-            id: uuid()
+            id: v4()
           }
         }),
         application

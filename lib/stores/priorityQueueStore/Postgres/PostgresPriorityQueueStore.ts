@@ -9,7 +9,7 @@ import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
 import { retry } from 'retry-ignore-abort';
 import { TableNames } from './TableNames';
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 import { withTransaction } from '../../utils/postgres/withTransaction';
 import { Client, Pool, PoolClient } from 'pg';
 
@@ -595,7 +595,7 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     const item = await this.getFirstItemInQueue({ connection, discriminator });
 
     const until = Date.now() + this.expirationTime;
-    const token = uuid();
+    const token = v4();
 
     await connection.query({
       name: 'lock queue',
