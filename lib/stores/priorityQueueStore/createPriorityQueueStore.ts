@@ -5,6 +5,7 @@ import { MySqlPriorityQueueStore } from './MySql';
 import { PostgresPriorityQueueStore } from './Postgres';
 import { PriorityQueueStore } from './PriorityQueueStore';
 import { PriorityQueueStoreOptions } from './PriorityQueueStoreOptions';
+import { SqlServerPriorityQueueStore } from './SqlServer';
 
 const createPriorityQueueStore = async function<TItem, TItemIdentifier> (
   options: PriorityQueueStoreOptions<TItem, TItemIdentifier>
@@ -24,6 +25,9 @@ const createPriorityQueueStore = async function<TItem, TItemIdentifier> (
     }
     case 'Postgres': {
       return await PostgresPriorityQueueStore.create<TItem, TItemIdentifier>(options);
+    }
+    case 'SqlServer': {
+      return await SqlServerPriorityQueueStore.create<TItem, TItemIdentifier>(options);
     }
     default: {
       throw new errors.DatabaseTypeInvalid();
