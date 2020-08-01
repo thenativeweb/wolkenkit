@@ -30,8 +30,8 @@ const getFileStoreOptionsSchema = function (): Schema {
           encryptConnection: { type: 'boolean' },
           accessKey: { type: 'string', minLength: 1 },
           secretKey: { type: 'string', minLength: 1 },
-          region: { type: 'string', minLegnth: 1 },
-          bucketName: { type: 'string', minLegnth: 1 }
+          region: { type: 'string', minLength: 1 },
+          bucketName: { type: 'string', minLength: 1 }
         },
         required: [ 'type', 'accessKey', 'secretKey', 'bucketName' ],
         additionalProperties: false
