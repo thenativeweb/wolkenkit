@@ -1,12 +1,16 @@
 import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
+import { getConsumerProgressStoreOptionsSchema } from '../../../shared/schemas/getConsumerProgressStoreOptionsSchema';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
+import { getLockStoreOptionsSchema } from '../../../shared/schemas/getLockStoreOptionsSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
 import path from 'path';
 
-const corsSchema = getCorsSchema(),
+const consumerProgressStoreOptionsSchema = getConsumerProgressStoreOptionsSchema(),
+      corsSchema = getCorsSchema(),
+      lockStoreOptionsSchema = getLockStoreOptionsSchema(),
       portSchema = getPortSchema(),
       protocolSchema = getProtocolSchema(),
       snapshotStrategySchema = getSnapshotStrategySchema();
@@ -66,13 +70,8 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   consumerProgressStoreOptions: {
     environmentVariable: 'CONSUMER_PROGRESS_STORE_OPTIONS',
-    defaultValue: {},
-    schema: { type: 'object' }
-  },
-  consumerProgressStoreType: {
-    environmentVariable: 'CONSUMER_PROGRESS_STORE_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string' }
+    defaultValue: { type: 'InMemory' },
+    schema: consumerProgressStoreOptionsSchema
   },
   domainEventDispatcherAcknowledgeRetries: {
     environmentVariable: 'DOMAIN_EVENT_DISPATCHER_ACKNOWLEDGE_RETRIES',
@@ -114,13 +113,8 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   lockStoreOptions: {
     environmentVariable: 'LOCK_STORE_OPTIONS',
-    defaultValue: {},
-    schema: { type: 'object' }
-  },
-  lockStoreType: {
-    environmentVariable: 'LOCK_STORE_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string' }
+    defaultValue: { type: 'InMemory' },
+    schema: lockStoreOptionsSchema
   },
   replayServerHostName: {
     environmentVariable: 'REPLAY_SERVER_HOST_NAME',

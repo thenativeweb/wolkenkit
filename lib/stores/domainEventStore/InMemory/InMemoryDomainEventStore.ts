@@ -3,6 +3,7 @@ import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
+import { InMemoryDomainEventStoreOptions } from './InMemoryDomainEventStoreOptions';
 import { last } from 'lodash';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { Snapshot } from '../Snapshot';
@@ -19,7 +20,8 @@ class InMemoryDomainEventStore implements DomainEventStore {
     this.snapshots = [];
   }
 
-  public static async create (): Promise<InMemoryDomainEventStore> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public static async create (_options: InMemoryDomainEventStoreOptions): Promise<InMemoryDomainEventStore> {
     return new InMemoryDomainEventStore();
   }
 

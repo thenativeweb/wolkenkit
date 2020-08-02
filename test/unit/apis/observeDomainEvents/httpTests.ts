@@ -31,10 +31,10 @@ suite('observeDomainEvents/http', (): void => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
     application = await loadApplication({ applicationDirectory });
-    domainEventStore = await InMemoryDomainEventStore.create();
+    domainEventStore = await InMemoryDomainEventStore.create({ type: 'InMemory' });
     repository = new Repository({
       application,
-      lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+      lockStore: await createLockStore({ type: 'InMemory' }),
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' })
     });
@@ -629,7 +629,7 @@ suite('observeDomainEvents/http', (): void => {
           application = await loadApplication({ applicationDirectory });
           repository = new Repository({
             application,
-            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+            lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
@@ -712,7 +712,7 @@ suite('observeDomainEvents/http', (): void => {
           application = await loadApplication({ applicationDirectory });
           repository = new Repository({
             application,
-            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+            lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
@@ -793,7 +793,7 @@ suite('observeDomainEvents/http', (): void => {
           application = await loadApplication({ applicationDirectory });
           repository = new Repository({
             application,
-            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+            lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
@@ -864,7 +864,7 @@ suite('observeDomainEvents/http', (): void => {
           application = await loadApplication({ applicationDirectory });
           repository = new Repository({
             application,
-            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+            lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
@@ -931,7 +931,7 @@ suite('observeDomainEvents/http', (): void => {
           application = await loadApplication({ applicationDirectory });
           repository = new Repository({
             application,
-            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+            lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
@@ -1012,7 +1012,7 @@ suite('observeDomainEvents/http', (): void => {
           application = await loadApplication({ applicationDirectory });
           repository = new Repository({
             application,
-            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+            lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
@@ -1093,7 +1093,7 @@ suite('observeDomainEvents/http', (): void => {
           application = await loadApplication({ applicationDirectory });
           repository = new Repository({
             application,
-            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+            lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
@@ -1164,7 +1164,7 @@ suite('observeDomainEvents/http', (): void => {
           application = await loadApplication({ applicationDirectory });
           repository = new Repository({
             application,
-            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+            lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
@@ -1232,7 +1232,7 @@ suite('observeDomainEvents/http', (): void => {
           application = await loadApplication({ applicationDirectory });
           repository = new Repository({
             application,
-            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+            lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
@@ -1313,7 +1313,7 @@ suite('observeDomainEvents/http', (): void => {
           application = await loadApplication({ applicationDirectory });
           repository = new Repository({
             application,
-            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+            lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });
@@ -1394,7 +1394,7 @@ suite('observeDomainEvents/http', (): void => {
           application = await loadApplication({ applicationDirectory });
           repository = new Repository({
             application,
-            lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+            lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
             snapshotStrategy: getSnapshotStrategy({ name: 'never' })
           });

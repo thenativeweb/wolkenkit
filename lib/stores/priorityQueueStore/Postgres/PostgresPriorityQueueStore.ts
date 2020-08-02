@@ -4,6 +4,7 @@ import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
 import { LockMetadata } from '../LockMetadata';
+import { PostgresPriorityQueueStoreOptions } from './PostgresPriorityQueueStoreOptions';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
@@ -63,31 +64,19 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> ({
-    doesIdentifierMatchItem,
-    options: {
+  public static async create<TItem, TItemIdentifier> (
+    {
+      doesIdentifierMatchItem,
+      expirationTime = 15_000,
       hostName,
       port,
       userName,
       password,
       database,
       encryptConnection = false,
-      tableNames,
-      expirationTime = 15_000
-    }
-  }: {
-    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
-    options: {
-      hostName: string;
-      port: number;
-      userName: string;
-      password: string;
-      database: string;
-      encryptConnection?: boolean;
-      tableNames: TableNames;
-      expirationTime?: number;
-    };
-  }): Promise<PostgresPriorityQueueStore<TItem, TItemIdentifier>> {
+      tableNames
+    }: PostgresPriorityQueueStoreOptions<TItem, TItemIdentifier>
+  ): Promise<PostgresPriorityQueueStore<TItem, TItemIdentifier>> {
     const pool = new Pool({
       host: hostName,
       port,
@@ -144,7 +133,7 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
               "indexInQueue" integer NOT NULL,
               "priority" bigint NOT NULL,
               "item" jsonb NOT NULL,
-      
+
               CONSTRAINT "${tableNames.items}_pk" PRIMARY KEY ("discriminator", "indexInQueue")
             );
           `
@@ -164,7 +153,7 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
               "indexInPriorityQueue" integer NOT NULL,
               "lockUntil" bigint,
               "lockToken" uuid,
-      
+
               CONSTRAINT "${tableNames.priorityQueue}_pk" PRIMARY KEY ("discriminator")
             );
           `
@@ -376,7 +365,7 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     const { rows } = await connection.query({
       name: 'get queue by discriminator',
       text: `
-        SELECT 
+        SELECT
             pq."indexInPriorityQueue" AS "indexInPriorityQueue",
             i."priority" AS "priority",
             pq."lockUntil" AS "lockUntil",
@@ -416,7 +405,7 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     const { rows } = await connection.query({
       name: 'get queue by index in priority queue',
       text: `
-        SELECT 
+        SELECT
             pq."discriminator" AS "discriminator",
             i."priority" AS "priority",
             pq."lockUntil" AS "lockUntil",
@@ -676,7 +665,7 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
       name: 'remove item from queue',
       text: `
         DELETE FROM "${this.tableNames.items}"
-          WHERE "discriminator" = $1 
+          WHERE "discriminator" = $1
             AND "indexInQueue" = 0;
       `,
       values: [ queue.discriminator ]

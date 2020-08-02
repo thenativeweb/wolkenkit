@@ -9,6 +9,7 @@ suite('MariaDb', (): void => {
       suffix: string;
     }): Promise<ConsumerProgressStore> {
       return await MySqlConsumerProgressStore.create({
+        type: 'MariaDb',
         ...connectionOptions.mariaDb,
         tableNames: {
           progress: `progress_${suffix}`

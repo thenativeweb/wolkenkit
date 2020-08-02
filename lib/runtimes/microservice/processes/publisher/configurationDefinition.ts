@@ -2,6 +2,8 @@ import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
+import { getSubscriberOptionsSchema } from '../../../shared/schemas/getSubscriberOptionsSchema';
 
 const corsSchema = getCorsSchema(),
       portSchema = getPortSchema();
@@ -29,21 +31,16 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',
-    defaultValue: { subscriber: {}, publisher: {}},
+    defaultValue: { subscriber: { type: 'InMemory' }, publisher: { type: 'InMemory' }},
     schema: {
       type: 'object',
       properties: {
-        subscriber: { type: 'object' },
-        publisher: { type: 'object' }
+        subscriber: getSubscriberOptionsSchema(),
+        publisher: getPublisherOptionsSchema()
       },
       required: [ 'subscriber', 'publisher' ],
       additionalProperties: false
     }
-  },
-  pubSubType: {
-    environmentVariable: 'PUB_SUB_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string', minLength: 1 }
   },
   subscribeCorsOrigin: {
     environmentVariable: 'SUBSCRIBE_CORS_ORIGIN',

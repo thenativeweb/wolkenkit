@@ -5,6 +5,7 @@ import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
 import { Readable } from 'stream';
 import { Snapshot } from '../Snapshot';
+import { SqlServerDomainEventStoreOptions } from './SqlServerDomainEventStoreOptions';
 import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
 import { ToDomainEventStream } from '../../utils/sqlServer/ToDomainEventStream';
@@ -35,15 +36,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
     database,
     encryptConnection = false,
     tableNames
-  }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    encryptConnection?: boolean;
-    tableNames: TableNames;
-  }): Promise<SqlServerDomainEventStore> {
+  }: SqlServerDomainEventStoreOptions): Promise<SqlServerDomainEventStore> {
     const pool = new ConnectionPool({
       server: hostName,
       port,

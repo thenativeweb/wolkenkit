@@ -53,8 +53,7 @@ suite('main', function (): void {
         configurationDefinition
       }),
       applicationDirectory,
-      domainEventStoreType: 'InMemory',
-      domainEventStoreOptions: {},
+      domainEventStoreOptions: { type: 'InMemory' },
       graphqlApi: { enableIntegratedClient: false },
       httpApi: true,
       identityProviders: [{ issuer: 'https://token.invalid', certificate: certificateDirectory }],

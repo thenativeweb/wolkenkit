@@ -30,7 +30,7 @@ suite('manageFile/http', (): void => {
     });
 
     setup(async (): Promise<void> => {
-      fileStore = await InMemoryFileStore.create();
+      fileStore = await InMemoryFileStore.create({ type: 'InMemory' });
 
       ({ api } = await getApi({
         application,

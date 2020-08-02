@@ -9,6 +9,7 @@ suite('Postgres', (): void => {
       suffix: string;
     }): Promise<LockStore> {
       return await PostgresLockStore.create({
+        type: 'Postgres',
         ...connectionOptions.postgres,
         tableNames: {
           locks: `locks_${suffix}`

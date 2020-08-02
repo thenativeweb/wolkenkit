@@ -16,12 +16,11 @@ suite('Postgres', (): void => {
       };
 
       return await PostgresPriorityQueueStore.create({
+        type: 'Postgres',
         doesIdentifierMatchItem: ({ item, itemIdentifier }): boolean => isEqual(item, itemIdentifier),
-        options: {
-          ...connectionOptions.postgres,
-          tableNames,
-          expirationTime
-        }
+        ...connectionOptions.postgres,
+        tableNames,
+        expirationTime
       });
     }
   });

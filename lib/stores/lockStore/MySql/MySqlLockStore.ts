@@ -1,6 +1,7 @@
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
+import { MySqlLockStoreOptions } from './MySqlLockStoreOptions';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { TableNames } from './TableNames';
@@ -51,14 +52,7 @@ class MySqlLockStore implements LockStore {
     password,
     database,
     tableNames
-  }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    tableNames: TableNames;
-  }): Promise<MySqlLockStore> {
+  }: MySqlLockStoreOptions): Promise<MySqlLockStore> {
     const pool = createPool({
       host: hostName,
       port,

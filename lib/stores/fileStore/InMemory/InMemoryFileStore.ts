@@ -2,6 +2,7 @@ import { errors } from '../../../common/errors';
 import { FileAddMetadata } from '../FileAddMetadata';
 import { FileMetadata } from '../FileMetadata';
 import { FileStore } from '../FileStore';
+import { InMemoryFileStoreOptions } from './InMemoryFileStoreOptions';
 import { Readable } from 'stream';
 
 class InMemoryFileStore implements FileStore {
@@ -11,7 +12,8 @@ class InMemoryFileStore implements FileStore {
     this.files = {};
   }
 
-  public static async create (): Promise<InMemoryFileStore> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public static async create (_options: InMemoryFileStoreOptions): Promise<InMemoryFileStore> {
     return new InMemoryFileStore();
   }
 

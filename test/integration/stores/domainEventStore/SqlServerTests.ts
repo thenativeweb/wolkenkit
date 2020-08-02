@@ -9,6 +9,7 @@ suite('SqlServer', (): void => {
       suffix: string;
     }): Promise<DomainEventStore> {
       return await SqlServerDomainEventStore.create({
+        type: 'SqlServer',
         ...connectionOptions.sqlServer,
         tableNames: {
           domainEvents: `domainevents_${suffix}`,

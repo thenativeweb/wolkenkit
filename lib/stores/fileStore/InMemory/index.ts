@@ -1,3 +1,7 @@
 import { InMemoryFileStore } from './InMemoryFileStore';
+import { InMemoryFileStoreOptions } from './InMemoryFileStoreOptions';
 
-export { InMemoryFileStore };
+export {
+  InMemoryFileStore,
+  InMemoryFileStoreOptions
+};

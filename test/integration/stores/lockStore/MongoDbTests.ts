@@ -9,6 +9,7 @@ suite('MongoDb', (): void => {
       suffix: string;
     }): Promise<LockStore> {
       return await MongoDbLockStore.create({
+        type: 'MongoDb',
         ...connectionOptions.mongoDb,
         collectionNames: {
           locks: `locks_${suffix}`

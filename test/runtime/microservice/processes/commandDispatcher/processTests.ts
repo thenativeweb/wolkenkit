@@ -34,7 +34,7 @@ suite('commandDispatcher', function (): void {
     commandDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition }),
       applicationDirectory,
-      priorityQueueStoreOptions: { expirationTime: queueLockExpirationTime },
+      priorityQueueStoreOptions: { type: 'InMemory', expirationTime: queueLockExpirationTime },
       port,
       healthPort
     };

@@ -1,3 +1,7 @@
 import { SqlServerDomainEventStore } from './SqlServerDomainEventStore';
+import { SqlServerDomainEventStoreOptions } from './SqlServerDomainEventStoreOptions';
 
-export { SqlServerDomainEventStore };
+export {
+  SqlServerDomainEventStore,
+  SqlServerDomainEventStoreOptions
+};

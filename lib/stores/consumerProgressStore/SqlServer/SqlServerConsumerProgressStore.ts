@@ -3,6 +3,7 @@ import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { IsReplaying } from '../IsReplaying';
+import { SqlServerConsumerProgressStoreOptions } from './SqlServerConsumerProgressStoreOptions';
 import { TableNames } from './TableNames';
 import { ConnectionPool, TYPES as Types } from 'mssql';
 
@@ -31,15 +32,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
     database,
     encryptConnection = false,
     tableNames
-  }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    encryptConnection?: boolean;
-    tableNames: TableNames;
-  }): Promise<SqlServerConsumerProgressStore> {
+  }: SqlServerConsumerProgressStoreOptions): Promise<SqlServerConsumerProgressStore> {
     const pool = new ConnectionPool({
       server: hostName,
       port,

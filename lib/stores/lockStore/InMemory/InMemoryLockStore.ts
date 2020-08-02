@@ -1,5 +1,6 @@
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
+import { InMemoryLockStoreOptions } from './InMemoryLockStoreOptions';
 import { Lock } from './Lock';
 import { LockStore } from '../LockStore';
 
@@ -12,7 +13,8 @@ class InMemoryLockStore implements LockStore {
     };
   }
 
-  public static async create (): Promise<InMemoryLockStore> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public static async create (_options: InMemoryLockStoreOptions): Promise<InMemoryLockStore> {
     return new InMemoryLockStore();
   }
 

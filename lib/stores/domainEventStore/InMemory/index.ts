@@ -1,3 +1,7 @@
 import { InMemoryDomainEventStore } from './InMemoryDomainEventStore';
+import { InMemoryDomainEventStoreOptions } from './InMemoryDomainEventStoreOptions';
 
-export { InMemoryDomainEventStore };
+export {
+  InMemoryDomainEventStore,
+  InMemoryDomainEventStoreOptions
+};

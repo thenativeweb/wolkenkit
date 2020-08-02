@@ -9,6 +9,7 @@ suite('Postgres', (): void => {
       suffix: string;
     }): Promise<ConsumerProgressStore> {
       return await PostgresConsumerProgressStore.create({
+        type: 'Postgres',
         ...connectionOptions.postgres,
         tableNames: {
           progress: `progress_${suffix}`

@@ -4,6 +4,7 @@ import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
+import { MongoDbDomainEventStoreOptions } from './MongoDbDomainEventStoreOptions';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
 import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
@@ -45,19 +46,13 @@ class MongoDbDomainEventStore implements DomainEventStore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  public static async create ({ hostName, port, userName, password, database, collectionNames }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    collectionNames: CollectionNames;
-  }): Promise<MongoDbDomainEventStore> {
-    const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
-
+  public static async create ({
+    connectionString,
+    collectionNames
+  }: MongoDbDomainEventStoreOptions): Promise<MongoDbDomainEventStore> {
     const client = await retry(async (): Promise<MongoClient> => {
       const connection = await MongoClient.connect(
-        url,
+        connectionString,
         // eslint-disable-next-line id-length
         { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
       );
@@ -65,7 +60,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
       return connection;
     });
 
-    const { pathname } = parse(url);
+    const { pathname } = parse(connectionString);
 
     if (!pathname) {
       throw new Error('Pathname is missing.');

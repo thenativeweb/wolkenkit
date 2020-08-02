@@ -1,11 +1,13 @@
 import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
+import { getFileStoreOptionsSchema } from '../../../shared/schemas/getFileStoreOptionsSchema';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import path from 'path';
 
 const corsSchema = getCorsSchema(),
+      fileStoreOptionsSchema = getFileStoreOptionsSchema(),
       identityProviderSchema = getIdentityProviderSchema(),
       portSchema = getPortSchema();
 
@@ -25,13 +27,8 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   fileStoreOptions: {
     environmentVariable: 'FILE_STORE_OPTIONS',
-    defaultValue: {},
-    schema: { type: 'object' }
-  },
-  fileStoreType: {
-    environmentVariable: 'FILE_STORE_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string' }
+    defaultValue: { type: 'InMemory' },
+    schema: fileStoreOptionsSchema
   },
   enableOpenApiDocumentation: {
     environmentVariable: 'ENABLE_OPEN_API_DOCUMENTATION',

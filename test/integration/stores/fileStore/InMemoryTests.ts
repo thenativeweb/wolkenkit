@@ -5,7 +5,7 @@ import { InMemoryFileStore } from '../../../../lib/stores/fileStore/InMemory';
 suite('InMemory', (): void => {
   getTestsFor({
     async createFileStore (): Promise<FileStore> {
-      return await InMemoryFileStore.create();
+      return await InMemoryFileStore.create({ type: 'InMemory' });
     }
   });
 });

@@ -1,19 +1,12 @@
 import { errors } from '../../common/errors';
 import { InMemorySubscriber } from './InMemory/InMemorySubscriber';
-import { Subscriber } from '../../messaging/pubSub/Subscriber';
+import { Subscriber } from './Subscriber';
+import { SubscriberOptions } from './SubscriberOptions';
 
-const createSubscriber = async function<T extends object> ({
-  type,
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  options
-  /* eslint-enable @typescript-eslint/no-unused-vars */
-}: {
-  type: string;
-  options: any;
-}): Promise<Subscriber<T>> {
-  switch (type) {
+const createSubscriber = async function<T extends object> (options: SubscriberOptions): Promise<Subscriber<T>> {
+  switch (options.type) {
     case 'InMemory': {
-      return await InMemorySubscriber.create();
+      return await InMemorySubscriber.create(options);
     }
     default: {
       throw new errors.SubscriberTypeInvalid();

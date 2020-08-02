@@ -3,6 +3,7 @@ import { exists } from '../../../common/utils/fs/exists';
 import { FileAddMetadata } from '../FileAddMetadata';
 import { FileMetadata } from '../FileMetadata';
 import { FileStore } from '../FileStore';
+import { FileSystemFileStoreOptions } from './FileSystemFileStoreOptions';
 import fs from 'fs';
 import { isolated } from 'isolated';
 import path from 'path';
@@ -20,9 +21,9 @@ class FileSystemFileStore implements FileStore {
     this.directory = directory;
   }
 
-  public static async create ({ directory }: {
-    directory?: string;
-  }): Promise<FileSystemFileStore> {
+  public static async create ({
+    directory
+  }: FileSystemFileStoreOptions): Promise<FileSystemFileStore> {
     return new FileSystemFileStore({
       directory: directory ?? await isolated()
     });

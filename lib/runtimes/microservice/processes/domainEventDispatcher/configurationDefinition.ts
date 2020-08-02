@@ -1,11 +1,15 @@
 import { Configuration } from './Configuration';
-import { ConfigurationDefinition } from '../../../shared//ConfigurationDefinition';
+import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getPriorityQueueStoreOptionsSchema } from '../../../shared/schemas/getPriorityQueueStoreOptionsSchema';
+import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
+import { getSubscriberOptionsSchema } from '../../../shared/schemas/getSubscriberOptionsSchema';
 import path from 'path';
 
-const corsSchema = getCorsSchema();
-const portSchema = getPortSchema();
+const corsSchema = getCorsSchema(),
+      portSchema = getPortSchema(),
+      priorityQueueStoreOptionsSchema = getPriorityQueueStoreOptionsSchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
   applicationDirectory: {
@@ -45,39 +49,22 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   priorityQueueStoreOptions: {
     environmentVariable: 'PRIORITY_QUEUE_STORE_OPTIONS',
-    defaultValue: { expirationTime: 30_000 },
-    schema: {
-      type: 'object',
-      properties: {
-        expirationTime: { type: 'number', minimum: 1 }
-      },
-      required: [ 'expirationTime' ],
-      additionalProperties: true
-    }
-  },
-  priorityQueueStoreType: {
-    environmentVariable: 'PRIORITY_QUEUE_STORE_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string', minLength: 1 }
+    defaultValue: { type: 'InMemory', expirationTime: 30_000 },
+    schema: priorityQueueStoreOptionsSchema
   },
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',
-    defaultValue: { channel: 'newDomainEvent', subscriber: {}, publisher: {}},
+    defaultValue: { channel: 'newDomainEvent', subscriber: { type: 'InMemory' }, publisher: { type: 'InMemory' }},
     schema: {
       type: 'object',
       properties: {
         channel: { type: 'string', minLength: 1 },
-        subscriber: { type: 'object' },
-        publisher: { type: 'object' }
+        subscriber: getSubscriberOptionsSchema(),
+        publisher: getPublisherOptionsSchema()
       },
       required: [ 'channel', 'subscriber', 'publisher' ],
       additionalProperties: false
     }
-  },
-  pubSubType: {
-    environmentVariable: 'PUB_SUB_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string', minLength: 1 }
   }
 };
 

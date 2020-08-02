@@ -1,3 +1,7 @@
 import { InMemoryLockStore } from './InMemoryLockStore';
+import { InMemoryLockStoreOptions } from './InMemoryLockStoreOptions';
 
-export { InMemoryLockStore };
+export {
+  InMemoryLockStore,
+  InMemoryLockStoreOptions
+};

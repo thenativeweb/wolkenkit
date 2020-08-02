@@ -1,6 +1,7 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { errors } from '../../../common/errors';
+import { InMemoryConsumerProgressStoreOptions } from './InMemoryConsumerProgressStoreOptions';
 import { IsReplaying } from '../IsReplaying';
 
 class InMemoryConsumerProgressStore implements ConsumerProgressStore {
@@ -10,7 +11,8 @@ class InMemoryConsumerProgressStore implements ConsumerProgressStore {
     this.progress = {};
   }
 
-  public static async create (): Promise<InMemoryConsumerProgressStore> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public static async create (_options: InMemoryConsumerProgressStoreOptions): Promise<InMemoryConsumerProgressStore> {
     return new InMemoryConsumerProgressStore();
   }
 

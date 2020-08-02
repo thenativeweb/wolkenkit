@@ -9,6 +9,7 @@ suite('MySql', (): void => {
       suffix: string;
     }): Promise<LockStore> {
       return await MySqlLockStore.create({
+        type: 'MySql',
         ...connectionOptions.mySql,
         tableNames: {
           locks: `locks_${suffix}`

@@ -5,7 +5,7 @@ import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStor
 suite('InMemory', (): void => {
   getTestsFor({
     async createDomainEventStore (): Promise<DomainEventStore> {
-      return await InMemoryDomainEventStore.create();
+      return await InMemoryDomainEventStore.create({ type: 'InMemory' });
     }
   });
 });

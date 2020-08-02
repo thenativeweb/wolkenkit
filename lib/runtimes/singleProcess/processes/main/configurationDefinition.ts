@@ -1,14 +1,24 @@
 import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
+import { getConsumerProgressStoreOptionsSchema } from '../../../shared/schemas/getConsumerProgressStoreOptionsSchema';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
+import { getDomainEventStoreOptionsSchema } from '../../../shared/schemas/getDomainEventStoreOptionsSchema';
+import { getFileStoreOptionsSchema } from '../../../shared/schemas/getFileStoreOptionsSchema';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
+import { getLockStoreOptionsSchema } from '../../../shared/schemas/getLockStoreOptionsSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getPriorityQueueStoreOptionsSchema } from '../../../shared/schemas/getPriorityQueueStoreOptionsSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
 import path from 'path';
 
-const corsSchema = getCorsSchema(),
+const consumerProgressStoreOptionsSchema = getConsumerProgressStoreOptionsSchema(),
+      corsSchema = getCorsSchema(),
+      domainEventStoreOptionsSchema = getDomainEventStoreOptionsSchema(),
+      fileStoreOptionsSchema = getFileStoreOptionsSchema(),
       identityProviderSchema = getIdentityProviderSchema(),
+      lockStoreOptionsSchema = getLockStoreOptionsSchema(),
       portSchema = getPortSchema(),
+      priorityQueueStoreOptionsSchema = getPriorityQueueStoreOptionsSchema(),
       snapshotStrategySchema = getSnapshotStrategySchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
@@ -43,15 +53,8 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   consumerProgressStoreOptions: {
     environmentVariable: 'CONSUMER_PROGRESS_STORE_OPTIONS',
-    defaultValue: {},
-    schema: {
-      type: 'object'
-    }
-  },
-  consumerProgressStoreType: {
-    environmentVariable: 'CONSUMER_PROGRESS_STORE_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string', minLength: 1 }
+    defaultValue: { type: 'InMemory' },
+    schema: consumerProgressStoreOptionsSchema
   },
   corsOrigin: {
     environmentVariable: 'CORS_ORIGIN',
@@ -60,13 +63,8 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   domainEventStoreOptions: {
     environmentVariable: 'DOMAIN_EVENT_STORE_OPTIONS',
-    defaultValue: {},
-    schema: { type: 'object' }
-  },
-  domainEventStoreType: {
-    environmentVariable: 'DOMAIN_EVENT_STORE_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string' }
+    defaultValue: { type: 'InMemory' },
+    schema: domainEventStoreOptionsSchema
   },
   enableOpenApiDocumentation: {
     environmentVariable: 'ENABLE_OPEN_API_DOCUMENTATION',
@@ -75,13 +73,8 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   fileStoreOptions: {
     environmentVariable: 'FILE_STORE_OPTIONS',
-    defaultValue: {},
-    schema: { type: 'object' }
-  },
-  fileStoreType: {
-    environmentVariable: 'FILE_STORE_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string' }
+    defaultValue: { type: 'InMemory' },
+    schema: fileStoreOptionsSchema
   },
   graphqlApi: {
     environmentVariable: 'GRAPHQL_API',
@@ -115,13 +108,8 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   lockStoreOptions: {
     environmentVariable: 'LOCK_STORE_OPTIONS',
-    defaultValue: {},
-    schema: { type: 'object' }
-  },
-  lockStoreType: {
-    environmentVariable: 'LOCK_STORE_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string' }
+    defaultValue: { type: 'InMemory' },
+    schema: lockStoreOptionsSchema
   },
   port: {
     environmentVariable: 'PORT',
@@ -130,37 +118,13 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   priorityQueueStoreForCommandsOptions: {
     environmentVariable: 'PRIORITY_QUEUE_STORE_FOR_COMMANDS_OPTIONS',
-    defaultValue: { expirationTime: 30_000 },
-    schema: {
-      type: 'object',
-      properties: {
-        expirationTime: { type: 'number', minimum: 1 }
-      },
-      required: [ 'expirationTime' ],
-      additionalProperties: true
-    }
-  },
-  priorityQueueStoreForCommandsType: {
-    environmentVariable: 'PRIORITY_QUEUE_STORE_FOR_COMMANDS_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string', minLength: 1 }
+    defaultValue: { type: 'InMemory', expirationTime: 30_000 },
+    schema: priorityQueueStoreOptionsSchema
   },
   priorityQueueStoreForDomainEventsOptions: {
     environmentVariable: 'PRIORITY_QUEUE_STORE_FOR_DOMAIN_EVENTS_OPTIONS',
-    defaultValue: { expirationTime: 30_000 },
-    schema: {
-      type: 'object',
-      properties: {
-        expirationTime: { type: 'number', minimum: 1 }
-      },
-      required: [ 'expirationTime' ],
-      additionalProperties: true
-    }
-  },
-  priorityQueueStoreForDomainEventsType: {
-    environmentVariable: 'PRIORITY_QUEUE_STORE_FOR_DOMAIN_EVENTS_TYPE',
-    defaultValue: 'InMemory',
-    schema: { type: 'string', minLength: 1 }
+    defaultValue: { type: 'InMemory', expirationTime: 30_000 },
+    schema: priorityQueueStoreOptionsSchema
   },
   snapshotStrategy: {
     environmentVariable: 'SNAPSHOT_STRATEGY',

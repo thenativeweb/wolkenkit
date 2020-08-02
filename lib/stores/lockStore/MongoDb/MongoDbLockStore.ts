@@ -2,6 +2,7 @@ import { CollectionNames } from './CollectionNames';
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
+import { MongoDbLockStoreOptions } from './MongoDbLockStoreOptions';
 import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
 import { Collection, Db, MongoClient } from 'mongodb';
@@ -42,14 +43,7 @@ class MongoDbLockStore implements LockStore {
     password,
     database,
     collectionNames
-  }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    collectionNames: CollectionNames;
-  }): Promise<MongoDbLockStore> {
+  }: MongoDbLockStoreOptions): Promise<MongoDbLockStore> {
     const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
 
     const client = await retry(async (): Promise<MongoClient> => {

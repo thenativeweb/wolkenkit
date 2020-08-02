@@ -1,6 +1,7 @@
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
+import { SqlServerLockStoreOptions } from './SqlServerLockStoreOptions';
 import { TableNames } from './TableNames';
 import { ConnectionPool, TYPES as Types } from 'mssql';
 
@@ -29,15 +30,7 @@ class SqlServerLockStore implements LockStore {
     database,
     encryptConnection = false,
     tableNames
-  }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    encryptConnection?: boolean;
-    tableNames: TableNames;
-  }): Promise<SqlServerLockStore> {
+  }: SqlServerLockStoreOptions): Promise<SqlServerLockStore> {
     const pool = new ConnectionPool({
       server: hostName,
       port,
