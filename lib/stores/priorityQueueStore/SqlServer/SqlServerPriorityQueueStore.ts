@@ -7,6 +7,7 @@ import { LockMetadata } from '../LockMetadata';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
+import { SqlServerPriorityQueueStoreOptions } from './SqlServerPriorityQueueStoreOptions';
 import { TableNames } from './TableNames';
 import { v4 } from 'uuid';
 import { ConnectionPool, Transaction, TYPES as Types } from 'mssql';
@@ -47,31 +48,19 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> ({
-    doesIdentifierMatchItem,
-    options: {
+  public static async create<TItem, TItemIdentifier> (
+    {
+      doesIdentifierMatchItem,
+      expirationTime = 15_000,
       hostName,
       port,
       userName,
       password,
       database,
       tableNames,
-      encryptConnection = false,
-      expirationTime = 15_000
-    }
-  }: {
-    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
-    options: {
-      hostName: string;
-      port: number;
-      userName: string;
-      password: string;
-      database: string;
-      tableNames: TableNames;
-      encryptConnection?: boolean;
-      expirationTime?: number;
-    };
-  }): Promise<SqlServerPriorityQueueStore<TItem, TItemIdentifier>> {
+      encryptConnection = false
+    }: SqlServerPriorityQueueStoreOptions<TItem, TItemIdentifier>
+  ): Promise<SqlServerPriorityQueueStore<TItem, TItemIdentifier>> {
     const pool = new ConnectionPool({
       server: hostName,
       port,

@@ -49,7 +49,7 @@ import { Value } from 'validate-value';
 
     const repository = new Repository({
       application,
-      lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+      lockStore: await createLockStore({ type: 'InMemory' }),
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });

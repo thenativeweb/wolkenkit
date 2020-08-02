@@ -8,6 +8,7 @@ suite('S3', (): void => {
   getTestsFor({
     async createFileStore (): Promise<FileStore> {
       return await S3FileStore.create({
+        type: 'S3',
         ...connectionOptions.minio,
         bucketName: v4()
       });

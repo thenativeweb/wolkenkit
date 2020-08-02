@@ -28,10 +28,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       applicationDirectory: configuration.applicationDirectory
     });
 
-    const fileStore = await createFileStore({
-      type: configuration.fileStoreType,
-      options: configuration.fileStoreOptions
-    });
+    const fileStore = await createFileStore(configuration.fileStoreOptions);
 
     const { api } = await getApi({
       configuration,

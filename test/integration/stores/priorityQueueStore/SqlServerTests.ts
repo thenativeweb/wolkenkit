@@ -16,12 +16,11 @@ suite('SqlServer', (): void => {
       };
 
       return await SqlServerPriorityQueueStore.create({
+        type: 'SqlServer',
         doesIdentifierMatchItem: ({ item, itemIdentifier }): boolean => isEqual(item, itemIdentifier),
-        options: {
-          ...connectionOptions.sqlServer,
-          tableNames,
-          expirationTime
-        }
+        ...connectionOptions.sqlServer,
+        tableNames,
+        expirationTime
       });
     }
   });

@@ -33,14 +33,14 @@ suite('awaitItem/http', (): void => {
         priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
 
     setup(async (): Promise<void> => {
-      newItemSubscriber = await InMemorySubscriber.create();
+      newItemSubscriber = await InMemorySubscriber.create({ type: 'InMemory' });
       newItemSubscriberChannel = v4();
-      newItemPublisher = await InMemoryPublisher.create();
+      newItemPublisher = await InMemoryPublisher.create({ type: 'InMemory' });
 
       priorityQueueStore = await createPriorityQueueStore({
         type: 'InMemory',
         doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
-        options: { expirationTime }
+        expirationTime
       });
 
       ({ api } = await getApi({

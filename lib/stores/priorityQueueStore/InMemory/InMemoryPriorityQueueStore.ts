@@ -3,6 +3,7 @@ import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
+import { InMemoryPriorityQueueStoreOptions } from './InMemoryPriorityQueueStoreOptions';
 import { LockMetadata } from '../LockMetadata';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
@@ -43,12 +44,12 @@ class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> ({ doesIdentifierMatchItem, options: { expirationTime = 15_000 }}: {
-    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
-    options: {
-      expirationTime?: number;
-    };
-  }): Promise<InMemoryPriorityQueueStore<TItem, TItemIdentifier>> {
+  public static async create<TItem, TItemIdentifier> (
+    {
+      doesIdentifierMatchItem,
+      expirationTime = 15_000
+    }: InMemoryPriorityQueueStoreOptions<TItem, TItemIdentifier>
+  ): Promise<InMemoryPriorityQueueStore<TItem, TItemIdentifier>> {
     return new InMemoryPriorityQueueStore<TItem, TItemIdentifier>({ doesIdentifierMatchItem, options: { expirationTime }});
   }
 

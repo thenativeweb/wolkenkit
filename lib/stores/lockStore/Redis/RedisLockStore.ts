@@ -2,6 +2,7 @@ import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { ListNames } from './ListNames';
 import { LockStore } from '../LockStore';
+import { RedisLockStoreOptions } from './RedisLockStoreOptions';
 import { retry } from 'retry-ignore-abort';
 import Redis, { Redis as RedisClient } from 'ioredis';
 
@@ -37,13 +38,13 @@ class RedisLockStore implements LockStore {
     throw new Error('Connection closed unexpectedly.');
   }
 
-  public static async create ({ hostName, port, password, database, listNames }: {
-    hostName: string;
-    port: number;
-    password: string;
-    database: number;
-    listNames: ListNames;
-  }): Promise<RedisLockStore> {
+  public static async create ({
+    hostName,
+    port,
+    password,
+    database,
+    listNames
+  }: RedisLockStoreOptions): Promise<RedisLockStore> {
     const client = await retry(async (): Promise<RedisClient> => {
       const redis = new Redis({
         host: hostName,

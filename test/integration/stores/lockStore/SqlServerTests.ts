@@ -9,6 +9,7 @@ suite('SqlServer', (): void => {
       suffix: string;
     }): Promise<LockStore> {
       return await SqlServerLockStore.create({
+        type: 'SqlServer',
         ...connectionOptions.sqlServer,
         tableNames: {
           locks: `locks_${suffix}`

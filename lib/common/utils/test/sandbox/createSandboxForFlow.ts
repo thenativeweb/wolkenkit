@@ -106,9 +106,9 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
     async then (callback: (parameters: {
       commands: CommandWithMetadata<CommandData>[];
     }) => (void | Promise<void>)): Promise<void> {
-      const lockStore = sandboxConfiguration.lockStore ?? await createLockStore({ type: 'InMemory', options: {}});
-      const domainEventStore = sandboxConfiguration.domainEventStore ?? await createDomainEventStore({ type: 'InMemory', options: {}});
-      const flowProgressStore = sandboxConfiguration.flowProgressStore ?? await createConsumerProgressStore({ type: 'InMemory', options: {}});
+      const lockStore = sandboxConfiguration.lockStore ?? await createLockStore({ type: 'InMemory' });
+      const domainEventStore = sandboxConfiguration.domainEventStore ?? await createDomainEventStore({ type: 'InMemory' });
+      const flowProgressStore = sandboxConfiguration.flowProgressStore ?? await createConsumerProgressStore({ type: 'InMemory' });
       const snapshotStrategy = sandboxConfiguration.snapshotStrategy ?? getSnapshotStrategy({ name: 'never' });
 
       const aggregateServiceFactory = sandboxConfiguration.aggregateServiceFactory ?? getAggregateService;

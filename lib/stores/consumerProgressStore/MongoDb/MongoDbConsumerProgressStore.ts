@@ -3,6 +3,7 @@ import { CollectionNames } from './CollectionNames';
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { errors } from '../../../common/errors';
 import { IsReplaying } from '../IsReplaying';
+import { MongoDbConsumerProgressStoreOptions } from './MongoDbConsumerProgressStoreOptions';
 import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
@@ -38,25 +39,12 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
   }
 
   public static async create ({
-    hostName,
-    port,
-    userName,
-    password,
-    database,
+    connectionString,
     collectionNames
-  }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    collectionNames: CollectionNames;
-  }): Promise<MongoDbConsumerProgressStore> {
-    const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
-
+  }: MongoDbConsumerProgressStoreOptions): Promise<MongoDbConsumerProgressStore> {
     const client = await retry(async (): Promise<MongoClient> => {
       const connection = await MongoClient.connect(
-        url,
+        connectionString,
         // eslint-disable-next-line id-length
         { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
       );
@@ -64,7 +52,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
       return connection;
     });
 
-    const { pathname } = parse(url);
+    const { pathname } = parse(connectionString);
 
     if (!pathname) {
       throw new Error('Pathname is missing.');

@@ -1,19 +1,12 @@
 import { errors } from '../../common/errors';
 import { InMemoryPublisher } from './InMemory/InMemoryPublisher';
-import { Publisher } from '../../messaging/pubSub/Publisher';
+import { Publisher } from './Publisher';
+import { PublisherOptions } from './PublisherOptions';
 
-const createPublisher = async function<T extends object> ({
-  type,
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  options
-  /* eslint-enable @typescript-eslint/no-unused-vars */
-}: {
-  type: string;
-  options: any;
-}): Promise<Publisher<T>> {
-  switch (type) {
+const createPublisher = async function<T extends object> (options: PublisherOptions): Promise<Publisher<T>> {
+  switch (options.type) {
     case 'InMemory': {
-      return await InMemoryPublisher.create();
+      return await InMemoryPublisher.create(options);
     }
     default: {
       throw new errors.PublisherTypeInvalid();

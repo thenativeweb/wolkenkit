@@ -1,31 +1,33 @@
-import { DoesIdentifierMatchItem } from './DoesIdentifierMatchItem';
 import { errors } from '../../common/errors';
 import { InMemoryPriorityQueueStore } from './InMemory';
 import { MongoDbPriorityQueueStore } from './MongoDb';
 import { MySqlPriorityQueueStore } from './MySql';
 import { PostgresPriorityQueueStore } from './Postgres';
 import { PriorityQueueStore } from './PriorityQueueStore';
+import { PriorityQueueStoreOptions } from './PriorityQueueStoreOptions';
+import { SqlServerPriorityQueueStore } from './SqlServer';
 
-const createPriorityQueueStore = async function<TItem, TItemIdentifier> ({ type, doesIdentifierMatchItem, options }: {
-  type: string;
-  doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
-  options: any;
-}): Promise<PriorityQueueStore<TItem, TItemIdentifier>> {
-  switch (type) {
+const createPriorityQueueStore = async function<TItem, TItemIdentifier> (
+  options: PriorityQueueStoreOptions<TItem, TItemIdentifier>
+): Promise<PriorityQueueStore<TItem, TItemIdentifier>> {
+  switch (options.type) {
     case 'InMemory': {
-      return await InMemoryPriorityQueueStore.create<TItem, TItemIdentifier>({ doesIdentifierMatchItem, options });
+      return await InMemoryPriorityQueueStore.create<TItem, TItemIdentifier>(options);
     }
     case 'MariaDb': {
-      return await MySqlPriorityQueueStore.create<TItem, TItemIdentifier>({ doesIdentifierMatchItem, options });
+      return await MySqlPriorityQueueStore.create<TItem, TItemIdentifier>(options);
     }
     case 'MongoDb': {
-      return await MongoDbPriorityQueueStore.create<TItem, TItemIdentifier>({ doesIdentifierMatchItem, options });
+      return await MongoDbPriorityQueueStore.create<TItem, TItemIdentifier>(options);
     }
     case 'MySql': {
-      return await MySqlPriorityQueueStore.create<TItem, TItemIdentifier>({ doesIdentifierMatchItem, options });
+      return await MySqlPriorityQueueStore.create<TItem, TItemIdentifier>(options);
     }
     case 'Postgres': {
-      return await PostgresPriorityQueueStore.create<TItem, TItemIdentifier>({ doesIdentifierMatchItem, options });
+      return await PostgresPriorityQueueStore.create<TItem, TItemIdentifier>(options);
+    }
+    case 'SqlServer': {
+      return await SqlServerPriorityQueueStore.create<TItem, TItemIdentifier>(options);
     }
     default: {
       throw new errors.DatabaseTypeInvalid();

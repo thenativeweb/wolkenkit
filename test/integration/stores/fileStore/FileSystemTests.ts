@@ -5,7 +5,7 @@ import { getTestsFor } from './getTestsFor';
 suite('FileSystem', (): void => {
   getTestsFor({
     async createFileStore (): Promise<FileStore> {
-      return await FileSystemFileStore.create({});
+      return await FileSystemFileStore.create({ type: 'FileSystem' });
     }
   });
 });

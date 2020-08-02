@@ -12,7 +12,7 @@ import { getApplicationDescription } from '../../../../lib/common/application/ge
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
-import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory/InMemoryDomainEventStore';
+import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { PublishDomainEvent } from '../../../../lib/apis/observeDomainEvents/PublishDomainEvent';
 import { Repository } from '../../../../lib/common/domain/Repository';
@@ -32,10 +32,10 @@ suite('observeDomainEvents/http/Client', function (): void {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
     application = await loadApplication({ applicationDirectory });
-    domainEventStore = await InMemoryDomainEventStore.create();
+    domainEventStore = await InMemoryDomainEventStore.create({ type: 'InMemory' });
     repository = new Repository({
       application,
-      lockStore: await createLockStore({ type: 'InMemory', options: {}}),
+      lockStore: await createLockStore({ type: 'InMemory' }),
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' })
     });

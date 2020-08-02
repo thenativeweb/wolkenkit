@@ -4,6 +4,7 @@ import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
 import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
 import { LockMetadata } from '../LockMetadata';
+import { MySqlPriorityQueueStoreOptions } from './MySqlPriorityQueueStoreOptions';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
@@ -72,29 +73,18 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> ({
-    doesIdentifierMatchItem,
-    options: {
+  public static async create<TItem, TItemIdentifier> (
+    {
+      doesIdentifierMatchItem,
+      expirationTime = 15_000,
       hostName,
       port,
       userName,
       password,
       database,
-      tableNames,
-      expirationTime = 15_000
-    }
-  }: {
-    doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
-    options: {
-      hostName: string;
-      port: number;
-      userName: string;
-      password: string;
-      database: string;
-      tableNames: TableNames;
-      expirationTime?: number;
-    };
-  }): Promise<MySqlPriorityQueueStore<TItem, TItemIdentifier>> {
+      tableNames
+    }: MySqlPriorityQueueStoreOptions<TItem, TItemIdentifier>
+  ): Promise<MySqlPriorityQueueStore<TItem, TItemIdentifier>> {
     const pool = createPool({
       host: hostName,
       port,

@@ -45,7 +45,7 @@ suite('command', (): void => {
       const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
         ...getDefaultConfiguration({ configurationDefinition: commandDispatcherConfigurationDefinition }),
         applicationDirectory,
-        priorityQueueStoreOptions: { expirationTime: 600 },
+        priorityQueueStoreOptions: { type: 'InMemory', expirationTime: 600 },
         port: commandDispatcherPort,
         healthPort: commandDispatcherHealthPort,
         missedCommandRecoveryInterval: 600

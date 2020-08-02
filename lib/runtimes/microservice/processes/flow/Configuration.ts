@@ -1,3 +1,5 @@
+import { ConsumerProgressStoreOptions } from '../../../../stores/consumerProgressStore/ConsumerProgressStoreOptions';
+import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 
 export interface Configuration {
@@ -9,8 +11,7 @@ export interface Configuration {
   commandDispatcherPort: number;
   commandDispatcherProtocol: string;
   concurrentFlows: number;
-  consumerProgressStoreOptions: object;
-  consumerProgressStoreType: string;
+  consumerProgressStoreOptions: ConsumerProgressStoreOptions;
   domainEventDispatcherAcknowledgeRetries: number;
   domainEventDispatcherHostName: string;
   domainEventDispatcherPort: number;
@@ -18,8 +19,7 @@ export interface Configuration {
   domainEventDispatcherRenewInterval: number;
   healthCorsOrigin: string | string[];
   healthPort: number;
-  lockStoreOptions: object;
-  lockStoreType: string;
+  lockStoreOptions: LockStoreOptions;
   replayServerHostName: string;
   replayServerPort: number;
   replayServerProtocol: string;

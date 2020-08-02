@@ -41,10 +41,7 @@ import { State } from '../../../../common/elements/State';
       port: configuration.aeonstorePort
     });
 
-    const lockStore = await createLockStore({
-      type: configuration.lockStoreType,
-      options: configuration.lockStoreOptions
-    });
+    const lockStore = await createLockStore(configuration.lockStoreOptions);
 
     const repository = new Repository({
       application,

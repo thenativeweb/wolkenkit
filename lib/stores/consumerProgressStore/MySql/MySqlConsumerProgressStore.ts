@@ -3,6 +3,7 @@ import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { IsReplaying } from '../IsReplaying';
+import { MySqlConsumerProgressStoreOptions } from './MySqlConsumerProgressStoreOptions';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { TableNames } from './TableNames';
@@ -54,14 +55,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
     password,
     database,
     tableNames
-  }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    tableNames: TableNames;
-  }): Promise<MySqlConsumerProgressStore> {
+  }: MySqlConsumerProgressStoreOptions): Promise<MySqlConsumerProgressStore> {
     const pool = createPool({
       host: hostName,
       port,

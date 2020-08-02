@@ -42,10 +42,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       port: configuration.aeonstorePort
     });
 
-    const lockStore = await createLockStore({
-      type: configuration.lockStoreType,
-      options: configuration.lockStoreOptions
-    });
+    const lockStore = await createLockStore(configuration.lockStoreOptions);
 
     const repository = new Repository({
       application,
@@ -54,10 +51,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const consumerProgressStore = await createConsumerProgressStore({
-      type: configuration.consumerProgressStoreType,
-      options: configuration.consumerProgressStoreOptions
-    });
+    const consumerProgressStore = await createConsumerProgressStore(configuration.consumerProgressStoreOptions);
 
     const domainEventDispatcherClient = new DomainEventDispatcherClient<DomainEvent<DomainEventData>>({
       protocol: configuration.domainEventDispatcherProtocol,

@@ -1,5 +1,6 @@
 import { EventEmitter2 } from 'eventemitter2';
 import { inMemoryEventEmitter } from './inMemoryEventEmitter';
+import { InMemoryPublisherOptions } from './InMemoryPublisherOptions';
 import { Publisher } from '../Publisher';
 
 class InMemoryPublisher<T extends object> implements Publisher<T> {
@@ -9,7 +10,8 @@ class InMemoryPublisher<T extends object> implements Publisher<T> {
     this.eventEmitter = eventEmitter;
   }
 
-  public static async create<T extends object> (): Promise<InMemoryPublisher<T>> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public static async create<T extends object> (options: InMemoryPublisherOptions): Promise<InMemoryPublisher<T>> {
     return new InMemoryPublisher({ eventEmitter: inMemoryEventEmitter });
   }
 

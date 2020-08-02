@@ -1,19 +1,18 @@
 import { errors } from '../../common/errors';
-import { InMemoryLockStore } from './InMemory';
 import { LockStore } from './LockStore';
-import { MongoDbLockStore } from './MongoDb';
-import { MySqlLockStore } from './MySql';
-import { PostgresLockStore } from './Postgres';
-import { RedisLockStore } from './Redis';
-import { SqlServerLockStore } from './SqlServer';
+import { InMemoryLockStore, InMemoryLockStoreOptions } from './InMemory';
+import { MongoDbLockStore, MongoDbLockStoreOptions } from './MongoDb';
+import { MySqlLockStore, MySqlLockStoreOptions } from './MySql';
+import { PostgresLockStore, PostgresLockStoreOptions } from './Postgres';
+import { RedisLockStore, RedisLockStoreOptions } from './Redis';
+import { SqlServerLockStore, SqlServerLockStoreOptions } from './SqlServer';
 
-const createLockStore = async function ({ type, options }: {
-  type: string;
-  options: any;
-}): Promise<LockStore> {
-  switch (type) {
+const createLockStore = async function (
+  options: InMemoryLockStoreOptions | MongoDbLockStoreOptions | MySqlLockStoreOptions | PostgresLockStoreOptions | RedisLockStoreOptions | SqlServerLockStoreOptions
+): Promise<LockStore> {
+  switch (options.type) {
     case 'InMemory': {
-      return InMemoryLockStore.create();
+      return InMemoryLockStore.create(options);
     }
     case 'MariaDb': {
       return MySqlLockStore.create(options);

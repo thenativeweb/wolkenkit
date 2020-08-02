@@ -1,6 +1,7 @@
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
+import { PostgresLockStoreOptions } from './PostgresLockStoreOptions';
 import { retry } from 'retry-ignore-abort';
 import { TableNames } from './TableNames';
 import { Client, Pool, PoolClient } from 'pg';
@@ -44,15 +45,7 @@ class PostgresLockStore implements LockStore {
     database,
     encryptConnection = false,
     tableNames
-  }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    encryptConnection?: boolean;
-    tableNames: TableNames;
-  }): Promise<PostgresLockStore> {
+  }: PostgresLockStoreOptions): Promise<PostgresLockStore> {
     const pool = new Pool({
       host: hostName,
       port,

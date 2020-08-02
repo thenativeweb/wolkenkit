@@ -1,3 +1,7 @@
 import { MongoDbDomainEventStore } from './MongoDbDomainEventStore';
+import { MongoDbDomainEventStoreOptions } from './MongoDbDomainEventStoreOptions';
 
-export { MongoDbDomainEventStore };
+export {
+  MongoDbDomainEventStore,
+  MongoDbDomainEventStoreOptions
+};

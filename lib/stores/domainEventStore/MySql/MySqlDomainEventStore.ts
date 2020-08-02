@@ -3,6 +3,7 @@ import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
+import { MySqlDomainEventStoreOptions } from './MySqlDomainEventStoreOptions';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { Snapshot } from '../Snapshot';
@@ -50,14 +51,14 @@ class MySqlDomainEventStore implements DomainEventStore {
     return database;
   }
 
-  public static async create ({ hostName, port, userName, password, database, tableNames }: {
-    hostName: string;
-    port: number;
-    userName: string;
-    password: string;
-    database: string;
-    tableNames: TableNames;
-  }): Promise<MySqlDomainEventStore> {
+  public static async create ({
+    hostName,
+    port,
+    userName,
+    password,
+    database,
+    tableNames
+  }: MySqlDomainEventStoreOptions): Promise<MySqlDomainEventStore> {
     const pool = createPool({
       host: hostName,
       port,

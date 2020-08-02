@@ -9,6 +9,7 @@ suite('SqlServer', (): void => {
       suffix: string;
     }): Promise<ConsumerProgressStore> {
       return await SqlServerConsumerProgressStore.create({
+        type: 'SqlServer',
         ...connectionOptions.sqlServer,
         tableNames: {
           progress: `progress_${suffix}`

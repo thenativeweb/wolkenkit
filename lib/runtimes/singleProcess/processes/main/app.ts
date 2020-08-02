@@ -48,15 +48,9 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       applicationDirectory: configuration.applicationDirectory
     });
 
-    const domainEventStore = await createDomainEventStore({
-      type: configuration.domainEventStoreType,
-      options: configuration.domainEventStoreOptions
-    });
+    const domainEventStore = await createDomainEventStore(configuration.domainEventStoreOptions);
 
-    const lockStore = await createLockStore({
-      type: configuration.lockStoreType,
-      options: configuration.lockStoreOptions
-    });
+    const lockStore = await createLockStore(configuration.lockStoreOptions);
 
     const repository = new Repository({
       application,
@@ -65,20 +59,15 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
-    const consumerProgressStore = await createConsumerProgressStore({
-      type: configuration.consumerProgressStoreType,
-      options: configuration.consumerProgressStoreOptions
-    });
+    const consumerProgressStore = await createConsumerProgressStore(configuration.consumerProgressStoreOptions);
 
     const priorityQueueStoreForCommands = await createPriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>({
-      type: configuration.priorityQueueStoreForCommandsType,
-      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
-      options: configuration.priorityQueueStoreForCommandsOptions
+      ...configuration.priorityQueueStoreForCommandsOptions,
+      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata
     });
     const priorityQueueStoreForDomainEvents = await createPriorityQueueStore<DomainEvent<DomainEventData>, ItemIdentifierWithClient>({
-      type: configuration.priorityQueueStoreForDomainEventsType,
-      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchDomainEvent,
-      options: configuration.priorityQueueStoreForDomainEventsOptions
+      ...configuration.priorityQueueStoreForDomainEventsOptions,
+      doesIdentifierMatchItem: doesItemIdentifierWithClientMatchDomainEvent
     });
 
     const onReceiveCommand: OnReceiveCommand = async function ({ command }): Promise<void> {
@@ -103,10 +92,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       });
     };
 
-    const fileStore = await createFileStore({
-      type: configuration.fileStoreType,
-      options: configuration.fileStoreOptions
-    });
+    const fileStore = await createFileStore(configuration.fileStoreOptions);
 
     const { api, publishDomainEvent, initializeGraphQlOnServer } = await getApi({
       configuration,

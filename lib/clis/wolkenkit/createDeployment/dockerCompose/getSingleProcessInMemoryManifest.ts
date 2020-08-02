@@ -1,5 +1,16 @@
+import { CommandData } from '../../../../common/elements/CommandData';
+import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { Configuration } from '../../../../runtimes/singleProcess/processes/main/Configuration';
 import { configurationDefinition } from '../../../../runtimes/singleProcess/processes/main/configurationDefinition';
+import { ConsumerProgressStoreOptions } from '../../../../stores/consumerProgressStore/ConsumerProgressStoreOptions';
+import { DistributiveOmit } from '../../../../common/types/DistributiveOmit';
+import { DomainEvent } from '../../../../common/elements/DomainEvent';
+import { DomainEventData } from '../../../../common/elements/DomainEventData';
+import { DomainEventStoreOptions } from '../../../../stores/domainEventStore/DomainEventStoreOptions';
+import { FileStoreOptions } from '../../../../stores/fileStore/FileStoreOptions';
+import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
+import { PriorityQueueStoreOptions } from '../../../../stores/priorityQueueStore/PriorityQueueStoreOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 import { toEnvironmentVariables } from '../../../../runtimes/shared/toEnvironmentVariables';
 import { versions } from '../../../../versions';
@@ -16,26 +27,24 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
     }
   };
 
-  const domainEventStoreOptions = {},
-        domainEventStoreType = 'InMemory',
-        fileStoreOptions = {},
-        fileStoreType = 'InMemory',
-        flowProgressStoreOptions = {},
-        flowProgressStoreType = 'InMemory',
+  const domainEventStoreOptions: DomainEventStoreOptions = { type: 'InMemory' },
+        fileStoreOptions: FileStoreOptions = { type: 'InMemory' },
+        flowProgressStoreOptions: ConsumerProgressStoreOptions = { type: 'InMemory' },
         identityProviders: { issuer: string; certificate: string }[] = [],
-        lockStoreOptions = {},
-        lockStoreType = 'InMemory',
-        priorityQueueStoreForCommandsOptions = { expirationTime: 30_000 },
-        priorityQueueStoreForCommandsType = 'InMemory',
-        priorityQueueStoreForDomainEventsOptions = { expirationTime: 30_000 },
-        priorityQueueStoreForDomainEventsType = 'InMemory',
-        snapshotStrategy = {
+        lockStoreOptions: LockStoreOptions = { type: 'InMemory' },
+        priorityQueueStoreForCommandsOptions: DistributiveOmit<PriorityQueueStoreOptions<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'> = {
+          type: 'InMemory', expirationTime: 30_000
+        },
+        priorityQueueStoreForDomainEventsOptions: DistributiveOmit<PriorityQueueStoreOptions<DomainEvent<DomainEventData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'> = {
+          type: 'InMemory', expirationTime: 30_000
+        },
+        snapshotStrategy: SnapshotStrategyConfiguration = {
           name: 'lowest',
           configuration: {
             revisionLimit: 100,
             durationLimit: 500
           }
-        } as SnapshotStrategyConfiguration;
+        };
 
   const mainConfiguration: Configuration = {
     applicationDirectory: '/app',
@@ -43,24 +52,18 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
     concurrentCommands: 100,
     concurrentFlows: 1,
     consumerProgressStoreOptions: flowProgressStoreOptions,
-    consumerProgressStoreType: flowProgressStoreType,
     corsOrigin: '*',
     domainEventStoreOptions,
-    domainEventStoreType,
     enableOpenApiDocumentation: true,
     fileStoreOptions,
-    fileStoreType,
     graphqlApi: { enableIntegratedClient: true },
     healthPort: services.main.healthPort,
     httpApi: true,
     identityProviders,
     lockStoreOptions,
-    lockStoreType,
     port: services.main.privatePort,
     priorityQueueStoreForCommandsOptions,
-    priorityQueueStoreForCommandsType,
     priorityQueueStoreForDomainEventsOptions,
-    priorityQueueStoreForDomainEventsType,
     snapshotStrategy
   };
 

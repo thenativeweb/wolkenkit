@@ -15,12 +15,11 @@ suite('MongoDb', (): void => {
       };
 
       return await MongoDbPriorityQueueStore.create({
+        type: 'MongoDb',
         doesIdentifierMatchItem: ({ item, itemIdentifier }): boolean => isEqual(item, itemIdentifier),
-        options: {
-          ...connectionOptions.mongoDb,
-          collectionNames,
-          expirationTime
-        }
+        ...connectionOptions.mongoDb,
+        collectionNames,
+        expirationTime
       });
     }
   });

@@ -9,6 +9,7 @@ suite('MongoDb', (): void => {
       suffix: string;
     }): Promise<DomainEventStore> {
       return await MongoDbDomainEventStore.create({
+        type: 'MongoDb',
         ...connectionOptions.mongoDb,
         collectionNames: {
           domainEvents: `domainevents_${suffix}`,

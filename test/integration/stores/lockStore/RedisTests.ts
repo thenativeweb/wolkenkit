@@ -9,6 +9,7 @@ suite('Redis', (): void => {
       suffix: string;
     }): Promise<LockStore> {
       return await RedisLockStore.create({
+        type: 'Redis',
         ...connectionOptions.redis,
         listNames: {
           locks: `locks_${suffix}`
