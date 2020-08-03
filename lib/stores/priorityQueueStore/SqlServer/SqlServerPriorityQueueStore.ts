@@ -293,7 +293,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
       return;
     }
 
-    await this.repairDown({ transaction, discriminator: recordsets[2][0].discriminator });
+    await this.repairDown({ transaction, discriminator: recordsets[0][0].discriminator });
   }
 
   protected async getQueueByDiscriminator ({ transaction, discriminator }: {
