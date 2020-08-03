@@ -556,6 +556,60 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
       assert.that(await priorityQueueStore.lockNext()).is.not.undefined();
     });
+
+    test('can queue, lock and acknowledge across three discriminators multiple times after each other.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: 'foo',
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: 'bar',
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: 'baz',
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+
+      const { metadata: { discriminator: discriminatorOne, token: tokenOne }} = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        discriminator: discriminatorOne,
+        token: tokenOne
+      });
+
+      const { metadata: { discriminator: discriminatorTwo, token: tokenTwo }} = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        discriminator: discriminatorTwo,
+        token: tokenTwo
+      });
+
+      const { metadata: { discriminator: discriminatorThree, token: tokenThree }} = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        discriminator: discriminatorThree,
+        token: tokenThree
+      });
+
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.secondCommand,
+        discriminator: 'foo',
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+
+      const { metadata: { discriminator: discriminatorFour, token: tokenFour }} = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        discriminator: discriminatorFour,
+        token: tokenFour
+      });
+    });
   });
 
   suite('defer', (): void => {

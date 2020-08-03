@@ -148,6 +148,7 @@ class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
 
     this.queues[queueIndex] = lastQueue;
     this.index.set(lastQueue.discriminator, queueIndex);
+    this.index.delete(discriminator);
 
     this.repairDown({ queue: lastQueue });
   }
