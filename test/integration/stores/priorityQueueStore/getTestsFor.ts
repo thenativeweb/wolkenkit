@@ -533,6 +533,29 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         token: tokenTwo
       });
     });
+
+    test('can queue, lock and acknowledge across multiple discriminators.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: 'foo',
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: 'bar',
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+
+      const { metadata: { discriminator: discriminatorOne, token: tokenOne }} = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        discriminator: discriminatorOne,
+        token: tokenOne
+      });
+
+      assert.that(await priorityQueueStore.lockNext()).is.not.undefined();
+    });
   });
 
   suite('defer', (): void => {

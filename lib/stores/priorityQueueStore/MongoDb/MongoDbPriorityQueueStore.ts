@@ -262,8 +262,12 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
       return;
     }
 
+    if (queueToUpdate.indexInPriorityQueue < queue.indexInPriorityQueue) {
+      return;
+    }
+
     await this.collections.queues.updateOne(
-      queueToUpdate,
+      { discriminator: queueToUpdate.discriminator },
       { $set: { indexInPriorityQueue: queue.indexInPriorityQueue }},
       { session }
     );
