@@ -479,6 +479,60 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 
       assert.that(shouldBeUndefined).is.undefined();
     });
+
+    test.only('acknowledges items in a different order than they were locked.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: 'foo',
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: 'bar',
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+
+      const { metadata: { discriminator: discriminatorOne, token: tokenOne }} = (await priorityQueueStore.lockNext())!;
+      const { metadata: { discriminator: discriminatorTwo, token: tokenTwo }} = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        discriminator: discriminatorTwo,
+        token: tokenTwo
+      });
+
+      await priorityQueueStore.acknowledge({
+        discriminator: discriminatorOne,
+        token: tokenOne
+      });
+    });
+
+    test.only('can queue, lock and acknowledge multiple times after each other.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: 'foo',
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+
+      const { metadata: { token: tokenOne }} = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        discriminator: 'foo',
+        token: tokenOne
+      });
+
+      await priorityQueueStore.enqueue({
+        item: commands.firstAggregate.firstCommand,
+        discriminator: 'foo',
+        priority: commands.firstAggregate.firstCommand.metadata.timestamp
+      });
+
+      const { metadata: { token: tokenTwo }} = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.acknowledge({
+        discriminator: 'foo',
+        token: tokenTwo
+      });
+    });
   });
 
   suite('defer', (): void => {
