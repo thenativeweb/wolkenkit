@@ -480,7 +480,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       assert.that(shouldBeUndefined).is.undefined();
     });
 
-    test.only('acknowledges items in a different order than they were locked.', async (): Promise<void> => {
+    test('acknowledges items in a different order than they were locked.', async (): Promise<void> => {
       await priorityQueueStore.enqueue({
         item: commands.firstAggregate.firstCommand,
         discriminator: 'foo',
@@ -506,7 +506,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       });
     });
 
-    test.only('can queue, lock and acknowledge multiple times after each other.', async (): Promise<void> => {
+    test('can queue, lock and acknowledge multiple times after each other.', async (): Promise<void> => {
       await priorityQueueStore.enqueue({
         item: commands.firstAggregate.firstCommand,
         discriminator: 'foo',
