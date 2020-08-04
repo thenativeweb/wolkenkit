@@ -29,9 +29,16 @@ const postCommandWithoutAggregateId = {
       type: 'object',
       properties: {
         id: jsonSchema,
-        aggregateId: jsonSchema
+        aggregateIdentifier: {
+          type: 'object',
+          properties: {
+            id: jsonSchema
+          },
+          required: [ 'id' ],
+          additionalProperties: false
+        }
       },
-      required: [ 'id', 'aggregateId' ],
+      required: [ 'id', 'aggregateIdentifier' ],
       additionalProperties: false
     } as Schema
   },
@@ -126,7 +133,12 @@ const postCommandWithoutAggregateId = {
       try {
         await onReceiveCommand({ command: commandWithMetadata });
 
-        const response = { id: commandId, aggregateId: commandWithMetadata.aggregateIdentifier.id };
+        const response = {
+          id: commandId,
+          aggregateIdentifier: {
+            id: commandWithMetadata.aggregateIdentifier.id
+          }
+        };
 
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 

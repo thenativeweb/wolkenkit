@@ -265,7 +265,7 @@ suite('handleCommand/http/Client', (): void => {
         assert.that(receivedCommands[0].metadata.client.ip).is.ofType('string');
       });
 
-      test('returns the ID of the sent command.', async (): Promise<void> => {
+      test('returns the ID and the aggregate ID of the sent command.', async (): Promise<void> => {
         const command = new Command({
           contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
@@ -280,9 +280,10 @@ suite('handleCommand/http/Client', (): void => {
           path: '/v2'
         });
 
-        const { id } = await client.postCommand({ command });
+        const { id, aggregateIdentifier } = await client.postCommand({ command });
 
         assert.that(id).is.equalTo(receivedCommands[0].id);
+        assert.that(aggregateIdentifier).is.equalTo({ id: command.aggregateIdentifier.id });
       });
 
       test('throws an error if on received command throws an error.', async (): Promise<void> => {

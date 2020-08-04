@@ -502,7 +502,7 @@ suite('handleCommand/http', (): void => {
 
         assert.that(status).is.equalTo(200);
         assert.that(data.id).is.not.undefined();
-        assert.that(data.aggregateId).is.not.undefined();
+        assert.that(data.aggregateIdentifier).is.not.undefined();
       });
     });
 

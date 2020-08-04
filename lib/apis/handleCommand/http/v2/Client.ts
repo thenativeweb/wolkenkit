@@ -41,7 +41,7 @@ class Client extends HttpClient {
       name: string;
       data: CommandData;
     };
-  }): Promise<{ id: string; aggregateId: string }> {
+  }): Promise<{ id: string; aggregateIdentifier: { id: string }}> {
     let url: string;
 
     if (command.aggregateIdentifier.id) {
@@ -60,7 +60,12 @@ class Client extends HttpClient {
     });
 
     if (status === 200) {
-      return { id: data.id, aggregateId: data.aggregateId };
+      return {
+        id: data.id,
+        aggregateIdentifier: {
+          id: data.aggregateIdentifier.id
+        }
+      };
     }
 
     switch (data.code) {
