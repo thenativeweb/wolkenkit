@@ -46,7 +46,8 @@ To send commands or receive domain events, the current version offers an HTTP an
 
 wolkenkit provides two primary endpoints in local development mode:
 
-- `http://localhost:3000/command/v2/:contextName/:aggregateName/:aggregateId/:commandName` submits commands
+- `http://localhost:3000/command/v2/:contextName/:aggregateName/:commandName` submits commands for new aggregates
+- `http://localhost:3000/command/v2/:contextName/:aggregateName/:aggregateId/:commandName` submits commands for existing aggregates
 - `http://localhost:3000/domain-events/v2` subscribes to domain events
 
 Additionally, the following secondary endpoints are available as well:
@@ -75,7 +76,18 @@ $ curl \
     -X POST \
     -H 'content-type: application/json' \
     -d '{"text":"Hello, world!"}' \
-    http://localhost:3000/command/v2/communication/message/d2edbbf7-a515-4b66-9567-dd931f1690d3/send
+    http://localhost:3000/command/v2/communication/message/send
+```
+
+If you want to address an existing aggregate, you also have to provide the aggregate's id:
+
+```shell
+$ curl \
+    -i \
+    -X POST \
+    -H 'content-type: application/json' \
+    -d '{}' \
+    http://localhost:3000/command/v2/communication/message/d2edbbf7-a515-4b66-9567-dd931f1690d3/like
 ```
 
 ###### Cancelling a command
@@ -146,7 +158,10 @@ mutation {
     communication {
       message(id: "d2edbbf7-a515-4b66-9567-dd931f1690d3") {
         send(data: { text: "Hello, world!" }) {
-          id
+          id,
+          aggregateIdentifier {
+            id
+          }
         }
       }
     }
