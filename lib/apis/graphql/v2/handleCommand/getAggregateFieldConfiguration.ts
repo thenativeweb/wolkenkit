@@ -52,7 +52,7 @@ const getAggregateFieldConfiguration = function ({
     resolve (source, { id }): { contextIdentifier: ContextIdentifier; aggregateIdentifier: AggregateIdentifier } {
       return {
         ...source,
-        aggregateIdentifier: { name: aggregateName, id: id || v4() }
+        aggregateIdentifier: { name: aggregateName, id: id ?? v4() }
       };
     }
   };
