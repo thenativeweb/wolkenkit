@@ -1,4 +1,4 @@
 export interface FileSystemFileStoreOptions {
   type: 'FileSystem';
-  directory?: string;
+  directory: string;
 }

@@ -5,7 +5,6 @@ import { FileMetadata } from '../FileMetadata';
 import { FileStore } from '../FileStore';
 import { FileSystemFileStoreOptions } from './FileSystemFileStoreOptions';
 import fs from 'fs';
-import { isolated } from 'isolated';
 import path from 'path';
 import { promisify } from 'util';
 import { pipeline as pipelineCallback, Readable } from 'stream';
@@ -24,9 +23,7 @@ class FileSystemFileStore implements FileStore {
   public static async create ({
     directory
   }: FileSystemFileStoreOptions): Promise<FileSystemFileStore> {
-    return new FileSystemFileStore({
-      directory: directory ?? await isolated()
-    });
+    return new FileSystemFileStore({ directory });
   }
 
   public async addFile ({ id, name, contentType, stream }: FileAddMetadata & {
