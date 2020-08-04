@@ -9,6 +9,7 @@ import { IdentityProvider } from 'limes';
 import { OnCancelCommand } from '../../OnCancelCommand';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { postCommand } from './postCommand';
+import { postCommandWithoutAggregateId } from './postCommandWithoutAggregateId';
 
 const getV2 = async function ({
   corsOrigin,
@@ -43,6 +44,11 @@ const getV2 = async function ({
   }));
 
   api.post(`/${postCommand.path}`, authenticationMiddleware, postCommand.getHandler({
+    onReceiveCommand,
+    application
+  }));
+
+  api.post(`/${postCommandWithoutAggregateId.path}`, authenticationMiddleware, postCommandWithoutAggregateId.getHandler({
     onReceiveCommand,
     application
   }));

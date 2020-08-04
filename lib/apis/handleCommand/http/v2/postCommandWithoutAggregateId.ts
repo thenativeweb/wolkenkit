@@ -16,9 +16,9 @@ import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
-const postCommand = {
+const postCommandWithoutAggregateId = {
   description: 'Accepts a command for further processing.',
-  path: ':contextName/:aggregateName/:aggregateId/:commandName',
+  path: ':contextName/:aggregateName/:commandName',
 
   request: {
     body: { type: 'object' }
@@ -40,7 +40,7 @@ const postCommand = {
     onReceiveCommand: OnReceiveCommand;
     application: Application;
   }): WolkenkitRequestHandler {
-    const responseBodySchema = new Value(postCommand.response.body);
+    const responseBodySchema = new Value(postCommandWithoutAggregateId.response.body);
 
     return async function (req, res): Promise<void> {
       if (!req.token || !req.user) {
@@ -71,13 +71,14 @@ const postCommand = {
         return;
       }
 
+      const aggregateId = v4();
       const command = new Command({
         contextIdentifier: {
           name: req.params.contextName
         },
         aggregateIdentifier: {
           name: req.params.aggregateName,
-          id: req.params.aggregateId
+          id: aggregateId
         },
         name: req.params.commandName,
         data: req.body
@@ -144,4 +145,4 @@ const postCommand = {
   }
 };
 
-export { postCommand };
+export { postCommandWithoutAggregateId };
