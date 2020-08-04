@@ -131,7 +131,7 @@
     "axios": "0.19.2",
     "body-parser": "1.19.0",
     "buntstift": "4.0.12",
-    "command-line-interface": "3.6.1",
+    "command-line-interface": "3.6.2",
     "common-tags": "1.8.0",
     "compression": "1.7.4",
     "content-type": "1.0.4",
