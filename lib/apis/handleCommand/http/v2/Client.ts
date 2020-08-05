@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { Command } from '../../../../common/elements/Command';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandDescription } from '../../../../common/application/CommandDescription';
+import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
@@ -32,11 +32,27 @@ class Client extends HttpClient {
   }
 
   public async postCommand ({ command }: {
-    command: Command<CommandData>;
-  }): Promise<{ id: string }> {
+    command: {
+      contextIdentifier: ContextIdentifier;
+      aggregateIdentifier: {
+        name: string;
+        id?: string;
+      };
+      name: string;
+      data: CommandData;
+    };
+  }): Promise<{ id: string; aggregateIdentifier: { id: string }}> {
+    let url: string;
+
+    if (command.aggregateIdentifier.id) {
+      url = `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.aggregateIdentifier.id}/${command.name}`;
+    } else {
+      url = `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.name}`;
+    }
+
     const { status, data } = await axios({
       method: 'post',
-      url: `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.aggregateIdentifier.id}/${command.name}`,
+      url,
       data: command.data,
       validateStatus (): boolean {
         return true;
@@ -44,7 +60,12 @@ class Client extends HttpClient {
     });
 
     if (status === 200) {
-      return { id: data.id };
+      return {
+        id: data.id,
+        aggregateIdentifier: {
+          id: data.aggregateIdentifier.id
+        }
+      };
     }
 
     switch (data.code) {

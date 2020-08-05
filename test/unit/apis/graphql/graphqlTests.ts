@@ -151,6 +151,41 @@ suite('graphql', function (): void {
       });
       assert.that((receivedCommands[0].metadata.client.user.claims as any)['https://token.invalid/is-anonymous']).is.true();
     });
+
+    test('calls onReceiveCommand for given commands, even without aggregate id.', async (): Promise<void> => {
+      const mutation = gql`
+        mutation ($data: SampleContext_sampleAggregate_executeT0!) {
+          command {
+            sampleContext {
+              sampleAggregate {
+                execute(data: $data) {
+                  id
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await client.mutate({
+        mutation,
+        variables: {
+          data: {
+            strategy: 'succeed'
+          }
+        }
+      });
+
+      assert.that(receivedCommands.length).is.equalTo(1);
+      assert.that(receivedCommands[0]).is.atLeast({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate' },
+        name: 'execute',
+        id: response.data.command.sampleContext.sampleAggregate.execute.id,
+        data: { strategy: 'succeed' }
+      });
+      assert.that((receivedCommands[0].metadata.client.user.claims as any)['https://token.invalid/is-anonymous']).is.true();
+    });
   });
 
   suite('cancelCommand', (): void => {

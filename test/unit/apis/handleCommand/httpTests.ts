@@ -254,13 +254,14 @@ suite('handleCommand/http', (): void => {
       test('returns 200 if a wellformed and existing command is sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
-        const { status } = await client({
+        const { status, data } = await client({
           method: 'post',
           url: `/v2/sampleContext/sampleAggregate/${v4()}/execute`,
           data: { strategy: 'succeed' }
         });
 
         assert.that(status).is.equalTo(200);
+        assert.that(data.id).is.not.undefined();
       });
 
       test('receives commands.', async (): Promise<void> => {
@@ -307,7 +308,7 @@ suite('handleCommand/http', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        assert.that(data).is.equalTo({
+        assert.that(data).is.atLeast({
           id: receivedCommands[0].id
         });
       });
@@ -341,6 +342,167 @@ suite('handleCommand/http', (): void => {
           code: errors.UnknownError.code,
           message: 'Unknown error.'
         });
+      });
+    });
+
+    suite('POST /:contextName/:aggregateName/:commandName', (): void => {
+      let api: ExpressApplication,
+          receivedCommands: CommandWithMetadata<CommandData>[];
+
+      setup(async (): Promise<void> => {
+        receivedCommands = [];
+
+        ({ api } = await getApi({
+          corsOrigin: '*',
+          async onReceiveCommand ({ command }: {
+            command: CommandWithMetadata<CommandData>;
+          }): Promise<void> {
+            receivedCommands.push(command);
+          },
+          async onCancelCommand (): Promise<void> {
+            // Intentionally left blank.
+          },
+          application,
+          identityProviders
+        }));
+      });
+
+      test('returns 415 if the content-type header is missing.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/sampleContext/sampleAggregate/execute`,
+          headers: {
+            'content-type': ''
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(415);
+        assert.that(data).is.equalTo({
+          code: errors.RequestMalformed.code,
+          message: 'Header content-type must be application/json.'
+        });
+      });
+
+      test('returns 415 if content-type is not set to application/json.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/sampleContext/sampleAggregate/execute`,
+          headers: {
+            'content-type': 'text/plain'
+          },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(415);
+        assert.that(data).is.equalTo({
+          code: errors.RequestMalformed.code,
+          message: 'Header content-type must be application/json.'
+        });
+      });
+
+      test('returns 400 if a non-existent context name is given.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/nonExistent/sampleAggregate/execute`,
+          data: { strategy: 'succeed' },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: errors.ContextNotFound.code,
+          message: `Context 'nonExistent' not found.`
+        });
+      });
+
+      test('returns 400 if a non-existent aggregate name is given.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/sampleContext/nonExistent/execute`,
+          data: { strategy: 'succeed' },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: errors.AggregateNotFound.code,
+          message: `Aggregate 'sampleContext.nonExistent' not found.`
+        });
+      });
+
+      test('returns 400 if a non-existent command name is given.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/sampleContext/sampleAggregate/nonExistent`,
+          data: { strategy: 'succeed' },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: errors.CommandNotFound.code,
+          message: `Command 'sampleContext.sampleAggregate.nonExistent' not found.`
+        });
+      });
+
+      test('returns 400 if a command is sent with a payload that does not match the schema.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/sampleContext/sampleAggregate/execute`,
+          data: { strategy: 'invalid-value' },
+          responseType: 'text',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: errors.CommandMalformed.code,
+          message: 'No enum match (invalid-value), expects: succeed, fail, reject (at command.data.strategy).'
+        });
+      });
+
+      test('returns 200 if a wellformed and existing command is sent.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: `/v2/sampleContext/sampleAggregate/execute`,
+          data: { strategy: 'succeed' }
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(data.id).is.not.undefined();
+        assert.that(data.aggregateIdentifier).is.not.undefined();
       });
     });
 

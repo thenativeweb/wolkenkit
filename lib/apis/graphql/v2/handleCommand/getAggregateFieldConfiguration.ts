@@ -6,6 +6,7 @@ import { getCommandFieldConfiguration } from './getCommandFieldConfiguration';
 import { GraphQLFieldConfigMap } from 'graphql/type/definition';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { ResolverContext } from '../ResolverContext';
+import { v4 } from 'uuid';
 import {
   GraphQLFieldConfig,
   GraphQLObjectType,
@@ -51,7 +52,7 @@ const getAggregateFieldConfiguration = function ({
     resolve (source, { id }): { contextIdentifier: ContextIdentifier; aggregateIdentifier: AggregateIdentifier } {
       return {
         ...source,
-        aggregateIdentifier: { name: aggregateName, id }
+        aggregateIdentifier: { name: aggregateName, id: id ?? v4() }
       };
     }
   };

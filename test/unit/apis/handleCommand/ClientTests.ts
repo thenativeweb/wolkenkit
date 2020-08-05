@@ -221,7 +221,51 @@ suite('handleCommand/http/Client', (): void => {
         assert.that(receivedCommands[0].metadata.client.ip).is.ofType('string');
       });
 
-      test('returns the ID of the sent command.', async (): Promise<void> => {
+      test('sends commands without aggregate id.', async (): Promise<void> => {
+        const command = {
+          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { name: 'sampleAggregate' },
+          name: 'execute',
+          data: { strategy: 'succeed' }
+        };
+
+        const { port } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          port,
+          path: '/v2'
+        });
+
+        await client.postCommand({ command });
+
+        assert.that(receivedCommands.length).is.equalTo(1);
+        assert.that(receivedCommands[0]).is.atLeast({
+          contextIdentifier: command.contextIdentifier,
+          aggregateIdentifier: {
+            name: command.aggregateIdentifier.name
+          },
+          name: command.name,
+          data: command.data,
+          metadata: {
+            client: {
+              user: { id: 'anonymous', claims: { sub: 'anonymous', iss: 'https://token.invalid' }}
+            },
+            initiator: {
+              user: { id: 'anonymous', claims: { sub: 'anonymous', iss: 'https://token.invalid' }}
+            }
+          }
+        });
+
+        assert.that(receivedCommands[0].aggregateIdentifier.id).is.ofType('string');
+        assert.that(receivedCommands[0].id).is.ofType('string');
+        assert.that(receivedCommands[0].metadata.causationId).is.equalTo(receivedCommands[0].id);
+        assert.that(receivedCommands[0].metadata.correlationId).is.equalTo(receivedCommands[0].id);
+        assert.that(receivedCommands[0].metadata.timestamp).is.ofType('number');
+        assert.that(receivedCommands[0].metadata.client.token).is.ofType('string');
+        assert.that(receivedCommands[0].metadata.client.ip).is.ofType('string');
+      });
+
+      test('returns the ID and the aggregate ID of the sent command.', async (): Promise<void> => {
         const command = new Command({
           contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
@@ -236,9 +280,10 @@ suite('handleCommand/http/Client', (): void => {
           path: '/v2'
         });
 
-        const { id } = await client.postCommand({ command });
+        const { id, aggregateIdentifier } = await client.postCommand({ command });
 
         assert.that(id).is.equalTo(receivedCommands[0].id);
+        assert.that(aggregateIdentifier).is.equalTo({ id: command.aggregateIdentifier.id });
       });
 
       test('throws an error if on received command throws an error.', async (): Promise<void> => {

@@ -73,6 +73,16 @@ const getCommandFieldConfiguration = function ({
           resolve (source): string {
             return source.id;
           }
+        },
+        aggregateIdentifier: {
+          type: new GraphQLObjectType({
+            name: `${contextName}_${aggregateName}_${commandName}_aggregateIdentifier`,
+            fields: {
+              id: {
+                type: GraphQLString
+              }
+            }
+          })
         }
       }
     }),
@@ -81,7 +91,7 @@ const getCommandFieldConfiguration = function ({
       { contextIdentifier, aggregateIdentifier },
       { data: rawData },
       { clientMetadata }
-    ): Promise<{ id: string }> {
+    ): Promise<{ id: string; aggregateIdentifier: { id: string }}> {
       const data = addMissingPrototype({ value: rawData });
 
       const command = new Command({
@@ -115,7 +125,12 @@ const getCommandFieldConfiguration = function ({
 
       await onReceiveCommand({ command: commandWithMetadata });
 
-      return { id: commandId };
+      return {
+        id: commandId,
+        aggregateIdentifier: {
+          id: aggregateIdentifier.id
+        }
+      };
     }
   };
 };
