@@ -101,7 +101,7 @@ suite('graphql', function (): void {
   });
 
   suite('startup', (): void => {
-    test.only('throws an error if the schema is invalid.', async (): Promise<void> => {
+    test('throws an error if the schema is invalid.', async (): Promise<void> => {
       const applicationDirectory = getTestApplicationDirectory({ name: 'withInvalidGraphQlSchema', language: 'javascript' });
 
       application = await loadApplication({ applicationDirectory });
