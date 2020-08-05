@@ -73,6 +73,16 @@ const getCommandFieldConfiguration = function ({
           resolve (source): string {
             return source.id;
           }
+        },
+        aggregateIdentifier: {
+          type: new GraphQLObjectType({
+            name: `${contextName}_${aggregateName}_${commandName}_aggregateIdentifier`,
+            fields: {
+              id: {
+                type: GraphQLString
+              }
+            }
+          })
         }
       }
     }),
