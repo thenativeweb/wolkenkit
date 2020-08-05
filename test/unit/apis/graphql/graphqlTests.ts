@@ -31,6 +31,7 @@ import { waitForSignals } from 'wait-for-signals';
 import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
+import { CustomError } from 'defekt';
 
 suite('graphql', function (): void {
   this.timeout(15_000);
@@ -96,6 +97,37 @@ suite('graphql', function (): void {
       server.on('error', (err): void => {
         reject(err);
       });
+    });
+  });
+
+  suite('startup', (): void => {
+    test.only('throws an error if the schema is invalid.', async (): Promise<void> => {
+      const applicationDirectory = getTestApplicationDirectory({ name: 'withInvalidGraphQlSchema', language: 'javascript' });
+
+      application = await loadApplication({ applicationDirectory });
+
+      await assert.that(async (): Promise<void> => {
+        await getApi({
+          identityProviders,
+          corsOrigin: '*',
+          application,
+          handleCommand: {
+            async onReceiveCommand ({ command }): Promise<void> {
+              receivedCommands.push(command);
+            },
+            async onCancelCommand ({ commandIdentifierWithClient }): Promise<void> {
+              cancelledCommands.push(commandIdentifierWithClient);
+            }
+          },
+          observeDomainEvents: {
+            webSocketEndpoint: '/v2/',
+            repository
+          },
+          queryView: true,
+          enableIntegratedClient: false
+        });
+      }).is.throwingAsync<CustomError>((ex): boolean =>
+        ex.code === 'EGRAPHQLERROR' && ex.message === 'GraphQL schema validation failed.');
     });
   });
 
