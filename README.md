@@ -155,14 +155,10 @@ To send a command, send a mutation with the following data structure to the Grap
 ```
 mutation {
   command {
-    communication {
-      message(id: "d2edbbf7-a515-4b66-9567-dd931f1690d3") {
-        send(data: { text: "Hello, world!" }) {
-          id,
-          aggregateIdentifier {
-            id
-          }
-        }
+    communication_message_send(aggregateIdentifier: { id: "d2edbbf7-a515-4b66-9567-dd931f1690d3" }, data: { text: "Hello, world!" }) {
+      id,
+      aggregateIdentifier {
+        id
       }
     }
   }

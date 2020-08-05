@@ -1,5 +1,7 @@
 import { addMissingPrototype } from '../../../../common/utils/graphql/addMissingPrototype';
 import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
+import { AggregateIdentifierInputType } from './AggregateIdentifierInputType';
+import { AggregateIdentifierType } from './AggregateIdentifierType';
 import { Application } from '../../../../common/application/Application';
 import { cloneDeep } from 'lodash';
 import { Command } from '../../../../common/elements/Command';
@@ -27,7 +29,7 @@ import {
 const logger = flaschenpost.getLogger();
 const commandSchema = new Value(getCommandSchema());
 
-const getCommandFieldConfiguration = function ({
+const getIndividualCommandFieldConfiguration = function ({
   application,
   contextName,
   aggregateName,
@@ -42,7 +44,11 @@ const getCommandFieldConfiguration = function ({
   commandHandler: CommandHandler<any, any, any>;
   onReceiveCommand: OnReceiveCommand;
 }): GraphQLFieldConfig<{ contextIdentifier: ContextIdentifier; aggregateIdentifier: AggregateIdentifier }, ResolverContext> {
-  const resolverArguments: { [argName: string]: GraphQLArgumentConfig } = {};
+  const resolverArguments: { [argName: string]: GraphQLArgumentConfig } = {
+    aggregateIdentifier: {
+      type: AggregateIdentifierInputType
+    }
+  };
 
   // eslint-disable-next-line @typescript-eslint/unbound-method
   if (!commandHandler.getSchema) {
@@ -69,34 +75,26 @@ const getCommandFieldConfiguration = function ({
       name: `${contextName}_${aggregateName}_${commandName}`,
       fields: {
         id: {
-          type: GraphQLString,
-          resolve (source): string {
-            return source.id;
-          }
+          type: GraphQLString
         },
         aggregateIdentifier: {
-          type: new GraphQLObjectType({
-            name: `${contextName}_${aggregateName}_${commandName}_aggregateIdentifier`,
-            fields: {
-              id: {
-                type: GraphQLString
-              }
-            }
-          })
+          type: AggregateIdentifierType
         }
       }
     }),
     args: resolverArguments,
     async resolve (
-      { contextIdentifier, aggregateIdentifier },
-      { data: rawData },
+      _source,
+      { aggregateIdentifier, data: rawData },
       { clientMetadata }
     ): Promise<{ id: string; aggregateIdentifier: { id: string }}> {
       const data = addMissingPrototype({ value: rawData });
 
+      const aggregateId = aggregateIdentifier?.id ?? v4();
+
       const command = new Command({
-        contextIdentifier,
-        aggregateIdentifier,
+        contextIdentifier: { name: contextName },
+        aggregateIdentifier: { name: aggregateName, id: aggregateId },
         name: commandName,
         data: data === undefined ? {} : cloneDeep(data)
       });
@@ -128,11 +126,11 @@ const getCommandFieldConfiguration = function ({
       return {
         id: commandId,
         aggregateIdentifier: {
-          id: aggregateIdentifier.id
+          id: commandWithMetadata.aggregateIdentifier.id
         }
       };
     }
   };
 };
 
-export { getCommandFieldConfiguration };
+export { getIndividualCommandFieldConfiguration };

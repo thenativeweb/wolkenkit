@@ -149,24 +149,22 @@ suite('graphql', function (): void {
 
     test('calls onReceiveCommand for given commands.', async (): Promise<void> => {
       const mutation = gql`
-        mutation ($aggregateId: String!, $data: SampleContext_sampleAggregate_executeT0!) {
+        mutation ($aggregateIdentifier: AggregateIdentifier, $data: SampleContext_sampleAggregate_executeT0!) {
           command {
-            sampleContext {
-              sampleAggregate (id: $aggregateId) {
-                execute(data: $data) {
-                  id
-                }
-              }
+            sampleContext_sampleAggregate_execute(aggregateIdentifier: $aggregateIdentifier, data: $data) {
+              id
             }
           }
         }
       `;
-      const aggregateId = v4();
+      const aggregateIdentifier = {
+        id: v4()
+      };
 
       const response = await client.mutate({
         mutation,
         variables: {
-          aggregateId,
+          aggregateIdentifier,
           data: {
             strategy: 'succeed'
           }
@@ -176,23 +174,22 @@ suite('graphql', function (): void {
       assert.that(receivedCommands.length).is.equalTo(1);
       assert.that(receivedCommands[0]).is.atLeast({
         contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateIdentifier.id },
         name: 'execute',
-        id: response.data.command.sampleContext.sampleAggregate.execute.id,
+        id: response.data.command.sampleContext_sampleAggregate_execute.id,
         data: { strategy: 'succeed' }
       });
       assert.that((receivedCommands[0].metadata.client.user.claims as any)['https://token.invalid/is-anonymous']).is.true();
     });
 
-    test('calls onReceiveCommand for given commands, even without aggregate id.', async (): Promise<void> => {
+    test('calls onReceiveCommand for given commands, even without aggregate identifier.', async (): Promise<void> => {
       const mutation = gql`
         mutation ($data: SampleContext_sampleAggregate_executeT0!) {
           command {
-            sampleContext {
-              sampleAggregate {
-                execute(data: $data) {
-                  id
-                }
+            sampleContext_sampleAggregate_execute(data: $data) {
+              id
+              aggregateIdentifier {
+                id
               }
             }
           }
@@ -208,12 +205,13 @@ suite('graphql', function (): void {
         }
       });
 
+      assert.that(response.data.command.sampleContext_sampleAggregate_execute.aggregateIdentifier.id).is.not.undefined();
       assert.that(receivedCommands.length).is.equalTo(1);
       assert.that(receivedCommands[0]).is.atLeast({
         contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier: { name: 'sampleAggregate' },
         name: 'execute',
-        id: response.data.command.sampleContext.sampleAggregate.execute.id,
+        id: response.data.command.sampleContext_sampleAggregate_execute.id,
         data: { strategy: 'succeed' }
       });
       assert.that((receivedCommands[0].metadata.client.user.claims as any)['https://token.invalid/is-anonymous']).is.true();

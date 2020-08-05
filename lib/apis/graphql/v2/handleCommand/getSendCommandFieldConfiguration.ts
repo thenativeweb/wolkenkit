@@ -1,5 +1,5 @@
 import { Application } from '../../../../common/application/Application';
-import { getContextFieldConfiguration } from './getContextFieldConfiguration';
+import { getIndividualCommandFieldConfiguration } from './getIndividualCommandFieldConfiguration';
 import { GraphQLFieldConfigMap } from 'graphql/type/definition';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { ResolverContext } from '../ResolverContext';
@@ -15,12 +15,18 @@ const getSendCommandFieldConfiguration = function ({ application, onReceiveComma
   const commandFieldConfigurations: GraphQLFieldConfigMap<any, ResolverContext> = {};
 
   for (const [ contextName, context ] of Object.entries(application.domain)) {
-    commandFieldConfigurations[contextName] = getContextFieldConfiguration({
-      application,
-      context,
-      contextName,
-      onReceiveCommand
-    });
+    for (const [ aggregateName, aggregate ] of Object.entries(context)) {
+      for (const [ commandName, commandHandler ] of Object.entries(aggregate.commandHandlers)) {
+        commandFieldConfigurations[`${contextName}_${aggregateName}_${commandName}`] = getIndividualCommandFieldConfiguration({
+          application,
+          contextName,
+          aggregateName,
+          commandName,
+          commandHandler,
+          onReceiveCommand
+        });
+      }
+    }
   }
 
   return {
