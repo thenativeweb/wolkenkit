@@ -6,6 +6,7 @@ import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
+import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { Application as ExpressApplication } from 'express';
@@ -96,6 +97,37 @@ suite('graphql', function (): void {
       server.on('error', (err): void => {
         reject(err);
       });
+    });
+  });
+
+  suite('startup', (): void => {
+    test('throws an error if the schema is invalid.', async (): Promise<void> => {
+      const applicationDirectory = getTestApplicationDirectory({ name: 'withInvalidGraphQlSchema', language: 'javascript' });
+
+      application = await loadApplication({ applicationDirectory });
+
+      await assert.that(async (): Promise<void> => {
+        await getApi({
+          identityProviders,
+          corsOrigin: '*',
+          application,
+          handleCommand: {
+            async onReceiveCommand ({ command }): Promise<void> {
+              receivedCommands.push(command);
+            },
+            async onCancelCommand ({ commandIdentifierWithClient }): Promise<void> {
+              cancelledCommands.push(commandIdentifierWithClient);
+            }
+          },
+          observeDomainEvents: {
+            webSocketEndpoint: '/v2/',
+            repository
+          },
+          queryView: true,
+          enableIntegratedClient: false
+        });
+      }).is.throwingAsync<CustomError>((ex): boolean =>
+        ex.code === 'EGRAPHQLERROR' && ex.message === 'GraphQL schema validation failed.');
     });
   });
 
