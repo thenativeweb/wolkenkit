@@ -225,18 +225,20 @@ suite('main', function (): void {
       const result = await client.mutate({
         mutation,
         variables: {
-          aggregateId: v4(),
+          aggregateIdentifier: {
+            id: v4()
+          },
           data: {
             strategy: 'succeed'
           }
         }
       });
 
-      assert.that(result?.data?.command.sampleContext?.sampleAggregate?.execute?.id).is.not.undefined();
+      assert.that(result?.data?.command.sampleContext_sampleAggregate_execute?.id).is.not.undefined();
 
       const { item } = await commandDispatcherClient.awaitItem();
 
-      assert.that(item.id).is.equalTo(result.data.command.sampleContext.sampleAggregate.execute.id);
+      assert.that(item.id).is.equalTo(result.data.command.sampleContext_sampleAggregate_execute.id);
     });
 
     test('has a subscription endpoint.', async (): Promise<void> => {

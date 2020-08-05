@@ -287,7 +287,9 @@ suite('main', function (): void {
       const result = await client.mutate({
         mutation,
         variables: {
-          aggregateId: v4(),
+          aggregateIdentifier: {
+            id: v4()
+          },
           data: {
             strategy: 'succeed'
           }
