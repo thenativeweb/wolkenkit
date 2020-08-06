@@ -4,7 +4,7 @@ import { Infrastructure } from '../../../infrastructure';
 import { NotificationListener, NotificationService } from 'wolkenkit';
 import { ViewUpdatedNotificationDefinition } from '../../../notifications/definitions/ViewUpdatedNotificationDefinition';
 
-const flowSampleFlowUpdatedNotificationListener: NotificationListener<FlowUpdatedNotificationDefinition, Infrastructure> = {
+const flowSampleFlowUpdatedNotificationSubscriber: NotificationListener<FlowUpdatedNotificationDefinition, Infrastructure> = {
   isRevelant ({ name }): boolean {
     return name === 'flowSampleFlowUpdated'
   },
@@ -16,4 +16,4 @@ const flowSampleFlowUpdatedNotificationListener: NotificationListener<FlowUpdate
   }
 };
 
-export { flowSampleFlowUpdatedNotificationListener };
+export { flowSampleFlowUpdatedNotificationSubscriber };

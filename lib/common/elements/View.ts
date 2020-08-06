@@ -1,6 +1,6 @@
 import { AskInfrastructure } from './AskInfrastructure';
 import { NotificationDefinition } from './NotificationDefinition';
-import { NotificationListener } from './NotificationListener';
+import { NotificationSubscriber } from './NotificationSubscriber';
 import { QueryHandler } from './QueryHandler';
 import { QueryResultItem } from './QueryResultItem';
 import { ViewEnhancer } from '../../tools/ViewEnhancer';
@@ -8,7 +8,7 @@ import { ViewEnhancer } from '../../tools/ViewEnhancer';
 export interface View {
   queryHandlers: Record<string, QueryHandler<QueryResultItem, AskInfrastructure>>;
 
-  notificationListeners: Record<string, NotificationListener<NotificationDefinition, AskInfrastructure>>;
+  notificationSubscribers: Record<string, NotificationSubscriber<NotificationDefinition, AskInfrastructure>>;
 
   enhancers?: ViewEnhancer[];
 }

@@ -3,7 +3,7 @@ import { LoggerService } from '../services/LoggerService';
 import { NotificationDefinition } from './NotificationDefinition';
 import { NotificationService } from '../services/NotificationService';
 
-export interface NotificationListener<
+export interface NotificationSubscriber<
   TNotificationDefinition extends NotificationDefinition,
   TInfrastructure extends AskInfrastructure
 > {
