@@ -20,6 +20,6 @@ export const sampleHandler: FlowHandler<ExecutedData, Infrastructure> = {
 
     infrastructure.tell.viewStore.domainEvents.push(domainEvent);
 
-    notification.send<FlowUpdatedNotificationDefinition>('flowSampleFlowUpdated', {});
+    notification.publish<FlowUpdatedNotificationDefinition>('flowSampleFlowUpdated', {});
   }
 };

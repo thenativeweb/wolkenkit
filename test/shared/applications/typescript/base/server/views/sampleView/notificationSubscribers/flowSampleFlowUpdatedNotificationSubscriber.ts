@@ -12,7 +12,7 @@ const flowSampleFlowUpdatedNotificationSubscriber: NotificationListener<FlowUpda
   handle (data, { notification }: {
     notification: NotificationService;
   }): void {
-    notification.send<ViewUpdatedNotificationDefinition>('viewSampleViewUpdated', {});
+    notification.publish<ViewUpdatedNotificationDefinition>('viewSampleViewUpdated', {});
   }
 };
 

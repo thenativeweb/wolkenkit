@@ -1,7 +1,7 @@
 import { NotificationDefinition } from '../elements/NotificationDefinition';
 
 export interface NotificationService {
-  send<TNotificationDefinition extends NotificationDefinition>(
+  publish<TNotificationDefinition extends NotificationDefinition>(
     name: string,
     data: Pick<TNotificationDefinition, 'data'>,
     metadata?: Pick<TNotificationDefinition, 'metadata'>
