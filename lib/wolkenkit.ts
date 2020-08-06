@@ -15,7 +15,6 @@ import { DomainEventHandler } from './common/elements/DomainEventHandler';
 import { DomainEventWithState } from './common/elements/DomainEventWithState';
 import { ErrorService } from './common/services/ErrorService';
 import { Flow } from './common/elements/Flow';
-import { FlowDefinition } from './common/application/FlowDefinition';
 import { FlowHandler } from './common/elements/FlowHandler';
 import { GetInitialState } from './common/elements/GetInitialState';
 import { Hooks } from './common/elements/Hooks';
@@ -23,10 +22,9 @@ import { loadApplication } from './common/application/loadApplication';
 import { LockService } from './common/services/LockService';
 import { LoggerService } from './common/services/LoggerService';
 import { Notification } from './common/elements/Notification';
-import { NotificationDefinition } from './common/elements/NotificationDefinition';
 import { NotificationHandler } from './common/elements/NotificationHandler';
 import { NotificationListener } from './common/elements/NotificationListener';
-import { NotificationsDefinition } from './common/application/NotificationsDefinitions';
+import { Notifications } from './common/elements/Notifications';
 import { NotificationService } from './common/services/NotificationService';
 import { QueryHandler } from './common/elements/QueryHandler';
 import { QueryOptions } from './common/elements/QueryOptions';
@@ -55,7 +53,6 @@ export {
   DomainEventWithState,
   ErrorService,
   Flow,
-  FlowDefinition,
   FlowHandler,
   Hooks,
   loadApplication,
@@ -63,10 +60,9 @@ export {
   LockService,
   LoggerService,
   Notification,
-  NotificationDefinition,
   NotificationHandler,
   NotificationListener,
-  NotificationsDefinition,
+  Notifications,
   NotificationService,
   QueryHandler,
   QueryOptions,

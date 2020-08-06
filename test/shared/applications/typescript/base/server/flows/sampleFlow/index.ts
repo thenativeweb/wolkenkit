@@ -1,8 +1,8 @@
 // @ts-ignore
-import { FlowDefinition } from 'wolkenkit';
+import { Flow } from 'wolkenkit';
 import { sampleHandler } from './handlers/sampleHandler';
 
-const sampleFlow: FlowDefinition = {
+const sampleFlow: Flow = {
   replayPolicy: 'never',
 
   domainEventHandlers: {

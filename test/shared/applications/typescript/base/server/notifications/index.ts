@@ -1,9 +1,9 @@
 // @ts-ignore
-import { NotificationsDefinition } from 'wolkenkit';
+import { Notifications } from 'wolkenkit';
 import { flowSampleFlowUpdatedNotificationHandler } from './handlers/flowSampleFlowUpdatedNotificationHandler';
 import { viewSampleViewUpdatedNotificationHandler } from './handlers/viewSampleViewUpdatedNotificationHandler';
 
-const notifications: NotificationsDefinition = {
+const notifications: Notifications = {
   flowSampleFlowUpdated: flowSampleFlowUpdatedNotificationHandler,
   viewSampleViewUpdated: viewSampleViewUpdatedNotificationHandler
 }
