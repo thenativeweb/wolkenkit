@@ -4,6 +4,6 @@ export interface NotificationService {
   send<TNotificationDefinition extends NotificationDefinition>(
     name: string,
     data: Pick<TNotificationDefinition, 'data'>,
-    metadata: Pick<TNotificationDefinition, 'metadata'>
+    metadata?: Pick<TNotificationDefinition, 'metadata'>
   ): void | Promise<void>;
 }

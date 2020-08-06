@@ -1,4 +1,4 @@
 export interface NotificationDefinition {
   data: {};
-  metadata: {};
+  metadata?: {};
 }
