@@ -7,6 +7,7 @@ import { CommandWithMetadata } from './CommandWithMetadata';
 import { ErrorService } from '../services/ErrorService';
 import { LockService } from '../services/LockService';
 import { LoggerService } from '../services/LoggerService';
+import { NotificationService } from '../services/NotificationService';
 import { Schema } from './Schema';
 import { State } from './State';
 import { TellInfrastructure } from './TellInfrastructure';
@@ -32,8 +33,9 @@ export interface CommandHandler<
     aggregates: AggregatesService;
     client: ClientService;
     error: ErrorService<'CommandRejected'>;
+    infrastructure: TInfrastructure;
     lock: LockService;
     logger: LoggerService;
-    infrastructure: TInfrastructure;
+    notification: NotificationService;
   }): void | Promise<void>;
 }

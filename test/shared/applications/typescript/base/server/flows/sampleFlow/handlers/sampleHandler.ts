@@ -1,7 +1,8 @@
+import { FlowUpdatedNotificationDefinition } from '../../../notifications/definitions/FlowUpdatedNotificationDefinition';
 import { Infrastructure } from '../../../infrastructure';
 import { ExecutedData } from '../../../domain/sampleContext/sampleAggregate/domainEvents/executed';
 // @ts-ignore
-import { DomainEvent, DomainEventData, FlowHandler, LoggerService } from 'wolkenkit';
+import { DomainEvent, DomainEventData, FlowHandler, LoggerService, NotificationService } from 'wolkenkit';
 
 export const sampleHandler: FlowHandler<ExecutedData, Infrastructure> = {
   isRelevant ({ fullyQualifiedName }: {
@@ -10,12 +11,15 @@ export const sampleHandler: FlowHandler<ExecutedData, Infrastructure> = {
     return fullyQualifiedName === 'sampleContext.sampleAggregate.executed';
   },
 
-  handle (domainEvent: DomainEvent<DomainEventData>, { infrastructure, logger }: {
+  handle (domainEvent: DomainEvent<DomainEventData>, { infrastructure, logger, notification }: {
     infrastructure: Infrastructure;
     logger: LoggerService;
+    notification: NotificationService;
   }) {
     logger.info('Received domain event.', { domainEvent });
 
     infrastructure.tell.viewStore.domainEvents.push(domainEvent);
+
+    notification.send<FlowUpdatedNotificationDefinition>('flowSampleFlowUpdated', {}, {});
   }
 };

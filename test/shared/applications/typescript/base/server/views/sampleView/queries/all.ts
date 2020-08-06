@@ -1,7 +1,7 @@
 import { Infrastructure } from '../../../infrastructure';
 import { Readable } from 'stream';
 // @ts-ignore
-import { QueryHandler, QueryResultItem, QueryOptions, Schema } from 'wolkenkit';
+import { QueryHandler, QueryResultItem, Schema } from 'wolkenkit';
 
 export interface AllResultItem extends QueryResultItem {
   id: string;
@@ -27,9 +27,7 @@ export const all: QueryHandler<AllResultItem, Infrastructure> = {
     };
   },
 
-  async handle (_options: QueryOptions, { infrastructure }: {
-    infrastructure: Infrastructure;
-  }): Promise<Readable> {
+  async handle (_options, { infrastructure }): Promise<Readable> {
     return Readable.from(infrastructure.ask.viewStore.domainEvents);
   },
 
