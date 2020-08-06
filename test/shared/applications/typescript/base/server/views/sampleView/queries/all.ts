@@ -8,7 +8,7 @@ export interface AllResultItem extends QueryResultItem {
   createdAt: number;
   updatedAt: number;
   strategy: 'succeed' | 'fail' | 'reject';
-};
+}
 
 export const all: QueryHandler<AllResultItem, Infrastructure> = {
   type: 'stream',

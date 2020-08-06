@@ -3,11 +3,17 @@ import { LoggerService } from '../services/LoggerService';
 import { NotificationDefinition } from './NotificationDefinition';
 import { NotificationService } from '../services/NotificationService';
 
-export type NotificationListener<
+export interface NotificationListener<
   TNotificationDefinition extends NotificationDefinition,
   TInfrastructure extends AskInfrastructure
-> = (data: Pick<TNotificationDefinition, 'data'>, services: {
-  infrastructure: Pick<TInfrastructure, 'ask'>;
-  logger: LoggerService;
-  notification: NotificationService;
-}) => void | Promise<void>;
+> {
+  isRelevant (notification: {
+    name: string;
+  }): boolean;
+
+  handle (data: Pick<TNotificationDefinition, 'data'>, services: {
+    infrastructure: Pick<TInfrastructure, 'ask'>;
+    logger: LoggerService;
+    notification: NotificationService;
+  }): void | Promise<void>;
+}

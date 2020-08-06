@@ -8,7 +8,7 @@ const sampleView: View = {
     all
   },
   notificationListeners: {
-    flowSampleFlowUpdated: flowSampleFlowUpdatedNotificationListener
+    flowSampleFlowUpdatedNotificationListener
   }
 };
 
