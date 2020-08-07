@@ -23,9 +23,9 @@ import { LockService } from './common/services/LockService';
 import { LoggerService } from './common/services/LoggerService';
 import { Notification } from './common/elements/Notification';
 import { NotificationHandler } from './common/elements/NotificationHandler';
-import { NotificationSubscriber } from './common/elements/NotificationSubscriber';
 import { Notifications } from './common/elements/Notifications';
 import { NotificationService } from './common/services/NotificationService';
+import { NotificationSubscriber } from './common/elements/NotificationSubscriber';
 import { QueryHandler } from './common/elements/QueryHandler';
 import { QueryOptions } from './common/elements/QueryOptions';
 import { QueryResultItem } from './common/elements/QueryResultItem';
@@ -61,9 +61,9 @@ export {
   LoggerService,
   Notification,
   NotificationHandler,
-  NotificationSubscriber,
   Notifications,
   NotificationService,
+  NotificationSubscriber,
   QueryHandler,
   QueryOptions,
   QueryResultItem,

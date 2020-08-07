@@ -12,7 +12,7 @@ export interface NotificationHandler<
 
   getSchema? (): Schema;
 
-  isAuthorized (data: Pick<TNotificationDefinition, 'data'>, metadata: Pick<TNotificationDefinition, 'metadata'>, services: {
+  isAuthorized (data: TNotificationDefinition['data'], metadata: TNotificationDefinition['metadata'], services: {
     client: ClientService;
     infrastructure: Pick<TInfrastructure, 'ask'>;
     logger: LoggerService;

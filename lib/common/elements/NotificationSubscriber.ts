@@ -11,7 +11,7 @@ export interface NotificationSubscriber<
     name: string;
   }): boolean;
 
-  handle (data: Pick<TNotificationDefinition, 'data'>, services: {
+  handle (data: TNotificationDefinition['data'], services: {
     infrastructure: Pick<TInfrastructure, 'ask'>;
     logger: LoggerService;
     notification: NotificationService;
