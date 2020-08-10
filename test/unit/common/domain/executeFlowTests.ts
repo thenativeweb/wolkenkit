@@ -478,6 +478,4 @@ suite('executeFlow', (): void => {
       metadata: undefined
     });
   });
-
-  // TODO: add test that notifications are published correctly
 });
