@@ -21,6 +21,8 @@ import { getLockService } from '../services/getLockService';
 import { GetLockService } from '../services/types/GetLockService';
 import { getLoggerService } from '../services/getLoggerService';
 import { GetLoggerService } from '../services/types/GetLoggerService';
+import { getNotificationService } from '../services/getNotificationService';
+import { GetNotificationService } from '../services/types/GetNotificationService';
 import { LockStore } from '../../stores/lockStore/LockStore';
 import { Repository } from './Repository';
 import { Snapshot } from '../../stores/domainEventStore/Snapshot';
@@ -55,6 +57,7 @@ class AggregateInstance<TState extends State> {
     getClientService: GetClientService;
     getLockService: GetLockService;
     getLoggerService: GetLoggerService;
+    getNotificationService?: GetNotificationService;
   };
 
   protected repository: Repository;
@@ -82,6 +85,7 @@ class AggregateInstance<TState extends State> {
       getClientService?: GetClientService;
       getLockService?: GetLockService;
       getLoggerService?: GetLoggerService;
+      getNotificationService?: GetNotificationService;
     };
     snapshotStrategy: SnapshotStrategy;
     repository: Repository;
@@ -99,7 +103,8 @@ class AggregateInstance<TState extends State> {
       getAggregatesService: serviceFactories?.getAggregatesService ?? getAggregatesService,
       getClientService: serviceFactories?.getClientService ?? getClientService,
       getLockService: serviceFactories?.getLockService ?? getLockService,
-      getLoggerService: serviceFactories?.getLoggerService ?? getLoggerService
+      getLoggerService: serviceFactories?.getLoggerService ?? getLoggerService,
+      getNotificationService: serviceFactories?.getNotificationService ?? getNotificationService
     };
     this.snapshotStrategy = snapshotStrategy;
     this.repository = repository;
@@ -127,6 +132,7 @@ class AggregateInstance<TState extends State> {
       getClientService?: GetClientService;
       getLockService?: GetLockService;
       getLoggerService?: GetLoggerService;
+      getNotificationService?: GetNotificationService;
     };
     repository: Repository;
   }): Promise<AggregateInstance<TState>> {
@@ -239,14 +245,19 @@ class AggregateInstance<TState extends State> {
       aggregates: getAggregatesService({ repository: this.repository }),
       client: getClientService({ clientMetadata: command.metadata.client }),
       error: getErrorService({ errors: [ 'CommandRejected' ]}),
+      infrastructure: {
+        ask: application.infrastructure.ask
+      },
       lock: getLockService({ lockStore: this.lockStore }),
       logger: getLoggerService({
         fileName: `<app>/server/domain/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/`,
         packageManifest: application.packageManifest
       }),
-      infrastructure: {
-        ask: application.infrastructure.ask
-      }
+      notification: getNotificationService({
+        publishNotification (): void {
+          // TODO: implement
+        }
+      })
     };
     const handleServices = {
       ...isAuthorizedServices,

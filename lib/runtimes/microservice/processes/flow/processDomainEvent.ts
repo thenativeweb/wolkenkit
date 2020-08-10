@@ -19,6 +19,7 @@ import { keepRenewingLock } from './keepRenewingLock';
 import { LockStore } from '../../../../stores/lockStore/LockStore';
 import { Repository } from '../../../../common/domain/Repository';
 import { Value } from 'validate-value';
+import { getNotificationService } from '../../../../common/services/getNotificationService';
 
 const logger = flaschenpost.getLogger();
 
@@ -74,6 +75,11 @@ const processDomainEvent = async function ({
           packageManifest: application.packageManifest
         }),
         lock: getLockService({ lockStore }),
+        notification: getNotificationService({
+          publishNotification (): void {
+            // TODO: implement
+          }
+        }),
         infrastructure: application.infrastructure
       },
       requestReplay

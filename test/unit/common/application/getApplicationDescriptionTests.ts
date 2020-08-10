@@ -155,6 +155,10 @@ suite('getApplicationDescription', (): void => {
           }
         }
       },
+      notifications: {
+        flowSampleFlowUpdated: {},
+        viewSampleViewUpdated: {}
+      },
       views: {
         sampleView: {
           all: {

@@ -9,6 +9,7 @@ import { GetClientService } from '../../../services/types/GetClientService';
 import { GetCommandService } from '../../../services/types/GetCommandService';
 import { GetLockService } from '../../../services/types/GetLockService';
 import { GetLoggerService } from '../../../services/types/GetLoggerService';
+import { GetNotificationService } from '../../../services/types/GetNotificationService';
 import { LockStore } from '../../../../stores/lockStore/LockStore';
 import { SandboxForAggregate } from './SandboxForAggregate';
 import { SandboxForFlow } from './SandboxForFlow';
@@ -61,6 +62,10 @@ export interface Sandbox {
 
   withLoggerServiceFactory(parameters: {
     loggerServiceFactory: GetLoggerService;
+  }): Sandbox;
+
+  withNotificationServiceFactory(parameters: {
+    notificationServiceFactory: GetNotificationService;
   }): Sandbox;
 
   forAggregate<TState extends State>(parameters: {

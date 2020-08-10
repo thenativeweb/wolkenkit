@@ -7,7 +7,8 @@ const sampleView = {
   queryHandlers: {
     all,
     hardcoded
-  }
+  },
+  notificationSubscribers: {}
 };
 
 module.exports = sampleView;

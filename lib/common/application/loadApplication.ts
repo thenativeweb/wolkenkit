@@ -7,6 +7,7 @@ import { getFlowsDefinition } from './getFlowsDefinition';
 import { getHooksDefinition } from './getHooksDefinition';
 import { getInfrastructureDefinition } from './getInfrastructureDefinition';
 import { getLoggerService } from '../services/getLoggerService';
+import { getNotificationsDefinition } from './getNotificationsDefinition';
 import { getViewsDefinition } from './getViewsDefinition';
 import path from 'path';
 import { withSystemDomainEvents } from '../../tools/withSystemDomainEvents';
@@ -34,12 +35,14 @@ const loadApplication = async function ({ applicationDirectory }: {
   const flowsDirectory = path.join(serverDirectory, 'flows');
   const hooksDirectory = path.join(serverDirectory, 'hooks');
   const infrastructureDirectory = path.join(serverDirectory, 'infrastructure');
+  const notificationsDirectory = path.join(serverDirectory, 'notifications');
   const viewsDirectory = path.join(serverDirectory, 'views');
 
   const domainDefinition = await getDomainDefinition({ domainDirectory });
   const hooksDefinition = await getHooksDefinition({ hooksDirectory });
   const infrastructureDefinition = await getInfrastructureDefinition({ infrastructureDirectory });
   const flowsDefinition = await getFlowsDefinition({ flowsDirectory });
+  const notificationsDefinition = await getNotificationsDefinition({ notificationsDirectory });
   const viewsDefinition = await getViewsDefinition({ viewsDirectory });
 
   const applicationEnhancers: ApplicationEnhancer[] = [
@@ -65,6 +68,7 @@ const loadApplication = async function ({ applicationDirectory }: {
         packageManifest
       })
     }),
+    notifications: notificationsDefinition,
     views: viewsDefinition
   };
 

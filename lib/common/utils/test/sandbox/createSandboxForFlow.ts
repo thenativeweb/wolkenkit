@@ -12,9 +12,12 @@ import { getClientService } from '../../../services/getClientService';
 import { getCommandService } from '../../../services/getCommandService';
 import { getLockService } from '../../../services/getLockService';
 import { getLoggerService } from '../../../services/getLoggerService';
+import { getNotificationService } from '../../../services/getNotificationService';
 import { getSnapshotStrategy } from '../../../domain/getSnapshotStrategy';
 import { Initiator } from '../../../elements/Initiator';
 import { noop } from 'lodash';
+import { Notification } from '../../../elements/Notification';
+import { NotificationDefinition } from '../../../elements/NotificationDefinition';
 import { Repository } from '../../../domain/Repository';
 import { SandboxConfigurationForFlow } from './SandboxConfiguration';
 import { SandboxForFlow, SandboxForFlowWithResult } from './SandboxForFlow';
@@ -105,6 +108,7 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
 
     async then (callback: (parameters: {
       commands: CommandWithMetadata<CommandData>[];
+      notifications: Notification[];
     }) => (void | Promise<void>)): Promise<void> {
       const lockStore = sandboxConfiguration.lockStore ?? await createLockStore({ type: 'InMemory' });
       const domainEventStore = sandboxConfiguration.domainEventStore ?? await createDomainEventStore({ type: 'InMemory' });
@@ -117,6 +121,7 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
       const commandServiceFactory = sandboxConfiguration.commandServiceFactory ?? getCommandService;
       const lockServiceFactory = sandboxConfiguration.lockServiceFactory ?? getLockService;
       const loggerServiceFactory = sandboxConfiguration.loggerServiceFactory ?? getLoggerService;
+      const notificationServiceFactory = sandboxConfiguration.notificationServiceFactory ?? getNotificationService;
 
       const repository = new Repository({
         application: sandboxConfiguration.application,
@@ -136,6 +141,18 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
       const issueCommand = async function ({ command }: { command: CommandWithMetadata<CommandData> }): Promise<void> {
         issuedCommands.push(command);
       };
+      const publishedNotifications: Notification[] = [];
+      const publishNotification = function <TNotificationDefinition extends NotificationDefinition>(
+        name: string,
+        data: TNotificationDefinition['data'],
+        metadata?: TNotificationDefinition['metadata']
+      ): void {
+        publishedNotifications.push({
+          name,
+          data,
+          metadata
+        });
+      };
 
       for (const domainEvent of sandboxConfiguration.domainEvents) {
         await executeFlow({
@@ -152,13 +169,16 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
               packageManifest: sandboxConfiguration.application.packageManifest,
               fileName: `<app>/server/flows/${sandboxConfiguration.flowName}`
             }),
-            lock: lockServiceFactory({ lockStore })
+            lock: lockServiceFactory({ lockStore }),
+            notification: notificationServiceFactory({
+              publishNotification
+            })
           }
         });
       }
 
       // eslint-disable-next-line callback-return
-      await callback({ commands: issuedCommands });
+      await callback({ commands: issuedCommands, notifications: publishedNotifications });
     }
   };
 };

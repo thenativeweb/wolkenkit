@@ -5,11 +5,11 @@ import { NotificationListener, NotificationService } from 'wolkenkit';
 import { ViewUpdatedNotificationDefinition } from '../../../notifications/definitions/ViewUpdatedNotificationDefinition';
 
 const flowSampleFlowUpdatedNotificationSubscriber: NotificationListener<FlowUpdatedNotificationDefinition, Infrastructure> = {
-  isRevelant ({ name }): boolean {
-    return name === 'flowSampleFlowUpdated'
+  isRelevant ({ name }: { name: string }): boolean {
+    return name === 'flowSampleFlowUpdated';
   },
 
-  handle (data, { notification }: {
+  handle (data: FlowUpdatedNotificationDefinition['data'], { notification }: {
     notification: NotificationService;
   }): void {
     notification.publish<ViewUpdatedNotificationDefinition>('viewSampleViewUpdated', {});

@@ -233,6 +233,22 @@ suite('loadApplication', (): void => {
       is.throwingAsync(`Directory '<app>/build/server/infrastructure' not found.`);
   });
 
+  test('throws an error if the notifications directory is missing.', async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withoutNotificationsDirectory' });
+
+    await assert.
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
+      is.throwingAsync(`Directory '<app>/build/server/notifications' not found.`);
+  });
+
+  test('throws an error if a notification handler in malformed.', async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withInvalidNotificationHandler' });
+
+    await assert.
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
+      is.throwingAsync(`Notifications definition '<app>/build/server/notifications' is malformed: Notification handler 'invalid' is malformed: Function 'isAuthorized' is missing.`);
+  });
+
   test('throws an error if the views directory is missing.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withoutViewsDirectory' });
 
@@ -241,7 +257,7 @@ suite('loadApplication', (): void => {
       is.throwingAsync(`Directory '<app>/build/server/views' not found.`);
   });
 
-  test('throws an error if the domain contains an empty view directory.', async (): Promise<void> => {
+  test('throws an error if the views contain an empty view directory.', async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'withEmptyViewDirectory' });
 
     await assert.
