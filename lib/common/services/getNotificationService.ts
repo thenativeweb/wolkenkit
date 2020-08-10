@@ -1,16 +1,21 @@
 import { GetNotificationService } from './types/GetNotificationService';
-import { NotificationDefinition } from '../elements/NotificationDefinition';
+import { Notification } from '../elements/Notification';
 import { NotificationService } from './NotificationService';
+import { Publisher } from '../../messaging/pubSub/Publisher';
 
-const getNotificationService: GetNotificationService = function ({ publishNotification }: {
-  publishNotification: (<TNotificationDefinition extends NotificationDefinition>(
-    name: string,
-    data: TNotificationDefinition['data'],
-    metadata?: TNotificationDefinition['metadata']
-  ) => void | Promise<void>);
+const getNotificationService: GetNotificationService = function ({ channel, publisher }: {
+  channel: string;
+  publisher: Publisher<Notification>;
 }): NotificationService {
   return {
-    publish: publishNotification
+    async publish (name, data, metadata): Promise<void> {
+      await publisher.publish({
+        channel,
+        message: {
+          name, data, metadata
+        }
+      });
+    }
   };
 };
 

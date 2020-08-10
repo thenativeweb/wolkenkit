@@ -9,6 +9,7 @@ import { createDomainEventStore } from '../../../../stores/domainEventStore/crea
 import { createFileStore } from '../../../../stores/fileStore/createFileStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
+import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { doesItemIdentifierWithClientMatchDomainEvent } from '../../../../common/domain/doesItemIdentifierWithClientMatchDomainEvent';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
@@ -21,6 +22,7 @@ import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrate
 import http from 'http';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { loadApplication } from '../../../../common/application/loadApplication';
+import { Notification } from '../../../../common/elements/Notification';
 import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import pForever from 'p-forever';
@@ -52,11 +54,15 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const lockStore = await createLockStore(configuration.lockStoreOptions);
 
+    const publisher = await createPublisher<Notification>(configuration.publisherOptions);
+
     const repository = new Repository({
       application,
       lockStore,
       domainEventStore,
-      snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
+      snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
+      publisher,
+      publisherChannelForNotifications: configuration.publisherChannelForNotifications
     });
 
     const consumerProgressStore = await createConsumerProgressStore(configuration.consumerProgressStoreOptions);

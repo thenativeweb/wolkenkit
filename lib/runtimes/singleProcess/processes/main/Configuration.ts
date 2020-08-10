@@ -9,6 +9,7 @@ import { FileStoreOptions } from '../../../../stores/fileStore/FileStoreOptions'
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
 import { PriorityQueueStoreOptions } from '../../../../stores/priorityQueueStore/PriorityQueueStoreOptions';
+import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 
 export interface Configuration {
@@ -29,5 +30,7 @@ export interface Configuration {
   port: number;
   priorityQueueStoreForCommandsOptions: DistributiveOmit<PriorityQueueStoreOptions<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   priorityQueueStoreForDomainEventsOptions: DistributiveOmit<PriorityQueueStoreOptions<DomainEvent<DomainEventData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
+  publisherChannelForNotifications: string;
+  publisherOptions: PublisherOptions;
   snapshotStrategy: SnapshotStrategyConfiguration;
 }

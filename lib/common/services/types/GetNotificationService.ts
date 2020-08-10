@@ -1,10 +1,8 @@
-import { NotificationDefinition } from '../../elements/NotificationDefinition';
+import { Notification } from '../../elements/Notification';
 import { NotificationService } from '../NotificationService';
+import { Publisher } from '../../../messaging/pubSub/Publisher';
 
 export type GetNotificationService = (parameters: {
-  publishNotification: (<TNotificationDefinition extends NotificationDefinition>(
-    name: string,
-    data: TNotificationDefinition['data'],
-    metadata?: TNotificationDefinition['metadata']
-  ) => void | Promise<void>);
+  channel: string;
+  publisher: Publisher<Notification>;
 }) => NotificationService;

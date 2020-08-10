@@ -15,11 +15,11 @@ import { getCommandService } from '../../../../common/services/getCommandService
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { getLockService } from '../../../../common/services/getLockService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { getNotificationService } from '../../../../common/services/getNotificationService';
 import { keepRenewingLock } from './keepRenewingLock';
 import { LockStore } from '../../../../stores/lockStore/LockStore';
 import { Repository } from '../../../../common/domain/Repository';
 import { Value } from 'validate-value';
-import { getNotificationService } from '../../../../common/services/getNotificationService';
 
 const logger = flaschenpost.getLogger();
 
@@ -76,9 +76,8 @@ const processDomainEvent = async function ({
         }),
         lock: getLockService({ lockStore }),
         notification: getNotificationService({
-          publishNotification (): void {
-            // TODO: implement
-          }
+          channel: repository.publisherChannelForNotifications
+          publisher: repository.publisher
         }),
         infrastructure: application.infrastructure
       },

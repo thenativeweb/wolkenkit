@@ -8,6 +8,7 @@ import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityPr
 import { getLockStoreOptionsSchema } from '../../../shared/schemas/getLockStoreOptionsSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import { getPriorityQueueStoreOptionsSchema } from '../../../shared/schemas/getPriorityQueueStoreOptionsSchema';
+import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
 import path from 'path';
 
@@ -19,6 +20,7 @@ const consumerProgressStoreOptionsSchema = getConsumerProgressStoreOptionsSchema
       lockStoreOptionsSchema = getLockStoreOptionsSchema(),
       portSchema = getPortSchema(),
       priorityQueueStoreOptionsSchema = getPriorityQueueStoreOptionsSchema(),
+      publisherOptionsSchema = getPublisherOptionsSchema(),
       snapshotStrategySchema = getSnapshotStrategySchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
@@ -125,6 +127,16 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     environmentVariable: 'PRIORITY_QUEUE_STORE_FOR_DOMAIN_EVENTS_OPTIONS',
     defaultValue: { type: 'InMemory', expirationTime: 30_000 },
     schema: priorityQueueStoreOptionsSchema
+  },
+  publisherChannelForNotifications: {
+    environmentVariable: 'PUBLISHER_CHANNEL_FOR_NOTIFICATIONS',
+    defaultValue: 'notifications',
+    schema: { type: 'string', minLength: 1 }
+  },
+  publisherOptions: {
+    environmentVariable: 'PUBLISHER_OPTIONS',
+    defaultValue: { type: 'InMemory' },
+    schema: publisherOptionsSchema
   },
   snapshotStrategy: {
     environmentVariable: 'SNAPSHOT_STRATEGY',
