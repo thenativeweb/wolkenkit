@@ -128,7 +128,7 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
         domainEventStore,
         snapshotStrategy,
         publisher,
-        publisherChannelForNotifications: 'notifications',
+        pubSubChannelForNotifications: 'notifications',
         serviceFactories: {
           getAggregateService: aggregateServiceFactory,
           getAggregatesService: aggregatesServiceFactory,

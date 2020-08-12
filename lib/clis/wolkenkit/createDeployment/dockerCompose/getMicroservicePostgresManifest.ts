@@ -221,7 +221,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     publisherPort: services.publisher.privatePort,
     publisherProtocol: 'http',
     publisherOptions: { type: 'InMemory' },
-    publisherChannelForNotifications: 'notifications',
+    pubSubChannelForNotifications: 'notifications',
     snapshotStrategy
   };
 
@@ -237,7 +237,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     identityProviders,
     port: services.domainEvent.privatePort,
     publisherOptions: { type: 'InMemory' },
-    publisherChannelForNotifications: 'notifications',
+    pubSubChannelForNotifications: 'notifications',
     snapshotStrategy,
     subscribeMessagesChannel: publisherChannelNewDomainEvent,
     subscribeMessagesHostName: services.publisher.hostName,
@@ -281,7 +281,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     identityProviders,
     port: services.graphql.privatePort,
     publisherOptions: { type: 'InMemory' },
-    publisherChannelForNotifications: 'notifications',
+    pubSubChannelForNotifications: 'notifications',
     snapshotStrategy,
     subscribeMessagesChannel: publisherChannelNewDomainEvent,
     subscribeMessagesHostName: services.publisher.hostName,
@@ -346,7 +346,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthPort: services.flow.healthPort,
     lockStoreOptions,
     publisherOptions: { type: 'InMemory' },
-    publisherChannelForNotifications: 'notifications',
+    pubSubChannelForNotifications: 'notifications',
     replayServerHostName: services.replay.hostName,
     replayServerPort: services.replay.privatePort,
     replayServerProtocol: 'http',

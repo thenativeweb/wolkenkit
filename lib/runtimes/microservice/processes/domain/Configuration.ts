@@ -23,7 +23,7 @@ export interface Configuration {
   publisherHostName: string;
   publisherPort: number;
   publisherProtocol: string;
-  publisherChannelForNotifications: string;
   publisherOptions: PublisherOptions;
+  pubSubChannelForNotifications: string;
   snapshotStrategy: SnapshotStrategyConfiguration;
 }

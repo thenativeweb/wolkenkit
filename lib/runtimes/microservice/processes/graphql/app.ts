@@ -57,7 +57,7 @@ import { Value } from 'validate-value';
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
       publisher,
-      publisherChannelForNotifications: configuration.publisherChannelForNotifications
+      pubSubChannelForNotifications: configuration.pubSubChannelForNotifications
     });
 
     const commandDispatcherClient = new CommandDispatcherClient({

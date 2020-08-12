@@ -22,7 +22,7 @@ suite('Repository', (): void => {
       domainEventStore: DomainEventStore,
       lockStore: LockStore,
       publisher: Publisher<Notification>,
-      publisherChannelForNotifications: string,
+      pubSubChannelForNotifications: string,
       repository: Repository;
 
   setup(async (): Promise<void> => {
@@ -32,14 +32,14 @@ suite('Repository', (): void => {
     domainEventStore = await InMemoryDomainEventStore.create({ type: 'InMemory' });
     lockStore = await createLockStore({ type: 'InMemory' });
     publisher = await createPublisher<Notification>({ type: 'InMemory' });
-    publisherChannelForNotifications = 'notifications';
+    pubSubChannelForNotifications = 'notifications';
     repository = new Repository({
       application,
       lockStore,
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
       publisher,
-      publisherChannelForNotifications
+      pubSubChannelForNotifications
     });
   });
 
@@ -93,7 +93,7 @@ suite('Repository', (): void => {
         domainEventStore,
         snapshotStrategy: getSnapshotStrategy({ name: 'always' }),
         publisher,
-        publisherChannelForNotifications
+        pubSubChannelForNotifications
       });
 
       const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
@@ -158,7 +158,7 @@ suite('Repository', (): void => {
         domainEventStore,
         snapshotStrategy,
         publisher,
-        publisherChannelForNotifications
+        pubSubChannelForNotifications
       });
 
       const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };

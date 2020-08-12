@@ -119,8 +119,8 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: 'http',
     schema: protocolSchema
   },
-  publisherChannelForNotifications: {
-    environmentVariable: 'PUBLISHER_CHANNEL_FOR_NOTIFICATIONS',
+  pubSubChannelForNotifications: {
+    environmentVariable: 'PUB_SUB_CHANNEL_FOR_NOTIFICATIONS',
     defaultValue: 'notifications',
     schema: { type: 'string', minLength: 1 }
   },

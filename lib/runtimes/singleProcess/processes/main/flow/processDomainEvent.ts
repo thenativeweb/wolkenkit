@@ -70,7 +70,7 @@ const processDomainEvent = async function ({
         }),
         lock: getLockService({ lockStore }),
         notification: getNotificationService({
-          channel: repository.publisherChannelForNotifications,
+          channel: repository.pubSubChannelForNotifications,
           publisher: repository.publisher
         })
       },

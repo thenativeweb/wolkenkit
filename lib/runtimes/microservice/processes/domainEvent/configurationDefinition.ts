@@ -69,8 +69,8 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: 3000,
     schema: portSchema
   },
-  publisherChannelForNotifications: {
-    environmentVariable: 'PUBLISHER_CHANNEL_FOR_NOTIFICATIONS',
+  pubSubChannelForNotifications: {
+    environmentVariable: 'PUB_SUB_CHANNEL_FOR_NOTIFICATIONS',
     defaultValue: 'notifications',
     schema: { type: 'string', minLength: 1 }
   },

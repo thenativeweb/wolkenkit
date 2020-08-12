@@ -175,7 +175,7 @@ const createSandboxForAggregateWithResult = function <TState extends State> (san
         domainEventStore,
         snapshotStrategy,
         publisher,
-        publisherChannelForNotifications: 'notifications',
+        pubSubChannelForNotifications: 'notifications',
         serviceFactories: {
           getAggregateService: aggregateServiceFactory,
           getAggregatesService: aggregatesServiceFactory,

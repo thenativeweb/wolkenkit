@@ -55,7 +55,7 @@ class AggregateInstance<TState extends State> {
 
   public readonly publisher: Publisher<Notification>;
 
-  public readonly publisherChannelForNotifications: string;
+  public readonly pubSubChannelForNotifications: string;
 
   protected serviceFactories: {
     getAggregateService: GetAggregateService;
@@ -76,7 +76,7 @@ class AggregateInstance<TState extends State> {
     domainEventStore,
     lockStore,
     publisher,
-    publisherChannelForNotifications,
+    pubSubChannelForNotifications,
     serviceFactories,
     snapshotStrategy,
     repository
@@ -88,7 +88,7 @@ class AggregateInstance<TState extends State> {
     domainEventStore: DomainEventStore;
     lockStore: LockStore;
     publisher: Publisher<Notification>;
-    publisherChannelForNotifications: string;
+    pubSubChannelForNotifications: string;
     serviceFactories?: {
       getAggregateService?: GetAggregateService;
       getAggregatesService?: GetAggregatesService;
@@ -109,7 +109,7 @@ class AggregateInstance<TState extends State> {
     this.domainEventStore = domainEventStore;
     this.lockStore = lockStore;
     this.publisher = publisher;
-    this.publisherChannelForNotifications = publisherChannelForNotifications;
+    this.pubSubChannelForNotifications = pubSubChannelForNotifications;
     this.serviceFactories = {
       getAggregateService: serviceFactories?.getAggregateService ?? getAggregateService,
       getAggregatesService: serviceFactories?.getAggregatesService ?? getAggregatesService,
@@ -130,7 +130,7 @@ class AggregateInstance<TState extends State> {
     lockStore,
     snapshotStrategy,
     publisher,
-    publisherChannelForNotifications,
+    pubSubChannelForNotifications,
     serviceFactories,
     repository
   }: {
@@ -141,7 +141,7 @@ class AggregateInstance<TState extends State> {
     lockStore: LockStore;
     snapshotStrategy: SnapshotStrategy;
     publisher: Publisher<Notification>;
-    publisherChannelForNotifications: string;
+    pubSubChannelForNotifications: string;
     serviceFactories?: {
       getAggregateService?: GetAggregateService;
       getAggregatesService?: GetAggregatesService;
@@ -172,7 +172,7 @@ class AggregateInstance<TState extends State> {
       domainEventStore,
       lockStore,
       publisher,
-      publisherChannelForNotifications,
+      pubSubChannelForNotifications,
       serviceFactories,
       snapshotStrategy,
       repository
@@ -272,7 +272,7 @@ class AggregateInstance<TState extends State> {
         packageManifest: application.packageManifest
       }),
       notification: getNotificationService({
-        channel: this.publisherChannelForNotifications,
+        channel: this.pubSubChannelForNotifications,
         publisher: this.publisher
       })
     };

@@ -52,7 +52,7 @@ import { State } from '../../../../common/elements/State';
       lockStore,
       domainEventStore,
       publisher,
-      publisherChannelForNotifications: configuration.publisherChannelForNotifications,
+      pubSubChannelForNotifications: configuration.pubSubChannelForNotifications,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 

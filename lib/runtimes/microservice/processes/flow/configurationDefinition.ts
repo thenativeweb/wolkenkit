@@ -118,8 +118,8 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: { type: 'InMemory' },
     schema: lockStoreOptionsSchema
   },
-  publisherChannelForNotifications: {
-    environmentVariable: 'PUBLISHER_CHANNEL_FOR_NOTIFICATIONS',
+  pubSubChannelForNotifications: {
+    environmentVariable: 'PUB_SUB_CHANNEL_FOR_NOTIFICATIONS',
     defaultValue: 'notifications',
     schema: { type: 'string', minLength: 1 }
   },

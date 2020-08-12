@@ -26,7 +26,7 @@ class Repository {
 
   public readonly publisher: Publisher<Notification>;
 
-  public readonly publisherChannelForNotifications: string;
+  public readonly pubSubChannelForNotifications: string;
 
   public readonly serviceFactories?: {
     getAggregateService?: GetAggregateService;
@@ -43,7 +43,7 @@ class Repository {
     lockStore,
     snapshotStrategy,
     publisher,
-    publisherChannelForNotifications,
+    pubSubChannelForNotifications,
     serviceFactories
   }: {
     application: Application;
@@ -51,7 +51,7 @@ class Repository {
     lockStore: LockStore;
     snapshotStrategy: SnapshotStrategy;
     publisher: Publisher<Notification>;
-    publisherChannelForNotifications: string;
+    pubSubChannelForNotifications: string;
     serviceFactories?: {
       getAggregateService?: GetAggregateService;
       getAggregatesService?: GetAggregatesService;
@@ -66,7 +66,7 @@ class Repository {
     this.lockStore = lockStore;
     this.snapshotStrategy = snapshotStrategy;
     this.publisher = publisher;
-    this.publisherChannelForNotifications = publisherChannelForNotifications;
+    this.pubSubChannelForNotifications = pubSubChannelForNotifications;
     this.serviceFactories = serviceFactories;
   }
 
@@ -82,7 +82,7 @@ class Repository {
       domainEventStore: this.domainEventStore,
       snapshotStrategy: this.snapshotStrategy,
       publisher: this.publisher,
-      publisherChannelForNotifications: this.publisherChannelForNotifications,
+      pubSubChannelForNotifications: this.pubSubChannelForNotifications,
       serviceFactories: this.serviceFactories,
       repository: this
     });

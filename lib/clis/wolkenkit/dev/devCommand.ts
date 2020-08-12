@@ -139,7 +139,7 @@ const devCommand = function (): Command<DevOptions> {
                 port,
                 priorityQueueStoreForCommandsOptions: configurationDefinition.priorityQueueStoreForCommandsOptions.defaultValue,
                 priorityQueueStoreForDomainEventsOptions: configurationDefinition.priorityQueueStoreForDomainEventsOptions.defaultValue,
-                publisherChannelForNotifications: 'notifications',
+                pubSubChannelForNotifications: 'notifications',
                 publisherOptions: { type: 'InMemory' },
                 snapshotStrategy: {
                   name: 'revision',

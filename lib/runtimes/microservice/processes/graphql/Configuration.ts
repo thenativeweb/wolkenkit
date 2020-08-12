@@ -15,7 +15,7 @@ export interface Configuration {
   healthPort: number;
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
-  publisherChannelForNotifications: string;
+  pubSubChannelForNotifications: string;
   publisherOptions: PublisherOptions;
   snapshotStrategy: SnapshotStrategyConfiguration;
   subscribeMessagesChannel: string;

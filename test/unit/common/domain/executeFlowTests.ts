@@ -40,7 +40,7 @@ suite('executeFlow', (): void => {
       notifications: Notification[],
       notificationService: NotificationService,
       publisher: Publisher<Notification>,
-      publisherChannelForNotifications: string;
+      pubSubChannelForNotifications: string;
 
   setup(async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' });
@@ -70,7 +70,7 @@ suite('executeFlow', (): void => {
       }
     } as LoggerService;
     publisher = await createPublisher<Notification>({ type: 'InMemory' });
-    publisherChannelForNotifications = 'notifications';
+    pubSubChannelForNotifications = 'notifications';
     notifications = [];
     notificationService = {
       publish<TNotificationDefinition extends NotificationDefinition>(
@@ -88,7 +88,7 @@ suite('executeFlow', (): void => {
       lockStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
       publisher,
-      publisherChannelForNotifications
+      pubSubChannelForNotifications
     });
 
     aggregatesService = getAggregatesService({ repository });
@@ -257,7 +257,7 @@ suite('executeFlow', (): void => {
       lockStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
       publisher,
-      publisherChannelForNotifications
+      pubSubChannelForNotifications
     });
 
     aggregatesService = getAggregatesService({ repository });
@@ -315,7 +315,7 @@ suite('executeFlow', (): void => {
       lockStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
       publisher,
-      publisherChannelForNotifications
+      pubSubChannelForNotifications
     });
 
     aggregatesService = getAggregatesService({ repository });
@@ -389,7 +389,7 @@ suite('executeFlow', (): void => {
       lockStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
       publisher,
-      publisherChannelForNotifications
+      pubSubChannelForNotifications
     });
 
     aggregatesService = getAggregatesService({ repository });

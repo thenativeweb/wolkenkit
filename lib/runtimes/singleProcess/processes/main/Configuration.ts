@@ -11,6 +11,7 @@ import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions'
 import { PriorityQueueStoreOptions } from '../../../../stores/priorityQueueStore/PriorityQueueStoreOptions';
 import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
+import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOptions';
 
 export interface Configuration {
   applicationDirectory: string;
@@ -30,7 +31,8 @@ export interface Configuration {
   port: number;
   priorityQueueStoreForCommandsOptions: DistributiveOmit<PriorityQueueStoreOptions<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   priorityQueueStoreForDomainEventsOptions: DistributiveOmit<PriorityQueueStoreOptions<DomainEvent<DomainEventData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
-  publisherChannelForNotifications: string;
   publisherOptions: PublisherOptions;
+  pubSubChannelForNotifications: string;
   snapshotStrategy: SnapshotStrategyConfiguration;
+  subscriberOptions: SubscriberOptions;
 }

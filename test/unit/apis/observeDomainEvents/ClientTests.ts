@@ -30,7 +30,7 @@ suite('observeDomainEvents/http/Client', function (): void {
   let application: Application,
       domainEventStore: DomainEventStore,
       publisher: Publisher<Notification>,
-      publisherChannelForNotifications: string,
+      pubSubChannelForNotifications: string,
       repository: Repository;
 
   setup(async (): Promise<void> => {
@@ -39,14 +39,14 @@ suite('observeDomainEvents/http/Client', function (): void {
     application = await loadApplication({ applicationDirectory });
     domainEventStore = await InMemoryDomainEventStore.create({ type: 'InMemory' });
     publisher = await createPublisher<Notification>({ type: 'InMemory' });
-    publisherChannelForNotifications = 'notifications';
+    pubSubChannelForNotifications = 'notifications';
     repository = new Repository({
       application,
       lockStore: await createLockStore({ type: 'InMemory' }),
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
       publisher,
-      publisherChannelForNotifications
+      pubSubChannelForNotifications
     });
   });
 

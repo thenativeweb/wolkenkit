@@ -113,7 +113,7 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
     port: services.main.privatePort,
     priorityQueueStoreForCommandsOptions,
     priorityQueueStoreForDomainEventsOptions,
-    publisherChannelForNotifications: 'notifications',
+    pubSubChannelForNotifications: 'notifications',
     publisherOptions: { type: 'InMemory' },
     snapshotStrategy
   };

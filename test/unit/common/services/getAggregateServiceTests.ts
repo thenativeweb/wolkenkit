@@ -57,7 +57,7 @@ suite('getAggregateService', (): void => {
       domainEventStore: DomainEventStore,
       lockStore: LockStore,
       publisher: Publisher<Notification>,
-      publisherChannelForNotifications: string,
+      pubSubChannelForNotifications: string,
       repository: Repository;
 
   suiteSetup(async (): Promise<void> => {
@@ -83,7 +83,7 @@ suite('getAggregateService', (): void => {
     domainEventStore = await InMemoryDomainEventStore.create({ type: 'InMemory' });
     lockStore = await createLockStore({ type: 'InMemory' });
     publisher = await createPublisher<Notification>({ type: 'InMemory' });
-    publisherChannelForNotifications = 'notifications';
+    pubSubChannelForNotifications = 'notifications';
 
     repository = new Repository({
       application,
@@ -91,7 +91,7 @@ suite('getAggregateService', (): void => {
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
       publisher,
-      publisherChannelForNotifications
+      pubSubChannelForNotifications
     });
 
     aggregateInstance = await repository.getAggregateInstance({

@@ -54,7 +54,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
       publisher,
-      publisherChannelForNotifications: configuration.publisherChannelForNotifications
+      pubSubChannelForNotifications: configuration.pubSubChannelForNotifications
     });
 
     const consumerProgressStore = await createConsumerProgressStore(configuration.consumerProgressStoreOptions);

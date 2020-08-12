@@ -10,6 +10,7 @@ import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import { getPriorityQueueStoreOptionsSchema } from '../../../shared/schemas/getPriorityQueueStoreOptionsSchema';
 import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
+import { getSubscriberOptionsSchema } from '../../../shared/schemas/getSubscriberOptionsSchema';
 import path from 'path';
 
 const consumerProgressStoreOptionsSchema = getConsumerProgressStoreOptionsSchema(),
@@ -21,7 +22,8 @@ const consumerProgressStoreOptionsSchema = getConsumerProgressStoreOptionsSchema
       portSchema = getPortSchema(),
       priorityQueueStoreOptionsSchema = getPriorityQueueStoreOptionsSchema(),
       publisherOptionsSchema = getPublisherOptionsSchema(),
-      snapshotStrategySchema = getSnapshotStrategySchema();
+      snapshotStrategySchema = getSnapshotStrategySchema(),
+      subscriberOptionsSchema = getSubscriberOptionsSchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
   applicationDirectory: {
@@ -128,20 +130,25 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: { type: 'InMemory', expirationTime: 30_000 },
     schema: priorityQueueStoreOptionsSchema
   },
-  publisherChannelForNotifications: {
-    environmentVariable: 'PUBLISHER_CHANNEL_FOR_NOTIFICATIONS',
-    defaultValue: 'notifications',
-    schema: { type: 'string', minLength: 1 }
-  },
   publisherOptions: {
     environmentVariable: 'PUBLISHER_OPTIONS',
     defaultValue: { type: 'InMemory' },
     schema: publisherOptionsSchema
   },
+  pubSubChannelForNotifications: {
+    environmentVariable: 'PUB_SUB_CHANNEL_FOR_NOTIFICATIONS',
+    defaultValue: 'notifications',
+    schema: { type: 'string', minLength: 1 }
+  },
   snapshotStrategy: {
     environmentVariable: 'SNAPSHOT_STRATEGY',
     defaultValue: { name: 'revision', configuration: { revisionLimit: 100 }},
     schema: snapshotStrategySchema
+  },
+  subscriberOptions: {
+    environmentVariable: 'SUBSCRIBER_OPTIONS',
+    defaultValue: { type: 'InMemory' },
+    schema: subscriberOptionsSchema
   }
 };
 

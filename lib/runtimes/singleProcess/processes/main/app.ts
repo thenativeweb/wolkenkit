@@ -10,14 +10,18 @@ import { createFileStore } from '../../../../stores/fileStore/createFileStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
 import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
+import { createSubscriber } from '../../../../messaging/pubSub/createSubscriber';
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { doesItemIdentifierWithClientMatchDomainEvent } from '../../../../common/domain/doesItemIdentifierWithClientMatchDomainEvent';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
+import { executeNotificationSubscribers } from '../../../../common/domain/executeNotificationSubscribers';
 import { flaschenpost } from 'flaschenpost';
 import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getApi } from './getApi';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
+import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { getNotificationService } from '../../../../common/services/getNotificationService';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
@@ -55,6 +59,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const lockStore = await createLockStore(configuration.lockStoreOptions);
 
     const publisher = await createPublisher<Notification>(configuration.publisherOptions);
+    const subscriber = await createSubscriber<Notification>(configuration.subscriberOptions);
 
     const repository = new Repository({
       application,
@@ -62,7 +67,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
       publisher,
-      publisherChannelForNotifications: configuration.publisherChannelForNotifications
+      pubSubChannelForNotifications: configuration.pubSubChannelForNotifications
     });
 
     const consumerProgressStore = await createConsumerProgressStore(configuration.consumerProgressStoreOptions);
@@ -118,6 +123,29 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     server.listen(configuration.port, (): void => {
       logger.info('Single process runtime server started.', { port: configuration.port });
+    });
+
+    await subscriber.subscribe({
+      channel: configuration.pubSubChannelForNotifications,
+      callback (notification: Notification): void {
+        for (const viewName of Object.keys(application.views)) {
+          executeNotificationSubscribers({
+            application,
+            viewName,
+            notification,
+            services: {
+              logger: getLoggerService({
+                packageManifest: application.packageManifest,
+                fileName: `<app>/server/views/${viewName}`
+              }),
+              notification: getNotificationService({
+                channel: configuration.pubSubChannelForNotifications,
+                publisher
+              })
+            }
+          });
+        }
+      }
     });
 
     const publishDomainEvents: PublishDomainEvents = async function ({ domainEvents }): Promise<void> {

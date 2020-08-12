@@ -48,7 +48,7 @@ suite('graphql', function (): void {
       port: number,
       publishDomainEvent: PublishDomainEvent | undefined,
       publisher: Publisher<Notification>,
-      publisherChannelForNotifications: string,
+      pubSubChannelForNotifications: string,
       receivedCommands: CommandWithMetadata<CommandData>[],
       repository: Repository;
 
@@ -60,14 +60,14 @@ suite('graphql', function (): void {
       type: 'InMemory'
     });
     publisher = await createPublisher<Notification>({ type: 'InMemory' });
-    publisherChannelForNotifications = 'notifications';
+    pubSubChannelForNotifications = 'notifications';
     repository = new Repository({
       application,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
       lockStore: await createLockStore({ type: 'InMemory' }),
       domainEventStore,
       publisher,
-      publisherChannelForNotifications
+      pubSubChannelForNotifications
     });
     receivedCommands = [];
     cancelledCommands = [];
