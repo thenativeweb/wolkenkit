@@ -156,6 +156,7 @@ suite('getApplicationDescription', (): void => {
         }
       },
       notifications: {
+        commandExecute: {},
         flowSampleFlowUpdated: {},
         viewSampleViewUpdated: {}
       },

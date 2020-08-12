@@ -1,9 +1,11 @@
 'use strict';
 
-const { flowSampleFlowUpdatedNotificationHandler } = require('./handlers/flowSampleFlowUpdatedNotificationHandler'),
+const { commandExecuteNotificationHandler } = require('./handlers/commandExecuteNotificationHandler'),
+      { flowSampleFlowUpdatedNotificationHandler } = require('./handlers/flowSampleFlowUpdatedNotificationHandler'),
       { viewSampleViewUpdatedNotificationHandler } = require('./handlers/viewSampleViewUpdatedNotificationHandler');
 
 const notifications = {
+  commandExecute: commandExecuteNotificationHandler,
   flowSampleFlowUpdated: flowSampleFlowUpdatedNotificationHandler,
   viewSampleViewUpdated: viewSampleViewUpdatedNotificationHandler
 };

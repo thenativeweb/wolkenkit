@@ -7,6 +7,7 @@ import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainE
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
+import { createSubscriber } from '../../../../lib/messaging/pubSub/createSubscriber';
 import { CustomError } from 'defekt';
 import { DomainEvent } from '../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
@@ -21,6 +22,7 @@ import { Notification } from '../../../../lib/common/elements/Notification';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { State } from '../../../../lib/common/elements/State';
+import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { toArray } from 'streamtoarray';
 import { v4 } from 'uuid';
 
@@ -34,7 +36,8 @@ suite('AggregateInstance', (): void => {
       lockStore: LockStore,
       publisher: Publisher<Notification>,
       pubSubChannelForNotifications: string,
-      repository: Repository;
+      repository: Repository,
+      subscriber: Subscriber<Notification>;
 
   setup(async (): Promise<void> => {
     aggregateId = v4();
@@ -44,6 +47,7 @@ suite('AggregateInstance', (): void => {
     domainEventStore = await createDomainEventStore({ type: 'InMemory' });
     lockStore = await createLockStore({ type: 'InMemory' });
     publisher = await createPublisher<Notification>({ type: 'InMemory' });
+    subscriber = await createSubscriber<Notification>({ type: 'InMemory' });
     pubSubChannelForNotifications = 'notifications';
     repository = new Repository({
       application,
@@ -552,6 +556,43 @@ suite('AggregateInstance', (): void => {
         assert.that(
           await domainEventStore.getLastDomainEvent({ aggregateIdentifier })
         ).is.undefined();
+      });
+    });
+
+    suite('notifications', (): void => {
+      test('publishes notifications from the command handle.', async (): Promise<void> => {
+        const notifications: Notification[] = [];
+
+        await subscriber.subscribe({
+          channel: pubSubChannelForNotifications,
+          callback (notification): void {
+            notifications.push(notification);
+          }
+        });
+
+        const { aggregateIdentifier } = aggregateInstance;
+
+        const command = buildCommandWithMetadata({
+          contextIdentifier: {
+            name: 'sampleContext'
+          },
+          aggregateIdentifier,
+          name: 'execute',
+          data: {
+            strategy: 'succeed'
+          }
+        });
+
+        await aggregateInstance.handleCommand({
+          command
+        });
+
+        assert.that(notifications.length).is.equalTo(1);
+        assert.that(notifications[0]).is.equalTo({
+          name: 'commandExecute',
+          data: {},
+          metadata: undefined
+        });
       });
     });
   });

@@ -452,6 +452,17 @@ suite('main', function (): void {
           async (data): Promise<void> => {
             try {
               assert.that(data).is.atLeast({
+                name: 'commandExecute',
+                data: {}
+              });
+              await counter.signal();
+            } catch (ex) {
+              await counter.fail(ex);
+            }
+          },
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
                 name: 'flowSampleFlowUpdated',
                 data: {}
               });
