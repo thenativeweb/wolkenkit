@@ -43,7 +43,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const onReceiveCommand = getOnReceiveCommand({
       priorityQueueStore,
       newCommandPublisher,
-      newCommandPubSubChannel: configuration.pubSubOptions.channel
+      newCommandPubSubChannel: configuration.pubSubOptions.channelForNewCommand
     });
     const onCancelCommand = getOnCancelCommand({ priorityQueueStore });
 
@@ -53,7 +53,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     setInterval(
       async (): Promise<void> => {
         await newCommandPublisher.publish({
-          channel: configuration.pubSubOptions.channel,
+          channel: configuration.pubSubOptions.channelForNewCommand,
           message: {}
         });
       },
@@ -65,7 +65,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       application,
       priorityQueueStore,
       newCommandSubscriber,
-      newCommandPubSubChannel: configuration.pubSubOptions.channel,
+      newCommandPubSubChannel: configuration.pubSubOptions.channelForNewCommand,
       onReceiveCommand,
       onCancelCommand
     });

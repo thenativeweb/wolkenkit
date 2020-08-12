@@ -58,8 +58,8 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const lockStore = await createLockStore(configuration.lockStoreOptions);
 
-    const publisher = await createPublisher<Notification>(configuration.publisherOptions);
-    const subscriber = await createSubscriber<Notification>(configuration.subscriberOptions);
+    const publisher = await createPublisher<Notification>(configuration.pubSubOptions.publisher);
+    const subscriber = await createSubscriber<Notification>(configuration.pubSubOptions.subscriber);
 
     const repository = new Repository({
       application,
@@ -67,7 +67,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
       publisher,
-      pubSubChannelForNotifications: configuration.pubSubChannelForNotifications
+      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotification
     });
 
     const consumerProgressStore = await createConsumerProgressStore(configuration.consumerProgressStoreOptions);
@@ -126,7 +126,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     });
 
     await subscriber.subscribe({
-      channel: configuration.pubSubChannelForNotifications,
+      channel: configuration.pubSubOptions.channelForNotification,
       callback (notification: Notification): void {
         for (const viewName of Object.keys(application.views)) {
           executeNotificationSubscribers({
@@ -139,7 +139,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
                 fileName: `<app>/server/views/${viewName}`
               }),
               notification: getNotificationService({
-                channel: configuration.pubSubChannelForNotifications,
+                channel: configuration.pubSubOptions.channelForNotification,
                 publisher
               })
             }

@@ -148,7 +148,10 @@ const getMicroservicePostgresManifest = function ({ appName }: {
             locks: 'locks'
           }
         },
-        publisherChannelNewDomainEvent = 'newDomainEvent',
+        pubSubChannelForNewCommand = 'newCommand',
+        pubSubChannelForNewDomainEvent = 'newDomainEvent',
+        pubSubChannelForNewInternalDomainEvent = 'newInternalDomainEvent',
+        pubSubChannelForNotification = 'notification',
         snapshotStrategy: SnapshotStrategyConfiguration = {
           name: 'lowest',
           configuration: {
@@ -193,7 +196,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       expirationTime: 30_000
     },
     pubSubOptions: {
-      channel: 'newCommand',
+      channelForNewCommand: pubSubChannelForNewCommand,
       subscriber: { type: 'InMemory' },
       publisher: { type: 'InMemory' }
     }
@@ -216,12 +219,13 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthCorsOrigin: corsOrigin,
     healthPort: services.domain.healthPort,
     lockStoreOptions,
-    publisherChannelNewDomainEvent,
-    publisherHostName: services.publisher.hostName,
-    publisherPort: services.publisher.privatePort,
-    publisherProtocol: 'http',
-    publisherOptions: { type: 'InMemory' },
-    pubSubChannelForNotifications: 'notifications',
+    pubSubOptions: {
+      channelForNotification: pubSubChannelForNotification,
+      channelForNewDomainEvent: pubSubChannelForNewDomainEvent,
+
+      // TODO: replace this with http based publisher
+      publisher: { type: 'InMemory' }
+    },
     snapshotStrategy
   };
 
@@ -236,13 +240,15 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthPort: services.domainEvent.healthPort,
     identityProviders,
     port: services.domainEvent.privatePort,
-    publisherOptions: { type: 'InMemory' },
-    pubSubChannelForNotifications: 'notifications',
-    snapshotStrategy,
-    subscribeMessagesChannel: publisherChannelNewDomainEvent,
-    subscribeMessagesHostName: services.publisher.hostName,
-    subscribeMessagesPort: services.publisher.privatePort,
-    subscribeMessagesProtocol: 'http'
+    pubSubOptions: {
+      channelForNewDomainEvent: pubSubChannelForNewDomainEvent,
+      channelForNotification: pubSubChannelForNotification,
+
+      // TODO: replace this with http based publisher
+      publisher: { type: 'InMemory' },
+      subscriber: { type: 'InMemory' }
+    },
+    snapshotStrategy
   };
 
   const aeonstoreConfiguration: AeonstoreConfiguration = {
@@ -280,10 +286,14 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthPort: services.graphql.healthPort,
     identityProviders,
     port: services.graphql.privatePort,
-    publisherOptions: { type: 'InMemory' },
-    pubSubChannelForNotifications: 'notifications',
+    pubSubOptions: {
+      channelForNotification: pubSubChannelForNotification,
+
+      // TODO: replace this with http based publisher
+      publisher: { type: 'InMemory' }
+    },
     snapshotStrategy,
-    subscribeMessagesChannel: publisherChannelNewDomainEvent,
+    subscribeMessagesChannel: pubSubChannelForNewDomainEvent,
     subscribeMessagesHostName: services.publisher.hostName,
     subscribeMessagesPort: services.publisher.privatePort,
     subscribeMessagesProtocol: 'http'
@@ -311,7 +321,9 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       expirationTime: 30_000
     },
     pubSubOptions: {
-      channel: 'newDomainEvent',
+      channelForNewInternalDomainEvent: pubSubChannelForNewInternalDomainEvent,
+
+      // TODO: replace this with http based publisher
       subscriber: { type: 'InMemory' },
       publisher: { type: 'InMemory' }
     }
@@ -345,8 +357,12 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthCorsOrigin: corsOrigin,
     healthPort: services.flow.healthPort,
     lockStoreOptions,
-    publisherOptions: { type: 'InMemory' },
-    pubSubChannelForNotifications: 'notifications',
+    pubSubOptions: {
+      channelForNotification: pubSubChannelForNotification,
+
+      // TODO: replace this with http based publisher
+      publisher: { type: 'InMemory' }
+    },
     replayServerHostName: services.replay.hostName,
     replayServerPort: services.replay.privatePort,
     replayServerProtocol: 'http',

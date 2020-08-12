@@ -46,7 +46,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const lockStore = await createLockStore(configuration.lockStoreOptions);
 
-    const publisher = await createPublisher<Notification>(configuration.publisherOptions);
+    const publisher = await createPublisher<Notification>(configuration.pubSubOptions.publisher);
 
     const repository = new Repository({
       application,
@@ -54,7 +54,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
       publisher,
-      pubSubChannelForNotifications: configuration.pubSubChannelForNotifications
+      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotification
     });
 
     const consumerProgressStore = await createConsumerProgressStore(configuration.consumerProgressStoreOptions);

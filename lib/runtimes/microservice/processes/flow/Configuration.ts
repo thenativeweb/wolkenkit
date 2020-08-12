@@ -1,7 +1,7 @@
 import { ConsumerProgressStoreOptions } from '../../../../stores/consumerProgressStore/ConsumerProgressStoreOptions';
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
+import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
-import {PublisherOptions} from "../../../../messaging/pubSub/PublisherOptions";
 
 export interface Configuration {
   aeonstoreHostName: string;
@@ -24,7 +24,9 @@ export interface Configuration {
   replayServerHostName: string;
   replayServerPort: number;
   replayServerProtocol: string;
-  pubSubChannelForNotifications: string;
-  publisherOptions: PublisherOptions;
+  pubSubOptions: {
+    channelForNotification: string;
+    publisher: PublisherOptions;
+  };
   snapshotStrategy: SnapshotStrategyConfiguration;
 }

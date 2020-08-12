@@ -49,7 +49,7 @@ import { Value } from 'validate-value';
       port: configuration.aeonstorePort
     });
 
-    const publisher = await createPublisher<Notification>(configuration.publisherOptions);
+    const publisher = await createPublisher<Notification>(configuration.pubSubOptions.publisher);
 
     const repository = new Repository({
       application,
@@ -57,7 +57,7 @@ import { Value } from 'validate-value';
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
       publisher,
-      pubSubChannelForNotifications: configuration.pubSubChannelForNotifications
+      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotification
     });
 
     const commandDispatcherClient = new CommandDispatcherClient({

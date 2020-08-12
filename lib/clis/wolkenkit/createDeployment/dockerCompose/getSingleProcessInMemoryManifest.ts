@@ -64,8 +64,11 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
     port: services.main.privatePort,
     priorityQueueStoreForCommandsOptions,
     priorityQueueStoreForDomainEventsOptions,
-    pubSubChannelForNotifications: 'notifications',
-    publisherOptions: { type: 'InMemory' },
+    pubSubOptions: {
+      channelForNotification: 'notification',
+      publisher: { type: 'InMemory' },
+      subscriber: { type: 'InMemory' }
+    },
     snapshotStrategy
   };
 

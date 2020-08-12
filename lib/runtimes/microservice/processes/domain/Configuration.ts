@@ -19,11 +19,10 @@ export interface Configuration {
   healthCorsOrigin: string | string[];
   healthPort: number;
   lockStoreOptions: LockStoreOptions;
-  publisherChannelNewDomainEvent: string;
-  publisherHostName: string;
-  publisherPort: number;
-  publisherProtocol: string;
-  publisherOptions: PublisherOptions;
-  pubSubChannelForNotifications: string;
+  pubSubOptions: {
+    channelForNewDomainEvent: string;
+    channelForNotification: string;
+    publisher: PublisherOptions;
+  };
   snapshotStrategy: SnapshotStrategyConfiguration;
 }

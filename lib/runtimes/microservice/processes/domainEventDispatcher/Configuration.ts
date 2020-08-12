@@ -16,7 +16,7 @@ export interface Configuration {
   port: number;
   priorityQueueStoreOptions: DistributiveOmit<PriorityQueueStoreOptions<DomainEvent<DomainEventData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   pubSubOptions: {
-    channel: string;
+    channelForNewInternalDomainEvent: string;
     publisher: PublisherOptions;
     subscriber: SubscriberOptions;
   };

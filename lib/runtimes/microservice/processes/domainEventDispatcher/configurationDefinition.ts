@@ -9,7 +9,9 @@ import path from 'path';
 
 const corsSchema = getCorsSchema(),
       portSchema = getPortSchema(),
-      priorityQueueStoreOptionsSchema = getPriorityQueueStoreOptionsSchema();
+      priorityQueueStoreOptionsSchema = getPriorityQueueStoreOptionsSchema(),
+      publisherOptionsSchema = getPublisherOptionsSchema(),
+      subscriberOptionsSchema = getSubscriberOptionsSchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
   applicationDirectory: {
@@ -54,13 +56,17 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',
-    defaultValue: { channel: 'newDomainEvent', subscriber: { type: 'InMemory' }, publisher: { type: 'InMemory' }},
+    defaultValue: {
+      channelForNewInternalDomainEvent: 'newInternalDomainEvent',
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    },
     schema: {
       type: 'object',
       properties: {
         channel: { type: 'string', minLength: 1 },
-        subscriber: getSubscriberOptionsSchema(),
-        publisher: getPublisherOptionsSchema()
+        subscriber: subscriberOptionsSchema,
+        publisher: publisherOptionsSchema
       },
       required: [ 'channel', 'subscriber', 'publisher' ],
       additionalProperties: false

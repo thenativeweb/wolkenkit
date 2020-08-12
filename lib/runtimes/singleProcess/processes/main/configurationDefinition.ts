@@ -130,25 +130,28 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: { type: 'InMemory', expirationTime: 30_000 },
     schema: priorityQueueStoreOptionsSchema
   },
-  publisherOptions: {
-    environmentVariable: 'PUBLISHER_OPTIONS',
-    defaultValue: { type: 'InMemory' },
-    schema: publisherOptionsSchema
-  },
-  pubSubChannelForNotifications: {
-    environmentVariable: 'PUB_SUB_CHANNEL_FOR_NOTIFICATIONS',
-    defaultValue: 'notifications',
-    schema: { type: 'string', minLength: 1 }
+  pubSubOptions: {
+    environmentVariable: 'PUB_SUB_OPTIONS',
+    defaultValue: {
+      channelForNotification: 'notification',
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    },
+    schema: {
+      type: 'object',
+      properties: {
+        channelForNotification: { type: 'string', minLength: 1 },
+        subscriber: subscriberOptionsSchema,
+        publisher: publisherOptionsSchema
+      },
+      required: [ 'channelForNotification', 'subscriber', 'publisher' ],
+      additionalProperties: false
+    }
   },
   snapshotStrategy: {
     environmentVariable: 'SNAPSHOT_STRATEGY',
     defaultValue: { name: 'revision', configuration: { revisionLimit: 100 }},
     schema: snapshotStrategySchema
-  },
-  subscriberOptions: {
-    environmentVariable: 'SUBSCRIBER_OPTIONS',
-    defaultValue: { type: 'InMemory' },
-    schema: subscriberOptionsSchema
   }
 };
 

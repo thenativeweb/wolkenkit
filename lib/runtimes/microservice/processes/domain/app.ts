@@ -18,7 +18,6 @@ import { Notification } from '../../../../common/elements/Notification';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
-import { Client as PublisherClient } from '../../../../apis/publishMessage/http/v2/Client';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
@@ -45,14 +44,16 @@ import { State } from '../../../../common/elements/State';
 
     const lockStore = await createLockStore(configuration.lockStoreOptions);
 
-    const publisher = await createPublisher<Notification>(configuration.publisherOptions);
+    const publisher = await createPublisher<Notification | DomainEventWithState<DomainEventData, State>>(
+      configuration.pubSubOptions.publisher
+    );
 
     const repository = new Repository({
       application,
       lockStore,
       domainEventStore,
       publisher,
-      pubSubChannelForNotifications: configuration.pubSubChannelForNotifications,
+      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotification,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
@@ -62,13 +63,6 @@ import { State } from '../../../../common/elements/State';
       port: configuration.commandDispatcherPort,
       path: '/await-command/v2',
       createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
-    });
-
-    const publisherClient = new PublisherClient({
-      protocol: configuration.publisherProtocol,
-      hostName: configuration.publisherHostName,
-      port: configuration.publisherPort,
-      path: '/publish/v2/'
     });
 
     const domainEventDispatcherClient = new DomainEventDispatcherClient({
@@ -82,8 +76,8 @@ import { State } from '../../../../common/elements/State';
       domainEvents: DomainEventWithState<DomainEventData, State>[];
     }): Promise<any> => {
       for (const domainEvent of domainEvents) {
-        await publisherClient.postMessage({
-          channel: configuration.publisherChannelNewDomainEvent,
+        await publisher.publish({
+          channel: configuration.pubSubOptions.channelForNewDomainEvent,
           message: domainEvent
         });
         await domainEventDispatcherClient.postDomainEvent({

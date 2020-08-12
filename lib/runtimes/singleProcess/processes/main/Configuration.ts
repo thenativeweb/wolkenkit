@@ -31,8 +31,10 @@ export interface Configuration {
   port: number;
   priorityQueueStoreForCommandsOptions: DistributiveOmit<PriorityQueueStoreOptions<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   priorityQueueStoreForDomainEventsOptions: DistributiveOmit<PriorityQueueStoreOptions<DomainEvent<DomainEventData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
-  publisherOptions: PublisherOptions;
-  pubSubChannelForNotifications: string;
+  pubSubOptions: {
+    channelForNotification: string;
+    publisher: PublisherOptions;
+    subscriber: SubscriberOptions;
+  };
   snapshotStrategy: SnapshotStrategyConfiguration;
-  subscriberOptions: SubscriberOptions;
 }

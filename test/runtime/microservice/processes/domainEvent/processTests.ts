@@ -27,8 +27,9 @@ const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 
 suite('domain event', function (): void {
   this.timeout(10_000);
 
-  const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
-  const subscribeMessagesChannel = 'newDomainEvent';
+  const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
+        pubSubChannelForNewDomainEvent = 'newDomainEvent',
+        pubSubChannelNotification = 'notification';
 
   let domainEventStoreHealthPort: number,
       domainEventStorePort: number,
@@ -103,9 +104,14 @@ suite('domain event', function (): void {
       port,
       healthPort,
       identityProviders: [{ issuer: 'https://token.invalid', certificate: certificateDirectory }],
-      subscribeMessagesHostName: 'localhost',
-      subscribeMessagesPort: publisherPort,
-      subscribeMessagesChannel,
+      pubSubOptions: {
+        channelForNewDomainEvent: pubSubChannelForNewDomainEvent,
+        channelForNotification: pubSubChannelNotification,
+
+        // TODO: replace this with http based publisher
+        publisher: { type: 'InMemory' },
+        subscriber: { type: 'InMemory' }
+      },
       snapshotStrategy: { name: 'never' } as SnapshotStrategyConfiguration
     };
 
@@ -174,7 +180,7 @@ suite('domain event', function (): void {
 
       setTimeout(async (): Promise<void> => {
         await publishMessageClient.postMessage({
-          channel: subscribeMessagesChannel,
+          channel: pubSubChannelForNewDomainEvent,
           message: domainEventWithoutState
         });
       }, 50);
@@ -221,7 +227,7 @@ suite('domain event', function (): void {
 
       setTimeout(async (): Promise<void> => {
         await publishMessageClient.postMessage({
-          channel: subscribeMessagesChannel,
+          channel: pubSubChannelForNewDomainEvent,
           message: domainEvent
         });
       }, 50);

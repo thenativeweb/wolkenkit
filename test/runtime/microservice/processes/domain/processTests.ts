@@ -32,6 +32,7 @@ suite('domain', function (): void {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   const publisherChannelNewDomainEvent = 'newDomainEvent',
+        publisherChannelNotification = 'notifications',
         queueLockExpirationTime = 600,
         queuePollInterval = 600;
 
@@ -170,9 +171,13 @@ suite('domain', function (): void {
       commandDispatcherAcknowledgeRetries: 0,
       domainEventDispatcherHostName: 'localhost',
       domainEventDispatcherPort,
-      publisherHostName: 'localhost',
-      publisherPort,
-      publisherChannelNewDomainEvent,
+      pubSubOptions: {
+        channelForNotification: publisherChannelNotification,
+        channelForNewDomainEvent: publisherChannelNewDomainEvent,
+
+        // TODO: replace this with http based publisher
+        publisher: { type: 'InMemory' }
+      },
       aeonstoreHostName: 'localhost',
       aeonstorePort: domainEventStorePort,
       healthPort: domainHealthPort,

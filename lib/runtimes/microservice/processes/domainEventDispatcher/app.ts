@@ -45,7 +45,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     setInterval(
       async (): Promise<void> => {
         await internalNewDomainEventPublisher.publish({
-          channel: configuration.pubSubOptions.channel,
+          channel: configuration.pubSubOptions.channelForNewInternalDomainEvent,
           message: {}
         });
       },
@@ -57,11 +57,11 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       application,
       priorityQueueStore,
       newDomainEventSubscriber: internalNewDomainEventSubscriber,
-      newDomainEventPubSubChannel: configuration.pubSubOptions.channel,
+      newDomainEventPubSubChannel: configuration.pubSubOptions.channelForNewInternalDomainEvent,
       onReceiveDomainEvent: getOnReceiveDomainEvent({
         application,
         newDomainEventPublisher: internalNewDomainEventPublisher,
-        newDomainEventPubSubChannel: configuration.pubSubOptions.channel,
+        newDomainEventPubSubChannel: configuration.pubSubOptions.channelForNewInternalDomainEvent,
         priorityQueueStore
       })
     });

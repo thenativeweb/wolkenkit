@@ -99,35 +99,23 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: { type: 'InMemory' },
     schema: lockStoreOptionsSchema
   },
-  publisherChannelNewDomainEvent: {
-    environmentVariable: 'PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT',
-    defaultValue: 'newDomainEvent',
-    schema: { type: 'string', minLength: 1 }
-  },
-  publisherHostName: {
-    environmentVariable: 'PUBLISHER_HOST_NAME',
-    defaultValue: 'publisher',
-    schema: { type: 'string', format: 'hostname' }
-  },
-  publisherPort: {
-    environmentVariable: 'PUBLISHER_PORT',
-    defaultValue: 3000,
-    schema: portSchema
-  },
-  publisherProtocol: {
-    environmentVariable: 'PUBLISHER_PROTOCOL',
-    defaultValue: 'http',
-    schema: protocolSchema
-  },
-  pubSubChannelForNotifications: {
-    environmentVariable: 'PUB_SUB_CHANNEL_FOR_NOTIFICATIONS',
-    defaultValue: 'notifications',
-    schema: { type: 'string', minLength: 1 }
-  },
-  publisherOptions: {
-    environmentVariable: 'PUBLISHER_OPTIONS',
-    defaultValue: { type: 'InMemory' },
-    schema: publisherOptionsSchema
+  pubSubOptions: {
+    environmentVariable: 'PUB_SUB_OPTIONS',
+    defaultValue: {
+      channelForNewDomainEvent: 'newDomainEvent',
+      channelForNotification: 'notification',
+      publisher: { type: 'InMemory' }
+    },
+    schema: {
+      type: 'object',
+      properties: {
+        channelForNewDomainEvent: { type: 'string', minLength: 1 },
+        channelForNotification: { type: 'string', minLength: 1 },
+        publisher: publisherOptionsSchema
+      },
+      required: [ 'channelForNewDomainEvent', 'channelForNotification', 'publisher' ],
+      additionalProperties: false
+    }
   },
   snapshotStrategy: {
     environmentVariable: 'SNAPSHOT_STRATEGY',

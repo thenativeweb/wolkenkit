@@ -118,15 +118,21 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: { type: 'InMemory' },
     schema: lockStoreOptionsSchema
   },
-  pubSubChannelForNotifications: {
-    environmentVariable: 'PUB_SUB_CHANNEL_FOR_NOTIFICATIONS',
-    defaultValue: 'notifications',
-    schema: { type: 'string', minLength: 1 }
-  },
-  publisherOptions: {
-    environmentVariable: 'PUBLISHER_OPTIONS',
-    defaultValue: { type: 'InMemory' },
-    schema: publisherOptionsSchema
+  pubSubOptions: {
+    environmentVariable: 'PUB_SUB_OPTIONS',
+    defaultValue: {
+      channelForNotification: 'notification',
+      publisher: { type: 'InMemory' }
+    },
+    schema: {
+      type: 'object',
+      properties: {
+        channelForNotification: { type: 'string', minLength: 1 },
+        publisher: publisherOptionsSchema
+      },
+      required: [ 'channelForNotification', 'publisher' ],
+      additionalProperties: false
+    }
   },
   replayServerHostName: {
     environmentVariable: 'REPLAY_SERVER_HOST_NAME',
