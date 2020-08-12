@@ -11,6 +11,8 @@ import { GetLockService } from '../../../services/types/GetLockService';
 import { GetLoggerService } from '../../../services/types/GetLoggerService';
 import { GetNotificationService } from '../../../services/types/GetNotificationService';
 import { LockStore } from '../../../../stores/lockStore/LockStore';
+import { Notification } from '../../../elements/Notification';
+import { Publisher } from '../../../../messaging/pubSub/Publisher';
 import { SandboxForAggregate } from './SandboxForAggregate';
 import { SandboxForFlow } from './SandboxForFlow';
 import { SandboxForView } from './SandboxForView';
@@ -38,6 +40,10 @@ export interface Sandbox {
 
   withSnapshotStrategy(parameters: {
     snapshotStrategy: SnapshotStrategy;
+  }): Sandbox;
+
+  withPublisher(parameters: {
+    publisher: Publisher<Notification>;
   }): Sandbox;
 
   withAggregateServiceFactory(parameters: {

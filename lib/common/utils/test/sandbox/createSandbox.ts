@@ -21,6 +21,8 @@ import { SandboxForView } from './SandboxForView';
 import { SnapshotStrategy } from '../../../domain/SnapshotStrategy';
 import { State } from '../../../elements/State';
 import { Sandbox, UninitializedSandbox } from './Sandbox';
+import { Publisher } from '../../../../messaging/pubSub/Publisher';
+import { Notification } from '../../../elements/Notification';
 
 const createSandbox = function (): UninitializedSandbox {
   return {
@@ -70,6 +72,15 @@ const initializedSandbox = function (sandboxConfiguration: SandboxConfiguration)
       return initializedSandbox({
         ...sandboxConfiguration,
         snapshotStrategy
+      });
+    },
+
+    withPublisher ({ publisher }: {
+      publisher: Publisher<Notification>;
+    }): Sandbox {
+      return initializedSandbox({
+        ...sandboxConfiguration,
+        publisher
       });
     },
 

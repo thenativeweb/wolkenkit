@@ -3,6 +3,7 @@ import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { Application as ExpressApplication } from 'express';
@@ -13,7 +14,9 @@ import { getTestApplicationDirectory } from '../../../shared/applications/getTes
 import { identityProvider } from '../../../shared/identityProvider';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
+import { Notification } from '../../../../lib/common/elements/Notification';
 import { PublishDomainEvent } from '../../../../lib/apis/observeDomainEvents/PublishDomainEvent';
+import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
@@ -25,6 +28,8 @@ suite('observeDomainEvents/http', (): void => {
 
   let application: Application,
       domainEventStore: DomainEventStore,
+      publisher: Publisher<Notification>,
+      publisherChannelForNotifications: string,
       repository: Repository;
 
   setup(async (): Promise<void> => {
@@ -32,11 +37,15 @@ suite('observeDomainEvents/http', (): void => {
 
     application = await loadApplication({ applicationDirectory });
     domainEventStore = await InMemoryDomainEventStore.create({ type: 'InMemory' });
+    publisher = await createPublisher<Notification>({ type: 'InMemory' });
+    publisherChannelForNotifications = 'notifications';
     repository = new Repository({
       application,
       lockStore: await createLockStore({ type: 'InMemory' }),
       domainEventStore,
-      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+      publisher,
+      publisherChannelForNotifications
     });
   });
 
@@ -631,7 +640,9 @@ suite('observeDomainEvents/http', (): void => {
             application,
             lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
-            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+            publisher,
+            publisherChannelForNotifications
           });
 
           ({ api, publishDomainEvent } = await getApi({
@@ -714,7 +725,9 @@ suite('observeDomainEvents/http', (): void => {
             application,
             lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
-            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+            publisher,
+            publisherChannelForNotifications
           });
 
           ({ api, publishDomainEvent } = await getApi({
@@ -795,7 +808,9 @@ suite('observeDomainEvents/http', (): void => {
             application,
             lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
-            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+            publisher,
+            publisherChannelForNotifications
           });
 
           ({ api, publishDomainEvent } = await getApi({
@@ -866,7 +881,9 @@ suite('observeDomainEvents/http', (): void => {
             application,
             lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
-            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+            publisher,
+            publisherChannelForNotifications
           });
 
           ({ api, publishDomainEvent } = await getApi({
@@ -933,7 +950,9 @@ suite('observeDomainEvents/http', (): void => {
             application,
             lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
-            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+            publisher,
+            publisherChannelForNotifications
           });
 
           ({ api, publishDomainEvent } = await getApi({
@@ -1014,7 +1033,9 @@ suite('observeDomainEvents/http', (): void => {
             application,
             lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
-            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+            publisher,
+            publisherChannelForNotifications
           });
 
           ({ api, publishDomainEvent } = await getApi({
@@ -1095,7 +1116,9 @@ suite('observeDomainEvents/http', (): void => {
             application,
             lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
-            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+            publisher,
+            publisherChannelForNotifications
           });
 
           ({ api, publishDomainEvent } = await getApi({
@@ -1166,7 +1189,9 @@ suite('observeDomainEvents/http', (): void => {
             application,
             lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
-            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+            publisher,
+            publisherChannelForNotifications
           });
 
           ({ api, publishDomainEvent } = await getApi({
@@ -1234,7 +1259,9 @@ suite('observeDomainEvents/http', (): void => {
             application,
             lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
-            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+            publisher,
+            publisherChannelForNotifications
           });
 
           ({ api, publishDomainEvent } = await getApi({
@@ -1315,7 +1342,9 @@ suite('observeDomainEvents/http', (): void => {
             application,
             lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
-            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+            publisher,
+            publisherChannelForNotifications
           });
 
           ({ api, publishDomainEvent } = await getApi({
@@ -1396,7 +1425,9 @@ suite('observeDomainEvents/http', (): void => {
             application,
             lockStore: await createLockStore({ type: 'InMemory' }),
             domainEventStore,
-            snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+            snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+            publisher,
+            publisherChannelForNotifications
           });
 
           ({ api, publishDomainEvent } = await getApi({

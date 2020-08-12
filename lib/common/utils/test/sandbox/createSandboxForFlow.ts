@@ -4,6 +4,7 @@ import { CommandWithMetadata } from '../../../elements/CommandWithMetadata';
 import { createConsumerProgressStore } from '../../../../stores/consumerProgressStore/createConsumerProgressStore';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { DomainEventData } from '../../../elements/DomainEventData';
 import { executeFlow } from '../../../domain/executeFlow';
 import { getAggregateService } from '../../../services/getAggregateService';
@@ -16,8 +17,6 @@ import { getNotificationService } from '../../../services/getNotificationService
 import { getSnapshotStrategy } from '../../../domain/getSnapshotStrategy';
 import { Initiator } from '../../../elements/Initiator';
 import { noop } from 'lodash';
-import { Notification } from '../../../elements/Notification';
-import { NotificationDefinition } from '../../../elements/NotificationDefinition';
 import { Repository } from '../../../domain/Repository';
 import { SandboxConfigurationForFlow } from './SandboxConfiguration';
 import { SandboxForFlow, SandboxForFlowWithResult } from './SandboxForFlow';
@@ -108,12 +107,12 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
 
     async then (callback: (parameters: {
       commands: CommandWithMetadata<CommandData>[];
-      notifications: Notification[];
     }) => (void | Promise<void>)): Promise<void> {
       const lockStore = sandboxConfiguration.lockStore ?? await createLockStore({ type: 'InMemory' });
       const domainEventStore = sandboxConfiguration.domainEventStore ?? await createDomainEventStore({ type: 'InMemory' });
       const flowProgressStore = sandboxConfiguration.flowProgressStore ?? await createConsumerProgressStore({ type: 'InMemory' });
       const snapshotStrategy = sandboxConfiguration.snapshotStrategy ?? getSnapshotStrategy({ name: 'never' });
+      const publisher = sandboxConfiguration.publisher ?? await createPublisher({ type: 'InMemory' });
 
       const aggregateServiceFactory = sandboxConfiguration.aggregateServiceFactory ?? getAggregateService;
       const aggregatesServiceFactory = sandboxConfiguration.aggregatesServiceFactory ?? getAggregatesService;
@@ -128,30 +127,21 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
         lockStore,
         domainEventStore,
         snapshotStrategy,
+        publisher,
+        publisherChannelForNotifications: 'notifications',
         serviceFactories: {
           getAggregateService: aggregateServiceFactory,
           getAggregatesService: aggregatesServiceFactory,
           getClientService: clientServiceFactory,
           getLockService: lockServiceFactory,
-          getLoggerService: loggerServiceFactory
+          getLoggerService: loggerServiceFactory,
+          getNotificationService: notificationServiceFactory
         }
       });
 
       const issuedCommands: CommandWithMetadata<CommandData>[] = [];
       const issueCommand = async function ({ command }: { command: CommandWithMetadata<CommandData> }): Promise<void> {
         issuedCommands.push(command);
-      };
-      const publishedNotifications: Notification[] = [];
-      const publishNotification = function <TNotificationDefinition extends NotificationDefinition>(
-        name: string,
-        data: TNotificationDefinition['data'],
-        metadata?: TNotificationDefinition['metadata']
-      ): void {
-        publishedNotifications.push({
-          name,
-          data,
-          metadata
-        });
       };
 
       for (const domainEvent of sandboxConfiguration.domainEvents) {
@@ -171,14 +161,15 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
             }),
             lock: lockServiceFactory({ lockStore }),
             notification: notificationServiceFactory({
-              publishNotification
+              publisher,
+              channel: 'notifications'
             })
           }
         });
       }
 
       // eslint-disable-next-line callback-return
-      await callback({ commands: issuedCommands, notifications: publishedNotifications });
+      await callback({ commands: issuedCommands });
     }
   };
 };

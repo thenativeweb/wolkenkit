@@ -2,6 +2,7 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getAggregatesService } from '../../../../lib/common/services/getAggregatesService';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
@@ -9,6 +10,8 @@ import { getTestApplicationDirectory } from '../../../shared/applications/getTes
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
+import { Notification } from '../../../../lib/common/elements/Notification';
+import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { v4 } from 'uuid';
 
@@ -18,6 +21,8 @@ suite('getAggregatesService', (): void => {
   let application: Application,
       domainEventStore: DomainEventStore,
       lockStore: LockStore,
+      publisher: Publisher<Notification>,
+      publisherChannelForNotifications: string,
       repository: Repository;
 
   suiteSetup(async (): Promise<void> => {
@@ -27,12 +32,16 @@ suite('getAggregatesService', (): void => {
   setup(async (): Promise<void> => {
     domainEventStore = await InMemoryDomainEventStore.create({ type: 'InMemory' });
     lockStore = await createLockStore({ type: 'InMemory' });
+    publisher = await createPublisher<Notification>({ type: 'InMemory' });
+    publisherChannelForNotifications = 'notifications';
 
     repository = new Repository({
       application,
       lockStore,
       domainEventStore,
-      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+      publisher,
+      publisherChannelForNotifications
     });
   });
 

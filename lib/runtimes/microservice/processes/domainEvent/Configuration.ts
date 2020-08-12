@@ -1,3 +1,4 @@
+import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 
 export interface Configuration {
@@ -11,6 +12,8 @@ export interface Configuration {
   healthPort: number;
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
+  publisherChannelForNotifications: string;
+  publisherOptions: PublisherOptions;
   snapshotStrategy: SnapshotStrategyConfiguration;
   subscribeMessagesChannel: string;
   subscribeMessagesHostName: string;

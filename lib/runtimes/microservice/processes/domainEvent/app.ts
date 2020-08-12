@@ -3,6 +3,7 @@
 import { AeonstoreDomainEventStore } from '../../../../stores/domainEventStore/Aeonstore';
 import { configurationDefinition } from './configurationDefinition';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
@@ -13,6 +14,7 @@ import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
 import { loadApplication } from '../../../../common/application/loadApplication';
+import { Notification } from '../../../../common/elements/Notification';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
@@ -44,11 +46,15 @@ import { Value } from 'validate-value';
       port: configuration.aeonstorePort
     });
 
+    const publisher = await createPublisher<Notification>(configuration.publisherOptions);
+
     const repository = new Repository({
       application,
       lockStore: await createLockStore({ type: 'InMemory' }),
       domainEventStore,
-      snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
+      snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
+      publisher,
+      publisherChannelForNotifications: configuration.publisherChannelForNotifications
     });
 
     const { api, publishDomainEvent } = await getApi({

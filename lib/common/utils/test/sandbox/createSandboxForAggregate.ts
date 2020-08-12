@@ -4,6 +4,7 @@ import { Client } from '../../../elements/Client';
 import { CommandData } from '../../../elements/CommandData';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { DomainEvent } from '../../../elements/DomainEvent';
 import { DomainEventData } from '../../../elements/DomainEventData';
 import { DomainEventWithState } from '../../../elements/DomainEventWithState';
@@ -12,6 +13,7 @@ import { getAggregatesService } from '../../../services/getAggregatesService';
 import { getClientService } from '../../../services/getClientService';
 import { getLockService } from '../../../services/getLockService';
 import { getLoggerService } from '../../../services/getLoggerService';
+import { getNotificationService } from '../../../services/getNotificationService';
 import { getSnapshotStrategy } from '../../../domain/getSnapshotStrategy';
 import { Initiator } from '../../../elements/Initiator';
 import { Repository } from '../../../domain/Repository';
@@ -146,12 +148,14 @@ const createSandboxForAggregateWithResult = function <TState extends State> (san
       const lockStore = sandboxConfiguration.lockStore ?? await createLockStore({ type: 'InMemory' });
       const domainEventStore = sandboxConfiguration.domainEventStore ?? await createDomainEventStore({ type: 'InMemory' });
       const snapshotStrategy = sandboxConfiguration.snapshotStrategy ?? getSnapshotStrategy({ name: 'never' });
+      const publisher = sandboxConfiguration.publisher ?? await createPublisher({ type: 'InMemory' });
 
       const aggregateServiceFactory = sandboxConfiguration.aggregateServiceFactory ?? getAggregateService;
       const aggregatesServiceFactory = sandboxConfiguration.aggregatesServiceFactory ?? getAggregatesService;
       const clientServiceFactory = sandboxConfiguration.clientServiceFactory ?? getClientService;
       const lockServiceFactory = sandboxConfiguration.lockServiceFactory ?? getLockService;
       const loggerServiceFactory = sandboxConfiguration.loggerServiceFactory ?? getLoggerService;
+      const notificationServiceFactory = sandboxConfiguration.notificationServiceFactory ?? getNotificationService;
 
       const lastDomainEvent =
         await domainEventStore.getLastDomainEvent({ aggregateIdentifier: sandboxConfiguration.aggregateIdentifier });
@@ -170,12 +174,15 @@ const createSandboxForAggregateWithResult = function <TState extends State> (san
         lockStore,
         domainEventStore,
         snapshotStrategy,
+        publisher,
+        publisherChannelForNotifications: 'notifications',
         serviceFactories: {
           getAggregateService: aggregateServiceFactory,
           getAggregatesService: aggregatesServiceFactory,
           getClientService: clientServiceFactory,
           getLockService: lockServiceFactory,
-          getLoggerService: loggerServiceFactory
+          getLoggerService: loggerServiceFactory,
+          getNotificationService: notificationServiceFactory
         }
       });
 

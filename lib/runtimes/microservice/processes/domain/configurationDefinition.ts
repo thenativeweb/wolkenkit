@@ -4,6 +4,7 @@ import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getLockStoreOptionsSchema } from '../../../shared/schemas/getLockStoreOptionsSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
+import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
 import path from 'path';
 
@@ -11,6 +12,7 @@ const corsSchema = getCorsSchema(),
       lockStoreOptionsSchema = getLockStoreOptionsSchema(),
       portSchema = getPortSchema(),
       protocolSchema = getProtocolSchema(),
+      publisherOptionsSchema = getPublisherOptionsSchema(),
       snapshotStrategySchema = getSnapshotStrategySchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
@@ -116,6 +118,16 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     environmentVariable: 'PUBLISHER_PROTOCOL',
     defaultValue: 'http',
     schema: protocolSchema
+  },
+  publisherChannelForNotifications: {
+    environmentVariable: 'PUBLISHER_CHANNEL_FOR_NOTIFICATIONS',
+    defaultValue: 'notifications',
+    schema: { type: 'string', minLength: 1 }
+  },
+  publisherOptions: {
+    environmentVariable: 'PUBLISHER_OPTIONS',
+    defaultValue: { type: 'InMemory' },
+    schema: publisherOptionsSchema
   },
   snapshotStrategy: {
     environmentVariable: 'SNAPSHOT_STRATEGY',

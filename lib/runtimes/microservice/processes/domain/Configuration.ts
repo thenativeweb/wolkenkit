@@ -1,4 +1,5 @@
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
+import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 
 export interface Configuration {
@@ -22,5 +23,7 @@ export interface Configuration {
   publisherHostName: string;
   publisherPort: number;
   publisherProtocol: string;
+  publisherChannelForNotifications: string;
+  publisherOptions: PublisherOptions;
   snapshotStrategy: SnapshotStrategyConfiguration;
 }

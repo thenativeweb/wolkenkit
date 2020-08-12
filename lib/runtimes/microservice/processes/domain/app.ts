@@ -6,6 +6,7 @@ import { Client as CommandDispatcherClient } from '../../../../apis/awaitItem/ht
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { configurationDefinition } from './configurationDefinition';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { Client as DomainEventDispatcherClient } from '../../../../apis/handleDomainEvent/http/v2/Client';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
@@ -13,6 +14,7 @@ import { flaschenpost } from 'flaschenpost';
 import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import { loadApplication } from '../../../../common/application/loadApplication';
+import { Notification } from '../../../../common/elements/Notification';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
@@ -43,10 +45,14 @@ import { State } from '../../../../common/elements/State';
 
     const lockStore = await createLockStore(configuration.lockStoreOptions);
 
+    const publisher = await createPublisher<Notification>(configuration.publisherOptions);
+
     const repository = new Repository({
       application,
       lockStore,
       domainEventStore,
+      publisher,
+      publisherChannelForNotifications: configuration.publisherChannelForNotifications,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 

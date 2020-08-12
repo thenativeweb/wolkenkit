@@ -41,6 +41,5 @@ export interface SandboxForFlowWithResult {
 
   then(callback: ((parameters: {
     commands: Command<CommandData>[];
-    notifications: Notification[];
   }) => void | Promise<void>)): Promise<void>;
 }

@@ -18,6 +18,9 @@ import { PublishDomainEvent } from '../../../../lib/apis/observeDomainEvents/Pub
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { v4 } from 'uuid';
+import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
+import { Notification } from '../../../../lib/common/elements/Notification';
+import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
 
 suite('observeDomainEvents/http/Client', function (): void {
   this.timeout(5_000);
@@ -26,6 +29,8 @@ suite('observeDomainEvents/http/Client', function (): void {
 
   let application: Application,
       domainEventStore: DomainEventStore,
+      publisher: Publisher<Notification>,
+      publisherChannelForNotifications: string,
       repository: Repository;
 
   setup(async (): Promise<void> => {
@@ -33,11 +38,15 @@ suite('observeDomainEvents/http/Client', function (): void {
 
     application = await loadApplication({ applicationDirectory });
     domainEventStore = await InMemoryDomainEventStore.create({ type: 'InMemory' });
+    publisher = await createPublisher<Notification>({ type: 'InMemory' });
+    publisherChannelForNotifications = 'notifications';
     repository = new Repository({
       application,
       lockStore: await createLockStore({ type: 'InMemory' }),
       domainEventStore,
-      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+      publisher,
+      publisherChannelForNotifications
     });
   });
 

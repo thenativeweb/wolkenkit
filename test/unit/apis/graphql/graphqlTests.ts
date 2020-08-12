@@ -6,6 +6,7 @@ import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
@@ -23,7 +24,9 @@ import { InitializeGraphQlOnServer } from '../../../../lib/apis/graphql/Initiali
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { Limes } from 'limes';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
+import { Notification } from '../../../../lib/common/elements/Notification';
 import { PublishDomainEvent } from '../../../../lib/apis/graphql/PublishDomainEvent';
+import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
@@ -44,6 +47,8 @@ suite('graphql', function (): void {
       initializeGraphQlOnServer: InitializeGraphQlOnServer,
       port: number,
       publishDomainEvent: PublishDomainEvent | undefined,
+      publisher: Publisher<Notification>,
+      publisherChannelForNotifications: string,
       receivedCommands: CommandWithMetadata<CommandData>[],
       repository: Repository;
 
@@ -54,11 +59,15 @@ suite('graphql', function (): void {
     domainEventStore = await createDomainEventStore({
       type: 'InMemory'
     });
+    publisher = await createPublisher<Notification>({ type: 'InMemory' });
+    publisherChannelForNotifications = 'notifications';
     repository = new Repository({
       application,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
       lockStore: await createLockStore({ type: 'InMemory' }),
-      domainEventStore
+      domainEventStore,
+      publisher,
+      publisherChannelForNotifications
     });
     receivedCommands = [];
     cancelledCommands = [];

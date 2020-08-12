@@ -9,6 +9,7 @@ import { configurationDefinition } from './configurationDefinition';
 import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { createConsumerProgressStore } from '../../../../stores/consumerProgressStore/createConsumerProgressStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { Client as DomainEventDispatcherClient } from '../../../../apis/awaitItem/http/v2/Client';
@@ -16,6 +17,7 @@ import { flaschenpost } from 'flaschenpost';
 import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import { loadApplication } from '../../../../common/application/loadApplication';
+import { Notification } from '../../../../common/elements/Notification';
 import pForever from 'p-forever';
 import { processDomainEvent } from './processDomainEvent';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
@@ -44,11 +46,15 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const lockStore = await createLockStore(configuration.lockStoreOptions);
 
+    const publisher = await createPublisher<Notification>(configuration.publisherOptions);
+
     const repository = new Repository({
       application,
       lockStore,
       domainEventStore,
-      snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
+      snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
+      publisher,
+      publisherChannelForNotifications: configuration.publisherChannelForNotifications
     });
 
     const consumerProgressStore = await createConsumerProgressStore(configuration.consumerProgressStoreOptions);

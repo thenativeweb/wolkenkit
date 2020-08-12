@@ -6,6 +6,7 @@ import { ConsumerProgressStore } from '../../../../lib/stores/consumerProgressSt
 import { createConsumerProgressStore } from '../../../../lib/stores/consumerProgressStore/createConsumerProgressStore';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../lib/common/errors';
@@ -23,6 +24,7 @@ import { noop } from 'lodash';
 import { Notification } from '../../../../lib/common/elements/Notification';
 import { NotificationDefinition } from '../../../../lib/common/elements/NotificationDefinition';
 import { NotificationService } from '../../../../lib/common/services/NotificationService';
+import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { v4 } from 'uuid';
 
@@ -36,7 +38,9 @@ suite('executeFlow', (): void => {
       loggedMessages: { level: string; message: string; metadata?: object }[],
       loggerService: LoggerService,
       notifications: Notification[],
-      notificationService: NotificationService;
+      notificationService: NotificationService,
+      publisher: Publisher<Notification>,
+      publisherChannelForNotifications: string;
 
   setup(async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' });
@@ -65,6 +69,8 @@ suite('executeFlow', (): void => {
         loggedMessages.push({ level: 'fatal', message, metadata });
       }
     } as LoggerService;
+    publisher = await createPublisher<Notification>({ type: 'InMemory' });
+    publisherChannelForNotifications = 'notifications';
     notifications = [];
     notificationService = {
       publish<TNotificationDefinition extends NotificationDefinition>(
@@ -80,7 +86,9 @@ suite('executeFlow', (): void => {
       application,
       domainEventStore,
       lockStore,
-      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+      publisher,
+      publisherChannelForNotifications
     });
 
     aggregatesService = getAggregatesService({ repository });
@@ -247,7 +255,9 @@ suite('executeFlow', (): void => {
       application,
       domainEventStore,
       lockStore,
-      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+      publisher,
+      publisherChannelForNotifications
     });
 
     aggregatesService = getAggregatesService({ repository });
@@ -303,7 +313,9 @@ suite('executeFlow', (): void => {
       application,
       domainEventStore,
       lockStore,
-      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+      publisher,
+      publisherChannelForNotifications
     });
 
     aggregatesService = getAggregatesService({ repository });
@@ -375,7 +387,9 @@ suite('executeFlow', (): void => {
       application,
       domainEventStore,
       lockStore,
-      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+      publisher,
+      publisherChannelForNotifications
     });
 
     aggregatesService = getAggregatesService({ repository });

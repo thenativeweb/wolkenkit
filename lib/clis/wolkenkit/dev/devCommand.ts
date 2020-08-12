@@ -139,6 +139,8 @@ const devCommand = function (): Command<DevOptions> {
                 port,
                 priorityQueueStoreForCommandsOptions: configurationDefinition.priorityQueueStoreForCommandsOptions.defaultValue,
                 priorityQueueStoreForDomainEventsOptions: configurationDefinition.priorityQueueStoreForDomainEventsOptions.defaultValue,
+                publisherChannelForNotifications: 'notifications',
+                publisherOptions: { type: 'InMemory' },
                 snapshotStrategy: {
                   name: 'revision',
                   configuration: { revisionLimit: 100 }
