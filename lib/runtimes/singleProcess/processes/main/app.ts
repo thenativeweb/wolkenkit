@@ -21,7 +21,6 @@ import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariabl
 import { getApi } from './getApi';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
-import { getNotificationService } from '../../../../common/services/getNotificationService';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
@@ -60,8 +59,6 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const publisher = await createPublisher<Notification>(configuration.pubSubOptions.publisher);
     const subscriber = await createSubscriber<Notification>(configuration.pubSubOptions.subscriber);
-
-    await subscriber.subscribe({ channel: configuration.pubSubOptions.channelForNotification, callback: console.log });
 
     const repository = new Repository({
       application,

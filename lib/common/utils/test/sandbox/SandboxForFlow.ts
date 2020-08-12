@@ -2,7 +2,6 @@ import { Command } from '../../../elements/Command';
 import { CommandData } from '../../../elements/CommandData';
 import { DomainEventData } from '../../../elements/DomainEventData';
 import { Initiator } from '../../../elements/Initiator';
-import {Notification} from "../../../elements/Notification";
 
 export interface SandboxForFlow {
   when <TDomainEventData extends DomainEventData>(parameters: {

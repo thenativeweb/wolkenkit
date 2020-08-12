@@ -1,6 +1,6 @@
 import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
-import {SubscriberOptions} from "../../../../messaging/pubSub/SubscriberOptions";
+import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOptions';
 
 export interface Configuration {
   aeonstoreHostName: string;

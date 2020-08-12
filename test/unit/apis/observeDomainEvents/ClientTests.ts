@@ -4,6 +4,7 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { Client } from '../../../../lib/apis/observeDomainEvents/http/v2/Client';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
 import { Application as ExpressApplication } from 'express';
@@ -14,13 +15,12 @@ import { getTestApplicationDirectory } from '../../../shared/applications/getTes
 import { identityProvider } from '../../../shared/identityProvider';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
+import { Notification } from '../../../../lib/common/elements/Notification';
 import { PublishDomainEvent } from '../../../../lib/apis/observeDomainEvents/PublishDomainEvent';
+import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { runAsServer } from '../../../shared/http/runAsServer';
 import { v4 } from 'uuid';
-import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
-import { Notification } from '../../../../lib/common/elements/Notification';
-import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
 
 suite('observeDomainEvents/http/Client', function (): void {
   this.timeout(5_000);

@@ -174,4 +174,5 @@ const devCommand = function (): Command<DevOptions> {
     }
   };
 };
+
 export { devCommand };

@@ -14,6 +14,8 @@ import { GetLockService } from '../../../services/types/GetLockService';
 import { GetLoggerService } from '../../../services/types/GetLoggerService';
 import { GetNotificationService } from '../../../services/types/GetNotificationService';
 import { LockStore } from '../../../../stores/lockStore/LockStore';
+import { Notification } from '../../../elements/Notification';
+import { Publisher } from '../../../../messaging/pubSub/Publisher';
 import { SandboxConfiguration } from './SandboxConfiguration';
 import { SandboxForAggregate } from './SandboxForAggregate';
 import { SandboxForFlow } from './SandboxForFlow';
@@ -21,8 +23,6 @@ import { SandboxForView } from './SandboxForView';
 import { SnapshotStrategy } from '../../../domain/SnapshotStrategy';
 import { State } from '../../../elements/State';
 import { Sandbox, UninitializedSandbox } from './Sandbox';
-import { Publisher } from '../../../../messaging/pubSub/Publisher';
-import { Notification } from '../../../elements/Notification';
 
 const createSandbox = function (): UninitializedSandbox {
   return {

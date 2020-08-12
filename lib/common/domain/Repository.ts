@@ -10,10 +10,10 @@ import { GetLockService } from '../services/types/GetLockService';
 import { GetLoggerService } from '../services/types/GetLoggerService';
 import { GetNotificationService } from '../services/types/GetNotificationService';
 import { LockStore } from '../../stores/lockStore/LockStore';
+import { Notification } from '../elements/Notification';
+import { Publisher } from '../../messaging/pubSub/Publisher';
 import { SnapshotStrategy } from './SnapshotStrategy';
 import { State } from '../elements/State';
-import { Publisher } from '../../messaging/pubSub/Publisher';
-import { Notification } from '../elements/Notification';
 
 class Repository {
   public readonly application: Application;

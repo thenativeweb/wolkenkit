@@ -1,9 +1,9 @@
-import { Notification } from '../../../../lib/common/elements/Notification';
-import { NotificationSubscriber } from '../../../../lib/common/elements/NotificationSubscriber';
 import { assert } from 'assertthat';
-import { validateNotificationSubscriber } from '../../../../lib/common/validators/validateNotificationSubscriber';
 import { CustomError } from 'defekt';
 import { errors } from '../../../../lib/common/errors';
+import { Notification } from '../../../../lib/common/elements/Notification';
+import { NotificationSubscriber } from '../../../../lib/common/elements/NotificationSubscriber';
+import { validateNotificationSubscriber } from '../../../../lib/common/validators/validateNotificationSubscriber';
 
 suite('validateNotificationSubscriber', (): void => {
   const notificationSubscriber: NotificationSubscriber<Notification, any> = {
