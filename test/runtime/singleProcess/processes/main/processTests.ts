@@ -2,7 +2,6 @@ import { ApolloClient } from 'apollo-client';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildCommand } from '../../../../../lib/common/utils/test/buildCommand';
-import { Client } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Configuration } from '../../../../../lib/runtimes/singleProcess/processes/main/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/singleProcess/processes/main/configurationDefinition';
 import { CustomError } from 'defekt';
@@ -13,6 +12,7 @@ import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getD
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import gql from 'graphql-tag';
 import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
+import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { HttpLink } from 'apollo-link-http';
 import { Client as ManageFileClient } from '../../../../../lib/apis/manageFile/http/v2/Client';
 import { Client as ObserveDomainEventsClient } from '../../../../../lib/apis/observeDomainEvents/http/v2/Client';
@@ -23,6 +23,7 @@ import { sleep } from '../../../../../lib/common/utils/sleep';
 import { SnapshotStrategyConfiguration } from '../../../../../lib/common/domain/SnapshotStrategyConfiguration';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import streamToString from 'stream-to-string';
+import { Client as SubscribeNotificationsClient } from '../../../../../lib/apis/subscribeNotifications/http/v2/Client';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
@@ -112,7 +113,7 @@ suite('main', function (): void {
 
   suite('getHealth', (): void => {
     test('is using the health API.', async (): Promise<void> => {
-      const healthClient = new Client({
+      const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
         port: healthPort,
@@ -427,6 +428,74 @@ suite('main', function (): void {
       await assert.that(async (): Promise<void> => {
         await manageFileClient.getFile({ id: file.id });
       }).is.throwingAsync<CustomError>((ex): boolean => ex.code === errors.FileNotFound.code);
+    });
+  });
+
+  suite('notifications', (): void => {
+    test('publishes notifications via the api.', async (): Promise<void> => {
+      const notificationsClient = new SubscribeNotificationsClient({
+        protocol: 'http',
+        hostName: 'localhost',
+        port,
+        path: '/notifications/v2'
+      });
+
+      const notificationStream = await notificationsClient.getNotifications();
+
+      const counter = waitForSignals({ count: 2 });
+
+      notificationStream.on('error', async (err: any): Promise<void> => {
+        await counter.fail(err);
+      });
+      notificationStream.pipe(asJsonStream(
+        [
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
+                name: 'flowSampleFlowUpdated',
+                data: {}
+              });
+              await counter.signal();
+            } catch (ex) {
+              await counter.fail(ex);
+            }
+          },
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
+                name: 'viewSampleViewUpdated',
+                data: {}
+              });
+              await counter.signal();
+            } catch (ex) {
+              await counter.fail(ex);
+            }
+          },
+          async (): Promise<void> => {
+            await counter.fail(new Error('Should only have received two messages.'));
+          }
+        ],
+        true
+      ));
+
+      const aggregateIdentifier = {
+        name: 'sampleAggregate',
+        id: v4()
+      };
+      const command = buildCommand({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier,
+        name: 'execute',
+        data: {
+          strategy: 'succeed'
+        }
+      });
+
+      await handleCommandClient.postCommand({ command });
+
+      await counter.promise;
     });
   });
 });

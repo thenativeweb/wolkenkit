@@ -61,6 +61,8 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const publisher = await createPublisher<Notification>(configuration.pubSubOptions.publisher);
     const subscriber = await createSubscriber<Notification>(configuration.pubSubOptions.subscriber);
 
+    await subscriber.subscribe({ channel: configuration.pubSubOptions.channelForNotification, callback: console.log });
+
     const repository = new Repository({
       application,
       lockStore,
@@ -112,7 +114,9 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       onReceiveCommand,
       onCancelCommand,
       repository,
-      fileStore
+      fileStore,
+      subscriber,
+      channelForNotifications: configuration.pubSubOptions.channelForNotification
     });
 
     const server = http.createServer(api);
@@ -127,9 +131,11 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     await subscriber.subscribe({
       channel: configuration.pubSubOptions.channelForNotification,
-      callback (notification: Notification): void {
+      async callback (notification: Notification): Promise<void> {
+        const notifications: Notification[] = [];
+
         for (const viewName of Object.keys(application.views)) {
-          executeNotificationSubscribers({
+          await executeNotificationSubscribers({
             application,
             viewName,
             notification,
@@ -138,11 +144,19 @@ import { runHealthServer } from '../../../shared/runHealthServer';
                 packageManifest: application.packageManifest,
                 fileName: `<app>/server/views/${viewName}`
               }),
-              notification: getNotificationService({
-                channel: configuration.pubSubOptions.channelForNotification,
-                publisher
-              })
+              notification: {
+                publish (name, data, metadata): void {
+                  notifications.push({ name, data, metadata });
+                }
+              }
             }
+          });
+        }
+
+        for (const newNotification of notifications) {
+          await publisher.publish({
+            channel: configuration.pubSubOptions.channelForNotification,
+            message: newNotification
           });
         }
       }

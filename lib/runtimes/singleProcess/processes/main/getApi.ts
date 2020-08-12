@@ -8,12 +8,15 @@ import { getApi as getManageFileApi } from '../../../../apis/manageFile/http';
 import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
 import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
 import { getApi as getQueryViewApi } from '../../../../apis/queryView/http';
+import { getApi as getSubscribeNotificationsApi } from '../../../../apis/subscribeNotifications/http';
 import { IdentityProvider } from 'limes';
 import { InitializeGraphQlOnServer } from '../../../../apis/graphql/InitializeGraphQlOnServer';
+import { Notification } from '../../../../common/elements/Notification';
 import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
+import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import express, { Application as ExpressApplication } from 'express';
 
 const getApi = async function ({
@@ -23,7 +26,9 @@ const getApi = async function ({
   onReceiveCommand,
   onCancelCommand,
   repository,
-  fileStore
+  fileStore,
+  subscriber,
+  channelForNotifications
 }: {
   configuration: Configuration;
   application: Application;
@@ -32,6 +37,8 @@ const getApi = async function ({
   onCancelCommand: OnCancelCommand;
   repository: Repository;
   fileStore: FileStore;
+  subscriber: Subscriber<Notification>;
+  channelForNotifications: string;
 }): Promise<{
     api: ExpressApplication;
     publishDomainEvent: PublishDomainEvent;
@@ -76,9 +83,16 @@ const getApi = async function ({
       fileStore
     });
 
+    const { api: subscribeNotificationsApi } = await getSubscribeNotificationsApi({
+      corsOrigin,
+      channelForNotifications,
+      subscriber
+    });
+
     api.use('/command', handleCommandApi);
     api.use('/domain-events', observeDomainEventsApi);
     api.use('/files', manageFileApi);
+    api.use('/notifications', subscribeNotificationsApi);
     api.use('/views', queryViewApi);
 
     if (configuration.enableOpenApiDocumentation) {
