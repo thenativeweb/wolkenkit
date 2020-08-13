@@ -1,6 +1,6 @@
 import { Application } from 'express';
 import { CorsOrigin } from 'get-cors-origin';
-import { EventEmitter } from 'events';
+import { EventEmitter2 } from 'eventemitter2';
 import { getApiBase } from '../../../base/getApiBase';
 import { getMessages } from './getMessages';
 import { PublishMessage } from '../../PublishMessage';
@@ -20,7 +20,9 @@ const getV2 = async function ({ corsOrigin, heartbeatInterval = 90_000 }: {
     }
   });
 
-  const messageEmitter = new EventEmitter();
+  const messageEmitter = new EventEmitter2({
+    wildcard: true
+  });
 
   api.get(
     `/${getMessages.path}`,
