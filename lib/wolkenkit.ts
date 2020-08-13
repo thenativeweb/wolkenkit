@@ -22,6 +22,7 @@ import { loadApplication } from './common/application/loadApplication';
 import { LockService } from './common/services/LockService';
 import { LoggerService } from './common/services/LoggerService';
 import { Notification } from './common/elements/Notification';
+import { NotificationDefinition } from './common/elements/NotificationDefinition';
 import { NotificationHandler } from './common/elements/NotificationHandler';
 import { Notifications } from './common/elements/Notifications';
 import { NotificationService } from './common/services/NotificationService';
@@ -60,6 +61,7 @@ export {
   LockService,
   LoggerService,
   Notification,
+  NotificationDefinition,
   NotificationHandler,
   Notifications,
   NotificationService,
