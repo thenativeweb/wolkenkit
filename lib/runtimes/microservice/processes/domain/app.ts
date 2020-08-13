@@ -53,7 +53,7 @@ import { State } from '../../../../common/elements/State';
       lockStore,
       domainEventStore,
       publisher,
-      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotification,
+      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotifications,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
@@ -77,7 +77,7 @@ import { State } from '../../../../common/elements/State';
     }): Promise<any> => {
       for (const domainEvent of domainEvents) {
         await publisher.publish({
-          channel: configuration.pubSubOptions.channelForNewDomainEvent,
+          channel: configuration.pubSubOptions.channelForNewDomainEvents,
           message: domainEvent
         });
         await domainEventDispatcherClient.postDomainEvent({

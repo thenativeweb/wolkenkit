@@ -1,5 +1,6 @@
 import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
+import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOptions';
 
 export interface Configuration {
   aeonstoreHostName: string;
@@ -16,12 +17,10 @@ export interface Configuration {
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
   pubSubOptions: {
-    channelForNotification: string;
+    channelForNewDomainEvents: string;
+    channelForNotifications: string;
     publisher: PublisherOptions;
+    subscriber: SubscriberOptions;
   };
   snapshotStrategy: SnapshotStrategyConfiguration;
-  subscribeMessagesChannel: string;
-  subscribeMessagesHostName: string;
-  subscribeMessagesPort: number;
-  subscribeMessagesProtocol: string;
 }

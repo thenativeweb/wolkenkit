@@ -28,7 +28,7 @@ suite('domain event', function (): void {
   this.timeout(10_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
-        pubSubChannelForNewDomainEvent = 'newDomainEvent',
+        pubSubChannelForNewDomainEvents = 'newDomainEvent',
         pubSubChannelNotification = 'notification';
 
   let domainEventStoreHealthPort: number,
@@ -105,12 +105,22 @@ suite('domain event', function (): void {
       healthPort,
       identityProviders: [{ issuer: 'https://token.invalid', certificate: certificateDirectory }],
       pubSubOptions: {
-        channelForNewDomainEvent: pubSubChannelForNewDomainEvent,
-        channelForNotification: pubSubChannelNotification,
-
-        // TODO: replace this with http based publisher
-        publisher: { type: 'InMemory' },
-        subscriber: { type: 'InMemory' }
+        channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+        channelForNotifications: pubSubChannelNotification,
+        publisher: {
+          type: 'Http',
+          protocol: 'http',
+          hostName: 'localhost',
+          port: publisherPort,
+          path: '/publish/v2'
+        },
+        subscriber: {
+          type: 'Http',
+          protocol: 'http',
+          hostName: 'localhost',
+          port: publisherPort,
+          path: '/publish/v2'
+        }
       },
       snapshotStrategy: { name: 'never' } as SnapshotStrategyConfiguration
     };
@@ -180,7 +190,7 @@ suite('domain event', function (): void {
 
       setTimeout(async (): Promise<void> => {
         await publishMessageClient.postMessage({
-          channel: pubSubChannelForNewDomainEvent,
+          channel: pubSubChannelForNewDomainEvents,
           message: domainEventWithoutState
         });
       }, 50);
@@ -227,7 +237,7 @@ suite('domain event', function (): void {
 
       setTimeout(async (): Promise<void> => {
         await publishMessageClient.postMessage({
-          channel: pubSubChannelForNewDomainEvent,
+          channel: pubSubChannelForNewDomainEvents,
           message: domainEvent
         });
       }, 50);

@@ -172,11 +172,15 @@ suite('domain', function (): void {
       domainEventDispatcherHostName: 'localhost',
       domainEventDispatcherPort,
       pubSubOptions: {
-        channelForNotification: publisherChannelNotification,
-        channelForNewDomainEvent: publisherChannelNewDomainEvent,
-
-        // TODO: replace this with http based publisher
-        publisher: { type: 'InMemory' }
+        channelForNotifications: publisherChannelNotification,
+        channelForNewDomainEvents: publisherChannelNewDomainEvent,
+        publisher: {
+          type: 'Http',
+          protocol: 'http',
+          hostName: 'localhost',
+          port: publisherPort,
+          path: '/publish/v2'
+        }
       },
       aeonstoreHostName: 'localhost',
       aeonstorePort: domainEventStorePort,

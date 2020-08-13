@@ -20,8 +20,8 @@ export interface Configuration {
   healthPort: number;
   lockStoreOptions: LockStoreOptions;
   pubSubOptions: {
-    channelForNewDomainEvent: string;
-    channelForNotification: string;
+    channelForNewDomainEvents: string;
+    channelForNotifications: string;
     publisher: PublisherOptions;
   };
   snapshotStrategy: SnapshotStrategyConfiguration;

@@ -32,7 +32,7 @@ export interface Configuration {
   priorityQueueStoreForCommandsOptions: DistributiveOmit<PriorityQueueStoreOptions<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   priorityQueueStoreForDomainEventsOptions: DistributiveOmit<PriorityQueueStoreOptions<DomainEvent<DomainEventData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   pubSubOptions: {
-    channelForNotification: string;
+    channelForNotifications: string;
     publisher: PublisherOptions;
     subscriber: SubscriberOptions;
   };

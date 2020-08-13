@@ -25,7 +25,7 @@ export interface Configuration {
   replayServerPort: number;
   replayServerProtocol: string;
   pubSubOptions: {
-    channelForNotification: string;
+    channelForNotifications: string;
     publisher: PublisherOptions;
   };
   snapshotStrategy: SnapshotStrategyConfiguration;

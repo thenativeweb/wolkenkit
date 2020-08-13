@@ -65,7 +65,7 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
     priorityQueueStoreForCommandsOptions,
     priorityQueueStoreForDomainEventsOptions,
     pubSubOptions: {
-      channelForNotification: 'notification',
+      channelForNotifications: 'notification',
       publisher: { type: 'InMemory' },
       subscriber: { type: 'InMemory' }
     },

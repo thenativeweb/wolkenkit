@@ -146,9 +146,17 @@ suite('main', function (): void {
       commandDispatcherRetries: 5,
       healthPort,
       port,
-      subscribeMessagesHostName: 'localhost',
-      subscribeMessagesPort: publisherPort,
-      subscribeMessagesChannel,
+      pubSubOptions: {
+        channelForNewDomainEvents: subscribeMessagesChannel,
+        channelForNotifications: 'notifications',
+        publisher: { type: 'InMemory' },
+        subscriber: {
+          type: 'Http',
+          hostName: 'localhost',
+          port: publisherPort,
+          path: '/publish/v2'
+        }
+      },
       snapshotStrategy: { name: 'never' } as SnapshotStrategyConfiguration
     };
 

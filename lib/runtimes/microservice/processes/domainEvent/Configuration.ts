@@ -14,8 +14,8 @@ export interface Configuration {
   identityProviders: { issuer: string; certificate: string }[];
   port: number;
   pubSubOptions: {
-    channelForNewDomainEvent: string;
-    channelForNotification: string;
+    channelForNewDomainEvents: string;
+    channelForNotifications: string;
     publisher: PublisherOptions;
     subscriber: SubscriberOptions;
   };

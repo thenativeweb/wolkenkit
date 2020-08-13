@@ -133,18 +133,18 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',
     defaultValue: {
-      channelForNotification: 'notification',
+      channelForNotifications: 'notification',
       subscriber: { type: 'InMemory' },
       publisher: { type: 'InMemory' }
     },
     schema: {
       type: 'object',
       properties: {
-        channelForNotification: { type: 'string', minLength: 1 },
+        channelForNotifications: { type: 'string', minLength: 1 },
         subscriber: subscriberOptionsSchema,
         publisher: publisherOptionsSchema
       },
-      required: [ 'channelForNotification', 'subscriber', 'publisher' ],
+      required: [ 'channelForNotifications', 'subscriber', 'publisher' ],
       additionalProperties: false
     }
   },

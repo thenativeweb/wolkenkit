@@ -74,20 +74,32 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',
     defaultValue: {
-      channelForNewDomainEvent: 'newDomainEvent',
-      channelForNotification: 'notification',
-      subscriber: { type: 'InMemory' },
-      publisher: { type: 'InMemory' }
+      channelForNewDomainEvents: 'newDomainEvent',
+      channelForNotifications: 'notification',
+      subscriber: {
+        type: 'Http',
+        protocol: 'http',
+        hostName: 'publisher',
+        port: 3000,
+        path: '/publish/v2'
+      },
+      publisher: {
+        type: 'Http',
+        protocol: 'http',
+        hostName: 'publisher',
+        port: 3000,
+        path: '/publish/v2'
+      }
     },
     schema: {
       type: 'object',
       properties: {
-        channelForNewDomainEvent: { type: 'string', minLength: 1 },
-        channelForNotification: { type: 'string', minLength: 1 },
+        channelForNewDomainEvents: { type: 'string', minLength: 1 },
+        channelForNotifications: { type: 'string', minLength: 1 },
         subscriber: subscriberOptionsSchema,
         publisher: publisherOptionsSchema
       },
-      required: [ 'channelForNewDomainEvent', 'channelForNotification', 'subscriber', 'publisher' ],
+      required: [ 'channelForNewDomainEvents', 'channelForNotifications', 'subscriber', 'publisher' ],
       additionalProperties: false
     }
   },

@@ -140,7 +140,7 @@ const devCommand = function (): Command<DevOptions> {
                 priorityQueueStoreForCommandsOptions: configurationDefinition.priorityQueueStoreForCommandsOptions.defaultValue,
                 priorityQueueStoreForDomainEventsOptions: configurationDefinition.priorityQueueStoreForDomainEventsOptions.defaultValue,
                 pubSubOptions: {
-                  channelForNotification: 'notification',
+                  channelForNotifications: 'notification',
                   publisher: { type: 'InMemory' },
                   subscriber: { type: 'InMemory' }
                 },

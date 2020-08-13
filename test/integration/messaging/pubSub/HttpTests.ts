@@ -6,7 +6,7 @@ import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { startProcess } from '../../../../lib/runtimes/shared/startProcess';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 
-suite.only('Http', (): void => {
+suite('Http', (): void => {
   let healthPort: number,
       port: number,
       stopProcess: () => Promise<void>;

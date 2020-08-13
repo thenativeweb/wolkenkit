@@ -57,7 +57,7 @@ import { Value } from 'validate-value';
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
       publisher,
-      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotification
+      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotifications
     });
 
     const { api, publishDomainEvent } = await getApi({
@@ -83,7 +83,7 @@ import { Value } from 'validate-value';
     );
 
     await subscriber.subscribe({
-      channel: configuration.pubSubOptions.channelForNewDomainEvent,
+      channel: configuration.pubSubOptions.channelForNewDomainEvents,
       callback (rawDomainEvent: DomainEventWithState<DomainEventData, State>): void {
         const domainEvent = new DomainEventWithState<DomainEventData, State>(rawDomainEvent);
 

@@ -57,7 +57,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',
     defaultValue: {
-      channelForNewInternalDomainEvent: 'newInternalDomainEvent',
+      channelForNewInternalDomainEvents: 'newInternalDomainEvent',
       subscriber: { type: 'InMemory' },
       publisher: { type: 'InMemory' }
     },

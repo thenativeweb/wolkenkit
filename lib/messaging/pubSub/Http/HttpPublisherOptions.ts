@@ -1,5 +1,5 @@
 export interface HttpPublisherOptions {
-    type: 'Http';
+  type: 'Http';
 
   protocol?: string;
   hostName: string;

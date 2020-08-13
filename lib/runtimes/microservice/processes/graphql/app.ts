@@ -5,6 +5,7 @@ import { Client as CommandDispatcherClient } from '../../../../apis/handleComman
 import { configurationDefinition } from './configurationDefinition';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
+import { createSubscriber } from '../../../../messaging/pubSub/createSubscriber';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { flaschenpost } from 'flaschenpost';
@@ -22,7 +23,6 @@ import { registerExceptionHandler } from '../../../../common/utils/process/regis
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
-import { Client as SubscribeMessagesClient } from '../../../../apis/subscribeMessages/http/v2/Client';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
 import { Value } from 'validate-value';
 
@@ -50,6 +50,9 @@ import { Value } from 'validate-value';
     });
 
     const publisher = await createPublisher<Notification>(configuration.pubSubOptions.publisher);
+    const subscriber = await createSubscriber<DomainEventWithState<DomainEventData, State>>(
+      configuration.pubSubOptions.subscriber
+    );
 
     const repository = new Repository({
       application,
@@ -57,7 +60,7 @@ import { Value } from 'validate-value';
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
       publisher,
-      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotification
+      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotifications
     });
 
     const commandDispatcherClient = new CommandDispatcherClient({
@@ -100,31 +103,23 @@ import { Value } from 'validate-value';
       { port: configuration.port, healthPort: configuration.healthPort }
     );
 
-    const subscribeMessagesClient = new SubscribeMessagesClient({
-      protocol: configuration.subscribeMessagesProtocol,
-      hostName: configuration.subscribeMessagesHostName,
-      port: configuration.subscribeMessagesPort,
-      path: '/subscribe/v2'
-    });
+    await subscriber.subscribe({
+      channel: configuration.pubSubOptions.channelForNewDomainEvents,
+      async callback (rawDomainEvent: DomainEventWithState<DomainEventData, State>): Promise<void> {
+        const domainEvent = new DomainEventWithState<DomainEventData, State>(rawDomainEvent);
 
-    const messageStream = await subscribeMessagesClient.getMessages({
-      channel: configuration.subscribeMessagesChannel
-    });
+        try {
+          new Value(getDomainEventWithStateSchema()).validate(domainEvent, { valueName: 'domainEvent' });
+          validateDomainEventWithState({ domainEvent, application });
+        } catch (ex) {
+          logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, ex });
 
-    for await (const message of messageStream) {
-      const domainEvent = new DomainEventWithState<DomainEventData, State>(message);
+          return;
+        }
 
-      try {
-        new Value(getDomainEventWithStateSchema()).validate(domainEvent, { valueName: 'domainEvent' });
-        validateDomainEventWithState({ domainEvent, application });
-      } catch (ex) {
-        logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, ex });
-
-        return;
+        publishDomainEvent({ domainEvent });
       }
-
-      publishDomainEvent({ domainEvent });
-    }
+    });
   } catch (ex) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);

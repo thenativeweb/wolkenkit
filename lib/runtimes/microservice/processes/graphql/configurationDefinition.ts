@@ -6,6 +6,7 @@ import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
 import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
+import { getSubscriberOptionsSchema } from '../../../shared/schemas/getSubscriberOptionsSchema';
 import path from 'path';
 
 const corsSchema = getCorsSchema(),
@@ -13,7 +14,8 @@ const corsSchema = getCorsSchema(),
       portSchema = getPortSchema(),
       protocolSchema = getProtocolSchema(),
       publisherOptionsSchema = getPublisherOptionsSchema(),
-      snapshotStrategySchema = getSnapshotStrategySchema();
+      snapshotStrategySchema = getSnapshotStrategySchema(),
+      subscriberOptionsSchema = getSubscriberOptionsSchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
   aeonstoreHostName: {
@@ -84,16 +86,32 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',
     defaultValue: {
-      channelForNotification: 'notification',
-      publisher: { type: 'InMemory' }
+      channelForNewDomainEvents: 'newDomainEvent',
+      channelForNotifications: 'notification',
+      publisher: {
+        type: 'Http',
+        protocol: 'http',
+        hostName: 'publisher',
+        port: 3000,
+        path: '/publish/v2'
+      },
+      subscriber: {
+        type: 'Http',
+        protocol: 'http',
+        hostName: 'publisher',
+        port: 3000,
+        path: '/subscribe/v2'
+      }
     },
     schema: {
       type: 'object',
       properties: {
-        channelForNotification: { type: 'string', minLength: 1 },
-        publisher: publisherOptionsSchema
+        channelForNewDomainEvents: { type: 'string', minLength: 1 },
+        channelForNotifications: { type: 'string', minLength: 1 },
+        publisher: publisherOptionsSchema,
+        subscriber: subscriberOptionsSchema
       },
-      required: [ 'channelForNotification', 'publisher' ],
+      required: [ 'channelForNewDomainEvents', 'channelForNotifications', 'publisher', 'subscriber' ],
       additionalProperties: false
     }
   },
@@ -101,26 +119,6 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     environmentVariable: 'SNAPSHOT_STRATEGY',
     defaultValue: { name: 'revision', configuration: { revisionLimit: 100 }},
     schema: snapshotStrategySchema
-  },
-  subscribeMessagesChannel: {
-    environmentVariable: 'SUBSCRIBE_MESSAGES_CHANNEL',
-    defaultValue: 'newDomainEvent',
-    schema: { type: 'string', minLength: 1 }
-  },
-  subscribeMessagesHostName: {
-    environmentVariable: 'SUBSCRIBE_MESSAGES_HOST_NAME',
-    defaultValue: 'publisher',
-    schema: { type: 'string', format: 'hostname' }
-  },
-  subscribeMessagesPort: {
-    environmentVariable: 'SUBSCRIBE_MESSAGES_PORT',
-    defaultValue: 3000,
-    schema: portSchema
-  },
-  subscribeMessagesProtocol: {
-    environmentVariable: 'SUBSCRIBE_MESSAGES_PROTOCOL',
-    defaultValue: 'http',
-    schema: protocolSchema
   }
 };
 

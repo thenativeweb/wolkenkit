@@ -66,7 +66,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       domainEventStore,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
       publisher,
-      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotification
+      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotifications
     });
 
     const consumerProgressStore = await createConsumerProgressStore(configuration.consumerProgressStoreOptions);
@@ -113,7 +113,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       repository,
       fileStore,
       subscriber,
-      channelForNotifications: configuration.pubSubOptions.channelForNotification
+      channelForNotifications: configuration.pubSubOptions.channelForNotifications
     });
 
     const server = http.createServer(api);
@@ -127,7 +127,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     });
 
     await subscriber.subscribe({
-      channel: configuration.pubSubOptions.channelForNotification,
+      channel: configuration.pubSubOptions.channelForNotifications,
       async callback (notification: Notification): Promise<void> {
         const notifications: Notification[] = [];
 
@@ -152,7 +152,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
         for (const newNotification of notifications) {
           await publisher.publish({
-            channel: configuration.pubSubOptions.channelForNotification,
+            channel: configuration.pubSubOptions.channelForNotifications,
             message: newNotification
           });
         }

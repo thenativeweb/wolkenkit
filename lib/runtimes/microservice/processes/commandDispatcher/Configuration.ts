@@ -16,7 +16,7 @@ export interface Configuration {
   port: number;
   priorityQueueStoreOptions: DistributiveOmit<PriorityQueueStoreOptions<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   pubSubOptions: {
-    channelForNewCommand: string;
+    channelForNewCommands: string;
     publisher: PublisherOptions;
     subscriber: SubscriberOptions;
   };

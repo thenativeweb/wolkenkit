@@ -21,9 +21,11 @@ import { configurationDefinition as graphqlConfigurationDefinition } from '../..
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
 import { Configuration as PublisherConfiguration } from '../../../../runtimes/microservice/processes/publisher/Configuration';
 import { configurationDefinition as publisherConfigurationDefinition } from '../../../../runtimes/microservice/processes/publisher/configurationDefinition';
+import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
 import { Configuration as ReplayConfiguration } from '../../../../runtimes/microservice/processes/replay/Configuration';
 import { configurationDefinition as replayConfigurationDefinition } from '../../../../runtimes/microservice/processes/replay/configurationDefinition';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
+import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOptions';
 import { toEnvironmentVariables } from '../../../../runtimes/shared/toEnvironmentVariables';
 import { versions } from '../../../../versions';
 import { Configuration as ViewConfiguration } from '../../../../runtimes/microservice/processes/view/Configuration';
@@ -148,16 +150,30 @@ const getMicroservicePostgresManifest = function ({ appName }: {
             locks: 'locks'
           }
         },
-        pubSubChannelForNewCommand = 'newCommand',
-        pubSubChannelForNewDomainEvent = 'newDomainEvent',
-        pubSubChannelForNewInternalDomainEvent = 'newInternalDomainEvent',
-        pubSubChannelForNotification = 'notification',
+        publisherOptions: PublisherOptions = {
+          type: 'Http',
+          protocol: 'http',
+          hostName: services.publisher.hostName,
+          port: services.publisher.privatePort,
+          path: '/publish/v2'
+        },
+        pubSubChannelForNewCommands = 'newCommand',
+        pubSubChannelForNewDomainEvents = 'newDomainEvent',
+        pubSubChannelForNewInternalDomainEvents = 'newInternalDomainEvent',
+        pubSubChannelForNotifications = 'notification',
         snapshotStrategy: SnapshotStrategyConfiguration = {
           name: 'lowest',
           configuration: {
             revisionLimit: 100,
             durationLimit: 500
           }
+        },
+        subscriberOptions: SubscriberOptions = {
+          type: 'Http',
+          protocol: 'http',
+          hostName: services.publisher.hostName,
+          port: services.publisher.privatePort,
+          path: '/subscribe/v2'
         };
 
   const commandConfiguration: CommandConfiguration = {
@@ -196,7 +212,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       expirationTime: 30_000
     },
     pubSubOptions: {
-      channelForNewCommand: pubSubChannelForNewCommand,
+      channelForNewCommands: pubSubChannelForNewCommands,
       subscriber: { type: 'InMemory' },
       publisher: { type: 'InMemory' }
     }
@@ -220,11 +236,9 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthPort: services.domain.healthPort,
     lockStoreOptions,
     pubSubOptions: {
-      channelForNotification: pubSubChannelForNotification,
-      channelForNewDomainEvent: pubSubChannelForNewDomainEvent,
-
-      // TODO: replace this with http based publisher
-      publisher: { type: 'InMemory' }
+      channelForNotifications: pubSubChannelForNotifications,
+      channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+      publisher: publisherOptions
     },
     snapshotStrategy
   };
@@ -241,12 +255,10 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     identityProviders,
     port: services.domainEvent.privatePort,
     pubSubOptions: {
-      channelForNewDomainEvent: pubSubChannelForNewDomainEvent,
-      channelForNotification: pubSubChannelForNotification,
-
-      // TODO: replace this with http based publisher
-      publisher: { type: 'InMemory' },
-      subscriber: { type: 'InMemory' }
+      channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions,
+      subscriber: subscriberOptions
     },
     snapshotStrategy
   };
@@ -287,16 +299,12 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     identityProviders,
     port: services.graphql.privatePort,
     pubSubOptions: {
-      channelForNotification: pubSubChannelForNotification,
-
-      // TODO: replace this with http based publisher
-      publisher: { type: 'InMemory' }
+      channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions,
+      subscriber: subscriberOptions
     },
-    snapshotStrategy,
-    subscribeMessagesChannel: pubSubChannelForNewDomainEvent,
-    subscribeMessagesHostName: services.publisher.hostName,
-    subscribeMessagesPort: services.publisher.privatePort,
-    subscribeMessagesProtocol: 'http'
+    snapshotStrategy
   };
 
   const domainEventDispatcherConfiguration: DomainEventDispatcherConfiguration = {
@@ -321,9 +329,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       expirationTime: 30_000
     },
     pubSubOptions: {
-      channelForNewInternalDomainEvent: pubSubChannelForNewInternalDomainEvent,
-
-      // TODO: replace this with http based publisher
+      channelForNewInternalDomainEvents: pubSubChannelForNewInternalDomainEvents,
       subscriber: { type: 'InMemory' },
       publisher: { type: 'InMemory' }
     }
@@ -358,10 +364,8 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthPort: services.flow.healthPort,
     lockStoreOptions,
     pubSubOptions: {
-      channelForNotification: pubSubChannelForNotification,
-
-      // TODO: replace this with http based publisher
-      publisher: { type: 'InMemory' }
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions
     },
     replayServerHostName: services.replay.hostName,
     replayServerPort: services.replay.privatePort,
