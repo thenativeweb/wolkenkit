@@ -20,6 +20,8 @@ const handleMessageSent: FlowHandler<SentData, Infrastructure> = {
     if (Array.isArray(infrastructure.tell.viewStore.messages)) {
       infrastructure.tell.viewStore.messages.push(message);
 
+      await notification.publish<FlowUpdated>('flowMessagesUpdated', {});
+
       return;
     }
 

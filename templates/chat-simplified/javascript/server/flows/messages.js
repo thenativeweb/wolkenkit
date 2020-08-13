@@ -20,6 +20,8 @@ const messages = {
         if (Array.isArray(infrastructure.tell.viewStore.messages)) {
           infrastructure.tell.viewStore.messages.push(message);
 
+          await notification.publish('flowMessagesUpdated', {});
+
           return;
         }
 
@@ -41,6 +43,8 @@ const messages = {
           );
 
           messageToUpdate.likes = domainEvent.data.likes;
+
+          await notification.publish('flowMessagesUpdated', {});
 
           return;
         }

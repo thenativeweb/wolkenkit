@@ -13,6 +13,8 @@ const handleMessageLiked = {
 
       messageToUpdate.likes = domainEvent.data.likes;
 
+      await notification.publish('flowMessagesUpdated', {});
+
       return;
     }
 

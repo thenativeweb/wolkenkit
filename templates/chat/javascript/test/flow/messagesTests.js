@@ -102,19 +102,12 @@ suite('messages', () => {
         data: { text: 'Hello world!' },
         metadata: { revision: 1 }
       }).
-      and({
-        contextIdentifier: { name: 'communication' },
-        aggregateIdentifier: { name: 'message', id: aggregateId },
-        name: 'liked',
-        data: { likes: 5 },
-        metadata: { revision: 2 }
-      }).
       then(async () => {
         assert.that(notifications.length).is.equalTo(1);
         assert.that(notifications[0]).is.equalTo({
           channel: 'notifications',
           notification: {
-            name: 'flowSampleFlowUpdated',
+            name: 'flowMessagesUpdated',
             data: {},
             metadata: undefined
           }

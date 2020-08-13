@@ -16,6 +16,8 @@ const handleMessageSent = {
     if (Array.isArray(infrastructure.tell.viewStore.messages)) {
       infrastructure.tell.viewStore.messages.push(message);
 
+      await notification.publish('flowMessagesUpdated', {});
+
       return;
     }
 
