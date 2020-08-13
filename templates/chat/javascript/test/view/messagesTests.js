@@ -1,8 +1,5 @@
 'use strict';
 
-import {Notification} from "../../../../../lib/common/elements/Notification";
-import {Publisher} from "../../../../../lib/messaging/pubSub/Publisher";
-
 const path = require('path');
 
 const { assert } = require('assertthat'),
@@ -86,9 +83,9 @@ suite('messages', () => {
       };
 
       const sandboxForView = sandbox().
-      withApplication({ application }).
-      withPublisher({ publisher }).
-      forView({ viewName: 'messages' });
+        withApplication({ application }).
+        withPublisher({ publisher }).
+        forView({ viewName: 'messages' });
 
       await sandboxForView.notify({ notification: { name: 'flowMessagesUpdated', data: {}}});
 

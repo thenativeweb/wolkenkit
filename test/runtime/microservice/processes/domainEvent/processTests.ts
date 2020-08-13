@@ -119,7 +119,7 @@ suite('domain event', function (): void {
           protocol: 'http',
           hostName: 'localhost',
           port: publisherPort,
-          path: '/publish/v2'
+          path: '/subscribe/v2'
         }
       },
       snapshotStrategy: { name: 'never' } as SnapshotStrategyConfiguration

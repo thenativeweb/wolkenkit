@@ -32,7 +32,7 @@ import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
 
-suite('main', function (): void {
+suite('graphql server', function (): void {
   this.timeout(10_000);
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
@@ -154,7 +154,7 @@ suite('main', function (): void {
           type: 'Http',
           hostName: 'localhost',
           port: publisherPort,
-          path: '/publish/v2'
+          path: '/subscribe/v2'
         }
       },
       snapshotStrategy: { name: 'never' } as SnapshotStrategyConfiguration

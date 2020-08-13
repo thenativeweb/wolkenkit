@@ -64,11 +64,11 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     schema: {
       type: 'object',
       properties: {
-        channel: { type: 'string', minLength: 1 },
+        channelForNewInternalDomainEvents: { type: 'string', minLength: 1 },
         subscriber: subscriberOptionsSchema,
         publisher: publisherOptionsSchema
       },
-      required: [ 'channel', 'subscriber', 'publisher' ],
+      required: [ 'channelForNewInternalDomainEvents', 'subscriber', 'publisher' ],
       additionalProperties: false
     }
   }

@@ -1,6 +1,6 @@
-import { ViewUpdated } from '../definitions/ViewUpdated';
 import { Infrastructure } from '../../infrastructure';
 import { NotificationHandler } from 'wolkenkit';
+import { ViewUpdated } from '../definitions/ViewUpdated';
 
 const viewSampleViewUpdated: NotificationHandler<ViewUpdated, Infrastructure> = {
   isAuthorized (): boolean {

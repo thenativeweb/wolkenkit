@@ -66,7 +66,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
         subscriber: getSubscriberOptionsSchema(),
         publisher: getPublisherOptionsSchema()
       },
-      required: [ 'channel', 'subscriber', 'publisher' ],
+      required: [ 'channelForNewCommands', 'subscriber', 'publisher' ],
       additionalProperties: false
     }
   }
