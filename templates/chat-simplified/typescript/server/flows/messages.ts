@@ -1,3 +1,4 @@
+import { FlowUpdated } from '../notifications';
 import { Infrastructure } from '../infrastructure';
 import { Message } from '../types/Message';
 import { Flow, FlowHandler } from 'wolkenkit';
@@ -12,7 +13,7 @@ const messages: Flow = {
         return fullyQualifiedName === 'communication.message.sent';
       },
 
-      async handle (domainEvent, { infrastructure }): Promise<void> {
+      async handle (domainEvent, { infrastructure, notification }): Promise<void> {
         const message: Message = {
           id: domainEvent.aggregateIdentifier.id,
           timestamp: domainEvent.metadata.timestamp,
@@ -27,6 +28,8 @@ const messages: Flow = {
         }
 
         await infrastructure.tell.viewStore.messages.insertOne(message);
+
+        await notification.publish<FlowUpdated>('flowMessagesUpdated', {});
       }
     } as FlowHandler<SentData, Infrastructure>,
 
@@ -35,7 +38,7 @@ const messages: Flow = {
         return fullyQualifiedName === 'communication.message.liked';
       },
 
-      async handle (domainEvent, { infrastructure }): Promise<void> {
+      async handle (domainEvent, { infrastructure, notification }): Promise<void> {
         if (Array.isArray(infrastructure.tell.viewStore.messages)) {
           const messageToUpdate = infrastructure.tell.viewStore.messages.find(
             (message): boolean => message.id === domainEvent.aggregateIdentifier.id
@@ -50,6 +53,8 @@ const messages: Flow = {
           { id: domainEvent.aggregateIdentifier.id },
           { $set: { likes: domainEvent.data.likes }}
         );
+
+        await notification.publish<FlowUpdated>('flowMessagesUpdated', {});
       }
     } as FlowHandler<LikedData, Infrastructure>
   }

@@ -1,3 +1,4 @@
+import { FlowUpdated } from '../../../notifications/definitions/FlowUpdated';
 import { Infrastructure } from '../../../infrastructure';
 import { DomainEventData, FlowHandler } from 'wolkenkit';
 
@@ -6,8 +7,10 @@ const sampleHandler: FlowHandler<DomainEventData, Infrastructure> = {
     return true;
   },
 
-  async handle (): Promise<void> {
+  async handle (_domainEvent, { notification }): Promise<void> {
     // ...
+
+    await notification.publish<FlowUpdated>('flowSampleFlowUpdated', {});
   }
 };
 

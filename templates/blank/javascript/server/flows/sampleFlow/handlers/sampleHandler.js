@@ -5,8 +5,10 @@ const sampleHandler = {
     return true;
   },
 
-  async handle () {
+  async handle (_domainEvent, { notification }) {
     // ...
+
+    await notification.publish('flowSampleFlowUpdated', {});
   }
 };
 

@@ -1,10 +1,10 @@
 import { FlowUpdatedNotificationDefinition } from '../../../notifications/definitions/FlowUpdatedNotificationDefinition';
 import { Infrastructure } from '../../../infrastructure';
 // @ts-ignore
-import { NotificationListener, NotificationService } from 'wolkenkit';
+import { NotificationSubscriber, NotificationService } from 'wolkenkit';
 import { ViewUpdatedNotificationDefinition } from '../../../notifications/definitions/ViewUpdatedNotificationDefinition';
 
-const flowSampleFlowUpdatedNotificationSubscriber: NotificationListener<FlowUpdatedNotificationDefinition, Infrastructure> = {
+const flowSampleFlowUpdatedNotificationSubscriber: NotificationSubscriber<FlowUpdatedNotificationDefinition, Infrastructure> = {
   isRelevant ({ name }: { name: string }): boolean {
     return name === 'flowSampleFlowUpdated';
   },

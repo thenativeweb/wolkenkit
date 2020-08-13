@@ -1,7 +1,11 @@
 import { ClientMetadata } from '../../http/ClientMetadata';
+import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
+import { executeNotificationSubscribers } from '../../../domain/executeNotificationSubscribers';
 import { executeQueryHandler } from '../../../domain/executeQueryHandler';
 import { getClientService } from '../../../services/getClientService';
 import { getLoggerService } from '../../../services/getLoggerService';
+import { getNotificationService } from '../../../services/getNotificationService';
+import { Notification } from '../../../elements/Notification';
 import { QueryOptions } from '../../../elements/QueryOptions';
 import { Readable } from 'stream';
 import { SandboxConfigurationForView } from './SandboxConfiguration';
@@ -36,6 +40,30 @@ const createSandboxForView = function (sandboxConfiguration: SandboxConfiguratio
         },
         options: queryOptions ?? {}
       });
+    },
+
+    async notify <TNotification extends Notification>({ notification }: { notification: TNotification }): Promise<void> {
+      const loggerServiceFactory = sandboxConfiguration.loggerServiceFactory ?? getLoggerService,
+            notificationServiceFactory = sandboxConfiguration.notificationServiceFactory ?? getNotificationService,
+            publisher = sandboxConfiguration.publisher ?? await createPublisher({ type: 'InMemory' });
+
+      for (const viewName of Object.keys(sandboxConfiguration.application.views)) {
+        await executeNotificationSubscribers({
+          application: sandboxConfiguration.application,
+          viewName,
+          notification,
+          services: {
+            logger: loggerServiceFactory({
+              packageManifest: sandboxConfiguration.application.packageManifest,
+              fileName: `<app>/server/views/${sandboxConfiguration.viewName}/notificationSubscribers`
+            }),
+            notification: notificationServiceFactory({
+              publisher,
+              channel: 'notifications'
+            })
+          }
+        });
+      }
     }
   };
 };

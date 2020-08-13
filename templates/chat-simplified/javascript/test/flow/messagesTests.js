@@ -80,4 +80,45 @@ suite('messages', () => {
         });
       });
   });
+
+  test('publishes flow updated notification.', async () => {
+    const aggregateId = v4();
+
+    const notifications = [];
+    const publisher = {
+      async publish ({ channel, message }) {
+        notifications.push({ channel, notification: message });
+      }
+    };
+
+    await sandbox().
+      withApplication({ application }).
+      withPublisher({ publisher }).
+      forFlow({ flowName: 'messages' }).
+      when({
+        contextIdentifier: { name: 'communication' },
+        aggregateIdentifier: { name: 'message', id: aggregateId },
+        name: 'sent',
+        data: { text: 'Hello world!' },
+        metadata: { revision: 1 }
+      }).
+      and({
+        contextIdentifier: { name: 'communication' },
+        aggregateIdentifier: { name: 'message', id: aggregateId },
+        name: 'liked',
+        data: { likes: 5 },
+        metadata: { revision: 2 }
+      }).
+      then(async () => {
+        assert.that(notifications.length).is.equalTo(1);
+        assert.that(notifications[0]).is.equalTo({
+          channel: 'notifications',
+          notification: {
+            name: 'flowSampleFlowUpdated',
+            data: {},
+            metadata: undefined
+          }
+        });
+      });
+  });
 });
