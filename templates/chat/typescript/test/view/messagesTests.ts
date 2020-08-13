@@ -1,6 +1,5 @@
 import { assert } from 'assertthat';
 import path from 'path';
-import { Publisher } from '../../../../../lib/messaging/pubSub/Publisher';
 import { v4 } from 'uuid';
 import { Application, loadApplication, Notification, sandbox } from 'wolkenkit';
 
@@ -66,7 +65,7 @@ suite('messages', (): void => {
   suite('notifications', (): void => {
     test('publishes view updated notifications in response to flow updated notifications.', async (): Promise<void> => {
       const notifications: { channel: string; notification: Notification}[] = [];
-      const publisher: Publisher<Notification> = {
+      const publisher = {
         async publish ({ channel, message }: { channel: string; message: Notification }): Promise<void> {
           notifications.push({ channel, notification: message });
         }

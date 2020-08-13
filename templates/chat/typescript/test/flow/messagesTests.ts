@@ -2,7 +2,6 @@ import { assert } from 'assertthat';
 import { Infrastructure } from '../../server/infrastructure';
 import { Message } from '../../server/types/Message';
 import path from 'path';
-import { Publisher } from '../../../../../lib/messaging/pubSub/Publisher';
 import { v4 } from 'uuid';
 import { Application, loadApplication, Notification, sandbox } from 'wolkenkit';
 
@@ -78,7 +77,7 @@ suite('messages', (): void => {
     const aggregateId = v4();
 
     const notifications: { channel: string; notification: Notification }[] = [];
-    const publisher: Publisher<Notification> = {
+    const publisher = {
       async publish ({ channel, message }: { channel: string; message: any }): Promise<void> {
         notifications.push({ channel, notification: message });
       }
