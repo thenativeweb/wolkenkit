@@ -587,5 +587,54 @@ suite('domain', function (): void {
         ));
       });
     });
+
+    test('publishes notifications from command handlers.', async (): Promise<void> => {
+      const aggregateIdentifier = {
+        name: 'sampleAggregate',
+        id: v4()
+      };
+
+      const command = buildCommandWithMetadata({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier,
+        name: 'execute',
+        data: {
+          strategy: 'succeed'
+        }
+      });
+
+      const messageStreamNotification = await subscribeMessagesClient.getMessages({
+        channel: publisherChannelNotification
+      });
+
+      await handleCommandWithMetadataClient.postCommand({ command });
+
+      await new Promise((resolve, reject): void => {
+        messageStreamNotification.on('error', (err: any): void => {
+          reject(err);
+        });
+        messageStreamNotification.on('close', (): void => {
+          resolve();
+        });
+        messageStreamNotification.pipe(asJsonStream(
+          [
+            (data): void => {
+              try {
+                assert.that(data).is.atLeast({
+                  name: 'commandExecute',
+                  data: {}
+                });
+                resolve();
+              } catch (ex) {
+                reject(ex);
+              }
+            }
+          ],
+          true
+        ));
+      });
+    });
   });
 });
