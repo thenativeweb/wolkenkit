@@ -22,7 +22,7 @@ const getDomainEventStoreOptionsSchema = function (): Schema {
             type: 'object',
             properties: {
               domainEvents: { type: 'string', minLength: 1 },
-              snapshot: { type: 'string', minLength: 1 }
+              snapshots: { type: 'string', minLength: 1 }
             },
             required: [ 'domainEvents', 'snapshot' ],
             additionalProperties: false
@@ -43,7 +43,7 @@ const getDomainEventStoreOptionsSchema = function (): Schema {
             type: 'object',
             properties: {
               domainEvents: { type: 'string', minLength: 1 },
-              snapshot: { type: 'string', minLength: 1 }
+              snapshots: { type: 'string', minLength: 1 }
             },
             required: [ 'domainEvents', 'snapshot' ],
             additionalProperties: false
@@ -65,7 +65,7 @@ const getDomainEventStoreOptionsSchema = function (): Schema {
             type: 'object',
             properties: {
               domainEvents: { type: 'string', minLength: 1 },
-              snapshot: { type: 'string', minLength: 1 }
+              snapshots: { type: 'string', minLength: 1 }
             },
             required: [ 'domainEvents', 'snapshot' ],
             additionalProperties: false
@@ -87,7 +87,7 @@ const getDomainEventStoreOptionsSchema = function (): Schema {
             type: 'object',
             properties: {
               domainEvents: { type: 'string', minLength: 1 },
-              snapshot: { type: 'string', minLength: 1 }
+              snapshots: { type: 'string', minLength: 1 }
             },
             required: [ 'domainEvents', 'snapshot' ],
             additionalProperties: false
