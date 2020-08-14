@@ -19,6 +19,8 @@ import { configurationDefinition as flowConfigurationDefinition } from '../../..
 import { Configuration as GraphqlConfiguration } from '../../../../runtimes/microservice/processes/graphql/Configuration';
 import { configurationDefinition as graphqlConfigurationDefinition } from '../../../../runtimes/microservice/processes/graphql/configurationDefinition';
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
+import { Configuration as NotificationConfiguration } from '../../../../runtimes/microservice/processes/notification/Configuration';
+import { configurationDefinition as notificationConfigurationDefinition } from '../../../../runtimes/microservice/processes/notification/configurationDefinition';
 import { Configuration as PublisherConfiguration } from '../../../../runtimes/microservice/processes/publisher/Configuration';
 import { configurationDefinition as publisherConfigurationDefinition } from '../../../../runtimes/microservice/processes/publisher/configurationDefinition';
 import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
@@ -87,6 +89,11 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     },
     view: {
       hostName: 'view',
+      privatePort: 3000,
+      healthPort: 3001
+    },
+    notification: {
+      hostName: 'notification',
       privatePort: 3000,
       healthPort: 3001
     },
@@ -402,6 +409,19 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     }
   };
 
+  const notificationConfiguration: NotificationConfiguration = {
+    applicationDirectory,
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.notification.healthPort,
+    identityProviders,
+    notificationCorsOrigin: corsOrigin,
+    port: services.notification.privatePort,
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      subscriber: subscriberOptions
+    }
+  };
+
   const fileConfiguration: FileConfiguration = {
     applicationDirectory,
     enableOpenApiDocumentation: true,
@@ -664,6 +684,36 @@ ${
           - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.port=${services.view.privatePort}'
           - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
           - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.healthcheck.port=${services.view.healthPort}'
+
+      ${services.notification.hostName}:
+        build: '../..'
+        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/notification/app.js'
+        environment:
+          NODE_ENV: 'production'
+${
+  Object.entries(
+    toEnvironmentVariables({
+      configuration: notificationConfiguration,
+      configurationDefinition: notificationConfigurationDefinition
+    })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
+        image: '${appName}'
+        init: true
+        restart: 'always'
+        healthcheck:
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.notification.healthPort}"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
+        labels:
+          - 'traefik.enable=true'
+          - 'traefik.http.routers.${services.notification.hostName}.rule=PathPrefix(\`/notifications\`)'
+          - 'traefik.http.routers.${services.notification.hostName}.entrypoints=web'
+          - 'traefik.http.services.${services.notification.hostName}-service.loadbalancer.port=${services.notification.privatePort}'
+          - 'traefik.http.services.${services.notification.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.${services.notification.hostName}-service.loadbalancer.healthcheck.port=${services.notification.healthPort}'
 
       ${services.file.hostName}:
         build: '../..'
