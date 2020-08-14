@@ -54,6 +54,7 @@ const errors = defekt({
   LockRenewalFailed: {},
   NotAuthenticated: {},
   NotificationHandlerMalformed: {},
+  NotificationNotFound: {},
   NotificationsDefinitionMalformed: {},
   NotificationSubscriberMalformed: {},
   ParameterInvalid: {},

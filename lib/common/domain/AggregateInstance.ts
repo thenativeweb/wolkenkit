@@ -272,8 +272,9 @@ class AggregateInstance<TState extends State> {
         packageManifest: application.packageManifest
       }),
       notification: getNotificationService({
-        channel: this.pubSubChannelForNotifications,
-        publisher: this.publisher
+        application,
+        publisher: this.publisher,
+        channel: this.pubSubChannelForNotifications
       })
     };
     const handleServices = {

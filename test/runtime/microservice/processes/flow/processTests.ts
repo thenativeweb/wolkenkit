@@ -1,4 +1,5 @@
 import { Client as AeonstoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
+import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { CommandData } from '../../../../../lib/common/elements/CommandData';
@@ -23,10 +24,9 @@ import { Configuration as ReplayConfiguration } from '../../../../../lib/runtime
 import { configurationDefinition as replayConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/replay/configurationDefinition';
 import { sleep } from '../../../../../lib/common/utils/sleep';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
+import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subscribeMessages/http/v2/Client';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
-import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subscribeMessages/http/v2/Client';
-import { asJsonStream } from '../../../../shared/http/asJsonStream';
 
 suite('flow server', function (): void {
   this.timeout(60_000);

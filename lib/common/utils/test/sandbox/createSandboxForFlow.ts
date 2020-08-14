@@ -161,6 +161,7 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
             }),
             lock: lockServiceFactory({ lockStore }),
             notification: notificationServiceFactory({
+              application: sandboxConfiguration.application,
               publisher,
               channel: 'notifications'
             })

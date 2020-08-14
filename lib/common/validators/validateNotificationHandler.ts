@@ -21,9 +21,15 @@ const validateNotificationHandler = function ({ notificationHandler }: {
     }
   }
 
-  if (!isUndefined(notificationHandler.getSchema)) {
-    if (!isFunction(notificationHandler.getSchema)) {
-      throw new errors.NotificationHandlerMalformed(`Property 'getSchema' is not a function.`);
+  if (!isUndefined(notificationHandler.getDataSchema)) {
+    if (!isFunction(notificationHandler.getDataSchema)) {
+      throw new errors.NotificationHandlerMalformed(`Property 'getDataSchema' is not a function.`);
+    }
+  }
+
+  if (!isUndefined(notificationHandler.getMetadataSchema)) {
+    if (!isFunction(notificationHandler.getMetadataSchema)) {
+      throw new errors.NotificationHandlerMalformed(`Property 'getMetadataSchema' is not a function.`);
     }
   }
 };

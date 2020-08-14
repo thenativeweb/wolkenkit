@@ -8,15 +8,18 @@ const getNotificationsDescription = function ({ notificationsDefinition }: {
   const notificationsDescription: NotificationsDescription = {};
 
   for (const [ notificationName, notificationHandler ] of Object.entries(notificationsDefinition)) {
-    const { getDocumentation, getSchema } = notificationHandler;
+    const { getDocumentation, getDataSchema, getMetadataSchema } = notificationHandler;
 
     const description = {} as any;
 
     if (getDocumentation) {
       description.documentation = stripIndent(getDocumentation().trim());
     }
-    if (getSchema) {
-      description.schema = getSchema();
+    if (getDataSchema) {
+      description.dataSchema = getDataSchema();
+    }
+    if (getMetadataSchema) {
+      description.metadataSchema = getMetadataSchema();
     }
 
     notificationsDescription[notificationName] = description;

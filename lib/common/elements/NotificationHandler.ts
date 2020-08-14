@@ -10,7 +10,9 @@ export interface NotificationHandler<
 > {
   getDocumentation? (): string;
 
-  getSchema? (): Schema;
+  getDataSchema? (): Schema;
+
+  getMetadataSchema? (): Schema;
 
   isAuthorized (data: TNotificationDefinition['data'], metadata: TNotificationDefinition['metadata'], services: {
     client: ClientService;

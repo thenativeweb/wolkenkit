@@ -58,6 +58,7 @@ const createSandboxForView = function (sandboxConfiguration: SandboxConfiguratio
               fileName: `<app>/server/views/${sandboxConfiguration.viewName}/notificationSubscribers`
             }),
             notification: notificationServiceFactory({
+              application: sandboxConfiguration.application,
               publisher,
               channel: 'notifications'
             })

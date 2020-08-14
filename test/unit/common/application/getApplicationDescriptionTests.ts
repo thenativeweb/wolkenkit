@@ -157,6 +157,22 @@ suite('getApplicationDescription', (): void => {
       },
       notifications: {
         commandExecute: {},
+        complex: {
+          dataSchema: {
+            type: 'object',
+            properties: {
+              message: { type: 'string', minLength: 1 }
+            },
+            required: [ 'message' ]
+          },
+          metadataSchema: {
+            type: 'object',
+            properties: {
+              public: { type: 'boolean' }
+            },
+            required: [ 'public' ]
+          }
+        },
         flowSampleFlowUpdated: {},
         viewSampleViewUpdated: {}
       },

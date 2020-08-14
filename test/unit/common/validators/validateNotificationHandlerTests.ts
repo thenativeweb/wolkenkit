@@ -53,18 +53,33 @@ suite('validateNotificationHandler', (): void => {
     );
   });
 
-  test(`throws an error if the notification handler's get schema property is not a function.`, async (): Promise<void> => {
+  test(`throws an error if the notification handler's get data schema property is not a function.`, async (): Promise<void> => {
     assert.that((): void => {
       validateNotificationHandler({
         notificationHandler: {
           ...notificationHandler,
-          getSchema: false
+          getDataSchema: false
         }
       });
     }).is.throwing(
       (ex): boolean =>
         (ex as CustomError).code === errors.NotificationHandlerMalformed.code &&
-            ex.message === `Property 'getSchema' is not a function.`
+            ex.message === `Property 'getDataSchema' is not a function.`
+    );
+  });
+
+  test(`throws an error if the notification handler's get metadata schema property is not a function.`, async (): Promise<void> => {
+    assert.that((): void => {
+      validateNotificationHandler({
+        notificationHandler: {
+          ...notificationHandler,
+          getMetadataSchema: false
+        }
+      });
+    }).is.throwing(
+      (ex): boolean =>
+        (ex as CustomError).code === errors.NotificationHandlerMalformed.code &&
+            ex.message === `Property 'getMetadataSchema' is not a function.`
     );
   });
 
