@@ -21,8 +21,8 @@ const complexNotificationHandler = {
     };
   },
 
-  isAuthorized () {
-    return true;
+  isAuthorized (data, metadata) {
+    return metadata.public;
   }
 };
 

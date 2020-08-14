@@ -84,7 +84,9 @@ const getApi = async function ({
     });
 
     const { api: subscribeNotificationsApi } = await getSubscribeNotificationsApi({
+      application,
       corsOrigin,
+      identityProviders,
       channelForNotifications,
       subscriber
     });

@@ -1,7 +1,12 @@
+import { Application } from '../../../../common/application/Application';
+import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { flaschenpost } from 'flaschenpost';
+import { getClientService } from '../../../../common/services/getClientService';
+import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { Notification } from '../../../../common/elements/Notification';
 import PQueue from 'p-queue';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
+import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import { Request, Response } from 'express';
@@ -20,7 +25,13 @@ const getNotifications = {
     body: {}
   },
 
-  getHandler ({ subscriber, channelForNotifications, heartbeatInterval }: {
+  getHandler ({
+    application,
+    subscriber,
+    channelForNotifications,
+    heartbeatInterval
+  }: {
+    application: Application;
     subscriber: Subscriber<Notification>;
     channelForNotifications: string;
     heartbeatInterval: number;
@@ -32,6 +43,50 @@ const getNotifications = {
         const notificationQueue = new PQueue({ concurrency: 1 });
 
         const handleNotification = (notification: Notification): void => {
+          if (!(notification.name in application.notifications)) {
+            logger.error(`Failed to publish unknown notification '${notification.name}'.`);
+
+            return;
+          }
+
+          const notificationHandler = application.notifications[notification.name];
+
+          if (notificationHandler.getDataSchema) {
+            const schema = notificationHandler.getDataSchema();
+            const value = new Value(schema);
+
+            try {
+              value.validate(notification.data, { valueName: 'notification.data' });
+            } catch (ex) {
+              logger.error(`Failed to publish invalid notification '${notification.name}'.`, { ex });
+
+              return;
+            }
+          }
+          if (notificationHandler.getMetadataSchema) {
+            const schema = notificationHandler.getMetadataSchema();
+            const value = new Value(schema);
+
+            try {
+              value.validate(notification.metadata, { valueName: 'notification.metadata' });
+            } catch (ex) {
+              logger.error(`Failed to publish invalid notification '${notification.name}'.`, { ex });
+
+              return;
+            }
+          }
+
+          if (!notificationHandler.isAuthorized(notification.data, notification.metadata, {
+            logger: getLoggerService({
+              fileName: `<app>/server/notifications/${notification.name}`,
+              packageManifest: application.packageManifest
+            }),
+            infrastructure: application.infrastructure,
+            client: getClientService({ clientMetadata: new ClientMetadata({ req }) })
+          })) {
+            return;
+          }
+
           /* eslint-disable @typescript-eslint/no-floating-promises */
           notificationQueue.add(async (): Promise<void> => {
             writeLine({ res, data: notification });
