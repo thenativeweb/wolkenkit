@@ -1,6 +1,7 @@
 'use strict';
 
 const { all } = require('./queries/all');
+const { flowSampleFlowUpdatedNotificationSubscriber } = require('./notificationSubscribers/flowSampleFlowUpdatedNotificationSubscriber');
 const { hardcoded } = require('./queries/hardcoded');
 
 const sampleView = {
@@ -8,7 +9,9 @@ const sampleView = {
     all,
     hardcoded
   },
-  notificationSubscribers: {}
+  notificationSubscribers: {
+    flowSampleFlowUpdated: flowSampleFlowUpdatedNotificationSubscriber
+  }
 };
 
 module.exports = sampleView;

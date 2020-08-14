@@ -394,7 +394,12 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthPort: services.view.healthPort,
     identityProviders,
     port: services.view.privatePort,
-    viewCorsOrigin: corsOrigin
+    viewCorsOrigin: corsOrigin,
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions,
+      subscriber: subscriberOptions
+    }
   };
 
   const fileConfiguration: FileConfiguration = {
