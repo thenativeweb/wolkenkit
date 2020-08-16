@@ -154,7 +154,7 @@
     "mysql": "2.18.1",
     "nocache": "2.1.0",
     "p-forever": "2.1.0",
-    "p-queue": "6.6.0",
+    "p-queue": "6.6.1",
     "partof": "3.0.0",
     "pg": "8.3.0",
     "pg-query-stream": "3.2.0",
