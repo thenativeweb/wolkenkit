@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="index.css" />
+
+    <title>wolkenkit | Chat</title>
+
+    <script src="https://unpkg.com/vue@next"></script>
+  </head>
+
+  <body>
+    <main>
+      <ul class="messages">
+        <li class="message" ref="messages" v-for="message of messages">
+          <div class="metadata">
+            <div class="user">{{ message.user }}</div>
+            <div class="timestamp">{{ toTime(message.timestamp) }}</div>
+          </div>
+          <div class="text">{{ message.text }}</div>
+          <button v-on:click="likeMessage(message)" class="like">👍 {{ message.likes }}</button>
+        </li>
+      </ul>
+
+      <form class="send-message-form" v-on:submit.prevent="sendMessage">
+        <input class="new-message" v-model="newMessage" ref="newMessage" type="text" placeholder="Enter a message" />
+      </form>
+    </main>
+
+    <script src="index.js"></script>
+  </body>
+</html>
