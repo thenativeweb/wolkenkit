@@ -1,5 +1,4 @@
 import { all } from './queries/all';
-import { flowSampleFlowUpdatedNotificationSubscriber } from './notificationSubscribers/flowSampleFlowUpdatedNotificationSubscriber';
 import { View } from 'wolkenkit';
 
 const sampleView: View = {
@@ -7,9 +6,7 @@ const sampleView: View = {
     all
   },
 
-  notificationSubscribers: {
-    flowSampleFlowUpdated: flowSampleFlowUpdatedNotificationSubscriber
-  }
+  notificationSubscribers: {}
 };
 
 export default sampleView;

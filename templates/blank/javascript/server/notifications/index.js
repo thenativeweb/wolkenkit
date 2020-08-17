@@ -1,11 +1,5 @@
 'use strict';
 
-const { flowSampleFlowUpdated } = require('./handlers/flowSampleFlowUpdated');
-const { viewSampleViewUpdated } = require('./handlers/viewSampleViewUpdated');
-
-const notifications = {
-  flowSampleFlowUpdated,
-  viewSampleViewUpdated
-};
+const notifications = {};
 
 module.exports = notifications;
