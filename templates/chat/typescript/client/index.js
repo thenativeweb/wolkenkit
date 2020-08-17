@@ -104,7 +104,7 @@ const Chat = {
             break;
           }
           case 'liked': {
-            const index = window.Vue.toRaw(state.messages).findIndex(
+            const index = state.messages.findIndex(
               row => row.id === domainEvent.aggregateIdentifier.id
             );
 
