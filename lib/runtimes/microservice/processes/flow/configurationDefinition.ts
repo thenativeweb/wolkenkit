@@ -121,7 +121,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',
     defaultValue: {
-      channelForNotifications: 'notification',
+      channelForNotifications: 'notifications',
       publisher: {
         type: 'Http',
         protocol: 'http',
