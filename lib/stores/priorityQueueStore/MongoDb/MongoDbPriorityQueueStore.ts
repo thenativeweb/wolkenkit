@@ -253,7 +253,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
       { session }
     );
 
-    const queueToUpdate = await this.collections.queues.findOne(
+    const queueToUpdate = await this.collections.queues.findOne<Queue<TItem>>(
       {},
       { sort: [[ 'indexInPriorityQueue', -1 ]], session }
     );
@@ -279,7 +279,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
     session: ClientSession;
     discriminator: string;
   }): Promise<Queue<TItem> | undefined> {
-    const queue = await this.collections.queues.findOne(
+    const queue = await this.collections.queues.findOne<Queue<TItem>>(
       { discriminator },
       {
         session,
@@ -298,7 +298,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
     session: ClientSession;
     indexInPriorityQueue: number;
   }): Promise<Queue<TItem> | undefined> {
-    const queue = await this.collections.queues.findOne(
+    const queue = await this.collections.queues.findOne<Queue<TItem>>(
       { indexInPriorityQueue },
       {
         session,

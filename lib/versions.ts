@@ -1,6 +1,6 @@
 const versions = {
   infrastructure: {
-    nodejs: '14.7.0',
+    nodejs: '14.8.0',
     'docker-compose': '3.7'
   },
   packages: {
@@ -8,7 +8,7 @@ const versions = {
   },
   dockerImages: {
     minio: 'RELEASE.2019-10-12T01-39-57Z',
-    postgres: '12.3-alpine',
+    postgres: '12.4-alpine',
     traefik: '2.3'
   }
 };
