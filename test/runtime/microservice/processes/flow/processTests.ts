@@ -1,4 +1,5 @@
 import { Client as AeonstoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
+import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { CommandData } from '../../../../../lib/common/elements/CommandData';
@@ -17,15 +18,20 @@ import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getD
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleDomainEventClient } from '../../../../../lib/apis/handleDomainEvent/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
+import { Configuration as PublisherConfiguration } from '../../../../../lib/runtimes/microservice/processes/publisher/Configuration';
+import { configurationDefinition as publisherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/publisher/configurationDefinition';
 import { Configuration as ReplayConfiguration } from '../../../../../lib/runtimes/microservice/processes/replay/Configuration';
 import { configurationDefinition as replayConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/replay/configurationDefinition';
 import { sleep } from '../../../../../lib/common/utils/sleep';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
+import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subscribeMessages/http/v2/Client';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
 
 suite('flow server', function (): void {
   this.timeout(60_000);
+
+  const pubsubChannelForNotifications = 'notification';
 
   let aeonstoreClient: AeonstoreClient,
       applicationDirectory: string,
@@ -35,16 +41,20 @@ suite('flow server', function (): void {
       healthPortAeonstore: number,
       healthPortCommandDispatcher: number,
       healthPortDomainEventDispatcher: number,
+      healthPortPublisher: number,
       healthPortReplay: number,
       portAeonstore: number,
       portCommandDispatcher: number,
       portDomainEventDispatcher: number,
+      portPublisher: number,
       portReplay: number,
       stopProcess: (() => Promise<void>) | undefined,
       stopProcessAeonstore: (() => Promise<void>) | undefined,
       stopProcessCommandDispatcher: (() => Promise<void>) | undefined,
       stopProcessDomainEventDispatcher: (() => Promise<void>) | undefined,
-      stopReplayServer: (() => Promise<void>) | undefined;
+      stopProcessPublisher: (() => Promise<void>) | undefined,
+      stopReplayServer: (() => Promise<void>) | undefined,
+      subscribeMessagesClient: SubscribeMessagesClient;
 
   setup(async (): Promise<void> => {
     applicationDirectory = getTestApplicationDirectory({ name: 'withComplexFlow', language: 'javascript' });
@@ -58,8 +68,10 @@ suite('flow server', function (): void {
       portReplay,
       healthPortReplay,
       portAeonstore,
-      healthPortAeonstore
-    ] = await getAvailablePorts({ count: 9 });
+      healthPortAeonstore,
+      portPublisher,
+      healthPortPublisher
+    ] = await getAvailablePorts({ count: 11 });
 
     const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: commandDispatcherConfigurationDefinition }),
@@ -160,6 +172,30 @@ suite('flow server', function (): void {
       path: '/write/v2'
     });
 
+    const publisherConfiguration: PublisherConfiguration = {
+      ...getDefaultConfiguration({ configurationDefinition: publisherConfigurationDefinition }),
+      port: portPublisher,
+      healthPort: healthPortPublisher
+    };
+
+    stopProcessPublisher = await startProcess({
+      runtime: 'microservice',
+      name: 'publisher',
+      enableDebugMode: false,
+      port: healthPortPublisher,
+      env: toEnvironmentVariables({
+        configuration: publisherConfiguration,
+        configurationDefinition: publisherConfigurationDefinition
+      })
+    });
+
+    subscribeMessagesClient = new SubscribeMessagesClient({
+      protocol: 'http',
+      hostName: 'localhost',
+      port: portPublisher,
+      path: '/subscribe/v2'
+    });
+
     const flowConfiguration: FlowConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: flowConfigurationDefinition }),
       applicationDirectory,
@@ -176,7 +212,17 @@ suite('flow server', function (): void {
       lockStoreOptions: { type: 'InMemory' },
       consumerProgressStoreOptions: { type: 'InMemory' },
       healthPort,
-      concurrentFlows: 1
+      concurrentFlows: 1,
+      pubSubOptions: {
+        channelForNotifications: pubsubChannelForNotifications,
+        publisher: {
+          type: 'Http',
+          protocol: 'http',
+          hostName: 'localhost',
+          port: portPublisher,
+          path: '/publish/v2'
+        }
+      }
     };
 
     stopProcess = await startProcess({
@@ -195,6 +241,9 @@ suite('flow server', function (): void {
     if (stopProcess) {
       await stopProcess();
     }
+    if (stopProcessPublisher) {
+      await stopProcessPublisher();
+    }
     if (stopProcessAeonstore) {
       await stopProcessAeonstore();
     }
@@ -209,6 +258,7 @@ suite('flow server', function (): void {
     }
 
     stopProcess = undefined;
+    stopProcessPublisher = undefined;
     stopProcessAeonstore = undefined;
     stopReplayServer = undefined;
     stopProcessCommandDispatcher = undefined;
@@ -323,6 +373,49 @@ suite('flow server', function (): void {
       });
 
       await commandDispatcherClient.acknowledge({ discriminator: lock.metadata.discriminator, token: lock.metadata.token });
+    });
+
+    test('publishes notifications.', async (): Promise<void> => {
+      const aggregateId = v4();
+      const domainEvent = buildDomainEvent({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'executed',
+        data: { strategy: 'succeed' },
+        metadata: { revision: 1 }
+      });
+
+      const messageStreamNotification = await subscribeMessagesClient.getMessages({
+        channel: pubsubChannelForNotifications
+      });
+
+      await aeonstoreClient.storeDomainEvents({ domainEvents: [ domainEvent ]});
+      await handleDomainEventClient.postDomainEvent({ domainEvent });
+
+      await new Promise((resolve, reject): void => {
+        messageStreamNotification.on('error', (err: any): void => {
+          reject(err);
+        });
+        messageStreamNotification.on('close', (): void => {
+          resolve();
+        });
+        messageStreamNotification.pipe(asJsonStream(
+          [
+            (data): void => {
+              try {
+                assert.that(data).is.atLeast({
+                  name: 'flowSampleFlowUpdated',
+                  data: {}
+                });
+                resolve();
+              } catch (ex) {
+                reject(ex);
+              }
+            }
+          ],
+          true
+        ));
+      });
     });
   });
 });

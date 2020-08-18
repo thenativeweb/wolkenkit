@@ -5,6 +5,7 @@ import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getLockStoreOptionsSchema } from '../../../shared/schemas/getLockStoreOptionsSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
+import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
 import path from 'path';
 
@@ -13,6 +14,7 @@ const consumerProgressStoreOptionsSchema = getConsumerProgressStoreOptionsSchema
       lockStoreOptionsSchema = getLockStoreOptionsSchema(),
       portSchema = getPortSchema(),
       protocolSchema = getProtocolSchema(),
+      publisherOptionsSchema = getPublisherOptionsSchema(),
       snapshotStrategySchema = getSnapshotStrategySchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
@@ -115,6 +117,28 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     environmentVariable: 'LOCK_STORE_OPTIONS',
     defaultValue: { type: 'InMemory' },
     schema: lockStoreOptionsSchema
+  },
+  pubSubOptions: {
+    environmentVariable: 'PUB_SUB_OPTIONS',
+    defaultValue: {
+      channelForNotifications: 'notifications',
+      publisher: {
+        type: 'Http',
+        protocol: 'http',
+        hostName: 'publisher',
+        port: 3000,
+        path: '/publish/v2'
+      }
+    },
+    schema: {
+      type: 'object',
+      properties: {
+        channelForNotifications: { type: 'string', minLength: 1 },
+        publisher: publisherOptionsSchema
+      },
+      required: [ 'channelForNotifications', 'publisher' ],
+      additionalProperties: false
+    }
   },
   replayServerHostName: {
     environmentVariable: 'REPLAY_SERVER_HOST_NAME',

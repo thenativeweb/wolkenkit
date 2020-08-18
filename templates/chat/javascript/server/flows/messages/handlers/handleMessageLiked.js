@@ -5,13 +5,15 @@ const handleMessageLiked = {
     return fullyQualifiedName === 'communication.message.liked';
   },
 
-  async handle (domainEvent, { infrastructure }) {
+  async handle (domainEvent, { infrastructure, notification }) {
     if (Array.isArray(infrastructure.tell.viewStore.messages)) {
       const messageToUpdate = infrastructure.tell.viewStore.messages.find(
         message => message.id === domainEvent.aggregateIdentifier.id
       );
 
       messageToUpdate.likes = domainEvent.data.likes;
+
+      await notification.publish('flowMessagesUpdated', {});
 
       return;
     }
@@ -20,6 +22,8 @@ const handleMessageLiked = {
       { id: domainEvent.aggregateIdentifier.id },
       { $set: { likes: domainEvent.data.likes }}
     );
+
+    await notification.publish('flowMessagesUpdated', {});
   }
 };
 

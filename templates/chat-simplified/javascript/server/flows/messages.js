@@ -9,7 +9,7 @@ const messages = {
         return fullyQualifiedName === 'communication.message.sent';
       },
 
-      async handle (domainEvent, { infrastructure }) {
+      async handle (domainEvent, { infrastructure, notification }) {
         const message = {
           id: domainEvent.aggregateIdentifier.id,
           timestamp: domainEvent.metadata.timestamp,
@@ -20,10 +20,14 @@ const messages = {
         if (Array.isArray(infrastructure.tell.viewStore.messages)) {
           infrastructure.tell.viewStore.messages.push(message);
 
+          await notification.publish('flowMessagesUpdated', {});
+
           return;
         }
 
         await infrastructure.tell.viewStore.messages.insertOne(message);
+
+        await notification.publish('flowMessagesUpdated', {});
       }
     },
 
@@ -32,13 +36,15 @@ const messages = {
         return fullyQualifiedName === 'communication.message.liked';
       },
 
-      async handle (domainEvent, { infrastructure }) {
+      async handle (domainEvent, { infrastructure, notification }) {
         if (Array.isArray(infrastructure.tell.viewStore.messages)) {
           const messageToUpdate = infrastructure.tell.viewStore.messages.find(
             message => message.id === domainEvent.aggregateIdentifier.id
           );
 
           messageToUpdate.likes = domainEvent.data.likes;
+
+          await notification.publish('flowMessagesUpdated', {});
 
           return;
         }
@@ -47,6 +53,8 @@ const messages = {
           { id: domainEvent.aggregateIdentifier.id },
           { $set: { likes: domainEvent.data.likes }}
         );
+
+        await notification.publish('flowMessagesUpdated', {});
       }
     }
   }

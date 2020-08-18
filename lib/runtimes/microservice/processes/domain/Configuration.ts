@@ -1,4 +1,5 @@
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
+import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 
 export interface Configuration {
@@ -18,9 +19,10 @@ export interface Configuration {
   healthCorsOrigin: string | string[];
   healthPort: number;
   lockStoreOptions: LockStoreOptions;
-  publisherChannelNewDomainEvent: string;
-  publisherHostName: string;
-  publisherPort: number;
-  publisherProtocol: string;
+  pubSubOptions: {
+    channelForNewDomainEvents: string;
+    channelForNotifications: string;
+    publisher: PublisherOptions;
+  };
   snapshotStrategy: SnapshotStrategyConfiguration;
 }

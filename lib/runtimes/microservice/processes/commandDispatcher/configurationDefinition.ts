@@ -54,15 +54,19 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',
-    defaultValue: { channel: 'newCommand', subscriber: { type: 'InMemory' }, publisher: { type: 'InMemory' }},
+    defaultValue: {
+      channelForNewCommands: 'newCommand',
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    },
     schema: {
       type: 'object',
       properties: {
-        channel: { type: 'string', minLength: 1 },
+        channelForNewCommands: { type: 'string', minLength: 1 },
         subscriber: getSubscriberOptionsSchema(),
         publisher: getPublisherOptionsSchema()
       },
-      required: [ 'channel', 'subscriber', 'publisher' ],
+      required: [ 'channelForNewCommands', 'subscriber', 'publisher' ],
       additionalProperties: false
     }
   }

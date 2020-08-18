@@ -11,12 +11,14 @@ import { getSchema } from './getSchema';
 import { getSubscriptionOptions } from './observeDomainEvents/getSubscriptionOptions';
 import { IdentityProvider } from 'limes';
 import { InitializeGraphQlOnServer } from '../InitializeGraphQlOnServer';
+import { Notification } from '../../../common/elements/Notification';
 import { OnCancelCommand } from '../OnCancelCommand';
 import { OnReceiveCommand } from '../OnReceiveCommand';
 import { PublishDomainEvent } from '../PublishDomainEvent';
 import { Repository } from '../../../common/domain/Repository';
 import { ResolverContext } from './ResolverContext';
 import { Server } from 'http';
+import { Subscriber } from '../../../messaging/pubSub/Subscriber';
 import { validateSchema } from 'graphql';
 
 const logger = flaschenpost.getLogger();
@@ -27,21 +29,29 @@ const getV2 = async function ({
   identityProviders,
   handleCommand,
   observeDomainEvents,
+  observeNotifications,
   queryView,
-  enableIntegratedClient
+  enableIntegratedClient,
+  webSocketEndpoint
 }: {
   corsOrigin: CorsOrigin;
   application: Application;
   identityProviders: IdentityProvider[];
   handleCommand: false | { onReceiveCommand: OnReceiveCommand; onCancelCommand: OnCancelCommand };
-  observeDomainEvents: false | { repository: Repository; webSocketEndpoint: string };
+  observeDomainEvents: false | { repository: Repository };
+  observeNotifications: false | { subscriber: Subscriber<Notification>; channelForNotifications: string };
   queryView: boolean;
   enableIntegratedClient: boolean;
+  webSocketEndpoint?: string;
 }): Promise<{
     api: ExpressApplication;
     publishDomainEvent?: PublishDomainEvent;
     initializeGraphQlOnServer: InitializeGraphQlOnServer;
   }> {
+  if (!webSocketEndpoint && (observeDomainEvents || observeNotifications)) {
+    throw new errors.ParameterInvalid('If observe domain events or observe notifications is enabled, a websocket endpoint must be given.');
+  }
+
   const api = await getApiBase({
     request: {
       headers: { cors: { origin: corsOrigin }},
@@ -59,10 +69,11 @@ const getV2 = async function ({
 
   api.use(authenticationMiddleware);
 
-  const { schema, publishDomainEvent } = getSchema({
+  const { schema, publishDomainEvent } = await getSchema({
     application,
     handleCommand,
     observeDomainEvents,
+    observeNotifications,
     queryView
   });
 
@@ -91,20 +102,16 @@ const getV2 = async function ({
 
       return { clientMetadata: new ClientMetadata({ req }) };
     },
-    subscriptions: observeDomainEvents !== false ?
+    subscriptions: webSocketEndpoint ?
       getSubscriptionOptions({
         identityProviders,
-        webSocketEndpoint: observeDomainEvents.webSocketEndpoint,
+        webSocketEndpoint,
         issuerForAnonymousTokens: 'https://token.invalid'
       }) :
       undefined,
     introspection: true,
     playground: enableIntegratedClient ?
-      {
-        subscriptionEndpoint: observeDomainEvents !== false ?
-          observeDomainEvents.webSocketEndpoint :
-          undefined
-      } :
+      { subscriptionEndpoint: webSocketEndpoint } :
       false
   });
 

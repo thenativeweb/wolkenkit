@@ -8,7 +8,9 @@ import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityPr
 import { getLockStoreOptionsSchema } from '../../../shared/schemas/getLockStoreOptionsSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import { getPriorityQueueStoreOptionsSchema } from '../../../shared/schemas/getPriorityQueueStoreOptionsSchema';
+import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
+import { getSubscriberOptionsSchema } from '../../../shared/schemas/getSubscriberOptionsSchema';
 import path from 'path';
 
 const consumerProgressStoreOptionsSchema = getConsumerProgressStoreOptionsSchema(),
@@ -19,7 +21,9 @@ const consumerProgressStoreOptionsSchema = getConsumerProgressStoreOptionsSchema
       lockStoreOptionsSchema = getLockStoreOptionsSchema(),
       portSchema = getPortSchema(),
       priorityQueueStoreOptionsSchema = getPriorityQueueStoreOptionsSchema(),
-      snapshotStrategySchema = getSnapshotStrategySchema();
+      publisherOptionsSchema = getPublisherOptionsSchema(),
+      snapshotStrategySchema = getSnapshotStrategySchema(),
+      subscriberOptionsSchema = getSubscriberOptionsSchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
   applicationDirectory: {
@@ -125,6 +129,24 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     environmentVariable: 'PRIORITY_QUEUE_STORE_FOR_DOMAIN_EVENTS_OPTIONS',
     defaultValue: { type: 'InMemory', expirationTime: 30_000 },
     schema: priorityQueueStoreOptionsSchema
+  },
+  pubSubOptions: {
+    environmentVariable: 'PUB_SUB_OPTIONS',
+    defaultValue: {
+      channelForNotifications: 'notification',
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    },
+    schema: {
+      type: 'object',
+      properties: {
+        channelForNotifications: { type: 'string', minLength: 1 },
+        subscriber: subscriberOptionsSchema,
+        publisher: publisherOptionsSchema
+      },
+      required: [ 'channelForNotifications', 'subscriber', 'publisher' ],
+      additionalProperties: false
+    }
   },
   snapshotStrategy: {
     environmentVariable: 'SNAPSHOT_STRATEGY',

@@ -1,7 +1,7 @@
 import { assert } from 'assertthat';
 import path from 'path';
 import { v4 } from 'uuid';
-import { Application, loadApplication, sandbox } from 'wolkenkit';
+import { Application, loadApplication, Notification, sandbox } from 'wolkenkit';
 
 suite('messages', (): void => {
   let application: Application;
@@ -59,6 +59,34 @@ suite('messages', (): void => {
           likes: 5
         }
       ]);
+    });
+  });
+
+  suite('notifications', (): void => {
+    test('publishes view updated notifications in response to flow updated notifications.', async (): Promise<void> => {
+      const notifications: { channel: string; notification: Notification}[] = [];
+      const publisher = {
+        async publish ({ channel, message }: { channel: string; message: Notification }): Promise<void> {
+          notifications.push({ channel, notification: message });
+        }
+      };
+
+      const sandboxForView = sandbox().
+        withApplication({ application }).
+        withPublisher({ publisher }).
+        forView({ viewName: 'messages' });
+
+      await sandboxForView.notify({ notification: { name: 'flowMessagesUpdated', data: {}}});
+
+      assert.that(notifications.length).is.equalTo(1);
+      assert.that(notifications[0]).is.equalTo({
+        channel: 'notifications',
+        notification: {
+          name: 'viewMessagesUpdated',
+          data: {},
+          metadata: undefined
+        }
+      });
     });
   });
 });

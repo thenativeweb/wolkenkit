@@ -6,6 +6,8 @@ import { CommandData } from '../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
+import { createSubscriber } from '../../../../lib/messaging/pubSub/createSubscriber';
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
@@ -23,9 +25,12 @@ import { InitializeGraphQlOnServer } from '../../../../lib/apis/graphql/Initiali
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { Limes } from 'limes';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
+import { Notification } from '../../../../lib/common/elements/Notification';
 import { PublishDomainEvent } from '../../../../lib/apis/graphql/PublishDomainEvent';
+import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { sleep } from '../../../../lib/common/utils/sleep';
+import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
@@ -36,7 +41,9 @@ import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
 suite('graphql', function (): void {
   this.timeout(15_000);
 
-  const identityProviders = [ identityProvider ];
+  const channelForNotifications = 'notifications',
+        identityProviders = [ identityProvider ];
+
   let api: ExpressApplication,
       application: Application,
       cancelledCommands: ItemIdentifierWithClient[],
@@ -44,8 +51,11 @@ suite('graphql', function (): void {
       initializeGraphQlOnServer: InitializeGraphQlOnServer,
       port: number,
       publishDomainEvent: PublishDomainEvent | undefined,
+      publisher: Publisher<Notification>,
+      pubSubChannelForNotifications: string,
       receivedCommands: CommandWithMetadata<CommandData>[],
-      repository: Repository;
+      repository: Repository,
+      subscriber: Subscriber<Notification>;
 
   setup(async (): Promise<void> => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' });
@@ -54,11 +64,16 @@ suite('graphql', function (): void {
     domainEventStore = await createDomainEventStore({
       type: 'InMemory'
     });
+    publisher = await createPublisher<Notification>({ type: 'InMemory' });
+    subscriber = await createSubscriber<Notification>({ type: 'InMemory' });
+    pubSubChannelForNotifications = 'notifications';
     repository = new Repository({
       application,
       snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
       lockStore: await createLockStore({ type: 'InMemory' }),
-      domainEventStore
+      domainEventStore,
+      publisher,
+      pubSubChannelForNotifications
     });
     receivedCommands = [];
     cancelledCommands = [];
@@ -76,11 +91,15 @@ suite('graphql', function (): void {
         }
       },
       observeDomainEvents: {
-        webSocketEndpoint: '/v2/',
         repository
       },
+      observeNotifications: {
+        subscriber,
+        channelForNotifications
+      },
       queryView: true,
-      enableIntegratedClient: false
+      enableIntegratedClient: false,
+      webSocketEndpoint: '/v2/'
     }));
 
     const server = http.createServer(api);
@@ -120,11 +139,15 @@ suite('graphql', function (): void {
             }
           },
           observeDomainEvents: {
-            webSocketEndpoint: '/v2/',
             repository
           },
+          observeNotifications: {
+            subscriber,
+            channelForNotifications
+          },
           queryView: true,
-          enableIntegratedClient: false
+          enableIntegratedClient: false,
+          webSocketEndpoint: '/v2/'
         });
       }).is.throwingAsync<CustomError>((ex): boolean =>
         ex.code === 'EGRAPHQLERROR' && ex.message === 'GraphQL schema validation failed.');
@@ -281,11 +304,15 @@ suite('graphql', function (): void {
           }
         },
         observeDomainEvents: {
-          webSocketEndpoint: '/v2/',
           repository
         },
+        observeNotifications: {
+          subscriber,
+          channelForNotifications
+        },
         queryView: true,
-        enableIntegratedClient: false
+        enableIntegratedClient: false,
+        webSocketEndpoint: '/v2/'
       }));
 
       const server = http.createServer(api);
@@ -822,6 +849,230 @@ suite('graphql', function (): void {
       setTimeout(async (): Promise<void> => {
         await collector.signal();
       }, 200);
+
+      await collector.promise;
+    });
+  });
+
+  suite('observeNotifications', (): void => {
+    let client: ApolloClient<NormalizedCacheObject>;
+
+    setup(async (): Promise<void> => {
+      const subscriptionClient = new SubscriptionClient(
+        `ws://localhost:${port}/v2/`,
+        {},
+        ws
+      );
+      const link = new WebSocketLink(subscriptionClient);
+      const cache = new InMemoryCache();
+
+      client = new ApolloClient<NormalizedCacheObject>({
+        link,
+        cache
+      });
+    });
+
+    test('delivers notifications via graphql subscription.', async (): Promise<void> => {
+      const collector = waitForSignals({ count: 1 });
+
+      const notification = { name: 'complex', data: { message: '1' }, metadata: { public: true }};
+
+      const query = gql`
+        subscription {
+          notifications {
+            name
+            data
+          }
+        }
+      `;
+
+      const observable = client.subscribe({
+        query
+      });
+
+      observable.subscribe(async (message): Promise<void> => {
+        try {
+          assert.that(message).is.atLeast({
+            data: {
+              notifications: {
+                name: 'complex',
+                data: '{"message":"1"}'
+              }
+            }
+          });
+
+          await collector.signal();
+        } catch (ex) {
+          await collector.fail(ex);
+        }
+      });
+
+      await sleep({ ms: 100 });
+
+      await publisher.publish({ channel: channelForNotifications, message: notification });
+
+      await collector.promise;
+    });
+
+    test('delivers only authorized notifications.', async (): Promise<void> => {
+      const collector = waitForSignals({ count: 1 });
+
+      const notificationFirst = { name: 'complex', data: { message: '1' }, metadata: { public: false }},
+            notificationSecond = { name: 'complex', data: { message: '2' }, metadata: { public: true }};
+
+      const query = gql`
+        subscription {
+          notifications {
+            name
+            data
+          }
+        }
+      `;
+
+      const observable = client.subscribe({
+        query
+      });
+
+      observable.subscribe(async (message): Promise<void> => {
+        try {
+          assert.that(message).is.atLeast({
+            data: {
+              notifications: {
+                name: 'complex',
+                data: '{"message":"2"}'
+              }
+            }
+          });
+
+          await collector.signal();
+        } catch (ex) {
+          await collector.fail(ex);
+        }
+      });
+
+      await sleep({ ms: 100 });
+
+      await publisher.publish({ channel: channelForNotifications, message: notificationFirst });
+      await publisher.publish({ channel: channelForNotifications, message: notificationSecond });
+
+      await collector.promise;
+    });
+
+    test('does not deliver unknown notifications.', async (): Promise<void> => {
+      const collector = waitForSignals({ count: 1 });
+
+      const notificationFirst = { name: 'non-existent', data: {}},
+            notificationSecond = { name: 'complex', data: { message: '2' }, metadata: { public: true }};
+
+      const query = gql`
+        subscription {
+          notifications {
+            name
+            data
+          }
+        }
+      `;
+
+      const observable = client.subscribe({
+        query
+      });
+
+      observable.subscribe(async (message): Promise<void> => {
+        try {
+          assert.that(message).is.atLeast({
+            data: {
+              notifications: {
+                name: 'complex',
+                data: '{"message":"2"}'
+              }
+            }
+          });
+
+          await collector.signal();
+        } catch (ex) {
+          await collector.fail(ex);
+        }
+      });
+
+      await sleep({ ms: 100 });
+
+      await publisher.publish({ channel: channelForNotifications, message: notificationFirst });
+      await publisher.publish({ channel: channelForNotifications, message: notificationSecond });
+
+      await collector.promise;
+    });
+
+    test('does not deliver invalid notifications.', async (): Promise<void> => {
+      const collector = waitForSignals({ count: 1 });
+
+      const notificationFirst = { name: 'complex', data: { foo: 'bar' }},
+            notificationSecond = { name: 'complex', data: { message: '2' }, metadata: { public: true }};
+
+      const query = gql`
+        subscription {
+          notifications {
+            name
+            data
+          }
+        }
+      `;
+
+      const observable = client.subscribe({
+        query
+      });
+
+      observable.subscribe(async (message): Promise<void> => {
+        try {
+          assert.that(message).is.atLeast({
+            data: {
+              notifications: {
+                name: 'complex',
+                data: '{"message":"2"}'
+              }
+            }
+          });
+
+          await collector.signal();
+        } catch (ex) {
+          await collector.fail(ex);
+        }
+      });
+
+      await sleep({ ms: 100 });
+
+      await publisher.publish({ channel: channelForNotifications, message: notificationFirst });
+      await publisher.publish({ channel: channelForNotifications, message: notificationSecond });
+
+      await collector.promise;
+    });
+
+    test('delivers multiple notifications.', async (): Promise<void> => {
+      const collector = waitForSignals({ count: 1 });
+
+      const notificationFirst = { name: 'complex', data: { message: '1' }, metadata: { public: true }},
+            notificationSecond = { name: 'complex', data: { message: '2' }, metadata: { public: true }};
+
+      const query = gql`
+        subscription {
+          notifications {
+            name
+            data
+          }
+        }
+      `;
+
+      const observable = client.subscribe({
+        query
+      });
+
+      observable.subscribe(async (): Promise<void> => {
+        await collector.signal();
+      });
+
+      await sleep({ ms: 100 });
+
+      await publisher.publish({ channel: channelForNotifications, message: notificationFirst });
+      await publisher.publish({ channel: channelForNotifications, message: notificationSecond });
 
       await collector.promise;
     });

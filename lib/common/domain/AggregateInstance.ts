@@ -21,7 +21,11 @@ import { getLockService } from '../services/getLockService';
 import { GetLockService } from '../services/types/GetLockService';
 import { getLoggerService } from '../services/getLoggerService';
 import { GetLoggerService } from '../services/types/GetLoggerService';
+import { getNotificationService } from '../services/getNotificationService';
+import { GetNotificationService } from '../services/types/GetNotificationService';
 import { LockStore } from '../../stores/lockStore/LockStore';
+import { Notification } from '../elements/Notification';
+import { Publisher } from '../../messaging/pubSub/Publisher';
 import { Repository } from './Repository';
 import { Snapshot } from '../../stores/domainEventStore/Snapshot';
 import { SnapshotStrategy } from './SnapshotStrategy';
@@ -49,12 +53,17 @@ class AggregateInstance<TState extends State> {
 
   public readonly snapshotStrategy: SnapshotStrategy;
 
+  public readonly publisher: Publisher<Notification>;
+
+  public readonly pubSubChannelForNotifications: string;
+
   protected serviceFactories: {
     getAggregateService: GetAggregateService;
     getAggregatesService: GetAggregatesService;
     getClientService: GetClientService;
     getLockService: GetLockService;
     getLoggerService: GetLoggerService;
+    getNotificationService?: GetNotificationService;
   };
 
   protected repository: Repository;
@@ -66,6 +75,8 @@ class AggregateInstance<TState extends State> {
     initialState,
     domainEventStore,
     lockStore,
+    publisher,
+    pubSubChannelForNotifications,
     serviceFactories,
     snapshotStrategy,
     repository
@@ -76,12 +87,15 @@ class AggregateInstance<TState extends State> {
     initialState: TState;
     domainEventStore: DomainEventStore;
     lockStore: LockStore;
+    publisher: Publisher<Notification>;
+    pubSubChannelForNotifications: string;
     serviceFactories?: {
       getAggregateService?: GetAggregateService;
       getAggregatesService?: GetAggregatesService;
       getClientService?: GetClientService;
       getLockService?: GetLockService;
       getLoggerService?: GetLoggerService;
+      getNotificationService?: GetNotificationService;
     };
     snapshotStrategy: SnapshotStrategy;
     repository: Repository;
@@ -94,12 +108,15 @@ class AggregateInstance<TState extends State> {
     this.unstoredDomainEvents = [];
     this.domainEventStore = domainEventStore;
     this.lockStore = lockStore;
+    this.publisher = publisher;
+    this.pubSubChannelForNotifications = pubSubChannelForNotifications;
     this.serviceFactories = {
       getAggregateService: serviceFactories?.getAggregateService ?? getAggregateService,
       getAggregatesService: serviceFactories?.getAggregatesService ?? getAggregatesService,
       getClientService: serviceFactories?.getClientService ?? getClientService,
       getLockService: serviceFactories?.getLockService ?? getLockService,
-      getLoggerService: serviceFactories?.getLoggerService ?? getLoggerService
+      getLoggerService: serviceFactories?.getLoggerService ?? getLoggerService,
+      getNotificationService: serviceFactories?.getNotificationService ?? getNotificationService
     };
     this.snapshotStrategy = snapshotStrategy;
     this.repository = repository;
@@ -112,6 +129,8 @@ class AggregateInstance<TState extends State> {
     domainEventStore,
     lockStore,
     snapshotStrategy,
+    publisher,
+    pubSubChannelForNotifications,
     serviceFactories,
     repository
   }: {
@@ -121,12 +140,15 @@ class AggregateInstance<TState extends State> {
     domainEventStore: DomainEventStore;
     lockStore: LockStore;
     snapshotStrategy: SnapshotStrategy;
+    publisher: Publisher<Notification>;
+    pubSubChannelForNotifications: string;
     serviceFactories?: {
       getAggregateService?: GetAggregateService;
       getAggregatesService?: GetAggregatesService;
       getClientService?: GetClientService;
       getLockService?: GetLockService;
       getLoggerService?: GetLoggerService;
+      getNotificationService?: GetNotificationService;
     };
     repository: Repository;
   }): Promise<AggregateInstance<TState>> {
@@ -149,6 +171,8 @@ class AggregateInstance<TState extends State> {
       initialState,
       domainEventStore,
       lockStore,
+      publisher,
+      pubSubChannelForNotifications,
       serviceFactories,
       snapshotStrategy,
       repository
@@ -239,14 +263,19 @@ class AggregateInstance<TState extends State> {
       aggregates: getAggregatesService({ repository: this.repository }),
       client: getClientService({ clientMetadata: command.metadata.client }),
       error: getErrorService({ errors: [ 'CommandRejected' ]}),
+      infrastructure: {
+        ask: application.infrastructure.ask
+      },
       lock: getLockService({ lockStore: this.lockStore }),
       logger: getLoggerService({
         fileName: `<app>/server/domain/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/`,
         packageManifest: application.packageManifest
       }),
-      infrastructure: {
-        ask: application.infrastructure.ask
-      }
+      notification: getNotificationService({
+        application,
+        publisher: this.publisher,
+        channel: this.pubSubChannelForNotifications
+      })
     };
     const handleServices = {
       ...isAuthorizedServices,

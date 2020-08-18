@@ -4,6 +4,7 @@ import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getLockStoreOptionsSchema } from '../../../shared/schemas/getLockStoreOptionsSchema';
 import { getPortSchema } from '../../../shared/schemas/getPortSchema';
 import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
+import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
 import path from 'path';
 
@@ -11,6 +12,7 @@ const corsSchema = getCorsSchema(),
       lockStoreOptionsSchema = getLockStoreOptionsSchema(),
       portSchema = getPortSchema(),
       protocolSchema = getProtocolSchema(),
+      publisherOptionsSchema = getPublisherOptionsSchema(),
       snapshotStrategySchema = getSnapshotStrategySchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
@@ -97,25 +99,29 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: { type: 'InMemory' },
     schema: lockStoreOptionsSchema
   },
-  publisherChannelNewDomainEvent: {
-    environmentVariable: 'PUBLISHER_CHANNEL_NEW_DOMAIN_EVENT',
-    defaultValue: 'newDomainEvent',
-    schema: { type: 'string', minLength: 1 }
-  },
-  publisherHostName: {
-    environmentVariable: 'PUBLISHER_HOST_NAME',
-    defaultValue: 'publisher',
-    schema: { type: 'string', format: 'hostname' }
-  },
-  publisherPort: {
-    environmentVariable: 'PUBLISHER_PORT',
-    defaultValue: 3000,
-    schema: portSchema
-  },
-  publisherProtocol: {
-    environmentVariable: 'PUBLISHER_PROTOCOL',
-    defaultValue: 'http',
-    schema: protocolSchema
+  pubSubOptions: {
+    environmentVariable: 'PUB_SUB_OPTIONS',
+    defaultValue: {
+      channelForNewDomainEvents: 'newDomainEvent',
+      channelForNotifications: 'notification',
+      publisher: {
+        type: 'Http',
+        protocol: 'http',
+        hostName: 'publisher',
+        port: 3000,
+        path: '/publish/v2'
+      }
+    },
+    schema: {
+      type: 'object',
+      properties: {
+        channelForNewDomainEvents: { type: 'string', minLength: 1 },
+        channelForNotifications: { type: 'string', minLength: 1 },
+        publisher: publisherOptionsSchema
+      },
+      required: [ 'channelForNewDomainEvents', 'channelForNotifications', 'publisher' ],
+      additionalProperties: false
+    }
   },
   snapshotStrategy: {
     environmentVariable: 'SNAPSHOT_STRATEGY',

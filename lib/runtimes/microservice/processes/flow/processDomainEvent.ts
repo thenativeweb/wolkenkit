@@ -15,6 +15,7 @@ import { getCommandService } from '../../../../common/services/getCommandService
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { getLockService } from '../../../../common/services/getLockService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { getNotificationService } from '../../../../common/services/getNotificationService';
 import { keepRenewingLock } from './keepRenewingLock';
 import { LockStore } from '../../../../stores/lockStore/LockStore';
 import { Repository } from '../../../../common/domain/Repository';
@@ -74,6 +75,11 @@ const processDomainEvent = async function ({
           packageManifest: application.packageManifest
         }),
         lock: getLockService({ lockStore }),
+        notification: getNotificationService({
+          application,
+          publisher: repository.publisher,
+          channel: repository.pubSubChannelForNotifications
+        }),
         infrastructure: application.infrastructure
       },
       requestReplay

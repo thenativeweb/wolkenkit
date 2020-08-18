@@ -4,9 +4,10 @@ import { DomainEventWithState } from '../../../../common/elements/DomainEventWit
 import { errors } from '../../../../common/errors';
 import { getDomainEventsFieldConfiguration } from './getDomainEventsFieldConfiguration';
 import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
-import { GraphQLObjectType } from 'graphql';
+import { GraphQLFieldConfig } from 'graphql';
 import { PublishDomainEvent } from '../../PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
+import { ResolverContext } from '../ResolverContext';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
@@ -17,7 +18,7 @@ const domainEventWithStateSchema = new Value(getDomainEventWithStateSchema());
 const getSubscriptionSchema = function ({ application, repository }: {
   application: Application;
   repository: Repository;
-}): { schema: GraphQLObjectType; publishDomainEvent: PublishDomainEvent } {
+}): { schema: GraphQLFieldConfig<any, ResolverContext>; publishDomainEvent: PublishDomainEvent } {
   const domainEventEmitter = new SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>();
   const publishDomainEvent = function ({ domainEvent }: {
     domainEvent: DomainEventWithState<DomainEventData, State>;
@@ -32,15 +33,10 @@ const getSubscriptionSchema = function ({ application, repository }: {
     domainEventEmitter.emit(domainEvent);
   };
 
-  const schema = new GraphQLObjectType({
-    name: 'Subscription',
-    fields: {
-      domainEvents: getDomainEventsFieldConfiguration({
-        application,
-        repository,
-        domainEventEmitter
-      })
-    }
+  const schema = getDomainEventsFieldConfiguration({
+    application,
+    repository,
+    domainEventEmitter
   });
 
   return {

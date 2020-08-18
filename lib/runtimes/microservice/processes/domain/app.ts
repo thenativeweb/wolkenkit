@@ -6,6 +6,7 @@ import { Client as CommandDispatcherClient } from '../../../../apis/awaitItem/ht
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { configurationDefinition } from './configurationDefinition';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { Client as DomainEventDispatcherClient } from '../../../../apis/handleDomainEvent/http/v2/Client';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
@@ -13,10 +14,10 @@ import { flaschenpost } from 'flaschenpost';
 import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import { loadApplication } from '../../../../common/application/loadApplication';
+import { Notification } from '../../../../common/elements/Notification';
 import pForever from 'p-forever';
 import { processCommand } from './processCommand';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
-import { Client as PublisherClient } from '../../../../apis/publishMessage/http/v2/Client';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
@@ -43,10 +44,16 @@ import { State } from '../../../../common/elements/State';
 
     const lockStore = await createLockStore(configuration.lockStoreOptions);
 
+    const publisher = await createPublisher<Notification | DomainEventWithState<DomainEventData, State>>(
+      configuration.pubSubOptions.publisher
+    );
+
     const repository = new Repository({
       application,
       lockStore,
       domainEventStore,
+      publisher,
+      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotifications,
       snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
     });
 
@@ -56,13 +63,6 @@ import { State } from '../../../../common/elements/State';
       port: configuration.commandDispatcherPort,
       path: '/await-command/v2',
       createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
-    });
-
-    const publisherClient = new PublisherClient({
-      protocol: configuration.publisherProtocol,
-      hostName: configuration.publisherHostName,
-      port: configuration.publisherPort,
-      path: '/publish/v2/'
     });
 
     const domainEventDispatcherClient = new DomainEventDispatcherClient({
@@ -76,8 +76,8 @@ import { State } from '../../../../common/elements/State';
       domainEvents: DomainEventWithState<DomainEventData, State>[];
     }): Promise<any> => {
       for (const domainEvent of domainEvents) {
-        await publisherClient.postMessage({
-          channel: configuration.publisherChannelNewDomainEvent,
+        await publisher.publish({
+          channel: configuration.pubSubOptions.channelForNewDomainEvents,
           message: domainEvent
         });
         await domainEventDispatcherClient.postDomainEvent({

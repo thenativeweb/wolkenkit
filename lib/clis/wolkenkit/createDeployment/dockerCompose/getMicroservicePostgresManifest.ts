@@ -19,11 +19,15 @@ import { configurationDefinition as flowConfigurationDefinition } from '../../..
 import { Configuration as GraphqlConfiguration } from '../../../../runtimes/microservice/processes/graphql/Configuration';
 import { configurationDefinition as graphqlConfigurationDefinition } from '../../../../runtimes/microservice/processes/graphql/configurationDefinition';
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
+import { Configuration as NotificationConfiguration } from '../../../../runtimes/microservice/processes/notification/Configuration';
+import { configurationDefinition as notificationConfigurationDefinition } from '../../../../runtimes/microservice/processes/notification/configurationDefinition';
 import { Configuration as PublisherConfiguration } from '../../../../runtimes/microservice/processes/publisher/Configuration';
 import { configurationDefinition as publisherConfigurationDefinition } from '../../../../runtimes/microservice/processes/publisher/configurationDefinition';
+import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
 import { Configuration as ReplayConfiguration } from '../../../../runtimes/microservice/processes/replay/Configuration';
 import { configurationDefinition as replayConfigurationDefinition } from '../../../../runtimes/microservice/processes/replay/configurationDefinition';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
+import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOptions';
 import { toEnvironmentVariables } from '../../../../runtimes/shared/toEnvironmentVariables';
 import { versions } from '../../../../versions';
 import { Configuration as ViewConfiguration } from '../../../../runtimes/microservice/processes/view/Configuration';
@@ -88,6 +92,11 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       privatePort: 3000,
       healthPort: 3001
     },
+    notification: {
+      hostName: 'notification',
+      privatePort: 3000,
+      healthPort: 3001
+    },
     file: {
       hostName: 'file',
       privatePort: 3000,
@@ -148,13 +157,30 @@ const getMicroservicePostgresManifest = function ({ appName }: {
             locks: 'locks'
           }
         },
-        publisherChannelNewDomainEvent = 'newDomainEvent',
+        publisherOptions: PublisherOptions = {
+          type: 'Http',
+          protocol: 'http',
+          hostName: services.publisher.hostName,
+          port: services.publisher.privatePort,
+          path: '/publish/v2'
+        },
+        pubSubChannelForNewCommands = 'newCommand',
+        pubSubChannelForNewDomainEvents = 'newDomainEvent',
+        pubSubChannelForNewInternalDomainEvents = 'newInternalDomainEvent',
+        pubSubChannelForNotifications = 'notification',
         snapshotStrategy: SnapshotStrategyConfiguration = {
           name: 'lowest',
           configuration: {
             revisionLimit: 100,
             durationLimit: 500
           }
+        },
+        subscriberOptions: SubscriberOptions = {
+          type: 'Http',
+          protocol: 'http',
+          hostName: services.publisher.hostName,
+          port: services.publisher.privatePort,
+          path: '/subscribe/v2'
         };
 
   const commandConfiguration: CommandConfiguration = {
@@ -193,7 +219,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       expirationTime: 30_000
     },
     pubSubOptions: {
-      channel: 'newCommand',
+      channelForNewCommands: pubSubChannelForNewCommands,
       subscriber: { type: 'InMemory' },
       publisher: { type: 'InMemory' }
     }
@@ -216,10 +242,11 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthCorsOrigin: corsOrigin,
     healthPort: services.domain.healthPort,
     lockStoreOptions,
-    publisherChannelNewDomainEvent,
-    publisherHostName: services.publisher.hostName,
-    publisherPort: services.publisher.privatePort,
-    publisherProtocol: 'http',
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+      publisher: publisherOptions
+    },
     snapshotStrategy
   };
 
@@ -234,11 +261,13 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthPort: services.domainEvent.healthPort,
     identityProviders,
     port: services.domainEvent.privatePort,
-    snapshotStrategy,
-    subscribeMessagesChannel: publisherChannelNewDomainEvent,
-    subscribeMessagesHostName: services.publisher.hostName,
-    subscribeMessagesPort: services.publisher.privatePort,
-    subscribeMessagesProtocol: 'http'
+    pubSubOptions: {
+      channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions,
+      subscriber: subscriberOptions
+    },
+    snapshotStrategy
   };
 
   const aeonstoreConfiguration: AeonstoreConfiguration = {
@@ -276,11 +305,13 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthPort: services.graphql.healthPort,
     identityProviders,
     port: services.graphql.privatePort,
-    snapshotStrategy,
-    subscribeMessagesChannel: publisherChannelNewDomainEvent,
-    subscribeMessagesHostName: services.publisher.hostName,
-    subscribeMessagesPort: services.publisher.privatePort,
-    subscribeMessagesProtocol: 'http'
+    pubSubOptions: {
+      channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions,
+      subscriber: subscriberOptions
+    },
+    snapshotStrategy
   };
 
   const domainEventDispatcherConfiguration: DomainEventDispatcherConfiguration = {
@@ -305,7 +336,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       expirationTime: 30_000
     },
     pubSubOptions: {
-      channel: 'newDomainEvent',
+      channelForNewInternalDomainEvents: pubSubChannelForNewInternalDomainEvents,
       subscriber: { type: 'InMemory' },
       publisher: { type: 'InMemory' }
     }
@@ -339,6 +370,10 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthCorsOrigin: corsOrigin,
     healthPort: services.flow.healthPort,
     lockStoreOptions,
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions
+    },
     replayServerHostName: services.replay.hostName,
     replayServerPort: services.replay.privatePort,
     replayServerProtocol: 'http',
@@ -366,7 +401,25 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     healthPort: services.view.healthPort,
     identityProviders,
     port: services.view.privatePort,
-    viewCorsOrigin: corsOrigin
+    viewCorsOrigin: corsOrigin,
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions,
+      subscriber: subscriberOptions
+    }
+  };
+
+  const notificationConfiguration: NotificationConfiguration = {
+    applicationDirectory,
+    healthCorsOrigin: corsOrigin,
+    healthPort: services.notification.healthPort,
+    identityProviders,
+    notificationCorsOrigin: corsOrigin,
+    port: services.notification.privatePort,
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      subscriber: subscriberOptions
+    }
   };
 
   const fileConfiguration: FileConfiguration = {
@@ -407,7 +460,7 @@ ${
           - 'traefik.enable=true'
           - 'traefik.http.routers.${services.command.hostName}.rule=PathPrefix(\`/command\`)'
           - 'traefik.http.routers.${services.command.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.port=${services.command.privatePort}'
+          - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.server.port=${services.command.privatePort}'
           - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
           - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.healthcheck.port=${services.command.healthPort}'
 
@@ -474,7 +527,7 @@ ${
           - 'traefik.enable=true'
           - 'traefik.http.routers.${services.domainEvent.hostName}.rule=PathPrefix(\`/domain-events\`)'
           - 'traefik.http.routers.${services.domainEvent.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.port=${services.domainEvent.privatePort}'
+          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.server.port=${services.domainEvent.privatePort}'
           - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
           - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.healthcheck.port=${services.domainEvent.healthPort}'
 
@@ -541,7 +594,7 @@ ${
           - 'traefik.enable=true'
           - 'traefik.http.routers.${services.graphql.hostName}.rule=PathPrefix(\`/graphql\`)'
           - 'traefik.http.routers.${services.graphql.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.port=${services.graphql.privatePort}'
+          - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.server.port=${services.graphql.privatePort}'
           - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
           - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.healthcheck.port=${services.graphql.healthPort}'
 
@@ -628,9 +681,39 @@ ${
           - 'traefik.enable=true'
           - 'traefik.http.routers.${services.view.hostName}.rule=PathPrefix(\`/views\`)'
           - 'traefik.http.routers.${services.view.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.port=${services.view.privatePort}'
+          - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.server.port=${services.view.privatePort}'
           - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
           - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.healthcheck.port=${services.view.healthPort}'
+
+      ${services.notification.hostName}:
+        build: '../..'
+        command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/notification/app.js'
+        environment:
+          NODE_ENV: 'production'
+${
+  Object.entries(
+    toEnvironmentVariables({
+      configuration: notificationConfiguration,
+      configurationDefinition: notificationConfigurationDefinition
+    })
+  ).map(([ key, value ]): string => `          ${key}: '${value}'`).join('\n')
+}
+        image: '${appName}'
+        init: true
+        restart: 'always'
+        healthcheck:
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.notification.healthPort}"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
+        labels:
+          - 'traefik.enable=true'
+          - 'traefik.http.routers.${services.notification.hostName}.rule=PathPrefix(\`/notifications\`)'
+          - 'traefik.http.routers.${services.notification.hostName}.entrypoints=web'
+          - 'traefik.http.services.${services.notification.hostName}-service.loadbalancer.server.port=${services.notification.privatePort}'
+          - 'traefik.http.services.${services.notification.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.${services.notification.hostName}-service.loadbalancer.healthcheck.port=${services.notification.healthPort}'
 
       ${services.file.hostName}:
         build: '../..'
@@ -655,7 +738,7 @@ ${
           - 'traefik.enable=true'
           - 'traefik.http.routers.${services.file.hostName}.rule=PathPrefix(\`/files\`)'
           - 'traefik.http.routers.${services.file.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.port=${services.file.privatePort}'
+          - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.server.port=${services.file.privatePort}'
           - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
           - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.healthcheck.port=${services.file.healthPort}'
 

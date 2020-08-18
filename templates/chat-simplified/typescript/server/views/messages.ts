@@ -1,7 +1,8 @@
 import { Infrastructure } from '../infrastructure';
 import { Message } from '../types/Message';
 import { Readable } from 'stream';
-import { QueryHandler, QueryResultItem, Schema, View } from 'wolkenkit';
+import { FlowUpdated, ViewUpdated } from '../notifications';
+import { NotificationService, NotificationSubscriber, QueryHandler, QueryResultItem, Schema, View } from 'wolkenkit';
 
 export interface AllResultItem extends QueryResultItem, Message {}
 
@@ -41,6 +42,20 @@ const messages: View = {
         return true;
       }
     } as QueryHandler<AllResultItem, Infrastructure>
+  },
+
+  notificationSubscribers: {
+    flowMessagesUpdatedNotificationSubscriber: {
+      isRelevant ({ name }: { name: string }): boolean {
+        return name === 'flowMessagesUpdated';
+      },
+
+      async handle (data: FlowUpdated['data'], { notification }: {
+        notification: NotificationService;
+      }): Promise<void> {
+        await notification.publish<ViewUpdated>('viewMessagesUpdated', {});
+      }
+    } as NotificationSubscriber<FlowUpdated, Infrastructure>
   }
 };
 

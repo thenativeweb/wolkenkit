@@ -6,7 +6,8 @@ import { View } from '../../../../lib/common/elements/View';
 
 suite('validateViewDefinition', (): void => {
   const viewDefinition: View = {
-    queryHandlers: {}
+    queryHandlers: {},
+    notificationSubscribers: {}
   };
 
   test('does not throw an error if everything is fine.', async (): Promise<void> => {
@@ -65,6 +66,53 @@ suite('validateViewDefinition', (): void => {
       (ex): boolean =>
         (ex as CustomError).code === errors.ViewDefinitionMalformed.code &&
         ex.message === `Query handler 'sampleQuery' is malformed: Query handler is not an object.`
+    );
+  });
+
+  test('throws an error if notification subscribers are missing.', async (): Promise<void> => {
+    assert.that((): void => {
+      validateViewDefinition({
+        viewDefinition: {
+          ...viewDefinition,
+          notificationSubscribers: undefined
+        }
+      });
+    }).is.throwing(
+      (ex): boolean =>
+        (ex as CustomError).code === errors.ViewDefinitionMalformed.code &&
+            ex.message === `Object 'notificationSubscribers' is missing.`
+    );
+  });
+
+  test('throws an error if notification subscribers are not an object.', async (): Promise<void> => {
+    assert.that((): void => {
+      validateViewDefinition({
+        viewDefinition: {
+          ...viewDefinition,
+          notificationSubscribers: false
+        }
+      });
+    }).is.throwing(
+      (ex): boolean =>
+        (ex as CustomError).code === errors.ViewDefinitionMalformed.code &&
+            ex.message === `Property 'notificationSubscribers' is not an object.`
+    );
+  });
+
+  test('throws an error if a malformed notification subscriber is found.', async (): Promise<void> => {
+    assert.that((): void => {
+      validateViewDefinition({
+        viewDefinition: {
+          ...viewDefinition,
+          notificationSubscribers: {
+            sampleNotificationSubscriber: false
+          }
+        }
+      });
+    }).is.throwing(
+      (ex): boolean =>
+        (ex as CustomError).code === errors.ViewDefinitionMalformed.code &&
+            ex.message === `Notification subscriber 'sampleNotificationSubscriber' is malformed: Notification subscriber is not an object.`
     );
   });
 });

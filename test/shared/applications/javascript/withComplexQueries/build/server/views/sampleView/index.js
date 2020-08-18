@@ -11,7 +11,8 @@ const sampleView = {
     authorized,
     first,
     withOptions
-  }
+  },
+  notificationSubscribers: {}
 };
 
 module.exports = sampleView;

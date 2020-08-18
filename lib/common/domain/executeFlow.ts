@@ -11,6 +11,7 @@ import { errors } from '../errors';
 import { flaschenpost } from 'flaschenpost';
 import { LockService } from '../services/LockService';
 import { LoggerService } from '../services/LoggerService';
+import { NotificationService } from '../services/NotificationService';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
 
 const logger = flaschenpost.getLogger();
@@ -33,6 +34,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     infrastructure: TInfrastructure;
     logger: LoggerService;
     lock: LockService;
+    notification: NotificationService;
   };
   requestReplay: (parameters: {
     flowName: string;
