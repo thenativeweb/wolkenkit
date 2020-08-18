@@ -134,7 +134,7 @@ suite('notification', function (): void {
       messageStream.pipe(asJsonStream<object>(
         [
           async (receivedEvent): Promise<void> => {
-            assert.that(receivedEvent).is.equalTo(notification);
+            assert.that(receivedEvent).is.equalTo({ name: notification.name, data: notification.data });
 
             await collector.signal();
           }
@@ -164,7 +164,7 @@ suite('notification', function (): void {
       messageStream.pipe(asJsonStream<object>(
         [
           async (receivedEvent): Promise<void> => {
-            assert.that(receivedEvent).is.equalTo(notificationSecond);
+            assert.that(receivedEvent).is.equalTo({ name: notificationSecond.name, data: notificationSecond.data });
 
             await collector.signal();
           }
@@ -194,7 +194,7 @@ suite('notification', function (): void {
       messageStream.pipe(asJsonStream<object>(
         [
           async (receivedEvent): Promise<void> => {
-            assert.that(receivedEvent).is.equalTo(notificationSecond);
+            assert.that(receivedEvent).is.equalTo({ name: notificationSecond.name, data: notificationSecond.data });
 
             await collector.signal();
           }

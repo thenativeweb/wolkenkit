@@ -1,19 +1,30 @@
 import { Application } from '../../../common/application/Application';
 import { getMutationSchema } from './handleCommand/getMutationSchema';
+import { getSubscriptionSchema as getObserveDomainEventsSubscriptionSchema } from './observeDomainEvents/getSubscriptionSchema';
+import { getSubscriptionSchema as getObserveNotificationsSubscriptionSchema } from './observeNotifications/getSubscriptionSchema';
 import { getQuerySchema } from './queryView/getQuerySchema';
-import { getSubscriptionSchema } from './observeDomainEvents/getSubscriptionSchema';
+import { GraphQLFieldConfigMap } from 'graphql/type/definition';
+import { Notification } from '../../../common/elements/Notification';
 import { OnCancelCommand } from '../OnCancelCommand';
 import { OnReceiveCommand } from '../OnReceiveCommand';
 import { PublishDomainEvent } from '../PublishDomainEvent';
 import { Repository } from '../../../common/domain/Repository';
+import { Subscriber } from '../../../messaging/pubSub/Subscriber';
 import { GraphQLBoolean, GraphQLObjectType, GraphQLSchema, GraphQLSchemaConfig } from 'graphql';
 
-const getSchema = function ({ application, handleCommand, observeDomainEvents, queryView }: {
+const getSchema = async function ({
+  application,
+  handleCommand,
+  observeDomainEvents,
+  observeNotifications,
+  queryView
+}: {
   application: Application;
   handleCommand: false | { onReceiveCommand: OnReceiveCommand; onCancelCommand: OnCancelCommand };
-  observeDomainEvents: false | { repository: Repository; webSocketEndpoint: string };
+  observeDomainEvents: false | { repository: Repository };
+  observeNotifications: false | { subscriber: Subscriber<Notification>; channelForNotifications: string };
   queryView: boolean;
-}): { schema: GraphQLSchema; publishDomainEvent?: PublishDomainEvent } {
+}): Promise<{ schema: GraphQLSchema; publishDomainEvent?: PublishDomainEvent }> {
   const graphQlSchemaConfig: GraphQLSchemaConfig = {};
   let publishDomainEvent: PublishDomainEvent | undefined;
 
@@ -25,16 +36,29 @@ const getSchema = function ({ application, handleCommand, observeDomainEvents, q
     });
   }
 
-  if (observeDomainEvents !== false) {
-    const subscriptionSchemaParts = getSubscriptionSchema({
+  const subscriptionConfiguration = {
+    name: 'Subscription',
+    fields: {} as GraphQLFieldConfigMap<any, any>
+  };
+
+  if (observeDomainEvents) {
+    const subscriptionSchemaParts = getObserveDomainEventsSubscriptionSchema({
       application,
       repository: observeDomainEvents.repository
     });
 
-    graphQlSchemaConfig.subscription = subscriptionSchemaParts.schema;
-    // eslint-disable-next-line prefer-destructuring
-    publishDomainEvent = subscriptionSchemaParts.publishDomainEvent;
+    subscriptionConfiguration.fields.domainEvents = subscriptionSchemaParts.schema;
+    ({ publishDomainEvent } = subscriptionSchemaParts);
   }
+  if (observeNotifications) {
+    subscriptionConfiguration.fields.notifications = await getObserveNotificationsSubscriptionSchema({
+      application,
+      subscriber: observeNotifications.subscriber,
+      channelForNotifications: observeNotifications.channelForNotifications
+    });
+  }
+
+  graphQlSchemaConfig.subscription = new GraphQLObjectType(subscriptionConfiguration);
 
   if (queryView) {
     graphQlSchemaConfig.query = getQuerySchema({

@@ -113,7 +113,10 @@ suite('subscribeNotifications/http', (): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
             (streamElement: any): void => {
-              assert.that(streamElement).is.equalTo(notificationSecond);
+              assert.that(streamElement).is.equalTo({
+                name: notificationSecond.name,
+                data: notificationSecond.data
+              });
               resolve();
             }
           ]));
@@ -151,7 +154,7 @@ suite('subscribeNotifications/http', (): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
             (streamElement: any): void => {
-              assert.that(streamElement).is.equalTo(notificationSecond);
+              assert.that(streamElement).is.equalTo({ name: notificationSecond.name, data: notificationSecond.data });
               resolve();
             }
           ]));
@@ -189,7 +192,7 @@ suite('subscribeNotifications/http', (): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
             (streamElement: any): void => {
-              assert.that(streamElement).is.equalTo(notificationSecond);
+              assert.that(streamElement).is.equalTo({ name: notificationSecond.name, data: notificationSecond.data });
               resolve();
             }
           ]));
@@ -227,10 +230,10 @@ suite('subscribeNotifications/http', (): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
             },
             (streamElement: any): void => {
-              assert.that(streamElement).is.equalTo(notificationFirst);
+              assert.that(streamElement).is.equalTo({ name: notificationFirst.name, data: notificationFirst.data });
             },
             (streamElement: any): void => {
-              assert.that(streamElement).is.equalTo(notificationSecond);
+              assert.that(streamElement).is.equalTo({ name: notificationSecond.name, data: notificationSecond.data });
               resolve();
             }
           ]));

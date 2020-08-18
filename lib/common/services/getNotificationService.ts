@@ -1,10 +1,9 @@
 import { Application } from '../application/Application';
-import { errors } from '../errors';
 import { GetNotificationService } from './types/GetNotificationService';
 import { Notification } from '../elements/Notification';
 import { NotificationService } from './NotificationService';
 import { Publisher } from '../../messaging/pubSub/Publisher';
-import { Value } from 'validate-value';
+import { validateNotification } from '../validators/validateNotification';
 
 const getNotificationService: GetNotificationService = function ({ application, channel, publisher }: {
   application: Application;
@@ -13,30 +12,17 @@ const getNotificationService: GetNotificationService = function ({ application, 
 }): NotificationService {
   return {
     async publish (name, data, metadata): Promise<void> {
-      if (!(name in application.notifications)) {
-        throw new errors.NotificationNotFound(`Failed to publish unknown notification '${name}'.`);
-      }
+      const notification = {
+        name,
+        data,
+        metadata
+      };
 
-      const notificationHandler = application.notifications[name];
-
-      if (notificationHandler.getDataSchema) {
-        const schema = notificationHandler.getDataSchema();
-        const value = new Value(schema);
-
-        value.validate(data, { valueName: 'notification.data' });
-      }
-      if (notificationHandler.getMetadataSchema) {
-        const schema = notificationHandler.getMetadataSchema();
-        const value = new Value(schema);
-
-        value.validate(metadata, { valueName: 'notification.metadata' });
-      }
+      validateNotification({ notification, application });
 
       await publisher.publish({
         channel,
-        message: {
-          name, data, metadata
-        }
+        message: notification
       });
     }
   };

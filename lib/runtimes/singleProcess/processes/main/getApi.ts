@@ -125,11 +125,15 @@ const getApi = async function ({
         onCancelCommand
       },
       observeDomainEvents: {
-        repository,
-        webSocketEndpoint: '/graphql/v2/'
+        repository
+      },
+      observeNotifications: {
+        subscriber,
+        channelForNotifications
       },
       queryView: true,
-      enableIntegratedClient: configuration.graphqlApi.enableIntegratedClient
+      enableIntegratedClient: configuration.graphqlApi.enableIntegratedClient,
+      webSocketEndpoint: '/graphql/v2/'
     });
 
     initializeGraphQlOnServer = initializeGraphql;

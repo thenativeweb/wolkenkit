@@ -41,7 +41,7 @@ suite('getNotificationService', (): void => {
 
       await assert.that(async (): Promise<void> => {
         await notificationService.publish(unknownNotificationName, {});
-      }).is.throwingAsync(`Failed to publish unknown notification '${unknownNotificationName}'.`);
+      }).is.throwingAsync(`Notification '${unknownNotificationName}' not found.`);
     });
 
     test(`throws an error if the published notification's data does not match its schema.`, async (): Promise<void> => {

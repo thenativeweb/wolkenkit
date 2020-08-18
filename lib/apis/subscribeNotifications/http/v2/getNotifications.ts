@@ -6,7 +6,7 @@ import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { Notification } from '../../../../common/elements/Notification';
 import PQueue from 'p-queue';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
-import { Value } from 'validate-value';
+import { validateNotification } from '../../../../common/validators/validateNotification';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import { Request, Response } from 'express';
@@ -43,38 +43,15 @@ const getNotifications = {
         const notificationQueue = new PQueue({ concurrency: 1 });
 
         const handleNotification = (notification: Notification): void => {
-          if (!(notification.name in application.notifications)) {
-            logger.error(`Failed to publish unknown notification '${notification.name}'.`);
+          try {
+            validateNotification({ notification, application });
+          } catch (ex) {
+            logger.warn('Dropping invalid notification.', { notification });
 
             return;
           }
 
           const notificationHandler = application.notifications[notification.name];
-
-          if (notificationHandler.getDataSchema) {
-            const schema = notificationHandler.getDataSchema();
-            const value = new Value(schema);
-
-            try {
-              value.validate(notification.data, { valueName: 'notification.data' });
-            } catch (ex) {
-              logger.error(`Failed to publish invalid notification '${notification.name}'.`, { ex });
-
-              return;
-            }
-          }
-          if (notificationHandler.getMetadataSchema) {
-            const schema = notificationHandler.getMetadataSchema();
-            const value = new Value(schema);
-
-            try {
-              value.validate(notification.metadata, { valueName: 'notification.metadata' });
-            } catch (ex) {
-              logger.error(`Failed to publish invalid notification '${notification.name}'.`, { ex });
-
-              return;
-            }
-          }
 
           if (!notificationHandler.isAuthorized(notification.data, notification.metadata, {
             logger: getLoggerService({
@@ -87,9 +64,14 @@ const getNotifications = {
             return;
           }
 
+          const notificationWithoutMetadata = {
+            name: notification.name,
+            data: notification.data
+          };
+
           /* eslint-disable @typescript-eslint/no-floating-promises */
           notificationQueue.add(async (): Promise<void> => {
-            writeLine({ res, data: notification });
+            writeLine({ res, data: notificationWithoutMetadata });
           });
           /* eslint-enable @typescript-eslint/no-floating-promises */
         };

@@ -83,7 +83,9 @@ import { Value } from 'validate-value';
       identityProviders,
       onReceiveCommand,
       onCancelCommand,
-      repository
+      repository,
+      subscriber,
+      channelForNotifications: configuration.pubSubOptions.channelForNotifications
     });
 
     const server = http.createServer(api);

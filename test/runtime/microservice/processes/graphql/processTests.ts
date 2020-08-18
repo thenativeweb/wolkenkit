@@ -36,7 +36,8 @@ suite('graphql server', function (): void {
   this.timeout(10_000);
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-  const subscribeMessagesChannel = 'newDomainEvent';
+  const subscribeMessagesChannel = 'newDomainEvent',
+        subscribeNotificationsChannel = 'notifications';
 
   let commandDispatcherClient: CommandDispatcherClient<CommandWithMetadata<CommandData>>,
       commandDispatcherHealthPort: number,
@@ -148,7 +149,7 @@ suite('graphql server', function (): void {
       port,
       pubSubOptions: {
         channelForNewDomainEvents: subscribeMessagesChannel,
-        channelForNotifications: 'notifications',
+        channelForNotifications: subscribeNotificationsChannel,
         publisher: { type: 'InMemory' },
         subscriber: {
           type: 'Http',
@@ -249,7 +250,7 @@ suite('graphql server', function (): void {
       assert.that(item.id).is.equalTo(result.data.command.sampleContext_sampleAggregate_execute.id);
     });
 
-    test('has a subscription endpoint.', async (): Promise<void> => {
+    test('has a subscription endpoint for domain events.', async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
         `ws://localhost:${port}/graphql/v2/`,
         {},
@@ -309,6 +310,48 @@ suite('graphql server', function (): void {
       await publishMessageClient.postMessage({
         channel: subscribeMessagesChannel,
         message: domainEvent
+      });
+
+      await collector.promise;
+    });
+
+    test('has a subscription endpoint for notifications.', async (): Promise<void> => {
+      const subscriptionClient = new SubscriptionClient(
+        `ws://localhost:${port}/graphql/v2/`,
+        {},
+        ws
+      );
+      const link = new WebSocketLink(subscriptionClient);
+      const cache = new InMemoryCache();
+
+      const client = new ApolloClient<NormalizedCacheObject>({
+        link,
+        cache
+      });
+
+      const query = gql`
+        subscription {
+          notifications {
+            name
+          }
+        }
+      `;
+
+      const observable = client.subscribe({
+        query
+      });
+
+      const collector = waitForSignals({ count: 1 });
+
+      observable.subscribe(async (): Promise<void> => {
+        await collector.signal();
+      });
+
+      await sleep({ ms: 100 });
+
+      await publishMessageClient.postMessage({
+        channel: subscribeNotificationsChannel,
+        message: { name: 'flowSampleFlowUpdated', data: '{}' }
       });
 
       await collector.promise;

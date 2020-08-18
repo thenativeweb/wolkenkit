@@ -300,7 +300,7 @@ suite('main', function (): void {
       assert.that(result?.data?.command.sampleContext_sampleAggregate_execute?.id).is.not.undefined();
     });
 
-    test('has a subscription endpoint.', async (): Promise<void> => {
+    test('has a subscription endpoint for domain events.', async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
         `ws://localhost:${port}/graphql/v2/`,
         {},
@@ -335,6 +335,53 @@ suite('main', function (): void {
       });
 
       const collector = waitForSignals({ count: 2 });
+
+      observable.subscribe(async (): Promise<void> => {
+        await collector.signal();
+      });
+
+      await sleep({ ms: 100 });
+
+      await handleCommandClient.postCommand({ command });
+
+      await collector.promise;
+    });
+
+    test('has a subscription endpoint for notifications.', async (): Promise<void> => {
+      const subscriptionClient = new SubscriptionClient(
+        `ws://localhost:${port}/graphql/v2/`,
+        {},
+        ws
+      );
+      const link = new WebSocketLink(subscriptionClient);
+      const cache = new InMemoryCache();
+
+      const client = new ApolloClient<NormalizedCacheObject>({
+        link,
+        cache
+      });
+
+      const query = gql`
+        subscription {
+          notifications {
+            name
+          }
+        }
+      `;
+
+      const observable = client.subscribe({
+        query
+      });
+
+      const aggregateId = v4();
+      const command = buildCommand({
+        contextIdentifier: { name: 'sampleContext' },
+        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        name: 'execute',
+        data: { strategy: 'succeed' }
+      });
+
+      const collector = waitForSignals({ count: 1 });
 
       observable.subscribe(async (): Promise<void> => {
         await collector.signal();
