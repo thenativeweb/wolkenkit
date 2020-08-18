@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter2 } from 'eventemitter2';
 import { flaschenpost } from 'flaschenpost';
 import PQueue from 'p-queue';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -20,7 +20,7 @@ const getMessages = {
   },
 
   getHandler ({ messageEmitter, heartbeatInterval }: {
-    messageEmitter: EventEmitter;
+    messageEmitter: EventEmitter2;
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
     return async function (req: Request, res: Response): Promise<void> {

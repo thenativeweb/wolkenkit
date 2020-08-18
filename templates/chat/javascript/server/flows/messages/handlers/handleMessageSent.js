@@ -5,7 +5,7 @@ const handleMessageSent = {
     return fullyQualifiedName === 'communication.message.sent';
   },
 
-  async handle (domainEvent, { infrastructure }) {
+  async handle (domainEvent, { infrastructure, notification }) {
     const message = {
       id: domainEvent.aggregateIdentifier.id,
       timestamp: domainEvent.metadata.timestamp,
@@ -16,10 +16,14 @@ const handleMessageSent = {
     if (Array.isArray(infrastructure.tell.viewStore.messages)) {
       infrastructure.tell.viewStore.messages.push(message);
 
+      await notification.publish('flowMessagesUpdated', {});
+
       return;
     }
 
     await infrastructure.tell.viewStore.messages.insertOne(message);
+
+    await notification.publish('flowMessagesUpdated', {});
   }
 };
 

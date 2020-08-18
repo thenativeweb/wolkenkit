@@ -5,6 +5,7 @@ import { assert } from 'assertthat';
 import { cloneDeep } from 'lodash';
 import { CommandWithMetadata } from '../../../../lib/common/elements/CommandWithMetadata';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getAggregateService } from '../../../../lib/common/services/getAggregateService';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
@@ -12,6 +13,8 @@ import { getTestApplicationDirectory } from '../../../shared/applications/getTes
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
+import { Notification } from '../../../../lib/common/elements/Notification';
+import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { State } from '../../../../lib/common/elements/State';
 import { v4 } from 'uuid';
@@ -53,6 +56,8 @@ suite('getAggregateService', (): void => {
       domainEventHandlerCalled = false,
       domainEventStore: DomainEventStore,
       lockStore: LockStore,
+      publisher: Publisher<Notification>,
+      pubSubChannelForNotifications: string,
       repository: Repository;
 
   suiteSetup(async (): Promise<void> => {
@@ -77,12 +82,16 @@ suite('getAggregateService', (): void => {
 
     domainEventStore = await InMemoryDomainEventStore.create({ type: 'InMemory' });
     lockStore = await createLockStore({ type: 'InMemory' });
+    publisher = await createPublisher<Notification>({ type: 'InMemory' });
+    pubSubChannelForNotifications = 'notifications';
 
     repository = new Repository({
       application,
       lockStore,
       domainEventStore,
-      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+      publisher,
+      pubSubChannelForNotifications
     });
 
     aggregateInstance = await repository.getAggregateInstance({

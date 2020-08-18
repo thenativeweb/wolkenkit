@@ -12,7 +12,10 @@ import { GetClientService } from '../../../services/types/GetClientService';
 import { GetCommandService } from '../../../services/types/GetCommandService';
 import { GetLockService } from '../../../services/types/GetLockService';
 import { GetLoggerService } from '../../../services/types/GetLoggerService';
+import { GetNotificationService } from '../../../services/types/GetNotificationService';
 import { LockStore } from '../../../../stores/lockStore/LockStore';
+import { Notification } from '../../../elements/Notification';
+import { Publisher } from '../../../../messaging/pubSub/Publisher';
 import { SandboxConfiguration } from './SandboxConfiguration';
 import { SandboxForAggregate } from './SandboxForAggregate';
 import { SandboxForFlow } from './SandboxForFlow';
@@ -72,6 +75,15 @@ const initializedSandbox = function (sandboxConfiguration: SandboxConfiguration)
       });
     },
 
+    withPublisher ({ publisher }: {
+      publisher: Publisher<Notification>;
+    }): Sandbox {
+      return initializedSandbox({
+        ...sandboxConfiguration,
+        publisher
+      });
+    },
+
     withAggregateServiceFactory ({ aggregateServiceFactory }: {
       aggregateServiceFactory: GetAggregateService;
     }): Sandbox {
@@ -123,6 +135,15 @@ const initializedSandbox = function (sandboxConfiguration: SandboxConfiguration)
       return initializedSandbox({
         ...sandboxConfiguration,
         loggerServiceFactory
+      });
+    },
+
+    withNotificationServiceFactory ({ notificationServiceFactory }: {
+      notificationServiceFactory: GetNotificationService;
+    }): Sandbox {
+      return initializedSandbox({
+        ...sandboxConfiguration,
+        notificationServiceFactory
       });
     },
 

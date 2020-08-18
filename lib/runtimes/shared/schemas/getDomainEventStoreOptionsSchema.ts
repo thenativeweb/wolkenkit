@@ -21,9 +21,10 @@ const getDomainEventStoreOptionsSchema = function (): Schema {
           collectionNames: {
             type: 'object',
             properties: {
-              queues: { type: 'string', minLength: 1 }
+              domainEvents: { type: 'string', minLength: 1 },
+              snapshots: { type: 'string', minLength: 1 }
             },
-            required: [ 'queues' ],
+            required: [ 'domainEvents', 'snapshots' ],
             additionalProperties: false
           }
         },

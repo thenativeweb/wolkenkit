@@ -31,7 +31,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',
-    defaultValue: { subscriber: { type: 'InMemory' }, publisher: { type: 'InMemory' }},
+    defaultValue: {
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    },
     schema: {
       type: 'object',
       properties: {

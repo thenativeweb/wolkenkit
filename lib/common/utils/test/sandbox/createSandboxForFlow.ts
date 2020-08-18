@@ -4,6 +4,7 @@ import { CommandWithMetadata } from '../../../elements/CommandWithMetadata';
 import { createConsumerProgressStore } from '../../../../stores/consumerProgressStore/createConsumerProgressStore';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { DomainEventData } from '../../../elements/DomainEventData';
 import { executeFlow } from '../../../domain/executeFlow';
 import { getAggregateService } from '../../../services/getAggregateService';
@@ -12,6 +13,7 @@ import { getClientService } from '../../../services/getClientService';
 import { getCommandService } from '../../../services/getCommandService';
 import { getLockService } from '../../../services/getLockService';
 import { getLoggerService } from '../../../services/getLoggerService';
+import { getNotificationService } from '../../../services/getNotificationService';
 import { getSnapshotStrategy } from '../../../domain/getSnapshotStrategy';
 import { Initiator } from '../../../elements/Initiator';
 import { noop } from 'lodash';
@@ -110,6 +112,7 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
       const domainEventStore = sandboxConfiguration.domainEventStore ?? await createDomainEventStore({ type: 'InMemory' });
       const flowProgressStore = sandboxConfiguration.flowProgressStore ?? await createConsumerProgressStore({ type: 'InMemory' });
       const snapshotStrategy = sandboxConfiguration.snapshotStrategy ?? getSnapshotStrategy({ name: 'never' });
+      const publisher = sandboxConfiguration.publisher ?? await createPublisher({ type: 'InMemory' });
 
       const aggregateServiceFactory = sandboxConfiguration.aggregateServiceFactory ?? getAggregateService;
       const aggregatesServiceFactory = sandboxConfiguration.aggregatesServiceFactory ?? getAggregatesService;
@@ -117,18 +120,22 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
       const commandServiceFactory = sandboxConfiguration.commandServiceFactory ?? getCommandService;
       const lockServiceFactory = sandboxConfiguration.lockServiceFactory ?? getLockService;
       const loggerServiceFactory = sandboxConfiguration.loggerServiceFactory ?? getLoggerService;
+      const notificationServiceFactory = sandboxConfiguration.notificationServiceFactory ?? getNotificationService;
 
       const repository = new Repository({
         application: sandboxConfiguration.application,
         lockStore,
         domainEventStore,
         snapshotStrategy,
+        publisher,
+        pubSubChannelForNotifications: 'notifications',
         serviceFactories: {
           getAggregateService: aggregateServiceFactory,
           getAggregatesService: aggregatesServiceFactory,
           getClientService: clientServiceFactory,
           getLockService: lockServiceFactory,
-          getLoggerService: loggerServiceFactory
+          getLoggerService: loggerServiceFactory,
+          getNotificationService: notificationServiceFactory
         }
       });
 
@@ -152,7 +159,12 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
               packageManifest: sandboxConfiguration.application.packageManifest,
               fileName: `<app>/server/flows/${sandboxConfiguration.flowName}`
             }),
-            lock: lockServiceFactory({ lockStore })
+            lock: lockServiceFactory({ lockStore }),
+            notification: notificationServiceFactory({
+              application: sandboxConfiguration.application,
+              publisher,
+              channel: 'notifications'
+            })
           }
         });
       }

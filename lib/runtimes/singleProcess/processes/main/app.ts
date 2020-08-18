@@ -9,18 +9,23 @@ import { createDomainEventStore } from '../../../../stores/domainEventStore/crea
 import { createFileStore } from '../../../../stores/fileStore/createFileStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { createPriorityQueueStore } from '../../../../stores/priorityQueueStore/createPriorityQueueStore';
+import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
+import { createSubscriber } from '../../../../messaging/pubSub/createSubscriber';
 import { doesItemIdentifierWithClientMatchCommandWithMetadata } from '../../../../common/domain/doesItemIdentifierWithClientMatchCommandWithMetadata';
 import { doesItemIdentifierWithClientMatchDomainEvent } from '../../../../common/domain/doesItemIdentifierWithClientMatchDomainEvent';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
+import { executeNotificationSubscribers } from '../../../../common/domain/executeNotificationSubscribers';
 import { flaschenpost } from 'flaschenpost';
 import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getApi } from './getApi';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
+import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import http from 'http';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { loadApplication } from '../../../../common/application/loadApplication';
+import { Notification } from '../../../../common/elements/Notification';
 import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import pForever from 'p-forever';
@@ -52,11 +57,16 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     const lockStore = await createLockStore(configuration.lockStoreOptions);
 
+    const publisher = await createPublisher<Notification>(configuration.pubSubOptions.publisher);
+    const subscriber = await createSubscriber<Notification>(configuration.pubSubOptions.subscriber);
+
     const repository = new Repository({
       application,
       lockStore,
       domainEventStore,
-      snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy)
+      snapshotStrategy: getSnapshotStrategy(configuration.snapshotStrategy),
+      publisher,
+      pubSubChannelForNotifications: configuration.pubSubOptions.channelForNotifications
     });
 
     const consumerProgressStore = await createConsumerProgressStore(configuration.consumerProgressStoreOptions);
@@ -101,7 +111,9 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       onReceiveCommand,
       onCancelCommand,
       repository,
-      fileStore
+      fileStore,
+      subscriber,
+      channelForNotifications: configuration.pubSubOptions.channelForNotifications
     });
 
     const server = http.createServer(api);
@@ -112,6 +124,39 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     server.listen(configuration.port, (): void => {
       logger.info('Single process runtime server started.', { port: configuration.port });
+    });
+
+    await subscriber.subscribe({
+      channel: configuration.pubSubOptions.channelForNotifications,
+      async callback (notification: Notification): Promise<void> {
+        const notifications: Notification[] = [];
+
+        for (const viewName of Object.keys(application.views)) {
+          await executeNotificationSubscribers({
+            application,
+            viewName,
+            notification,
+            services: {
+              logger: getLoggerService({
+                packageManifest: application.packageManifest,
+                fileName: `<app>/server/views/${viewName}`
+              }),
+              notification: {
+                publish (name, data, metadata): void {
+                  notifications.push({ name, data, metadata });
+                }
+              }
+            }
+          });
+        }
+
+        for (const newNotification of notifications) {
+          await publisher.publish({
+            channel: configuration.pubSubOptions.channelForNotifications,
+            message: newNotification
+          });
+        }
+      }
     });
 
     const publishDomainEvents: PublishDomainEvents = async function ({ domainEvents }): Promise<void> {

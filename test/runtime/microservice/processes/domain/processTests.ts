@@ -32,6 +32,7 @@ suite('domain', function (): void {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   const publisherChannelNewDomainEvent = 'newDomainEvent',
+        publisherChannelNotification = 'notifications',
         queueLockExpirationTime = 600,
         queuePollInterval = 600;
 
@@ -170,9 +171,17 @@ suite('domain', function (): void {
       commandDispatcherAcknowledgeRetries: 0,
       domainEventDispatcherHostName: 'localhost',
       domainEventDispatcherPort,
-      publisherHostName: 'localhost',
-      publisherPort,
-      publisherChannelNewDomainEvent,
+      pubSubOptions: {
+        channelForNotifications: publisherChannelNotification,
+        channelForNewDomainEvents: publisherChannelNewDomainEvent,
+        publisher: {
+          type: 'Http',
+          protocol: 'http',
+          hostName: 'localhost',
+          port: publisherPort,
+          path: '/publish/v2'
+        }
+      },
       aeonstoreHostName: 'localhost',
       aeonstorePort: domainEventStorePort,
       healthPort: domainHealthPort,
@@ -572,6 +581,55 @@ suite('domain', function (): void {
             },
             (): void => {
               reject(new Error('Should only have received four messages.'));
+            }
+          ],
+          true
+        ));
+      });
+    });
+
+    test('publishes notifications from command handlers.', async (): Promise<void> => {
+      const aggregateIdentifier = {
+        name: 'sampleAggregate',
+        id: v4()
+      };
+
+      const command = buildCommandWithMetadata({
+        contextIdentifier: {
+          name: 'sampleContext'
+        },
+        aggregateIdentifier,
+        name: 'execute',
+        data: {
+          strategy: 'succeed'
+        }
+      });
+
+      const messageStreamNotification = await subscribeMessagesClient.getMessages({
+        channel: publisherChannelNotification
+      });
+
+      await handleCommandWithMetadataClient.postCommand({ command });
+
+      await new Promise((resolve, reject): void => {
+        messageStreamNotification.on('error', (err: any): void => {
+          reject(err);
+        });
+        messageStreamNotification.on('close', (): void => {
+          resolve();
+        });
+        messageStreamNotification.pipe(asJsonStream(
+          [
+            (data): void => {
+              try {
+                assert.that(data).is.atLeast({
+                  name: 'commandExecute',
+                  data: {}
+                });
+                resolve();
+              } catch (ex) {
+                reject(ex);
+              }
             }
           ],
           true

@@ -7,6 +7,7 @@ const sampleView = {
   queryHandlers: {
     all
   },
+  notificationSubscribers: {},
 
   enhancers: [
     view => ({

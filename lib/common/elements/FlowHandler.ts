@@ -1,12 +1,13 @@
 import { AggregatesService } from '../services/AggregatesService';
-import { AskInfrastructure } from '../elements/AskInfrastructure';
+import { AskInfrastructure } from './AskInfrastructure';
 import { CommandService } from '../services/CommandService';
-import { DomainEvent } from '../elements/DomainEvent';
-import { DomainEventData } from '../elements/DomainEventData';
-import { ItemIdentifier } from '../elements/ItemIdentifier';
+import { DomainEvent } from './DomainEvent';
+import { DomainEventData } from './DomainEventData';
+import { ItemIdentifier } from './ItemIdentifier';
 import { LockService } from '../services/LockService';
 import { LoggerService } from '../services/LoggerService';
-import { TellInfrastructure } from '../elements/TellInfrastructure';
+import { NotificationService } from '../services/NotificationService';
+import { TellInfrastructure } from './TellInfrastructure';
 
 export interface FlowHandler<
   TDomainEventData extends DomainEventData,
@@ -23,5 +24,6 @@ export interface FlowHandler<
     infrastructure: TInfrastructure;
     lock: LockService;
     logger: LoggerService;
+    notification: NotificationService;
   }): void | Promise<void>;
 }

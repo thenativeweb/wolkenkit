@@ -3,7 +3,7 @@ import { Infrastructure } from '../../server/infrastructure';
 import { Message } from '../../server/types/Message';
 import path from 'path';
 import { v4 } from 'uuid';
-import { Application, loadApplication, sandbox } from 'wolkenkit';
+import { Application, loadApplication, Notification, sandbox } from 'wolkenkit';
 
 suite('messages', (): void => {
   let application: Application;
@@ -69,6 +69,40 @@ suite('messages', (): void => {
         assert.that(messages[0]).is.atLeast({
           id: aggregateId,
           likes: 5
+        });
+      });
+  });
+
+  test('publishes flow updated notification.', async (): Promise<void> => {
+    const aggregateId = v4();
+
+    const notifications: { channel: string; notification: Notification }[] = [];
+    const publisher = {
+      async publish ({ channel, message }: { channel: string; message: any }): Promise<void> {
+        notifications.push({ channel, notification: message });
+      }
+    };
+
+    await sandbox().
+      withApplication({ application }).
+      withPublisher({ publisher }).
+      forFlow({ flowName: 'messages' }).
+      when({
+        contextIdentifier: { name: 'communication' },
+        aggregateIdentifier: { name: 'message', id: aggregateId },
+        name: 'sent',
+        data: { text: 'Hello world!' },
+        metadata: { revision: 1 }
+      }).
+      then(async (): Promise<void> => {
+        assert.that(notifications.length).is.equalTo(1);
+        assert.that(notifications[0]).is.equalTo({
+          channel: 'notifications',
+          notification: {
+            name: 'flowMessagesUpdated',
+            data: {},
+            metadata: undefined
+          }
         });
       });
   });

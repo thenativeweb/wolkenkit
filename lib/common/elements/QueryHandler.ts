@@ -15,7 +15,7 @@ interface QueryHandlerReturnsValue<
 
   handle (options: TQueryOptions, services: {
     client: ClientService;
-    infrastructure: TInfrastructure;
+    infrastructure: Pick<TInfrastructure, 'ask'>;
     logger: LoggerService;
   }): TQueryResultItem | Promise<TQueryResultItem>;
 }
@@ -28,7 +28,7 @@ interface QueryHandlerReturnsStream<
 
   handle (options: TQueryOptions, services: {
     client: ClientService;
-    infrastructure: TInfrastructure;
+    infrastructure: Pick<TInfrastructure, 'ask'>;
     logger: LoggerService;
   }): Readable | Promise<Readable>;
 }

@@ -5,7 +5,7 @@ const sampleHandler = {
     return fullyQualifiedName === 'sampleContext.sampleAggregate.executed';
   },
 
-  handle (domainEvent, { infrastructure, logger }) {
+  handle (domainEvent, { infrastructure, logger, notification }) {
     logger.info('Received domain event.', { domainEvent });
 
     infrastructure.tell.viewStore.domainEvents.push({
@@ -14,6 +14,8 @@ const sampleHandler = {
       name: domainEvent.name,
       id: domainEvent.id
     });
+
+    notification.publish('flowSampleFlowUpdated', {});
   }
 };
 

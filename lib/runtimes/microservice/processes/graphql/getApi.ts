@@ -4,10 +4,12 @@ import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getGraphqlApi } from '../../../../apis/graphql';
 import { IdentityProvider } from 'limes';
 import { InitializeGraphQlOnServer } from '../../../../apis/graphql/InitializeGraphQlOnServer';
+import { Notification } from '../../../../common/elements/Notification';
 import { OnCancelCommand } from '../../../../apis/graphql/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
+import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import express, { Application as ExpressApplication } from 'express';
 
 const getApi = async function ({
@@ -16,7 +18,9 @@ const getApi = async function ({
   identityProviders,
   onReceiveCommand,
   onCancelCommand,
-  repository
+  repository,
+  subscriber,
+  channelForNotifications
 }: {
   configuration: Configuration;
   application: Application;
@@ -24,6 +28,8 @@ const getApi = async function ({
   onReceiveCommand: OnReceiveCommand;
   onCancelCommand: OnCancelCommand;
   repository: Repository;
+  subscriber: Subscriber<Notification>;
+  channelForNotifications: string;
 }): Promise<{
     api: ExpressApplication;
     publishDomainEvent: PublishDomainEvent;
@@ -41,11 +47,15 @@ const getApi = async function ({
       onCancelCommand
     },
     observeDomainEvents: {
-      repository,
-      webSocketEndpoint: '/graphql/v2/'
+      repository
+    },
+    observeNotifications: {
+      subscriber,
+      channelForNotifications
     },
     queryView: true,
-    enableIntegratedClient: configuration.enableIntegratedClient
+    enableIntegratedClient: configuration.enableIntegratedClient,
+    webSocketEndpoint: '/graphql/v2/'
   });
 
   api.use('/graphql', handleCommandGraphqlApi);

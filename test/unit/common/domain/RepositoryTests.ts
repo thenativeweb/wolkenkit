@@ -2,12 +2,15 @@ import { Application } from '../../../../lib/common/application/Application';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
+import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { InMemoryDomainEventStore } from '../../../../lib/stores/domainEventStore/InMemory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { LockStore } from '../../../../lib/stores/lockStore/LockStore';
+import { Notification } from '../../../../lib/common/elements/Notification';
+import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { v4 } from 'uuid';
 
@@ -18,6 +21,8 @@ suite('Repository', (): void => {
       application: Application,
       domainEventStore: DomainEventStore,
       lockStore: LockStore,
+      publisher: Publisher<Notification>,
+      pubSubChannelForNotifications: string,
       repository: Repository;
 
   setup(async (): Promise<void> => {
@@ -26,11 +31,15 @@ suite('Repository', (): void => {
     aggregateId = v4();
     domainEventStore = await InMemoryDomainEventStore.create({ type: 'InMemory' });
     lockStore = await createLockStore({ type: 'InMemory' });
+    publisher = await createPublisher<Notification>({ type: 'InMemory' });
+    pubSubChannelForNotifications = 'notifications';
     repository = new Repository({
       application,
       lockStore,
       domainEventStore,
-      snapshotStrategy: getSnapshotStrategy({ name: 'never' })
+      snapshotStrategy: getSnapshotStrategy({ name: 'never' }),
+      publisher,
+      pubSubChannelForNotifications
     });
   });
 
@@ -82,7 +91,9 @@ suite('Repository', (): void => {
         application,
         lockStore,
         domainEventStore,
-        snapshotStrategy: getSnapshotStrategy({ name: 'always' })
+        snapshotStrategy: getSnapshotStrategy({ name: 'always' }),
+        publisher,
+        pubSubChannelForNotifications
       });
 
       const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
@@ -145,7 +156,9 @@ suite('Repository', (): void => {
         application,
         lockStore,
         domainEventStore,
-        snapshotStrategy
+        snapshotStrategy,
+        publisher,
+        pubSubChannelForNotifications
       });
 
       const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };

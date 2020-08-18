@@ -72,4 +72,32 @@ suite('messages', () => {
       ]);
     });
   });
+
+  suite('notifications', () => {
+    test('publishes view updated notifications in response to flow updated notifications.', async () => {
+      const notifications = [];
+      const publisher = {
+        async publish ({ channel, message }) {
+          notifications.push({ channel, notification: message });
+        }
+      };
+
+      const sandboxForView = sandbox().
+        withApplication({ application }).
+        withPublisher({ publisher }).
+        forView({ viewName: 'messages' });
+
+      await sandboxForView.notify({ notification: { name: 'flowMessagesUpdated', data: {}}});
+
+      assert.that(notifications.length).is.equalTo(1);
+      assert.that(notifications[0]).is.equalTo({
+        channel: 'notifications',
+        notification: {
+          name: 'viewMessagesUpdated',
+          data: {},
+          metadata: undefined
+        }
+      });
+    });
+  });
 });

@@ -8,7 +8,10 @@ import { GetAggregatesService } from '../services/types/GetAggregatesService';
 import { GetClientService } from '../services/types/GetClientService';
 import { GetLockService } from '../services/types/GetLockService';
 import { GetLoggerService } from '../services/types/GetLoggerService';
+import { GetNotificationService } from '../services/types/GetNotificationService';
 import { LockStore } from '../../stores/lockStore/LockStore';
+import { Notification } from '../elements/Notification';
+import { Publisher } from '../../messaging/pubSub/Publisher';
 import { SnapshotStrategy } from './SnapshotStrategy';
 import { State } from '../elements/State';
 
@@ -21,12 +24,17 @@ class Repository {
 
   public readonly snapshotStrategy: SnapshotStrategy;
 
+  public readonly publisher: Publisher<Notification>;
+
+  public readonly pubSubChannelForNotifications: string;
+
   public readonly serviceFactories?: {
     getAggregateService?: GetAggregateService;
     getAggregatesService?: GetAggregatesService;
     getClientService?: GetClientService;
     getLockService?: GetLockService;
     getLoggerService?: GetLoggerService;
+    getNotificationService?: GetNotificationService;
   };
 
   public constructor ({
@@ -34,24 +42,31 @@ class Repository {
     domainEventStore,
     lockStore,
     snapshotStrategy,
+    publisher,
+    pubSubChannelForNotifications,
     serviceFactories
   }: {
     application: Application;
     domainEventStore: DomainEventStore;
     lockStore: LockStore;
     snapshotStrategy: SnapshotStrategy;
+    publisher: Publisher<Notification>;
+    pubSubChannelForNotifications: string;
     serviceFactories?: {
       getAggregateService?: GetAggregateService;
       getAggregatesService?: GetAggregatesService;
       getClientService?: GetClientService;
       getLockService?: GetLockService;
       getLoggerService?: GetLoggerService;
+      getNotificationService?: GetNotificationService;
     };
   }) {
     this.application = application;
     this.domainEventStore = domainEventStore;
     this.lockStore = lockStore;
     this.snapshotStrategy = snapshotStrategy;
+    this.publisher = publisher;
+    this.pubSubChannelForNotifications = pubSubChannelForNotifications;
     this.serviceFactories = serviceFactories;
   }
 
@@ -66,6 +81,8 @@ class Repository {
       lockStore: this.lockStore,
       domainEventStore: this.domainEventStore,
       snapshotStrategy: this.snapshotStrategy,
+      publisher: this.publisher,
+      pubSubChannelForNotifications: this.pubSubChannelForNotifications,
       serviceFactories: this.serviceFactories,
       repository: this
     });

@@ -1,14 +1,14 @@
 import { Infrastructure } from '../../../infrastructure';
 import { Readable } from 'stream';
 // @ts-ignore
-import { QueryHandler, QueryResultItem, QueryOptions, Schema } from 'wolkenkit';
+import { QueryHandler, QueryOptions, QueryResultItem, Schema } from 'wolkenkit';
 
 export interface AllResultItem extends QueryResultItem {
   id: string;
   createdAt: number;
   updatedAt: number;
   strategy: 'succeed' | 'fail' | 'reject';
-};
+}
 
 export const all: QueryHandler<AllResultItem, Infrastructure> = {
   type: 'stream',
@@ -28,7 +28,7 @@ export const all: QueryHandler<AllResultItem, Infrastructure> = {
   },
 
   async handle (_options: QueryOptions, { infrastructure }: {
-    infrastructure: Infrastructure;
+    infrastructure: Pick<Infrastructure, 'ask'>;
   }): Promise<Readable> {
     return Readable.from(infrastructure.ask.viewStore.domainEvents);
   },

@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 
 import { configurationDefinition } from './configurationDefinition';
+import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
+import { createSubscriber } from '../../../../messaging/pubSub/createSubscriber';
+import { executeNotificationSubscribers } from '../../../../common/domain/executeNotificationSubscribers';
 import { flaschenpost } from 'flaschenpost';
 import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getApi } from './getApi';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
+import { getLoggerService } from '../../../../common/services/getLoggerService';
 import http from 'http';
 import { loadApplication } from '../../../../common/application/loadApplication';
+import { Notification } from '../../../../common/elements/Notification';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
 
@@ -27,6 +32,9 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       identityProvidersEnvironmentVariable: configuration.identityProviders
     });
 
+    const publisher = await createPublisher<Notification>(configuration.pubSubOptions.publisher);
+    const subscriber = await createSubscriber<Notification>(configuration.pubSubOptions.subscriber);
+
     const { api } = await getApi({
       application,
       configuration,
@@ -42,6 +50,39 @@ import { runHealthServer } from '../../../shared/runHealthServer';
         'View server started.',
         { port: configuration.port, healthPort: configuration.healthPort }
       );
+    });
+
+    await subscriber.subscribe({
+      channel: configuration.pubSubOptions.channelForNotifications,
+      async callback (notification: Notification): Promise<void> {
+        const notifications: Notification[] = [];
+
+        for (const viewName of Object.keys(application.views)) {
+          await executeNotificationSubscribers({
+            application,
+            viewName,
+            notification,
+            services: {
+              logger: getLoggerService({
+                packageManifest: application.packageManifest,
+                fileName: `<app>/server/views/${viewName}`
+              }),
+              notification: {
+                publish (name, data, metadata): void {
+                  notifications.push({ name, data, metadata });
+                }
+              }
+            }
+          });
+        }
+
+        for (const newNotification of notifications) {
+          await publisher.publish({
+            channel: configuration.pubSubOptions.channelForNotifications,
+            message: newNotification
+          });
+        }
+      }
     });
   } catch (ex) {
     logger.fatal('An unexpected error occured.', { ex });

@@ -38,6 +38,18 @@ const messages = {
         return true;
       }
     }
+  },
+
+  notificationSubscribers: {
+    flowMessagesUpdatedNotificationSubscriber: {
+      isRelevant ({ name }) {
+        return name === 'flowMessagesUpdated';
+      },
+
+      async handle (data, { notification }) {
+        await notification.publish('viewMessagesUpdated', {});
+      }
+    }
   }
 };
 

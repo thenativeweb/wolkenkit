@@ -16,7 +16,7 @@ const execute = {
     return true;
   },
 
-  handle (state, command, { aggregate, error }) {
+  handle (state, command, { aggregate, error, notification }) {
     const { strategy } = command.data;
 
     if (strategy === 'fail') {
@@ -29,6 +29,8 @@ const execute = {
 
     aggregate.publishDomainEvent('succeeded', {});
     aggregate.publishDomainEvent('executed', { strategy });
+
+    notification.publish('commandExecute', {});
   }
 };
 
