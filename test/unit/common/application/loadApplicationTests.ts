@@ -280,4 +280,12 @@ suite('loadApplication', (): void => {
       that(async (): Promise<any> => loadApplication({ applicationDirectory })).
       is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.ApplicationMalformed.code);
   });
+
+  test('throws an appropriate error if any file in the application tries to import a non existent module.', async (): Promise<void> => {
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withMissingModule' });
+
+    await assert.
+      that(async (): Promise<any> => loadApplication({ applicationDirectory })).
+      is.throwingAsync((ex): boolean => (ex as CustomError).code === errors.ApplicationMalformed.code);
+  });
 });

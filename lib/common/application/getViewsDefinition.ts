@@ -1,11 +1,11 @@
 import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
-import { promises as fs } from 'fs';
 import path from 'path';
 import { validateViewDefinition } from '../validators/validateViewDefinition';
 import { ViewDefinition } from './ViewDefinition';
 import { ViewEnhancer } from '../../tools/ViewEnhancer';
 import { ViewsDefinition } from './ViewsDefinition';
+import { constants, promises as fs } from 'fs';
 
 const getViewsDefinition = async function ({ viewsDirectory }: {
   viewsDirectory: string;
@@ -24,6 +24,15 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
     if (viewEntry.isFile() && path.extname(viewEntry.name) !== '.js') {
       continue;
     }
+    if (viewEntry.isDirectory()) {
+      const indexPath = path.join(viewPath, 'index.js');
+
+      try {
+        await fs.access(indexPath, constants.R_OK);
+      } catch (ex) {
+        throw new errors.FileNotFound(`No view definition in '<app>/build/server/views/${viewName}' found.`);
+      }
+    }
 
     let rawView;
 
@@ -32,6 +41,9 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
     } catch (ex) {
       if (ex instanceof SyntaxError) {
         throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/views/${viewName}'.`, { cause: ex });
+      }
+      if (ex.code === 'MODULE_NOT_FOUND') {
+        throw new errors.ApplicationMalformed(`Missing import in '<app>/build/server/views/${viewName}'.`, { cause: ex });
       }
 
       throw new errors.FileNotFound(`No view definition in '<app>/build/server/views/${viewName}' found.`);
