@@ -72,7 +72,7 @@ class InMemoryConsumerProgressStore implements ConsumerProgressStore {
 
   // eslint-disable-next-line class-methods-use-this
   public async setup (): Promise<void> {
-    // Intentionally left empty.
+    // Intentionally left blank.
   }
 
   public async destroy (): Promise<void> {
