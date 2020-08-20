@@ -33,6 +33,7 @@ const getTestsFor = function ({ createFileStore }: {
   suite('addFile', (): void => {
     setup(async (): Promise<void> => {
       fileStore = await createFileStore();
+      await fileStore.setup();
     });
 
     test('does not throw an error.', async (): Promise<void> => {
@@ -59,6 +60,7 @@ const getTestsFor = function ({ createFileStore }: {
   suite('getMetadata', (): void => {
     setup(async (): Promise<void> => {
       fileStore = await createFileStore();
+      await fileStore.setup();
     });
 
     test('throws an error if the id does not exist.', async (): Promise<void> => {
@@ -79,6 +81,7 @@ const getTestsFor = function ({ createFileStore }: {
   suite('getFile', (): void => {
     setup(async (): Promise<void> => {
       fileStore = await createFileStore();
+      await fileStore.setup();
     });
 
     test('throws an error if the id does not exist.', async (): Promise<void> => {
@@ -100,6 +103,7 @@ const getTestsFor = function ({ createFileStore }: {
   suite('removeFile', (): void => {
     setup(async (): Promise<void> => {
       fileStore = await createFileStore();
+      await fileStore.setup();
     });
 
     test('throws an error if the id does not exist.', async (): Promise<void> => {

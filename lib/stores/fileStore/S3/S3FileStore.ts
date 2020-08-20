@@ -42,11 +42,7 @@ class S3FileStore implements FileStore {
       useSSL: encryptConnection
     });
 
-    const s3 = new S3FileStore({ client, region, bucketName });
-
-    await s3.ensureBucket();
-
-    return s3;
+    return new S3FileStore({ client, region, bucketName });
   }
 
   protected async ensureBucket (): Promise<void> {
@@ -170,6 +166,10 @@ class S3FileStore implements FileStore {
     if (notFoundErrors === files.length) {
       throw new errors.FileNotFound();
     }
+  }
+
+  public async setup (): Promise<void> {
+    await this.ensureBucket();
   }
 }
 
