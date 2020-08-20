@@ -3,9 +3,9 @@ import { AggregateEnhancer } from '../../tools/AggregateEnhancer';
 import { DomainDefinition } from './DomainDefinition';
 import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
-import { promises as fs } from 'fs';
 import path from 'path';
 import { validateAggregateDefinition } from '../validators/validateAggregateDefinition';
+import { constants, promises as fs } from 'fs';
 
 const getDomainDefinition = async function ({ domainDirectory }: {
   domainDirectory: string;
@@ -34,6 +34,15 @@ const getDomainDefinition = async function ({ domainDirectory }: {
       if (aggregateEntry.isFile() && path.extname(aggregateEntry.name) !== '.js') {
         continue;
       }
+      if (aggregateEntry.isDirectory()) {
+        const indexPath = path.join(aggregatePath, 'index.js');
+
+        try {
+          await fs.access(indexPath, constants.R_OK);
+        } catch (ex) {
+          throw new errors.FileNotFound(`No aggregate definition in '<app>/build/server/domain/${contextName}/${aggregateName}' found.`);
+        }
+      }
 
       let rawAggregate;
 
@@ -42,6 +51,9 @@ const getDomainDefinition = async function ({ domainDirectory }: {
       } catch (ex) {
         if (ex instanceof SyntaxError) {
           throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/domain/${contextName}/${aggregateName}'.`, { cause: ex });
+        }
+        if (ex.code === 'MODULE_NOT_FOUND') {
+          throw new errors.ApplicationMalformed(`Missing import in '<app>/build/server/domain/${contextName}/${aggregateName}'.`, { cause: ex });
         }
 
         throw new errors.FileNotFound(`No aggregate definition in '<app>/build/server/domain/${contextName}/${aggregateName}' found.`);

@@ -20,6 +20,9 @@ const getHooksDefinition = async function ({ hooksDirectory }: {
     if (ex instanceof SyntaxError) {
       throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/hooks'.`, { cause: ex });
     }
+    if (ex.code === 'MODULE_NOT_FOUND') {
+      throw new errors.ApplicationMalformed(`Missing import in '<app>/build/server/hooks'.`, { cause: ex });
+    }
 
     // But throw an error if the entry is a directory without importable content.
     throw new errors.FileNotFound(`No hooks definition in '<app>/build/server/hooks' found.`);
