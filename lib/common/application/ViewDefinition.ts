@@ -7,5 +7,5 @@ import { QueryResultItem } from '../elements/QueryResultItem';
 export interface ViewDefinition {
   queryHandlers: Record<string, QueryHandler<QueryResultItem, AskInfrastructure>>;
 
-  notificationSubscribers: Record<string, NotificationSubscriber<NotificationDefinition, AskInfrastructure>>;
+  notificationSubscribers?: Record<string, NotificationSubscriber<NotificationDefinition, AskInfrastructure>>;
 }

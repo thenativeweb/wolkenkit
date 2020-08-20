@@ -25,18 +25,17 @@ const validateViewDefinition = function ({ viewDefinition }: {
     }
   }
 
-  if (isUndefined(viewDefinition.notificationSubscribers)) {
-    throw new errors.ViewDefinitionMalformed(`Object 'notificationSubscribers' is missing.`);
-  }
-  if (!isObjectLike(viewDefinition.notificationSubscribers)) {
-    throw new errors.ViewDefinitionMalformed(`Property 'notificationSubscribers' is not an object.`);
-  }
+  if (!isUndefined(viewDefinition.notificationSubscribers)) {
+    if (!isObjectLike(viewDefinition.notificationSubscribers)) {
+      throw new errors.ViewDefinitionMalformed(`Property 'notificationSubscribers' is not an object.`);
+    }
 
-  for (const [ notificationSubscriberName, notificationSubscriber ] of Object.entries(viewDefinition.notificationSubscribers)) {
-    try {
-      validateNotificationSubscriber({ notificationSubscriber });
-    } catch (ex) {
-      throw new errors.ViewDefinitionMalformed(`Notification subscriber '${notificationSubscriberName}' is malformed: ${ex.message}`);
+    for (const [ notificationSubscriberName, notificationSubscriber ] of Object.entries(viewDefinition.notificationSubscribers)) {
+      try {
+        validateNotificationSubscriber({ notificationSubscriber });
+      } catch (ex) {
+        throw new errors.ViewDefinitionMalformed(`Notification subscriber '${notificationSubscriberName}' is malformed: ${ex.message}`);
+      }
     }
   }
 

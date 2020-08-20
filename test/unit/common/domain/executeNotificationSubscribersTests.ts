@@ -115,4 +115,33 @@ suite('executeNotificationSubscribers', (): void => {
 
     assert.that(notifications.length).is.equalTo(0);
   });
+
+  test('does nothing if there are no notification subscribers.', async (): Promise<void> => {
+    const applicationWithoutNotificationSubscribers: Application = {
+      ...application,
+      views: {
+        sampleView: {
+          ...application.views.sampleView,
+          notificationSubscribers: undefined
+        }
+      }
+    };
+
+    const notification = {
+      name: 'flowSampleFlowUpdated',
+      data: {}
+    };
+
+    await executeNotificationSubscribers({
+      application: applicationWithoutNotificationSubscribers,
+      viewName: 'sampleView',
+      notification,
+      services: {
+        logger: loggerService,
+        notification: notificationService
+      }
+    });
+
+    assert.that(notifications.length).is.equalTo(0);
+  });
 });
