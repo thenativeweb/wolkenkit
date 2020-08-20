@@ -31,7 +31,7 @@ suite('getLockService', (): void => {
         releaseLockCalled = true;
       },
       async setup (): Promise<void> {
-        // Intentionally left empty.
+        // Intentionally left blank.
       },
       async destroy (): Promise<void> {
         throw new Error('Invalid operation.');
