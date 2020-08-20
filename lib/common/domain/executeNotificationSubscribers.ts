@@ -22,6 +22,10 @@ const executeNotificationSubscribers = async function ({ application, notificati
 
   const viewDefinition = application.views[viewName];
 
+  if (!viewDefinition.notificationSubscribers) {
+    return;
+  }
+
   for (const [ notificationSubscriberName, notificationSubscriber ] of Object.entries(viewDefinition.notificationSubscribers)) {
     if (!notificationSubscriber.isRelevant({ name: notification.name })) {
       continue;

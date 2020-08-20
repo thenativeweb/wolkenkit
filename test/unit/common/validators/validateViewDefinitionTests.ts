@@ -6,8 +6,7 @@ import { View } from '../../../../lib/common/elements/View';
 
 suite('validateViewDefinition', (): void => {
   const viewDefinition: View = {
-    queryHandlers: {},
-    notificationSubscribers: {}
+    queryHandlers: {}
   };
 
   test('does not throw an error if everything is fine.', async (): Promise<void> => {
@@ -66,21 +65,6 @@ suite('validateViewDefinition', (): void => {
       (ex): boolean =>
         (ex as CustomError).code === errors.ViewDefinitionMalformed.code &&
         ex.message === `Query handler 'sampleQuery' is malformed: Query handler is not an object.`
-    );
-  });
-
-  test('throws an error if notification subscribers are missing.', async (): Promise<void> => {
-    assert.that((): void => {
-      validateViewDefinition({
-        viewDefinition: {
-          ...viewDefinition,
-          notificationSubscribers: undefined
-        }
-      });
-    }).is.throwing(
-      (ex): boolean =>
-        (ex as CustomError).code === errors.ViewDefinitionMalformed.code &&
-            ex.message === `Object 'notificationSubscribers' is missing.`
     );
   });
 
