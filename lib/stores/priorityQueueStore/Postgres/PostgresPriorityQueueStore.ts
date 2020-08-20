@@ -112,74 +112,13 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
       }
     });
 
-    const priorityQueueStore = new PostgresPriorityQueueStore<TItem, TItemIdentifier>({
+    return new PostgresPriorityQueueStore<TItem, TItemIdentifier>({
       pool,
       tableNames,
       disconnectWatcher,
       doesIdentifierMatchItem,
       expirationTime
     });
-
-    const connection = await priorityQueueStore.getDatabase();
-
-    try {
-      await retry(async (): Promise<void> => {
-        await connection.query({
-          name: 'create items table',
-          text: `
-            CREATE TABLE IF NOT EXISTS "${tableNames.items}"
-            (
-              "discriminator" varchar(100) NOT NULL,
-              "indexInQueue" integer NOT NULL,
-              "priority" bigint NOT NULL,
-              "item" jsonb NOT NULL,
-
-              CONSTRAINT "${tableNames.items}_pk" PRIMARY KEY ("discriminator", "indexInQueue")
-            );
-          `
-        });
-        await connection.query({
-          name: 'create index on items table',
-          text: `
-            CREATE INDEX IF NOT EXISTS "${tableNames.items}_index_discriminator" ON "${tableNames.items}" ("discriminator");
-          `
-        });
-        await connection.query({
-          name: 'create priority queue table',
-          text: `
-            CREATE TABLE IF NOT EXISTS "${tableNames.priorityQueue}"
-            (
-              "discriminator" varchar(100) NOT NULL,
-              "indexInPriorityQueue" integer NOT NULL,
-              "lockUntil" bigint,
-              "lockToken" uuid,
-
-              CONSTRAINT "${tableNames.priorityQueue}_pk" PRIMARY KEY ("discriminator")
-            );
-          `
-        });
-        await connection.query({
-          name: 'create index on priority queue table',
-          text: `
-            CREATE UNIQUE INDEX IF NOT EXISTS "${tableNames.items}_index_indexInPriorityQueue" ON "${tableNames.priorityQueue}" ("indexInPriorityQueue");
-          `
-        });
-      }, {
-        retries: 3,
-        minTimeout: 100,
-        factor: 1
-      });
-    } finally {
-      connection.release();
-    }
-
-    return priorityQueueStore;
-  }
-
-  public async destroy (): Promise<void> {
-    this.disconnectWatcher.removeListener('end', PostgresPriorityQueueStore.onUnexpectedClose);
-    await this.disconnectWatcher.end();
-    await this.pool.end();
   }
 
   protected async swapPositionsInPriorityQueue ({ connection, firstQueue, secondQueue }: {
@@ -854,6 +793,67 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
         });
       }
     );
+  }
+
+  public async setup (): Promise<void> {
+    const connection = await this.getDatabase();
+
+    try {
+      await retry(async (): Promise<void> => {
+        await connection.query({
+          name: 'create items table',
+          text: `
+            CREATE TABLE IF NOT EXISTS "${this.tableNames.items}"
+            (
+              "discriminator" varchar(100) NOT NULL,
+              "indexInQueue" integer NOT NULL,
+              "priority" bigint NOT NULL,
+              "item" jsonb NOT NULL,
+
+              CONSTRAINT "${this.tableNames.items}_pk" PRIMARY KEY ("discriminator", "indexInQueue")
+            );
+          `
+        });
+        await connection.query({
+          name: 'create index on items table',
+          text: `
+            CREATE INDEX IF NOT EXISTS "${this.tableNames.items}_index_discriminator" ON "${this.tableNames.items}" ("discriminator");
+          `
+        });
+        await connection.query({
+          name: 'create priority queue table',
+          text: `
+            CREATE TABLE IF NOT EXISTS "${this.tableNames.priorityQueue}"
+            (
+              "discriminator" varchar(100) NOT NULL,
+              "indexInPriorityQueue" integer NOT NULL,
+              "lockUntil" bigint,
+              "lockToken" uuid,
+
+              CONSTRAINT "${this.tableNames.priorityQueue}_pk" PRIMARY KEY ("discriminator")
+            );
+          `
+        });
+        await connection.query({
+          name: 'create index on priority queue table',
+          text: `
+            CREATE UNIQUE INDEX IF NOT EXISTS "${this.tableNames.items}_index_indexInPriorityQueue" ON "${this.tableNames.priorityQueue}" ("indexInPriorityQueue");
+          `
+        });
+      }, {
+        retries: 3,
+        minTimeout: 100,
+        factor: 1
+      });
+    } finally {
+      connection.release();
+    }
+  }
+
+  public async destroy (): Promise<void> {
+    this.disconnectWatcher.removeListener('end', PostgresPriorityQueueStore.onUnexpectedClose);
+    await this.disconnectWatcher.end();
+    await this.pool.end();
   }
 }
 

@@ -102,98 +102,11 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
       connection.on('end', MySqlPriorityQueueStore.onUnexpectedClose);
     });
 
-    const priorityQueueStore = new MySqlPriorityQueueStore<TItem, TItemIdentifier>({
+    return new MySqlPriorityQueueStore<TItem, TItemIdentifier>({
       tableNames,
       pool,
       doesIdentifierMatchItem,
       expirationTime
-    });
-    const connection = await priorityQueueStore.getDatabase();
-
-    const createUuidToBinFunction = `
-      CREATE FUNCTION UuidToBin(_uuid CHAR(36))
-        RETURNS BINARY(16)
-        RETURN UNHEX(CONCAT(
-          SUBSTR(_uuid, 15, 4),
-          SUBSTR(_uuid, 10, 4),
-          SUBSTR(_uuid, 1, 8),
-          SUBSTR(_uuid, 20, 4),
-          SUBSTR(_uuid, 25)
-        ));
-    `;
-
-    try {
-      await runQuery({ connection, query: createUuidToBinFunction });
-    } catch (ex) {
-      // If the function already exists, we can ignore this error; otherwise
-      // rethrow it. Generally speaking, this should be done using a SQL clause
-      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
-      // there is a ready-made function UUID_TO_BIN, but this is only available
-      // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidToBin already exists')) {
-        throw ex;
-      }
-    }
-
-    const createUuidFromBinFunction = `
-      CREATE FUNCTION UuidFromBin(_bin BINARY(16))
-        RETURNS CHAR(36)
-        RETURN LCASE(CONCAT_WS('-',
-          HEX(SUBSTR(_bin,  5, 4)),
-          HEX(SUBSTR(_bin,  3, 2)),
-          HEX(SUBSTR(_bin,  1, 2)),
-          HEX(SUBSTR(_bin,  9, 2)),
-          HEX(SUBSTR(_bin, 11))
-        ));
-    `;
-
-    try {
-      await runQuery({ connection, query: createUuidFromBinFunction });
-    } catch (ex) {
-      // If the function already exists, we can ignore this error; otherwise
-      // rethrow it. Generally speaking, this should be done using a SQL clause
-      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
-      // there is a ready-made function BIN_TO_UUID, but this is only available
-      // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidFromBin already exists')) {
-        throw ex;
-      }
-    }
-
-    const query = `
-      CREATE TABLE IF NOT EXISTS \`${tableNames.items}\`
-      (
-        discriminator VARCHAR(100) NOT NULL,
-        indexInQueue INT NOT NULL,
-        priority BIGINT NOT NULL,
-        item JSON NOT NULL,
-
-        PRIMARY KEY (discriminator, indexInQueue),
-        INDEX (discriminator)
-      ) ENGINE=InnoDB;
-
-      CREATE TABLE IF NOT EXISTS \`${tableNames.priorityQueue}\`
-      (
-        discriminator VARCHAR(100) NOT NULL,
-        indexInPriorityQueue INT NOT NULL,
-        lockUntil BIGINT,
-        lockToken BINARY(16),
-
-        PRIMARY KEY (discriminator),
-        UNIQUE INDEX (indexInPriorityQueue)
-      ) ENGINE=InnoDB;
-    `;
-
-    await runQuery({ connection, query });
-
-    MySqlPriorityQueueStore.releaseConnection({ connection });
-
-    return priorityQueueStore;
-  }
-
-  public async destroy (): Promise<void> {
-    await new Promise((resolve): void => {
-      this.pool.end(resolve);
     });
   }
 
@@ -818,6 +731,94 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
         });
       }
     );
+  }
+
+  public async setup (): Promise<void> {
+    const connection = await this.getDatabase();
+
+    const createUuidToBinFunction = `
+      CREATE FUNCTION UuidToBin(_uuid CHAR(36))
+        RETURNS BINARY(16)
+        RETURN UNHEX(CONCAT(
+          SUBSTR(_uuid, 15, 4),
+          SUBSTR(_uuid, 10, 4),
+          SUBSTR(_uuid, 1, 8),
+          SUBSTR(_uuid, 20, 4),
+          SUBSTR(_uuid, 25)
+        ));
+    `;
+
+    try {
+      await runQuery({ connection, query: createUuidToBinFunction });
+    } catch (ex) {
+      // If the function already exists, we can ignore this error; otherwise
+      // rethrow it. Generally speaking, this should be done using a SQL clause
+      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
+      // there is a ready-made function UUID_TO_BIN, but this is only available
+      // from MySQL 8.0 upwards.
+      if (!ex.message.includes('FUNCTION UuidToBin already exists')) {
+        throw ex;
+      }
+    }
+
+    const createUuidFromBinFunction = `
+      CREATE FUNCTION UuidFromBin(_bin BINARY(16))
+        RETURNS CHAR(36)
+        RETURN LCASE(CONCAT_WS('-',
+          HEX(SUBSTR(_bin,  5, 4)),
+          HEX(SUBSTR(_bin,  3, 2)),
+          HEX(SUBSTR(_bin,  1, 2)),
+          HEX(SUBSTR(_bin,  9, 2)),
+          HEX(SUBSTR(_bin, 11))
+        ));
+    `;
+
+    try {
+      await runQuery({ connection, query: createUuidFromBinFunction });
+    } catch (ex) {
+      // If the function already exists, we can ignore this error; otherwise
+      // rethrow it. Generally speaking, this should be done using a SQL clause
+      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
+      // there is a ready-made function BIN_TO_UUID, but this is only available
+      // from MySQL 8.0 upwards.
+      if (!ex.message.includes('FUNCTION UuidFromBin already exists')) {
+        throw ex;
+      }
+    }
+
+    const query = `
+      CREATE TABLE IF NOT EXISTS \`${this.tableNames.items}\`
+      (
+        discriminator VARCHAR(100) NOT NULL,
+        indexInQueue INT NOT NULL,
+        priority BIGINT NOT NULL,
+        item JSON NOT NULL,
+
+        PRIMARY KEY (discriminator, indexInQueue),
+        INDEX (discriminator)
+      ) ENGINE=InnoDB;
+
+      CREATE TABLE IF NOT EXISTS \`${this.tableNames.priorityQueue}\`
+      (
+        discriminator VARCHAR(100) NOT NULL,
+        indexInPriorityQueue INT NOT NULL,
+        lockUntil BIGINT,
+        lockToken BINARY(16),
+
+        PRIMARY KEY (discriminator),
+        UNIQUE INDEX (indexInPriorityQueue)
+      ) ENGINE=InnoDB;
+    `;
+
+    await runQuery({ connection, query });
+
+    MySqlPriorityQueueStore.releaseConnection({ connection });
+  }
+
+  public async destroy (): Promise<void> {
+    await new Promise((resolve): void => {
+      this.pool.end(resolve);
+    });
   }
 }
 

@@ -36,5 +36,7 @@ export interface PriorityQueueStore<TItem, TItemIdentifier> {
     itemIdentifier: TItemIdentifier;
   }): Promise<void>;
 
+  setup (): Promise<void>;
+
   destroy (): Promise<void>;
 }

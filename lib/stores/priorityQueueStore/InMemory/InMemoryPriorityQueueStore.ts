@@ -350,6 +350,11 @@ class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     );
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  public async setup (): Promise<void> {
+    // There is nothing to do here.
+  }
+
   protected destroyInternal (): void {
     this.queues = [];
     this.index = new Map();

@@ -63,6 +63,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
   setup(async (): Promise<void> => {
     suffix = getShortId();
     priorityQueueStore = await createPriorityQueueStore({ suffix, expirationTime });
+    await priorityQueueStore.setup();
   });
 
   teardown(async function (): Promise<void> {

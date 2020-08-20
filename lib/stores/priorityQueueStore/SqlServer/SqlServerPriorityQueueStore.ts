@@ -80,60 +80,12 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
 
     await pool.connect();
 
-    const priorityQueueStore = new SqlServerPriorityQueueStore<TItem, TItemIdentifier>({
+    return new SqlServerPriorityQueueStore<TItem, TItemIdentifier>({
       tableNames,
       pool,
       doesIdentifierMatchItem,
       expirationTime
     });
-
-    try {
-      await pool.query(`
-        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.items}')
-          BEGIN
-            CREATE TABLE [${tableNames.items}] (
-              [discriminator] NVARCHAR(100) NOT NULL,
-              [indexInQueue] INT NOT NULL,
-              [priority] BIGINT NOT NULL,
-              [item] NVARCHAR(4000) NOT NULL,
-
-              CONSTRAINT [${tableNames.items}_pk] PRIMARY KEY([discriminator], [indexInQueue])
-            );
-
-            CREATE INDEX [${tableNames.items}_idx_discriminator]
-              ON [${tableNames.items}] ([discriminator]);
-          END
-
-        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.priorityQueue}')
-          BEGIN
-            CREATE TABLE [${tableNames.priorityQueue}] (
-              [discriminator] NVARCHAR(100) NOT NULL,
-              [indexInPriorityQueue] INT NOT NULL,
-              [lockUntil] BIGINT,
-              [lockToken] UNIQUEIDENTIFIER,
-
-              CONSTRAINT [${tableNames.priorityQueue}_pk] PRIMARY KEY([discriminator])
-            );
-
-            CREATE UNIQUE INDEX [${tableNames.priorityQueue}_idx_indexInPriorityQueue]
-              ON [${tableNames.priorityQueue}] ([indexInPriorityQueue]);
-          END
-      `);
-    } catch (ex) {
-      if (!ex.message.includes('There is already an object named')) {
-        throw ex;
-      }
-
-      // When multiple clients initialize at the same time, e.g. during
-      // integration tests, SQL Server might throw an error. In this case we
-      // simply ignore it
-    }
-
-    return priorityQueueStore;
-  }
-
-  public async destroy (): Promise<void> {
-    await this.pool.close();
   }
 
   protected async swapPositionsInPriorityQueue ({ transaction, firstQueue, secondQueue }: {
@@ -800,6 +752,54 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         }
       }
     );
+  }
+
+  public async setup (): Promise<void> {
+    try {
+      await this.pool.query(`
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${this.tableNames.items}')
+          BEGIN
+            CREATE TABLE [${this.tableNames.items}] (
+              [discriminator] NVARCHAR(100) NOT NULL,
+              [indexInQueue] INT NOT NULL,
+              [priority] BIGINT NOT NULL,
+              [item] NVARCHAR(4000) NOT NULL,
+
+              CONSTRAINT [${this.tableNames.items}_pk] PRIMARY KEY([discriminator], [indexInQueue])
+            );
+
+            CREATE INDEX [${this.tableNames.items}_idx_discriminator]
+              ON [${this.tableNames.items}] ([discriminator]);
+          END
+
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${this.tableNames.priorityQueue}')
+          BEGIN
+            CREATE TABLE [${this.tableNames.priorityQueue}] (
+              [discriminator] NVARCHAR(100) NOT NULL,
+              [indexInPriorityQueue] INT NOT NULL,
+              [lockUntil] BIGINT,
+              [lockToken] UNIQUEIDENTIFIER,
+
+              CONSTRAINT [${this.tableNames.priorityQueue}_pk] PRIMARY KEY([discriminator])
+            );
+
+            CREATE UNIQUE INDEX [${this.tableNames.priorityQueue}_idx_indexInPriorityQueue]
+              ON [${this.tableNames.priorityQueue}] ([indexInPriorityQueue]);
+          END
+      `);
+    } catch (ex) {
+      if (!ex.message.includes('There is already an object named')) {
+        throw ex;
+      }
+
+      // When multiple clients initialize at the same time, e.g. during
+      // integration tests, SQL Server might throw an error. In this case we
+      // simply ignore it
+    }
+  }
+
+  public async destroy (): Promise<void> {
+    await this.pool.close();
   }
 }
 
