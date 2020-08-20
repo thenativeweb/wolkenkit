@@ -84,37 +84,11 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
       }
     });
 
-    const lockStore = new PostgresConsumerProgressStore({
+    return new PostgresConsumerProgressStore({
       tableNames,
       pool,
       disconnectWatcher
     });
-
-    const connection = await PostgresConsumerProgressStore.getDatabase(pool);
-
-    try {
-      await retry(async (): Promise<void> => {
-        await connection.query(`
-          CREATE TABLE IF NOT EXISTS "${tableNames.progress}" (
-            "consumerId" CHAR(64) NOT NULL,
-            "aggregateId" uuid NOT NULL,
-            "revision" integer NOT NULL,
-            "isReplayingFrom" integer,
-            "isReplayingTo" integer,
-
-            CONSTRAINT "${tableNames.progress}_pk" PRIMARY KEY("consumerId", "aggregateId")
-          );
-        `);
-      }, {
-        retries: 3,
-        minTimeout: 100,
-        factor: 1
-      });
-    } finally {
-      connection.release();
-    }
-
-    return lockStore;
   }
 
   public async getProgress ({ consumerId, aggregateIdentifier }: {
@@ -275,6 +249,32 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
             WHERE "consumerId" = $1
         `,
         values: [ hash ]
+      });
+    } finally {
+      connection.release();
+    }
+  }
+
+  public async setup (): Promise<void> {
+    const connection = await PostgresConsumerProgressStore.getDatabase(this.pool);
+
+    try {
+      await retry(async (): Promise<void> => {
+        await connection.query(`
+          CREATE TABLE IF NOT EXISTS "${this.tableNames.progress}" (
+            "consumerId" CHAR(64) NOT NULL,
+            "aggregateId" uuid NOT NULL,
+            "revision" integer NOT NULL,
+            "isReplayingFrom" integer,
+            "isReplayingTo" integer,
+
+            CONSTRAINT "${this.tableNames.progress}_pk" PRIMARY KEY("consumerId", "aggregateId")
+          );
+        `);
+      }, {
+        retries: 3,
+        minTimeout: 100,
+        factor: 1
       });
     } finally {
       connection.release();

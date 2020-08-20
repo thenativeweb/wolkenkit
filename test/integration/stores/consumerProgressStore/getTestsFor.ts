@@ -18,6 +18,7 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
   setup(async (): Promise<void> => {
     suffix = getShortId();
     consumerProgressStore = await createConsumerProgressStore({ suffix });
+    await consumerProgressStore.setup();
 
     aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
     consumerId = v4();

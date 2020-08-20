@@ -67,12 +67,6 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
       progress: db.collection(collectionNames.progress)
     };
 
-    await collections.progress.createIndexes([{
-      key: { consumerId: 1, aggregateId: 1 },
-      name: `${collectionNames.progress}_consumerId_aggregateId`,
-      unique: true
-    }]);
-
     return new MongoDbConsumerProgressStore({
       client,
       db,
@@ -177,6 +171,14 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
         );
       }
     });
+  }
+
+  public async setup (): Promise<void> {
+    await this.collections.progress.createIndexes([{
+      key: { consumerId: 1, aggregateId: 1 },
+      name: `${this.collectionNames.progress}_consumerId_aggregateId`,
+      unique: true
+    }]);
   }
 
   public async destroy (): Promise<void> {
