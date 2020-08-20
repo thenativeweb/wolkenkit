@@ -1,12 +1,13 @@
 import { buildCommandWithMetadata } from '../buildCommandWithMetadata';
 import { buildDomainEvent } from '../buildDomainEvent';
-import { Client } from '../../../elements/Client';
 import { CommandData } from '../../../elements/CommandData';
+import { CommandForAggregateSandbox } from './CommandForAggregateSandbox';
 import { createDomainEventStore } from '../../../../stores/domainEventStore/createDomainEventStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { DomainEvent } from '../../../elements/DomainEvent';
 import { DomainEventData } from '../../../elements/DomainEventData';
+import { DomainEventForAggregateSandbox } from './DomainEventForAggregateSandbox';
 import { DomainEventWithState } from '../../../elements/DomainEventWithState';
 import { getAggregateService } from '../../../services/getAggregateService';
 import { getAggregatesService } from '../../../services/getAggregatesService';
@@ -15,7 +16,6 @@ import { getLockService } from '../../../services/getLockService';
 import { getLoggerService } from '../../../services/getLoggerService';
 import { getNotificationService } from '../../../services/getNotificationService';
 import { getSnapshotStrategy } from '../../../domain/getSnapshotStrategy';
-import { Initiator } from '../../../elements/Initiator';
 import { Repository } from '../../../domain/Repository';
 import { SandboxConfigurationForAggregate } from './SandboxConfiguration';
 import { State } from '../../../elements/State';
@@ -23,18 +23,9 @@ import { SandboxForAggregate, SandboxForAggregateWithResult } from './SandboxFor
 
 const createSandboxForAggregate = function <TState extends State> (sandboxConfiguration: SandboxConfigurationForAggregate): SandboxForAggregate<TState> {
   return {
-    given <TDomainEventData extends DomainEventData>({ name, data, id, metadata }: {
-      name: string;
-      data: TDomainEventData;
-      id?: string;
-      metadata?: {
-        causationId?: string;
-        correlationId?: string;
-        timestamp?: number;
-        initiator?: Initiator;
-        tags?: string[];
-      };
-    }): SandboxForAggregate<TState> {
+    given <TDomainEventData extends DomainEventData>(
+      { name, data, id, metadata }: DomainEventForAggregateSandbox<TDomainEventData>
+    ): SandboxForAggregate<TState> {
       return createSandboxForAggregate<TState>({
         ...sandboxConfiguration,
         domainEvents: [
@@ -51,18 +42,9 @@ const createSandboxForAggregate = function <TState extends State> (sandboxConfig
       });
     },
 
-    and <TDomainEventData extends DomainEventData>({ name, data, id, metadata }: {
-      name: string;
-      data: TDomainEventData;
-      id?: string;
-      metadata?: {
-        causationId?: string;
-        correlationId?: string;
-        timestamp?: number;
-        initiator?: Initiator;
-        tags?: string[];
-      };
-    }): SandboxForAggregate<TState> {
+    and <TDomainEventData extends DomainEventData>(
+      { name, data, id, metadata }: DomainEventForAggregateSandbox<TDomainEventData>
+    ): SandboxForAggregate<TState> {
       return createSandboxForAggregate<TState>({
         ...sandboxConfiguration,
         domainEvents: [
@@ -79,18 +61,9 @@ const createSandboxForAggregate = function <TState extends State> (sandboxConfig
       });
     },
 
-    when <TCommandData extends CommandData>({ name, data, id, metadata }: {
-      name: string;
-      data: TCommandData;
-      id?: string;
-      metadata?: {
-        causationId?: string;
-        correlationId?: string;
-        timestamp?: number;
-        client?: Client;
-        initiator?: Initiator;
-      };
-    }): SandboxForAggregateWithResult<TState> {
+    when <TCommandData extends CommandData>(
+      { name, data, id, metadata }: CommandForAggregateSandbox<TCommandData>
+    ): SandboxForAggregateWithResult<TState> {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return createSandboxForAggregateWithResult<TState>({
         ...sandboxConfiguration,
@@ -112,18 +85,9 @@ const createSandboxForAggregate = function <TState extends State> (sandboxConfig
 
 const createSandboxForAggregateWithResult = function <TState extends State> (sandboxConfiguration: SandboxConfigurationForAggregate): SandboxForAggregateWithResult<TState> {
   return {
-    and <TCommandData extends CommandData>({ name, data, id, metadata }: {
-      name: string;
-      data: TCommandData;
-      id?: string;
-      metadata?: {
-        causationId?: string;
-        correlationId?: string;
-        timestamp?: number;
-        client?: Client;
-        initiator?: Initiator;
-      };
-    }): SandboxForAggregateWithResult<TState> {
+    and <TCommandData extends CommandData>(
+      { name, data, id, metadata }: CommandForAggregateSandbox<TCommandData>
+    ): SandboxForAggregateWithResult<TState> {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return createSandboxForAggregateWithResult<TState>({
         ...sandboxConfiguration,

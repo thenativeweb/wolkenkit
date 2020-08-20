@@ -6,11 +6,14 @@ import { AskInfrastructure } from './common/elements/AskInfrastructure';
 import { ClientService } from './common/services/ClientService';
 import { Command } from './common/elements/Command';
 import { CommandData } from './common/elements/CommandData';
+import { CommandForAggregateSandbox } from './common/utils/test/sandbox/CommandForAggregateSandbox';
 import { CommandHandler } from './common/elements/CommandHandler';
 import { CommandService } from './common/services/CommandService';
 import { CommandWithMetadata } from './common/elements/CommandWithMetadata';
 import { DomainEvent } from './common/elements/DomainEvent';
 import { DomainEventData } from './common/elements/DomainEventData';
+import { DomainEventForAggregateSandbox } from './common/utils/test/sandbox/DomainEventForAggregateSandbox';
+import { DomainEventForFlowSandbox } from './common/utils/test/sandbox/DomainEventForFlowSandbox';
 import { DomainEventHandler } from './common/elements/DomainEventHandler';
 import { DomainEventWithState } from './common/elements/DomainEventWithState';
 import { ErrorService } from './common/services/ErrorService';
@@ -45,11 +48,14 @@ export {
   ClientService,
   Command,
   CommandData,
+  CommandForAggregateSandbox,
   CommandHandler,
   CommandService,
   CommandWithMetadata,
   DomainEvent,
   DomainEventData,
+  DomainEventForAggregateSandbox,
+  DomainEventForFlowSandbox,
   DomainEventHandler,
   DomainEventWithState,
   ErrorService,

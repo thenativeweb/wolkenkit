@@ -6,6 +6,7 @@ import { createDomainEventStore } from '../../../../stores/domainEventStore/crea
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { DomainEventData } from '../../../elements/DomainEventData';
+import { DomainEventForFlowSandbox } from './DomainEventForFlowSandbox';
 import { executeFlow } from '../../../domain/executeFlow';
 import { getAggregateService } from '../../../services/getAggregateService';
 import { getAggregatesService } from '../../../services/getAggregatesService';
@@ -15,7 +16,6 @@ import { getLockService } from '../../../services/getLockService';
 import { getLoggerService } from '../../../services/getLoggerService';
 import { getNotificationService } from '../../../services/getNotificationService';
 import { getSnapshotStrategy } from '../../../domain/getSnapshotStrategy';
-import { Initiator } from '../../../elements/Initiator';
 import { noop } from 'lodash';
 import { Repository } from '../../../domain/Repository';
 import { SandboxConfigurationForFlow } from './SandboxConfiguration';
@@ -23,28 +23,16 @@ import { SandboxForFlow, SandboxForFlowWithResult } from './SandboxForFlow';
 
 const createSandboxForFlow = function (sandboxConfiguration: SandboxConfigurationForFlow): SandboxForFlow {
   return {
-    when <TDomainEventData extends DomainEventData>({
-      contextIdentifier,
-      aggregateIdentifier,
-      name,
-      data,
-      id,
-      metadata
-    }: {
-      contextIdentifier: { name: string };
-      aggregateIdentifier: { name: string; id: string };
-      name: string;
-      data: TDomainEventData;
-      id?: string;
-      metadata: {
-        causationId?: string;
-        correlationId?: string;
-        timestamp?: number;
-        initiator?: Initiator;
-        tags?: string[];
-        revision: number;
-      };
-    }): SandboxForFlowWithResult {
+    when <TDomainEventData extends DomainEventData>(
+      {
+        contextIdentifier,
+        aggregateIdentifier,
+        name,
+        data,
+        id,
+        metadata
+      }: DomainEventForFlowSandbox<TDomainEventData>
+    ): SandboxForFlowWithResult {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return createSandboxForFlowWithResult({
         ...sandboxConfiguration,
@@ -66,28 +54,16 @@ const createSandboxForFlow = function (sandboxConfiguration: SandboxConfiguratio
 
 const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxConfigurationForFlow): SandboxForFlowWithResult {
   return {
-    and <TDomainEventData extends DomainEventData>({
-      contextIdentifier,
-      aggregateIdentifier,
-      name,
-      data,
-      id,
-      metadata
-    }: {
-      contextIdentifier: { name: string };
-      aggregateIdentifier: { name: string; id: string };
-      name: string;
-      data: TDomainEventData;
-      id?: string;
-      metadata: {
-        causationId?: string;
-        correlationId?: string;
-        timestamp?: number;
-        initiator?: Initiator;
-        tags?: string[];
-        revision: number;
-      };
-    }): SandboxForFlowWithResult {
+    and <TDomainEventData extends DomainEventData>(
+      {
+        contextIdentifier,
+        aggregateIdentifier,
+        name,
+        data,
+        id,
+        metadata
+      }: DomainEventForFlowSandbox<TDomainEventData>
+    ): SandboxForFlowWithResult {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return createSandboxForFlowWithResult({
         ...sandboxConfiguration,
