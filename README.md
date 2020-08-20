@@ -48,7 +48,9 @@ wolkenkit provides two primary endpoints in local development mode:
 
 - `http://localhost:3000/command/v2/:contextName/:aggregateName/:commandName` submits commands for new aggregates
 - `http://localhost:3000/command/v2/:contextName/:aggregateName/:aggregateId/:commandName` submits commands for existing aggregates
+- `http://localhost:3000/views/v2/:viewName/:queryName` queries views
 - `http://localhost:3000/domain-events/v2` subscribes to domain events
+- `http://localhost:3000/notifications/v2` subscribes to notifications
 
 Additionally, the following secondary endpoints are available as well:
 
@@ -116,18 +118,6 @@ $ curl \
 
 *Please note that you can cancel commands only as long as they are not yet being processed by the domain.*
 
-##### Subscribing to domain events
-
-To receive domain events, send a `GET` request to the domain events endpoint of the runtime. The response is a stream of newline-separated JSON objects, using `application/x-ndjson` as its content-type. From time to time, a `heartbeat` will be sent by the server as well, which you may want to filter.
-
-A sample call to `curl` might look like this:
-
-```shell
-$ curl \
-    -i \
-    http://localhost:3000/domain-events/v2
-```
-
 ##### Querying a view
 
 To query a view, send a `GET` request to the views endpoint of the runtime. The response is a stream of newline separated JSON objects, using `application/x-ndjson` as its content-type. This response stream does _not_ contain heartbeats and ends as soon as the last item is streamed.
@@ -138,6 +128,18 @@ A sample call to `curl` might look like this:
 $ curl \
     -i \
     http://localhost:3000/views/v2/messages/all
+```
+
+##### Subscribing to notifications
+
+To receive notifications, send a `GET` request to the notifications endpoint of the runtime. The response is a stream of newline-separated JSON objects, using `application/x-ndjson` as its content-type. From time to time, a `heartbeat` will be sent by the server as well, which you may want to filter.
+
+A sample call to `curl` might look like this:
+
+```shell
+$ curl \
+    -i \
+    http://localhost:3000/notifications/v2
 ```
 
 #### Using the GraphQL interface
@@ -184,6 +186,23 @@ mutation {
 
 *Please note that you can cancel commands only as long as they are not yet being processed by the domain.*
 
+###### Qerying a view
+
+To query a view, send a query to the GraphQL endpoint of the runtime:
+
+```
+query {
+  messages {
+    all {
+      id
+      timestamp
+      text
+      likes
+    }
+  }
+}
+```
+
 ##### Subscribing to domain events
 
 To receive domain events, send a subscription to the GraphQL endpoint of the runtime. The response is a stream of objects, where the domain events' `data` has been stringified:
@@ -200,19 +219,15 @@ subscription {
 }
 ```
 
-###### Qerying a view
+##### Subscribing to notifications
 
-To query a view, send a query to the GraphQL endpoint of the runtime:
+To receive notifications, send a subscription to the GraphQL endpoint of the runtime. The response is a stream of objects, where the domain events' `data` has been stringified:
 
 ```
-query {
-  messages {
-    all {
-      id
-      timestamp
-      text
-      likes
-    }
+subscription {
+  notifications {
+    name,
+    data
   }
 }
 ```
