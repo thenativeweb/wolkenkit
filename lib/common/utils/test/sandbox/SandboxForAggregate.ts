@@ -1,64 +1,28 @@
-import { Client } from '../../../elements/Client';
 import { CommandData } from '../../../elements/CommandData';
+import { CommandForAggregateSandbox } from './CommandForAggregateSandbox';
 import { DomainEvent } from '../../../elements/DomainEvent';
 import { DomainEventData } from '../../../elements/DomainEventData';
-import { Initiator } from '../../../elements/Initiator';
+import { DomainEventForAggregateSandbox } from './DomainEventForAggregateSandbox';
 import { State } from '../../../elements/State';
 
 export interface SandboxForAggregate<TState extends State> {
-  given <TDomainEventData extends DomainEventData>(parameters: {
-    name: string;
-    data: TDomainEventData;
-    id?: string;
-    metadata?: {
-      causationId?: string;
-      correlationId?: string;
-      timestamp?: number;
-      initiator?: Initiator;
-      tags?: string[];
-    };
-  }): SandboxForAggregate<TState>;
+  given <TDomainEventData extends DomainEventData>(
+    domainEvent: DomainEventForAggregateSandbox<TDomainEventData>
+  ): SandboxForAggregate<TState>;
 
-  and <TDomainEventData extends DomainEventData>(parameters: {
-    name: string;
-    data: TDomainEventData;
-    id?: string;
-    metadata?: {
-      causationId?: string;
-      correlationId?: string;
-      timestamp?: number;
-      initiator?: Initiator;
-      tags?: string[];
-    };
-  }): SandboxForAggregate<TState>;
+  and <TDomainEventData extends DomainEventData>(
+    domainEvent: DomainEventForAggregateSandbox<TDomainEventData>
+  ): SandboxForAggregate<TState>;
 
-  when <TCommandData extends CommandData>(parameters: {
-    name: string;
-    data: TCommandData;
-    id?: string;
-    metadata?: {
-      causationId?: string;
-      correlationId?: string;
-      timestamp?: number;
-      client?: Client;
-      initiator?: Initiator;
-    };
-  }): SandboxForAggregateWithResult<TState>;
+  when <TCommandData extends CommandData>(
+    parameters: CommandForAggregateSandbox<TCommandData>
+  ): SandboxForAggregateWithResult<TState>;
 }
 
 export interface SandboxForAggregateWithResult<TState extends State> {
-  and<TCommandData extends CommandData>(parameters: {
-    name: string;
-    data: TCommandData;
-    id?: string;
-    metadata?: {
-      causationId?: string;
-      correlationId?: string;
-      timestamp?: number;
-      client?: Client;
-      initiator?: Initiator;
-    };
-  }): SandboxForAggregateWithResult<TState>;
+  and<TCommandData extends CommandData>(
+    parameters: CommandForAggregateSandbox<TCommandData>
+  ): SandboxForAggregateWithResult<TState>;
 
   then(callback: ((parameters: {
     state: State;
