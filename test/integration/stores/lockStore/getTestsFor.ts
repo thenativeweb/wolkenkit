@@ -16,6 +16,7 @@ const getTestsFor = function ({ createLockStore }: {
   setup(async (): Promise<void> => {
     suffix = getShortId();
     lockStore = await createLockStore({ suffix });
+    await lockStore.setup();
     value = JSON.stringify({ foo: 'bar' });
   });
 

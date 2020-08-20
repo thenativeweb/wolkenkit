@@ -17,5 +17,7 @@ export interface LockStore {
     value: string;
   }) => Promise<void>;
 
+  setup: () => Promise<void>;
+
   destroy: () => Promise<void>;
 }

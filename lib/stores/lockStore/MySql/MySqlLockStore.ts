@@ -70,28 +70,10 @@ class MySqlLockStore implements LockStore {
       connection.on('end', MySqlLockStore.onUnexpectedClose);
     });
 
-    const lockStore = new MySqlLockStore({
+    return new MySqlLockStore({
       tableNames,
       pool
     });
-
-    const connection = await lockStore.getDatabase();
-
-    await runQuery({
-      connection,
-      query: `
-        CREATE TABLE IF NOT EXISTS \`${tableNames.locks}\` (
-          value CHAR(64) NOT NULL,
-          expiresAt BIGINT NOT NULL,
-
-          PRIMARY KEY(value)
-        );
-      `
-    });
-
-    MySqlLockStore.releaseConnection({ connection });
-
-    return lockStore;
   }
 
   protected async removeExpiredLocks ({ connection }: {
@@ -220,6 +202,24 @@ class MySqlLockStore implements LockStore {
     } finally {
       MySqlLockStore.releaseConnection({ connection });
     }
+  }
+
+  public async setup (): Promise<void> {
+    const connection = await this.getDatabase();
+
+    await runQuery({
+      connection,
+      query: `
+        CREATE TABLE IF NOT EXISTS \`${this.tableNames.locks}\` (
+          value CHAR(64) NOT NULL,
+          expiresAt BIGINT NOT NULL,
+
+          PRIMARY KEY(value)
+        );
+      `
+    });
+
+    MySqlLockStore.releaseConnection({ connection });
   }
 
   public async destroy (): Promise<void> {

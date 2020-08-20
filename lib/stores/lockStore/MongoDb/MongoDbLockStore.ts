@@ -71,12 +71,6 @@ class MongoDbLockStore implements LockStore {
       locks: db.collection(collectionNames.locks)
     };
 
-    await collections.locks.createIndexes([{
-      key: { value: 1 },
-      name: `${collectionNames.locks}_value`,
-      unique: true
-    }]);
-
     return new MongoDbLockStore({
       client,
       db,
@@ -161,6 +155,14 @@ class MongoDbLockStore implements LockStore {
     const hash = getHash({ value });
 
     await this.collections.locks.deleteOne({ value: hash });
+  }
+
+  public async setup (): Promise<void> {
+    await this.collections.locks.createIndexes([{
+      key: { value: 1 },
+      name: `${this.collectionNames.locks}_value`,
+      unique: true
+    }]);
   }
 
   public async destroy (): Promise<void> {

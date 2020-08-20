@@ -98,6 +98,11 @@ class InMemoryLockStore implements LockStore {
     this.database.locks.splice(index, 1);
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  public async setup (): Promise<void> {
+    // There is nothing to do here.
+  }
+
   public async destroy (): Promise<void> {
     this.database = {
       locks: []
