@@ -27,6 +27,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -150,6 +151,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -261,6 +263,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -369,6 +372,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -480,6 +484,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -686,6 +691,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -861,6 +867,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -966,6 +973,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -1082,6 +1090,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {

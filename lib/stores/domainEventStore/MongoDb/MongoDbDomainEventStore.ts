@@ -76,45 +76,12 @@ class MongoDbDomainEventStore implements DomainEventStore {
       snapshots: db.collection(collectionNames.snapshots)
     };
 
-    const domainEventStore = new MongoDbDomainEventStore({
+    return new MongoDbDomainEventStore({
       client,
       db,
       collectionNames,
       collections
     });
-
-    await collections.domainEvents.createIndexes([
-      {
-        key: { 'aggregateIdentifier.id': 1 },
-        name: `${collectionNames.domainEvents}_aggregateId`
-      },
-      {
-        key: { 'aggregateIdentifier.id': 1, 'metadata.revision': 1 },
-        name: `${collectionNames.domainEvents}_aggregateId_revision`,
-        unique: true
-      },
-      {
-        key: { 'metadata.causationId': 1 },
-        name: `${collectionNames.domainEvents}_causationId`
-      },
-      {
-        key: { 'metadata.correlationId': 1 },
-        name: `${collectionNames.domainEvents}_correlationId`
-      },
-      {
-        key: { 'metadata.timestamp': 1 },
-        name: `${collectionNames.domainEvents}_timestamp`
-      }
-    ]);
-    await collections.snapshots.createIndexes([
-      {
-        key: { 'aggregateIdentifier.id': 1 },
-        name: `${collectionNames.snapshots}_aggregateId`,
-        unique: true
-      }
-    ]);
-
-    return domainEventStore;
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
@@ -428,6 +395,39 @@ class MongoDbDomainEventStore implements DomainEventStore {
       }},
       { upsert: true }
     );
+  }
+
+  public async setup (): Promise<void> {
+    await this.collections.domainEvents.createIndexes([
+      {
+        key: { 'aggregateIdentifier.id': 1 },
+        name: `${this.collectionNames.domainEvents}_aggregateId`
+      },
+      {
+        key: { 'aggregateIdentifier.id': 1, 'metadata.revision': 1 },
+        name: `${this.collectionNames.domainEvents}_aggregateId_revision`,
+        unique: true
+      },
+      {
+        key: { 'metadata.causationId': 1 },
+        name: `${this.collectionNames.domainEvents}_causationId`
+      },
+      {
+        key: { 'metadata.correlationId': 1 },
+        name: `${this.collectionNames.domainEvents}_correlationId`
+      },
+      {
+        key: { 'metadata.timestamp': 1 },
+        name: `${this.collectionNames.domainEvents}_timestamp`
+      }
+    ]);
+    await this.collections.snapshots.createIndexes([
+      {
+        key: { 'aggregateIdentifier.id': 1 },
+        name: `${this.collectionNames.snapshots}_aggregateId`,
+        unique: true
+      }
+    ]);
   }
 
   public async destroy (): Promise<void> {

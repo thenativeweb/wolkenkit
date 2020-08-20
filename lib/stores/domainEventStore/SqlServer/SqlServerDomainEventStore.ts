@@ -56,46 +56,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
 
     await pool.connect();
 
-    const domainEventStore = new SqlServerDomainEventStore({ pool, tableNames });
-
-    try {
-      await pool.query(`
-        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.domainEvents}')
-          BEGIN
-            CREATE TABLE [${tableNames.domainEvents}] (
-              [aggregateId] UNIQUEIDENTIFIER NOT NULL,
-              [revision] INT NOT NULL,
-              [causationId] UNIQUEIDENTIFIER NOT NULL,
-              [correlationId] UNIQUEIDENTIFIER NOT NULL,
-              [timestamp] BIGINT NOT NULL,
-              [domainEvent] NVARCHAR(4000) NOT NULL,
-
-              CONSTRAINT [${tableNames.domainEvents}_pk] PRIMARY KEY([aggregateId], [revision])
-            );
-          END
-
-        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.snapshots}')
-          BEGIN
-            CREATE TABLE [${tableNames.snapshots}] (
-              [aggregateId] UNIQUEIDENTIFIER NOT NULL,
-              [revision] INT NOT NULL,
-              [state] NVARCHAR(4000) NOT NULL,
-
-              CONSTRAINT [${tableNames.snapshots}_pk] PRIMARY KEY([aggregateId], [revision])
-            );
-          END
-      `);
-    } catch (ex) {
-      if (!ex.message.includes('There is already an object named')) {
-        throw ex;
-      }
-
-      // When multiple clients initialize at the same time, e.g. during
-      // integration tests, SQL Server might throw an error. In this case we
-      // simply ignore it
-    }
-
-    return domainEventStore;
+    return new SqlServerDomainEventStore({ pool, tableNames });
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
@@ -325,6 +286,45 @@ class SqlServerDomainEventStore implements DomainEventStore {
           VALUES (@aggregateId, @revision, @state);
         END
     `);
+  }
+
+  public async setup (): Promise<void> {
+    try {
+      await this.pool.query(`
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${this.tableNames.domainEvents}')
+          BEGIN
+            CREATE TABLE [${this.tableNames.domainEvents}] (
+              [aggregateId] UNIQUEIDENTIFIER NOT NULL,
+              [revision] INT NOT NULL,
+              [causationId] UNIQUEIDENTIFIER NOT NULL,
+              [correlationId] UNIQUEIDENTIFIER NOT NULL,
+              [timestamp] BIGINT NOT NULL,
+              [domainEvent] NVARCHAR(4000) NOT NULL,
+
+              CONSTRAINT [${this.tableNames.domainEvents}_pk] PRIMARY KEY([aggregateId], [revision])
+            );
+          END
+
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${this.tableNames.snapshots}')
+          BEGIN
+            CREATE TABLE [${this.tableNames.snapshots}] (
+              [aggregateId] UNIQUEIDENTIFIER NOT NULL,
+              [revision] INT NOT NULL,
+              [state] NVARCHAR(4000) NOT NULL,
+
+              CONSTRAINT [${this.tableNames.snapshots}_pk] PRIMARY KEY([aggregateId], [revision])
+            );
+          END
+      `);
+    } catch (ex) {
+      if (!ex.message.includes('There is already an object named')) {
+        throw ex;
+      }
+
+      // When multiple clients initialize at the same time, e.g. during
+      // integration tests, SQL Server might throw an error. In this case we
+      // simply ignore it
+    }
   }
 
   public async destroy (): Promise<void> {

@@ -102,11 +102,15 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     await this.writeClient.storeSnapshot({ snapshot });
   }
 
-  /* eslint-disable class-methods-use-this */
+  // eslint-disable-next-line class-methods-use-this
+  public async setup (): Promise<void> {
+    // There is nothing to do here.
+  }
+
+  // eslint-disable-next-line class-methods-use-this
   public async destroy (): Promise<void> {
     // There is nothing to do here.
   }
-  /* eslint-disable class-methods-use-this */
 }
 
 export { AeonstoreDomainEventStore };

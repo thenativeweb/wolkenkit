@@ -188,11 +188,6 @@ class InMemoryDomainEventStore implements DomainEventStore {
     });
   }
 
-  public async destroy (): Promise<void> {
-    this.domainEvents = [];
-    this.snapshots = [];
-  }
-
   protected getStoredDomainEvents <TState extends State> (): DomainEvent<TState>[] {
     return this.domainEvents as DomainEvent<TState>[];
   }
@@ -218,6 +213,16 @@ class InMemoryDomainEventStore implements DomainEventStore {
     updatedDomainEvent: DomainEvent<State>;
   }): void {
     this.domainEvents[index] = updatedDomainEvent;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async setup (): Promise<void> {
+    // There is nothing to do here.
+  }
+
+  public async destroy (): Promise<void> {
+    this.domainEvents = [];
+    this.snapshots = [];
   }
 }
 

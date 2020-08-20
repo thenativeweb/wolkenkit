@@ -77,94 +77,7 @@ class MySqlDomainEventStore implements DomainEventStore {
       connection.on('end', MySqlDomainEventStore.onUnexpectedClose);
     });
 
-    const domainEventStore = new MySqlDomainEventStore({ tableNames, pool });
-    const connection = await domainEventStore.getDatabase();
-
-    const createUuidToBinFunction = `
-      CREATE FUNCTION UuidToBin(_uuid CHAR(36))
-        RETURNS BINARY(16)
-        RETURN UNHEX(CONCAT(
-          SUBSTR(_uuid, 15, 4),
-          SUBSTR(_uuid, 10, 4),
-          SUBSTR(_uuid, 1, 8),
-          SUBSTR(_uuid, 20, 4),
-          SUBSTR(_uuid, 25)
-        ));
-    `;
-
-    try {
-      await runQuery({ connection, query: createUuidToBinFunction });
-    } catch (ex) {
-      // If the function already exists, we can ignore this error; otherwise
-      // rethrow it. Generally speaking, this should be done using a SQL clause
-      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
-      // there is a ready-made function UUID_TO_BIN, but this is only available
-      // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidToBin already exists')) {
-        throw ex;
-      }
-    }
-
-    const createUuidFromBinFunction = `
-      CREATE FUNCTION UuidFromBin(_bin BINARY(16))
-        RETURNS CHAR(36)
-        RETURN LCASE(CONCAT_WS('-',
-          HEX(SUBSTR(_bin,  5, 4)),
-          HEX(SUBSTR(_bin,  3, 2)),
-          HEX(SUBSTR(_bin,  1, 2)),
-          HEX(SUBSTR(_bin,  9, 2)),
-          HEX(SUBSTR(_bin, 11))
-        ));
-    `;
-
-    try {
-      await runQuery({ connection, query: createUuidFromBinFunction });
-    } catch (ex) {
-      // If the function already exists, we can ignore this error; otherwise
-      // rethrow it. Generally speaking, this should be done using a SQL clause
-      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
-      // there is a ready-made function BIN_TO_UUID, but this is only available
-      // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidFromBin already exists')) {
-        throw ex;
-      }
-    }
-
-    const query = `
-      CREATE TABLE IF NOT EXISTS \`${tableNames.domainEvents}\` (
-        aggregateId BINARY(16) NOT NULL,
-        revision INT NOT NULL,
-        causationId BINARY(16) NOT NULL,
-        correlationId BINARY(16) NOT NULL,
-        timestamp BIGINT NOT NULL,
-        domainEvent JSON NOT NULL,
-
-        PRIMARY KEY (aggregateId, revision),
-        INDEX (causationId),
-        INDEX (correlationId),
-        INDEX (timestamp)
-      ) ENGINE=InnoDB;
-
-      CREATE TABLE IF NOT EXISTS \`${tableNames.snapshots}\` (
-        aggregateId BINARY(16) NOT NULL,
-        revision INT NOT NULL,
-        state JSON NOT NULL,
-
-        PRIMARY KEY (aggregateId, revision)
-      ) ENGINE=InnoDB;
-    `;
-
-    await runQuery({ connection, query });
-
-    MySqlDomainEventStore.releaseConnection({ connection });
-
-    return domainEventStore;
-  }
-
-  public async destroy (): Promise<void> {
-    await new Promise((resolve): void => {
-      this.pool.end(resolve);
-    });
+    return new MySqlDomainEventStore({ tableNames, pool });
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
@@ -495,6 +408,94 @@ class MySqlDomainEventStore implements DomainEventStore {
     } finally {
       MySqlDomainEventStore.releaseConnection({ connection });
     }
+  }
+
+  public async setup (): Promise<void> {
+    const connection = await this.getDatabase();
+
+    const createUuidToBinFunction = `
+      CREATE FUNCTION UuidToBin(_uuid CHAR(36))
+        RETURNS BINARY(16)
+        RETURN UNHEX(CONCAT(
+          SUBSTR(_uuid, 15, 4),
+          SUBSTR(_uuid, 10, 4),
+          SUBSTR(_uuid, 1, 8),
+          SUBSTR(_uuid, 20, 4),
+          SUBSTR(_uuid, 25)
+        ));
+    `;
+
+    try {
+      await runQuery({ connection, query: createUuidToBinFunction });
+    } catch (ex) {
+      // If the function already exists, we can ignore this error; otherwise
+      // rethrow it. Generally speaking, this should be done using a SQL clause
+      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
+      // there is a ready-made function UUID_TO_BIN, but this is only available
+      // from MySQL 8.0 upwards.
+      if (!ex.message.includes('FUNCTION UuidToBin already exists')) {
+        throw ex;
+      }
+    }
+
+    const createUuidFromBinFunction = `
+      CREATE FUNCTION UuidFromBin(_bin BINARY(16))
+        RETURNS CHAR(36)
+        RETURN LCASE(CONCAT_WS('-',
+          HEX(SUBSTR(_bin,  5, 4)),
+          HEX(SUBSTR(_bin,  3, 2)),
+          HEX(SUBSTR(_bin,  1, 2)),
+          HEX(SUBSTR(_bin,  9, 2)),
+          HEX(SUBSTR(_bin, 11))
+        ));
+    `;
+
+    try {
+      await runQuery({ connection, query: createUuidFromBinFunction });
+    } catch (ex) {
+      // If the function already exists, we can ignore this error; otherwise
+      // rethrow it. Generally speaking, this should be done using a SQL clause
+      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
+      // there is a ready-made function BIN_TO_UUID, but this is only available
+      // from MySQL 8.0 upwards.
+      if (!ex.message.includes('FUNCTION UuidFromBin already exists')) {
+        throw ex;
+      }
+    }
+
+    const query = `
+      CREATE TABLE IF NOT EXISTS \`${this.tableNames.domainEvents}\` (
+        aggregateId BINARY(16) NOT NULL,
+        revision INT NOT NULL,
+        causationId BINARY(16) NOT NULL,
+        correlationId BINARY(16) NOT NULL,
+        timestamp BIGINT NOT NULL,
+        domainEvent JSON NOT NULL,
+
+        PRIMARY KEY (aggregateId, revision),
+        INDEX (causationId),
+        INDEX (correlationId),
+        INDEX (timestamp)
+      ) ENGINE=InnoDB;
+
+      CREATE TABLE IF NOT EXISTS \`${this.tableNames.snapshots}\` (
+        aggregateId BINARY(16) NOT NULL,
+        revision INT NOT NULL,
+        state JSON NOT NULL,
+
+        PRIMARY KEY (aggregateId, revision)
+      ) ENGINE=InnoDB;
+    `;
+
+    await runQuery({ connection, query });
+
+    MySqlDomainEventStore.releaseConnection({ connection });
+  }
+
+  public async destroy (): Promise<void> {
+    await new Promise((resolve): void => {
+      this.pool.end(resolve);
+    });
   }
 }
 

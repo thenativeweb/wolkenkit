@@ -45,5 +45,7 @@ export interface DomainEventStore {
     snapshot: Snapshot<TState>;
   }) => Promise<void>;
 
+  setup: () => Promise<void>;
+
   destroy: () => Promise<void>;
 }
