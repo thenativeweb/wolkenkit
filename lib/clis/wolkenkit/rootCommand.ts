@@ -6,6 +6,7 @@ import { documentationCommand } from './documentation/documentationCommand';
 import { healthCommand } from './health/healthCommand';
 import { initCommand } from './init/initCommand';
 import { RootOptions } from './RootOptions';
+import { setupCommand } from './setup/setupCommand';
 import { tokenCommand } from './token/tokenCommand';
 
 const rootCommand = function (): Command<RootOptions> {
@@ -37,6 +38,7 @@ const rootCommand = function (): Command<RootOptions> {
       'create-deployment': createDeploymentCommand(),
       documentation: documentationCommand(),
       health: healthCommand(),
+      setup: setupCommand(),
       token: tokenCommand()
     }
   };

@@ -1,7 +1,8 @@
 'use strict';
 
 const setupInfrastructure = async function () {
-  // Intentionally left blank.
+  // eslint-disable-next-line no-console
+  console.log('Setting up the infrastructure...');
 };
 
 const getInfrastructure = async function () {

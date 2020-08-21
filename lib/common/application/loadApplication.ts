@@ -50,13 +50,6 @@ const loadApplication = async function ({ applicationDirectory }: {
     withSystemDomainEvents
   ];
 
-  await infrastructureDefinition.setupInfrastructure({
-    logger: getLoggerService({
-      fileName: '<app>/build/server/infrastructure/setupInfrastructure',
-      packageManifest
-    })
-  });
-
   const rawApplication: Application = {
     rootDirectory: applicationDirectory,
     packageManifest,
