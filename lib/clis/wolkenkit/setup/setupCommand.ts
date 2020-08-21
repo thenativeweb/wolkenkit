@@ -1,6 +1,7 @@
 import { Command } from 'command-line-interface';
 import { infrastructureCommand } from './infrastructure/infrastructureCommand';
 import { RootOptions } from '../RootOptions';
+import { storeCommand } from './store/storeCommand';
 
 const setupCommand = function (): Command<RootOptions> {
   return {
@@ -16,7 +17,8 @@ const setupCommand = function (): Command<RootOptions> {
     },
 
     subcommands: {
-      infrastructure: infrastructureCommand()
+      infrastructure: infrastructureCommand(),
+      store: storeCommand()
     }
   };
 };
