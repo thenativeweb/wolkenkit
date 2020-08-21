@@ -2,6 +2,7 @@ import { Application } from './Application';
 import { ApplicationEnhancer } from '../../tools/ApplicationEnhancer';
 import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
+import { getApplicationPackageJson } from './getApplicationPackageJson';
 import { getDomainDefinition } from './getDomainDefinition';
 import { getFlowsDefinition } from './getFlowsDefinition';
 import { getHooksDefinition } from './getHooksDefinition';
@@ -29,7 +30,7 @@ const loadApplication = async function ({ applicationDirectory }: {
     throw new errors.DirectoryNotFound(`Directory '<app>/build' not found.`);
   }
 
-  const packageManifest = (await import(packageManifestPath)).default;
+  const packageManifest = await getApplicationPackageJson({ directory: applicationDirectory });
 
   const domainDirectory = path.join(serverDirectory, 'domain');
   const flowsDirectory = path.join(serverDirectory, 'flows');
