@@ -9,7 +9,7 @@ import { Pool, PoolClient } from 'pg';
 const rootPath = path.join(__dirname, '..', '..', '..', '..', '..');
 const cliPath = path.join(rootPath, 'build', 'lib', 'bin', 'wolkenkit.js');
 
-suite.only('setup store consumer-progress postgres', function (): void {
+suite('setup store consumer-progress postgres', function (): void {
   this.timeout(30_000);
 
   test(`sets up a postgres database for a consumer progress store.`, async (): Promise<void> => {
@@ -23,8 +23,8 @@ suite.only('setup store consumer-progress postgres', function (): void {
 
     const tableNameProgress = v4();
 
-    const setupMySqlConsumerProgressStoreCommand = `node ${cliPath} --verbose setup store consumer-progress postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-progress ${tableNameProgress}`;
-    const { stdout } = shell.exec(setupMySqlConsumerProgressStoreCommand, { silent: false });
+    const setupPostgresConsumerProgressStoreCommand = `node ${cliPath} --verbose setup store consumer-progress postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-progress ${tableNameProgress}`;
+    const { stdout } = shell.exec(setupPostgresConsumerProgressStoreCommand, { silent: false });
 
     assert.that(stdout).is.containing('Successfully set up postgres consumer progress store.');
 
