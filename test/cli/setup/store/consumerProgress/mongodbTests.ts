@@ -12,7 +12,7 @@ const cliPath = path.join(rootPath, 'build', 'lib', 'bin', 'wolkenkit.js');
 suite('setup store consumer-progress mongodb', function (): void {
   this.timeout(30_000);
 
-  test(`sets up an application's infrastructure.`, async (): Promise<void> => {
+  test(`sets up a mongodb for the consumer progress store.`, async (): Promise<void> => {
     const {
       connectionString,
       database

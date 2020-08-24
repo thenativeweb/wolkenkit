@@ -13,7 +13,7 @@ const cliPath = path.join(rootPath, 'build', 'lib', 'bin', 'wolkenkit.js');
 suite('setup store consumer-progress mysql', function (): void {
   this.timeout(30_000);
 
-  test(`sets up an application's infrastructure.`, async (): Promise<void> => {
+  test(`sets up a mysql database for a consumer progress store.`, async (): Promise<void> => {
     const {
       hostName,
       port,
