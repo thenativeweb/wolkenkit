@@ -1,5 +1,6 @@
 import { Command } from 'command-line-interface';
 import { consumerProgressMongoDbCommand } from './consumerProgressMongoDbCommand';
+import { consumerProgressMySqlCommand } from './consumerProgressMySqlCommand';
 import { RootOptions } from '../../../RootOptions';
 
 const consumerProgressCommand = function (): Command<RootOptions> {
@@ -16,7 +17,8 @@ const consumerProgressCommand = function (): Command<RootOptions> {
     },
 
     subcommands: {
-      mongodb: consumerProgressMongoDbCommand()
+      mongodb: consumerProgressMongoDbCommand(),
+      mysql: consumerProgressMySqlCommand()
     }
   };
 };
