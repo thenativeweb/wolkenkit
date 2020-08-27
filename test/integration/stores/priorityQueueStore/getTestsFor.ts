@@ -785,6 +785,32 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       assert.that(shouldBeUndefined).is.undefined();
     });
   });
+
+  suite('regression tests', (): void => {
+    test('lock, enqueue, acknowledge does not mess up the indexes.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({
+        discriminator: 'foo',
+        priority: Math.floor(Math.random() * 1000),
+        item: { id: v4() }
+      });
+
+      const { metadata } = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.enqueue({
+        discriminator: `bar`,
+        priority: Math.floor(Math.random() * 1000),
+        item: { id: v4() }
+      });
+
+      await priorityQueueStore.acknowledge({ discriminator: metadata.discriminator, token: metadata.token });
+
+      await priorityQueueStore.enqueue({
+        discriminator: `baz`,
+        priority: Math.floor(Math.random() * 1000),
+        item: { index: 0 }
+      });
+    });
+  });
 };
 /* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 

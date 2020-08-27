@@ -292,17 +292,15 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
         firstQueue: queue,
         secondQueue: leftChildQueue
       });
-
-      await this.repairDown({ connection, discriminator: queue.discriminator });
     } else {
       await this.swapPositionsInPriorityQueue({
         connection,
         firstQueue: queue,
         secondQueue: rightChildQueue!
       });
-
-      await this.repairDown({ connection, discriminator: queue.discriminator });
     }
+
+    await this.repairDown({ connection, discriminator: queue.discriminator });
   }
 
   protected async removeQueueInternal ({ connection, discriminator }: {
@@ -327,24 +325,31 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
       text: `
         DELETE FROM "${this.tableNames.priorityQueue}"
           WHERE "discriminator" = $1;
-          `,
+      `,
       values: [ discriminator ]
     });
-    const { rowCount } = await connection.query({
+
+    const { rows: [{ count }] } = await connection.query({
+      name: 'check how many queues are left in the priority queue',
+      text: `
+        SELECT count(*) as count
+          FROM "${this.tableNames.priorityQueue}";
+      `
+    });
+
+    if (rows[0].indexInPriorityQueue >= count) {
+      return;
+    }
+
+    await connection.query({
       name: 'move last queue in priority queue to index of removed queue',
       text: `
         UPDATE "${this.tableNames.priorityQueue}"
           SET "indexInPriorityQueue" = $1
-          WHERE "indexInPriorityQueue" = (SELECT MAX("indexInPriorityQueue") FROM "${this.tableNames.priorityQueue}");
+          WHERE "indexInPriorityQueue" = $2;
       `,
-      values: [ rows[0].indexInPriorityQueue ]
+      values: [ rows[0].indexInPriorityQueue, count ]
     });
-
-    // If the update did not change any rows, we removed the last queue and
-    // don't have to repair.
-    if (rowCount === 0) {
-      return;
-    }
 
     const { rows: [{ discriminator: movedQueueDiscriminator }] } = await connection.query({
       name: 'get discriminator of moved queue',
