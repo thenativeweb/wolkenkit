@@ -156,8 +156,8 @@
     "p-forever": "2.1.0",
     "p-queue": "6.6.1",
     "partof": "3.0.0",
-    "pg": "8.3.2",
-    "pg-query-stream": "3.2.2",
+    "pg": "8.3.3",
+    "pg-query-stream": "3.2.3",
     "processenv": "3.0.2",
     "retry-ignore-abort": "2.2.4",
     "runfork": "3.1.11",
@@ -171,7 +171,7 @@
     "validate-value": "7.0.0"
   },
   "devDependencies": {
-    "@types/react": "16.9.46",
+    "@types/react": "16.9.48",
     "@types/react-dom": "16.9.8",
     "apollo-cache-inmemory": "1.6.6",
     "apollo-client": "2.6.10",
