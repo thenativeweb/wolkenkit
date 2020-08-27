@@ -134,7 +134,7 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
               "priority" bigint NOT NULL,
               "item" jsonb NOT NULL,
 
-              CONSTRAINT "${tableNames.items}_pk" PRIMARY KEY ("discriminator", "indexInQueue")
+              CONSTRAINT "${tableNames.items}_pk" PRIMARY KEY ("discriminator", "indexInQueue") DEFERRABLE
             );
           `
         });
@@ -674,6 +674,11 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
             AND "indexInQueue" = 0;
       `,
       values: [ queue.discriminator ]
+    });
+
+    await connection.query({
+      name: 'defer constraints for following bulk update',
+      text: `SET CONSTRAINTS "${this.tableNames.items}_pk" DEFERRED`
     });
 
     const { rowCount } = await connection.query({
