@@ -325,28 +325,48 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
       throw new errors.InvalidOperation();
     }
 
-    const [ results ] = await runQuery({
+    await runQuery({
       connection,
       query: `
         DELETE FROM \`${this.tableNames.priorityQueue}\`
           WHERE discriminator = ?;
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET indexInPriorityQueue = ?
-          ORDER BY indexInPriorityQueue DESC
-          LIMIT 1;
-        SELECT discriminator FROM \`${this.tableNames.priorityQueue}\`
-          WHERE indexInPriorityQueue = ?;
       `,
       parameters: [ discriminator, rows[0].indexInPriorityQueue, rows[0].indexInPriorityQueue ]
     });
 
-    // If the update did not change any rows, we removed the last queue and
-    // don't have to repair.
-    if (results[1].changedRows === 0) {
+    const [[{ count }]] = await runQuery({
+      connection,
+      query: `
+        SELECT count(*) as count
+          FROM \`${this.tableNames.priorityQueue}\`
+      `
+    });
+
+    if (rows[0].indexInPriorityQueue >= count) {
       return;
     }
 
-    await this.repairDown({ connection, discriminator: results[2][0].discriminator });
+    await runQuery({
+      connection,
+      query: `
+        UPDATE \`${this.tableNames.priorityQueue}\`
+          SET indexInPriorityQueue = ?
+          WHERE indexInPriorityQueue = ?;
+      `,
+      parameters: [ rows[0].indexInPriorityQueue, count ]
+    });
+
+    const [[{ discriminator: movedQueueDiscriminator }]] = await runQuery({
+      connection,
+      query: `
+        SELECT discriminator
+          FROM \`${this.tableNames.priorityQueue}\`
+          WHERE indexInPriorityQueue = ?;
+      `,
+      parameters: [ rows[0].indexInPriorityQueue ]
+    });
+
+    await this.repairDown({ connection, discriminator: movedQueueDiscriminator });
   }
 
   protected async getQueueByDiscriminator ({ connection, discriminator }: {

@@ -271,29 +271,44 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
     const requestTwo = transaction.request();
 
     requestTwo.input('discriminator', Types.NVarChar, discriminator);
-    requestTwo.input('index', Types.Int, recordset[0].indexInPriorityQueue);
 
-    const { rowsAffected, recordsets } = await requestTwo.query(`
+    await requestTwo.query(`
       DELETE
         FROM [${this.tableNames.priorityQueue}]
         WHERE [discriminator] = @discriminator;
-      WITH [CTE] AS (
-        SELECT TOP 1 *
-          FROM [${this.tableNames.priorityQueue}]
-          ORDER BY [indexInPriorityQueue] DESC
-      ) UPDATE [CTE] SET [indexInPriorityQueue] = @index;
+    `);
+
+    const requestThree = transaction.request();
+
+    const { recordset: [{ count }] } = await requestThree.query(`
+      SELECT count(*) as count
+        FROM [${this.tableNames.priorityQueue}];
+    `);
+
+    if (recordset[0].indexInPriorityQueue >= count) {
+      return;
+    }
+
+    const requestFour = transaction.request();
+
+    requestFour.input('index', Types.Int, recordset[0].indexInPriorityQueue);
+    requestFour.input('lastIndex', Types.Int, count);
+    await requestFour.query(`
+      UPDATE [${this.tableNames.priorityQueue}]
+        SET [indexInPriorityQueue] = @index
+        WHERE [indexInPriorityQueue] = @lastIndex;
+    `);
+
+    const requestFive = transaction.request();
+
+    requestFive.input('index', Types.Int, recordset[0].indexInPriorityQueue);
+    const { recordset: [{ discriminator: movedQueueDiscriminator }] } = await requestFive.query(`
       SELECT [discriminator]
         FROM [${this.tableNames.priorityQueue}]
         WHERE [indexInPriorityQueue] = @index;
     `);
 
-    // If the update did not change any rows, we removed the last queue and
-    // don't have to repair.
-    if (rowsAffected[1] === 0) {
-      return;
-    }
-
-    await this.repairDown({ transaction, discriminator: recordsets[0][0].discriminator });
+    await this.repairDown({ transaction, discriminator: movedQueueDiscriminator });
   }
 
   protected async getQueueByDiscriminator ({ transaction, discriminator }: {
