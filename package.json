@@ -171,7 +171,7 @@
     "validate-value": "7.0.0"
   },
   "devDependencies": {
-    "@types/react": "16.9.46",
+    "@types/react": "16.9.48",
     "@types/react-dom": "16.9.8",
     "apollo-cache-inmemory": "1.6.6",
     "apollo-client": "2.6.10",
