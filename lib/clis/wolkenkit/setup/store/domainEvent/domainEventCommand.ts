@@ -1,5 +1,6 @@
 import { Command } from 'command-line-interface';
 import { domainEventMongoDbCommand } from './domainEventMongoDbCommand';
+import { domainEventMySqlCommand } from './domainEventMySqlCommand';
 import { RootOptions } from '../../../RootOptions';
 
 const domainEventCommand = function (): Command<RootOptions> {
@@ -16,7 +17,8 @@ const domainEventCommand = function (): Command<RootOptions> {
     },
 
     subcommands: {
-      mongodb: domainEventMongoDbCommand()
+      mongodb: domainEventMongoDbCommand(),
+      mysql: domainEventMySqlCommand()
     }
   };
 };
