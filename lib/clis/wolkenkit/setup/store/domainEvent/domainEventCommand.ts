@@ -2,6 +2,7 @@ import { Command } from 'command-line-interface';
 import { domainEventMongoDbCommand } from './domainEventMongoDbCommand';
 import { domainEventMySqlCommand } from './domainEventMySqlCommand';
 import { domainEventPostgresCommand } from './domainEventPostresCommand';
+import { domainEventSqlServerCommand } from './domainEventSqlServerCommand';
 import { RootOptions } from '../../../RootOptions';
 
 const domainEventCommand = function (): Command<RootOptions> {
@@ -20,7 +21,8 @@ const domainEventCommand = function (): Command<RootOptions> {
     subcommands: {
       mongodb: domainEventMongoDbCommand(),
       mysql: domainEventMySqlCommand(),
-      postgres: domainEventPostgresCommand()
+      postgres: domainEventPostgresCommand(),
+      sqlserver: domainEventSqlServerCommand()
     }
   };
 };

@@ -21,8 +21,8 @@ suite('setup store domain-event mongodb', function (): void {
     const collectionNameDomainEvents = v4(),
           collectionNameSnapshots = v4();
 
-    const setupMongoDbConsumerProgressStoreCommand = `node ${cliPath} --verbose setup store domain-event mongodb --connection-string ${connectionString} --collection-name-domain-events ${collectionNameDomainEvents} --collection-name-snapshots ${collectionNameSnapshots}`;
-    const { stdout } = shell.exec(setupMongoDbConsumerProgressStoreCommand, { silent: false });
+    const setupMongoDbDomainEventStoreCommand = `node ${cliPath} --verbose setup store domain-event mongodb --connection-string ${connectionString} --collection-name-domain-events ${collectionNameDomainEvents} --collection-name-snapshots ${collectionNameSnapshots}`;
+    const { stdout } = shell.exec(setupMongoDbDomainEventStoreCommand, { silent: false });
 
     assert.that(stdout).is.containing('Successfully set up mongodb domain event store.');
 

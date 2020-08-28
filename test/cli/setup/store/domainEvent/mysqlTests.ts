@@ -25,8 +25,8 @@ suite('setup store domain-event mysql', function (): void {
     const tableNameDomainEvents = v4();
     const tableNameSnapshots = v4();
 
-    const setupMySqlConsumerProgressStoreCommand = `node ${cliPath} --verbose setup store domain-event mysql --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-domain-events ${tableNameDomainEvents} --table-name-snapshots ${tableNameSnapshots}`;
-    const { stdout } = shell.exec(setupMySqlConsumerProgressStoreCommand, { silent: false });
+    const setupMySqlDomainEventStoreCommand = `node ${cliPath} --verbose setup store domain-event mysql --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-domain-events ${tableNameDomainEvents} --table-name-snapshots ${tableNameSnapshots}`;
+    const { stdout } = shell.exec(setupMySqlDomainEventStoreCommand, { silent: false });
 
     assert.that(stdout).is.containing('Successfully set up mysql domain event store.');
 
