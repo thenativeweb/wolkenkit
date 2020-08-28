@@ -171,6 +171,11 @@ class S3FileStore implements FileStore {
   public async setup (): Promise<void> {
     await this.ensureBucket();
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async destroy (): Promise<void> {
+    // There is nothing to do here.
+  }
 }
 
 export { S3FileStore };

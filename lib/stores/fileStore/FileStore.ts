@@ -20,4 +20,6 @@ export interface FileStore {
   }): Promise<void>;
 
   setup (): Promise<void>;
+
+  destroy (): Promise<void>;
 }

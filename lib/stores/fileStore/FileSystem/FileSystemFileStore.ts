@@ -108,6 +108,11 @@ class FileSystemFileStore implements FileStore {
   public async setup (): Promise<void> {
     // There is nothing to do here.
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async destroy (): Promise<void> {
+    // There is nothing to do here.
+  }
 }
 
 export { FileSystemFileStore };

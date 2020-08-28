@@ -30,6 +30,10 @@ const getTestsFor = function ({ createFileStore }: {
     stream = createReadStream(filePath);
   });
 
+  teardown(async (): Promise<void> => {
+    await fileStore.destroy();
+  });
+
   suite('addFile', (): void => {
     setup(async (): Promise<void> => {
       fileStore = await createFileStore();
