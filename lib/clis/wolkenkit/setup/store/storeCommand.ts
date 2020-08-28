@@ -1,5 +1,6 @@
 import { Command } from 'command-line-interface';
 import { consumerProgressCommand } from './consumerProgress/consumerProgressCommand';
+import { domainEventCommand } from './domainEvent/domainEventCommand';
 import { RootOptions } from '../../RootOptions';
 
 const storeCommand = function (): Command<RootOptions> {
@@ -16,7 +17,8 @@ const storeCommand = function (): Command<RootOptions> {
     },
 
     subcommands: {
-      'consumer-progress': consumerProgressCommand()
+      'consumer-progress': consumerProgressCommand(),
+      'domain-event': domainEventCommand()
     }
   };
 };
