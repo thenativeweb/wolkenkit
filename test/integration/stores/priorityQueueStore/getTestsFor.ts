@@ -6,9 +6,11 @@ import { CustomError } from 'defekt';
 import { errors } from '../../../../lib/common/errors';
 import { getShortId } from '../../../shared/getShortId';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
+import pForever from 'p-forever';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { v4 } from 'uuid';
+import { waitForSignals } from 'wait-for-signals';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createPriorityQueueStore }: {
@@ -784,6 +786,79 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       const shouldBeUndefined = await priorityQueueStore.lockNext();
 
       assert.that(shouldBeUndefined).is.undefined();
+    });
+  });
+
+  suite('regression tests', (): void => {
+    test('lock, enqueue, acknowledge does not mess up the indexes.', async (): Promise<void> => {
+      await priorityQueueStore.enqueue({
+        discriminator: 'foo',
+        priority: Math.floor(Math.random() * 1000),
+        item: { id: v4() }
+      });
+
+      const { metadata } = (await priorityQueueStore.lockNext())!;
+
+      await priorityQueueStore.enqueue({
+        discriminator: `bar`,
+        priority: Math.floor(Math.random() * 1000),
+        item: { id: v4() }
+      });
+
+      await priorityQueueStore.acknowledge({ discriminator: metadata.discriminator, token: metadata.token });
+
+      await priorityQueueStore.enqueue({
+        discriminator: `baz`,
+        priority: Math.floor(Math.random() * 1000),
+        item: { index: 0 }
+      });
+    });
+
+    test('can handle large amounts of random items in queues.', async function (): Promise<void> {
+      this.timeout(40_000);
+
+      const enqueues: any[] = [];
+
+      for (let i = 0; i < 150; i++) {
+        enqueues.push({
+          discriminator: `${Math.floor(Math.random() * 5)}`,
+          priority: Math.floor(Math.random() * 1000),
+          item: { id: v4() }
+        });
+      }
+
+      for (const enqueue of enqueues) {
+        await priorityQueueStore.enqueue(enqueue);
+      }
+
+      const parallelism = 5;
+      const counter = waitForSignals({ count: parallelism });
+
+      for (let i = 0; i < parallelism; i++) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises,no-loop-func
+        pForever(async (): Promise<any> => {
+          try {
+            const nextLock = await priorityQueueStore.lockNext();
+
+            if (!nextLock) {
+              await counter.signal();
+
+              return pForever.end;
+            }
+
+            await sleep({ ms: Math.floor(Math.random() * 150) });
+
+            await priorityQueueStore.acknowledge({
+              discriminator: nextLock.metadata.discriminator,
+              token: nextLock.metadata.token
+            });
+          } catch (ex) {
+            await counter.fail(ex);
+          }
+        });
+      }
+
+      await counter.promise;
     });
   });
 };
