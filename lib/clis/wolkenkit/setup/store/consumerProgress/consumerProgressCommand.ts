@@ -14,7 +14,7 @@ const consumerProgressCommand = function (): Command<RootOptions> {
 
     handle ({ getUsage, ancestors }): void {
       /* eslint-disable no-console */
-      console.log(getUsage({ commandPath: [ ...ancestors, 'store' ]}));
+      console.log(getUsage({ commandPath: [ ...ancestors, 'consumer-progress' ]}));
       /* eslint-enable no-console */
     },
 
