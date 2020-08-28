@@ -1,0 +1,24 @@
+import { Command } from 'command-line-interface';
+import { fileS3Command } from './fileS3Command';
+import { RootOptions } from '../../../RootOptions';
+
+const fileCommand = function (): Command<RootOptions> {
+  return {
+    name: 'file',
+    description: 'Sets up a file store.',
+
+    optionDefinitions: [],
+
+    handle ({ getUsage, ancestors }): void {
+      /* eslint-disable no-console */
+      console.log(getUsage({ commandPath: [ ...ancestors, 'store' ]}));
+      /* eslint-enable no-console */
+    },
+
+    subcommands: {
+      s3: fileS3Command()
+    }
+  };
+};
+
+export { fileCommand };
