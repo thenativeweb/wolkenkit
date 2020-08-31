@@ -2,6 +2,7 @@ import { Command } from 'command-line-interface';
 import { lockMongoDbCommand } from './lockMongoDbCommand';
 import { lockMySqlCommand } from './lockMySqlCommand';
 import { lockPostgresCommand } from './lockPostresCommand';
+import { lockRedisCommand } from './lockRedisCommand';
 import { RootOptions } from '../../../RootOptions';
 
 const lockCommand = function (): Command<RootOptions> {
@@ -20,7 +21,8 @@ const lockCommand = function (): Command<RootOptions> {
     subcommands: {
       mongodb: lockMongoDbCommand(),
       mysql: lockMySqlCommand(),
-      postgres: lockPostgresCommand()
+      postgres: lockPostgresCommand(),
+      redis: lockRedisCommand()
     }
   };
 };
