@@ -106,7 +106,7 @@
     "wolkenkit": "build/lib/bin/wolkenkit.js"
   },
   "engines": {
-    "node": ">=14.8.0"
+    "node": ">=14.9.0"
   },
   "dependencies": {
     "@types/body-parser": "1.19.0",
@@ -139,7 +139,7 @@
     "defekt": "5.1.0",
     "eventemitter2": "6.4.3",
     "express": "4.17.1",
-    "flaschenpost": "4.0.37",
+    "flaschenpost": "4.0.38",
     "get-cors-origin": "4.0.2",
     "get-graphql-from-jsonschema": "6.0.0",
     "graphql": "15.3.0",
@@ -181,7 +181,7 @@
     "graphql-tag": "2.11.0",
     "next": "9.5.2",
     "node-fetch": "2.6.0",
-    "nodeenv": "3.0.11",
+    "nodeenv": "3.0.12",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "record-stdstreams": "3.0.12",
