@@ -2,6 +2,7 @@ import { Command } from 'command-line-interface';
 import { consumerProgressCommand } from './consumerProgress/consumerProgressCommand';
 import { domainEventCommand } from './domainEvent/domainEventCommand';
 import { fileCommand } from './file/fileCommand';
+import { lockCommand } from './lock/lockCommand';
 import { RootOptions } from '../../RootOptions';
 
 const storeCommand = function (): Command<RootOptions> {
@@ -20,7 +21,8 @@ const storeCommand = function (): Command<RootOptions> {
     subcommands: {
       'consumer-progress': consumerProgressCommand(),
       'domain-event': domainEventCommand(),
-      file: fileCommand()
+      file: fileCommand(),
+      lock: lockCommand()
     }
   };
 };
