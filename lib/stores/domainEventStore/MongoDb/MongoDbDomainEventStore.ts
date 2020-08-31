@@ -6,10 +6,10 @@ import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
 import { MongoDbDomainEventStoreOptions } from './MongoDbDomainEventStoreOptions';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
-import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
+import { URL } from 'url';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { Collection, Db, MongoClient } from 'mongodb';
 import { escapeFieldNames, unescapeFieldNames } from '../../utils/mongoDb/escapeFieldNames';
@@ -60,11 +60,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
       return connection;
     });
 
-    const { pathname } = parse(connectionString);
-
-    if (!pathname) {
-      throw new Error('Pathname is missing.');
-    }
+    const { pathname } = new URL(connectionString);
 
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);

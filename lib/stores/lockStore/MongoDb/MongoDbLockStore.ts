@@ -3,8 +3,8 @@ import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
 import { MongoDbLockStoreOptions } from './MongoDbLockStoreOptions';
-import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
+import { URL } from 'url';
 import { Collection, Db, MongoClient } from 'mongodb';
 
 class MongoDbLockStore implements LockStore {
@@ -50,11 +50,7 @@ class MongoDbLockStore implements LockStore {
       return connection;
     });
 
-    const { pathname } = parse(connectionString);
-
-    if (!pathname) {
-      throw new Error('Pathname is missing.');
-    }
+    const { pathname } = new URL(connectionString);
 
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);

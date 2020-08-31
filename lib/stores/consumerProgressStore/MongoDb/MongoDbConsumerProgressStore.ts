@@ -4,8 +4,8 @@ import { ConsumerProgressStore } from '../ConsumerProgressStore';
 import { errors } from '../../../common/errors';
 import { IsReplaying } from '../IsReplaying';
 import { MongoDbConsumerProgressStoreOptions } from './MongoDbConsumerProgressStoreOptions';
-import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
+import { URL } from 'url';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { Collection, Db, MongoClient } from 'mongodb';
 
@@ -52,11 +52,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
       return connection;
     });
 
-    const { pathname } = parse(connectionString);
-
-    if (!pathname) {
-      throw new Error('Pathname is missing.');
-    }
+    const { pathname } = new URL(connectionString);
 
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);

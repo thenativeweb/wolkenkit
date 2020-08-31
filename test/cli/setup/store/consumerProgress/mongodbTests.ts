@@ -1,10 +1,10 @@
 import { assert } from 'assertthat';
 import { connectionOptions } from '../../../../shared/containers/connectionOptions';
 import { MongoClient } from 'mongodb';
-import { parse } from 'url';
 import path from 'path';
 import { retry } from 'retry-ignore-abort';
 import shell from 'shelljs';
+import { URL } from 'url';
 import { v4 } from 'uuid';
 
 const rootPath = path.join(__dirname, '..', '..', '..', '..', '..');
@@ -31,8 +31,8 @@ suite('setup store consumer-progress mongodb', function (): void {
       { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
     ));
 
-    const { pathname } = parse(connectionString);
-    const database = pathname!.slice(1);
+    const { pathname } = new URL(connectionString);
+    const database = pathname.slice(1);
 
     const db = client.db(database);
     const progressCollection = db.collection(collectionNameProgress);
