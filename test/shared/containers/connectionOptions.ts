@@ -14,12 +14,7 @@ const connectionOptions = {
     encryptConnection: false
   },
   mongoDb: {
-    connectionString: 'mongodb://wolkenkit:wolkenkit@localhost:27017/wolkenkit',
-    hostName: 'localhost',
-    port: 27017,
-    userName: 'wolkenkit',
-    password: 'wolkenkit',
-    database: 'wolkenkit'
+    connectionString: 'mongodb://wolkenkit:wolkenkit@localhost:27017/wolkenkit'
   },
   mySql: {
     hostName: 'localhost',

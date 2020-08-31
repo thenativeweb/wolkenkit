@@ -1,6 +1,7 @@
 import { assert } from 'assertthat';
 import { connectionOptions } from '../../../../shared/containers/connectionOptions';
 import { MongoClient } from 'mongodb';
+import { parse } from 'url';
 import path from 'path';
 import { retry } from 'retry-ignore-abort';
 import shell from 'shelljs';
@@ -14,8 +15,7 @@ suite('setup store consumer-progress mongodb', function (): void {
 
   test(`sets up a mongodb for the consumer progress store.`, async (): Promise<void> => {
     const {
-      connectionString,
-      database
+      connectionString
     } = connectionOptions.mongoDb;
 
     const collectionNameProgress = v4();
@@ -30,6 +30,9 @@ suite('setup store consumer-progress mongodb', function (): void {
       // eslint-disable-next-line id-length
       { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
     ));
+
+    const { pathname } = parse(connectionString);
+    const database = pathname!.slice(1);
 
     const db = client.db(database);
     const progressCollection = db.collection(collectionNameProgress);

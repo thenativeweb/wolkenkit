@@ -37,18 +37,12 @@ class MongoDbLockStore implements LockStore {
   }
 
   public static async create ({
-    hostName,
-    port,
-    userName,
-    password,
-    database,
+    connectionString,
     collectionNames
   }: MongoDbLockStoreOptions): Promise<MongoDbLockStore> {
-    const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
-
     const client = await retry(async (): Promise<MongoClient> => {
       const connection = await MongoClient.connect(
-        url,
+        connectionString,
         // eslint-disable-next-line id-length
         { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
       );
@@ -56,7 +50,7 @@ class MongoDbLockStore implements LockStore {
       return connection;
     });
 
-    const { pathname } = parse(url);
+    const { pathname } = parse(connectionString);
 
     if (!pathname) {
       throw new Error('Pathname is missing.');

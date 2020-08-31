@@ -2,6 +2,7 @@ import { buntstift } from 'buntstift';
 import { connectionOptions } from './connectionOptions';
 import { MongoClient } from 'mongodb';
 import { oneLine } from 'common-tags';
+import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
 import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
@@ -9,12 +10,12 @@ import shell from 'shelljs';
 const mongoDb = {
   async start (): Promise<void> {
     const {
-      hostName,
-      port,
-      userName,
-      password,
-      database
+      connectionString
     } = connectionOptions.mongoDb;
+
+    const { auth, hostname, pathname, port } = parse(connectionString);
+    const [ userName, password ] = auth!.split(':');
+    const database = pathname!.slice(1);
 
     shell.exec(oneLine`
       docker run
@@ -31,7 +32,7 @@ const mongoDb = {
         thenativeweb/wolkenkit-mongodb:latest
     `);
 
-    const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
+    const url = `mongodb://${userName}:${password}@${hostname}:${port}/${database}`;
 
     try {
       await retry(async (): Promise<void> => {
