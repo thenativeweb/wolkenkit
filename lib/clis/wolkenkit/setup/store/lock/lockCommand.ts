@@ -15,7 +15,7 @@ const lockCommand = function (): Command<RootOptions> {
 
     handle ({ getUsage, ancestors }): void {
       /* eslint-disable no-console */
-      console.log(getUsage({ commandPath: [ ...ancestors, 'store' ]}));
+      console.log(getUsage({ commandPath: [ ...ancestors, 'lock' ]}));
       /* eslint-enable no-console */
     },
 
