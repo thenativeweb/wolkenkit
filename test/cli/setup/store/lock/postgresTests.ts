@@ -23,8 +23,8 @@ suite('setup store lock postgres', function (): void {
 
     const tableNameLocks = v4();
 
-    const setupPostgresDomainEventStoreCommand = `node ${cliPath} --verbose setup store lock postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-locks ${tableNameLocks}`;
-    const { stdout } = shell.exec(setupPostgresDomainEventStoreCommand, { silent: false });
+    const setupPostgresLockStoreCommand = `node ${cliPath} --verbose setup store lock postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-locks ${tableNameLocks}`;
+    const { stdout } = shell.exec(setupPostgresLockStoreCommand, { silent: false });
 
     assert.that(stdout).is.containing('Successfully set up postgres lock store.');
 

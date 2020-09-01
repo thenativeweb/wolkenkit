@@ -22,8 +22,8 @@ suite('setup store lock sqlserver', function (): void {
 
     const tableNameLock = v4();
 
-    const setupSqlServerDomainEventStoreCommand = `node ${cliPath} --verbose setup store lock sqlserver --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-locks ${tableNameLock}`;
-    const { stdout } = shell.exec(setupSqlServerDomainEventStoreCommand, { silent: false });
+    const setupSqlServerLockStoreCommand = `node ${cliPath} --verbose setup store lock sqlserver --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-locks ${tableNameLock}`;
+    const { stdout } = shell.exec(setupSqlServerLockStoreCommand, { silent: false });
 
     assert.that(stdout).is.containing('Successfully set up sqlserver lock store.');
 

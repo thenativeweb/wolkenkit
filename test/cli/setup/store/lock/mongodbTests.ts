@@ -20,8 +20,8 @@ suite('setup store lock mongodb', function (): void {
 
     const collectionNameLocks = v4();
 
-    const setupMongoDbDomainEventStoreCommand = `node ${cliPath} --verbose setup store lock mongodb --connection-string ${connectionString} --collection-name-locks ${collectionNameLocks}`;
-    const { stdout } = shell.exec(setupMongoDbDomainEventStoreCommand, { silent: false });
+    const setupMongoDbLockStoreCommand = `node ${cliPath} --verbose setup store lock mongodb --connection-string ${connectionString} --collection-name-locks ${collectionNameLocks}`;
+    const { stdout } = shell.exec(setupMongoDbLockStoreCommand, { silent: false });
 
     assert.that(stdout).is.containing('Successfully set up mongodb lock store.');
 

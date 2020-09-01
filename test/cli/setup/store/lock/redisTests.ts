@@ -20,8 +20,8 @@ suite('setup store lock redis', function (): void {
 
     const listNameLocks = v4();
 
-    const setupPostgresDomainEventStoreCommand = `node ${cliPath} --verbose setup store lock redis --host-name ${hostName} --port ${port} --password ${password} --database ${database} --list-name-locks ${listNameLocks}`;
-    const { stdout } = shell.exec(setupPostgresDomainEventStoreCommand, { silent: false });
+    const setupPostgresLockStoreCommand = `node ${cliPath} --verbose setup store lock redis --host-name ${hostName} --port ${port} --password ${password} --database ${database} --list-name-locks ${listNameLocks}`;
+    const { stdout } = shell.exec(setupPostgresLockStoreCommand, { silent: false });
 
     assert.that(stdout).is.containing('Successfully set up redis lock store.');
 
