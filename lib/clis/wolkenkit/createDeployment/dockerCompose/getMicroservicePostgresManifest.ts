@@ -132,7 +132,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           password: services.postgres.password,
           database: services.postgres.database,
           tableNames: {
-            domainEvents: 'domainevents',
+            domainEvents: 'domainEvents',
             snapshots: 'snapshots'
           }
         },

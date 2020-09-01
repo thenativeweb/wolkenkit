@@ -42,7 +42,7 @@ const lockPostgresCommand = function (): Command<LockPostgresOptions> {
       {
         name: 'table-name-locks',
         type: 'string',
-        isRequired: true
+        defaultValue: 'locks'
       }
     ],
 

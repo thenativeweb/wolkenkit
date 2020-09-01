@@ -42,7 +42,7 @@ const consumerProgressSqlServerCommand = function (): Command<ConsumerProgressSq
       {
         name: 'table-name-progress',
         type: 'string',
-        isRequired: true
+        defaultValue: 'progress'
       }
     ],
 

@@ -38,7 +38,7 @@ const lockMySqlCommand = function (): Command<LockMySqlOptions> {
       {
         name: 'table-name-locks',
         type: 'string',
-        isRequired: true
+        defaultValue: 'locks'
       }
     ],
 

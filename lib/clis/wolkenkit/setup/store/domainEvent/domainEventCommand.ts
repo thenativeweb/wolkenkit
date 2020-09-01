@@ -1,7 +1,7 @@
 import { Command } from 'command-line-interface';
 import { domainEventMongoDbCommand } from './domainEventMongoDbCommand';
 import { domainEventMySqlCommand } from './domainEventMySqlCommand';
-import { domainEventPostgresCommand } from './domainEventPostresCommand';
+import { domainEventPostgresCommand } from './domainEventPostgresCommand';
 import { domainEventSqlServerCommand } from './domainEventSqlServerCommand';
 import { RootOptions } from '../../../RootOptions';
 

@@ -42,7 +42,7 @@ const lockSqlServerCommand = function (): Command<LockSqlServerOptions> {
       {
         name: 'table-name-locks',
         type: 'string',
-        isRequired: true
+        defaultValue: 'locks'
       }
     ],
 

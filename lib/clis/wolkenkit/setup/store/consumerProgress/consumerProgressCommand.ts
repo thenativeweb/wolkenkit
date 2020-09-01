@@ -1,7 +1,7 @@
 import { Command } from 'command-line-interface';
 import { consumerProgressMongoDbCommand } from './consumerProgressMongoDbCommand';
 import { consumerProgressMySqlCommand } from './consumerProgressMySqlCommand';
-import { consumerProgressPostgresCommand } from './consumerProgressPostresCommand';
+import { consumerProgressPostgresCommand } from './consumerProgressPostgresCommand';
 import { consumerProgressSqlServerCommand } from './consumerProgressSqlServerCommand';
 import { RootOptions } from '../../../RootOptions';
 

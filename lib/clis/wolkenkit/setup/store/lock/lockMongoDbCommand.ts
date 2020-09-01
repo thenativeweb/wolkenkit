@@ -18,7 +18,7 @@ const lockMongoDbCommand = function (): Command<LockMongoDbOptions> {
       {
         name: 'collection-name-locks',
         type: 'string',
-        defaultValue: 'domainevents'
+        defaultValue: 'locks'
       }
     ],
 

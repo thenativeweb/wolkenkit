@@ -38,7 +38,7 @@ const consumerProgressMySqlCommand = function (): Command<ConsumerProgressMySqlO
       {
         name: 'table-name-progress',
         type: 'string',
-        isRequired: true
+        defaultValue: 'progress'
       }
     ],
 

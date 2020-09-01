@@ -28,7 +28,7 @@ const lockRedisCommand = function (): Command<LockRedisOptions> {
       {
         name: 'database',
         type: 'number',
-        isRequired: true
+        defaultValue: 0
       },
       {
         name: 'list-name-locks',

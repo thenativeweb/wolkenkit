@@ -42,7 +42,7 @@ const consumerProgressPostgresCommand = function (): Command<ConsumerProgressPos
       {
         name: 'table-name-progress',
         type: 'string',
-        isRequired: true
+        defaultValue: 'progress'
       }
     ],
 
