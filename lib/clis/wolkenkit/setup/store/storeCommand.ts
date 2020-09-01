@@ -3,6 +3,7 @@ import { consumerProgressCommand } from './consumerProgress/consumerProgressComm
 import { domainEventCommand } from './domainEvent/domainEventCommand';
 import { fileCommand } from './file/fileCommand';
 import { lockCommand } from './lock/lockCommand';
+import { priorityQueueCommand } from './priorityQueue/priorityQueueCommand';
 import { RootOptions } from '../../RootOptions';
 
 const storeCommand = function (): Command<RootOptions> {
@@ -22,7 +23,8 @@ const storeCommand = function (): Command<RootOptions> {
       'consumer-progress': consumerProgressCommand(),
       'domain-event': domainEventCommand(),
       file: fileCommand(),
-      lock: lockCommand()
+      lock: lockCommand(),
+      'priority-queue': priorityQueueCommand()
     }
   };
 };
