@@ -1,4 +1,5 @@
 import { Command } from 'command-line-interface';
+import { fileFileSystemCommand } from './fileFileSystemCommand';
 import { fileS3Command } from './fileS3Command';
 import { RootOptions } from '../../../RootOptions';
 
@@ -16,6 +17,7 @@ const fileCommand = function (): Command<RootOptions> {
     },
 
     subcommands: {
+      'file-system': fileFileSystemCommand(),
       s3: fileS3Command()
     }
   };
