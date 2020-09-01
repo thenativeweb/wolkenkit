@@ -7,7 +7,7 @@ import { createConsumerProgressStore } from '../../../../../stores/consumerProgr
 const consumerProgressMongoDbCommand = function (): Command<ConsumerProgressMongoDbOptions> {
   return {
     name: 'mongodb',
-    description: 'Sets up a mongodb consumer progress store.',
+    description: 'Sets up a MongoDB consumer progress store.',
 
     optionDefinitions: [
       {
@@ -46,9 +46,9 @@ const consumerProgressMongoDbCommand = function (): Command<ConsumerProgressMong
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up mongodb consumer progress store.');
+        buntstift.success('Successfully set up MongoDB consumer progress store.');
       } catch (ex) {
-        buntstift.error('Failed to set up mongodb consumer progress store.');
+        buntstift.error('Failed to set up MongoDB consumer progress store.');
 
         throw ex;
       } finally {
