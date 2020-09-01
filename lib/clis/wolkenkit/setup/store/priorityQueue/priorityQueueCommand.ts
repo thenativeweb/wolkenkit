@@ -1,5 +1,6 @@
 import { Command } from 'command-line-interface';
 import { priorityQueueMongoDbCommand } from './priorityQueueMongoDbCommand';
+import { priorityQueueMySqlCommand } from './priorityQueueMySqlCommand';
 import { RootOptions } from '../../../RootOptions';
 
 const priorityQueueCommand = function (): Command<RootOptions> {
@@ -16,7 +17,8 @@ const priorityQueueCommand = function (): Command<RootOptions> {
     },
 
     subcommands: {
-      mongodb: priorityQueueMongoDbCommand()
+      mongodb: priorityQueueMongoDbCommand(),
+      mysql: priorityQueueMySqlCommand()
     }
   };
 };
