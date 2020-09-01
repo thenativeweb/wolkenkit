@@ -106,7 +106,7 @@ class FileSystemFileStore implements FileStore {
 
   // eslint-disable-next-line class-methods-use-this
   public async setup (): Promise<void> {
-    // There is nothing to do here.
+    await fs.promises.mkdir(this.directory, { recursive: true });
   }
 
   // eslint-disable-next-line class-methods-use-this
