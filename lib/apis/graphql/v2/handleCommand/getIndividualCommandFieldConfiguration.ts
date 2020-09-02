@@ -83,6 +83,7 @@ const getIndividualCommandFieldConfiguration = function ({
       }
     }),
     args: resolverArguments,
+    description: commandHandler.getDocumentation?.(),
     async resolve (
       _source,
       { aggregateIdentifier, data: rawData },
