@@ -57,7 +57,7 @@ const getQueryFieldConfiguration = function ({ application, viewName, queryName,
   return {
     type: resultGraphqlType,
     args: argumentConfigurationMap,
-    description: queryHandler.getDocumentation?.(),
+    description: queryHandler.getDocumentation?.() ?? 'No documentation available.',
     async resolve (_source, { options: rawOptions }, { clientMetadata }): Promise<any> {
       const options = addMissingPrototype({ value: rawOptions });
 
