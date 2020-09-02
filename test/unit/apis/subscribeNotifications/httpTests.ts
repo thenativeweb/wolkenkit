@@ -5,6 +5,7 @@ import { createPublisher } from '../../../../lib/messaging/pubSub/createPublishe
 import { createSubscriber } from '../../../../lib/messaging/pubSub/createSubscriber';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/subscribeNotifications/http';
+import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
@@ -14,35 +15,80 @@ import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 
-suite('subscribeNotifications/http', (): void => {
+suite('subscribeNotifications/http', function (): void {
+  this.timeout(5_000);
+
+  const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' }),
+        channelForNotifications = 'notifications',
+        identityProviders = [ identityProvider ];
+
+  let api: ExpressApplication,
+      application: Application,
+      publisher: Publisher<Notification>,
+      subscriber: Subscriber<Notification>;
+
+  setup(async (): Promise<void> => {
+    application = await loadApplication({ applicationDirectory });
+
+    publisher = await createPublisher<Notification>({ type: 'InMemory' });
+    subscriber = await createSubscriber<Notification>({ type: 'InMemory' });
+
+    ({ api } = await getApi({
+      application,
+      corsOrigin: '*',
+      identityProviders,
+      subscriber,
+      channelForNotifications
+    }));
+  });
+
   suite('/v2', (): void => {
-    suite('GET /', function (): void {
-      this.timeout(5_000);
+    suite('GET /description', (): void => {
+      test('returns the status code 200.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
 
-      const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' }),
-            channelForNotifications = 'notifications',
-            identityProviders = [ identityProvider ];
+        const { status } = await client({
+          method: 'get',
+          url: '/v2/description'
+        });
 
-      let api: ExpressApplication,
-          application: Application,
-          publisher: Publisher<Notification>,
-          subscriber: Subscriber<Notification>;
-
-      setup(async (): Promise<void> => {
-        application = await loadApplication({ applicationDirectory });
-
-        publisher = await createPublisher<Notification>({ type: 'InMemory' });
-        subscriber = await createSubscriber<Notification>({ type: 'InMemory' });
-
-        ({ api } = await getApi({
-          application,
-          corsOrigin: '*',
-          identityProviders,
-          subscriber,
-          channelForNotifications
-        }));
+        assert.that(status).is.equalTo(200);
       });
 
+      test('returns application/json.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { headers } = await client({
+          method: 'get',
+          url: '/v2/description'
+        });
+
+        assert.that(headers['content-type']).is.equalTo('application/json; charset=utf-8');
+      });
+
+      test('returns the notifications description.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { data } = await client({
+          method: 'get',
+          url: '/v2/description'
+        });
+
+        const { notifications: notificationsDescription } = getApplicationDescription({
+          application
+        });
+
+        // Convert and parse as JSON, to get rid of any values that are undefined.
+        // This is what the HTTP API does internally, and here we need to simulate
+        // this to make things work.
+        const expectedNotificationsDescription =
+            JSON.parse(JSON.stringify(notificationsDescription));
+
+        assert.that(data).is.equalTo(expectedNotificationsDescription);
+      });
+    });
+
+    suite('GET /', (): void => {
       test('delivers a single notification.', async (): Promise<void> => {
         const notification = {
           name: 'flowSampleFlowUpdated',
