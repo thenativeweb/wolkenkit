@@ -41,7 +41,7 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
       description += `## Aggregate '${aggregateName}'\n`;
       for (const [ domainEventName, domainEventDescription ] of Object.entries(aggregate)) {
         description += source`
-          ### Domain Event '${domainEventName}'
+          ### Domain event '${domainEventName}'
 
           ${domainEventDescription.documentation ?? 'No documentation available.'}
 

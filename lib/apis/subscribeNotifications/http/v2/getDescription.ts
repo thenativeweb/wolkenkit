@@ -6,7 +6,7 @@ import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { Request, Response } from 'express';
 
 const getDescription = {
-  description: `Returns a description of the application's notifications`,
+  description: `Returns a description of the application's notifications.`,
   path: 'description',
 
   request: {},
