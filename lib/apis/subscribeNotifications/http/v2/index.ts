@@ -3,6 +3,7 @@ import { CorsOrigin } from 'get-cors-origin';
 import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
+import { getDescription } from './getDescription';
 import { getNotifications } from './getNotifications';
 import { IdentityProvider } from 'limes';
 import { Notification } from '../../../../common/elements/Notification';
@@ -37,6 +38,10 @@ const getV2 = async function ({
   const authenticationMiddleware = await getAuthenticationMiddleware({
     identityProviders
   });
+
+  api.get(`/${getDescription.path}`, getDescription.getHandler({
+    application
+  }));
 
   api.get(
     `/${getNotifications.path}`,
