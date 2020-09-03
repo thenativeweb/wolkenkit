@@ -24,6 +24,7 @@ import {
   GraphQLObjectType,
   GraphQLString
 } from 'graphql';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 const commandSchema = new Value(getCommandSchema());
@@ -120,7 +121,10 @@ const getIndividualCommandFieldConfiguration = function ({
         }
       });
 
-      logger.info('Command received.', { command: commandWithMetadata });
+      logger.info(
+        'Command received.',
+        withLogMetadata('api', 'graphql', { command: commandWithMetadata })
+      );
 
       await onReceiveCommand({ command: commandWithMetadata });
 

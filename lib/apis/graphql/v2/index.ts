@@ -20,6 +20,7 @@ import { ResolverContext } from './ResolverContext';
 import { Server } from 'http';
 import { Subscriber } from '../../../messaging/pubSub/Subscriber';
 import { validateSchema } from 'graphql';
+import { withLogMetadata } from '../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -86,7 +87,10 @@ const getV2 = async function ({
 
   if (schemaValidationErrors.length > 0) {
     for (const error of schemaValidationErrors) {
-      logger.error(error.message, { ex: error });
+      logger.fatal(
+        'GraphQL schema validation failed.',
+        withLogMetadata('api', 'graphql', { error })
+      );
     }
     throw new errors.GraphQlError('GraphQL schema validation failed.');
   }

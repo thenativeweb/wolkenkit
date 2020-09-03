@@ -9,6 +9,7 @@ import { OnCancelCommand } from '../../OnCancelCommand';
 import { ResolverContext } from '../ResolverContext';
 import { validateItemIdentifier } from '../../../../common/validators/validateItemIdentifier';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { buildSchema, GraphQLBoolean, GraphQLFieldConfig, GraphQLInputObjectType, GraphQLObjectType } from 'graphql';
 
 const logger = flaschenpost.getLogger();
@@ -55,7 +56,10 @@ const getCancelCommandFieldConfiguration = function ({ application, onCancelComm
         client: clientMetadata
       };
 
-      logger.info('Command cancel request received.', { commandIdentifierWithClient });
+      logger.info(
+        'Command cancel request received.',
+        withLogMetadata('api', 'graphql', { commandIdentifierWithClient })
+      );
 
       try {
         await onCancelCommand({ commandIdentifierWithClient });
