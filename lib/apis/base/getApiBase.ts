@@ -1,11 +1,15 @@
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import { flaschenpost, MorganPlugin } from 'flaschenpost';
 import { GetApiBaseParameters } from './GetApiBaseParameters';
 import helmet from 'helmet';
 import { jsonQueryParserMiddleware } from './jsonQueryParserMiddleware';
+import morgan from 'morgan';
 import nocache from 'nocache';
 import { streamNdjsonMiddleware } from './streamNdjsonMiddleware';
 import express, { Application, Request } from 'express';
+
+const logger = flaschenpost.getLogger();
 
 const getApiBase = async function ({ request, response }: GetApiBaseParameters): Promise<Application> {
   const api = express();
@@ -34,6 +38,10 @@ const getApiBase = async function ({ request, response }: GetApiBaseParameters):
       optionsSuccessStatus: 200
     }));
   }
+
+  const morganPlugin = new MorganPlugin('debug');
+
+  api.use(morgan('short', { stream: morganPlugin }));
 
   if (!response.headers.cache) {
     api.use(nocache());
