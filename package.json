@@ -121,7 +121,7 @@
     "@types/mongodb": "3.5.26",
     "@types/mssql": "6.0.4",
     "@types/mysql": "2.15.15",
-    "@types/node": "14.6.2",
+    "@types/node": "14.6.3",
     "@types/pg": "7.14.4",
     "@types/pg-query-stream": "1.0.3",
     "@types/shelljs": "0.8.8",
