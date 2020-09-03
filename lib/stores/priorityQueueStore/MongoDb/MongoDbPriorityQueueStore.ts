@@ -6,11 +6,11 @@ import { getIndexOfParent } from '../shared/getIndexOfParent';
 import { getIndexOfRightChild } from '../shared/getIndexOfRightChild';
 import { LockMetadata } from '../LockMetadata';
 import { MongoDbPriorityQueueStoreOptions } from './MongDbPriorityQueueStoreOptions';
-import { parse } from 'url';
 import PQueue from 'p-queue';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
 import { retry } from 'retry-ignore-abort';
+import { URL } from 'url';
 import { v4 } from 'uuid';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { ClientSession, Collection, Db, MongoClient } from 'mongodb';
@@ -82,11 +82,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
       return connection;
     });
 
-    const { pathname } = parse(connectionString);
-
-    if (!pathname) {
-      throw new Error('Pathname is missing.');
-    }
+    const { pathname } = new URL(connectionString);
 
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);
@@ -97,7 +93,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
       queues: db.collection(collectionNames.queues)
     };
 
-    const priorityQueueStore = new MongoDbPriorityQueueStore<TItem, TItemIdentifier>({
+    return new MongoDbPriorityQueueStore<TItem, TItemIdentifier>({
       client,
       db,
       collectionNames,
@@ -105,26 +101,6 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
       doesIdentifierMatchItem,
       expirationTime
     });
-
-    await collections.queues.createIndexes([
-      {
-        key: { discriminator: 1 },
-        name: `${collectionNames.queues}_discriminator`,
-        unique: true
-      },
-      {
-        key: { indexInPriorityQueue: 1 },
-        name: `${collectionNames.queues}_indexInPriorityQueue`,
-        unique: true
-      }
-    ]);
-
-    return priorityQueueStore;
-  }
-
-  public async destroy (): Promise<void> {
-    this.db.removeListener('close', MongoDbPriorityQueueStore.onUnexpectedClose);
-    await this.client.close(true);
   }
 
   protected async swapPositionsInPriorityQueue ({ session, firstQueue, secondQueue }: {
@@ -597,6 +573,26 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
         });
       }
     );
+  }
+
+  public async setup (): Promise<void> {
+    await this.collections.queues.createIndexes([
+      {
+        key: { discriminator: 1 },
+        name: `${this.collectionNames.queues}_discriminator`,
+        unique: true
+      },
+      {
+        key: { indexInPriorityQueue: 1 },
+        name: `${this.collectionNames.queues}_indexInPriorityQueue`,
+        unique: true
+      }
+    ]);
+  }
+
+  public async destroy (): Promise<void> {
+    this.db.removeListener('close', MongoDbPriorityQueueStore.onUnexpectedClose);
+    await this.client.close(true);
   }
 }
 

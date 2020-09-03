@@ -23,5 +23,7 @@ export interface ConsumerProgressStore {
     consumerId: string;
   }) => Promise<void>;
 
+  setup: () => Promise<void>;
+
   destroy: () => Promise<void>;
 }

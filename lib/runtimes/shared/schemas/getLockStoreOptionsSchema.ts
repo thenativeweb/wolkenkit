@@ -17,11 +17,7 @@ const getLockStoreOptionsSchema = function (): Schema {
       {
         properties: {
           type: { type: 'string', enum: [ 'MongoDb' ]},
-          hostName: { type: 'string', format: 'hostname' },
-          port: portSchema,
-          userName: { type: 'string', minLength: 1 },
-          password: { type: 'string', minLength: 1 },
-          database: { type: 'string', minLength: 1 },
+          connectionString: { type: 'string', minLength: 1 },
           collectionNames: {
             type: 'object',
             properties: {
@@ -31,7 +27,7 @@ const getLockStoreOptionsSchema = function (): Schema {
             additionalProperties: false
           }
         },
-        required: [ 'type', 'hostName', 'port', 'userName', 'password', 'database', 'collectionNames' ],
+        required: [ 'type', 'connectionString', 'collectionNames' ],
         additionalProperties: false
       },
       {

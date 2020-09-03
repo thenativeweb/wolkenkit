@@ -88,45 +88,11 @@ class PostgresDomainEventStore implements DomainEventStore {
       }
     });
 
-    const domainEventStore = new PostgresDomainEventStore({
+    return new PostgresDomainEventStore({
       pool,
       tableNames,
       disconnectWatcher
     });
-
-    const connection = await domainEventStore.getDatabase();
-
-    try {
-      await retry(async (): Promise<void> => {
-        await connection.query(`
-          CREATE TABLE IF NOT EXISTS "${tableNames.domainEvents}" (
-            "aggregateId" uuid NOT NULL,
-            "revision" integer NOT NULL,
-            "causationId" uuid NOT NULL,
-            "correlationId" uuid NOT NULL,
-            "timestamp" bigint NOT NULL,
-            "domainEvent" jsonb NOT NULL,
-
-            CONSTRAINT "${tableNames.domainEvents}_pk" PRIMARY KEY ("aggregateId", "revision")
-          );
-          CREATE TABLE IF NOT EXISTS "${tableNames.snapshots}" (
-            "aggregateId" uuid NOT NULL,
-            "revision" integer NOT NULL,
-            "state" jsonb NOT NULL,
-
-            CONSTRAINT "${tableNames.snapshots}_pk" PRIMARY KEY ("aggregateId", "revision")
-          );
-        `);
-      }, {
-        retries: 3,
-        minTimeout: 100,
-        factor: 1
-      });
-    } finally {
-      connection.release();
-    }
-
-    return domainEventStore;
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
@@ -502,6 +468,40 @@ class PostgresDomainEventStore implements DomainEventStore {
           snapshot.revision,
           omitDeepBy(snapshot.state, (value): boolean => value === undefined)
         ]
+      });
+    } finally {
+      connection.release();
+    }
+  }
+
+  public async setup (): Promise<void> {
+    const connection = await this.getDatabase();
+
+    try {
+      await retry(async (): Promise<void> => {
+        await connection.query(`
+          CREATE TABLE IF NOT EXISTS "${this.tableNames.domainEvents}" (
+            "aggregateId" uuid NOT NULL,
+            "revision" integer NOT NULL,
+            "causationId" uuid NOT NULL,
+            "correlationId" uuid NOT NULL,
+            "timestamp" bigint NOT NULL,
+            "domainEvent" jsonb NOT NULL,
+
+            CONSTRAINT "${this.tableNames.domainEvents}_pk" PRIMARY KEY ("aggregateId", "revision")
+          );
+          CREATE TABLE IF NOT EXISTS "${this.tableNames.snapshots}" (
+            "aggregateId" uuid NOT NULL,
+            "revision" integer NOT NULL,
+            "state" jsonb NOT NULL,
+
+            CONSTRAINT "${this.tableNames.snapshots}_pk" PRIMARY KEY ("aggregateId", "revision")
+          );
+        `);
+      }, {
+        retries: 3,
+        minTimeout: 100,
+        factor: 1
       });
     } finally {
       connection.release();

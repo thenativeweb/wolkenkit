@@ -46,7 +46,7 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
           type: 'Postgres',
           ...postgresOptions,
           tableNames: {
-            domainEvents: 'domainevents',
+            domainEvents: 'domainEvents',
             snapshots: 'snapshots'
           }
         },

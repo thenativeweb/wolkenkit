@@ -18,4 +18,8 @@ export interface FileStore {
   removeFile ({ id }: {
     id: string;
   }): Promise<void>;
+
+  setup (): Promise<void>;
+
+  destroy (): Promise<void>;
 }

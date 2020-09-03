@@ -70,6 +70,11 @@ class InMemoryConsumerProgressStore implements ConsumerProgressStore {
     Reflect.deleteProperty(this.progress, consumerId);
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  public async setup (): Promise<void> {
+    // Intentionally left blank.
+  }
+
   public async destroy (): Promise<void> {
     this.progress = {};
   }

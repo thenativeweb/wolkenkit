@@ -338,6 +338,8 @@ wolkenkit uses a number of stores to run your application. In the local developm
 
 For details on how to configure the databases, please have a look at the source code. This will be explained in more detail in the final version of the documentation.
 
+Also note that before the first use any database has to be set up using the wolkenkit CLI's `wolkenkit setup store ...` commands. Pleas look at the CLI's documentation and the source code for this.
+
 ### Getting help
 
 Please remember that this version is a community technology preview (CTP) of the upcoming wolkenkit 4.0. Therefore it is possible that not all provided features work as expected or that some features are missing completely.

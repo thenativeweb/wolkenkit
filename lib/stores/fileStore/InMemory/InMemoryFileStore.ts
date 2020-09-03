@@ -80,6 +80,16 @@ class InMemoryFileStore implements FileStore {
 
     Reflect.deleteProperty(this.files, id);
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async setup (): Promise<void> {
+    // There is nothing to do here.
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async destroy (): Promise<void> {
+    // There is nothing to do here.
+  }
 }
 
 export { InMemoryFileStore };

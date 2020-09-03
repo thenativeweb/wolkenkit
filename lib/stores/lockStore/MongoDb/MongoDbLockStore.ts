@@ -3,8 +3,8 @@ import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
 import { MongoDbLockStoreOptions } from './MongoDbLockStoreOptions';
-import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
+import { URL } from 'url';
 import { Collection, Db, MongoClient } from 'mongodb';
 
 class MongoDbLockStore implements LockStore {
@@ -37,18 +37,12 @@ class MongoDbLockStore implements LockStore {
   }
 
   public static async create ({
-    hostName,
-    port,
-    userName,
-    password,
-    database,
+    connectionString,
     collectionNames
   }: MongoDbLockStoreOptions): Promise<MongoDbLockStore> {
-    const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
-
     const client = await retry(async (): Promise<MongoClient> => {
       const connection = await MongoClient.connect(
-        url,
+        connectionString,
         // eslint-disable-next-line id-length
         { w: 1, useNewUrlParser: true, useUnifiedTopology: true }
       );
@@ -56,11 +50,7 @@ class MongoDbLockStore implements LockStore {
       return connection;
     });
 
-    const { pathname } = parse(url);
-
-    if (!pathname) {
-      throw new Error('Pathname is missing.');
-    }
+    const { pathname } = new URL(connectionString);
 
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);
@@ -70,12 +60,6 @@ class MongoDbLockStore implements LockStore {
     const collections = {
       locks: db.collection(collectionNames.locks)
     };
-
-    await collections.locks.createIndexes([{
-      key: { value: 1 },
-      name: `${collectionNames.locks}_value`,
-      unique: true
-    }]);
 
     return new MongoDbLockStore({
       client,
@@ -161,6 +145,14 @@ class MongoDbLockStore implements LockStore {
     const hash = getHash({ value });
 
     await this.collections.locks.deleteOne({ value: hash });
+  }
+
+  public async setup (): Promise<void> {
+    await this.collections.locks.createIndexes([{
+      key: { value: 1 },
+      name: `${this.collectionNames.locks}_value`,
+      unique: true
+    }]);
   }
 
   public async destroy (): Promise<void> {

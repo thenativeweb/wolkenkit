@@ -50,28 +50,6 @@ class SqlServerLockStore implements LockStore {
 
     await pool.connect();
 
-    try {
-      await pool.query(`
-        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.locks}')
-          BEGIN
-            CREATE TABLE [${tableNames.locks}] (
-              [value] NCHAR(64) NOT NULL,
-              [expiresAt] BIGINT NOT NULL,
-
-              CONSTRAINT [${tableNames.locks}_pk] PRIMARY KEY([value])
-            );
-          END
-      `);
-    } catch (ex) {
-      if (!/There is already an object named.*_locks/u.exec(ex.message)) {
-        throw ex;
-      }
-
-      // When multiple clients initialize at the same time, e.g. during
-      // integration tests, SQL Server might throw an error. In this case we
-      // simply ignore it.
-    }
-
     return new SqlServerLockStore({ pool, tableNames });
   }
 
@@ -182,6 +160,30 @@ class SqlServerLockStore implements LockStore {
       DELETE [${this.tableNames.locks}]
         WHERE [value] = @hash;
     `);
+  }
+
+  public async setup (): Promise<void> {
+    try {
+      await this.pool.query(`
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${this.tableNames.locks}')
+          BEGIN
+            CREATE TABLE [${this.tableNames.locks}] (
+              [value] NCHAR(64) NOT NULL,
+              [expiresAt] BIGINT NOT NULL,
+
+              CONSTRAINT [${this.tableNames.locks}_pk] PRIMARY KEY([value])
+            );
+          END
+      `);
+    } catch (ex) {
+      if (!/There is already an object named.*_locks/u.exec(ex.message)) {
+        throw ex;
+      }
+
+      // When multiple clients initialize at the same time, e.g. during
+      // integration tests, SQL Server might throw an error. In this case we
+      // simply ignore it.
+    }
   }
 
   public async destroy (): Promise<void> {

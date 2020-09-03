@@ -6,10 +6,10 @@ import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
 import { MongoDbDomainEventStoreOptions } from './MongoDbDomainEventStoreOptions';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
-import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
+import { URL } from 'url';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { Collection, Db, MongoClient } from 'mongodb';
 import { escapeFieldNames, unescapeFieldNames } from '../../utils/mongoDb/escapeFieldNames';
@@ -60,11 +60,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
       return connection;
     });
 
-    const { pathname } = parse(connectionString);
-
-    if (!pathname) {
-      throw new Error('Pathname is missing.');
-    }
+    const { pathname } = new URL(connectionString);
 
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);
@@ -76,45 +72,12 @@ class MongoDbDomainEventStore implements DomainEventStore {
       snapshots: db.collection(collectionNames.snapshots)
     };
 
-    const domainEventStore = new MongoDbDomainEventStore({
+    return new MongoDbDomainEventStore({
       client,
       db,
       collectionNames,
       collections
     });
-
-    await collections.domainEvents.createIndexes([
-      {
-        key: { 'aggregateIdentifier.id': 1 },
-        name: `${collectionNames.domainEvents}_aggregateId`
-      },
-      {
-        key: { 'aggregateIdentifier.id': 1, 'metadata.revision': 1 },
-        name: `${collectionNames.domainEvents}_aggregateId_revision`,
-        unique: true
-      },
-      {
-        key: { 'metadata.causationId': 1 },
-        name: `${collectionNames.domainEvents}_causationId`
-      },
-      {
-        key: { 'metadata.correlationId': 1 },
-        name: `${collectionNames.domainEvents}_correlationId`
-      },
-      {
-        key: { 'metadata.timestamp': 1 },
-        name: `${collectionNames.domainEvents}_timestamp`
-      }
-    ]);
-    await collections.snapshots.createIndexes([
-      {
-        key: { 'aggregateIdentifier.id': 1 },
-        name: `${collectionNames.snapshots}_aggregateId`,
-        unique: true
-      }
-    ]);
-
-    return domainEventStore;
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
@@ -428,6 +391,39 @@ class MongoDbDomainEventStore implements DomainEventStore {
       }},
       { upsert: true }
     );
+  }
+
+  public async setup (): Promise<void> {
+    await this.collections.domainEvents.createIndexes([
+      {
+        key: { 'aggregateIdentifier.id': 1 },
+        name: `${this.collectionNames.domainEvents}_aggregateId`
+      },
+      {
+        key: { 'aggregateIdentifier.id': 1, 'metadata.revision': 1 },
+        name: `${this.collectionNames.domainEvents}_aggregateId_revision`,
+        unique: true
+      },
+      {
+        key: { 'metadata.causationId': 1 },
+        name: `${this.collectionNames.domainEvents}_causationId`
+      },
+      {
+        key: { 'metadata.correlationId': 1 },
+        name: `${this.collectionNames.domainEvents}_correlationId`
+      },
+      {
+        key: { 'metadata.timestamp': 1 },
+        name: `${this.collectionNames.domainEvents}_timestamp`
+      }
+    ]);
+    await this.collections.snapshots.createIndexes([
+      {
+        key: { 'aggregateIdentifier.id': 1 },
+        name: `${this.collectionNames.snapshots}_aggregateId`,
+        unique: true
+      }
+    ]);
   }
 
   public async destroy (): Promise<void> {

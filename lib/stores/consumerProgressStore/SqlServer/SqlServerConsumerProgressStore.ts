@@ -52,31 +52,6 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
 
     await pool.connect();
 
-    try {
-      await pool.query(`
-        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.progress}')
-          BEGIN
-            CREATE TABLE [${tableNames.progress}] (
-              [consumerId] NCHAR(64) NOT NULL,
-              [aggregateId] UNIQUEIDENTIFIER NOT NULL,
-              [revision] INT NOT NULL,
-              [isReplayingFrom] INT,
-              [isReplayingTo] INT,
-
-              CONSTRAINT [${tableNames.progress}_pk] PRIMARY KEY([consumerId], [aggregateId])
-            );
-          END
-      `);
-    } catch (ex) {
-      if (!/There is already an object named.*_progress/u.exec(ex.message)) {
-        throw ex;
-      }
-
-      // When multiple clients initialize at the same time, e.g. during
-      // integration tests, SQL Server might throw an error. In this case we
-      // simply ignore it.
-    }
-
     return new SqlServerConsumerProgressStore({ pool, tableNames });
   }
 
@@ -253,6 +228,33 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
       DELETE FROM [${this.tableNames.progress}]
         WHERE [consumerId] = @consumerId;
     `);
+  }
+
+  public async setup (): Promise<void> {
+    try {
+      await this.pool.query(`
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${this.tableNames.progress}')
+          BEGIN
+            CREATE TABLE [${this.tableNames.progress}] (
+              [consumerId] NCHAR(64) NOT NULL,
+              [aggregateId] UNIQUEIDENTIFIER NOT NULL,
+              [revision] INT NOT NULL,
+              [isReplayingFrom] INT,
+              [isReplayingTo] INT,
+
+              CONSTRAINT [${this.tableNames.progress}_pk] PRIMARY KEY([consumerId], [aggregateId])
+            );
+          END
+      `);
+    } catch (ex) {
+      if (!/There is already an object named.*_progress/u.exec(ex.message)) {
+        throw ex;
+      }
+
+      // When multiple clients initialize at the same time, e.g. during
+      // integration tests, SQL Server might throw an error. In this case we
+      // simply ignore it.
+    }
   }
 
   public async destroy (): Promise<void> {
