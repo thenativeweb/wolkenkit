@@ -3,6 +3,7 @@ import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { errors } from '../../../../common/errors';
 import { getAggregatesService } from '../../../../common/services/getAggregatesService';
+import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getDomainEventSchemaForGraphql } from '../../../../common/schemas/getDomainEventSchemaForGraphql';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
@@ -12,6 +13,7 @@ import { prepareForPublication } from '../../../../common/domain/domainEvent/pre
 import { Repository } from '../../../../common/domain/Repository';
 import { ResolverContext } from '../ResolverContext';
 import { Schema } from '../../../../common/elements/Schema';
+import { source } from 'common-tags';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
 import { transformDomainEventForGraphql } from '../../shared/elements/transformDomainEventForGraphql';
@@ -30,6 +32,26 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
     direction: 'output'
   });
 
+  let description = '';
+  const applicationDescription = getApplicationDescription({ application });
+
+  for (const [ contextName, context ] of Object.entries(applicationDescription.domainEvents)) {
+    description += `# Context '${contextName}'\n`;
+    for (const [ aggregateName, aggregate ] of Object.entries(context)) {
+      description += `## Aggregate '${aggregateName}'\n`;
+      for (const [ domainEventName, domainEventDescription ] of Object.entries(aggregate)) {
+        description += source`
+          ### Domain event '${domainEventName}'
+
+          ${domainEventDescription.documentation ?? 'No documentation available.'}
+
+              ${domainEventDescription.schema ? JSON.stringify(domainEventDescription.schema, null, 2) : 'No schema found.'}
+        `;
+        description += '\n';
+      }
+    }
+  }
+
   return {
     type: buildSchema(domainEventGraphQL.typeDefinitions.join('\n')).getType(domainEventGraphQL.typeName) as GraphQLObjectType,
     args: {
@@ -37,6 +59,7 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
         type: GraphQLString
       }
     },
+    description,
     async * subscribe (
       _source,
       { filter: jsonFilter },

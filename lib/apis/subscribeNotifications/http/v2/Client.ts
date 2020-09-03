@@ -3,6 +3,7 @@ import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsTransform } from '../../../../common/utils/http/FilterHeartbeatsTransform';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
+import { NotificationsDescription } from '../../../../common/application/NotificationsDescription';
 import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
 import { PassThrough, pipeline } from 'stream';
 
@@ -16,6 +17,24 @@ class Client extends HttpClient {
     path?: string;
   }) {
     super({ protocol, hostName, port, path });
+  }
+
+  public async getDescription (): Promise<NotificationsDescription> {
+    const { data, status } = await axios({
+      method: 'get',
+      url: `${this.url}/description`,
+      validateStatus (): boolean {
+        return true;
+      }
+    });
+
+    if (status === 200) {
+      return data;
+    }
+
+    logger.error('An unknown error occured.', { ex: data, status });
+
+    throw new errors.UnknownError();
   }
 
   public async getNotifications (): Promise<PassThrough> {
