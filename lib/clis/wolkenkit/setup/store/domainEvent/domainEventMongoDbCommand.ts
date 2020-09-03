@@ -7,7 +7,7 @@ import { DomainEventStoreOptions } from '../../../../../stores/domainEventStore/
 const domainEventMongoDbCommand = function (): Command<DomainEventMongoDbOptions> {
   return {
     name: 'mongodb',
-    description: 'Sets up a mongodb domain event store.',
+    description: 'Set up a MongoDB domain event store.',
 
     optionDefinitions: [
       {
@@ -49,13 +49,15 @@ const domainEventMongoDbCommand = function (): Command<DomainEventMongoDbOptions
       };
 
       try {
+        buntstift.info('Setting up the MongoDB domain event store...');
+
         const store = await createDomainEventStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up mongodb domain event store.');
+        buntstift.success('Successfully set up the MongoDB domain event store.');
       } catch (ex) {
-        buntstift.error('Failed to set up mongodb domain event store.');
+        buntstift.error('Failed to set up the MongoDB domain event store.');
 
         throw ex;
       } finally {

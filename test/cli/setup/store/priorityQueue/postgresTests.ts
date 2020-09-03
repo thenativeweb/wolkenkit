@@ -27,7 +27,7 @@ suite('setup store priority-queue postgres', function (): void {
     const setupPostgresPriorityQueueStoreCommand = `node ${cliPath} --verbose setup store priority-queue postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-items ${tableNameItems} --table-name-priority-queue ${tableNamePriorityQueue}`;
     const { stdout } = shell.exec(setupPostgresPriorityQueueStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up postgres priority queue store.');
+    assert.that(stdout).is.containing('Successfully set up the PostgreSQL priority queue store.');
 
     const pool = new Pool({
       host: hostName,

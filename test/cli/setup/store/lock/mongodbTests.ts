@@ -23,7 +23,7 @@ suite('setup store lock mongodb', function (): void {
     const setupMongoDbLockStoreCommand = `node ${cliPath} --verbose setup store lock mongodb --connection-string ${connectionString} --collection-name-locks ${collectionNameLocks}`;
     const { stdout } = shell.exec(setupMongoDbLockStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up mongodb lock store.');
+    assert.that(stdout).is.containing('Successfully set up the MongoDB lock store.');
 
     const client = await retry(async (): Promise<MongoClient> => await MongoClient.connect(
       connectionString,

@@ -27,7 +27,7 @@ suite('setup store consumer-progress mysql', function (): void {
     const setupMySqlConsumerProgressStoreCommand = `node ${cliPath} --verbose setup store consumer-progress mysql --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-progress ${tableNameProgress}`;
     const { stdout } = shell.exec(setupMySqlConsumerProgressStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up mysql consumer progress store.');
+    assert.that(stdout).is.containing('Successfully set up the MySQL consumer progress store.');
 
     const pool = createPool({
       host: hostName,

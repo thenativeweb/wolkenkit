@@ -7,7 +7,7 @@ import { PriorityQueueStoreOptions } from '../../../../../stores/priorityQueueSt
 const priorityQueueSqlServerCommand = function (): Command<PriorityQueueSqlServerOptions> {
   return {
     name: 'sqlserver',
-    description: 'Sets up a sqlserver priority queue store.',
+    description: 'Set up a SQL Server priority queue store.',
 
     optionDefinitions: [
       {
@@ -86,13 +86,15 @@ const priorityQueueSqlServerCommand = function (): Command<PriorityQueueSqlServe
       };
 
       try {
+        buntstift.info('Setting up the SQL Server priority queue store...');
+
         const store = await createPriorityQueueStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up sqlserver priority queue store.');
+        buntstift.success('Successfully set up the SQL Server priority queue store.');
       } catch (ex) {
-        buntstift.error('Failed to set up sqlserver priority queue store.');
+        buntstift.error('Failed to set up the SQL Server priority queue store.');
 
         throw ex;
       } finally {

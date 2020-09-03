@@ -26,7 +26,7 @@ suite('setup store consumer-progress postgres', function (): void {
     const setupPostgresConsumerProgressStoreCommand = `node ${cliPath} --verbose setup store consumer-progress postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-progress ${tableNameProgress}`;
     const { stdout } = shell.exec(setupPostgresConsumerProgressStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up postgres consumer progress store.');
+    assert.that(stdout).is.containing('Successfully set up the PostgreSQL consumer progress store.');
 
     const pool = new Pool({
       host: hostName,

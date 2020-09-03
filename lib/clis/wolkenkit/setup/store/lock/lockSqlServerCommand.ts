@@ -7,7 +7,7 @@ import { LockStoreOptions } from '../../../../../stores/lockStore/LockStoreOptio
 const lockSqlServerCommand = function (): Command<LockSqlServerOptions> {
   return {
     name: 'sqlserver',
-    description: 'Sets up a sqlserver lock store.',
+    description: 'Set up a SQL Server lock store.',
 
     optionDefinitions: [
       {
@@ -76,13 +76,15 @@ const lockSqlServerCommand = function (): Command<LockSqlServerOptions> {
       };
 
       try {
+        buntstift.info('Setting up the SQL Server lock store...');
+
         const store = await createLockStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up sqlserver lock store.');
+        buntstift.success('Successfully set up the SQL Server lock store.');
       } catch (ex) {
-        buntstift.error('Failed to set up sqlserver lock store.');
+        buntstift.error('Failed to set up the SQL Server lock store.');
 
         throw ex;
       } finally {

@@ -7,7 +7,7 @@ import { LockStoreOptions } from '../../../../../stores/lockStore/LockStoreOptio
 const lockPostgresCommand = function (): Command<LockPostgresOptions> {
   return {
     name: 'postgres',
-    description: 'Sets up a postgres lock store.',
+    description: 'Set up a PostgreSQL lock store.',
 
     optionDefinitions: [
       {
@@ -76,13 +76,15 @@ const lockPostgresCommand = function (): Command<LockPostgresOptions> {
       };
 
       try {
+        buntstift.info('Setting up the PostgreSQL lock store...');
+
         const store = await createLockStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up postgres lock store.');
+        buntstift.success('Successfully set up the PostgreSQL lock store.');
       } catch (ex) {
-        buntstift.error('Failed to set up postgres lock store.');
+        buntstift.error('Failed to set up the PostgreSQL lock store.');
 
         throw ex;
       } finally {

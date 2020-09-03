@@ -25,7 +25,7 @@ suite('setup store lock sqlserver', function (): void {
     const setupSqlServerLockStoreCommand = `node ${cliPath} --verbose setup store lock sqlserver --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-locks ${tableNameLock}`;
     const { stdout } = shell.exec(setupSqlServerLockStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up sqlserver lock store.');
+    assert.that(stdout).is.containing('Successfully set up the SQL Server lock store.');
 
     const pool = new ConnectionPool({
       server: hostName,

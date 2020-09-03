@@ -7,7 +7,7 @@ import { createConsumerProgressStore } from '../../../../../stores/consumerProgr
 const consumerProgressSqlServerCommand = function (): Command<ConsumerProgressSqlServerOptions> {
   return {
     name: 'sqlserver',
-    description: 'Sets up a sqlserver consumer progress store.',
+    description: 'Set up a SQL Server consumer progress store.',
 
     optionDefinitions: [
       {
@@ -76,13 +76,15 @@ const consumerProgressSqlServerCommand = function (): Command<ConsumerProgressSq
       };
 
       try {
+        buntstift.info('Setting up the SQL Server consumer progress store...');
+
         const store = await createConsumerProgressStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up sqlserver consumer progress store.');
+        buntstift.success('Successfully set up the SQL Server consumer progress store.');
       } catch (ex) {
-        buntstift.error('Failed to set up sqlserver consumer progress store.');
+        buntstift.error('Failed to set up the SQL Server consumer progress store.');
 
         throw ex;
       } finally {

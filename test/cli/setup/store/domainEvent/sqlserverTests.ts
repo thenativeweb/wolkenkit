@@ -26,7 +26,7 @@ suite('setup store domain-event sqlserver', function (): void {
     const setupSqlServerDomainEventStoreCommand = `node ${cliPath} --verbose setup store domain-event sqlserver --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-domain-events ${tableNameDomainEvents} --table-name-snapshots ${tableNameSnapshots}`;
     const { stdout } = shell.exec(setupSqlServerDomainEventStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up sqlserver domain event store.');
+    assert.that(stdout).is.containing('Successfully set up the SQL Server domain event store.');
 
     const pool = new ConnectionPool({
       server: hostName,

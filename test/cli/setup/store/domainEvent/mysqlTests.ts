@@ -28,7 +28,7 @@ suite('setup store domain-event mysql', function (): void {
     const setupMySqlDomainEventStoreCommand = `node ${cliPath} --verbose setup store domain-event mysql --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-domain-events ${tableNameDomainEvents} --table-name-snapshots ${tableNameSnapshots}`;
     const { stdout } = shell.exec(setupMySqlDomainEventStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up mysql domain event store.');
+    assert.that(stdout).is.containing('Successfully set up the MySQL domain event store.');
 
     const pool = createPool({
       host: hostName,

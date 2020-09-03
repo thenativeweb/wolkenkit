@@ -26,7 +26,7 @@ suite('setup store lock postgres', function (): void {
     const setupPostgresLockStoreCommand = `node ${cliPath} --verbose setup store lock postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-locks ${tableNameLocks}`;
     const { stdout } = shell.exec(setupPostgresLockStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up postgres lock store.');
+    assert.that(stdout).is.containing('Successfully set up the PostgreSQL lock store.');
 
     const pool = new Pool({
       host: hostName,

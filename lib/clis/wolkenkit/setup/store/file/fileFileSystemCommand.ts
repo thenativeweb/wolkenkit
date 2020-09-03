@@ -8,7 +8,7 @@ import path from 'path';
 const fileFileSystemCommand = function (): Command<FileFileSystemOptions> {
   return {
     name: 'file-system',
-    description: 'Sets up an S3 file store.',
+    description: 'Set up a file-system file store.',
 
     optionDefinitions: [
       {
@@ -39,13 +39,15 @@ const fileFileSystemCommand = function (): Command<FileFileSystemOptions> {
       };
 
       try {
+        buntstift.info('Setting up the file-system file store...');
+
         const store = await createFileStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up file system file store.');
+        buntstift.success('Successfully set up the file-system file store.');
       } catch (ex) {
-        buntstift.error('Failed to set up file system file store.');
+        buntstift.error('Failed to set up the file-system file store.');
 
         throw ex;
       } finally {

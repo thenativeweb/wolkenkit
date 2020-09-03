@@ -7,7 +7,7 @@ import { DomainEventStoreOptions } from '../../../../../stores/domainEventStore/
 const domainEventSqlServerCommand = function (): Command<DomainEventSqlServerOptions> {
   return {
     name: 'sqlserver',
-    description: 'Sets up a sqlserver domain event store.',
+    description: 'Set up a SQL Server domain event store.',
 
     optionDefinitions: [
       {
@@ -83,13 +83,15 @@ const domainEventSqlServerCommand = function (): Command<DomainEventSqlServerOpt
       };
 
       try {
+        buntstift.info('Setting up the SQL Server domain event store...');
+
         const store = await createDomainEventStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up sqlserver domain event store.');
+        buntstift.success('Successfully set up the SQL Server domain event store.');
       } catch (ex) {
-        buntstift.error('Failed to set up sqlserver domain event store.');
+        buntstift.error('Failed to set up the SQL Server domain event store.');
 
         throw ex;
       } finally {

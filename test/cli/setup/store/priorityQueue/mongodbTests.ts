@@ -23,7 +23,7 @@ suite('setup store priority-queue mongodb', function (): void {
     const setupMongoDbPriorityQueueStoreCommand = `node ${cliPath} --verbose setup store priority-queue mongodb --connection-string ${connectionString} --collection-name-queues ${collectionNameQueues}`;
     const { stdout } = shell.exec(setupMongoDbPriorityQueueStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up mongodb priority queue store.');
+    assert.that(stdout).is.containing('Successfully set up the MongoDB priority queue store.');
 
     const client = await retry(async (): Promise<MongoClient> => await MongoClient.connect(
       connectionString,

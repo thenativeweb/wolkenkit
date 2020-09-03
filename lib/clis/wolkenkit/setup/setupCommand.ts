@@ -6,14 +6,13 @@ import { storeCommand } from './store/storeCommand';
 const setupCommand = function (): Command<RootOptions> {
   return {
     name: 'setup',
-    description: 'Sets up various infrastructure.',
+    description: 'Set up the environment.',
 
     optionDefinitions: [],
 
     handle ({ getUsage, ancestors }): void {
-      /* eslint-disable no-console */
+      // eslint-disable-next-line no-console
       console.log(getUsage({ commandPath: [ ...ancestors, 'setup' ]}));
-      /* eslint-enable no-console */
     },
 
     subcommands: {

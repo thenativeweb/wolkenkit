@@ -7,7 +7,7 @@ import { PriorityQueueStoreOptions } from '../../../../../stores/priorityQueueSt
 const priorityQueueMySqlCommand = function (): Command<PriorityQueueMySqlOptions> {
   return {
     name: 'mysql',
-    description: 'Sets up a mysql priority queue store.',
+    description: 'Set up a MySQL priority queue store.',
 
     optionDefinitions: [
       {
@@ -80,13 +80,15 @@ const priorityQueueMySqlCommand = function (): Command<PriorityQueueMySqlOptions
       };
 
       try {
+        buntstift.info('Setting up the MySQL priority queue store...');
+
         const store = await createPriorityQueueStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up mysql priority queue store.');
+        buntstift.success('Successfully set up the MySQL priority queue store.');
       } catch (ex) {
-        buntstift.error('Failed to set up mysql priority queue store.');
+        buntstift.error('Failed to set up the MySQL priority queue store.');
 
         throw ex;
       } finally {

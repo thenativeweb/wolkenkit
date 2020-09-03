@@ -23,7 +23,7 @@ suite('setup store lock redis', function (): void {
     const setupPostgresLockStoreCommand = `node ${cliPath} --verbose setup store lock redis --host-name ${hostName} --port ${port} --password ${password} --database ${database} --list-name-locks ${listNameLocks}`;
     const { stdout } = shell.exec(setupPostgresLockStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up redis lock store.');
+    assert.that(stdout).is.containing('Successfully set up the Redis lock store.');
 
     // There is nothing to test here, since the redis setup does not prepare anything.
   });

@@ -7,7 +7,7 @@ import { PriorityQueueStoreOptions } from '../../../../../stores/priorityQueueSt
 const priorityQueueMongoDbCommand = function (): Command<PriorityQueueMongoDbOptions> {
   return {
     name: 'mongodb',
-    description: 'Sets up a mongodb priority queue store.',
+    description: 'Set up a MongoDB priority queue store.',
 
     optionDefinitions: [
       {
@@ -45,13 +45,15 @@ const priorityQueueMongoDbCommand = function (): Command<PriorityQueueMongoDbOpt
       };
 
       try {
+        buntstift.info('Setting up the MongoDB priority queue store...');
+
         const store = await createPriorityQueueStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up mongodb priority queue store.');
+        buntstift.success('Successfully set up the MongoDB priority queue store.');
       } catch (ex) {
-        buntstift.error('Failed to set up mongodb priority queue store.');
+        buntstift.error('Failed to set up the MongoDB priority queue store.');
 
         throw ex;
       } finally {

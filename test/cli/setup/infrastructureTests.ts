@@ -44,8 +44,8 @@ suite('setup infrastructure', function (): void {
       cwd: appDirectory
     });
 
-    assert.that(stdout).is.containing(`Setting up infrastructure for the '${appName}' application...`);
+    assert.that(stdout).is.containing(`Setting up the infrastructure for the '${appName}' application...`);
     assert.that(stdout).is.containing(randomString);
-    assert.that(stdout).is.containing(`Successfully set up infrastructure for the '${appName}' application...`);
+    assert.that(stdout).is.containing(`Successfully set up the infrastructure for the '${appName}' application...`);
   });
 });

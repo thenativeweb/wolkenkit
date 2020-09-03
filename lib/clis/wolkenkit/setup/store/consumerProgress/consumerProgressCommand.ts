@@ -8,7 +8,7 @@ import { RootOptions } from '../../../RootOptions';
 const consumerProgressCommand = function (): Command<RootOptions> {
   return {
     name: 'consumer-progress',
-    description: 'Sets up a consumer progress store.',
+    description: 'Set up a consumer progress store.',
 
     optionDefinitions: [],
 

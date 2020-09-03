@@ -7,7 +7,7 @@ import { createConsumerProgressStore } from '../../../../../stores/consumerProgr
 const consumerProgressMySqlCommand = function (): Command<ConsumerProgressMySqlOptions> {
   return {
     name: 'mysql',
-    description: 'Sets up a mysql consumer progress store.',
+    description: 'Set up a MySQL consumer progress store.',
 
     optionDefinitions: [
       {
@@ -70,13 +70,15 @@ const consumerProgressMySqlCommand = function (): Command<ConsumerProgressMySqlO
       };
 
       try {
+        buntstift.info('Setting up the MySQL consumer progress store...');
+
         const store = await createConsumerProgressStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up mysql consumer progress store.');
+        buntstift.success('Successfully set up the MySQL consumer progress store.');
       } catch (ex) {
-        buntstift.error('Failed to set up mysql consumer progress store.');
+        buntstift.error('Failed to set up the MySQL consumer progress store.');
 
         throw ex;
       } finally {

@@ -7,7 +7,7 @@ import { FileStoreOptions } from '../../../../../stores/fileStore/FileStoreOptio
 const fileS3Command = function (): Command<FileS3Options> {
   return {
     name: 's3',
-    description: 'Sets up an S3 file store.',
+    description: 'Set up an S3 file store.',
 
     optionDefinitions: [
       {
@@ -76,13 +76,15 @@ const fileS3Command = function (): Command<FileS3Options> {
       };
 
       try {
+        buntstift.info('Setting up the S3 file store...');
+
         const store = await createFileStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up s3 file store.');
+        buntstift.success('Successfully set up the S3 file store.');
       } catch (ex) {
-        buntstift.error('Failed to set up s3 file store.');
+        buntstift.error('Failed to set up the S3 file store.');
 
         throw ex;
       } finally {

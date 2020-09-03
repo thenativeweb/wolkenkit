@@ -7,7 +7,7 @@ import { LockStoreOptions } from '../../../../../stores/lockStore/LockStoreOptio
 const lockRedisCommand = function (): Command<LockRedisOptions> {
   return {
     name: 'redis',
-    description: 'Sets up a redis lock store.',
+    description: 'Set up a Redis lock store.',
 
     optionDefinitions: [
       {
@@ -63,13 +63,15 @@ const lockRedisCommand = function (): Command<LockRedisOptions> {
       };
 
       try {
+        buntstift.info('Setting up the Redis lock store...');
+
         const store = await createLockStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up redis lock store.');
+        buntstift.success('Successfully set up the Redis lock store.');
       } catch (ex) {
-        buntstift.error('Failed to set up redis lock store.');
+        buntstift.error('Failed to set up the Redis lock store.');
 
         throw ex;
       } finally {

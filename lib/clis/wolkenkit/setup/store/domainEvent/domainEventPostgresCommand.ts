@@ -7,7 +7,7 @@ import { DomainEventStoreOptions } from '../../../../../stores/domainEventStore/
 const domainEventPostgresCommand = function (): Command<DomainEventPostgresOptions> {
   return {
     name: 'postgres',
-    description: 'Sets up a postgres domain event store.',
+    description: 'Set up a PostgreSQL domain event store.',
 
     optionDefinitions: [
       {
@@ -83,13 +83,15 @@ const domainEventPostgresCommand = function (): Command<DomainEventPostgresOptio
       };
 
       try {
+        buntstift.info('Setting up the PostgreSQL domain event store...');
+
         const store = await createDomainEventStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up postgres domain event store.');
+        buntstift.success('Successfully set up the PostgreSQL domain event store.');
       } catch (ex) {
-        buntstift.error('Failed to set up postgres domain event store.');
+        buntstift.error('Failed to set up the PostgreSQL domain event store.');
 
         throw ex;
       } finally {

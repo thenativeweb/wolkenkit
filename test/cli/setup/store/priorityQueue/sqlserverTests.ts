@@ -26,7 +26,7 @@ suite('setup store priority-queue sqlserver', function (): void {
     const setupSqlServerDomainEventStoreCommand = `node ${cliPath} --verbose setup store priority-queue sqlserver --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-items ${tableNameItems} --table-name-priority-queue ${tableNamePriorityQueue}`;
     const { stdout } = shell.exec(setupSqlServerDomainEventStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up sqlserver priority queue store.');
+    assert.that(stdout).is.containing('Successfully set up the SQL Server priority queue store.');
 
     const pool = new ConnectionPool({
       server: hostName,

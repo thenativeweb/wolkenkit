@@ -17,7 +17,7 @@ suite('setup store file file-system', function (): void {
     const setupS3FileStoreCommand = `node ${cliPath} --verbose setup store file file-system --directory ${storeDirectory}`;
     const { stdout } = shell.exec(setupS3FileStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up file system file store.');
+    assert.that(stdout).is.containing('Successfully set up the file-system file store.');
 
     await fileExists(storeDirectory);
   });

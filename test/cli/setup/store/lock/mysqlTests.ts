@@ -27,7 +27,7 @@ suite('setup store lock mysql', function (): void {
     const setupMySqlLockStoreCommand = `node ${cliPath} --verbose setup store lock mysql --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-locks ${tableNameLocks}`;
     const { stdout } = shell.exec(setupMySqlLockStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up mysql lock store.');
+    assert.that(stdout).is.containing('Successfully set up the MySQL lock store.');
 
     const pool = createPool({
       host: hostName,

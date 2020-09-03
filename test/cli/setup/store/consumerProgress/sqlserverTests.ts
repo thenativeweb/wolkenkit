@@ -25,7 +25,7 @@ suite('setup store consumer-progress sqlserver', function (): void {
     const setupSqlServerConsumerProgressStoreCommand = `node ${cliPath} --verbose setup store consumer-progress sqlserver --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-progress ${tableNameProgress}`;
     const { stdout } = shell.exec(setupSqlServerConsumerProgressStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up sqlserver consumer progress store.');
+    assert.that(stdout).is.containing('Successfully set up the SQL Server consumer progress store.');
 
     const pool = new ConnectionPool({
       server: hostName,

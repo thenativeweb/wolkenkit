@@ -6,7 +6,7 @@ import { RootOptions } from '../../../RootOptions';
 const fileCommand = function (): Command<RootOptions> {
   return {
     name: 'file',
-    description: 'Sets up a file store.',
+    description: 'Set up a file store.',
 
     optionDefinitions: [],
 

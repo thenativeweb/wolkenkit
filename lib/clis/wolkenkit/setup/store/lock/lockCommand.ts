@@ -1,7 +1,7 @@
 import { Command } from 'command-line-interface';
 import { lockMongoDbCommand } from './lockMongoDbCommand';
 import { lockMySqlCommand } from './lockMySqlCommand';
-import { lockPostgresCommand } from './lockPostresCommand';
+import { lockPostgresCommand } from './lockPostgresCommand';
 import { lockRedisCommand } from './lockRedisCommand';
 import { lockSqlServerCommand } from './lockSqlServerCommand';
 import { RootOptions } from '../../../RootOptions';
@@ -9,7 +9,7 @@ import { RootOptions } from '../../../RootOptions';
 const lockCommand = function (): Command<RootOptions> {
   return {
     name: 'lock',
-    description: 'Sets up a lock store.',
+    description: 'Set up a lock store.',
 
     optionDefinitions: [],
 

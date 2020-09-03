@@ -28,7 +28,7 @@ suite('setup store priority-queue mysql', function (): void {
     const setupMySqlPriorityQueueStoreCommand = `node ${cliPath} --verbose setup store priority-queue mysql --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-items ${tableNameItems} --table-name-priority-queue ${tableNamePriorityQueue}`;
     const { stdout } = shell.exec(setupMySqlPriorityQueueStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up mysql priority queue store.');
+    assert.that(stdout).is.containing('Successfully set up the MySQL priority queue store.');
 
     const pool = createPool({
       host: hostName,

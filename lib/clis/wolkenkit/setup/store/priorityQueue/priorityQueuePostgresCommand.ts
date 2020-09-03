@@ -7,7 +7,7 @@ import { PriorityQueueStoreOptions } from '../../../../../stores/priorityQueueSt
 const priorityQueuePostgresCommand = function (): Command<PriorityQueuePostgresOptions> {
   return {
     name: 'postgres',
-    description: 'Sets up a postgres priority queue store.',
+    description: 'Set up a PostgreSQL priority queue store.',
 
     optionDefinitions: [
       {
@@ -86,13 +86,15 @@ const priorityQueuePostgresCommand = function (): Command<PriorityQueuePostgresO
       };
 
       try {
+        buntstift.info('Setting up the PostgreSQL priority queue store...');
+
         const store = await createPriorityQueueStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up postgres priority queue store.');
+        buntstift.success('Successfully set up the PostgreSQL priority queue store.');
       } catch (ex) {
-        buntstift.error('Failed to set up postgres priority queue store.');
+        buntstift.error('Failed to set up the PostgreSQL priority queue store.');
 
         throw ex;
       } finally {

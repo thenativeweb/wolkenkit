@@ -23,7 +23,7 @@ suite('setup store consumer-progress mongodb', function (): void {
     const setupMongoDbConsumerProgressStoreCommand = `node ${cliPath} --verbose setup store consumer-progress mongodb --connection-string ${connectionString} --collection-name-progress ${collectionNameProgress}`;
     const { stdout } = shell.exec(setupMongoDbConsumerProgressStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up mongodb consumer progress store.');
+    assert.that(stdout).is.containing('Successfully set up the MongoDB consumer progress store.');
 
     const client = await retry(async (): Promise<MongoClient> => await MongoClient.connect(
       connectionString,

@@ -27,7 +27,7 @@ suite('setup store domain-event postgres', function (): void {
     const setupPostgresDomainEventStoreCommand = `node ${cliPath} --verbose setup store domain-event postgres --host-name ${hostName} --port ${port} --user-name ${userName} --password ${password} --database ${database} --table-name-domain-events ${tableNameDomainEvents} --table-name-snapshots ${tableNameSnapshots}`;
     const { stdout } = shell.exec(setupPostgresDomainEventStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up postgres domain event store.');
+    assert.that(stdout).is.containing('Successfully set up the PostgreSQL domain event store.');
 
     const pool = new Pool({
       host: hostName,

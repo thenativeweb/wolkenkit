@@ -7,7 +7,7 @@ import { LockStoreOptions } from '../../../../../stores/lockStore/LockStoreOptio
 const lockMySqlCommand = function (): Command<LockMySqlOptions> {
   return {
     name: 'mysql',
-    description: 'Sets up a mysql lock store.',
+    description: 'Set up a MySQL lock store.',
 
     optionDefinitions: [
       {
@@ -70,13 +70,15 @@ const lockMySqlCommand = function (): Command<LockMySqlOptions> {
       };
 
       try {
+        buntstift.info('Setting up the MySQL lock store...');
+
         const store = await createLockStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up mysql lock store.');
+        buntstift.success('Successfully set up the MySQL lock store.');
       } catch (ex) {
-        buntstift.error('Failed to set up mysql lock store.');
+        buntstift.error('Failed to set up the MySQL lock store.');
 
         throw ex;
       } finally {

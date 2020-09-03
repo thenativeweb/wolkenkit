@@ -7,7 +7,7 @@ import { LockStoreOptions } from '../../../../../stores/lockStore/LockStoreOptio
 const lockMongoDbCommand = function (): Command<LockMongoDbOptions> {
   return {
     name: 'mongodb',
-    description: 'Sets up a mongodb lock store.',
+    description: 'Set up a MongoDB lock store.',
 
     optionDefinitions: [
       {
@@ -42,13 +42,15 @@ const lockMongoDbCommand = function (): Command<LockMongoDbOptions> {
       };
 
       try {
+        buntstift.info('Setting up the MongoDB lock store...');
+
         const store = await createLockStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up mongodb lock store.');
+        buntstift.success('Successfully set up the MongoDB lock store.');
       } catch (ex) {
-        buntstift.error('Failed to set up mongodb lock store.');
+        buntstift.error('Failed to set up the MongoDB lock store.');
 
         throw ex;
       } finally {

@@ -11,7 +11,7 @@ import path from 'path';
 const infrastructureCommand = function (): Command<InfrastructureOptions> {
   return {
     name: 'infrastructure',
-    description: `Sets up the application's infrastructure.`,
+    description: 'Set up infrastructure.',
 
     optionDefinitions: [],
 
@@ -34,14 +34,14 @@ const infrastructureCommand = function (): Command<InfrastructureOptions> {
           throw new errors.ApplicationNotFound();
         }
 
-        buntstift.info(`Setting up infrastructure for the '${packageManifest.name}' application...`);
+        buntstift.info(`Setting up the infrastructure for the '${packageManifest.name}' application...`);
         await infrastructureDefinition.setupInfrastructure({
           logger: getLoggerService({
             fileName: '<app>/build/server/infrastructure/setupInfrastructure',
             packageManifest
           })
         });
-        buntstift.success(`Successfully set up infrastructure for the '${packageManifest.name}' application...`);
+        buntstift.success(`Successfully set up the infrastructure for the '${packageManifest.name}' application...`);
       } catch (ex) {
         buntstift.error('Failed to set up the infrastructure.');
 

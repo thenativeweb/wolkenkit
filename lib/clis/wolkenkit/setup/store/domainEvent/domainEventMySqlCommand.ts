@@ -7,7 +7,7 @@ import { DomainEventStoreOptions } from '../../../../../stores/domainEventStore/
 const domainEventMySqlCommand = function (): Command<DomainEventMySqlOptions> {
   return {
     name: 'mysql',
-    description: 'Sets up a mysql domain event store.',
+    description: 'Set up a MySQL domain event store.',
 
     optionDefinitions: [
       {
@@ -77,13 +77,15 @@ const domainEventMySqlCommand = function (): Command<DomainEventMySqlOptions> {
       };
 
       try {
+        buntstift.info('Setting up the MySQL domain event store...');
+
         const store = await createDomainEventStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up mysql domain event store.');
+        buntstift.success('Successfully set up the MySQL domain event store.');
       } catch (ex) {
-        buntstift.error('Failed to set up mysql domain event store.');
+        buntstift.error('Failed to set up the MySQL domain event store.');
 
         throw ex;
       } finally {

@@ -8,7 +8,7 @@ import { RootOptions } from '../../../RootOptions';
 const priorityQueueCommand = function (): Command<RootOptions> {
   return {
     name: 'priority-queue',
-    description: 'Sets up a priority queue store.',
+    description: 'Set up a priority queue store.',
 
     optionDefinitions: [],
 

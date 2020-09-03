@@ -25,7 +25,7 @@ suite('setup store file s3', function (): void {
     const setupS3FileStoreCommand = `node ${cliPath} --verbose setup store file s3 --host-name ${hostName} --port ${port} ${encryptConnection ? '--encryptConnection' : ''} --access-key ${accessKey} --secret-key ${secretKey} --bucket-name ${bucketName}`;
     const { stdout } = shell.exec(setupS3FileStoreCommand, { silent: false });
 
-    assert.that(stdout).is.containing('Successfully set up s3 file store.');
+    assert.that(stdout).is.containing('Successfully set up the S3 file store.');
 
     const client = new Client({
       endPoint: hostName,

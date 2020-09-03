@@ -8,7 +8,7 @@ import { RootOptions } from '../../../RootOptions';
 const domainEventCommand = function (): Command<RootOptions> {
   return {
     name: 'domain-event',
-    description: 'Sets up a domain event store.',
+    description: 'Set up a domain event store.',
 
     optionDefinitions: [],
 

@@ -7,7 +7,7 @@ import { createConsumerProgressStore } from '../../../../../stores/consumerProgr
 const consumerProgressPostgresCommand = function (): Command<ConsumerProgressPostgresOptions> {
   return {
     name: 'postgres',
-    description: 'Sets up a postgres consumer progress store.',
+    description: 'Set up a PostgreSQL consumer progress store.',
 
     optionDefinitions: [
       {
@@ -76,13 +76,15 @@ const consumerProgressPostgresCommand = function (): Command<ConsumerProgressPos
       };
 
       try {
+        buntstift.info('Setting up the PostgreSQL consumer progress store...');
+
         const store = await createConsumerProgressStore(storeOptions);
 
         await store.setup();
         await store.destroy();
-        buntstift.success('Successfully set up postgres consumer progress store.');
+        buntstift.success('Successfully set up the PostgreSQL consumer progress store.');
       } catch (ex) {
-        buntstift.error('Failed to set up postgres consumer progress store.');
+        buntstift.error('Failed to set up the PostgreSQL consumer progress store.');
 
         throw ex;
       } finally {

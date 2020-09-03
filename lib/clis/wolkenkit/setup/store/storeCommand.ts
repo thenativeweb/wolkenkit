@@ -9,7 +9,7 @@ import { RootOptions } from '../../RootOptions';
 const storeCommand = function (): Command<RootOptions> {
   return {
     name: 'store',
-    description: 'Sets up various stores.',
+    description: 'Set up stores.',
 
     optionDefinitions: [],
 
