@@ -4,8 +4,8 @@ import { OnReceiveMessage } from '../../OnReceiveMessage';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
-import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 

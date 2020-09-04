@@ -4,8 +4,8 @@ import { flaschenpost } from 'flaschenpost';
 import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
-import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 
