@@ -16,6 +16,7 @@ import { ResolverContext } from '../ResolverContext';
 import { v4 } from 'uuid';
 import { validateCommand } from '../../../../common/validators/validateCommand';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import {
   buildSchema,
   GraphQLArgumentConfig,
@@ -24,7 +25,6 @@ import {
   GraphQLObjectType,
   GraphQLString
 } from 'graphql';
-import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 const commandSchema = new Value(getCommandSchema());

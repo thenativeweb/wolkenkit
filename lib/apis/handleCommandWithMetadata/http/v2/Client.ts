@@ -4,6 +4,7 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -44,7 +45,10 @@ class Client extends HttpClient {
         throw new errors.CommandNotFound(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'handleCommandWithMetadata', { ex: data, status })
+        );
 
         throw new errors.UnknownError();
       }
@@ -76,14 +80,20 @@ class Client extends HttpClient {
             throw new errors.CommandNotFound(data.message);
           }
           default: {
-            throw new errors.UnknownError();
+            // Intentionally left blank so it falls through to the outher default case.
           }
         }
       }
+      // eslint-disable-next-line no-fallthrough
       case 404: {
         throw new errors.ItemNotFound(data.message);
       }
       default: {
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'handleCommandWithMetadata', { ex: data, status })
+        );
+
         throw new errors.UnknownError();
       }
     }

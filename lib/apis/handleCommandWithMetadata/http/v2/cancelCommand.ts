@@ -8,6 +8,7 @@ import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { validateItemIdentifier } from '../../../../common/validators/validateItemIdentifier';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { CustomError, isCustomError } from 'defekt';
 
@@ -76,7 +77,10 @@ const cancelCommand = {
         return;
       }
 
-      logger.info('Received request to cancel command.', { commandIdentifierWithClient });
+      logger.info(
+        'Received request to cancel command.',
+        withLogMetadata('api', 'handleCommandWithMetadata', { commandIdentifierWithClient })
+      );
 
       try {
         await onCancelCommand({ commandIdentifierWithClient });
@@ -99,7 +103,10 @@ const cancelCommand = {
             });
           }
           default: {
-            logger.error('An unknown error occured.', { ex: error });
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'handleCommandWithMetadata', { ex })
+            );
 
             res.status(500).json({
               code: error.code,

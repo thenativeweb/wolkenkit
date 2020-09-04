@@ -9,6 +9,7 @@ import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { validateCommandWithMetadata } from '../../../../common/validators/validateCommandWithMetadata';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
@@ -84,7 +85,10 @@ const postCommand = {
         return;
       }
 
-      logger.info('Command received.', { command });
+      logger.info(
+        'Received command.',
+        withLogMetadata('api', 'handleCommandWithMetadata', { command })
+      );
 
       try {
         await onReceiveCommand({ command });
@@ -95,7 +99,10 @@ const postCommand = {
 
         res.status(200).json(response);
       } catch (ex: unknown) {
-        logger.error('An unknown error occured.', { ex });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api', 'handleCommandWithMetadata', { ex })
+        );
 
         const error = new errors.UnknownError();
 
