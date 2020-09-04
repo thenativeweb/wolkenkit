@@ -9,6 +9,7 @@ import typer from 'content-type';
 import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
 import { validateFlowNames } from '../../../../common/validators/validateFlowNames';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
@@ -115,7 +116,10 @@ const postPerformReplay = {
         return;
       }
 
-      logger.info('Replay requested.', { flowNames, aggregates });
+      logger.info(
+        'Replay requested.',
+        withLogMetadata('api', 'performReplay', { flowNames, aggregates })
+      );
 
       try {
         await performReplay({ flowNames, aggregates });
@@ -125,8 +129,11 @@ const postPerformReplay = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex: unknown) {
-        logger.error('An unknown error occured.', { ex });
+      } catch (ex) {
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api', 'performReplay', { err: ex })
+        );
 
         const error = new errors.UnknownError();
 
