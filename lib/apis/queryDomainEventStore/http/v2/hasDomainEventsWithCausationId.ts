@@ -5,6 +5,7 @@ import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -68,7 +69,10 @@ const hasDomainEventsWithCausationId = {
           ex :
           new errors.UnknownError(undefined, { cause: ex as Error });
 
-        logger.error('An unknown error occured.', { ex: error });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api', 'queryDomainEventStore', { err: error })
+        );
 
         return res.status(400).json({
           code: error.code,

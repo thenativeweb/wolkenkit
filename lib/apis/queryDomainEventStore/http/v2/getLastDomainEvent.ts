@@ -6,6 +6,7 @@ import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventS
 import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
@@ -67,7 +68,10 @@ const getLastDomainEvent = {
           ex :
           new errors.UnknownError(undefined, { cause: ex as Error });
 
-        logger.error('An unknown error occured.', { ex: error });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api', 'queryDomainEventStore', { err: error })
+        );
 
         return res.status(400).json({
           code: error.code,
