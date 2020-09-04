@@ -57,7 +57,7 @@ const getCancelCommandFieldConfiguration = function ({ application, onCancelComm
       };
 
       logger.info(
-        'Command cancel request received.',
+        'Received request to cancel command.',
         withLogMetadata('api', 'graphql', { commandIdentifierWithClient })
       );
 

@@ -122,7 +122,7 @@ const getIndividualCommandFieldConfiguration = function ({
       });
 
       logger.info(
-        'Command received.',
+        'Received command.',
         withLogMetadata('api', 'graphql', { command: commandWithMetadata })
       );
 
