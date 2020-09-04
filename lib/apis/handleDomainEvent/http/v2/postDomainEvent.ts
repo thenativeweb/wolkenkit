@@ -11,6 +11,7 @@ import typer from 'content-type';
 import { validateDomainEvent } from '../../../../common/validators/validateDomainEvent';
 import { validateFlowNames } from '../../../../common/validators/validateFlowNames';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
@@ -92,7 +93,10 @@ const postDomainEvent = {
         return;
       }
 
-      logger.info('Domain event received.', { flowNames, domainEvent });
+      logger.info(
+        'Received domain event.',
+        withLogMetadata('api', 'handleDomainEvent', { flowNames, domainEvent })
+      );
 
       try {
         await onReceiveDomainEvent({ flowNames, domainEvent });
@@ -103,7 +107,10 @@ const postDomainEvent = {
 
         res.status(200).json(response);
       } catch (ex: unknown) {
-        logger.error('An unknown error occured.', { ex });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api', 'handleDomainEvent', { ex })
+        );
 
         const error = new errors.UnknownError();
 
