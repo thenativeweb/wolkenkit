@@ -8,6 +8,7 @@ import { isCustomError } from 'defekt';
 import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandlerIdentifier';
 import { Schema } from '../../../../common/elements/Schema';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 
@@ -83,11 +84,26 @@ const queryStream = {
             });
             break;
           }
-          default: {
-            logger.error('An unknown error occured.', { ex });
+          case errors.QueryResultInvalid.code: {
+            logger.error(
+              'An invalid query result was occured.',
+              withLogMetadata('api', 'queryView', { err: error })
+            );
 
             res.status(500).json({
               code: error.code
+            });
+            break;
+          }
+          default: {
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'queryView', { err: error })
+            );
+
+            res.status(500).json({
+              code: error.code,
+              message: error.message
             });
           }
         }
