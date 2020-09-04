@@ -8,6 +8,7 @@ import { getApiBase } from '../../base/getApiBase';
 import { getApi as getStaticApi } from '../../getStatic/http';
 import path from 'path';
 import swaggerUi from 'swagger-ui-express';
+import { withLogMetadata } from '../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -67,7 +68,10 @@ const getApi = async function ({
     paths
   };
 
-  logger.debug('Constructed openApi definition for documentation route', { openApiDefinition });
+  logger.debug(
+    'Constructed openApi definition for documentation route.',
+    withLogMetadata('api', 'openApi', { openApiDefinition })
+  );
 
   const { api: staticApi } = await getStaticApi({
     directory: path.join(__dirname, '..', '..', '..', '..', 'assets'),
