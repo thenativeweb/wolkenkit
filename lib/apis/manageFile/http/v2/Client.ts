@@ -3,6 +3,7 @@ import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { Readable } from 'stream';
 import streamToString from 'stream-to-string';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -44,7 +45,10 @@ class Client extends HttpClient {
         throw new errors.FileNotFound(error.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: error, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'manageFile', { ex: error, status })
+        );
 
         throw new errors.UnknownError();
       }
@@ -80,7 +84,10 @@ class Client extends HttpClient {
         throw new errors.FileAlreadyExists(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'manageFile', { ex: data, status })
+        );
 
         throw new errors.UnknownError();
       }
@@ -108,7 +115,10 @@ class Client extends HttpClient {
         throw new errors.FileNotFound(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api', 'manageFile', { ex: data, status })
+        );
 
         throw new errors.UnknownError();
       }

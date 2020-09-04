@@ -11,6 +11,7 @@ import { isCustomError } from 'defekt';
 import { pipeline as pipelineCallback } from 'stream';
 import { promisify } from 'util';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const pipeline = promisify(pipelineCallback);
@@ -90,7 +91,10 @@ const getFile = {
             break;
           }
           default: {
-            logger.error('An unknown error occured.', { ex: error });
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'manageFile', { error })
+            );
 
             res.status(500).json({ code: error.code, message: error.message });
           }
@@ -110,8 +114,16 @@ const getFile = {
             })
           });
         }
+<<<<<<< HEAD
       } catch (ex: unknown) {
         logger.error('An unknown error occured.', { ex });
+=======
+      } catch (ex) {
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api', 'manageFile', { ex })
+        );
+>>>>>>> a3f5e66c (feat: Improve logs of manageFile api.)
       }
     };
   }

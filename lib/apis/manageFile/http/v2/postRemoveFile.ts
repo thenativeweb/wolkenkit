@@ -10,6 +10,7 @@ import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
@@ -134,7 +135,10 @@ const postRemoveFile = {
             break;
           }
           default: {
-            logger.error('An unknown error occured.', { ex: error });
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'manageFile', { error })
+            );
 
             res.status(500).json({ code: error.code, message: error.message });
           }
