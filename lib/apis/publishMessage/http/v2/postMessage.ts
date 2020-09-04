@@ -5,6 +5,7 @@ import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -67,7 +68,10 @@ const postMessage = {
 
       const { channel, message } = req.body;
 
-      logger.info('Message received.', { channel });
+      logger.info(
+        'Received message.',
+        withLogMetadata('api', 'publishMessage', { channel })
+      );
 
       try {
         await onReceiveMessage({ channel, message });
@@ -77,12 +81,17 @@ const postMessage = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch {
-        const ex = new errors.UnknownError();
+      } catch (ex) {
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api', 'publishMessage', { err: ex })
+        );
+
+        const error = new errors.UnknownError();
 
         res.status(500).json({
-          code: ex.code,
-          message: ex.message
+          code: error.code,
+          message: error.message
         });
       }
     };

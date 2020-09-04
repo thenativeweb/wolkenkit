@@ -1,6 +1,7 @@
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -30,7 +31,10 @@ class Client extends HttpClient {
 
     switch (data.code) {
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'publishMessage', { err: data, status })
+        );
 
         throw new errors.UnknownError();
       }
