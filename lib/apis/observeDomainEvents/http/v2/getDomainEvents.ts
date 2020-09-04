@@ -15,6 +15,7 @@ import { Schema } from '../../../../common/elements/Schema';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import { Request, Response } from 'express';
@@ -106,7 +107,10 @@ const getDomainEvents = {
           /* eslint-enable @typescript-eslint/no-floating-promises */
         };
       } catch (ex: unknown) {
-        logger.error('An unknown error occured.', { ex });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api', 'observeDomainEvents', { err: ex })
+        );
 
         const error = new errors.UnknownError();
 
@@ -138,7 +142,10 @@ const getDomainEvents = {
           return;
         }
 
-        logger.error('An unknown error occured.', { ex });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api', 'observeDomainEvents', { err: ex })
+        );
 
         throw ex;
       }
