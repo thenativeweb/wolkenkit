@@ -1,6 +1,7 @@
 import { EventEmitter2 } from 'eventemitter2';
 import { flaschenpost } from 'flaschenpost';
 import PQueue from 'p-queue';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import { Request, Response } from 'express';
@@ -56,7 +57,10 @@ const getMessages = {
           return;
         }
 
-        logger.error('An unexpected error occured.', { ex });
+        logger.error(
+          'An unexpected error occured.',
+          withLogMetadata('api', 'subscribeMessages', { err: ex })
+        );
 
         throw ex;
       }
