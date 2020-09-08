@@ -113,15 +113,27 @@ const storeDomainEvents = {
           ex :
           new errors.UnknownError(undefined, { cause: ex as Error });
 
-        logger.error(
-          'An unknown error occured.',
-          withLogMetadata('api', 'writeDomainEventStore', { err: error })
-        );
+        switch (error.code) {
+          case errors.RevisionAlreadyExists.code: {
+            res.status(409).json({
+              code: error.code,
+              message: error.message
+            });
 
-        res.status(500).json({
-          code: error.code,
-          message: error.message
-        });
+            return;
+          }
+          default: {
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'writeDomainEventStore', { err: error })
+            );
+
+            res.status(500).json({
+              code: error.code,
+              message: error.message
+            });
+          }
+        }
       }
     };
   }
