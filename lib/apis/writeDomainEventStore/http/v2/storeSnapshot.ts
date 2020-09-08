@@ -1,11 +1,15 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
+import { flaschenpost } from 'flaschenpost';
 import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
 import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+
+const logger = flaschenpost.getLogger();
 
 const storeSnapshot = {
   description: 'Stores a snapshot.',
@@ -72,7 +76,12 @@ const storeSnapshot = {
           ex :
           new errors.UnknownError(undefined, { cause: ex as Error });
 
-        return res.status(400).json({
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api', 'writeDomainEventStore', { ex })
+        );
+
+        res.status(500).json({
           code: error.code,
           message: error.message
         });

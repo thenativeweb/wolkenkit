@@ -2,14 +2,17 @@ import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
+import { flaschenpost } from 'flaschenpost';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
-const domainEventSchema = new Value(getDomainEventSchema());
+const domainEventSchema = new Value(getDomainEventSchema()),
+      logger = flaschenpost.getLogger();
 
 const storeDomainEvents = {
   description: 'Stores domain events.',
@@ -110,7 +113,12 @@ const storeDomainEvents = {
           ex :
           new errors.UnknownError(undefined, { cause: ex as Error });
 
-        return res.status(400).json({
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api', 'writeDomainEventStore', { err: error })
+        );
+
+        res.status(500).json({
           code: error.code,
           message: error.message
         });
