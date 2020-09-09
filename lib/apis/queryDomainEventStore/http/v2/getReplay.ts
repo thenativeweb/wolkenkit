@@ -1,4 +1,5 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
+import { forAwaitOf } from '../../../../common/utils/forAwaitOf';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -48,11 +49,11 @@ const getReplay = {
 
       const domainEventStream = await domainEventStore.getReplay({ fromTimestamp });
 
-      for await (const domainEvent of domainEventStream) {
+      await forAwaitOf(domainEventStream, async (domainEvent): Promise<void> => {
         responseBodySchema.validate(domainEvent, { valueName: 'responseBody' });
 
         writeLine({ res, data: domainEvent });
-      }
+      });
 
       return res.end();
     };

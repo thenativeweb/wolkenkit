@@ -10,6 +10,7 @@ import { DomainEventHandler } from '../elements/DomainEventHandler';
 import { DomainEventStore } from '../../stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../elements/DomainEventWithState';
 import { errors } from '../errors';
+import { forAwaitOf } from '../utils/forAwaitOf';
 import { getAggregateService } from '../services/getAggregateService';
 import { GetAggregateService } from '../services/types/GetAggregateService';
 import { getAggregatesService } from '../services/getAggregatesService';
@@ -197,13 +198,13 @@ class AggregateInstance<TState extends State> {
     const replayStartRevision = fromRevision - 1,
           replayStartTimestamp = Date.now();
 
-    for await (const domainEvent of domainEventStream) {
+    await forAwaitOf(domainEventStream, async (domainEvent): Promise<void> => {
       aggregateInstance.state = aggregateInstance.applyDomainEvent({
         application,
         domainEvent
       });
       aggregateInstance.revision = domainEvent.metadata.revision;
-    }
+    });
 
     const replayDuration = Date.now() - replayStartTimestamp,
           replayedDomainEvents = aggregateInstance.revision - replayStartRevision;

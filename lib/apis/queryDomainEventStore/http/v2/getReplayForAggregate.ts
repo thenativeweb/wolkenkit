@@ -1,4 +1,5 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
+import { forAwaitOf } from '../../../../common/utils/forAwaitOf';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { regex } from '../../../../common/utils/uuid';
 import { Value } from 'validate-value';
@@ -61,11 +62,11 @@ const getReplayForAggregate = {
 
       const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId, fromRevision, toRevision });
 
-      for await (const domainEvent of domainEventStream) {
+      await forAwaitOf(domainEventStream, async (domainEvent): Promise<void> => {
         responseBodySchema.validate(domainEvent, { valueName: 'responseBody' });
 
         writeLine({ res, data: domainEvent });
-      }
+      });
 
       return res.end();
     };

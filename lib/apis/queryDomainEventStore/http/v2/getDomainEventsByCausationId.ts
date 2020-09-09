@@ -1,4 +1,5 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
+import { forAwaitOf } from '../../../../common/utils/forAwaitOf';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { jsonSchema } from '../../../../common/utils/uuid';
 import { Value } from 'validate-value';
@@ -49,11 +50,11 @@ const getDomainEventsByCausationId = {
 
       const domainEventStream = await domainEventStore.getDomainEventsByCausationId({ causationId });
 
-      for await (const domainEvent of domainEventStream) {
+      await forAwaitOf(domainEventStream, async (domainEvent): Promise<void> => {
         responseBodySchema.validate(domainEvent, { valueName: 'responseBody' });
 
         writeLine({ res, data: domainEvent });
-      }
+      });
 
       return res.end();
     };

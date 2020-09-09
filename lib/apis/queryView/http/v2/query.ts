@@ -3,6 +3,7 @@ import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { errors } from '../../../../common/errors';
 import { executeQueryHandler } from '../../../../common/domain/executeQueryHandler';
 import { flaschenpost } from 'flaschenpost';
+import { forAwaitOf } from '../../../../common/utils/forAwaitOf';
 import { getClientService } from '../../../../common/services/getClientService';
 import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandlerIdentifier';
 import { Schema } from '../../../../common/elements/Schema';
@@ -89,9 +90,9 @@ const query = {
 
       res.startStream({ heartbeatInterval: false });
 
-      for await (const resultItem of resultStream) {
+      await forAwaitOf(resultStream, async (resultItem): Promise<void> => {
         writeLine({ res, data: resultItem });
-      }
+      });
 
       res.end();
     };

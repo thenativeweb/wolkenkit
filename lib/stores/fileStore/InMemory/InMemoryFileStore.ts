@@ -2,6 +2,7 @@ import { errors } from '../../../common/errors';
 import { FileAddMetadata } from '../FileAddMetadata';
 import { FileMetadata } from '../FileMetadata';
 import { FileStore } from '../FileStore';
+import { forAwaitOf } from '../../../common/utils/forAwaitOf';
 import { InMemoryFileStoreOptions } from './InMemoryFileStoreOptions';
 import { Readable } from 'stream';
 
@@ -27,10 +28,10 @@ class InMemoryFileStore implements FileStore {
     const chunks: Buffer[] = [];
     let contentLength = 0;
 
-    for await (const chunk of stream) {
+    await forAwaitOf(stream, async (chunk): Promise<void> => {
       chunks.push(chunk);
       contentLength += chunk.length;
-    }
+    });
 
     const data = Buffer.concat(chunks),
           metadata = { id, name, contentType, contentLength };

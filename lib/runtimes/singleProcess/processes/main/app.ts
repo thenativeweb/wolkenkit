@@ -17,6 +17,7 @@ import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { executeNotificationSubscribers } from '../../../../common/domain/executeNotificationSubscribers';
 import { flaschenpost } from 'flaschenpost';
+import { forAwaitOf } from '../../../../common/utils/forAwaitOf';
 import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
 import { getApi } from './getApi';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
@@ -185,13 +186,13 @@ import { runHealthServer } from '../../../shared/runHealthServer';
         toRevision: to
       });
 
-      for await (const domainEvent of domainEventStream) {
+      await forAwaitOf(domainEventStream, async (domainEvent): Promise<void> => {
         await priorityQueueStoreForDomainEvents.enqueue({
           item: domainEvent,
           discriminator: flowName,
           priority: (domainEvent as DomainEvent<DomainEventData>).metadata.timestamp
         });
-      }
+      });
     };
 
     for (let i = 0; i < configuration.concurrentCommands; i++) {

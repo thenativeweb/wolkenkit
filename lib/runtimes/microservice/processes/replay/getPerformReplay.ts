@@ -4,6 +4,7 @@ import { Client as DomainEventDispatcherClient } from '../../../../apis/handleDo
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
+import { forAwaitOf } from '../../../../common/utils/forAwaitOf';
 import { PerformReplay } from '../../../../apis/performReplay/PerformReplay';
 
 const logger = flaschenpost.getLogger();
@@ -26,11 +27,11 @@ const getPerformReplay = function ({
           toRevision: aggregate.to
         });
 
-        for await (const rawDomainEvent of domainEventStream) {
+        await forAwaitOf(domainEventStream, async (rawDomainEvent): Promise<void> => {
           const domainEvent = new DomainEvent<DomainEventData>(rawDomainEvent);
 
           await domainEventDispatcherClient.postDomainEvent({ flowNames, domainEvent });
-        }
+        });
       }
 
       logger.info('Replay performed.', { flowNames, aggregates });
