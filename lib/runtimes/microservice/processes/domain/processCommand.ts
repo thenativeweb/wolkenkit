@@ -8,6 +8,7 @@ import { keepRenewingLock } from './keepRenewingLock';
 import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEvents';
 import { Repository } from '../../../../common/domain/Repository';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -22,7 +23,14 @@ const processCommand = async function ({
 }): Promise<void> {
   const { command, metadata } = await fetchCommand({ commandDispatcher });
 
-  logger.debug('Fetched and locked command for domain server.', { itemIdentifier: command.getItemIdentifier(), metadata });
+  logger.debug(
+    'Fetched and locked command for domain server.',
+    withLogMetadata(
+      'runtime',
+      'microservice/domain',
+      { itemIdentifier: command.getItemIdentifier(), metadata }
+    )
+  );
 
   try {
     try {
@@ -46,11 +54,21 @@ const processCommand = async function ({
 
     await publishDomainEvents({ domainEvents });
   } catch (ex: unknown) {
-    logger.error('Failed to handle command.', { command, ex });
+    logger.error(
+      'Failed to handle command.',
+      withLogMetadata('runtime', 'microservice/domain', { command, err: ex })
+    );
   } finally {
     await acknowledgeCommand({ command, token: metadata.token, commandDispatcher });
 
-    logger.debug('Processed and acknowledged command.', { itemIdentifier: command.getItemIdentifier(), metadata });
+    logger.debug(
+      'Processed and acknowledged command.',
+      withLogMetadata(
+        'runtime',
+        'microservice/domain',
+        { itemIdentifier: command.getItemIdentifier(), metadata }
+      )
+    );
   }
 };
 
