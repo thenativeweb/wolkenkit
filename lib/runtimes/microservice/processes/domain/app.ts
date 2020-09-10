@@ -81,6 +81,11 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
     const publishDomainEvents: PublishDomainEvents = async ({ domainEvents }: {
       domainEvents: DomainEventWithState<DomainEventData, State>[];
     }): Promise<any> => {
+      logger.debug(
+        'Publishing domain events...',
+        withLogMetadata('runtime', 'microservice/domain', { domainEvents })
+      );
+
       for (const domainEvent of domainEvents) {
         await publisher.publish({
           channel: configuration.pubSubOptions.channelForNewDomainEvents,
@@ -90,6 +95,11 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
           domainEvent: domainEvent.withoutState()
         });
       }
+
+      logger.debug(
+        'Published domain events.',
+        withLogMetadata('runtime', 'microservice/domain', { domainEvents })
+      );
     };
 
     await runHealthServer({
