@@ -1,12 +1,16 @@
 import { Application } from '../../../../common/application/Application';
 import { Configuration } from './Configuration';
+import { flaschenpost } from 'flaschenpost';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
 import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
 import { IdentityProvider } from 'limes';
 import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import express, { Application as ExpressApplication } from 'express';
+
+const logger = flaschenpost.getLogger();
 
 const getApi = async function ({
   configuration,
@@ -34,6 +38,11 @@ const getApi = async function ({
   api.use('/domain-events', observeDomainEventsApi);
 
   if (configuration.enableOpenApiDocumentation) {
+    logger.debug(
+      'Open api endpoint is enabled.',
+      withLogMetadata('runtime', 'microservice/domainEvent')
+    );
+
     const { api: openApiApi } = await getOpenApiApi({
       corsOrigin,
       application,
