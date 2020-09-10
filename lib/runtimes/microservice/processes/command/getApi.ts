@@ -1,12 +1,16 @@
 import { Application } from '../../../../common/application/Application';
 import { Configuration } from './Configuration';
+import { flaschenpost } from 'flaschenpost';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/http';
 import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
 import { IdentityProvider } from 'limes';
 import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import express, { Application as ExpressApplication } from 'express';
+
+const logger = flaschenpost.getLogger();
 
 const getApi = async function ({
   configuration,
@@ -36,6 +40,11 @@ const getApi = async function ({
   api.use('/command', handleCommandApi);
 
   if (configuration.enableOpenApiDocumentation) {
+    logger.debug(
+      'Open api endpoint is enabled.',
+      withLogMetadata('runtime', 'microservice/command')
+    );
+
     const { api: openApiApi } = await getOpenApiApi({
       corsOrigin,
       application,
