@@ -19,6 +19,7 @@ import { loadApplication } from '../../../../common/application/loadApplication'
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -28,6 +29,11 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     registerExceptionHandler();
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
+
+    logger.debug(
+      'Starting command dispatcher server...',
+      withLogMetadata('runtime', 'microprocess/command', { configuration })
+    );
 
     const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
@@ -58,6 +64,10 @@ import { runHealthServer } from '../../../shared/runHealthServer';
           channel: configuration.pubSubOptions.channelForNewCommands,
           message: {}
         });
+        logger.debug(
+          'Sent "new command" event on interval.',
+          withLogMetadata('runtime', 'microservice/commandDispatcher')
+        );
       },
       configuration.missedCommandRecoveryInterval
     );
@@ -80,13 +90,24 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const server = http.createServer(api);
 
     server.listen(configuration.portOrSocket, (): void => {
+      logger.info(
+        'Started command dispatcher server.',
+        withLogMetadata(
+          'runtime',
+          'microservice/commandDispatcher',
+          { portOrSocket: configuration.portOrSocket, healthPortOrSocket: configuration.healthPortOrSocket }
+        )
+      );
       logger.info('Command dispatcher server started.', {
         portOrSocket: configuration.portOrSocket,
         healthPortOrSocket: configuration.healthPortOrSocket
       });
     });
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'microservice/commandDispatcher', { err: ex })
+    );
     process.exit(1);
   }
 })();

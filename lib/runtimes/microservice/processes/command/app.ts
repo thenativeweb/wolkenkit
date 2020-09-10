@@ -23,6 +23,11 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
+    logger.debug(
+      'Starting command server...',
+      withLogMetadata('runtime', 'microprocess/command', { configuration })
+    );
+
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
     });
@@ -62,7 +67,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     server.listen(configuration.portOrSocket, (): void => {
       logger.info(
-        'Command server started.',
+        'Started command server.',
         withLogMetadata(
           'runtime',
           'microservice/command',
