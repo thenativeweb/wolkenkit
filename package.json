@@ -106,7 +106,7 @@
     "wolkenkit": "build/lib/bin/wolkenkit.js"
   },
   "engines": {
-    "node": ">=14.10.1"
+    "node": ">=14.11.0"
   },
   "dependencies": {
     "@types/body-parser": "1.19.0",
@@ -121,7 +121,7 @@
     "@types/mongodb": "3.5.27",
     "@types/mssql": "6.0.4",
     "@types/mysql": "2.15.15",
-    "@types/node": "14.6.4",
+    "@types/node": "14.11.2",
     "@types/pg": "7.14.5",
     "@types/pg-query-stream": "1.0.3",
     "@types/shelljs": "0.8.8",
@@ -139,7 +139,7 @@
     "defekt": "5.1.0",
     "eventemitter2": "6.4.3",
     "express": "4.17.1",
-    "flaschenpost": "4.3.1",
+    "flaschenpost": "4.3.7",
     "get-cors-origin": "4.0.2",
     "get-graphql-from-jsonschema": "6.0.1",
     "graphql": "15.3.0",
