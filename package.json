@@ -156,8 +156,8 @@
     "p-forever": "2.1.0",
     "p-queue": "6.6.1",
     "partof": "3.0.0",
-    "pg": "8.3.3",
-    "pg-query-stream": "3.2.3",
+    "pg": "8.4.0",
+    "pg-query-stream": "3.3.0",
     "processenv": "3.0.2",
     "retry-ignore-abort": "2.2.4",
     "runfork": "3.1.20",
@@ -167,7 +167,7 @@
     "streamtoarray": "3.0.0",
     "swagger-ui-express": "4.1.4",
     "untildify": "4.0.0",
-    "uuid": "8.3.0",
+    "uuid": "8.3.1",
     "validate-value": "7.0.0"
   },
   "devDependencies": {
