@@ -106,7 +106,7 @@
     "wolkenkit": "build/lib/bin/wolkenkit.js"
   },
   "engines": {
-    "node": ">=14.11.0"
+    "node": ">=14.13.0"
   },
   "dependencies": {
     "@types/body-parser": "1.19.0",
