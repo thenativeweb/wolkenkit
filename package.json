@@ -145,7 +145,7 @@
     "graphql": "15.3.0",
     "ioredis": "4.17.3",
     "is-typescript": "4.0.0",
-    "isolated": "3.0.2",
+    "isolated": "3.0.3",
     "limes": "6.0.4",
     "lodash": "4.17.20",
     "minio": "7.0.16",
