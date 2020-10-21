@@ -4,5 +4,5 @@
 # For details, see: https://github.com/mysqljs/mysql/issues/1959
 # Updated PR for that: https://github.com/mysqljs/mysql/pull/2233
 
-FROM mysql:5.7.21
+FROM mysql:8.0.22
 LABEL maintainer="the native web <hello@thenativeweb.io>"
