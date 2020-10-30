@@ -108,8 +108,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
     const connection = await this.getDatabase();
@@ -170,8 +169,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
     const connection = await this.getDatabase();

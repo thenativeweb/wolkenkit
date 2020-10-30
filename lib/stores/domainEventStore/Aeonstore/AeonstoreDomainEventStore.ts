@@ -44,15 +44,13 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     return await this.queryClient.getLastDomainEvent({ aggregateIdentifier });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
     return await this.queryClient.getDomainEventsByCausationId({ causationId });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async hasDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async hasDomainEventsWithCausationId ({ causationId }: {
     causationId: string;
   }): Promise<boolean> {
     return await this.queryClient.hasDomainEventsWithCausationId({ causationId });
