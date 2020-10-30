@@ -3,11 +3,11 @@ import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
+import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import { CustomError, isCustomError } from 'defekt';
 
 const domainEventSchema = new Value(getDomainEventSchema());
 
@@ -111,13 +111,9 @@ const storeDomainEvents = {
 
         res.status(200).json(response);
       } catch (ex: unknown) {
-        let error: CustomError;
-
-        if (isCustomError(ex)) {
-          error = ex;
-        } else {
-          error = new errors.UnknownError(undefined, { cause: ex as Error });
-        }
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
 
         return res.status(400).json({
           code: error.code,

@@ -25,7 +25,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   aeonstorePort: {
     environmentVariable: 'AEONSTORE_PORT',
-    defaultValue: 3000,
+    defaultValue: 3_000,
     schema: portSchema
   },
   aeonstoreProtocol: {
@@ -45,7 +45,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   commandDispatcherPort: {
     environmentVariable: 'COMMAND_DISPATCHER_PORT',
-    defaultValue: 3000,
+    defaultValue: 3_000,
     schema: portSchema
   },
   commandDispatcherProtocol: {
@@ -70,7 +70,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   healthPort: {
     environmentVariable: 'HEALTH_PORT',
-    defaultValue: 3001,
+    defaultValue: 3_001,
     schema: portSchema
   },
   identityProviders: {
@@ -80,7 +80,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   port: {
     environmentVariable: 'PORT',
-    defaultValue: 3000,
+    defaultValue: 3_000,
     schema: portSchema
   },
   pubSubOptions: {
@@ -92,14 +92,14 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
         type: 'Http',
         protocol: 'http',
         hostName: 'publisher',
-        port: 3000,
+        port: 3_000,
         path: '/publish/v2'
       },
       subscriber: {
         type: 'Http',
         protocol: 'http',
         hostName: 'publisher',
-        port: 3000,
+        port: 3_000,
         path: '/subscribe/v2'
       }
     },

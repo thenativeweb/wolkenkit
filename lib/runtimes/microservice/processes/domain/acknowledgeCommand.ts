@@ -13,7 +13,7 @@ const acknowledgeCommand = async function ({ command, token, commandDispatcher }
       discriminator: command.aggregateIdentifier.id,
       token
     });
-  }, { retries: commandDispatcher.acknowledgeRetries, maxTimeout: 1000 });
+  }, { retries: commandDispatcher.acknowledgeRetries, maxTimeout: 1_000 });
 };
 
 export {

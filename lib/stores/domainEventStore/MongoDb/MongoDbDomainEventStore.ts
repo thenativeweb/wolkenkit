@@ -358,7 +358,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     } catch (ex: unknown) {
       if (
         ex instanceof MongoError &&
-        ex.code === 11000 &&
+        ex.code === 11_000 &&
         ex.message.includes('_aggregateId_revision')
       ) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');

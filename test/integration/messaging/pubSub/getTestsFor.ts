@@ -120,4 +120,5 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
 };
 /* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 
+// eslint-disable-next-line mocha/no-exports
 export { getTestsFor };

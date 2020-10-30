@@ -50,13 +50,7 @@ const executeQueryHandler = async function ({
     logger: loggerService
   });
 
-  let resultStream: Readable;
-
-  if (result instanceof Readable) {
-    resultStream = result;
-  } else {
-    resultStream = Readable.from([ result ]);
-  }
+  const resultStream = result instanceof Readable ? result : Readable.from([ result ]);
 
   const isAuthorizedServices = {
     client: services.client,

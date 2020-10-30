@@ -164,7 +164,7 @@ suite('command', (): void => {
             configuration: {
               ...commandConfiguration,
               commandDispatcherHostName: 'non-existent',
-              commandDispatcherPort: 12345
+              commandDispatcherPort: 12_345
             },
             configurationDefinition
           })
@@ -225,7 +225,7 @@ suite('command', (): void => {
             configuration: {
               ...commandConfiguration,
               commandDispatcherHostName: 'non-existent',
-              commandDispatcherPort: 12345
+              commandDispatcherPort: 12_345
             },
             configurationDefinition
           })

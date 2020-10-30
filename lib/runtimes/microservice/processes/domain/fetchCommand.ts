@@ -15,7 +15,7 @@ const fetchCommand = async function ({ commandDispatcher }: {
       item: CommandWithMetadata<CommandData>;
       metadata: LockMetadata;
     }> => await commandDispatcher.client.awaitItem(),
-    { retries: Number.POSITIVE_INFINITY, minTimeout: 10, maxTimeout: 1000 }
+    { retries: Number.POSITIVE_INFINITY, minTimeout: 10, maxTimeout: 1_000 }
   );
 
   return { command: item, metadata };

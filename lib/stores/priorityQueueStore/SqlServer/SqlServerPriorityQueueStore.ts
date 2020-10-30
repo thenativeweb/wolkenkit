@@ -440,7 +440,7 @@ class SqlServerPriorityQueueStore<TItem extends object, TItemIdentifier> impleme
       if (
         ex instanceof RequestError &&
         ex.code === 'EREQUEST' &&
-        ex.number === 2627 &&
+        ex.number === 2_627 &&
         ex.message.startsWith('Violation of PRIMARY KEY constraint')
       ) {
         return;

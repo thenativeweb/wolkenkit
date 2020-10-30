@@ -2,6 +2,10 @@
 
 /* global window */
 
+const toTime = function (timestamp) {
+  return timestamp.toLocaleTimeString('en-US');
+};
+
 const Chat = {
   setup () {
     const wolkenkit = new window.Wolkenkit();
@@ -19,11 +23,7 @@ const Chat = {
       state.error = { title, details };
       setTimeout(() => {
         state.error = null;
-      }, 5000);
-    };
-
-    const toTime = function (timestamp) {
-      return timestamp.toLocaleTimeString('en-US');
+      }, 5_000);
     };
 
     const sendMessage = async function () {

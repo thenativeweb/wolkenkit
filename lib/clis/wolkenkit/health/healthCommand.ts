@@ -35,7 +35,7 @@ const healthCommand = function (): Command<HealthOptions> {
         parameterName: 'port',
         type: 'number',
         isRequired: false,
-        defaultValue: 3001,
+        defaultValue: 3_001,
         validate: validatePort
       },
       {

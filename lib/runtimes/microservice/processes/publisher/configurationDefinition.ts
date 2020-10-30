@@ -16,12 +16,12 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   healthPort: {
     environmentVariable: 'HEALTH_PORT',
-    defaultValue: 3001,
+    defaultValue: 3_001,
     schema: portSchema
   },
   port: {
     environmentVariable: 'PORT',
-    defaultValue: 3000,
+    defaultValue: 3_000,
     schema: portSchema
   },
   publishCorsOrigin: {

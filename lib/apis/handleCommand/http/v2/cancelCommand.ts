@@ -105,13 +105,9 @@ const cancelCommand = {
 
         res.status(200).json(response);
       } catch (ex: unknown) {
-        let error: CustomError;
-
-        if (isCustomError(ex)) {
-          error = ex;
-        } else {
-          error = new errors.UnknownError(undefined, { cause: ex as Error });
-        }
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
 
         switch (error.code) {
           case errors.ItemNotFound.code: {

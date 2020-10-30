@@ -6,12 +6,12 @@ import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { isCustomError } from 'defekt';
 import { jsonSchema } from '../../../../common/utils/uuid';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import { CustomError, isCustomError } from 'defekt';
 
 const logger = flaschenpost.getLogger();
 
@@ -118,13 +118,9 @@ const postRemoveFile = {
 
         res.status(200).json(response);
       } catch (ex: unknown) {
-        let error: CustomError;
-
-        if (isCustomError(ex)) {
-          error = ex;
-        } else {
-          error = new errors.UnknownError(undefined, { cause: ex as Error });
-        }
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
 
         switch (error.code) {
           case errors.NotAuthenticated.code: {

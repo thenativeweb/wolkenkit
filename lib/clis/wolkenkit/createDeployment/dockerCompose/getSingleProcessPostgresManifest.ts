@@ -21,13 +21,13 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
   const services = {
     main: {
       hostName: 'main',
-      publicPort: 3000,
-      privatePort: 3000,
-      healthPort: 3001
+      publicPort: 3_000,
+      privatePort: 3_000,
+      healthPort: 3_001
     },
     postgres: {
       hostName: 'postgres',
-      privatePort: 5432,
+      privatePort: 5_432,
       userName: 'wolkenkit',
       password: 'please-replace-this',
       database: 'wolkenkit'
@@ -76,7 +76,7 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
             items: 'items-command',
             priorityQueue: 'priorityQueue-command'
           },
-          expirationTime: 30000
+          expirationTime: 30_000
         },
         priorityQueueStoreForDomainEventsOptions: DistributiveOmit<PriorityQueueStoreOptions<DomainEvent<DomainEventData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'> = {
           type: 'Postgres',
@@ -85,7 +85,7 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
             items: 'items-domain-event',
             priorityQueue: 'priorityQueue-domain-event'
           },
-          expirationTime: 30000
+          expirationTime: 30_000
         },
         snapshotStrategy = {
           name: 'lowest',

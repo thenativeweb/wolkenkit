@@ -7,12 +7,12 @@ import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { isCustomError } from 'defekt';
 import { jsonSchema } from '../../../../common/utils/uuid';
 import { pipeline as pipelineCallback } from 'stream';
 import { promisify } from 'util';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import { CustomError, isCustomError } from 'defekt';
 
 const pipeline = promisify(pipelineCallback);
 const logger = flaschenpost.getLogger();
@@ -74,13 +74,9 @@ const getFile = {
 
         await pipeline(stream, res);
       } catch (ex: unknown) {
-        let error: CustomError;
-
-        if (isCustomError(ex)) {
-          error = ex;
-        } else {
-          error = new errors.UnknownError(undefined, { cause: ex as Error });
-        }
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
 
         switch (error.code) {
           case errors.NotAuthenticated.code: {

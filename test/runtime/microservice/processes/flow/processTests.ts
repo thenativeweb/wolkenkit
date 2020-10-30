@@ -294,7 +294,7 @@ suite('flow server', function (): void {
       await aeonstoreClient.storeDomainEvents({ domainEvents: [ domainEvent ]});
       await handleDomainEventClient.postDomainEvent({ domainEvent });
 
-      await sleep({ ms: 1500 });
+      await sleep({ ms: 1_500 });
 
       const lock = await commandDispatcherClient.awaitItem();
 
@@ -336,7 +336,7 @@ suite('flow server', function (): void {
       await aeonstoreClient.storeDomainEvents({ domainEvents });
       await handleDomainEventClient.postDomainEvent({ domainEvent: domainEvents[2] });
 
-      await sleep({ ms: 1500 });
+      await sleep({ ms: 1_500 });
 
       let lock = await commandDispatcherClient.awaitItem();
 

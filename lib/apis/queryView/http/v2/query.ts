@@ -4,12 +4,12 @@ import { errors } from '../../../../common/errors';
 import { executeQueryHandler } from '../../../../common/domain/executeQueryHandler';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
+import { isCustomError } from 'defekt';
 import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandlerIdentifier';
 import { Schema } from '../../../../common/elements/Schema';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
-import { CustomError, isCustomError } from 'defekt';
 
 const logger = flaschenpost.getLogger();
 
@@ -40,13 +40,9 @@ const query = {
       try {
         validateQueryHandlerIdentifier({ application, queryHandlerIdentifier });
       } catch (ex: unknown) {
-        let error: CustomError;
-
-        if (isCustomError(ex)) {
-          error = ex;
-        } else {
-          error = new errors.UnknownError(undefined, { cause: ex as Error });
-        }
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
 
         res.status(400).json({
           code: error.code,
@@ -68,13 +64,9 @@ const query = {
           }
         });
       } catch (ex: unknown) {
-        let error: CustomError;
-
-        if (isCustomError(ex)) {
-          error = ex;
-        } else {
-          error = new errors.UnknownError(undefined, { cause: ex as Error });
-        }
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
 
         switch (error.code) {
           case errors.QueryOptionsInvalid.code: {

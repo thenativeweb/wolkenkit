@@ -18,7 +18,7 @@ const lockRedisCommand = function (): Command<LockRedisOptions> {
       {
         name: 'port',
         type: 'number',
-        defaultValue: 6379
+        defaultValue: 6_379
       },
       {
         name: 'password',

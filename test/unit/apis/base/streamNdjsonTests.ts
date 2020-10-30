@@ -11,7 +11,7 @@ suite('streamNdjson middleware', (): void => {
     app = express();
     app.use(streamNdjsonMiddleware);
     app.get('/', (req, res): void => {
-      res.startStream({ heartbeatInterval: 1000 });
+      res.startStream({ heartbeatInterval: 1_000 });
     });
   });
 

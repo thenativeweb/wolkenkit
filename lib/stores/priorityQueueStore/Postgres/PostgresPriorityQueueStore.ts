@@ -225,6 +225,7 @@ class PostgresPriorityQueueStore<TItem extends object, TItemIdentifier> implemen
       return;
     }
 
+    // eslint-disable-next-line unicorn/prefer-ternary
     if (leftChildQueuePriority <= rightChildQueuePriority) {
       await this.swapPositionsInPriorityQueue({
         connection,

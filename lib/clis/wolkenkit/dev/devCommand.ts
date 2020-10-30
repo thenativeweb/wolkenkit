@@ -24,7 +24,7 @@ const devCommand = function (): Command<DevOptions> {
         parameterName: 'port',
         type: 'number',
         isRequired: false,
-        defaultValue: 3000,
+        defaultValue: 3_000,
         validate: validatePort
       },
       {
@@ -34,7 +34,7 @@ const devCommand = function (): Command<DevOptions> {
         parameterName: 'port',
         type: 'number',
         isRequired: false,
-        defaultValue: 3001,
+        defaultValue: 3_001,
         validate: validatePort
       },
       {

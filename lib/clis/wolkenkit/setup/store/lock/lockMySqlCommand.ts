@@ -18,7 +18,7 @@ const lockMySqlCommand = function (): Command<LockMySqlOptions> {
       {
         name: 'port',
         type: 'number',
-        defaultValue: 3363
+        defaultValue: 3_363
       },
       {
         name: 'user-name',

@@ -15,7 +15,7 @@ const fetchDomainEvent = async function ({ domainEventDispatcher }: {
       item: DomainEvent<DomainEventData>;
       metadata: LockMetadata;
     }> => await domainEventDispatcher.client.awaitItem(),
-    { retries: Number.POSITIVE_INFINITY, minTimeout: 10, maxTimeout: 1000 }
+    { retries: Number.POSITIVE_INFINITY, minTimeout: 10, maxTimeout: 1_000 }
   );
 
   return { domainEvent: item, metadata };

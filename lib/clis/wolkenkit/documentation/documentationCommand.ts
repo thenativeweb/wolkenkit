@@ -23,7 +23,7 @@ const documentationCommand = function (): Command<DocumentationOptions> {
         parameterName: 'port',
         type: 'number',
         isRequired: false,
-        defaultValue: 4000,
+        defaultValue: 4_000,
         validate: validatePort
       }
     ],
