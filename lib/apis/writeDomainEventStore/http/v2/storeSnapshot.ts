@@ -1,9 +1,11 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
 import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
+import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { CustomError, isCustomError } from 'defekt';
 
 const storeSnapshot = {
   description: 'Stores a snapshot.',
@@ -15,7 +17,7 @@ const storeSnapshot = {
   response: {
     statusCodes: [ 200, 400, 415 ],
 
-    body: { type: 'object' }
+    body: { type: 'object' } as Schema
   },
 
   getHandler ({
@@ -53,8 +55,8 @@ const storeSnapshot = {
 
       try {
         requestBodySchema.validate(snapshot, { valueName: 'requestBody' });
-      } catch (ex) {
-        const error = new errors.SnapshotMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.SnapshotMalformed((ex as Error).message);
 
         return res.status(400).json({
           code: error.code,
@@ -70,10 +72,18 @@ const storeSnapshot = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex) {
+      } catch (ex: unknown) {
+        let error: CustomError;
+
+        if (isCustomError(ex)) {
+          error = ex;
+        } else {
+          error = new errors.UnknownError(undefined, { cause: ex as Error });
+        }
+
         return res.status(400).json({
-          code: ex.code ?? errors.UnknownError.code,
-          message: ex.message
+          code: error.code,
+          message: error.message
         });
       }
     };

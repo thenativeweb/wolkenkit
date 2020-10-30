@@ -6,8 +6,8 @@ import { waitForSignals } from 'wait-for-signals';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createPublisher, createSubscriber }: {
-  createPublisher<T extends object> (): Promise<Publisher<T>>;
-  createSubscriber<T extends object> (): Promise<Subscriber<T>>;
+  createPublisher: <T extends object> () => Promise<Publisher<T>>;
+  createSubscriber: <T extends object> () => Promise<Subscriber<T>>;
 }): void {
   let publisher: Publisher<{ data: any }>,
       subscriber: Subscriber<{ data: any }>;

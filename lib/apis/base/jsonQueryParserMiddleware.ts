@@ -5,7 +5,7 @@ const jsonQueryParserMiddleware: RequestHandler = function (req, res, next): voi
   const url = parse(req.originalUrl);
   const queryString = url.query;
 
-  const parsedQuery: { [key: string]: any } = {};
+  const parsedQuery: Record<string, any> = {};
 
   if (queryString !== null) {
     const queryParts = queryString.split('&');

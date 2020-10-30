@@ -1,10 +1,12 @@
 import { Application } from '../../../../common/application/Application';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
+import { CustomError } from 'defekt';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
 import { jsonSchema } from '../../../../common/utils/uuid';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
+import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { validateCommandWithMetadata } from '../../../../common/validators/validateCommandWithMetadata';
 import { Value } from 'validate-value';
@@ -29,7 +31,7 @@ const postCommand = {
       },
       required: [ 'id' ],
       additionalProperties: false
-    }
+    } as Schema
   },
 
   getHandler ({ onReceiveCommand, application }: {
@@ -59,8 +61,8 @@ const postCommand = {
 
       try {
         requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex) {
-        const error = new errors.CommandMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.CommandMalformed((ex as Error).message);
 
         res.status(400).json({
           code: error.code,
@@ -74,10 +76,10 @@ const postCommand = {
 
       try {
         validateCommandWithMetadata({ command, application });
-      } catch (ex) {
+      } catch (ex: unknown) {
         res.status(400).json({
-          code: ex.code,
-          message: ex.message
+          code: (ex as CustomError).code,
+          message: (ex as CustomError).message
         });
 
         return;
@@ -93,7 +95,7 @@ const postCommand = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex) {
+      } catch (ex: unknown) {
         logger.error('An unknown error occured.', { ex });
 
         const error = new errors.UnknownError();

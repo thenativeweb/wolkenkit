@@ -452,7 +452,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -539,7 +539,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -637,7 +637,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -902,7 +902,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -945,7 +945,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -989,7 +989,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -1033,7 +1033,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });

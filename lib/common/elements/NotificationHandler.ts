@@ -8,15 +8,15 @@ export interface NotificationHandler<
   TNotificationDefinition extends NotificationDefinition,
   TInfrastructure extends AskInfrastructure
 > {
-  getDocumentation? (): string;
+  getDocumentation?: () => string;
 
-  getDataSchema? (): Schema;
+  getDataSchema?: () => Schema;
 
-  getMetadataSchema? (): Schema;
+  getMetadataSchema?: () => Schema;
 
-  isAuthorized (data: TNotificationDefinition['data'], metadata: TNotificationDefinition['metadata'], services: {
+  isAuthorized: (data: TNotificationDefinition['data'], metadata: TNotificationDefinition['metadata'], services: {
     client: ClientService;
     infrastructure: Pick<TInfrastructure, 'ask'>;
     logger: LoggerService;
-  }): boolean | Promise<boolean>;
+  }) => boolean | Promise<boolean>;
 }

@@ -17,7 +17,7 @@ import { mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../s
       redis.stop(),
       sqlServer.stop()
     ]);
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);
   }

@@ -4,7 +4,7 @@ import { Handlers } from 'command-line-interface';
 const getHandlers = function (): Partial<Handlers> {
   return {
     commandFailed ({ ex }): void {
-      if (ex.stack) {
+      if (ex instanceof Error && ex.stack) {
         buntstift.verbose(ex.stack, { isVerboseModeEnabled: true });
       }
     },

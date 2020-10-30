@@ -1,4 +1,5 @@
 import untildify from 'untildify';
+// eslint-disable-next-line unicorn/import-style
 import { isAbsolute, join } from 'path';
 
 const getAbsolutePath = function ({ path, cwd }: {

@@ -83,7 +83,7 @@ const consumerProgressSqlServerCommand = function (): Command<ConsumerProgressSq
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the SQL Server consumer progress store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the SQL Server consumer progress store.');
 
         throw ex;

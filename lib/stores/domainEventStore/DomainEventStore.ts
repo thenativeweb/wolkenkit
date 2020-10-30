@@ -11,14 +11,17 @@ export interface DomainEventStore {
     aggregateIdentifier: AggregateIdentifier;
   }) => Promise<DomainEvent<TDomainEventData> | undefined>;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getDomainEventsByCausationId: <TDomainEventData extends DomainEventData> ({ causationId }: {
     causationId: string;
   }) => Promise<Readable>;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hasDomainEventsWithCausationId: <TDomainEventData extends DomainEventData> ({ causationId }: {
     causationId: string;
   }) => Promise<boolean>;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getDomainEventsByCorrelationId: <TDomainEventData extends DomainEventData> ({ correlationId }: {
     correlationId: string;
   }) => Promise<Readable>;

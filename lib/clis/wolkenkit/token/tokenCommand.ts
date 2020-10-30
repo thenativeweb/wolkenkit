@@ -89,7 +89,7 @@ const tokenCommand = function (): Command<TokenOptions> {
 
         try {
           privateKey = await fs.promises.readFile(privateKeyAbsolutePath);
-        } catch (ex) {
+        } catch {
           buntstift.info(`Private key file '${privateKeyAbsolutePath}' not found.`);
           throw new errors.FileNotFound();
         }
@@ -101,14 +101,14 @@ const tokenCommand = function (): Command<TokenOptions> {
 
         try {
           claims = await fs.promises.readFile(claimsAbsolutePath, { encoding: 'utf8' });
-        } catch (ex) {
+        } catch {
           buntstift.info(`Claims file '${claimsAbsolutePath}' not found.`);
           throw new errors.FileNotFound();
         }
 
         try {
           claims = JSON.parse(claims);
-        } catch (ex) {
+        } catch {
           buntstift.info('Claims malformed.');
           throw new errors.ClaimsMalformed();
         }
@@ -117,7 +117,7 @@ const tokenCommand = function (): Command<TokenOptions> {
 
         try {
           value.validate(claims, { valueName: 'jwt' });
-        } catch (ex) {
+        } catch (ex: unknown) {
           buntstift.info('Claims malformed.');
           throw ex;
         }
@@ -146,7 +146,7 @@ const tokenCommand = function (): Command<TokenOptions> {
           // eslint-disable-next-line no-console
           console.log(token);
         }
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to issue a token.');
 
         throw ex;

@@ -76,7 +76,7 @@ class PostgresLockStore implements LockStore {
     await new Promise((resolve, reject): void => {
       try {
         disconnectWatcher.connect(resolve);
-      } catch (ex) {
+      } catch (ex: unknown) {
         reject(ex);
       }
     });

@@ -83,7 +83,7 @@ const consumerProgressPostgresCommand = function (): Command<ConsumerProgressPos
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the PostgreSQL consumer progress store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the PostgreSQL consumer progress store.');
 
         throw ex;

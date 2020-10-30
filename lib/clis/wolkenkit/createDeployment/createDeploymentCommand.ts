@@ -60,7 +60,7 @@ const createDeploymentCommand = function (): Command<CreateDeploymentOptions> {
         buntstift.info('Creating deployment manifests...');
         await createDeploymentManifests({ directory: targetDirectory, name: applicationName });
         buntstift.success('Created deployment manifests.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to create deployment manifests.');
 
         throw ex;

@@ -9,7 +9,7 @@ const getPromiseStatus = async function (promise: Promise<any>): Promise<'resolv
     }
 
     return 'resolved';
-  } catch (ex) {
+  } catch {
     return 'rejected';
   }
 };

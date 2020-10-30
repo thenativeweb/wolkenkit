@@ -151,6 +151,7 @@ const devCommand = function (): Command<DevOptions> {
               },
               configurationDefinition
             }),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             LOG_LEVEL: 'debug',
 
             // Here, we don't want the environment variables to be parsed, but
@@ -164,7 +165,7 @@ const devCommand = function (): Command<DevOptions> {
             process.exit(exitCode);
           }
         });
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to run the application.');
 
         throw ex;

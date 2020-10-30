@@ -11,7 +11,7 @@ suite('jsonQueryParserMiddleware', (): void => {
     await new Promise((resolve, reject): void => {
       try {
         jsonQueryParserMiddleware(request, {} as Response, resolve);
-      } catch (ex) {
+      } catch (ex: unknown) {
         reject(ex);
       }
     });
@@ -27,7 +27,7 @@ suite('jsonQueryParserMiddleware', (): void => {
     await new Promise((resolve, reject): void => {
       try {
         jsonQueryParserMiddleware(request, {} as Response, resolve);
-      } catch (ex) {
+      } catch (ex: unknown) {
         reject(ex);
       }
     });
@@ -49,7 +49,7 @@ suite('jsonQueryParserMiddleware', (): void => {
     await new Promise((resolve, reject): void => {
       try {
         jsonQueryParserMiddleware(request, {} as Response, resolve);
-      } catch (ex) {
+      } catch (ex: unknown) {
         reject(ex);
       }
     });

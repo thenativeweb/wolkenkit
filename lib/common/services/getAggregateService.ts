@@ -32,6 +32,7 @@ const getAggregateService: GetAggregateService = function <TState extends State>
     publishDomainEvent <TDomainEventData extends DomainEventData> (
       domainEventName: string,
       data: TDomainEventData,
+      // eslint-disable-next-line unicorn/no-object-as-default-parameter
       metadata: { tags: string[] } = { tags: []}
     ): TState {
       const contextName = aggregateInstance.contextIdentifier.name;

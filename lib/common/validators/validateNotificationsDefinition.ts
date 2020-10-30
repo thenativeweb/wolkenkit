@@ -9,11 +9,11 @@ const validateNotificationsDefinition = function ({ notificationsDefinition }: {
     throw new errors.NotificationsDefinitionMalformed('Notifications definition is not an object.');
   }
 
-  for (const [ notificationHandlerName, notificationHandler ] of Object.entries(notificationsDefinition as object)) {
+  for (const [ notificationHandlerName, notificationHandler ] of Object.entries(notificationsDefinition)) {
     try {
       validateNotificationHandler({ notificationHandler });
-    } catch (ex) {
-      throw new errors.NotificationsDefinitionMalformed(`Notification handler '${notificationHandlerName}' is malformed: ${ex.message}`);
+    } catch (ex: unknown) {
+      throw new errors.NotificationsDefinitionMalformed(`Notification handler '${notificationHandlerName}' is malformed: ${(ex as Error).message}`);
     }
   }
 };

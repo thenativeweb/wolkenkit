@@ -408,7 +408,7 @@ suite('flow server', function (): void {
                   data: {}
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             }

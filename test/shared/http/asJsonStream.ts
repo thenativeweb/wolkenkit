@@ -6,7 +6,7 @@ const asJsonStream = function <TItem> (handleJson: ((item: TItem) => void)[], ob
   return new Writable({
     objectMode,
 
-    write (chunk: object, _, callback: (error?: any) => void): void {
+    write (chunk: object, encoding, callback: (error?: any) => void): void {
       let data;
 
       if (objectMode) {

@@ -435,7 +435,7 @@ suite('AggregateInstance', (): void => {
                     data: {}
                   });
                   resolve();
-                } catch (ex) {
+                } catch (ex: unknown) {
                   reject(ex);
                 }
               },
@@ -452,7 +452,7 @@ suite('AggregateInstance', (): void => {
                     }
                   });
                   resolve();
-                } catch (ex) {
+                } catch (ex: unknown) {
                   reject(ex);
                 }
               },

@@ -45,7 +45,7 @@ const getNotifications = {
         const handleNotification = (notification: Notification): void => {
           try {
             validateNotification({ notification, application });
-          } catch (ex) {
+          } catch {
             logger.warn('Dropping invalid notification.', { notification });
 
             return;
@@ -76,20 +76,20 @@ const getNotifications = {
           /* eslint-enable @typescript-eslint/no-floating-promises */
         };
 
-        res.connection.once('close', async (): Promise<void> => {
+        res.socket?.once('close', async (): Promise<void> => {
           await subscriber.unsubscribe({ channel: channelForNotifications, callback: handleNotification });
           notificationQueue.clear();
         });
 
         await subscriber.subscribe({ channel: channelForNotifications, callback: handleNotification });
-      } catch (ex) {
+      } catch (ex: unknown) {
         // It can happen that the connection gets closed in the background, and
         // hence the underlying socket does not have a remote address any more. We
         // can't detect this using an if statement, because connection handling is
         // done by Node.js in a background thread, and we may have a race
         // condition here. So, we decided to actively catch this exception, and
         // take it as an indicator that the connection has been closed meanwhile.
-        if (ex.notification === 'Remote address is missing.') {
+        if (ex instanceof Error && ex.message === 'Remote address is missing.') {
           return;
         }
 

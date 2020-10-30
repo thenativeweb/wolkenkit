@@ -1,6 +1,7 @@
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { OnReceiveMessage } from '../../OnReceiveMessage';
+import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -20,11 +21,11 @@ const postMessage = {
       },
       required: [ 'channel', 'message' ],
       additionalProperties: false
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 415 ],
-    body: { type: 'object' }
+    body: { type: 'object' } as Schema
   },
 
   getHandler ({ onReceiveMessage }: {
@@ -55,8 +56,8 @@ const postMessage = {
 
       try {
         requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.RequestMalformed((ex as Error).message);
 
         res.status(400).json({
           code: error.code,

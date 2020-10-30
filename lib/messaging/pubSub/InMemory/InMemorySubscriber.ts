@@ -11,7 +11,7 @@ class InMemorySubscriber<T extends object> implements Subscriber<T> {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static async create<T extends object> (options: InMemorySubscriberOptions): Promise<InMemorySubscriber<T>> {
+  public static async create<TCreate extends object> (options: InMemorySubscriberOptions): Promise<InMemorySubscriber<TCreate>> {
     return new InMemorySubscriber({ eventEmitter: inMemoryEventEmitter });
   }
 

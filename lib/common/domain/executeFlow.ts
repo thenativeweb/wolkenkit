@@ -101,7 +101,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     })) {
       try {
         await handler.handle(domainEvent, services);
-      } catch (ex) {
+      } catch (ex: unknown) {
         logger.error(`The flow handler '${flowName}.${handlerName}' threw an error.`, { ex });
 
         throw ex;

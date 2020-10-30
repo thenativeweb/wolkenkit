@@ -13,8 +13,8 @@ import { runCli } from 'command-line-interface';
       argv: process.argv,
       handlers: getHandlers()
     });
-  } catch (ex) {
-    buntstift.info(ex.message);
+  } catch (ex: unknown) {
+    buntstift.info((ex as Error).message);
     buntstift.error('An unexpected error occured.');
 
     process.exit(1);

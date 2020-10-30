@@ -15,7 +15,7 @@ import shell from 'shelljs';
     if (code !== 0) {
       throw new errors.CompilationFailed('Failed to build wolkenkit.', { data: { stdout, stderr }});
     }
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);
   }

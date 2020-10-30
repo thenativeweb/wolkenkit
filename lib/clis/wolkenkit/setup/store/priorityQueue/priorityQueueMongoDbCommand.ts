@@ -52,7 +52,7 @@ const priorityQueueMongoDbCommand = function (): Command<PriorityQueueMongoDbOpt
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the MongoDB priority queue store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the MongoDB priority queue store.');
 
         throw ex;

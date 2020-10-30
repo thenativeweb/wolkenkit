@@ -12,6 +12,7 @@ import { pipeline as pipelineCallback } from 'stream';
 import { promisify } from 'util';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { CustomError, isCustomError } from 'defekt';
 
 const pipeline = promisify(pipelineCallback);
 const logger = flaschenpost.getLogger();
@@ -35,8 +36,8 @@ const getFile = {
 
       try {
         new Value(jsonSchema).validate(id, { valueName: 'uuid' });
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.RequestMalformed((ex as Error).message);
 
         res.status(400).json({ code: error.code, message: error.message });
 
@@ -72,20 +73,26 @@ const getFile = {
         res.set('content-disposition', `inline; filename=${fileMetadata.name}`);
 
         await pipeline(stream, res);
-      } catch (ex) {
-        switch (ex.code) {
+      } catch (ex: unknown) {
+        let error: CustomError;
+
+        if (isCustomError(ex)) {
+          error = ex;
+        } else {
+          error = new errors.UnknownError(undefined, { cause: ex as Error });
+        }
+
+        switch (error.code) {
           case errors.NotAuthenticated.code: {
-            res.status(401).json({ code: ex.code, message: ex.message });
+            res.status(401).json({ code: error.code, message: error.message });
             break;
           }
           case errors.FileNotFound.code: {
-            res.status(404).json({ code: ex.code, message: ex.message });
+            res.status(404).json({ code: error.code, message: error.message });
             break;
           }
           default: {
-            logger.error('An unknown error occured.', { ex });
-
-            const error = new errors.UnknownError(ex.message);
+            logger.error('An unknown error occured.', { ex: error });
 
             res.status(500).json({ code: error.code, message: error.message });
           }
@@ -105,7 +112,7 @@ const getFile = {
             })
           });
         }
-      } catch (ex) {
+      } catch (ex: unknown) {
         logger.error('An unknown error occured.', { ex });
       }
     };

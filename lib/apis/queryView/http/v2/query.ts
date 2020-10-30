@@ -9,6 +9,7 @@ import { Schema } from '../../../../common/elements/Schema';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
+import { CustomError, isCustomError } from 'defekt';
 
 const logger = flaschenpost.getLogger();
 
@@ -38,10 +39,18 @@ const query = {
 
       try {
         validateQueryHandlerIdentifier({ application, queryHandlerIdentifier });
-      } catch (ex) {
+      } catch (ex: unknown) {
+        let error: CustomError;
+
+        if (isCustomError(ex)) {
+          error = ex;
+        } else {
+          error = new errors.UnknownError(undefined, { cause: ex as Error });
+        }
+
         res.status(400).json({
-          code: ex.code,
-          message: ex.message
+          code: error.code,
+          message: error.message
         });
 
         return;
@@ -58,20 +67,28 @@ const query = {
             client: getClientService({ clientMetadata: new ClientMetadata({ req }) })
           }
         });
-      } catch (ex) {
-        switch (ex.code) {
+      } catch (ex: unknown) {
+        let error: CustomError;
+
+        if (isCustomError(ex)) {
+          error = ex;
+        } else {
+          error = new errors.UnknownError(undefined, { cause: ex as Error });
+        }
+
+        switch (error.code) {
           case errors.QueryOptionsInvalid.code: {
             res.status(400).json({
-              code: ex.code,
-              message: ex.message
+              code: error.code,
+              message: error.message
             });
             break;
           }
           case errors.QueryResultInvalid.code: {
-            logger.error('An invalid query result was caught.', { ex });
+            logger.error('An invalid query result was caught.', { ex: error });
 
             res.status(500).json({
-              code: ex.code
+              code: error.code
             });
             break;
           }
@@ -79,7 +96,7 @@ const query = {
             logger.error('An unknown error occured.', { ex });
 
             res.status(500).json({
-              code: ex.code ?? errors.UnknownError.code
+              code: error.code
             });
           }
         }

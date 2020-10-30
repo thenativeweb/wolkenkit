@@ -87,7 +87,7 @@ const priorityQueueMySqlCommand = function (): Command<PriorityQueueMySqlOptions
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the MySQL priority queue store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the MySQL priority queue store.');
 
         throw ex;

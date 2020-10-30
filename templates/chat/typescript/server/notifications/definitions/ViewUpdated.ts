@@ -1,6 +1,6 @@
 import { NotificationDefinition } from 'wolkenkit';
 
 export interface ViewUpdated extends NotificationDefinition {
-  data: {};
-  metadata: {};
+  data: object;
+  metadata: object;
 }

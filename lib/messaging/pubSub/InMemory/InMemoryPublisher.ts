@@ -11,7 +11,7 @@ class InMemoryPublisher<T extends object> implements Publisher<T> {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static async create<T extends object> (options: InMemoryPublisherOptions): Promise<InMemoryPublisher<T>> {
+  public static async create<TMessage extends object> (options: InMemoryPublisherOptions): Promise<InMemoryPublisher<TMessage>> {
     return new InMemoryPublisher({ eventEmitter: inMemoryEventEmitter });
   }
 

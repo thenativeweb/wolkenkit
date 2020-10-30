@@ -77,7 +77,7 @@ const consumerProgressMySqlCommand = function (): Command<ConsumerProgressMySqlO
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the MySQL consumer progress store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the MySQL consumer progress store.');
 
         throw ex;

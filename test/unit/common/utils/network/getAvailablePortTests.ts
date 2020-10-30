@@ -5,7 +5,7 @@ import { sleep } from '../../../../../lib/common/utils/sleep';
 
 suite('getAvailablePort', (): void => {
   test('returns an available port.', async (): Promise<void> => {
-    const server = http.createServer((_req, res): void => {
+    const server = http.createServer((req, res): void => {
       res.end();
     });
 
@@ -29,7 +29,7 @@ suite('getAvailablePort', (): void => {
   });
 
   test('returns an available port that is not in use.', async (): Promise<void> => {
-    const server = http.createServer((_req, res): void => {
+    const server = http.createServer((req, res): void => {
       res.end();
     });
 

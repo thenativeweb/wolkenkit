@@ -42,7 +42,7 @@ const infrastructureCommand = function (): Command<InfrastructureOptions> {
           })
         });
         buntstift.success(`Successfully set up the infrastructure for the '${packageManifest.name}' application...`);
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the infrastructure.');
 
         throw ex;

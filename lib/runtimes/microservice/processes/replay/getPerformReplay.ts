@@ -34,11 +34,11 @@ const getPerformReplay = function ({
       }
 
       logger.info('Replay performed.', { flowNames, aggregates });
-    } catch (ex) {
+    } catch (ex: unknown) {
       logger.error('Failed to perform replay.', { flowNames, aggregates, ex });
 
       throw new errors.ReplayFailed('Failed to perform replay.', {
-        cause: ex,
+        cause: ex as Error,
         data: { flowNames, aggregates }
       });
     }

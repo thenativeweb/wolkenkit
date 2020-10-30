@@ -40,7 +40,7 @@ class Client extends HttpClient {
   public async query ({ viewName, queryName, queryOptions = {}}: {
     viewName: string;
     queryName: string;
-    queryOptions?: object;
+    queryOptions?: Record<string, unknown>;
   }): Promise<PassThrough> {
     const { data, status } = await axios({
       method: 'get',

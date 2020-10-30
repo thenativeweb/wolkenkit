@@ -39,20 +39,20 @@ const getMessages = {
           /* eslint-enable @typescript-eslint/no-floating-promises */
         };
 
-        res.connection.once('close', (): void => {
+        res.socket?.once('close', (): void => {
           messageEmitter.off(channel, handleMessage);
           messageQueue.clear();
         });
 
         messageEmitter.on(channel, handleMessage);
-      } catch (ex) {
+      } catch (ex: unknown) {
         // It can happen that the connection gets closed in the background, and
         // hence the underlying socket does not have a remote address any more. We
         // can't detect this using an if statement, because connection handling is
         // done by Node.js in a background thread, and we may have a race
         // condition here. So, we decided to actively catch this exception, and
         // take it as an indicator that the connection has been closed meanwhile.
-        if (ex.message === 'Remote address is missing.') {
+        if (ex instanceof Error && ex.message === 'Remote address is missing.') {
           return;
         }
 

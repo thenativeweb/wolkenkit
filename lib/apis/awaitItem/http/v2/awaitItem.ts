@@ -3,6 +3,7 @@ import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { jsonSchema } from '../../../../common/utils/uuid';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Response } from 'express';
+import { Schema } from '../../../../common/elements/Schema';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -35,10 +36,10 @@ const awaitItem = {
       },
       required: [ 'item', 'metadata' ],
       additionalProperties: false
-    }
+    } as Schema
   },
 
-  getHandler <TItem>({
+  getHandler <TItem extends object>({
     priorityQueueStore,
     newItemSubscriber,
     newItemSubscriberChannel,
@@ -75,7 +76,7 @@ const awaitItem = {
       return false;
     };
 
-    return async function (_req, res): Promise<void> {
+    return async function (req, res): Promise<void> {
       res.startStream({ heartbeatInterval });
 
       const instantSuccess = await maybeHandleLock({ res });
@@ -94,7 +95,7 @@ const awaitItem = {
               callback
             });
           }
-        } catch (ex) {
+        } catch (ex: unknown) {
           logger.error('An unexpected error occured when locking an item.', { ex });
         }
       };

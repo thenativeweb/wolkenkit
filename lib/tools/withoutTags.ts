@@ -22,9 +22,7 @@ const withoutTags: AggregateEnhancer = function (aggregate: Aggregate): Aggregat
         aggregates: AggregatesService;
         client: ClientService;
         logger: LoggerService;
-        infrastructure: {
-          ask: AskInfrastructure;
-        };
+        infrastructure: AskInfrastructure;
       }): Promise<DomainEventWithState<DomainEventData, State>> {
         let mappedDomainEvent = domainEvent;
 

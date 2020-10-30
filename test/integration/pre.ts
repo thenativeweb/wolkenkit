@@ -17,7 +17,7 @@ import { mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../s
     if (code !== 0) {
       throw new errors.CompilationFailed('Failed to build wolkenkit.', { data: { stdout, stderr }});
     }
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);
   }
@@ -34,7 +34,7 @@ import { mariaDb, minio, mongoDb, mySql, postgres, redis, sqlServer } from '../s
       redis.start(),
       sqlServer.start()
     ]);
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);
   }

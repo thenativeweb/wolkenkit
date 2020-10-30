@@ -14,10 +14,10 @@ import { waitForSignals } from 'wait-for-signals';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createPriorityQueueStore }: {
-  createPriorityQueueStore ({ suffix, expirationTime }: {
+  createPriorityQueueStore: ({ suffix, expirationTime }: {
     suffix: string;
     expirationTime: number;
-  }): Promise<PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>>;
+  }) => Promise<PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>>;
 }): void {
   const expirationTime = 250;
 
@@ -835,7 +835,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
       const counter = waitForSignals({ count: parallelism });
 
       for (let i = 0; i < parallelism; i++) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises,no-loop-func
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises, @typescript-eslint/no-loop-func
         pForever(async (): Promise<any> => {
           try {
             const nextLock = await priorityQueueStore.lockNext();
@@ -852,7 +852,7 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
               discriminator: nextLock.metadata.discriminator,
               token: nextLock.metadata.token
             });
-          } catch (ex) {
+          } catch (ex: unknown) {
             await counter.fail(ex);
           }
         });
@@ -864,4 +864,5 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
 };
 /* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 
+// eslint-disable-next-line mocha/no-exports
 export { getTestsFor };

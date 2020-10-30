@@ -35,8 +35,8 @@ const executeQueryHandler = async function ({
 
   try {
     optionsSchema.validate(options, { valueName: 'queryHandlerOptions' });
-  } catch (ex) {
-    throw new errors.QueryOptionsInvalid(ex.message);
+  } catch (ex: unknown) {
+    throw new errors.QueryOptionsInvalid((ex as Error).message);
   }
 
   const loggerService = services.logger ?? getLoggerService({
@@ -71,8 +71,8 @@ const executeQueryHandler = async function ({
 
       try {
         resultItemSchema.validate(resultItem, { valueName: 'resultItem' });
-      } catch (ex) {
-        const error = new errors.QueryResultInvalid(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.QueryResultInvalid((ex as Error).message);
 
         return callback(error);
       }

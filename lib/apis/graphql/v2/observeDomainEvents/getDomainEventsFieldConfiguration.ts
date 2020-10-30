@@ -26,7 +26,7 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
 }): GraphQLFieldConfig<any, ResolverContext> {
   const aggregatesService = getAggregatesService({ repository });
   const domainEventSchema: Schema = getDomainEventSchemaForGraphql();
-  const domainEventGraphQL = getGraphqlFromJsonSchema({
+  const domainEventGraphQl = getGraphqlFromJsonSchema({
     schema: domainEventSchema,
     rootName: 'DomainEvent',
     direction: 'output'
@@ -53,7 +53,7 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
   }
 
   return {
-    type: buildSchema(domainEventGraphQL.typeDefinitions.join('\n')).getType(domainEventGraphQL.typeName) as GraphQLObjectType,
+    type: buildSchema(domainEventGraphQl.typeDefinitions.join('\n')).getType(domainEventGraphQl.typeName) as GraphQLObjectType,
     args: {
       filter: {
         type: GraphQLString
@@ -61,7 +61,7 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
     },
     description,
     async * subscribe (
-      _source,
+      innerSource,
       { filter: jsonFilter },
       { clientMetadata }: ResolverContext
     ): AsyncIterator<DomainEventWithState<DomainEventData, State>> {

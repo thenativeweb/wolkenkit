@@ -2,8 +2,10 @@ import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEven
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { jsonSchema } from '../../../../common/utils/uuid';
+import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { CustomError, isCustomError } from 'defekt';
 
 const logger = flaschenpost.getLogger();
 
@@ -19,7 +21,7 @@ const hasDomainEventsWithCausationId = {
       },
       required: [ 'causation-id' ],
       additionalProperties: false
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200 ],
@@ -31,7 +33,7 @@ const hasDomainEventsWithCausationId = {
       },
       required: [ 'hasDomainEventsWithCausationId' ],
       additionalProperties: false
-    }
+    } as Schema
   },
 
   getHandler ({
@@ -49,7 +51,7 @@ const hasDomainEventsWithCausationId = {
         querySchema.validate(req.query, { valueName: 'requestQuery' });
 
         causationId = req.query['causation-id'] as string;
-      } catch (ex) {
+      } catch {
         res.status(400).end();
 
         return;
@@ -62,12 +64,20 @@ const hasDomainEventsWithCausationId = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.json(response);
-      } catch (ex) {
-        logger.error('An unknown error occured.', { ex });
+      } catch (ex: unknown) {
+        let error: CustomError;
+
+        if (isCustomError(ex)) {
+          error = ex;
+        } else {
+          error = new errors.UnknownError(undefined, { cause: ex as Error });
+        }
+
+        logger.error('An unknown error occured.', { ex: error });
 
         return res.status(400).json({
-          code: ex.code ?? errors.UnknownError.code,
-          message: ex.message
+          code: error.code,
+          message: error.message
         });
       }
     };

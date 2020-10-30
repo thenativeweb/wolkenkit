@@ -30,18 +30,18 @@ const validateDomainEventWithState = function <TDomainEventData extends DomainEv
     throw new errors.DomainEventNotFound(`Domain event '${contextName}.${aggregateName}.${domainEventName}' not found.`);
   }
 
-  const { getSchema } = contextDefinitions[contextName][aggregateName].domainEventHandlers[domainEventName];
+  const domainEventHandler = contextDefinitions[contextName][aggregateName].domainEventHandlers[domainEventName];
 
-  if (!getSchema) {
+  if (!domainEventHandler.getSchema) {
     return;
   }
 
-  const schemaData = new Value(getSchema());
+  const schemaData = new Value(domainEventHandler.getSchema());
 
   try {
     schemaData.validate(domainEventData, { valueName: 'domainEvent.data' });
-  } catch (ex) {
-    throw new errors.DomainEventMalformed(ex.message, { cause: ex });
+  } catch (ex: unknown) {
+    throw new errors.DomainEventMalformed((ex as Error).message, { cause: ex as Error });
   }
 };
 

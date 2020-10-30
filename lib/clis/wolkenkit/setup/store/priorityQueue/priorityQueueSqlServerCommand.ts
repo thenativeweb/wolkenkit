@@ -93,7 +93,7 @@ const priorityQueueSqlServerCommand = function (): Command<PriorityQueueSqlServe
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the SQL Server priority queue store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the SQL Server priority queue store.');
 
         throw ex;

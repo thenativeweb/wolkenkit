@@ -46,7 +46,7 @@ const fileFileSystemCommand = function (): Command<FileFileSystemOptions> {
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the file-system file store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the file-system file store.');
 
         throw ex;

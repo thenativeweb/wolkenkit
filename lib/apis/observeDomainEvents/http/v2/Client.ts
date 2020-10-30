@@ -38,7 +38,7 @@ class Client extends HttpClient {
   }
 
   public async getDomainEvents ({ filter = {}}: {
-    filter?: object;
+    filter?: Record<string, unknown>;
   }): Promise<PassThrough> {
     const { data, status } = await axios({
       method: 'get',

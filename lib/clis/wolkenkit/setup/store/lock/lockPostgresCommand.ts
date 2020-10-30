@@ -83,7 +83,7 @@ const lockPostgresCommand = function (): Command<LockPostgresOptions> {
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the PostgreSQL lock store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the PostgreSQL lock store.');
 
         throw ex;

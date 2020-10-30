@@ -286,7 +286,7 @@ suite('domain', function (): void {
                   }
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
@@ -348,7 +348,7 @@ suite('domain', function (): void {
                   data: {}
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
@@ -365,7 +365,7 @@ suite('domain', function (): void {
                   }
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
@@ -441,7 +441,7 @@ suite('domain', function (): void {
                   data: {}
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
@@ -458,7 +458,7 @@ suite('domain', function (): void {
                   }
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
@@ -526,7 +526,7 @@ suite('domain', function (): void {
                   data: {}
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
@@ -543,7 +543,7 @@ suite('domain', function (): void {
                   }
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
@@ -558,7 +558,7 @@ suite('domain', function (): void {
                   data: {}
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
@@ -575,7 +575,7 @@ suite('domain', function (): void {
                   }
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
@@ -627,7 +627,7 @@ suite('domain', function (): void {
                   data: {}
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             }

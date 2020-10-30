@@ -21,7 +21,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static async create (_options: InMemoryDomainEventStoreOptions): Promise<InMemoryDomainEventStore> {
+  public static async create (options: InMemoryDomainEventStoreOptions): Promise<InMemoryDomainEventStore> {
     return new InMemoryDomainEventStore();
   }
 

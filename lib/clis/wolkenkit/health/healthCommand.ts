@@ -78,7 +78,7 @@ const healthCommand = function (): Command<HealthOptions> {
 
         // eslint-disable-next-line unicorn/no-process-exit
         process.exit(0);
-      } catch (ex) {
+      } catch {
         buntstift.error('Health check failed.');
 
         // eslint-disable-next-line unicorn/no-process-exit

@@ -30,6 +30,7 @@ suite('setup store file s3', function (): void {
     const client = new Client({
       endPoint: hostName,
       port,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       useSSL: encryptConnection,
       accessKey,
       secretKey

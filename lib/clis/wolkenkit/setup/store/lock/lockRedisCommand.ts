@@ -70,7 +70,7 @@ const lockRedisCommand = function (): Command<LockRedisOptions> {
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the Redis lock store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the Redis lock store.');
 
         throw ex;

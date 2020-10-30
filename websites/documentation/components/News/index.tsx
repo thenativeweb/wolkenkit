@@ -5,7 +5,7 @@ type NewsClassNames =
   'News' |
   'Items';
 
-const useStyles = createUseStyles<Theme, NewsClassNames>((theme: Theme): ComponentClassNames<NewsClassNames> => ({
+const useStyles = createUseStyles<NewsClassNames>((theme: Theme): ComponentClassNames<NewsClassNames> => ({
   News: {
     display: 'flex',
     flexDirection: 'column',

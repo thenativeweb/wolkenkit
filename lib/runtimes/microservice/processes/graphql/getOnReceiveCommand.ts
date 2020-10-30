@@ -16,11 +16,11 @@ const getOnReceiveCommand = function ({ commandDispatcher }: {
       }, { retries: commandDispatcher.retries, maxTimeout: 1000 });
 
       logger.info('Command sent to command dispatcher.', { command });
-    } catch (ex) {
+    } catch (ex: unknown) {
       logger.error('Failed to send command to command dispatcher.', { command, ex });
 
       throw new errors.RequestFailed('Failed to send command to command dispatcher.', {
-        cause: ex,
+        cause: ex as Error,
         data: { command }
       });
     }

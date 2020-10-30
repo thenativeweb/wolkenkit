@@ -1,6 +1,7 @@
 import { Application } from 'express';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
+import { AxiosError } from 'axios';
 import { getApi } from '../../../../lib/apis/subscribeMessages/http';
 import { PublishMessage } from '../../../../lib/apis/subscribeMessages/PublishMessage';
 import { runAsServer } from '../../../shared/http/runAsServer';
@@ -109,8 +110,8 @@ suite('subscribeMessages/http', (): void => {
             responseType: 'stream',
             timeout: 100
           });
-        } catch (ex) {
-          if (ex.code !== 'ECONNABORTED') {
+        } catch (ex: unknown) {
+          if ((ex as AxiosError).code !== 'ECONNABORTED') {
             throw ex;
           }
 

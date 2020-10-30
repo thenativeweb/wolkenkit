@@ -59,7 +59,7 @@ const documentationCommand = function (): Command<DocumentationOptions> {
             url: `http://localhost:${port}`
           });
         });
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to start the documentation.');
 
         throw ex;

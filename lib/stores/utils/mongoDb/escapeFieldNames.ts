@@ -14,13 +14,13 @@ const unescapeMap: Record<string, string> = {
   '\\dollar': '$'
 };
 
-const escapeFieldNames = function (object: any): object {
-  return mapKeysDeep(object, (_value, key): string =>
+const escapeFieldNames = function (object: object): object {
+  return mapKeysDeep(object, (value, key): string =>
     key.replace(/[\\.$]/gu, (char): string => escapeMap[char]));
 };
 
-const unescapeFieldNames = function (object: any): object {
-  return mapKeysDeep(object, (_value, key): string =>
+const unescapeFieldNames = function (object: object): object {
+  return mapKeysDeep(object, (value, key): string =>
     key.replace(/(?:\\\\|\\dot|\\dollar)/gu, (char): string => unescapeMap[char]));
 };
 

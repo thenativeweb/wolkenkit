@@ -243,7 +243,7 @@ suite('graphql server', function (): void {
         }
       });
 
-      assert.that(result?.data?.command.sampleContext_sampleAggregate_execute?.id).is.not.undefined();
+      assert.that(result.data?.command.sampleContext_sampleAggregate_execute?.id).is.not.undefined();
 
       const { item } = await commandDispatcherClient.awaitItem();
 
@@ -392,7 +392,7 @@ suite('graphql server', function (): void {
         }
       });
 
-      assert.that(result?.data?.sampleView.all).is.equalTo([]);
+      assert.that(result.data?.sampleView.all).is.equalTo([]);
     });
   });
 });

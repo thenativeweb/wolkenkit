@@ -68,6 +68,7 @@ const getSchema = async function ({
     graphQlSchemaConfig.query = new GraphQLObjectType({
       name: 'Query',
       fields: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         _: {
           type: GraphQLBoolean,
           resolve: (): boolean => false

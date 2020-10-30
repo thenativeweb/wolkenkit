@@ -6,26 +6,26 @@ import { DomainEventForAggregateSandbox } from './DomainEventForAggregateSandbox
 import { State } from '../../../elements/State';
 
 export interface SandboxForAggregate<TState extends State> {
-  given <TDomainEventData extends DomainEventData>(
+  given: <TDomainEventData extends DomainEventData>(
     domainEvent: DomainEventForAggregateSandbox<TDomainEventData>
-  ): SandboxForAggregate<TState>;
+  ) => SandboxForAggregate<TState>;
 
-  and <TDomainEventData extends DomainEventData>(
+  and: <TDomainEventData extends DomainEventData>(
     domainEvent: DomainEventForAggregateSandbox<TDomainEventData>
-  ): SandboxForAggregate<TState>;
+  ) => SandboxForAggregate<TState>;
 
-  when <TCommandData extends CommandData>(
+  when: <TCommandData extends CommandData>(
     parameters: CommandForAggregateSandbox<TCommandData>
-  ): SandboxForAggregateWithResult<TState>;
+  ) => SandboxForAggregateWithResult<TState>;
 }
 
 export interface SandboxForAggregateWithResult<TState extends State> {
-  and<TCommandData extends CommandData>(
+  and: <TCommandData extends CommandData>(
     parameters: CommandForAggregateSandbox<TCommandData>
-  ): SandboxForAggregateWithResult<TState>;
+  ) => SandboxForAggregateWithResult<TState>;
 
-  then(callback: ((parameters: {
+  then: (callback: ((parameters: {
     state: State;
     domainEvents: DomainEvent<DomainEventData>[];
-  }) => void | Promise<void>)): Promise<void>;
+  }) => void | Promise<void>)) => Promise<void>;
 }

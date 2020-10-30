@@ -3,8 +3,10 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
+import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { CustomError, isCustomError } from 'defekt';
 
 const logger = flaschenpost.getLogger();
 
@@ -20,7 +22,7 @@ const getLastDomainEvent = {
       },
       required: [ 'aggregateIdentifier' ],
       additionalProperties: false
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400, 404 ],
@@ -41,8 +43,8 @@ const getLastDomainEvent = {
 
       try {
         querySchema.validate(req.query, { valueName: 'requestQuery' });
-      } catch (ex) {
-        const error = new errors.AggregateIdentifierMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.AggregateIdentifierMalformed((ex as Error).message);
 
         return res.status(400).json({
           code: error.code,
@@ -60,12 +62,20 @@ const getLastDomainEvent = {
         responseBodySchema.validate(lastDomainEvent, { valueName: 'responseBody' });
 
         res.json(lastDomainEvent);
-      } catch (ex) {
-        logger.error('An unknown error occured.', { ex });
+      } catch (ex: unknown) {
+        let error: CustomError;
+
+        if (isCustomError(ex)) {
+          error = ex;
+        } else {
+          error = new errors.UnknownError(undefined, { cause: ex as Error });
+        }
+
+        logger.error('An unknown error occured.', { ex: error });
 
         return res.status(400).json({
-          code: ex.code ?? errors.UnknownError.code,
-          message: ex.message
+          code: error.code,
+          message: error.message
         });
       }
     };

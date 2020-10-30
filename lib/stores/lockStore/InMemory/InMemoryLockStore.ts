@@ -14,7 +14,7 @@ class InMemoryLockStore implements LockStore {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static async create (_options: InMemoryLockStoreOptions): Promise<InMemoryLockStore> {
+  public static async create (options: InMemoryLockStoreOptions): Promise<InMemoryLockStore> {
     return new InMemoryLockStore();
   }
 
