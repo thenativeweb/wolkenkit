@@ -6,15 +6,8 @@ const asJsonStream = function <TItem> (handleJson: ((item: TItem) => void)[], ob
   return new Writable({
     objectMode,
 
-    write (chunk: object, encoding, callback: (error?: any) => void): void {
-      let data;
-
-      if (objectMode) {
-        data = chunk;
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string
-        data = JSON.parse(chunk.toString());
-      }
+    write (chunk: object | Buffer, encoding, callback: (error?: any) => void): void {
+      const data = objectMode ? chunk : JSON.parse((chunk as Buffer).toString());
 
       // Ignore any messages after all handlers have been applied.
       if (counter >= handleJson.length) {

@@ -245,7 +245,7 @@ suite('main', function (): void {
                 name: 'executedFromFlow',
                 data: {
                   basedOnRevision: 1,
-                  flowName: 'neverFlow'
+                  fromFlow: 'neverFlow'
                 }
               });
               await counter.signal();
@@ -259,6 +259,8 @@ suite('main', function (): void {
         ],
         true
       ));
+
+      await counter.promise;
     });
   });
 
