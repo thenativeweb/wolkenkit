@@ -177,7 +177,7 @@
     "apollo-client": "2.6.10",
     "apollo-link-http": "1.5.17",
     "apollo-link-ws": "1.0.20",
-    "assertthat": "5.2.1",
+    "assertthat": "5.2.5",
     "graphql-tag": "2.11.0",
     "next": "9.5.3",
     "node-fetch": "2.6.1",
