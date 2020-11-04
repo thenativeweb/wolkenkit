@@ -108,7 +108,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     }
   }
 
-  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
     const connection = await this.getDatabase();
@@ -169,7 +169,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     }
   }
 
-  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
     const connection = await this.getDatabase();
@@ -377,8 +377,8 @@ class MySqlDomainEventStore implements DomainEventStore {
 
     try {
       await runQuery({ connection, query, parameters });
-    } catch (ex) {
-      if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
+    } catch (ex: unknown) {
+      if ((ex as MysqlError).code === 'ER_DUP_ENTRY' && (ex as MysqlError).sqlMessage?.endsWith('for key \'PRIMARY\'')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
@@ -427,13 +427,13 @@ class MySqlDomainEventStore implements DomainEventStore {
 
     try {
       await runQuery({ connection, query: createUuidToBinFunction });
-    } catch (ex) {
+    } catch (ex: unknown) {
       // If the function already exists, we can ignore this error; otherwise
       // rethrow it. Generally speaking, this should be done using a SQL clause
       // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
       // there is a ready-made function UUID_TO_BIN, but this is only available
       // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidToBin already exists')) {
+      if (!(ex as Error).message.includes('FUNCTION UuidToBin already exists')) {
         throw ex;
       }
     }
@@ -452,13 +452,13 @@ class MySqlDomainEventStore implements DomainEventStore {
 
     try {
       await runQuery({ connection, query: createUuidFromBinFunction });
-    } catch (ex) {
+    } catch (ex: unknown) {
       // If the function already exists, we can ignore this error; otherwise
       // rethrow it. Generally speaking, this should be done using a SQL clause
       // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
       // there is a ready-made function BIN_TO_UUID, but this is only available
       // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidFromBin already exists')) {
+      if (!(ex as Error).message.includes('FUNCTION UuidFromBin already exists')) {
         throw ex;
       }
     }

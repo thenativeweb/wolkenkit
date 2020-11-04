@@ -21,9 +21,9 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
   const services = {
     main: {
       hostName: 'main',
-      publicPort: 3000,
-      privatePort: 3000,
-      healthPort: 3001
+      publicPort: 3_000,
+      privatePort: 3_000,
+      healthPort: 3_001
     }
   };
 

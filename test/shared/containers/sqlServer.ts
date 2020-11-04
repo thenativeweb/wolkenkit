@@ -57,8 +57,8 @@ const sqlServer = {
         await createDatabase({ pool, database });
         await pool.close();
       }, retryOptions);
-    } catch (ex) {
-      buntstift.info(ex.message);
+    } catch (ex: unknown) {
+      buntstift.info((ex as Error).message);
       buntstift.error('Failed to connect to SQL Server.');
       throw ex;
     }

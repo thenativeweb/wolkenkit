@@ -1,6 +1,7 @@
 import { Application } from '../../../../lib/common/application/Application';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
+import { AxiosError } from 'axios';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
@@ -454,7 +455,7 @@ suite('observeDomainEvents/http', (): void => {
             try {
               assert.that(streamElement.name).is.equalTo('authenticateFailed');
               await collector.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await collector.fail(ex);
             }
           },
@@ -462,7 +463,7 @@ suite('observeDomainEvents/http', (): void => {
             try {
               assert.that(streamElement.name).is.equalTo('authenticateRejected');
               await collector.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await collector.fail(ex);
             }
           }
@@ -613,8 +614,8 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream',
             timeout: 100
           });
-        } catch (ex) {
-          if (ex.code !== 'ECONNABORTED') {
+        } catch (ex: unknown) {
+          if ((ex as AxiosError).code !== 'ECONNABORTED') {
             throw ex;
           }
 

@@ -23,12 +23,14 @@ suite('fromEnvironmentVariables', (): void => {
       }
     };
 
+    /* eslint-disable @typescript-eslint/naming-convention */
     const reset = nodeenv({
       FOO_ENV_VAR: 'foo',
       BAR: '5'
     });
+    /* eslint-enable @typescript-eslint/naming-convention */
 
-    const configuration = fromEnvironmentVariables({ configurationDefinition });
+    const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
     assert.that(configuration).is.equalTo({
       foo: 'foo',

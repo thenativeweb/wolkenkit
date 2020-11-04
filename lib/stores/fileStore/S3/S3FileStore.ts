@@ -39,6 +39,7 @@ class S3FileStore implements FileStore {
       accessKey,
       secretKey,
       region,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       useSSL: encryptConnection
     });
 
@@ -48,14 +49,14 @@ class S3FileStore implements FileStore {
   protected async ensureBucket (): Promise<void> {
     try {
       await this.client.makeBucket(this.bucketName, this.region);
-    } catch (ex) {
+    } catch (ex: unknown) {
       // S3 differs between a bucket that already exists and is owned by someone
       // else, and a bucket that already exists and is owned by you. If a bucket
       // already exists and is owned by someone else, you get a BucketAlreadyExists
       // error. Since this is actually an error, we don't ignore it. If a bucket
       // already exists and belongs to you, everything is fine, and we can skip
       // this error.
-      if (ex.code !== 'BucketAlreadyOwnedByYou') {
+      if ((ex as any).code !== 'BucketAlreadyOwnedByYou') {
         throw ex;
       }
     }
@@ -70,8 +71,8 @@ class S3FileStore implements FileStore {
     try {
       statsData = await this.client.statObject(this.bucketName, `${id}/data`);
       statsMetadata = await this.client.statObject(this.bucketName, `${id}/metadata.json`);
-    } catch (ex) {
-      if (ex.code !== 'NotFound') {
+    } catch (ex: unknown) {
+      if ((ex as any).code !== 'NotFound') {
         throw ex;
       }
 
@@ -108,8 +109,8 @@ class S3FileStore implements FileStore {
     try {
       await this.client.statObject(this.bucketName, `${id}/data`);
       await this.client.statObject(this.bucketName, `${id}/metadata.json`);
-    } catch (ex) {
-      if (ex.code === 'NotFound') {
+    } catch (ex: unknown) {
+      if ((ex as any).code === 'NotFound') {
         throw new errors.FileNotFound();
       }
 
@@ -127,8 +128,8 @@ class S3FileStore implements FileStore {
     try {
       await this.client.statObject(this.bucketName, `${id}/data`);
       await this.client.statObject(this.bucketName, `${id}/metadata.json`);
-    } catch (ex) {
-      if (ex.code === 'NotFound') {
+    } catch (ex: unknown) {
+      if ((ex as any).code === 'NotFound') {
         throw new errors.FileNotFound();
       }
 
@@ -154,8 +155,8 @@ class S3FileStore implements FileStore {
       try {
         await this.client.statObject(this.bucketName, file);
         await this.client.removeObject(this.bucketName, file);
-      } catch (ex) {
-        if (ex.code !== 'NotFound') {
+      } catch (ex: unknown) {
+        if ((ex as any).code !== 'NotFound') {
           throw ex;
         }
 

@@ -25,7 +25,7 @@ const message = {
         return true;
       },
 
-      handle (_state, command, { aggregate, error }) {
+      handle (state, command, { aggregate, error }) {
         if (!command.data.text) {
           throw new error.CommandRejected('Text is missing.');
         }
@@ -53,7 +53,7 @@ const message = {
         return true;
       },
 
-      handle (state, _command, { aggregate, error }) {
+      handle (state, command, { aggregate, error }) {
         if (aggregate.isPristine()) {
           throw new error.CommandRejected('Message was not yet sent.');
         }

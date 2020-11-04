@@ -14,15 +14,13 @@ const getDomainEventsDescription = function ({ domainDefinition }: {
       domainEventsDescription[contextName][aggregateName] = {};
 
       for (const [ domainEventName, domainEventHandler ] of Object.entries(aggregateDefinition.domainEventHandlers)) {
-        const { getDocumentation, getSchema } = domainEventHandler;
-
         const description = {} as any;
 
-        if (getDocumentation) {
-          description.documentation = stripIndent(getDocumentation().trim());
+        if (domainEventHandler.getDocumentation) {
+          description.documentation = stripIndent(domainEventHandler.getDocumentation().trim());
         }
-        if (getSchema) {
-          description.schema = getSchema();
+        if (domainEventHandler.getSchema) {
+          description.schema = domainEventHandler.getSchema();
         }
 
         domainEventsDescription[contextName][aggregateName][domainEventName] = description;

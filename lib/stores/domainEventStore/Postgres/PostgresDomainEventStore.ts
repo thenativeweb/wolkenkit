@@ -83,7 +83,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     await new Promise((resolve, reject): void => {
       try {
         disconnectWatcher.connect(resolve);
-      } catch (ex) {
+      } catch (ex: unknown) {
         reject(ex);
       }
     });
@@ -125,7 +125,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     }
   }
 
-  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
     const connection = await this.getDatabase();
@@ -195,7 +195,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     }
   }
 
-  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
     const connection = await this.getDatabase();
@@ -406,8 +406,8 @@ class PostgresDomainEventStore implements DomainEventStore {
         text,
         values
       });
-    } catch (ex) {
-      if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", revision)')) {
+    } catch (ex: unknown) {
+      if ((ex as any).code === '23505' && (ex as any).detail?.startsWith('Key ("aggregateId", revision)')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 

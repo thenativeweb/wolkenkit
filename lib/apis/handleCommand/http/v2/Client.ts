@@ -42,13 +42,9 @@ class Client extends HttpClient {
       data: CommandData;
     };
   }): Promise<{ id: string; aggregateIdentifier: { id: string }}> {
-    let url: string;
-
-    if (command.aggregateIdentifier.id) {
-      url = `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.aggregateIdentifier.id}/${command.name}`;
-    } else {
-      url = `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.name}`;
-    }
+    const url = command.aggregateIdentifier.id ?
+      `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.aggregateIdentifier.id}/${command.name}` :
+      `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.name}`;
 
     const { status, data } = await axios({
       method: 'post',

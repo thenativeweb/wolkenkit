@@ -17,8 +17,10 @@ suite('Aeonstore', (): void => {
         enableDebugMode: false,
         port: healthPort,
         env: {
+          /* eslint-disable @typescript-eslint/naming-convention */
           PORT: String(port),
           HEALTH_PORT: String(healthPort)
+          /* eslint-enable @typescript-eslint/naming-convention */
         }
       });
 

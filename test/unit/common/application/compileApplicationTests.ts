@@ -8,7 +8,7 @@ import path from 'path';
 import { stripIndent } from 'common-tags';
 
 suite('compileApplication', function (): void {
-  this.timeout(10 * 1000);
+  this.timeout(10 * 1_000);
 
   test('compiles successfully if the TypeScript code is correct.', async (): Promise<void> => {
     const typescriptFileContent = stripIndent`

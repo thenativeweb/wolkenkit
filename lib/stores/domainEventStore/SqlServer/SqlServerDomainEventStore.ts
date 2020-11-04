@@ -9,7 +9,7 @@ import { SqlServerDomainEventStoreOptions } from './SqlServerDomainEventStoreOpt
 import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
 import { ToDomainEventStream } from '../../utils/sqlServer/ToDomainEventStream';
-import { ConnectionPool, Table, TYPES as Types } from 'mssql';
+import { ConnectionPool, RequestError, Table, TYPES as Types } from 'mssql';
 
 class SqlServerDomainEventStore implements DomainEventStore {
   protected pool: ConnectionPool;
@@ -82,7 +82,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
     return lastDomainEvent;
   }
 
-  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
     const request = this.pool.request();
@@ -117,7 +117,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
     return recordset.length > 0;
   }
 
-  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
     const request = this.pool.request();
@@ -234,8 +234,13 @@ class SqlServerDomainEventStore implements DomainEventStore {
 
     try {
       await request.bulk(table);
-    } catch (ex) {
-      if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.startsWith('Violation of PRIMARY KEY constraint')) {
+    } catch (ex: unknown) {
+      if (
+        ex instanceof RequestError &&
+        ex.code === 'EREQUEST' &&
+        ex.number === 2_627 &&
+        ex.message.startsWith('Violation of PRIMARY KEY constraint')
+      ) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
@@ -316,8 +321,8 @@ class SqlServerDomainEventStore implements DomainEventStore {
             );
           END
       `);
-    } catch (ex) {
-      if (!ex.message.includes('There is already an object named')) {
+    } catch (ex: unknown) {
+      if (!(ex as Error).message.includes('There is already an object named')) {
         throw ex;
       }
 

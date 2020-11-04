@@ -35,8 +35,8 @@ const executeQueryHandler = async function ({
 
   try {
     optionsSchema.validate(options, { valueName: 'queryHandlerOptions' });
-  } catch (ex) {
-    throw new errors.QueryOptionsInvalid(ex.message);
+  } catch (ex: unknown) {
+    throw new errors.QueryOptionsInvalid((ex as Error).message);
   }
 
   const loggerService = services.logger ?? getLoggerService({
@@ -50,13 +50,7 @@ const executeQueryHandler = async function ({
     logger: loggerService
   });
 
-  let resultStream: Readable;
-
-  if (result instanceof Readable) {
-    resultStream = result;
-  } else {
-    resultStream = Readable.from([ result ]);
-  }
+  const resultStream = result instanceof Readable ? result : Readable.from([ result ]);
 
   const isAuthorizedServices = {
     client: services.client,
@@ -71,8 +65,8 @@ const executeQueryHandler = async function ({
 
       try {
         resultItemSchema.validate(resultItem, { valueName: 'resultItem' });
-      } catch (ex) {
-        const error = new errors.QueryResultInvalid(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.QueryResultInvalid((ex as Error).message);
 
         return callback(error);
       }

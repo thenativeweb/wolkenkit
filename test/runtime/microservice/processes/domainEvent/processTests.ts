@@ -211,7 +211,7 @@ suite('domain event', function (): void {
           setTimeout((): void => {
             resolve();
           }, 500);
-        } catch (ex) {
+        } catch (ex: unknown) {
           reject(ex);
         }
       });
@@ -255,7 +255,7 @@ suite('domain event', function (): void {
             ],
             true
           ));
-        } catch (ex) {
+        } catch (ex: unknown) {
           reject(ex);
         }
       });

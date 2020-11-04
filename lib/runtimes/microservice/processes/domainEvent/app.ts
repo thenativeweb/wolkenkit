@@ -30,7 +30,7 @@ import { Value } from 'validate-value';
   try {
     registerExceptionHandler();
 
-    const configuration = fromEnvironmentVariables({ configurationDefinition });
+    const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
@@ -90,7 +90,7 @@ import { Value } from 'validate-value';
         try {
           new Value(getDomainEventWithStateSchema()).validate(domainEvent, { valueName: 'domainEvent' });
           validateDomainEventWithState({ domainEvent, application });
-        } catch (ex) {
+        } catch (ex: unknown) {
           logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, ex });
 
           return;
@@ -99,7 +99,7 @@ import { Value } from 'validate-value';
         publishDomainEvent({ domainEvent });
       }
     });
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);
   }

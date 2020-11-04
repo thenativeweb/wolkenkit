@@ -19,7 +19,7 @@ export const like: CommandHandler<MessageState, LikeData, Infrastructure> = {
     return true;
   },
 
-  handle (state, _command, { aggregate, error }): void {
+  handle (state, command, { aggregate, error }): void {
     if (aggregate.isPristine()) {
       throw new error.CommandRejected('Message was not yet sent.');
     }

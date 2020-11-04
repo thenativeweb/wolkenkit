@@ -30,18 +30,18 @@ const validateCommand = function <TCommandData extends CommandData> ({
     throw new errors.CommandNotFound(`Command '${contextName}.${aggregateName}.${commandName}' not found.`);
   }
 
-  const { getSchema } = contextDefinitions[contextName][aggregateName].commandHandlers[commandName];
+  const commandHandler = contextDefinitions[contextName][aggregateName].commandHandlers[commandName];
 
-  if (!getSchema) {
+  if (!commandHandler.getSchema) {
     return;
   }
 
-  const schemaData = new Value(getSchema());
+  const schemaData = new Value(commandHandler.getSchema());
 
   try {
     schemaData.validate(commandData, { valueName: 'command.data' });
-  } catch (ex) {
-    throw new errors.CommandMalformed(ex.message, { cause: ex });
+  } catch (ex: unknown) {
+    throw new errors.CommandMalformed((ex as Error).message, { cause: ex as Error });
   }
 };
 

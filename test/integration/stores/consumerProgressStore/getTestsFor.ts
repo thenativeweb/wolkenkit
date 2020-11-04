@@ -8,7 +8,7 @@ import { v4 } from 'uuid';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createConsumerProgressStore }: {
-  createConsumerProgressStore ({ suffix }: { suffix: string }): Promise<ConsumerProgressStore>;
+  createConsumerProgressStore: ({ suffix }: { suffix: string }) => Promise<ConsumerProgressStore>;
 }): void {
   let aggregateIdentifier: AggregateIdentifier,
       consumerId: string,
@@ -376,4 +376,5 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
 };
 /* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 
+// eslint-disable-next-line mocha/no-exports
 export { getTestsFor };

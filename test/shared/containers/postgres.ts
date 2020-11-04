@@ -41,8 +41,8 @@ const postgres = {
 
         connection.release();
       }, retryOptions);
-    } catch (ex) {
-      buntstift.info(ex.message);
+    } catch (ex: unknown) {
+      buntstift.info((ex as Error).message);
       buntstift.error('Failed to connect to Postgres.');
       throw ex;
     }

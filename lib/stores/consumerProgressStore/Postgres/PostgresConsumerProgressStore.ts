@@ -79,7 +79,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
     await new Promise((resolve, reject): void => {
       try {
         disconnectWatcher.connect(resolve);
-      } catch (ex) {
+      } catch (ex: unknown) {
         reject(ex);
       }
     });
@@ -159,8 +159,8 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
             `,
             values: [ hash, aggregateIdentifier.id, revision ]
           });
-        } catch (ex) {
-          if (ex.code === '23505' && ex.detail.startsWith('Key ("consumerId", "aggregateId")')) {
+        } catch (ex: unknown) {
+          if ((ex as any).code === '23505' && (ex as any).detail?.startsWith('Key ("consumerId", "aggregateId")')) {
             throw new errors.RevisionTooLow();
           }
 
@@ -221,8 +221,8 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
             `,
             values: [ hash, aggregateIdentifier.id, isReplaying ? isReplaying.from : null, isReplaying ? isReplaying.to : null ]
           });
-        } catch (ex) {
-          if (ex.code === '23505' && ex.detail.startsWith('Key ("consumerId", "aggregateId")')) {
+        } catch (ex: unknown) {
+          if ((ex as any).code === '23505' && (ex as any).detail?.startsWith('Key ("consumerId", "aggregateId")')) {
             throw new errors.FlowIsAlreadyReplaying();
           }
 

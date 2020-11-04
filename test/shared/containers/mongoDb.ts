@@ -44,8 +44,8 @@ const mongoDb = {
 
         await client.close();
       }, retryOptions);
-    } catch (ex) {
-      buntstift.info(ex.message);
+    } catch (ex: unknown) {
+      buntstift.info((ex as Error).message);
       buntstift.error('Failed to connect to MongoDB.');
       throw ex;
     }

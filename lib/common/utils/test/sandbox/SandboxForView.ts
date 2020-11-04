@@ -4,13 +4,13 @@ import { QueryOptions } from '../../../elements/QueryOptions';
 import { Readable } from 'stream';
 
 export interface SandboxForView {
-  query <TQueryOptions extends QueryOptions = QueryOptions>(parameters: {
+  query: <TQueryOptions extends QueryOptions = QueryOptions>(parameters: {
     queryName: string;
     queryOptions?: TQueryOptions;
     client?: ClientMetadata;
-  }): Promise<Readable>;
+  }) => Promise<Readable>;
 
-  notify <TNotification extends Notification = Notification>(parameters: {
+  notify: <TNotification extends Notification = Notification>(parameters: {
     notification: TNotification;
-  }): Promise<void>;
+  }) => Promise<void>;
 }

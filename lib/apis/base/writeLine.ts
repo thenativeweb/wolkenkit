@@ -1,3 +1,4 @@
+import { isCustomError } from 'defekt';
 import { Response } from 'express';
 
 const writeLine = function ({ res, data }: {
@@ -6,8 +7,8 @@ const writeLine = function ({ res, data }: {
 }): void {
   try {
     res.write(`${JSON.stringify(data)}\n`);
-  } catch (ex) {
-    if (ex.code === 'ERR_STREAM_WRITE_AFTER_END') {
+  } catch (ex: unknown) {
+    if (isCustomError(ex) && ex.code === 'ERR_STREAM_WRITE_AFTER_END') {
       // Ignore write after end errors. This simply means that the connection
       // was closed concurrently, and we can't do anything about it anyway.
       return;

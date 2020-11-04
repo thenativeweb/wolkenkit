@@ -21,7 +21,7 @@ const getDescription = {
 
     const applicationDescription = getApplicationDescription({ application });
 
-    return function (_req, res): void {
+    return function (req, res): void {
       const response = applicationDescription.views;
 
       responseBodySchema.validate(response, { valueName: 'responseBody' });

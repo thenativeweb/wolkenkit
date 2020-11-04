@@ -6,5 +6,5 @@ import { DomainEventData } from '../../elements/DomainEventData';
 
 export type GetCommandService = (parameters: {
   domainEvent: DomainEvent<DomainEventData>;
-  issueCommand: (parameters: { command: CommandWithMetadata<CommandData> }) => void | Promise<void>;
+  issueCommand: (issueCommandParameters: { command: CommandWithMetadata<CommandData> }) => void | Promise<void>;
 }) => CommandService;

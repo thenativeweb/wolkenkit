@@ -81,7 +81,7 @@ const getV2 = async function ({
 
   if (schemaValidationErrors.length > 0) {
     for (const error of schemaValidationErrors) {
-      logger.error(error.message, error);
+      logger.error(error.message, { ex: error });
     }
     throw new errors.GraphQlError('GraphQL schema validation failed.');
   }

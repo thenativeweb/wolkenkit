@@ -7,7 +7,7 @@ import { getDescription } from './getDescription';
 import { IdentityProvider } from 'limes';
 import { query } from './query';
 
-const getV2 = async function<TItem> ({ application, corsOrigin, identityProviders }: {
+const getV2 = async function ({ application, corsOrigin, identityProviders }: {
   application: Application;
   corsOrigin: CorsOrigin;
   identityProviders: IdentityProvider[];

@@ -22,7 +22,7 @@ const getDescription = {
 
     const applicationDescription = getApplicationDescription({ application });
 
-    return function (_req: Request, res: Response): void {
+    return function (req: Request, res: Response): void {
       const response = applicationDescription.notifications;
 
       responseBodySchema.validate(response, { valueName: 'responseBody' });

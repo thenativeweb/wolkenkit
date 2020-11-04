@@ -20,8 +20,8 @@ const validateViewDefinition = function ({ viewDefinition }: {
   for (const [ queryName, queryHandler ] of Object.entries(viewDefinition.queryHandlers)) {
     try {
       validateQueryHandler({ queryHandler });
-    } catch (ex) {
-      throw new errors.ViewDefinitionMalformed(`Query handler '${queryName}' is malformed: ${ex.message}`);
+    } catch (ex: unknown) {
+      throw new errors.ViewDefinitionMalformed(`Query handler '${queryName}' is malformed: ${(ex as Error).message}`);
     }
   }
 
@@ -33,8 +33,8 @@ const validateViewDefinition = function ({ viewDefinition }: {
     for (const [ notificationSubscriberName, notificationSubscriber ] of Object.entries(viewDefinition.notificationSubscribers)) {
       try {
         validateNotificationSubscriber({ notificationSubscriber });
-      } catch (ex) {
-        throw new errors.ViewDefinitionMalformed(`Notification subscriber '${notificationSubscriberName}' is malformed: ${ex.message}`);
+      } catch (ex: unknown) {
+        throw new errors.ViewDefinitionMalformed(`Notification subscriber '${notificationSubscriberName}' is malformed: ${(ex as Error).message}`);
       }
     }
   }

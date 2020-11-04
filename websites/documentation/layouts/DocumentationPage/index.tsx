@@ -13,7 +13,7 @@ const DocumentationPage: FunctionComponent<DocumentationPageProps> = ({
     productName='docs'
     navigation={ navigation }
     siteTitle='wolkenkit Documenation'
-    yearOfCreation={ 2016 }
+    yearOfCreation={ 2_016 }
   >
     { children }
   </DocumentationPageLayout>

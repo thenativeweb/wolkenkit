@@ -53,8 +53,8 @@ const mariaDb = {
 
         connection.release();
       }, retryOptions);
-    } catch (ex) {
-      buntstift.info(ex.message);
+    } catch (ex: unknown) {
+      buntstift.info((ex as Error).message);
       buntstift.error('Failed to connect to MariaDB.');
       throw ex;
     }

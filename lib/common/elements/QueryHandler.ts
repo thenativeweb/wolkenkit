@@ -13,11 +13,11 @@ interface QueryHandlerReturnsValue<
 > {
   type: 'value';
 
-  handle (options: TQueryOptions, services: {
+  handle: (options: TQueryOptions, services: {
     client: ClientService;
     infrastructure: Pick<TInfrastructure, 'ask'>;
     logger: LoggerService;
-  }): TQueryResultItem | Promise<TQueryResultItem>;
+  }) => TQueryResultItem | Promise<TQueryResultItem>;
 }
 
 interface QueryHandlerReturnsStream<
@@ -26,11 +26,11 @@ interface QueryHandlerReturnsStream<
 > {
   type: 'stream';
 
-  handle (options: TQueryOptions, services: {
+  handle: (options: TQueryOptions, services: {
     client: ClientService;
     infrastructure: Pick<TInfrastructure, 'ask'>;
     logger: LoggerService;
-  }): Readable | Promise<Readable>;
+  }) => Readable | Promise<Readable>;
 }
 
 export type QueryHandler<
@@ -38,16 +38,16 @@ export type QueryHandler<
   TInfrastructure extends AskInfrastructure,
   TQueryOptions extends QueryOptions = QueryOptions
 > = {
-  getDocumentation? (): string;
+  getDocumentation?: () => string;
 
-  getOptionsSchema? (): Schema;
+  getOptionsSchema?: () => Schema;
 
-  getResultItemSchema? (): Schema;
+  getResultItemSchema?: () => Schema;
 
-  isAuthorized (databaseViewItem: TQueryResultItem, services: {
+  isAuthorized: (databaseViewItem: TQueryResultItem, services: {
     client: ClientService;
     logger: LoggerService;
-  }): boolean | Promise<boolean>;
+  }) => boolean | Promise<boolean>;
 } & (
   QueryHandlerReturnsValue<TQueryResultItem, TInfrastructure, TQueryOptions> |
   QueryHandlerReturnsStream<TInfrastructure, TQueryOptions>

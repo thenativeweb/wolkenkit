@@ -47,8 +47,8 @@ const processDomainEvent = async function ({
   try {
     try {
       new Value(getDomainEventSchema()).validate(domainEvent, { valueName: 'domainEvent' });
-    } catch (ex) {
-      throw new errors.DomainEventMalformed(ex.message);
+    } catch (ex: unknown) {
+      throw new errors.DomainEventMalformed((ex as Error).message);
     }
 
     if (!(flowName in application.flows)) {
@@ -106,7 +106,7 @@ const processDomainEvent = async function ({
         throw new errors.InvalidOperation();
       }
     }
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.error('Failed to handle domain event.', { domainEvent, ex });
 
     await acknowledgeDomainEvent({ flowName, token: metadata.token, priorityQueue });

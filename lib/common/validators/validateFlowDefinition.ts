@@ -19,8 +19,8 @@ const validateFlowDefinition = function ({ flowDefinition }: {
   for (const [ domainEventHandlerName, domainEventHandler ] of Object.entries(flowDefinition.domainEventHandlers)) {
     try {
       validateFlowDomainEventHandler({ domainEventHandler });
-    } catch (ex) {
-      throw new errors.FlowDefinitionMalformed(`Domain event handler '${domainEventHandlerName}' is malformed: ${ex.message}`);
+    } catch (ex: unknown) {
+      throw new errors.FlowDefinitionMalformed(`Domain event handler '${domainEventHandlerName}' is malformed: ${(ex as Error).message}`);
     }
   }
 

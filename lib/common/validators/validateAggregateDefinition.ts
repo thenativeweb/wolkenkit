@@ -23,8 +23,8 @@ const validateAggregateDefinition = function ({ aggregateDefinition }: {
   for (const [ commandHandlerName, commandHandler ] of Object.entries(aggregateDefinition.commandHandlers)) {
     try {
       validateCommandHandler({ commandHandler });
-    } catch (ex) {
-      throw new errors.AggregateDefinitionMalformed(`Command handler '${commandHandlerName}' is malformed: ${ex.message}`);
+    } catch (ex: unknown) {
+      throw new errors.AggregateDefinitionMalformed(`Command handler '${commandHandlerName}' is malformed: ${(ex as Error).message}`);
     }
   }
 
@@ -38,8 +38,8 @@ const validateAggregateDefinition = function ({ aggregateDefinition }: {
   for (const [ domainEventHandlerName, domainEventHandler ] of Object.entries(aggregateDefinition.domainEventHandlers)) {
     try {
       validateDomainEventHandler({ domainEventHandler });
-    } catch (ex) {
-      throw new errors.AggregateDefinitionMalformed(`Domain event handler '${domainEventHandlerName}' is malformed: ${ex.message}`);
+    } catch (ex: unknown) {
+      throw new errors.AggregateDefinitionMalformed(`Domain event handler '${domainEventHandlerName}' is malformed: ${(ex as Error).message}`);
     }
   }
 

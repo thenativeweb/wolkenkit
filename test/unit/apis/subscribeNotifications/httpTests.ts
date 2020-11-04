@@ -1,6 +1,7 @@
 import { Application } from '../../../../lib/common/application/Application';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
+import { AxiosError } from 'axios';
 import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
 import { createSubscriber } from '../../../../lib/messaging/pubSub/createSubscriber';
 import { Application as ExpressApplication } from 'express';
@@ -297,8 +298,8 @@ suite('subscribeNotifications/http', function (): void {
             responseType: 'stream',
             timeout: 100
           });
-        } catch (ex) {
-          if (ex.code !== 'ECONNABORTED') {
+        } catch (ex: unknown) {
+          if ((ex as AxiosError).code !== 'ECONNABORTED') {
             throw ex;
           }
 

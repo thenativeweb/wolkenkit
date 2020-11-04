@@ -12,7 +12,7 @@ class InMemoryConsumerProgressStore implements ConsumerProgressStore {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static async create (_options: InMemoryConsumerProgressStoreOptions): Promise<InMemoryConsumerProgressStore> {
+  public static async create (options: InMemoryConsumerProgressStoreOptions): Promise<InMemoryConsumerProgressStore> {
     return new InMemoryConsumerProgressStore();
   }
 

@@ -7,13 +7,13 @@ export interface NotificationSubscriber<
   TNotificationDefinition extends NotificationDefinition,
   TInfrastructure extends AskInfrastructure
 > {
-  isRelevant (notification: {
+  isRelevant: (notification: {
     name: string;
-  }): boolean;
+  }) => boolean;
 
-  handle (data: TNotificationDefinition['data'], services: {
+  handle: (data: TNotificationDefinition['data'], services: {
     infrastructure: Pick<TInfrastructure, 'ask'>;
     logger: LoggerService;
     notification: NotificationService;
-  }): void | Promise<void>;
+  }) => void | Promise<void>;
 }

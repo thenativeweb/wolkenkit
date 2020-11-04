@@ -1,4 +1,5 @@
 import { Application } from '../../../../common/application/Application';
+import { CustomError } from 'defekt';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
@@ -82,8 +83,8 @@ const postPerformReplay = {
 
       try {
         requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.RequestMalformed((ex as Error).message);
 
         res.status(400).json({
           code: error.code,
@@ -108,10 +109,10 @@ const postPerformReplay = {
             application
           });
         }
-      } catch (ex) {
+      } catch (ex: unknown) {
         res.status(400).json({
-          code: ex.code,
-          message: ex.message
+          code: (ex as CustomError).code,
+          message: (ex as CustomError).message
         });
 
         return;
@@ -127,7 +128,7 @@ const postPerformReplay = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex) {
+      } catch (ex: unknown) {
         logger.error('An unknown error occured.', { ex });
 
         const error = new errors.UnknownError();

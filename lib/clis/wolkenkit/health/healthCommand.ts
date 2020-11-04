@@ -35,7 +35,7 @@ const healthCommand = function (): Command<HealthOptions> {
         parameterName: 'port',
         type: 'number',
         isRequired: false,
-        defaultValue: 3001,
+        defaultValue: 3_001,
         validate: validatePort
       },
       {
@@ -78,7 +78,7 @@ const healthCommand = function (): Command<HealthOptions> {
 
         // eslint-disable-next-line unicorn/no-process-exit
         process.exit(0);
-      } catch (ex) {
+      } catch {
         buntstift.error('Health check failed.');
 
         // eslint-disable-next-line unicorn/no-process-exit

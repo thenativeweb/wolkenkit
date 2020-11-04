@@ -18,7 +18,7 @@ const priorityQueuePostgresCommand = function (): Command<PriorityQueuePostgresO
       {
         name: 'port',
         type: 'number',
-        defaultValue: 3363
+        defaultValue: 3_363
       },
       {
         name: 'user-name',
@@ -93,7 +93,7 @@ const priorityQueuePostgresCommand = function (): Command<PriorityQueuePostgresO
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the PostgreSQL priority queue store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the PostgreSQL priority queue store.');
 
         throw ex;

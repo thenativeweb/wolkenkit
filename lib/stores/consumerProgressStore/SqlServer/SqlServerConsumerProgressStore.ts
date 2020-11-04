@@ -5,7 +5,7 @@ import { getHash } from '../../../common/utils/crypto/getHash';
 import { IsReplaying } from '../IsReplaying';
 import { SqlServerConsumerProgressStoreOptions } from './SqlServerConsumerProgressStoreOptions';
 import { TableNames } from './TableNames';
-import { ConnectionPool, TYPES as Types } from 'mssql';
+import { ConnectionPool, RequestError, TYPES as Types } from 'mssql';
 
 class SqlServerConsumerProgressStore implements ConsumerProgressStore {
   protected pool: ConnectionPool;
@@ -126,8 +126,13 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
             ([consumerId], [aggregateId], [revision], [isReplayingFrom], [isReplayingTo])
             VALUES (@consumerId, @aggregateId, @revision, NULL, NULL);
         `);
-      } catch (ex) {
-        if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.startsWith('Violation of PRIMARY KEY constraint')) {
+      } catch (ex: unknown) {
+        if (
+          ex instanceof RequestError &&
+          ex.code === 'EREQUEST' &&
+          ex.number === 2_627 &&
+          ex.message.startsWith('Violation of PRIMARY KEY constraint')
+        ) {
           throw new errors.RevisionTooLow();
         }
 
@@ -135,7 +140,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
       }
 
       await transaction.commit();
-    } catch (ex) {
+    } catch (ex: unknown) {
       await transaction.rollback();
       throw ex;
     }
@@ -201,8 +206,13 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
             ([consumerId], [aggregateId], [revision], [isReplayingFrom], [isReplayingTo])
             VALUES (@consumerId, @aggregateId, 0, @isReplayingFrom, @isReplayingTo);
         `);
-      } catch (ex) {
-        if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.startsWith('Violation of PRIMARY KEY constraint')) {
+      } catch (ex: unknown) {
+        if (
+          ex instanceof RequestError &&
+          ex.code === 'EREQUEST' &&
+          ex.number === 2_627 &&
+          ex.message.startsWith('Violation of PRIMARY KEY constraint')
+        ) {
           throw new errors.FlowIsAlreadyReplaying();
         }
 
@@ -210,7 +220,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
       }
 
       await transaction.commit();
-    } catch (ex) {
+    } catch (ex: unknown) {
       await transaction.rollback();
       throw ex;
     }
@@ -246,8 +256,8 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
             );
           END
       `);
-    } catch (ex) {
-      if (!/There is already an object named.*_progress/u.exec(ex.message)) {
+    } catch (ex: unknown) {
+      if (!/There is already an object named.*_progress/u.exec((ex as Error).message)) {
         throw ex;
       }
 

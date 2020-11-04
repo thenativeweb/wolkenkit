@@ -13,7 +13,7 @@ class InMemoryFileStore implements FileStore {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static async create (_options: InMemoryFileStoreOptions): Promise<InMemoryFileStore> {
+  public static async create (options: InMemoryFileStoreOptions): Promise<InMemoryFileStore> {
     return new InMemoryFileStore();
   }
 

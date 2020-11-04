@@ -167,7 +167,7 @@ suite('main', function (): void {
                   data: {}
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
@@ -184,7 +184,7 @@ suite('main', function (): void {
                   }
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
@@ -233,7 +233,7 @@ suite('main', function (): void {
                 data: { flowName: 'neverFlow' }
               });
               await counter.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await counter.fail(ex);
             }
           },
@@ -245,11 +245,11 @@ suite('main', function (): void {
                 name: 'executedFromFlow',
                 data: {
                   basedOnRevision: 1,
-                  flowName: 'neverFlow'
+                  fromFlow: 'neverFlow'
                 }
               });
               await counter.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await counter.fail(ex);
             }
           },
@@ -259,6 +259,8 @@ suite('main', function (): void {
         ],
         true
       ));
+
+      await counter.promise;
     });
   });
 
@@ -297,7 +299,7 @@ suite('main', function (): void {
         }
       });
 
-      assert.that(result?.data?.command.sampleContext_sampleAggregate_execute?.id).is.not.undefined();
+      assert.that(result.data?.command.sampleContext_sampleAggregate_execute?.id).is.not.undefined();
     });
 
     test('has a subscription endpoint for domain events.', async (): Promise<void> => {
@@ -503,7 +505,7 @@ suite('main', function (): void {
                 data: {}
               });
               await counter.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await counter.fail(ex);
             }
           },
@@ -514,7 +516,7 @@ suite('main', function (): void {
                 data: {}
               });
               await counter.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await counter.fail(ex);
             }
           },

@@ -49,7 +49,7 @@ const lockMongoDbCommand = function (): Command<LockMongoDbOptions> {
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the MongoDB lock store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the MongoDB lock store.');
 
         throw ex;

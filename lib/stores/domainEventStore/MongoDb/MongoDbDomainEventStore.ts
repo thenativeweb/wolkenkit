@@ -11,7 +11,7 @@ import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { URL } from 'url';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
-import { Collection, Db, MongoClient } from 'mongodb';
+import { Collection, Db, MongoClient, MongoError } from 'mongodb';
 import { escapeFieldNames, unescapeFieldNames } from '../../utils/mongoDb/escapeFieldNames';
 import { PassThrough, Readable } from 'stream';
 
@@ -86,6 +86,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     const lastDomainEvent = await this.collections.domainEvents.findOne({
       'aggregateIdentifier.id': aggregateIdentifier.id
     }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0 },
       sort: [[ 'metadata.revision', -1 ]]
     });
@@ -97,12 +98,13 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return new DomainEvent<TDomainEventData>(unescapeFieldNames(lastDomainEvent) as any);
   }
 
-  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
     const domainEventStream = this.collections.domainEvents.find({
       'metadata.causationId': causationId
     }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0 }
     }).stream();
 
@@ -150,12 +152,13 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return domainEventCount !== null;
   }
 
-  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
     const domainEventStream = this.collections.domainEvents.find({
       'metadata.correlationId': correlationId
     }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0 }
     }).stream();
 
@@ -206,6 +209,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     const replayStream = this.collections.domainEvents.find({
       'metadata.timestamp': { $gte: fromTimestamp }
     }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0 },
       sort: [[ 'aggregateId', 1 ], [ 'metadata.revision', 1 ]]
     }).stream();
@@ -279,6 +283,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
         { 'metadata.revision': { $lte: toRevision }}
       ]
     }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0 },
       sort: [[ 'metadata.revision', 1 ]]
     }).stream();
@@ -348,8 +353,12 @@ class MongoDbDomainEventStore implements DomainEventStore {
           );
         }
       });
-    } catch (ex) {
-      if (ex.code === 11000 && ex.message.includes('_aggregateId_revision')) {
+    } catch (ex: unknown) {
+      if (
+        ex instanceof MongoError &&
+        ex.code === 11_000 &&
+        ex.message.includes('_aggregateId_revision')
+      ) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
@@ -362,6 +371,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
   }): Promise<Snapshot<TState> | undefined> {
     const snapshot = await this.collections.snapshots.findOne<Snapshot<TState>>(
       { aggregateIdentifier },
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       { projection: { _id: false, revision: true, state: true }}
     );
 

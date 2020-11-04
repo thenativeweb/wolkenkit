@@ -10,9 +10,9 @@ import { Queue } from './Queue';
 import { SqlServerPriorityQueueStoreOptions } from './SqlServerPriorityQueueStoreOptions';
 import { TableNames } from './TableNames';
 import { v4 } from 'uuid';
-import { ConnectionPool, Transaction, TYPES as Types } from 'mssql';
+import { ConnectionPool, RequestError, Transaction, TYPES as Types } from 'mssql';
 
-class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
+class SqlServerPriorityQueueStore<TItem extends object, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;
 
   protected pool: ConnectionPool;
@@ -48,7 +48,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> (
+  public static async create<TCreateItem extends object, TCreateItemIdentifier> (
     {
       doesIdentifierMatchItem,
       expirationTime = 15_000,
@@ -59,8 +59,8 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
       database,
       tableNames,
       encryptConnection = false
-    }: SqlServerPriorityQueueStoreOptions<TItem, TItemIdentifier>
-  ): Promise<SqlServerPriorityQueueStore<TItem, TItemIdentifier>> {
+    }: SqlServerPriorityQueueStoreOptions<TCreateItem, TCreateItemIdentifier>
+  ): Promise<SqlServerPriorityQueueStore<TCreateItem, TCreateItemIdentifier>> {
     const pool = new ConnectionPool({
       server: hostName,
       port,
@@ -80,7 +80,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
 
     await pool.connect();
 
-    return new SqlServerPriorityQueueStore<TItem, TItemIdentifier>({
+    return new SqlServerPriorityQueueStore<TCreateItem, TCreateItemIdentifier>({
       tableNames,
       pool,
       doesIdentifierMatchItem,
@@ -436,8 +436,13 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
           INTO [${this.tableNames.priorityQueue}] ([discriminator], [indexInPriorityQueue])
           VALUES (@discriminator, @indexInPriorityQueue);
       `);
-    } catch (ex) {
-      if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.startsWith('Violation of PRIMARY KEY constraint')) {
+    } catch (ex: unknown) {
+      if (
+        ex instanceof RequestError &&
+        ex.code === 'EREQUEST' &&
+        ex.number === 2_627 &&
+        ex.message.startsWith('Violation of PRIMARY KEY constraint')
+      ) {
         return;
       }
 
@@ -461,7 +466,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         try {
           await this.enqueueInternal({ transaction, item, discriminator, priority });
           await transaction.commit();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await transaction.rollback();
           throw ex;
         }
@@ -522,7 +527,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         try {
           nextItem = await this.lockNextInternal({ transaction });
           await transaction.commit();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await transaction.rollback();
           throw ex;
         }
@@ -567,7 +572,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         try {
           await this.renewLockInternal({ transaction, discriminator, token });
           await transaction.commit();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await transaction.rollback();
           throw ex;
         }
@@ -629,7 +634,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         try {
           await this.acknowledgeInternal({ transaction, discriminator, token });
           await transaction.commit();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await transaction.rollback();
           throw ex;
         }
@@ -665,7 +670,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         try {
           await this.deferInternal({ transaction, discriminator, token, priority });
           await transaction.commit();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await transaction.rollback();
           throw ex;
         }
@@ -704,7 +709,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
     }
 
     if (foundItemIndex === 0) {
-      if (queue?.lock && queue.lock.until > Date.now()) {
+      if (queue.lock && queue.lock.until > Date.now()) {
         throw new errors.ItemNotFound();
       }
 
@@ -761,7 +766,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         try {
           await this.removeInternal({ transaction, discriminator, itemIdentifier });
           await transaction.commit();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await transaction.rollback();
           throw ex;
         }
@@ -802,8 +807,8 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
               ON [${this.tableNames.priorityQueue}] ([indexInPriorityQueue]);
           END
       `);
-    } catch (ex) {
-      if (!ex.message.includes('There is already an object named')) {
+    } catch (ex: unknown) {
+      if (!(ex as Error).message.includes('There is already an object named')) {
         throw ex;
       }
 

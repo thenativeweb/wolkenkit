@@ -13,17 +13,17 @@ export interface FlowHandler<
   TDomainEventData extends DomainEventData,
   TInfrastructure extends AskInfrastructure & TellInfrastructure
 > {
-  isRelevant (domainEvent: {
+  isRelevant: (domainEvent: {
     fullyQualifiedName: string;
     itemIdentifier: ItemIdentifier;
-  }): boolean;
+  }) => boolean;
 
-  handle (domainEvent: DomainEvent<TDomainEventData>, services: {
+  handle: (domainEvent: DomainEvent<TDomainEventData>, services: {
     aggregates: AggregatesService;
     command: CommandService;
     infrastructure: TInfrastructure;
     lock: LockService;
     logger: LoggerService;
     notification: NotificationService;
-  }): void | Promise<void>;
+  }) => void | Promise<void>;
 }

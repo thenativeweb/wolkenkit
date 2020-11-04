@@ -14,7 +14,7 @@ const handleMessageLiked: FlowHandler<LikedData, Infrastructure> = {
         (message): boolean => message.id === domainEvent.aggregateIdentifier.id
       );
 
-      messageToUpdate.likes = domainEvent.data.likes;
+      messageToUpdate!.likes = domainEvent.data.likes;
 
       await notification.publish<FlowUpdated>('flowMessagesUpdated', {});
 

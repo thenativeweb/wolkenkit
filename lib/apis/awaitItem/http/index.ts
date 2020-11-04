@@ -5,7 +5,7 @@ import { PriorityQueueStore } from '../../../stores/priorityQueueStore/PriorityQ
 import { Subscriber } from '../../../messaging/pubSub/Subscriber';
 import express, { Application as ExpressApplication } from 'express';
 
-const getApi = async function<TItem> ({
+const getApi = async function<TItem extends object> ({
   corsOrigin,
   priorityQueueStore,
   newItemSubscriber,

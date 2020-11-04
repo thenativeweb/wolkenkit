@@ -34,7 +34,7 @@ const startCatchAllServer = async function ({ port, onRequest, parseJson = true 
         logger.info('Catch all server started.', { port });
         resolve();
       });
-    } catch (ex) {
+    } catch (ex: unknown) {
       reject(ex);
     }
   });

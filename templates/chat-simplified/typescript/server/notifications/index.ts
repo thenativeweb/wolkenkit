@@ -2,13 +2,13 @@ import { Infrastructure } from '../infrastructure';
 import { NotificationDefinition, NotificationHandler, Notifications } from 'wolkenkit';
 
 export interface FlowUpdated extends NotificationDefinition {
-  data: {};
-  metadata: {};
+  data: object;
+  metadata: object;
 }
 
 export interface ViewUpdated extends NotificationDefinition {
-  data: {};
-  metadata: {};
+  data: object;
+  metadata: object;
 }
 
 const notifications: Notifications = {

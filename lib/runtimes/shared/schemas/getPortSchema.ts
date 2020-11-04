@@ -4,7 +4,7 @@ const getPortSchema = function (): Schema {
   return {
     type: 'integer',
     minimum: 1,
-    maximum: 65535
+    maximum: 65_535
   };
 };
 

@@ -11,18 +11,16 @@ const getViewsDescription = function ({ viewsDefinition }: {
     viewsDescription[viewName] = {};
 
     for (const [ queryName, queryHandler ] of Object.entries(viewDefinition.queryHandlers)) {
-      const { getDocumentation, getOptionsSchema, getResultItemSchema: getItemSchema } = queryHandler;
-
       const queryDescription = {} as any;
 
-      if (getDocumentation) {
-        queryDescription.documentation = stripIndent(getDocumentation().trim());
+      if (queryHandler.getDocumentation) {
+        queryDescription.documentation = stripIndent(queryHandler.getDocumentation().trim());
       }
-      if (getOptionsSchema) {
-        queryDescription.optionsSchema = getOptionsSchema();
+      if (queryHandler.getOptionsSchema) {
+        queryDescription.optionsSchema = queryHandler.getOptionsSchema();
       }
-      if (getItemSchema) {
-        queryDescription.itemSchema = getItemSchema();
+      if (queryHandler.getResultItemSchema) {
+        queryDescription.itemSchema = queryHandler.getResultItemSchema();
       }
 
       viewsDescription[viewName][queryName] = queryDescription;

@@ -7,7 +7,7 @@ type NewsItemClassNames =
   'Title' |
   'Date';
 
-const useStyles = createUseStyles<Theme, NewsItemClassNames>((theme: Theme): ComponentClassNames<NewsItemClassNames> => ({
+const useStyles = createUseStyles<NewsItemClassNames>((theme: Theme): ComponentClassNames<NewsItemClassNames> => ({
   NewsItem: {
     padding: `${theme.space(3)}px 0`,
     maxWidth: theme.components.Paragraph.maxWidth,

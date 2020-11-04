@@ -27,8 +27,8 @@ const processCommand = async function ({
   try {
     try {
       new Value(getCommandWithMetadataSchema()).validate(command, { valueName: 'command' });
-    } catch (ex) {
-      throw new errors.CommandMalformed(ex.message);
+    } catch (ex: unknown) {
+      throw new errors.CommandMalformed((ex as Error).message);
     }
 
     const aggregateInstance = await repository.getAggregateInstance({
@@ -46,7 +46,7 @@ const processCommand = async function ({
     const domainEvents = await handleCommandPromise;
 
     await publishDomainEvents({ domainEvents });
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.error('Failed to handle command.', { command, ex });
   } finally {
     await acknowledgeCommand({ command, token: metadata.token, commandDispatcher });

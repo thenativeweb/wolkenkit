@@ -2,8 +2,11 @@ import { Client } from '../../../apis/subscribeMessages/http/v2/Client';
 import { HttpSubscriberOptions } from './HttpSubscriberOptions';
 import { Subscriber } from '../Subscriber';
 
+type CallbackFunction<T> = (message: T) => void | Promise<void>;
+type UnsubscribeFunction = () => void;
+
 class HttpSubscriber<T extends object> implements Subscriber<T> {
-  protected unsubscribeFunctions: Map<Function, Map<string, Function>>;
+  protected unsubscribeFunctions: Map<CallbackFunction<T>, Map<string, UnsubscribeFunction>>;
 
   protected subscriberClient: Client;
 
@@ -14,8 +17,7 @@ class HttpSubscriber<T extends object> implements Subscriber<T> {
     this.subscriberClient = subscriberClient;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static async create<T extends object> (options: HttpSubscriberOptions): Promise<HttpSubscriber<T>> {
+  public static async create<TCreate extends object> (options: HttpSubscriberOptions): Promise<HttpSubscriber<TCreate>> {
     const subscriberClient = new Client({
       protocol: options.protocol,
       hostName: options.hostName,
@@ -30,11 +32,11 @@ class HttpSubscriber<T extends object> implements Subscriber<T> {
 
   public async subscribe ({ channel, callback }: {
     channel: string;
-    callback: (message: T) => void | Promise<void>;
+    callback: CallbackFunction<T>;
   }): Promise<void> {
     const messageStream = await this.subscriberClient.getMessages({ channel });
 
-    let unsubscribeFromStream: () => void;
+    let unsubscribeFromStream: UnsubscribeFunction;
 
     const onData = async (message: T): Promise<void> => {
       messageStream.pause();
@@ -63,7 +65,7 @@ class HttpSubscriber<T extends object> implements Subscriber<T> {
 
   public async unsubscribe ({ channel, callback }: {
     channel: string;
-    callback: (message: T) => void | Promise<void>;
+    callback: CallbackFunction<T>;
   }): Promise<void> {
     const callbackMap = this.unsubscribeFunctions.get(callback);
 

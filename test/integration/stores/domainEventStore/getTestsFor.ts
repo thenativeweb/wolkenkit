@@ -11,12 +11,12 @@ import { v4 } from 'uuid';
 
 /* eslint-disable mocha/max-top-level-suites */
 const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore }: {
-  createDomainEventStore ({ suffix }: {
+  createDomainEventStore: ({ suffix }: {
     suffix: string;
-  }): Promise<DomainEventStore>;
-  teardownDomainEventStore? ({ suffix }: {
+  }) => Promise<DomainEventStore>;
+  teardownDomainEventStore?: ({ suffix }: {
     suffix: string;
-  }): Promise<void>;
+  }) => Promise<void>;
 }): void {
   let domainEventStore: DomainEventStore,
       suffix: string;
@@ -1203,4 +1203,5 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 };
 /* eslint-enable mocha/max-top-level-suites */
 
+// eslint-disable-next-line mocha/no-exports
 export { getTestsFor };

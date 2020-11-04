@@ -14,7 +14,7 @@ import { v4 } from 'uuid';
 import { withTransaction } from '../../utils/postgres/withTransaction';
 import { Client, Pool, PoolClient } from 'pg';
 
-class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
+class PostgresPriorityQueueStore<TItem extends object, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;
 
   protected pool: Pool;
@@ -64,7 +64,7 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> (
+  public static async create<TCreateItem extends object, TCreateItemIdentifier> (
     {
       doesIdentifierMatchItem,
       expirationTime = 15_000,
@@ -75,8 +75,8 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
       database,
       encryptConnection = false,
       tableNames
-    }: PostgresPriorityQueueStoreOptions<TItem, TItemIdentifier>
-  ): Promise<PostgresPriorityQueueStore<TItem, TItemIdentifier>> {
+    }: PostgresPriorityQueueStoreOptions<TCreateItem, TCreateItemIdentifier>
+  ): Promise<PostgresPriorityQueueStore<TCreateItem, TCreateItemIdentifier>> {
     const pool = new Pool({
       host: hostName,
       port,
@@ -107,12 +107,12 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     await new Promise((resolve, reject): void => {
       try {
         disconnectWatcher.connect(resolve);
-      } catch (ex) {
+      } catch (ex: unknown) {
         reject(ex);
       }
     });
 
-    return new PostgresPriorityQueueStore<TItem, TItemIdentifier>({
+    return new PostgresPriorityQueueStore<TCreateItem, TCreateItemIdentifier>({
       pool,
       tableNames,
       disconnectWatcher,
@@ -225,6 +225,7 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
       return;
     }
 
+    // eslint-disable-next-line unicorn/prefer-ternary
     if (leftChildQueuePriority <= rightChildQueuePriority) {
       await this.swapPositionsInPriorityQueue({
         connection,
@@ -733,7 +734,7 @@ class PostgresPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     }
 
     if (foundItemIndex === 0) {
-      if (queue?.lock && queue.lock.until > Date.now()) {
+      if (queue.lock && queue.lock.until > Date.now()) {
         throw new errors.ItemNotFound();
       }
 

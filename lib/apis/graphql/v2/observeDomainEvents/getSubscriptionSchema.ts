@@ -25,8 +25,8 @@ const getSubscriptionSchema = function ({ application, repository }: {
   }): void {
     try {
       domainEventWithStateSchema.validate(domainEvent, { valueName: 'domainEvent' });
-    } catch (ex) {
-      throw new errors.DomainEventMalformed(ex.message);
+    } catch (ex: unknown) {
+      throw new errors.DomainEventMalformed((ex as Error).message);
     }
     validateDomainEventWithState({ domainEvent, application });
 

@@ -14,15 +14,13 @@ const getCommandsDescription = function ({ domainDefinition }: {
       commandsDescription[contextName][aggregateName] = {};
 
       for (const [ commandName, commandHandler ] of Object.entries(aggregateDefinition.commandHandlers)) {
-        const { getDocumentation, getSchema } = commandHandler;
-
         const description = {} as any;
 
-        if (getDocumentation) {
-          description.documentation = stripIndent(getDocumentation().trim());
+        if (commandHandler.getDocumentation) {
+          description.documentation = stripIndent(commandHandler.getDocumentation().trim());
         }
-        if (getSchema) {
-          description.schema = getSchema();
+        if (commandHandler.getSchema) {
+          description.schema = commandHandler.getSchema();
         }
 
         commandsDescription[contextName][aggregateName][commandName] = description;

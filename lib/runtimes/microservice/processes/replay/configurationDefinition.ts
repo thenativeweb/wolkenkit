@@ -17,7 +17,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   aeonstorePort: {
     environmentVariable: 'AEONSTORE_PORT',
-    defaultValue: 3000,
+    defaultValue: 3_000,
     schema: portSchema
   },
   aeonstoreProtocol: {
@@ -42,7 +42,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   domainEventDispatcherPort: {
     environmentVariable: 'DOMAIN_EVENT_DISPATCHER_PORT',
-    defaultValue: 3000,
+    defaultValue: 3_000,
     schema: portSchema
   },
   domainEventDispatcherProtocol: {
@@ -57,12 +57,12 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   healthPort: {
     environmentVariable: 'HEALTH_PORT',
-    defaultValue: 3001,
+    defaultValue: 3_001,
     schema: portSchema
   },
   port: {
     environmentVariable: 'PORT',
-    defaultValue: 3000,
+    defaultValue: 3_000,
     schema: portSchema
   }
 };

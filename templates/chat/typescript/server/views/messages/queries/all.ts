@@ -22,7 +22,7 @@ export const all: QueryHandler<AllResultItem, Infrastructure> = {
     };
   },
 
-  async handle (_options, { infrastructure }): Promise<Readable> {
+  async handle (options, { infrastructure }): Promise<Readable> {
     if (Array.isArray(infrastructure.ask.viewStore.messages)) {
       const sortedMessages = [ ...infrastructure.ask.viewStore.messages ].reverse();
 
@@ -30,6 +30,7 @@ export const all: QueryHandler<AllResultItem, Infrastructure> = {
     }
 
     return infrastructure.ask.viewStore.messages.find({}, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0, id: 1, timestamp: 1, text: 1, likes: 1 },
       sort: [[ 'timestamp', -1 ]]
     }).stream();
