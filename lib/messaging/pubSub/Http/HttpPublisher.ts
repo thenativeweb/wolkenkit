@@ -11,7 +11,6 @@ class HttpPublisher<T extends object> implements Publisher<T> {
     this.publisherClient = publisherClient;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public static async create<TCreate extends object> (options: HttpPublisherOptions): Promise<HttpPublisher<TCreate>> {
     const publisherClient = new Client({
       protocol: options.protocol,

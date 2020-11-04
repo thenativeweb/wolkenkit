@@ -17,7 +17,6 @@ class HttpSubscriber<T extends object> implements Subscriber<T> {
     this.subscriberClient = subscriberClient;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public static async create<TCreate extends object> (options: HttpSubscriberOptions): Promise<HttpSubscriber<TCreate>> {
     const subscriberClient = new Client({
       protocol: options.protocol,

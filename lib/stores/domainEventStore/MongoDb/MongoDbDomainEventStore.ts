@@ -98,7 +98,6 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return new DomainEvent<TDomainEventData>(unescapeFieldNames(lastDomainEvent) as any);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
@@ -153,7 +152,6 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return domainEventCount !== null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
