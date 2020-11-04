@@ -106,7 +106,7 @@
     "wolkenkit": "build/lib/bin/wolkenkit.js"
   },
   "engines": {
-    "node": ">=14.13.0"
+    "node": ">=14.15.0"
   },
   "dependencies": {
     "@types/async-retry": "1.4.2",
@@ -179,7 +179,7 @@
     "apollo-client": "2.6.10",
     "apollo-link-http": "1.5.17",
     "apollo-link-ws": "1.0.20",
-    "assertthat": "5.2.1",
+    "assertthat": "5.2.5",
     "graphql-tag": "2.11.0",
     "next": "10.0.0",
     "node-fetch": "2.6.1",

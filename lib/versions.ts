@@ -1,6 +1,6 @@
 const versions = {
   infrastructure: {
-    nodejs: '14.13.0',
+    nodejs: '14.15.0',
     'docker-compose': '3.7'
   },
   packages: {
