@@ -2,6 +2,7 @@ import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEven
 import { forAwaitOf } from '../../../../common/utils/forAwaitOf';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { regex } from '../../../../common/utils/uuid';
+import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -19,7 +20,7 @@ const getReplayForAggregate = {
       },
       required: [],
       additionalProperties: false
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400 ],
@@ -41,8 +42,8 @@ const getReplayForAggregate = {
     return async function (req, res): Promise<any> {
       try {
         querySchema.validate(req.query, { valueName: 'requestQuery' });
-      } catch (ex) {
-        return res.status(400).send(ex.message);
+      } catch (ex: unknown) {
+        return res.status(400).send((ex as Error).message);
       }
 
       const fromRevision = req.query.fromRevision as number,

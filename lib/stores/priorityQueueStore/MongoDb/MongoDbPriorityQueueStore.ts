@@ -16,7 +16,7 @@ import { withTransaction } from '../../utils/mongoDb/withTransaction';
 import { ClientSession, Collection, Db, MongoClient } from 'mongodb';
 import { escapeFieldNames, unescapeFieldNames } from '../../utils/mongoDb/escapeFieldNames';
 
-class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
+class MongoDbPriorityQueueStore<TItem extends object, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected client: MongoClient;
 
   protected db: Db;
@@ -33,7 +33,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
 
   protected functionCallQueue: PQueue;
 
-  protected static getPriority<TItem> ({ queue }: { queue: Queue<TItem> }): number {
+  protected static getPriority<TGetPriorityItem> ({ queue }: { queue: Queue<TGetPriorityItem> }): number {
     if (queue.lock && queue.lock.until > Date.now()) {
       return Number.MAX_SAFE_INTEGER;
     }
@@ -64,14 +64,14 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> (
+  public static async create<TCreateItem extends object, TCreateItemIdentifier> (
     {
       doesIdentifierMatchItem,
       expirationTime = 15_000,
       connectionString,
       collectionNames
-    }: MongoDbPriorityQueueStoreOptions<TItem, TItemIdentifier>
-  ): Promise<MongoDbPriorityQueueStore<TItem, TItemIdentifier>> {
+    }: MongoDbPriorityQueueStoreOptions<TCreateItem, TCreateItemIdentifier>
+  ): Promise<MongoDbPriorityQueueStore<TCreateItem, TCreateItemIdentifier>> {
     const client = await retry(async (): Promise<MongoClient> => {
       const connection = await MongoClient.connect(
         connectionString,
@@ -93,7 +93,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
       queues: db.collection(collectionNames.queues)
     };
 
-    return new MongoDbPriorityQueueStore<TItem, TItemIdentifier>({
+    return new MongoDbPriorityQueueStore<TCreateItem, TCreateItemIdentifier>({
       client,
       db,
       collectionNames,
@@ -259,6 +259,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
       { discriminator },
       {
         session,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         projection: { _id: 0 }
       }
     );
@@ -278,6 +279,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
       { indexInPriorityQueue },
       {
         session,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         projection: { _id: 0 }
       }
     );
@@ -529,7 +531,7 @@ class MongoDbPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueue
     }
 
     if (foundItemIndex === 0) {
-      if (queue?.lock && queue.lock.until > Date.now()) {
+      if (queue.lock && queue.lock.until > Date.now()) {
         throw new errors.ItemNotFound();
       }
 

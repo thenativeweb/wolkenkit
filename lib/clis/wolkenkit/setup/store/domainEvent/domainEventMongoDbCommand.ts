@@ -56,7 +56,7 @@ const domainEventMongoDbCommand = function (): Command<DomainEventMongoDbOptions
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the MongoDB domain event store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the MongoDB domain event store.');
 
         throw ex;

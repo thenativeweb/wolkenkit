@@ -6,6 +6,7 @@ import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { isCustomError } from 'defekt';
 import { jsonSchema } from '../../../../common/utils/uuid';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
@@ -70,8 +71,8 @@ const postRemoveFile = {
 
       try {
         new Value(requestBodySchema).validate(req.body, { valueName: 'requestBody' });
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.RequestMalformed((ex as Error).message);
 
         res.status(400).json({ code: error.code, message: error.message });
 
@@ -116,20 +117,22 @@ const postRemoveFile = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex) {
-        switch (ex.code) {
+      } catch (ex: unknown) {
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
+
+        switch (error.code) {
           case errors.NotAuthenticated.code: {
-            res.status(401).json({ code: ex.code, message: ex.message });
+            res.status(401).json({ code: error.code, message: error.message });
             break;
           }
           case errors.FileNotFound.code: {
-            res.status(404).json({ code: ex.code, message: ex.message });
+            res.status(404).json({ code: error.code, message: error.message });
             break;
           }
           default: {
-            logger.error('An unknown error occured.', { ex });
-
-            const error = new errors.UnknownError(ex.message);
+            logger.error('An unknown error occured.', { ex: error });
 
             res.status(500).json({ code: error.code, message: error.message });
           }

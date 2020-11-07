@@ -21,7 +21,7 @@ const messages = {
         };
       },
 
-      async handle (_options, { infrastructure }) {
+      async handle (options, { infrastructure }) {
         if (Array.isArray(infrastructure.ask.viewStore.messages)) {
           const sortedMessages = [ ...infrastructure.ask.viewStore.messages ].reverse();
 

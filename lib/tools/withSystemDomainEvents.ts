@@ -42,7 +42,7 @@ const withSystemDomainEvents: ApplicationEnhancer = (application): Application =
             return state;
           },
 
-          isAuthorized (_state, domainEvent, { client }): boolean {
+          isAuthorized (state, domainEvent, { client }): boolean {
             return domainEvent.metadata.initiator.user.id === client.user.id;
           }
         };

@@ -30,7 +30,7 @@ import { State } from '../../../../common/elements/State';
   try {
     registerExceptionHandler();
 
-    const configuration = fromEnvironmentVariables({ configurationDefinition });
+    const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
     const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
@@ -103,7 +103,7 @@ import { State } from '../../../../common/elements/State';
         });
       });
     }
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);
   }

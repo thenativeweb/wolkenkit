@@ -254,7 +254,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
           data.on('data', (stuff: any): void => {
             try {
               assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
-            } catch (ex) {
+            } catch (ex: unknown) {
               reject(ex);
             }
           });

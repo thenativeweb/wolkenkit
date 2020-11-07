@@ -40,7 +40,7 @@ class Client extends HttpClient {
     }
 
     if (status === 404) {
-      return undefined;
+      return;
     }
 
     switch (data.code) {
@@ -55,7 +55,7 @@ class Client extends HttpClient {
     }
   }
 
-  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
   }): Promise<PassThrough> {
     const { status, data } = await axios({
@@ -91,7 +91,7 @@ class Client extends HttpClient {
     );
   }
 
-  public async hasDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async hasDomainEventsWithCausationId ({ causationId }: {
     causationId: string;
   }): Promise<boolean> {
     const { status, data } = await axios({
@@ -111,7 +111,7 @@ class Client extends HttpClient {
     return data.hasDomainEventsWithCausationId;
   }
 
-  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
   }): Promise<PassThrough> {
     const { status, data } = await axios({
@@ -251,7 +251,7 @@ class Client extends HttpClient {
     }
 
     if (status === 404) {
-      return undefined;
+      return;
     }
 
     switch (data.code) {

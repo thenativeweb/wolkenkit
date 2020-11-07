@@ -6,14 +6,14 @@ import { getV2 } from './v2';
 import { IdentityProvider } from 'limes';
 import express, { Application as ExpressApplication } from 'express';
 
-const getApi = async function<TItem> ({ application, corsOrigin, identityProviders }: {
+const getApi = async function ({ application, corsOrigin, identityProviders }: {
   application: Application;
   corsOrigin: CorsOrigin;
   identityProviders: IdentityProvider[];
 }): Promise<{ api: ExpressApplication; getApiDefinitions: (basePath: string) => ApiDefinition[] }> {
   const api = express();
 
-  const v2 = await getV2<TItem>({
+  const v2 = await getV2({
     application,
     corsOrigin,
     identityProviders

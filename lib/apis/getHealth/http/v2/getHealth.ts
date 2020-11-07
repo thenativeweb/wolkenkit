@@ -64,8 +64,9 @@ const getHealth = {
   },
 
   getHandler (): WolkenkitRequestHandler {
-    return function (_req, res): void {
+    return function (req, res): void {
       const { arch, platform, version, pid } = process;
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       const { userCPUTime, systemCPUTime, maxRSS, fsRead, fsWrite } = process.resourceUsage();
       const { rss, heapTotal, heapUsed, external } = process.memoryUsage();
       const uptime = process.uptime();

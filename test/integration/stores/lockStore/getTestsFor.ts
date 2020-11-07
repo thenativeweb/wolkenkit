@@ -7,7 +7,7 @@ import { sleep } from '../../../../lib/common/utils/sleep';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createLockStore }: {
-  createLockStore ({ suffix }: { suffix: string }): Promise<LockStore>;
+  createLockStore: ({ suffix }: { suffix: string }) => Promise<LockStore>;
 }): void {
   let lockStore: LockStore,
       suffix: string,
@@ -168,4 +168,5 @@ const getTestsFor = function ({ createLockStore }: {
 };
 /* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 
+// eslint-disable-next-line mocha/no-exports
 export { getTestsFor };

@@ -3,9 +3,10 @@ import { AggregateEnhancer } from '../../tools/AggregateEnhancer';
 import { DomainDefinition } from './DomainDefinition';
 import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
+import fs from 'fs';
+import { isErrnoException } from '../utils/isErrnoException';
 import path from 'path';
 import { validateAggregateDefinition } from '../validators/validateAggregateDefinition';
-import { constants, promises as fs } from 'fs';
 
 const getDomainDefinition = async function ({ domainDirectory }: {
   domainDirectory: string;
@@ -16,7 +17,7 @@ const getDomainDefinition = async function ({ domainDirectory }: {
 
   const domainDefinition: DomainDefinition = {};
 
-  for (const contextDirectory of await fs.readdir(domainDirectory, { withFileTypes: true })) {
+  for (const contextDirectory of await fs.promises.readdir(domainDirectory, { withFileTypes: true })) {
     if (!contextDirectory.isDirectory()) {
       continue;
     }
@@ -26,7 +27,7 @@ const getDomainDefinition = async function ({ domainDirectory }: {
 
     domainDefinition[contextName] = {};
 
-    for (const aggregateEntry of await fs.readdir(contextPath, { withFileTypes: true })) {
+    for (const aggregateEntry of await fs.promises.readdir(contextPath, { withFileTypes: true })) {
       const aggregateName = path.basename(aggregateEntry.name, '.js'),
             aggregatePath = path.join(contextPath, aggregateEntry.name);
 
@@ -38,8 +39,8 @@ const getDomainDefinition = async function ({ domainDirectory }: {
         const indexPath = path.join(aggregatePath, 'index.js');
 
         try {
-          await fs.access(indexPath, constants.R_OK);
-        } catch (ex) {
+          await fs.promises.access(indexPath, fs.constants.R_OK);
+        } catch {
           throw new errors.FileNotFound(`No aggregate definition in '<app>/build/server/domain/${contextName}/${aggregateName}' found.`);
         }
       }
@@ -48,12 +49,12 @@ const getDomainDefinition = async function ({ domainDirectory }: {
 
       try {
         rawAggregate = (await import(aggregatePath)).default;
-      } catch (ex) {
+      } catch (ex: unknown) {
         if (ex instanceof SyntaxError) {
           throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/domain/${contextName}/${aggregateName}'.`, { cause: ex });
         }
-        if (ex.code === 'MODULE_NOT_FOUND') {
-          throw new errors.ApplicationMalformed(`Missing import in '<app>/build/server/domain/${contextName}/${aggregateName}'.`, { cause: ex });
+        if (isErrnoException(ex) && ex.code === 'MODULE_NOT_FOUND') {
+          throw new errors.ApplicationMalformed(`Missing import in '<app>/build/server/domain/${contextName}/${aggregateName}'.`, { cause: ex as Error });
         }
 
         throw new errors.FileNotFound(`No aggregate definition in '<app>/build/server/domain/${contextName}/${aggregateName}' found.`);
@@ -63,8 +64,8 @@ const getDomainDefinition = async function ({ domainDirectory }: {
         validateAggregateDefinition({
           aggregateDefinition: rawAggregate
         });
-      } catch (ex) {
-        throw new errors.AggregateDefinitionMalformed(`Aggregate definition '<app>/build/server/domain/${contextName}/${aggregateName}' is malformed: ${ex.message}`);
+      } catch (ex: unknown) {
+        throw new errors.AggregateDefinitionMalformed(`Aggregate definition '<app>/build/server/domain/${contextName}/${aggregateName}' is malformed: ${(ex as Error).message}`);
       }
 
       const aggregateEnhancers = (rawAggregate.enhancers || []) as AggregateEnhancer[];

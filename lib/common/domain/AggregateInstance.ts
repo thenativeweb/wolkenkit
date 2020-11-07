@@ -4,6 +4,7 @@ import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { CommandData } from '../elements/CommandData';
 import { CommandWithMetadata } from '../elements/CommandWithMetadata';
 import { ContextIdentifier } from '../elements/ContextIdentifier';
+import { CustomError } from 'defekt';
 import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
 import { DomainEventHandler } from '../elements/DomainEventHandler';
@@ -123,7 +124,7 @@ class AggregateInstance<TState extends State> {
     this.repository = repository;
   }
 
-  public static async create <TState extends State> ({
+  public static async create <TCreateState extends State> ({
     application,
     contextIdentifier,
     aggregateIdentifier,
@@ -152,7 +153,7 @@ class AggregateInstance<TState extends State> {
       getNotificationService?: GetNotificationService;
     };
     repository: Repository;
-  }): Promise<AggregateInstance<TState>> {
+  }): Promise<AggregateInstance<TCreateState>> {
     if (!(contextIdentifier.name in application.domain)) {
       throw new errors.ContextNotFound();
     }
@@ -163,9 +164,9 @@ class AggregateInstance<TState extends State> {
       throw new errors.AggregateNotFound();
     }
 
-    const initialState = contextDefinition[aggregateIdentifier.name].getInitialState() as TState;
+    const initialState = contextDefinition[aggregateIdentifier.name].getInitialState() as TCreateState;
 
-    const aggregateInstance = new AggregateInstance<TState>({
+    const aggregateInstance = new AggregateInstance<TCreateState>({
       application,
       contextIdentifier,
       aggregateIdentifier,
@@ -179,7 +180,7 @@ class AggregateInstance<TState extends State> {
       repository
     });
 
-    const snapshot = await domainEventStore.getSnapshot<TState>({
+    const snapshot = await domainEventStore.getSnapshot<TCreateState>({
       aggregateIdentifier
     });
 
@@ -303,18 +304,18 @@ class AggregateInstance<TState extends State> {
 
       await this.storeCurrentAggregateState();
       domainEvents = this.unstoredDomainEvents;
-    } catch (ex) {
-      switch (ex.code) {
+    } catch (ex: unknown) {
+      switch ((ex as CustomError).code) {
         case errors.CommandNotAuthorized.code:
         case errors.CommandRejected.code: {
           handleServices.aggregate.publishDomainEvent(`${command.name}Rejected`, {
-            reason: ex.message
+            reason: (ex as Error).message
           });
           break;
         }
         default: {
           handleServices.aggregate.publishDomainEvent(`${command.name}Failed`, {
-            reason: ex.message
+            reason: (ex as Error).message
           });
         }
       }

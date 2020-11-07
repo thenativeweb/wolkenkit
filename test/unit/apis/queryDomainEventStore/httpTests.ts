@@ -45,7 +45,7 @@ suite('queryDomainEventStore/http', (): void => {
           data.on('data', (stuff: any): void => {
             try {
               assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
-            } catch (ex) {
+            } catch (ex: unknown) {
               reject(ex);
             }
           });
@@ -279,7 +279,7 @@ suite('queryDomainEventStore/http', (): void => {
           data.on('data', (stuff: any): void => {
             try {
               assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
-            } catch (ex) {
+            } catch (ex: unknown) {
               reject(ex);
             }
           });
@@ -727,7 +727,7 @@ suite('queryDomainEventStore/http', (): void => {
           data.on('data', (stuff: any): void => {
             try {
               assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
-            } catch (ex) {
+            } catch (ex: unknown) {
               reject(ex);
             }
           });
@@ -820,7 +820,7 @@ suite('queryDomainEventStore/http', (): void => {
             try {
               assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
               await collector.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await collector.fail(ex);
             }
           },
@@ -828,7 +828,7 @@ suite('queryDomainEventStore/http', (): void => {
             try {
               assert.that(domainEvent).is.atLeast({ id: domainEvent1.id });
               await collector.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await collector.fail(ex);
             }
           },
@@ -836,7 +836,7 @@ suite('queryDomainEventStore/http', (): void => {
             try {
               assert.that(domainEvent).is.atLeast({ id: domainEvent2.id });
               await collector.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await collector.fail(ex);
             }
           }
@@ -987,7 +987,7 @@ suite('queryDomainEventStore/http', (): void => {
           data.on('data', (stuff: any): void => {
             try {
               assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
-            } catch (ex) {
+            } catch (ex: unknown) {
               reject(ex);
             }
           });
@@ -1080,7 +1080,7 @@ suite('queryDomainEventStore/http', (): void => {
             try {
               assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
               await collector.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await collector.fail(ex);
             }
           },
@@ -1088,7 +1088,7 @@ suite('queryDomainEventStore/http', (): void => {
             try {
               assert.that(domainEvent).is.atLeast({ id: domainEvent1.id });
               await collector.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await collector.fail(ex);
             }
           },
@@ -1096,7 +1096,7 @@ suite('queryDomainEventStore/http', (): void => {
             try {
               assert.that(domainEvent).is.atLeast({ id: domainEvent2.id });
               await collector.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await collector.fail(ex);
             }
           }

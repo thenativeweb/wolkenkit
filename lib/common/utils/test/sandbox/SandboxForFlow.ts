@@ -4,17 +4,17 @@ import { DomainEventData } from '../../../elements/DomainEventData';
 import { DomainEventForFlowSandbox } from './DomainEventForFlowSandbox';
 
 export interface SandboxForFlow {
-  when <TDomainEventData extends DomainEventData>(
+  when: <TDomainEventData extends DomainEventData>(
     domainEvent: DomainEventForFlowSandbox<TDomainEventData>
-  ): SandboxForFlowWithResult;
+  ) => SandboxForFlowWithResult;
 }
 
 export interface SandboxForFlowWithResult {
-  and <TDomainEventData extends DomainEventData>(
+  and: <TDomainEventData extends DomainEventData>(
     domainEvent: DomainEventForFlowSandbox<TDomainEventData>
-  ): SandboxForFlowWithResult;
+  ) => SandboxForFlowWithResult;
 
-  then(callback: ((parameters: {
+  then: (callback: ((parameters: {
     commands: Command<CommandData>[];
-  }) => void | Promise<void>)): Promise<void>;
+  }) => void | Promise<void>)) => Promise<void>;
 }

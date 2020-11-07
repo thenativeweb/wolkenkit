@@ -147,8 +147,8 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
             `,
             parameters: [ hash, aggregateIdentifier.id, revision ]
           });
-        } catch (ex) {
-          if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
+        } catch (ex: unknown) {
+          if ((ex as MysqlError).code === 'ER_DUP_ENTRY' && (ex as MysqlError).sqlMessage?.endsWith('for key \'PRIMARY\'')) {
             throw new errors.RevisionTooLow();
           }
 
@@ -209,8 +209,8 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
             `,
             parameters: [ hash, aggregateIdentifier.id, isReplaying ? isReplaying.from : null, isReplaying ? isReplaying.to : null ]
           });
-        } catch (ex) {
-          if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
+        } catch (ex: unknown) {
+          if ((ex as MysqlError).code === 'ER_DUP_ENTRY' && (ex as MysqlError).sqlMessage?.endsWith('for key \'PRIMARY\'')) {
             throw new errors.FlowIsAlreadyReplaying();
           }
 
@@ -260,13 +260,13 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
 
     try {
       await runQuery({ connection, query: createUuidToBinFunction });
-    } catch (ex) {
+    } catch (ex: unknown) {
       // If the function already exists, we can ignore this error; otherwise
       // rethrow it. Generally speaking, this should be done using a SQL clause
       // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
       // there is a ready-made function UUID_TO_BIN, but this is only available
       // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidToBin already exists')) {
+      if (!(ex as Error).message.includes('FUNCTION UuidToBin already exists')) {
         throw ex;
       }
     }
@@ -285,13 +285,13 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
 
     try {
       await runQuery({ connection, query: createUuidFromBinFunction });
-    } catch (ex) {
+    } catch (ex: unknown) {
       // If the function already exists, we can ignore this error; otherwise
       // rethrow it. Generally speaking, this should be done using a SQL clause
       // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
       // there is a ready-made function BIN_TO_UUID, but this is only available
       // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidFromBin already exists')) {
+      if (!(ex as Error).message.includes('FUNCTION UuidFromBin already exists')) {
         throw ex;
       }
     }

@@ -36,7 +36,7 @@ const buildCommand = function (): Command<BuildOptions> {
         buntstift.info(`Building the '${name}' application...`);
         await buildApplication({ applicationDirectory });
         buntstift.success(`Built the '${name}' application.`);
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to build the application.');
 
         throw ex;

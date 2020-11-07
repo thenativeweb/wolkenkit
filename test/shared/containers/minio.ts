@@ -33,6 +33,7 @@ const minio = {
         const client = new Client({
           endPoint: hostName,
           port,
+          // eslint-disable-next-line @typescript-eslint/naming-convention
           useSSL: encryptConnection,
           accessKey,
           secretKey
@@ -40,8 +41,8 @@ const minio = {
 
         await client.listBuckets();
       }, retryOptions);
-    } catch (ex) {
-      buntstift.info(ex.message);
+    } catch (ex: unknown) {
+      buntstift.info((ex as Error).message);
       buntstift.error('Failed to connect to Minio.');
       throw ex;
     }

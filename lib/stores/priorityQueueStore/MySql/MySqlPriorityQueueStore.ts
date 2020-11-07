@@ -15,7 +15,7 @@ import { v4 } from 'uuid';
 import { withTransaction } from '../../utils/mySql/withTransaction';
 import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
 
-class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
+class MySqlPriorityQueueStore<TItem extends object, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;
 
   protected pool: Pool;
@@ -73,7 +73,7 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> (
+  public static async create<TCreateItem extends object, TCreateItemIdentifier> (
     {
       doesIdentifierMatchItem,
       expirationTime = 15_000,
@@ -83,8 +83,8 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
       password,
       database,
       tableNames
-    }: MySqlPriorityQueueStoreOptions<TItem, TItemIdentifier>
-  ): Promise<MySqlPriorityQueueStore<TItem, TItemIdentifier>> {
+    }: MySqlPriorityQueueStoreOptions<TCreateItem, TCreateItemIdentifier>
+  ): Promise<MySqlPriorityQueueStore<TCreateItem, TCreateItemIdentifier>> {
     const pool = createPool({
       host: hostName,
       port,
@@ -102,7 +102,7 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
       connection.on('end', MySqlPriorityQueueStore.onUnexpectedClose);
     });
 
-    return new MySqlPriorityQueueStore<TItem, TItemIdentifier>({
+    return new MySqlPriorityQueueStore<TCreateItem, TCreateItemIdentifier>({
       tableNames,
       pool,
       doesIdentifierMatchItem,
@@ -447,8 +447,11 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
         `,
         parameters: [ discriminator, nextIndexInPriorityQueue ]
       });
-    } catch (ex) {
-      if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
+    } catch (ex: unknown) {
+      if (
+        (ex as MysqlError).code === 'ER_DUP_ENTRY' &&
+        (ex as MysqlError).sqlMessage?.endsWith('for key \'PRIMARY\'')
+      ) {
         return;
       }
 
@@ -694,7 +697,7 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
     }
 
     if (foundItemIndex === 0) {
-      if (queue?.lock && queue.lock.until > Date.now()) {
+      if (queue.lock && queue.lock.until > Date.now()) {
         throw new errors.ItemNotFound();
       }
 
@@ -770,13 +773,13 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
 
     try {
       await runQuery({ connection, query: createUuidToBinFunction });
-    } catch (ex) {
+    } catch (ex: unknown) {
       // If the function already exists, we can ignore this error; otherwise
       // rethrow it. Generally speaking, this should be done using a SQL clause
       // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
       // there is a ready-made function UUID_TO_BIN, but this is only available
       // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidToBin already exists')) {
+      if (!(ex as Error).message.includes('FUNCTION UuidToBin already exists')) {
         throw ex;
       }
     }
@@ -795,13 +798,13 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
 
     try {
       await runQuery({ connection, query: createUuidFromBinFunction });
-    } catch (ex) {
+    } catch (ex: unknown) {
       // If the function already exists, we can ignore this error; otherwise
       // rethrow it. Generally speaking, this should be done using a SQL clause
       // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
       // there is a ready-made function BIN_TO_UUID, but this is only available
       // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidFromBin already exists')) {
+      if (!(ex as Error).message.includes('FUNCTION UuidFromBin already exists')) {
         throw ex;
       }
     }

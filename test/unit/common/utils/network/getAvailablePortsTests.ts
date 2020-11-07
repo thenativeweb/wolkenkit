@@ -23,10 +23,10 @@ suite('getAvailablePorts', (): void => {
   });
 
   test('returns a list of available ports.', async (): Promise<void> => {
-    const firstServer = http.createServer((_req, res): void => {
+    const firstServer = http.createServer((req, res): void => {
       res.end();
     });
-    const secondServer = http.createServer((_req, res): void => {
+    const secondServer = http.createServer((req, res): void => {
       res.end();
     });
 
@@ -60,10 +60,10 @@ suite('getAvailablePorts', (): void => {
   });
 
   test('returns a list of available port that are not in use.', async (): Promise<void> => {
-    const firstServer = http.createServer((_req, res): void => {
+    const firstServer = http.createServer((req, res): void => {
       res.end();
     });
-    const secondServer = http.createServer((_req, res): void => {
+    const secondServer = http.createServer((req, res): void => {
       res.end();
     });
 

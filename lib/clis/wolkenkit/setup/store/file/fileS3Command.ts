@@ -83,7 +83,7 @@ const fileS3Command = function (): Command<FileS3Options> {
         await store.setup();
         await store.destroy();
         buntstift.success('Successfully set up the S3 file store.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to set up the S3 file store.');
 
         throw ex;

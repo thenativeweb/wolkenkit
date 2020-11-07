@@ -6,7 +6,7 @@ import { getApi as getAwaitCommandWithMetadataApi } from '../../../../apis/await
 import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getHandleCommandWithMetadataApi } from '../../../../apis/handleCommandWithMetadata/http';
-import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { OnCancelCommand } from '../../../../apis/handleCommandWithMetadata/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
@@ -26,7 +26,7 @@ const getApi = async function ({
 }: {
   configuration: Configuration;
   application: Application;
-  priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>;
+  priorityQueueStore: PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifier>;
   newCommandSubscriber: Subscriber<object>;
   newCommandPubSubChannel: string;
   onReceiveCommand: OnReceiveCommand;

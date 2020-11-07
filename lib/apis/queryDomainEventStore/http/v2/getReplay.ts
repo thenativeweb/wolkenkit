@@ -1,6 +1,7 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { forAwaitOf } from '../../../../common/utils/forAwaitOf';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
+import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -17,7 +18,7 @@ const getReplay = {
       },
       required: [],
       additionalProperties: false
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400 ],
@@ -39,8 +40,8 @@ const getReplay = {
     return async function (req, res): Promise<any> {
       try {
         querySchema.validate(req.query, { valueName: 'requestQuery' });
-      } catch (ex) {
-        return res.status(400).send(ex.message);
+      } catch (ex: unknown) {
+        return res.status(400).send((ex as Error).message);
       }
 
       const fromTimestamp = req.query.fromTimestamp as number;

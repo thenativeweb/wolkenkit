@@ -35,7 +35,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   commandDispatcherPort: {
     environmentVariable: 'COMMAND_DISPATCHER_PORT',
-    defaultValue: 3000,
+    defaultValue: 3_000,
     schema: portSchema
   },
   commandDispatcherProtocol: {
@@ -60,7 +60,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   healthPort: {
     environmentVariable: 'HEALTH_PORT',
-    defaultValue: 3001,
+    defaultValue: 3_001,
     schema: portSchema
   },
   identityProviders: {
@@ -73,7 +73,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   },
   port: {
     environmentVariable: 'PORT',
-    defaultValue: 3000,
+    defaultValue: 3_000,
     schema: portSchema
   }
 };

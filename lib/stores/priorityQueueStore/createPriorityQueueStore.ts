@@ -7,7 +7,7 @@ import { PriorityQueueStore } from './PriorityQueueStore';
 import { PriorityQueueStoreOptions } from './PriorityQueueStoreOptions';
 import { SqlServerPriorityQueueStore } from './SqlServer';
 
-const createPriorityQueueStore = async function<TItem, TItemIdentifier> (
+const createPriorityQueueStore = async function<TItem extends object, TItemIdentifier> (
   options: PriorityQueueStoreOptions<TItem, TItemIdentifier>
 ): Promise<PriorityQueueStore<TItem, TItemIdentifier>> {
   switch (options.type) {

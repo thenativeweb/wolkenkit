@@ -1,8 +1,8 @@
-import { classNames, createUseStyles, Theme } from 'thenativeweb-ux';
+import { classNames, createUseStyles } from 'thenativeweb-ux';
 import { HintClassNames, styles } from './styles';
 import React, { CSSProperties, FunctionComponent, ReactElement } from 'react';
 
-const useStyles = createUseStyles<Theme, HintClassNames>(styles);
+const useStyles = createUseStyles<HintClassNames>(styles);
 
 interface HintProps {
   className?: string;

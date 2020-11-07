@@ -27,7 +27,7 @@ const getNotificationsFieldConfiguration = function ({ application, notification
     required: [ 'name', 'data' ]
   };
 
-  const notificationGraphQL = getGraphqlFromJsonSchema({
+  const notificationGraphQl = getGraphqlFromJsonSchema({
     schema: notificationSchemaForGraphQl,
     rootName: `notification`
   });
@@ -47,11 +47,11 @@ const getNotificationsFieldConfiguration = function ({ application, notification
   }
 
   return {
-    type: buildSchema(notificationGraphQL.typeDefinitions.join('\n')).getType(notificationGraphQL.typeName) as GraphQLObjectType,
+    type: buildSchema(notificationGraphQl.typeDefinitions.join('\n')).getType(notificationGraphQl.typeName) as GraphQLObjectType,
     description,
     async * subscribe (
-      _source,
-      _args,
+      innerSource,
+      args,
       { clientMetadata }: ResolverContext
     ): AsyncIterator<Notification> {
       const clientService = getClientService({ clientMetadata });
@@ -59,7 +59,7 @@ const getNotificationsFieldConfiguration = function ({ application, notification
       for await (const [ notification ] of notificationEmitter) {
         try {
           validateNotification({ notification, application });
-        } catch (ex) {
+        } catch {
           logger.warn('Dropping invalid notification.', { notification });
 
           continue;

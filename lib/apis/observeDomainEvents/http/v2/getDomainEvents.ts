@@ -11,6 +11,7 @@ import { getLoggerService } from '../../../../common/services/getLoggerService';
 import PQueue from 'p-queue';
 import { prepareForPublication } from '../../../../common/domain/domainEvent/prepareForPublication';
 import { Repository } from '../../../../common/domain/Repository';
+import { Schema } from '../../../../common/elements/Schema';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
 import { Value } from 'validate-value';
@@ -31,7 +32,7 @@ const getDomainEvents = {
         filter: { type: 'object' }
       },
       additionalProperties: false
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400 ],
@@ -59,8 +60,8 @@ const getDomainEvents = {
     return async function (req: Request, res: Response): Promise<void> {
       try {
         querySchema.validate(req.query, { valueName: 'requestQuery' });
-      } catch (ex) {
-        res.status(400).end(ex.message);
+      } catch (ex: unknown) {
+        res.status(400).end((ex as Error).message);
 
         return;
       }
@@ -71,7 +72,7 @@ const getDomainEvents = {
 
       try {
         const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
-        const domainEventFilter = (req.query.filter ?? {}) as object;
+        const domainEventFilter = (req.query.filter ?? {}) as Record<string, unknown>;
 
         handleDomainEvent = (domainEventWithState): void => {
           /* eslint-disable @typescript-eslint/no-floating-promises */
@@ -104,7 +105,7 @@ const getDomainEvents = {
           });
           /* eslint-enable @typescript-eslint/no-floating-promises */
         };
-      } catch (ex) {
+      } catch (ex: unknown) {
         logger.error('An unknown error occured.', { ex });
 
         const error = new errors.UnknownError();
@@ -120,20 +121,20 @@ const getDomainEvents = {
       try {
         res.startStream({ heartbeatInterval });
 
-        res.connection.once('close', (): void => {
+        res.socket?.once('close', (): void => {
           domainEventEmitter.off(handleDomainEvent);
           domainEventQueue.clear();
         });
 
         domainEventEmitter.on(handleDomainEvent);
-      } catch (ex) {
+      } catch (ex: unknown) {
         // It can happen that the connection gets closed in the background, and
         // hence the underlying socket does not have a remote address any more. We
         // can't detect this using an if statement, because connection handling is
         // done by Node.js in a background thread, and we may have a race
         // condition here. So, we decided to actively catch this exception, and
         // take it as an indicator that the connection has been closed meanwhile.
-        if (ex.message === 'Remote address is missing.') {
+        if (ex instanceof Error && ex.message === 'Remote address is missing.') {
           return;
         }
 

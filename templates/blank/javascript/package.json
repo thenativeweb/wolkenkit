@@ -4,8 +4,8 @@
   "description": "",
   "dependencies": {},
   "devDependencies": {
-    "mocha": "8.1.3",
-    "run-script-os": "1.1.1"
+    "mocha": "8.2.1",
+    "run-script-os": "1.1.3"
   },
   "scripts": {
     "test": "run-script-os",

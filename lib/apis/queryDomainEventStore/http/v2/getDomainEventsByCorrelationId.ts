@@ -2,6 +2,7 @@ import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEven
 import { forAwaitOf } from '../../../../common/utils/forAwaitOf';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { jsonSchema } from '../../../../common/utils/uuid';
+import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -18,7 +19,7 @@ const getDomainEventsByCorrelationId = {
       },
       required: [ 'correlation-id' ],
       additionalProperties: false
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200 ],
@@ -40,8 +41,8 @@ const getDomainEventsByCorrelationId = {
     return async function (req, res): Promise<any> {
       try {
         querySchema.validate(req.query, { valueName: 'requestQuery' });
-      } catch (ex) {
-        res.status(400).end(ex.message);
+      } catch (ex: unknown) {
+        res.status(400).end((ex as Error).message);
       }
 
       const correlationId = req.query['correlation-id'] as string;

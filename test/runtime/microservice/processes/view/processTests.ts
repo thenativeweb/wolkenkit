@@ -183,7 +183,7 @@ suite('view', function (): void {
                 data: {}
               });
               await counter.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await counter.fail(ex);
             }
           },
@@ -194,7 +194,7 @@ suite('view', function (): void {
                 data: {}
               });
               await counter.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await counter.fail(ex);
             }
           }

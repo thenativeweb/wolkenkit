@@ -38,7 +38,7 @@ class Client extends HttpClient {
   }
 
   public async getDomainEvents ({ filter = {}}: {
-    filter?: object;
+    filter?: Record<string, unknown>;
   }): Promise<PassThrough> {
     const { data, status } = await axios({
       method: 'get',
@@ -61,7 +61,6 @@ class Client extends HttpClient {
       throw new errors.UnknownError();
     }
 
-    const passThrough = new PassThrough({ objectMode: true });
     const jsonParser = new ParseJsonTransform();
     const heartbeatFilter = new FilterHeartbeatsTransform();
 
@@ -69,7 +68,6 @@ class Client extends HttpClient {
       data,
       jsonParser,
       heartbeatFilter,
-      passThrough,
       (err): void => {
         if (err) {
           // Do not handle errors explicitly. The returned stream will just close.

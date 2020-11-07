@@ -1,9 +1,9 @@
-import { createHash } from 'crypto';
+import crypto from 'crypto';
 
 const getHash = function ({ value }: {
   value: string;
 }): string {
-  const hash = createHash('sha256').update(value).digest('hex');
+  const hash = crypto.createHash('sha256').update(value).digest('hex');
 
   return hash;
 };

@@ -103,20 +103,16 @@ const getIterator = function (stream) {
 };
 
 class Wolkenkit {
-  constructor ({ protocol = 'http', hostName = 'localhost', port = 3000 } = {}) {
+  constructor ({ protocol = 'http', hostName = 'localhost', port = 3_000 } = {}) {
     this.protocol = protocol;
     this.hostName = hostName;
     this.port = port;
   }
 
   async issueCommand ({ contextIdentifier, aggregateIdentifier, name, data }) {
-    let url;
-
-    if (aggregateIdentifier.id) {
-      url = `${this.protocol}://${this.hostName}:${this.port}/command/v2/${contextIdentifier.name}/${aggregateIdentifier.name}/${aggregateIdentifier.id}/${name}`;
-    } else {
-      url = `${this.protocol}://${this.hostName}:${this.port}/command/v2/${contextIdentifier.name}/${aggregateIdentifier.name}/${name}`;
-    }
+    const url = aggregateIdentifier.id ?
+      `${this.protocol}://${this.hostName}:${this.port}/command/v2/${contextIdentifier.name}/${aggregateIdentifier.name}/${aggregateIdentifier.id}/${name}` :
+      `${this.protocol}://${this.hostName}:${this.port}/command/v2/${contextIdentifier.name}/${aggregateIdentifier.name}/${name}`;
 
     let response;
 

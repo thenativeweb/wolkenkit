@@ -32,7 +32,7 @@ const buildCommand = function (): Command<BuildOptions> {
         exec(`npx next export -o '${outputDirectory}'`, { cwd: documentationDirectory });
 
         buntstift.success('Built documentation.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to build documentation.');
 
         throw ex;

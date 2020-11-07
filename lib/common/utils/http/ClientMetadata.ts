@@ -21,13 +21,7 @@ class ClientMetadata {
 
     const headers = req.headers['x-forwarded-for'];
 
-    let header;
-
-    if (isArray(headers)) {
-      header = headers[0];
-    } else {
-      header = headers;
-    }
+    const header = isArray(headers) ? headers[0] : headers;
 
     this.ip = header ?? req.connection.remoteAddress ?? '';
   }

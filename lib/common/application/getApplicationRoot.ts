@@ -1,5 +1,6 @@
 import { errors } from '../errors';
 import fs from 'fs';
+import { isErrnoException } from '../utils/isErrnoException';
 import path from 'path';
 
 const getApplicationRoot = async function ({ directory }: {
@@ -7,8 +8,8 @@ const getApplicationRoot = async function ({ directory }: {
 }): Promise<string> {
   try {
     await fs.promises.access(directory, fs.constants.R_OK);
-  } catch (ex) {
-    if (ex.code === 'ENOENT') {
+  } catch (ex: unknown) {
+    if (isErrnoException(ex) && ex.code === 'ENOENT') {
       throw new errors.DirectoryNotFound();
     }
 
@@ -19,8 +20,8 @@ const getApplicationRoot = async function ({ directory }: {
 
   try {
     await fs.promises.access(packageJsonPath, fs.constants.R_OK);
-  } catch (ex) {
-    if (ex.code === 'ENOENT') {
+  } catch (ex: unknown) {
+    if (isErrnoException(ex) && ex.code === 'ENOENT') {
       const upperDirectory = path.join(directory, '..');
 
       if (upperDirectory === directory) {

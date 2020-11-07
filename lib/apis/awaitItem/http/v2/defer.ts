@@ -1,8 +1,10 @@
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
+import { isCustomError } from 'defekt';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { jsonSchema } from '../../../../common/utils/uuid';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
+import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -23,14 +25,14 @@ const defer = {
       },
       required: [ 'discriminator', 'token', 'priority' ],
       additionalProperties: false
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400, 403, 404, 415 ],
-    body: { type: 'object' }
+    body: { type: 'object' } as Schema
   },
 
-  getHandler<TItem> ({
+  getHandler<TItem extends object> ({
     priorityQueueStore
   }: {
     priorityQueueStore: PriorityQueueStore<TItem, ItemIdentifier>;
@@ -58,8 +60,8 @@ const defer = {
 
       try {
         requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.RequestMalformed((ex as Error).message);
 
         res.status(400).json({
           code: error.code,
@@ -85,11 +87,15 @@ const defer = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex) {
-        switch (ex.code) {
+      } catch (ex: unknown) {
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
+
+        switch (error.code) {
           case errors.TokenMismatch.code: {
             res.status(403).json({
-              code: ex.code,
+              code: error.code,
               message: `Token mismatch for discriminator '${discriminator}'.`
             });
 
@@ -97,18 +103,18 @@ const defer = {
           }
           case errors.ItemNotFound.code: {
             res.status(404).json({
-              code: ex.code,
-              message: ex.message
+              code: error.code,
+              message: error.message
             });
 
             return;
           }
           default: {
-            logger.error('An unknown error occured.', { ex });
+            logger.error('An unknown error occured.', { ex: error });
 
             res.status(500).json({
-              code: ex.code ?? errors.UnknownError.code,
-              message: ex.message
+              code: error.code,
+              message: error.message
             });
           }
         }

@@ -13,14 +13,14 @@ const getOnReceiveCommand = function ({ commandDispatcher }: {
     try {
       await retry(async (): Promise<void> => {
         await commandDispatcher.client.postCommand({ command });
-      }, { retries: commandDispatcher.retries, maxTimeout: 1000 });
+      }, { retries: commandDispatcher.retries, maxTimeout: 1_000 });
 
       logger.info('Command sent to command dispatcher.', { command });
-    } catch (ex) {
+    } catch (ex: unknown) {
       logger.error('Failed to send command to command dispatcher.', { command, ex });
 
       throw new errors.RequestFailed('Failed to send command to command dispatcher.', {
-        cause: ex,
+        cause: ex as Error,
         data: { command }
       });
     }

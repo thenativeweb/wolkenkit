@@ -20,7 +20,6 @@ const getQueryFieldConfiguration = function ({ application, viewName, queryName,
   queryName: string;
   queryHandler: QueryHandler<any, any>;
 }): GraphQLFieldConfig<{ viewName: string }, ResolverContext> {
-  // eslint-disable-next-line @typescript-eslint/unbound-method
   if (!queryHandler.getResultItemSchema) {
     throw new errors.GraphQlError(`Result item schema in query '${viewName}.${queryName}' is missing, but required for GraphQL.`);
   }
@@ -39,7 +38,6 @@ const getQueryFieldConfiguration = function ({ application, viewName, queryName,
 
   const argumentConfigurationMap: GraphQLFieldConfigArgumentMap = {};
 
-  // eslint-disable-next-line @typescript-eslint/unbound-method
   if (queryHandler.getOptionsSchema) {
     const optionsSchema = queryHandler.getOptionsSchema();
     const optionsGraphqlTypeDefinitions = getGraphqlFromJsonSchema({
@@ -58,7 +56,7 @@ const getQueryFieldConfiguration = function ({ application, viewName, queryName,
     type: resultGraphqlType,
     args: argumentConfigurationMap,
     description: queryHandler.getDocumentation?.() ?? 'No documentation available.',
-    async resolve (_source, { options: rawOptions }, { clientMetadata }): Promise<any> {
+    async resolve (source, { options: rawOptions }, { clientMetadata }): Promise<any> {
       const options = addMissingPrototype({ value: rawOptions });
 
       const resultStream = await executeQueryHandler({

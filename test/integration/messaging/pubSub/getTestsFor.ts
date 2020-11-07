@@ -6,8 +6,8 @@ import { waitForSignals } from 'wait-for-signals';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createPublisher, createSubscriber }: {
-  createPublisher<T extends object> (): Promise<Publisher<T>>;
-  createSubscriber<T extends object> (): Promise<Subscriber<T>>;
+  createPublisher: <T extends object> () => Promise<Publisher<T>>;
+  createSubscriber: <T extends object> () => Promise<Subscriber<T>>;
 }): void {
   let publisher: Publisher<{ data: any }>,
       subscriber: Subscriber<{ data: any }>;
@@ -120,4 +120,5 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
 };
 /* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 
+// eslint-disable-next-line mocha/no-exports
 export { getTestsFor };

@@ -3,23 +3,23 @@ import { FileMetadata } from './FileMetadata';
 import { Readable } from 'stream';
 
 export interface FileStore {
-  addFile ({ id, name, contentType, stream }: FileAddMetadata & {
+  addFile: ({ id, name, contentType, stream }: FileAddMetadata & {
     stream: Readable;
-  }): Promise<FileMetadata>;
+  }) => Promise<FileMetadata>;
 
-  getFile ({ id }: {
+  getFile: ({ id }: {
     id: string;
-  }): Promise<Readable>;
+  }) => Promise<Readable>;
 
-  getMetadata ({ id }: {
+  getMetadata: ({ id }: {
     id: string;
-  }): Promise<FileMetadata>;
+  }) => Promise<FileMetadata>;
 
-  removeFile ({ id }: {
+  removeFile: ({ id }: {
     id: string;
-  }): Promise<void>;
+  }) => Promise<void>;
 
-  setup (): Promise<void>;
+  setup: () => Promise<void>;
 
-  destroy (): Promise<void>;
+  destroy: () => Promise<void>;
 }

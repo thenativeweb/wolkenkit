@@ -174,7 +174,7 @@ const initCommand = function (): Command<InitOptions> {
 
         buntstift.newLine();
         printFooter();
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to initialize the application.');
 
         throw ex;
