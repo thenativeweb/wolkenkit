@@ -186,7 +186,7 @@
     "nodeenv": "3.0.26",
     "react": "17.0.1",
     "react-dom": "17.0.1",
-    "record-stdstreams": "3.0.26",
+    "record-stdstreams": "3.0.27",
     "roboter": "11.5.7",
     "subscriptions-transport-ws": "0.9.18",
     "thenativeweb-ux": "5.7.18",
