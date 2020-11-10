@@ -189,7 +189,7 @@
     "record-stdstreams": "3.0.26",
     "roboter": "11.5.7",
     "subscriptions-transport-ws": "0.9.18",
-    "thenativeweb-ux": "5.7.17",
+    "thenativeweb-ux": "5.7.18",
     "wait-for-signals": "1.2.1",
     "ws": "7.4.0"
   },
