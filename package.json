@@ -159,7 +159,7 @@
     "p-queue": "6.6.2",
     "partof": "3.0.1",
     "pg": "8.4.2",
-    "pg-query-stream": "3.3.2",
+    "pg-query-stream": "3.4.1",
     "processenv": "3.0.3",
     "retry-ignore-abort": "2.2.8",
     "runfork": "3.1.31",
