@@ -158,7 +158,7 @@
     "p-forever": "2.1.0",
     "p-queue": "6.6.2",
     "partof": "3.0.1",
-    "pg": "8.4.2",
+    "pg": "8.5.0",
     "pg-query-stream": "3.4.1",
     "processenv": "3.0.3",
     "retry-ignore-abort": "2.2.8",
