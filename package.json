@@ -173,8 +173,8 @@
     "validate-value": "7.0.0"
   },
   "devDependencies": {
-    "@types/react": "16.9.56",
-    "@types/react-dom": "16.9.9",
+    "@types/react": "17.0.0",
+    "@types/react-dom": "17.0.0",
     "apollo-cache-inmemory": "1.6.6",
     "apollo-client": "2.6.10",
     "apollo-link-http": "1.5.17",
@@ -189,7 +189,7 @@
     "record-stdstreams": "3.0.29",
     "roboter": "11.5.10",
     "subscriptions-transport-ws": "0.9.18",
-    "thenativeweb-ux": "5.8.4",
+    "thenativeweb-ux": "5.8.7",
     "wait-for-signals": "1.2.1",
     "ws": "7.4.0"
   },
