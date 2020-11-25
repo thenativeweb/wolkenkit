@@ -6,7 +6,6 @@ import { CustomError } from 'defekt';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
-import { jsonSchema } from '../../../../common/utils/uuid';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
@@ -29,11 +28,11 @@ const postCommand = {
     body: {
       type: 'object',
       properties: {
-        id: jsonSchema,
+        id: { type: 'string', format: 'uuid' },
         aggregateIdentifier: {
           type: 'object',
           properties: {
-            id: jsonSchema
+            id: { type: 'string', format: 'uuid' }
           },
           required: [ 'id' ],
           additionalProperties: false

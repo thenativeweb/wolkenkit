@@ -2,7 +2,6 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { isCustomError } from 'defekt';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
-import { jsonSchema } from '../../../../common/utils/uuid';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
@@ -20,7 +19,7 @@ const defer = {
       type: 'object',
       properties: {
         discriminator: { type: 'string', minLength: 1 },
-        token: jsonSchema,
+        token: { type: 'string', format: 'uuid' },
         priority: { type: 'number', minimum: 0 }
       },
       required: [ 'discriminator', 'token', 'priority' ],

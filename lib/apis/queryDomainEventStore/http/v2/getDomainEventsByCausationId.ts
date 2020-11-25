@@ -1,6 +1,5 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { jsonSchema } from '../../../../common/utils/uuid';
 import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -14,7 +13,7 @@ const getDomainEventsByCausationId = {
     query: {
       type: 'object',
       properties: {
-        'causation-id': jsonSchema
+        'causation-id': { type: 'string', format: 'uuid' }
       },
       required: [ 'causation-id' ],
       additionalProperties: false

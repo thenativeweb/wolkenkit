@@ -7,7 +7,6 @@ import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { isCustomError } from 'defekt';
-import { jsonSchema } from '../../../../common/utils/uuid';
 import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -27,7 +26,7 @@ const postAddFile = {
     headers: {
       type: 'object',
       properties: {
-        'x-id': jsonSchema,
+        'x-id': { type: 'string', format: 'uuid' },
         'x-name': { type: 'string', minLength: 1 },
         'content-type': { type: 'string', pattern: contentTypeRegexAsString }
       },

@@ -1,6 +1,5 @@
 import { flaschenpost } from 'flaschenpost';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
-import { jsonSchema } from '../../../../common/utils/uuid';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Response } from 'express';
 import { Schema } from '../../../../common/elements/Schema';
@@ -28,7 +27,7 @@ const awaitItem = {
           type: 'object',
           properties: {
             discriminator: { type: 'string', minLength: 1 },
-            token: jsonSchema
+            token: { type: 'string', format: 'uuid' }
           },
           required: [ 'discriminator', 'token' ],
           additionalProperties: false

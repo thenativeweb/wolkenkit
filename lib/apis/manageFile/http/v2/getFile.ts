@@ -8,7 +8,6 @@ import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { isCustomError } from 'defekt';
-import { jsonSchema } from '../../../../common/utils/uuid';
 import { pipeline as pipelineCallback } from 'stream';
 import { promisify } from 'util';
 import { Value } from 'validate-value';
@@ -35,7 +34,10 @@ const getFile = {
       const { id } = req.params;
 
       try {
-        new Value(jsonSchema).validate(id, { valueName: 'uuid' });
+        new Value({
+          type: 'string',
+          format: 'uuid'
+        }).validate(id, { valueName: 'uuid' });
       } catch (ex: unknown) {
         const error = new errors.RequestMalformed((ex as Error).message);
 

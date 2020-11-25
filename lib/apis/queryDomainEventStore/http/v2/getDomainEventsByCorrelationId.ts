@@ -1,6 +1,5 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { jsonSchema } from '../../../../common/utils/uuid';
 import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -14,7 +13,7 @@ const getDomainEventsByCorrelationId = {
     query: {
       type: 'object',
       properties: {
-        'correlation-id': jsonSchema
+        'correlation-id': { type: 'string', format: 'uuid' }
       },
       required: [ 'correlation-id' ],
       additionalProperties: false
