@@ -90,7 +90,7 @@ suite('handleDomainEvent/http', (): void => {
         const { status, data } = await client({
           method: 'post',
           url: '/v2/',
-          data: { domainEvent: { foo: 'bar' }},
+          data: { domainEvent: {}},
           responseType: 'text',
           validateStatus (): boolean {
             return true;
