@@ -73,13 +73,7 @@ class PostgresLockStore implements LockStore {
       throw err;
     });
 
-    await new Promise((resolve, reject): void => {
-      try {
-        disconnectWatcher.connect(resolve);
-      } catch (ex: unknown) {
-        reject(ex);
-      }
-    });
+    await disconnectWatcher.connect();
 
     return new PostgresLockStore({
       tableNames,

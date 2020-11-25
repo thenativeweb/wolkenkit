@@ -31,7 +31,7 @@ const releasePort = async function ({ port }: { port: number }): Promise<void> {
     throw new Error(`Port ${port} is not locked.`);
   }
 
-  await new Promise((resolve, reject): void => {
+  await new Promise<void>((resolve, reject): void => {
     server.close(async (err): Promise<void> => {
       if (err) {
         return reject(err);

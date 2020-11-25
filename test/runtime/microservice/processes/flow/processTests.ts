@@ -392,7 +392,7 @@ suite('flow server', function (): void {
       await aeonstoreClient.storeDomainEvents({ domainEvents: [ domainEvent ]});
       await handleDomainEventClient.postDomainEvent({ domainEvent });
 
-      await new Promise((resolve, reject): void => {
+      await new Promise<void>((resolve, reject): void => {
         messageStreamNotification.on('error', (err: any): void => {
           reject(err);
         });

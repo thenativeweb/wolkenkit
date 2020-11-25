@@ -108,7 +108,7 @@ suite('graphql', function (): void {
 
     await initializeGraphQlOnServer({ server });
 
-    await new Promise((resolve, reject): void => {
+    await new Promise<void>((resolve, reject): void => {
       server.listen(port, (): void => {
         resolve();
       });
@@ -321,7 +321,7 @@ suite('graphql', function (): void {
 
       await initializeGraphQlOnServer({ server });
 
-      await new Promise((resolve, reject): void => {
+      await new Promise<void>((resolve, reject): void => {
         server.listen(port, (): void => {
           resolve();
         });

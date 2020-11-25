@@ -197,7 +197,7 @@ suite('domain event', function (): void {
 
       const domainEventStream = await observeDomainEventsClient.getDomainEvents({});
 
-      await new Promise(async (resolve, reject): Promise<void> => {
+      await new Promise<void>(async (resolve, reject): Promise<void> => {
         try {
           domainEventStream.pipe(asJsonStream<DomainEvent<any>>(
             [
@@ -242,7 +242,7 @@ suite('domain event', function (): void {
         });
       }, 50);
 
-      await new Promise(async (resolve, reject): Promise<void> => {
+      await new Promise<void>(async (resolve, reject): Promise<void> => {
         try {
           const domainEventStream = await observeDomainEventsClient.getDomainEvents({});
 

@@ -84,7 +84,7 @@ const getTestsFor = function ({ createPublisher, createSubscriber }: {
     await subscriber.unsubscribe({ channel, callback });
     await publisher.publish({ channel, message });
 
-    await new Promise((resolve): void => {
+    await new Promise<void>((resolve): void => {
       setTimeout(resolve, 100);
     });
 

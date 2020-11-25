@@ -108,7 +108,7 @@ suite('subscribeNotifications/http', function (): void {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -146,7 +146,7 @@ suite('subscribeNotifications/http', function (): void {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -187,7 +187,7 @@ suite('subscribeNotifications/http', function (): void {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -225,7 +225,7 @@ suite('subscribeNotifications/http', function (): void {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -263,7 +263,7 @@ suite('subscribeNotifications/http', function (): void {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });

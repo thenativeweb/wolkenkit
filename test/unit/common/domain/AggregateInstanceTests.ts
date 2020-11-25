@@ -415,7 +415,7 @@ suite('AggregateInstance', (): void => {
 
         const eventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           eventStream.on('error', (err: any): void => {
             reject(err);
           });

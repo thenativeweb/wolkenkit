@@ -34,9 +34,10 @@ suite('compileApplication', function (): void {
       "use strict";
       exports.__esModule = true;
       exports.add = void 0;
-      exports.add = function (left, right) {
+      var add = function (left, right) {
           return left + right;
       };
+      exports.add = add;
     `}\n`;
 
     assert.that(actualJavascript).is.equalTo(expectedJavascript);
@@ -66,9 +67,10 @@ suite('compileApplication', function (): void {
       "use strict";
       exports.__esModule = true;
       exports.add = void 0;
-      exports.add = function (left, right) {
+      var add = function (left, right) {
           return left + right;
       };
+      exports.add = add;
     `}\n`;
 
     assert.that(actualJavascript).is.equalTo(expectedJavascript);

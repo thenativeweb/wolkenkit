@@ -147,7 +147,7 @@ suite('main', function (): void {
 
       await handleCommandClient.postCommand({ command });
 
-      await new Promise((resolve, reject): void => {
+      await new Promise<void>((resolve, reject): void => {
         eventStream.on('error', (err: any): void => {
           reject(err);
         });

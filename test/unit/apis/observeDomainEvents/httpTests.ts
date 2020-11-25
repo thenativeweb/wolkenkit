@@ -164,7 +164,7 @@ suite('observeDomainEvents/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -226,7 +226,7 @@ suite('observeDomainEvents/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -299,7 +299,7 @@ suite('observeDomainEvents/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -371,7 +371,7 @@ suite('observeDomainEvents/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -569,7 +569,7 @@ suite('observeDomainEvents/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -695,7 +695,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -780,7 +780,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -849,7 +849,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -922,7 +922,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1005,7 +1005,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1088,7 +1088,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1157,7 +1157,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1230,7 +1230,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1314,7 +1314,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1397,7 +1397,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1466,7 +1466,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });

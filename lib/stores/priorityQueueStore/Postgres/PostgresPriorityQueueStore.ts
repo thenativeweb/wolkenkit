@@ -104,13 +104,7 @@ class PostgresPriorityQueueStore<TItem extends object, TItemIdentifier> implemen
       throw err;
     });
 
-    await new Promise((resolve, reject): void => {
-      try {
-        disconnectWatcher.connect(resolve);
-      } catch (ex: unknown) {
-        reject(ex);
-      }
-    });
+    await disconnectWatcher.connect();
 
     return new PostgresPriorityQueueStore<TCreateItem, TCreateItemIdentifier>({
       pool,

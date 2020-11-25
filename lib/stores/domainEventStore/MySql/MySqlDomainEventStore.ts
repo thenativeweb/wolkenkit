@@ -493,8 +493,13 @@ class MySqlDomainEventStore implements DomainEventStore {
   }
 
   public async destroy (): Promise<void> {
-    await new Promise((resolve): void => {
-      this.pool.end(resolve);
+    await new Promise<void>((resolve, reject): void => {
+      this.pool.end((err: MysqlError | null): void => {
+        if (err) {
+          return reject(err);
+        }
+        resolve();
+      });
     });
   }
 }

@@ -41,7 +41,7 @@ suite('queryDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('data', (stuff: any): void => {
             try {
               assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
@@ -98,7 +98,7 @@ suite('queryDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           let counter = 0;
 
           data.on('error', reject);
@@ -186,7 +186,7 @@ suite('queryDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           let counter = 0;
 
           data.on('error', reject);
@@ -275,7 +275,7 @@ suite('queryDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('data', (stuff: any): void => {
             try {
               assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
@@ -332,7 +332,7 @@ suite('queryDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           let counter = 0;
 
           data.on('error', reject);
@@ -417,7 +417,7 @@ suite('queryDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           let counter = 0;
 
           data.on('error', reject);
@@ -486,7 +486,7 @@ suite('queryDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        await new Promise(async (resolve, reject): Promise<void> => {
+        await new Promise<void>(async (resolve, reject): Promise<void> => {
           let counter = 0;
 
           data.on('error', reject);
@@ -723,7 +723,7 @@ suite('queryDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('data', (stuff: any): void => {
             try {
               assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
@@ -983,7 +983,7 @@ suite('queryDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(200);
         assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('data', (stuff: any): void => {
             try {
               assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });

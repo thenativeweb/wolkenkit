@@ -122,7 +122,7 @@ class RedisLockStore implements LockStore {
   public async destroy (): Promise<void> {
     this.client.removeListener('error', RedisLockStore.onUnexpectedError);
 
-    await new Promise((resolve, reject): void => {
+    await new Promise<void>((resolve, reject): void => {
       this.client.quit((err): void => {
         if (err) {
           return reject(err);

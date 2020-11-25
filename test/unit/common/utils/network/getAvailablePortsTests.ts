@@ -42,12 +42,12 @@ suite('getAvailablePorts', (): void => {
       isSecondPortInUse = true;
     });
 
-    await new Promise((resolve): void => {
+    await new Promise<void>((resolve): void => {
       firstServer.listen(firstPort, (): void => {
         resolve();
       });
     });
-    await new Promise((resolve): void => {
+    await new Promise<void>((resolve): void => {
       secondServer.listen(secondPort, (): void => {
         resolve();
       });
@@ -69,12 +69,12 @@ suite('getAvailablePorts', (): void => {
 
     const [ firstPort, secondPort ] = await getAvailablePorts({ count: 2 });
 
-    await new Promise((resolve): void => {
+    await new Promise<void>((resolve): void => {
       firstServer.listen(firstPort, (): void => {
         resolve();
       });
     });
-    await new Promise((resolve): void => {
+    await new Promise<void>((resolve): void => {
       secondServer.listen(secondPort, (): void => {
         resolve();
       });

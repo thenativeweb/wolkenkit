@@ -94,7 +94,7 @@ import { Value } from 'validate-value';
 
     await runHealthServer({ corsOrigin: configuration.corsOrigin, port: configuration.healthPort });
 
-    await new Promise((resolve): void => {
+    await new Promise<void>((resolve): void => {
       server.listen(configuration.port, (): void => {
         resolve();
       });

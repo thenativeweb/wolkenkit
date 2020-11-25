@@ -264,7 +264,7 @@ suite('domain', function (): void {
 
       await handleCommandWithMetadataClient.postCommand({ command });
 
-      await new Promise((resolve, reject): void => {
+      await new Promise<void>((resolve, reject): void => {
         messageStream.on('error', (err: any): void => {
           reject(err);
         });
@@ -328,7 +328,7 @@ suite('domain', function (): void {
 
       await handleCommandWithMetadataClient.postCommand({ command });
 
-      await new Promise((resolve, reject): void => {
+      await new Promise<void>((resolve, reject): void => {
         messageStreamNewDomainEvent.on('error', (err: any): void => {
           reject(err);
         });
@@ -421,7 +421,7 @@ suite('domain', function (): void {
 
       const eventStream = await queryDomainEventStoreClient.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
 
-      await new Promise((resolve, reject): void => {
+      await new Promise<void>((resolve, reject): void => {
         eventStream.on('error', (err: any): void => {
           reject(err);
         });
@@ -506,7 +506,7 @@ suite('domain', function (): void {
       await handleCommandWithMetadataClient.postCommand({ command: command1 });
       await handleCommandWithMetadataClient.postCommand({ command: command2 });
 
-      await new Promise((resolve, reject): void => {
+      await new Promise<void>((resolve, reject): void => {
         messageStream.on('error', (err: any): void => {
           reject(err);
         });
@@ -611,7 +611,7 @@ suite('domain', function (): void {
 
       await handleCommandWithMetadataClient.postCommand({ command });
 
-      await new Promise((resolve, reject): void => {
+      await new Promise<void>((resolve, reject): void => {
         messageStreamNotification.on('error', (err: any): void => {
           reject(err);
         });

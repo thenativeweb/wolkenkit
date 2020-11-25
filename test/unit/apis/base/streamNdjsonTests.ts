@@ -48,7 +48,7 @@ suite('streamNdjson middleware', (): void => {
       responseType: 'stream'
     });
 
-    await new Promise((resolve, reject): void => {
+    await new Promise<void>((resolve, reject): void => {
       try {
         data.pipe(asJsonStream<any>([
           (streamElement): void => {

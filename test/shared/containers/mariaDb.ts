@@ -59,8 +59,13 @@ const mariaDb = {
       throw ex;
     }
 
-    await new Promise((resolve): void => {
-      pool.end(resolve);
+    await new Promise<void>((resolve, reject): void => {
+      pool.end((err: MysqlError | null): void => {
+        if (err) {
+          return reject(err);
+        }
+        resolve();
+      });
     });
   },
 

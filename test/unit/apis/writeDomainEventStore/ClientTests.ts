@@ -77,7 +77,7 @@ suite('writeDomainEventStore/http/Client', (): void => {
 
         const domainEventReplay = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
 
-        await new Promise((resolve): void => {
+        await new Promise<void>((resolve): void => {
           domainEventReplay.pipe(asJsonStream(
             [
               (domainEvent): void => {

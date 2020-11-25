@@ -17,7 +17,7 @@ suite('getAvailablePort', (): void => {
       isPortInUse = true;
     });
 
-    await new Promise((resolve): void => {
+    await new Promise<void>((resolve): void => {
       server.listen(availablePort, (): void => {
         resolve();
       });
@@ -35,7 +35,7 @@ suite('getAvailablePort', (): void => {
 
     const availablePortFirst = await getAvailablePort();
 
-    await new Promise((resolve): void => {
+    await new Promise<void>((resolve): void => {
       server.listen(availablePortFirst, (): void => {
         resolve();
       });

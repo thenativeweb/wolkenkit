@@ -41,7 +41,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
 
         const data = await client.getReplay({});
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('data', (): void => {
             reject(new Error('Stream should not have sent data.'));
           });
@@ -92,7 +92,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
 
         const data = await client.getReplay({});
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           let counter = 0;
 
           data.on('error', reject);
@@ -177,7 +177,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
 
         const data = await client.getReplay({ fromTimestamp: 2 });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           let counter = 0;
 
           data.on('error', reject);
@@ -250,7 +250,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
 
         const data = await client.getReplayForAggregate({ aggregateId: differentAggregateIdentifier.id });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('data', (stuff: any): void => {
             try {
               assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
@@ -305,7 +305,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
 
         const data = await client.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           let counter = 0;
 
           data.on('error', reject);
@@ -387,7 +387,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
 
         const data = await client.getReplayForAggregate({ aggregateId: aggregateIdentifier.id, fromRevision: 2, toRevision: 2 });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           let counter = 0;
 
           data.on('error', reject);
@@ -453,7 +453,7 @@ suite('queryDomainEventStore/http/Client', (): void => {
 
         const data = await client.getReplayForAggregate({ aggregateId: aggregateIdentifier.id, toRevision: 1 });
 
-        await new Promise(async (resolve, reject): Promise<void> => {
+        await new Promise<void>(async (resolve, reject): Promise<void> => {
           let counter = 0;
 
           data.on('error', reject);

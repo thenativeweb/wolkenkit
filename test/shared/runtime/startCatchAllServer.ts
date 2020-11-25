@@ -24,7 +24,7 @@ const startCatchAllServer = async function ({ port, onRequest, parseJson = true 
 
   const server = http.createServer(app);
 
-  await new Promise((resolve, reject): void => {
+  await new Promise<void>((resolve, reject): void => {
     try {
       server.on('error', (err): void => {
         reject(err);

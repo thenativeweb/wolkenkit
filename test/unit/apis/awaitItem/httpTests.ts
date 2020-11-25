@@ -89,7 +89,7 @@ suite('awaitItem/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise(async (resolve, reject): Promise<void> => {
+        await new Promise<void>(async (resolve, reject): Promise<void> => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -141,7 +141,7 @@ suite('awaitItem/http', (): void => {
           message: {}
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -195,7 +195,7 @@ suite('awaitItem/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve): void => {
+        await new Promise<void>((resolve): void => {
           dataFirstTry.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
@@ -217,7 +217,7 @@ suite('awaitItem/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           dataSecondTry.on('error', (err: any): void => {
             reject(err);
           });
@@ -285,7 +285,7 @@ suite('awaitItem/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           dataSecondTry.on('error', (err: any): void => {
             reject(err);
           });
@@ -302,7 +302,7 @@ suite('awaitItem/http', (): void => {
           ]));
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           dataSecondTry.on('error', (err: any): void => {
             reject(err);
           });
@@ -428,9 +428,12 @@ suite('awaitItem/http', (): void => {
             reject(err);
           });
 
-          lockData.on('close', (): void => {
-            resolve();
-          });
+          // TODO[2020-11-26]: The line below breaks compilation, but should
+          // not be needed at all – resolve is called from within further down
+          // below, and there should always be results, shouldn't it?
+          // LockData.on('close', (): void => {
+          //   resolve();
+          // });
 
           lockData.pipe(asJsonStream([
             (streamElement): void => {
@@ -466,7 +469,7 @@ suite('awaitItem/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise(async (resolve, reject): Promise<void> => {
+        await new Promise<void>(async (resolve, reject): Promise<void> => {
           unavailableLockData.on('error', (err: any): void => {
             reject(err);
           });
@@ -636,7 +639,7 @@ suite('awaitItem/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           secondLockData.on('error', (err: any): void => {
             reject(err);
           });
@@ -873,7 +876,7 @@ suite('awaitItem/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           thirdLockData.on('error', (err: any): void => {
             reject(err);
           });

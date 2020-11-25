@@ -132,7 +132,7 @@ suite('observeDomainEvents/http/Client', function (): void {
 
         const data = await client.getDomainEvents({});
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -195,7 +195,7 @@ suite('observeDomainEvents/http/Client', function (): void {
 
         const data = await client.getDomainEvents({});
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -263,7 +263,7 @@ suite('observeDomainEvents/http/Client', function (): void {
 
         const data = await client.getDomainEvents({ filter: { name: 'executed' }});
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -330,7 +330,7 @@ suite('observeDomainEvents/http/Client', function (): void {
           name: 'executed'
         }});
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -380,7 +380,7 @@ suite('observeDomainEvents/http/Client', function (): void {
 
         const data = await client.getDomainEvents({});
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });

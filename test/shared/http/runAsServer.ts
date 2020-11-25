@@ -10,7 +10,7 @@ const runAsServer = async function ({ app }: {
 
   const port = await getAvailablePort();
 
-  await new Promise((resolve, reject): void => {
+  await new Promise<void>((resolve, reject): void => {
     server.listen(port, (): void => {
       resolve();
     });
