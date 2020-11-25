@@ -9,8 +9,8 @@ const getDomainEventSchemaForGraphql = function (): Schema {
     description: `The event's payload as a JSON string.`
   };
 
-  delete domainEventSchema.properties!.metadata!.properties!.initiator!.properties!.user!.properties!.claims;
-  domainEventSchema.properties!.metadata!.properties!.initiator!.properties!.user!.required = [ 'id' ];
+  delete (((domainEventSchema.properties!.metadata! as Schema).properties!.initiator! as Schema).properties!.user! as Schema).properties!.claims;
+  (((domainEventSchema.properties!.metadata! as Schema).properties!.initiator! as Schema).properties!.user! as Schema).required = [ 'id' ];
 
   return domainEventSchema;
 };

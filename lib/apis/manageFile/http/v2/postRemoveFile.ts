@@ -70,7 +70,7 @@ const postRemoveFile = {
       }
 
       try {
-        new Value(requestBodySchema).validate(req.body, { valueName: 'requestBody' });
+        requestBodySchema.validate(req.body, { valueName: 'requestBody' });
       } catch (ex: unknown) {
         const error = new errors.RequestMalformed((ex as Error).message);
 

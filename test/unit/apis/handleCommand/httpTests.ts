@@ -591,7 +591,9 @@ suite('handleCommand/http', (): void => {
           method: 'post',
           url: `/v2/cancel`,
           data: {
-            foo: 'bar'
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'execute',
+            id: v4()
           },
           responseType: 'text',
           validateStatus (): boolean {

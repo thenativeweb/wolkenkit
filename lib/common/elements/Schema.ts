@@ -1,3 +1,3 @@
-import { JSONSchema4 as Schema } from 'json-schema';
+import { JSONSchema7 as Schema } from 'json-schema';
 
 export { Schema };
