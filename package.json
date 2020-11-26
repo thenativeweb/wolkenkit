@@ -184,7 +184,6 @@
     "next": "10.0.3",
     "node-fetch": "2.6.1",
     "nodeenv": "3.0.30",
-    "npm-check": "5.9.2",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "record-stdstreams": "3.0.30",
