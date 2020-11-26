@@ -162,7 +162,7 @@
     "pg-query-stream": "3.4.2",
     "processenv": "3.0.3",
     "retry-ignore-abort": "2.2.9",
-    "runfork": "3.1.34",
+    "runfork": "3.1.35",
     "saslprep": "1.0.3",
     "shelljs": "0.8.4",
     "stream-to-string": "1.2.0",
