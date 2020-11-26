@@ -7,7 +7,6 @@ import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { isCustomError } from 'defekt';
-import { jsonSchema } from '../../../../common/utils/uuid';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
@@ -23,7 +22,7 @@ const postRemoveFile = {
     body: {
       type: 'object',
       properties: {
-        id: jsonSchema
+        id: { type: 'string', format: 'uuid' }
       },
       required: [ 'id' ],
       additionalProperties: false
@@ -70,7 +69,7 @@ const postRemoveFile = {
       }
 
       try {
-        new Value(requestBodySchema).validate(req.body, { valueName: 'requestBody' });
+        requestBodySchema.validate(req.body, { valueName: 'requestBody' });
       } catch (ex: unknown) {
         const error = new errors.RequestMalformed((ex as Error).message);
 

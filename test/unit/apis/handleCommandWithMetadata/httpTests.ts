@@ -93,7 +93,7 @@ suite('handleCommandWithMetadata/http', (): void => {
         const { status, data } = await client({
           method: 'post',
           url: '/v2/',
-          data: { foo: 'bar' },
+          data: {},
           responseType: 'text',
           validateStatus (): boolean {
             return true;
@@ -516,7 +516,7 @@ suite('handleCommandWithMetadata/http', (): void => {
         const { status, data } = await client({
           method: 'post',
           url: '/v2/cancel',
-          data: { foo: 'bar' },
+          data: {},
           responseType: 'text',
           validateStatus (): boolean {
             return true;

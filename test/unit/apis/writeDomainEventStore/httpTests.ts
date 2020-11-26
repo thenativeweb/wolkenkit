@@ -119,7 +119,7 @@ suite('writeDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'Missing required property: contextIdentifier (at requestBody[0].contextIdentifier).'
+          message: 'Missing required property: contextIdentifier (at requestBody.0.contextIdentifier).'
         });
       });
 

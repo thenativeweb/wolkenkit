@@ -21,7 +21,7 @@ const getSnapshot = {
         aggregateIdentifier: getAggregateIdentifierSchema()
       },
       required: [ 'aggregateIdentifier' ],
-      additionalParameters: false
+      additionalProperties: false
     } as Schema
   },
   response: {

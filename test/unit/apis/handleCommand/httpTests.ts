@@ -167,7 +167,7 @@ suite('handleCommand/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'String does not match pattern: (?:^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}$)|(?:^0{8}-0{4}-0{4}-0{4}-0{12}$) (at command.aggregateIdentifier.id).'
+          message: 'Value does not satisfy format: uuid (at command.aggregateIdentifier.id).'
         });
       });
 
@@ -591,7 +591,9 @@ suite('handleCommand/http', (): void => {
           method: 'post',
           url: `/v2/cancel`,
           data: {
-            foo: 'bar'
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'execute',
+            id: v4()
           },
           responseType: 'text',
           validateStatus (): boolean {
