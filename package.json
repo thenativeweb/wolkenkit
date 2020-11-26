@@ -106,7 +106,7 @@
     "wolkenkit": "build/lib/bin/wolkenkit.js"
   },
   "engines": {
-    "node": ">=14.15.0"
+    "node": ">=14.15.1"
   },
   "dependencies": {
     "@types/async-retry": "1.4.2",
