@@ -1,4 +1,4 @@
-FROM node:14.15.0-alpine
+FROM node:14.15.1-alpine
 LABEL maintainer="the native web <hello@thenativeweb.io>"
 
 # This Docker image is actually not used anywhere, it is just there to get
