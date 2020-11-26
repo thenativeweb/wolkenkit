@@ -142,7 +142,7 @@
     "eventemitter2": "6.4.3",
     "express": "4.17.1",
     "flaschenpost": "4.3.23",
-    "get-cors-origin": "4.0.6",
+    "get-cors-origin": "4.0.8",
     "get-graphql-from-jsonschema": "7.0.1",
     "graphql": "15.4.0",
     "ioredis": "4.19.2",
