@@ -138,7 +138,7 @@
     "compression": "1.7.4",
     "content-type": "1.0.4",
     "cors": "2.8.5",
-    "defekt": "5.3.0",
+    "defekt": "6.0.0",
     "eventemitter2": "6.4.3",
     "express": "4.17.1",
     "flaschenpost": "4.3.23",
