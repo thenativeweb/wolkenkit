@@ -9,7 +9,8 @@ import { State } from './State';
 import { TellInfrastructure } from './TellInfrastructure';
 
 export interface Aggregate<
-  TState extends State = State,
+  TState extends State,
+  TInfrastructure extends AskInfrastructure & TellInfrastructure,
   TCommandDatas extends Record<string, CommandData> = Record<string, any>,
   TDomainEventDatas extends Record<string, DomainEventData> = Record<string, any>
 > {
@@ -19,7 +20,7 @@ export interface Aggregate<
     [commandName in keyof TCommandDatas]: CommandHandler<
     TState,
     TCommandDatas[commandName],
-    AskInfrastructure & TellInfrastructure
+    TInfrastructure
     >
   };
 
@@ -27,7 +28,7 @@ export interface Aggregate<
     [domainEventName in keyof TDomainEventDatas]: DomainEventHandler<
     TState,
     TDomainEventDatas[domainEventName],
-    AskInfrastructure & TellInfrastructure
+    TInfrastructure
     >
   };
 

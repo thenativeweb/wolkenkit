@@ -10,7 +10,9 @@ import { LoggerService } from '../common/services/LoggerService';
 import { State } from '../common/elements/State';
 import { TellInfrastructure } from '../common/elements/TellInfrastructure';
 
-const withoutTags: AggregateEnhancer = function (aggregate: Aggregate): Aggregate {
+const withoutTags: AggregateEnhancer = function (
+  aggregate: Aggregate<State, AskInfrastructure & TellInfrastructure>
+): Aggregate<State, AskInfrastructure & TellInfrastructure> {
   const enhancedDomainEventHandlers: Record<string, DomainEventHandler<State, DomainEventData, AskInfrastructure & TellInfrastructure>> = {};
 
   for (const domainEventName of Object.keys(aggregate.domainEventHandlers)) {
