@@ -8,12 +8,28 @@ import { GetInitialState } from './GetInitialState';
 import { State } from './State';
 import { TellInfrastructure } from './TellInfrastructure';
 
-export interface Aggregate<TState extends State = State> {
+export interface Aggregate<
+  TState extends State = State,
+  TCommandDatas extends Record<string, CommandData> = Record<string, any>,
+  TDomainEventDatas extends Record<string, DomainEventData> = Record<string, any>
+> {
   getInitialState: GetInitialState<TState>;
 
-  commandHandlers: Record<string, CommandHandler<TState, CommandData, AskInfrastructure & TellInfrastructure>>;
+  commandHandlers: {
+    [commandName in keyof TCommandDatas]: CommandHandler<
+    TState,
+    TCommandDatas[commandName],
+    AskInfrastructure & TellInfrastructure
+    >
+  };
 
-  domainEventHandlers: Record<string, DomainEventHandler<TState, DomainEventData, AskInfrastructure & TellInfrastructure>>;
+  domainEventHandlers: {
+    [domainEventName in keyof TDomainEventDatas]: DomainEventHandler<
+    TState,
+    TDomainEventDatas[domainEventName],
+    AskInfrastructure & TellInfrastructure
+    >
+  };
 
   enhancers?: AggregateEnhancer[];
 }
