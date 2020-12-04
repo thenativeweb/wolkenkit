@@ -1,11 +1,13 @@
+import { AskInfrastructure } from '../../../../lib/common/elements/AskInfrastructure';
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import { errors } from '../../../../lib/common/errors';
+import { TellInfrastructure } from '../../../../lib/common/elements/TellInfrastructure';
 import { validateViewDefinition } from '../../../../lib/common/validators/validateViewDefinition';
 import { View } from '../../../../lib/common/elements/View';
 
 suite('validateViewDefinition', (): void => {
-  const viewDefinition: View = {
+  const viewDefinition: View<AskInfrastructure & TellInfrastructure> = {
     queryHandlers: {}
   };
 
