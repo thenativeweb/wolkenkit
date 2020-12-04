@@ -6,7 +6,7 @@ import { NotificationService, NotificationSubscriber, QueryHandler, QueryResultI
 
 export interface AllResultItem extends QueryResultItem, Message {}
 
-const messages: View = {
+const messages: View<Infrastructure> = {
   queryHandlers: {
     all: {
       type: 'stream',

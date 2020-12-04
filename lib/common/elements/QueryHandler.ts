@@ -5,10 +5,11 @@ import { QueryOptions } from './QueryOptions';
 import { QueryResultItem } from './QueryResultItem';
 import { Readable } from 'stream';
 import { Schema } from './Schema';
+import { TellInfrastructure } from './TellInfrastructure';
 
 interface QueryHandlerReturnsValue<
   TQueryResultItem extends QueryResultItem,
-  TInfrastructure extends AskInfrastructure,
+  TInfrastructure extends AskInfrastructure & TellInfrastructure,
   TQueryOptions extends QueryOptions
 > {
   type: 'value';
@@ -21,7 +22,7 @@ interface QueryHandlerReturnsValue<
 }
 
 interface QueryHandlerReturnsStream<
-  TInfrastructure extends AskInfrastructure,
+  TInfrastructure extends AskInfrastructure & TellInfrastructure,
   TQueryOptions extends QueryOptions
 > {
   type: 'stream';
@@ -35,7 +36,7 @@ interface QueryHandlerReturnsStream<
 
 export type QueryHandler<
   TQueryResultItem extends QueryResultItem,
-  TInfrastructure extends AskInfrastructure,
+  TInfrastructure extends AskInfrastructure & TellInfrastructure,
   TQueryOptions extends QueryOptions = QueryOptions
 > = {
   getDocumentation?: () => string;

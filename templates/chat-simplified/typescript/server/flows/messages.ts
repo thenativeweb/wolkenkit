@@ -4,7 +4,7 @@ import { Message } from '../types/Message';
 import { Flow, FlowHandler } from 'wolkenkit';
 import { LikedData, SentData } from '../domain/communication/message';
 
-const messages: Flow = {
+const messages: Flow<Infrastructure> = {
   replayPolicy: 'always',
 
   domainEventHandlers: {

@@ -1,7 +1,8 @@
 import { Flow } from 'wolkenkit';
+import { Infrastructure } from '../../infrastructure';
 import { sampleHandler } from './handlers/sampleHandler';
 
-const sampleFlow: Flow = {
+const sampleFlow: Flow<Infrastructure> = {
   replayPolicy: 'never',
 
   domainEventHandlers: {

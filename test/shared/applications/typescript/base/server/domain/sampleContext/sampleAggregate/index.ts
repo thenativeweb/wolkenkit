@@ -1,11 +1,12 @@
 // @ts-ignore
-import { Aggregate, AskInfrastructure, State, TellInfrastructure } from 'wolkenkit';
+import { Aggregate } from 'wolkenkit';
 import { execute } from './commands/execute';
 import { executed } from './domainEvents/executed';
-import { getInitialState } from './SampleState';
+import { Infrastructure } from '../../../infrastructure';
 import { succeeded } from './domainEvents/succeeded';
+import { getInitialState, SampleState } from './SampleState';
 
-const sampleAggregate: Aggregate<State, AskInfrastructure & TellInfrastructure> = {
+const sampleAggregate: Aggregate<SampleState, Infrastructure> = {
   getInitialState,
   commandHandlers: {
     execute

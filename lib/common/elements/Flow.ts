@@ -1,13 +1,21 @@
-import { AskInfrastructure } from '../elements/AskInfrastructure';
-import { DomainEventData } from '../elements/DomainEventData';
+import { AskInfrastructure } from './AskInfrastructure';
+import { DomainEventData } from './DomainEventData';
 import { FlowEnhancer } from '../../tools/FlowEnhancer';
 import { FlowHandler } from './FlowHandler';
-import { TellInfrastructure } from '../elements/TellInfrastructure';
+import { TellInfrastructure } from './TellInfrastructure';
 
-export interface Flow {
+export interface Flow<
+  TInfrastructure extends AskInfrastructure & TellInfrastructure,
+  TDomainEventDatas extends Record<string, DomainEventData> = Record<string, any>
+> {
   replayPolicy: 'never' | 'on-demand' | 'always';
 
-  domainEventHandlers: Record<string, FlowHandler<DomainEventData, AskInfrastructure & TellInfrastructure>>;
+  domainEventHandlers: {
+    [domainEventName in keyof TDomainEventDatas]: FlowHandler<
+    TDomainEventDatas[domainEventName],
+    TInfrastructure
+    >
+  };
 
   enhancers?: FlowEnhancer[];
 }
