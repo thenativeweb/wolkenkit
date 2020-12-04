@@ -120,9 +120,9 @@
     "@types/lodash": "4.14.165",
     "@types/lru-cache": "5.1.0",
     "@types/minio": "7.0.6",
-    "@types/mongodb": "3.5.34",
+    "@types/mongodb": "3.6.0",
     "@types/mssql": "6.0.5",
-    "@types/mysql": "2.15.15",
+    "@types/mysql": "2.15.16",
     "@types/node": "14.14.10",
     "@types/pg": "7.14.7",
     "@types/pg-query-stream": "1.0.3",
@@ -159,7 +159,7 @@
     "p-queue": "6.6.2",
     "partof": "3.0.1",
     "pg": "8.5.1",
-    "pg-query-stream": "3.4.2",
+    "pg-query-stream": "4.0.0",
     "processenv": "3.0.3",
     "retry-ignore-abort": "2.2.11",
     "runfork": "3.1.37",
@@ -170,7 +170,7 @@
     "swagger-ui-express": "4.1.5",
     "untildify": "4.0.0",
     "uuid": "8.3.1",
-    "validate-value": "8.9.0"
+    "validate-value": "8.9.4"
   },
   "devDependencies": {
     "@types/react": "17.0.0",
@@ -190,7 +190,7 @@
     "record-stdstreams": "3.0.30",
     "roboter": "11.5.21",
     "subscriptions-transport-ws": "0.9.18",
-    "thenativeweb-ux": "5.8.12",
+    "thenativeweb-ux": "5.8.15",
     "wait-for-signals": "1.2.1",
     "ws": "7.4.0"
   },
