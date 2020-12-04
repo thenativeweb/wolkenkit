@@ -1,6 +1,6 @@
 {
   "name": "wolkenkit",
-  "version": "4.0.0-internal.83",
+  "version": "4.0.0-internal.88",
   "description": "wolkenkit is an open-source CQRS and event-sourcing framework based on Node.js, and it supports JavaScript and TypeScript.",
   "contributors": [
     {
@@ -188,7 +188,7 @@
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "record-stdstreams": "3.0.30",
-    "roboter": "11.5.16",
+    "roboter": "11.5.20",
     "subscriptions-transport-ws": "0.9.18",
     "thenativeweb-ux": "5.8.12",
     "wait-for-signals": "1.2.1",

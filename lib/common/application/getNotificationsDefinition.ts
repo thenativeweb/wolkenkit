@@ -1,17 +1,19 @@
+import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
 import { isErrnoException } from '../utils/isErrnoException';
 import { Notifications } from '../elements/Notifications';
+import { TellInfrastructure } from '../elements/TellInfrastructure';
 import { validateNotificationsDefinition } from '../validators/validateNotificationsDefinition';
 
 const getNotificationsDefinition = async function ({ notificationsDirectory }: {
   notificationsDirectory: string;
-}): Promise<Notifications> {
+}): Promise<Notifications<AskInfrastructure & TellInfrastructure>> {
   if (!await exists({ path: notificationsDirectory })) {
     throw new errors.DirectoryNotFound(`Directory '<app>/build/server/notifications' not found.`);
   }
 
-  let notificationsDefinition: Notifications;
+  let notificationsDefinition: Notifications<AskInfrastructure & TellInfrastructure>;
 
   try {
     notificationsDefinition = (await import(notificationsDirectory)).default;

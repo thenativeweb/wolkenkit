@@ -2,10 +2,11 @@
 import { Aggregate } from 'wolkenkit';
 import { execute } from './commands/execute';
 import { executed } from './domainEvents/executed';
-import { getInitialState } from './SampleState';
+import { Infrastructure } from '../../../infrastructure';
 import { succeeded } from './domainEvents/succeeded';
+import { getInitialState, SampleState } from './SampleState';
 
-const sampleAggregate: Aggregate = {
+const sampleAggregate: Aggregate<SampleState, Infrastructure> = {
   getInitialState,
   commandHandlers: {
     execute

@@ -1,10 +1,12 @@
+import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
 import fs from 'fs';
 import { isErrnoException } from '../utils/isErrnoException';
 import path from 'path';
+import { TellInfrastructure } from '../elements/TellInfrastructure';
 import { validateViewDefinition } from '../validators/validateViewDefinition';
-import { ViewDefinition } from './ViewDefinition';
+import { View } from '../elements/View';
 import { ViewEnhancer } from '../../tools/ViewEnhancer';
 import { ViewsDefinition } from './ViewsDefinition';
 
@@ -61,7 +63,7 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
     const viewEnhancers = (rawView.enhancers || []) as ViewEnhancer[];
 
     const enhancedViewDefinition = viewEnhancers.reduce(
-      (viewDefinition, viewEnhancer): ViewDefinition =>
+      (viewDefinition, viewEnhancer): View<AskInfrastructure & TellInfrastructure> =>
         viewEnhancer(viewDefinition),
       rawView
     );

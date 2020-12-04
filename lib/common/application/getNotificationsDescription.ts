@@ -1,9 +1,11 @@
+import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { Notifications } from '../elements/Notifications';
 import { NotificationsDescription } from './NotificationsDescription';
 import { stripIndent } from 'common-tags';
+import { TellInfrastructure } from '../elements/TellInfrastructure';
 
 const getNotificationsDescription = function ({ notificationsDefinition }: {
-  notificationsDefinition: Notifications;
+  notificationsDefinition: Notifications<AskInfrastructure & TellInfrastructure>;
 }): NotificationsDescription {
   const notificationsDescription: NotificationsDescription = {};
 

@@ -6,7 +6,7 @@ export interface ParsedQs {
 }
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
+  // eslint-disable-next-line @typescript-eslint/no-namespace,@typescript-eslint/no-unused-vars
   namespace Express {
     export interface Response {
       startStream: (parameters: { heartbeatInterval: number | false }) => void;

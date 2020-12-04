@@ -1,11 +1,12 @@
 import { Aggregate } from 'wolkenkit';
-import { getInitialState } from './MessageState';
+import { Infrastructure } from '../../../infrastructure';
 import { like } from './commands/like';
 import { liked } from './domainEvents/liked';
 import { send } from './commands/send';
 import { sent } from './domainEvents/sent';
+import { getInitialState, MessageState } from './MessageState';
 
-const message: Aggregate = {
+const message: Aggregate<MessageState, Infrastructure> = {
   getInitialState,
   commandHandlers: {
     send,

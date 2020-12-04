@@ -11,7 +11,7 @@ export interface ViewUpdated extends NotificationDefinition {
   metadata: object;
 }
 
-const notifications: Notifications = {
+const notifications: Notifications<Infrastructure> = {
   flowMessagesUpdated: {
     isAuthorized (): boolean {
       return true;

@@ -428,13 +428,6 @@ suite('awaitItem/http', (): void => {
             reject(err);
           });
 
-          // TODO[2020-11-26]: The line below breaks compilation, but should
-          // not be needed at all – resolve is called from within further down
-          // below, and there should always be results, shouldn't it?
-          // LockData.on('close', (): void => {
-          //   resolve();
-          // });
-
           lockData.pipe(asJsonStream([
             (streamElement): void => {
               assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
