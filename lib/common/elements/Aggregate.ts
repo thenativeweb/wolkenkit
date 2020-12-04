@@ -17,4 +17,4 @@ interface Aggregate<
 
 export type {
   Aggregate
-}
+};
