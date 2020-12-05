@@ -120,7 +120,7 @@
     "@types/lodash": "4.14.165",
     "@types/lru-cache": "5.1.0",
     "@types/minio": "7.0.6",
-    "@types/mongodb": "3.6.0",
+    "@types/mongodb": "3.6.1",
     "@types/mssql": "6.0.6",
     "@types/mysql": "2.15.16",
     "@types/node": "14.14.10",
