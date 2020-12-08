@@ -8,7 +8,7 @@
     "processenv": "3.0.3"
   },
   "devDependencies": {
-    "@types/mocha": "8.0.4",
+    "@types/mocha": "8.2.0",
     "@types/uuid": "8.3.0",
     "assertthat": "5.2.5",
     "mocha": "8.2.1",
