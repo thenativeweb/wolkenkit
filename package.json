@@ -120,7 +120,7 @@
     "@types/lodash": "4.14.165",
     "@types/lru-cache": "5.1.0",
     "@types/minio": "7.0.6",
-    "@types/mongodb": "3.6.1",
+    "@types/mongodb": "3.6.2",
     "@types/mssql": "6.0.6",
     "@types/mysql": "2.15.16",
     "@types/node": "14.14.10",
@@ -170,7 +170,7 @@
     "swagger-ui-express": "4.1.5",
     "untildify": "4.0.0",
     "uuid": "8.3.1",
-    "validate-value": "8.9.4"
+    "validate-value": "8.9.5"
   },
   "devDependencies": {
     "@types/react": "17.0.0",
@@ -188,7 +188,7 @@
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "record-stdstreams": "3.0.30",
-    "roboter": "11.5.22",
+    "roboter": "11.5.23",
     "subscriptions-transport-ws": "0.9.18",
     "thenativeweb-ux": "5.8.15",
     "wait-for-signals": "1.2.1",
