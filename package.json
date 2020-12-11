@@ -123,7 +123,7 @@
     "@types/mongodb": "3.6.3",
     "@types/mssql": "6.0.6",
     "@types/mysql": "2.15.16",
-    "@types/node": "14.14.11",
+    "@types/node": "14.14.12",
     "@types/pg": "7.14.7",
     "@types/pg-query-stream": "1.0.3",
     "@types/shelljs": "0.8.8",
