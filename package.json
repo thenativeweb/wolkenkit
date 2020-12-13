@@ -188,7 +188,7 @@
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "record-stdstreams": "3.0.32",
-    "roboter": "11.5.26",
+    "roboter": "11.5.27",
     "subscriptions-transport-ws": "0.9.18",
     "thenativeweb-ux": "5.8.25",
     "wait-for-signals": "1.2.1",
