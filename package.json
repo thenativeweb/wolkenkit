@@ -145,7 +145,7 @@
     "get-cors-origin": "4.0.9",
     "get-graphql-from-jsonschema": "7.0.3",
     "graphql": "15.4.0",
-    "ioredis": "4.19.2",
+    "ioredis": "4.19.4",
     "is-typescript": "4.0.1",
     "isolated": "3.0.9",
     "limes": "6.0.7",
