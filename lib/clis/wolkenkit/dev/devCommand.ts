@@ -189,7 +189,7 @@ const devCommand = function (): Command<DevOptions> {
           runtime: 'singleProcess',
           name: 'main',
           enableDebugMode: debug,
-          port: Number(env.HEALTH_PORT_OR_SOCKET),
+          portOrSocket: Number(env.HEALTH_PORT_OR_SOCKET),
           env,
           onExit (exitCode): void {
             // eslint-disable-next-line unicorn/no-process-exit

@@ -36,10 +36,10 @@ suite('queryView/http/Client', (): void => {
       });
 
       test('returns the views description.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -71,10 +71,10 @@ suite('queryView/http/Client', (): void => {
       });
 
       test('throws an exception if an invalid view name is given.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -86,10 +86,10 @@ suite('queryView/http/Client', (): void => {
       });
 
       test('throws an exception if an invalid query name is given.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -101,10 +101,10 @@ suite('queryView/http/Client', (): void => {
       });
 
       test('throws an exception if invalid options are given.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -137,10 +137,10 @@ suite('queryView/http/Client', (): void => {
 
         (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -175,10 +175,10 @@ suite('queryView/http/Client', (): void => {
 
         (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 

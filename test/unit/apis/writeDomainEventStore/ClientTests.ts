@@ -61,10 +61,10 @@ suite('writeDomainEventStore/http/Client', (): void => {
           }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -95,10 +95,10 @@ suite('writeDomainEventStore/http/Client', (): void => {
       });
 
       test('throws a domain events missing error if the given array is empty.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -123,10 +123,10 @@ suite('writeDomainEventStore/http/Client', (): void => {
           state: {}
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -152,10 +152,10 @@ suite('writeDomainEventStore/http/Client', (): void => {
           state: {}
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 

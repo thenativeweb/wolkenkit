@@ -11,8 +11,8 @@ import { Configuration as DomainEventStoreConfiguration } from '../../../../../l
 import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
 import fetch from 'node-fetch';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import gql from 'graphql-tag';
 import { Configuration as GraphqlConfiguration } from '../../../../../lib/runtimes/microservice/processes/graphql/Configuration';
@@ -40,15 +40,15 @@ suite('graphql server', function (): void {
         subscribeNotificationsChannel = 'notifications';
 
   let commandDispatcherClient: CommandDispatcherClient<CommandWithMetadata<CommandData>>,
-      commandDispatcherHealthPort: number,
-      commandDispatcherPort: number,
-      domainEventStoreHealthPort: number,
-      domainEventStorePort: number,
-      healthPort: number,
-      port: number,
-      publisherHealthPort: number,
-      publisherPort: number,
+      commandDispatcherHealthSocket: string,
+      commandDispatcherSocket: string,
+      domainEventStoreHealthSocket: string,
+      domainEventStoreSocket: string,
+      healthSocket: string,
+      publisherHealthSocket: string,
+      publisherSocket: string,
       publishMessageClient: PublishMessageClient,
+      socket: string,
       stopProcess: (() => Promise<void>) | undefined,
       stopProcessCommandDispatcher: (() => Promise<void>) | undefined,
       stopProcessDomainEventStore: (() => Promise<void>) | undefined,
@@ -56,27 +56,27 @@ suite('graphql server', function (): void {
 
   setup(async (): Promise<void> => {
     [
-      port,
-      healthPort,
-      commandDispatcherPort,
-      commandDispatcherHealthPort,
-      domainEventStorePort,
-      domainEventStoreHealthPort,
-      publisherPort,
-      publisherHealthPort
-    ] = await getAvailablePorts({ count: 8 });
+      socket,
+      healthSocket,
+      commandDispatcherSocket,
+      commandDispatcherHealthSocket,
+      domainEventStoreSocket,
+      domainEventStoreHealthSocket,
+      publisherSocket,
+      publisherHealthSocket
+    ] = await getSocketPaths({ count: 8 });
 
     const domainEventStoreConfiguration: DomainEventStoreConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventStoreConfigurationDefinition }),
-      port: domainEventStorePort,
-      healthPort: domainEventStoreHealthPort
+      portOrSocket: domainEventStoreSocket,
+      healthPortOrSocket: domainEventStoreHealthSocket
     };
 
     stopProcessDomainEventStore = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
       enableDebugMode: false,
-      port: domainEventStoreHealthPort,
+      portOrSocket: domainEventStoreHealthSocket,
       env: toEnvironmentVariables({
         configuration: domainEventStoreConfiguration,
         configurationDefinition: domainEventStoreConfigurationDefinition
@@ -87,15 +87,15 @@ suite('graphql server', function (): void {
       ...getDefaultConfiguration({ configurationDefinition: commandDispatcherConfigurationDefinition }),
       applicationDirectory,
       priorityQueueStoreOptions: { type: 'InMemory', expirationTime: 5_000 },
-      port: commandDispatcherPort,
-      healthPort: commandDispatcherHealthPort
+      portOrSocket: commandDispatcherSocket,
+      healthPortOrSocket: commandDispatcherHealthSocket
     };
 
     stopProcessCommandDispatcher = await startProcess({
       runtime: 'microservice',
       name: 'commandDispatcher',
       enableDebugMode: false,
-      port: commandDispatcherHealthPort,
+      portOrSocket: commandDispatcherHealthSocket,
       env: toEnvironmentVariables({
         configuration: commandDispatcherConfiguration,
         configurationDefinition: commandDispatcherConfigurationDefinition
@@ -103,7 +103,7 @@ suite('graphql server', function (): void {
     });
 
     commandDispatcherClient = new CommandDispatcherClient<CommandWithMetadata<CommandData>>({
-      port: commandDispatcherPort,
+      portOrSocket: commandDispatcherSocket,
       hostName: 'localhost',
       path: '/await-command/v2',
       protocol: 'http',
@@ -114,15 +114,15 @@ suite('graphql server', function (): void {
 
     const publisherConfiguration: PublisherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: publisherConfigurationDefinition }),
-      port: publisherPort,
-      healthPort: publisherHealthPort
+      portOrSocket: publisherSocket,
+      healthPortOrSocket: publisherHealthSocket
     };
 
     stopProcessPublisher = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
       enableDebugMode: false,
-      port: publisherHealthPort,
+      portOrSocket: publisherHealthSocket,
       env: toEnvironmentVariables({
         configuration: publisherConfiguration,
         configurationDefinition: publisherConfigurationDefinition
@@ -132,7 +132,7 @@ suite('graphql server', function (): void {
     publishMessageClient = new PublishMessageClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: publisherPort,
+      portOrSocket: publisherSocket,
       path: '/publish/v2'
     });
 
@@ -140,13 +140,13 @@ suite('graphql server', function (): void {
       ...getDefaultConfiguration({ configurationDefinition: graphqlConfigurationDefinition }),
       applicationDirectory,
       aeonstoreHostName: 'localhost',
-      aeonstorePort: domainEventStorePort,
+      aeonstorePortOrSocket: domainEventStoreSocket,
       enableIntegratedClient: false,
       commandDispatcherHostName: 'localhost',
-      commandDispatcherPort,
+      commandDispatcherPortOrSocket: commandDispatcherSocket,
       commandDispatcherRetries: 5,
-      healthPort,
-      port,
+      healthPortOrSocket: healthSocket,
+      portOrSocket: socket,
       pubSubOptions: {
         channelForNewDomainEvents: subscribeMessagesChannel,
         channelForNotifications: subscribeNotificationsChannel,
@@ -154,7 +154,7 @@ suite('graphql server', function (): void {
         subscriber: {
           type: 'Http',
           hostName: 'localhost',
-          port: publisherPort,
+          portOrSocket: publisherSocket,
           path: '/subscribe/v2'
         }
       },
@@ -165,7 +165,7 @@ suite('graphql server', function (): void {
       runtime: 'microservice',
       name: 'graphql',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: toEnvironmentVariables({
         configuration: graphqlConfiguration,
         configurationDefinition: graphqlConfigurationDefinition
@@ -198,7 +198,7 @@ suite('graphql server', function (): void {
       const healthClient = new Client({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPort,
+        portOrSocket: healthSocket,
         path: '/health/v2'
       });
 
@@ -211,7 +211,7 @@ suite('graphql server', function (): void {
   suite('graphql', (): void => {
     test('has a command mutation endpoint.', async (): Promise<void> => {
       const link = new HttpLink({
-        uri: `http://localhost:${port}/graphql/v2`,
+        uri: `http://localhost:${socket}/graphql/v2`,
         fetch: fetch as any
       });
       const cache = new InMemoryCache();
@@ -252,7 +252,7 @@ suite('graphql server', function (): void {
 
     test('has a subscription endpoint for domain events.', async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/graphql/v2/`,
+        `ws://localhost:${socket}/graphql/v2/`,
         {},
         ws
       );
@@ -317,7 +317,7 @@ suite('graphql server', function (): void {
 
     test('has a subscription endpoint for notifications.', async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/graphql/v2/`,
+        `ws://localhost:${socket}/graphql/v2/`,
         {},
         ws
       );
@@ -359,7 +359,7 @@ suite('graphql server', function (): void {
 
     test('has a query view endpoint.', async (): Promise<void> => {
       const link = new HttpLink({
-        uri: `http://localhost:${port}/graphql/v2`,
+        uri: `http://localhost:${socket}/graphql/v2`,
         fetch: fetch as any
       });
       const cache = new InMemoryCache();

@@ -29,10 +29,10 @@ suite('publishMessage/http/Client', (): void => {
       test('sends messages.', async (): Promise<void> => {
         const message = { text: 'Hello world!' };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -52,10 +52,10 @@ suite('publishMessage/http/Client', (): void => {
 
         const message = { text: 'Hello world!' };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 

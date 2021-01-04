@@ -2,7 +2,7 @@ import { getPortSchema } from './getPortSchema';
 import { getProtocolSchema } from './getProtocolSchema';
 import { Schema } from '../../../common/elements/Schema';
 
-const portSchema = getPortSchema(),
+const portOrSocketSchema = getPortSchema(),
       protocolSchema = getProtocolSchema();
 
 const getSubscriberOptionsSchema = function (): Schema {
@@ -21,7 +21,7 @@ const getSubscriberOptionsSchema = function (): Schema {
           type: { type: 'string', enum: [ 'Http' ]},
           protocol: protocolSchema,
           hostName: { type: 'string', format: 'hostname' },
-          port: portSchema,
+          portOrSocket: portOrSocketSchema,
           path: { type: 'string' }
         },
         required: [ 'type', 'hostName', 'port' ],

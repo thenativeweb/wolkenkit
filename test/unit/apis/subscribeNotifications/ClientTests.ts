@@ -43,10 +43,10 @@ suite('subscribeNotifications/http/Client', (): void => {
   suite('/v2', (): void => {
     suite('getDescription', (): void => {
       test(`returns the notifications' descriptions.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -70,10 +70,10 @@ suite('subscribeNotifications/http/Client', (): void => {
       test('delivers a single notification.', async (): Promise<void> => {
         const notification = { name: 'flowSampleFlowUpdated', data: {}};
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -108,10 +108,10 @@ suite('subscribeNotifications/http/Client', (): void => {
         const notificationFirst = { name: 'complex', data: { message: '1' }, metadata: { public: true }},
               notificationSecond = { name: 'complex', data: { message: '2' }, metadata: { public: true }};
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 

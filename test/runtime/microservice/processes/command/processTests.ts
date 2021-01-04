@@ -335,8 +335,8 @@ suite('command', (): void => {
         commandDispatcherSocket: string,
         handleCommandClient: HandleCommandClient,
         healthSocket: string,
-        socket: string,
         requestCount: number,
+        socket: string,
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {

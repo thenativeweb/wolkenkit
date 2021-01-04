@@ -20,7 +20,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     schema: corsSchema
   },
   healthPortOrSocket: {
-    environmentVariable: 'HEALTH_PORT_OR_SOCJET',
+    environmentVariable: 'HEALTH_PORT_OR_SOCKET',
     defaultValue: 3_001,
     schema: portOrSocketSchema
   },

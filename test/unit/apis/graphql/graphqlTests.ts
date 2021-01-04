@@ -14,7 +14,7 @@ import { DomainEventWithState } from '../../../../lib/common/elements/DomainEven
 import { Application as ExpressApplication } from 'express';
 import fetch from 'node-fetch';
 import { getApi } from '../../../../lib/apis/graphql';
-import { getAvailablePort } from '../../../../lib/common/utils/network/getAvailablePort';
+import { getAvailablePort } from '../../../shared/getAvailablePort';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import gql from 'graphql-tag';

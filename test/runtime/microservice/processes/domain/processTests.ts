@@ -12,8 +12,8 @@ import { Configuration as DomainEventDispatcherConfiguration } from '../../../..
 import { configurationDefinition as domainEventDispatcherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventDispatcher/configurationDefinition';
 import { Configuration as DomainEventStoreConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/Configuration';
 import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/apis/handleCommandWithMetadata/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
@@ -36,16 +36,16 @@ suite('domain', function (): void {
         queueLockExpirationTime = 600,
         queuePollInterval = 600;
 
-  let commandDispatcherHealthPort: number,
-      commandDispatcherPort: number,
-      domainEventDispatcherHealthPort: number,
-      domainEventDispatcherPort: number,
-      domainEventStoreHealthPort: number,
-      domainEventStorePort: number,
-      domainHealthPort: number,
+  let commandDispatcherHealthSocket: string,
+      commandDispatcherSocket: string,
+      domainEventDispatcherHealthSocket: string,
+      domainEventDispatcherSocket: string,
+      domainEventStoreHealthSocket: string,
+      domainEventStoreSocket: string,
+      domainHealthSocket: string,
       handleCommandWithMetadataClient: HandleCommandWithMetadataClient,
-      publisherHealthPort: number,
-      publisherPort: number,
+      publisherHealthSocket: string,
+      publisherSocket: string,
       queryDomainEventStoreClient: QueryDomainEventStoreClient,
       stopCommandDispatcherProcess: (() => Promise<void>) | undefined,
       stopDomainEventDispatcherProcess: (() => Promise<void>) | undefined,
@@ -56,23 +56,23 @@ suite('domain', function (): void {
 
   setup(async (): Promise<void> => {
     [
-      commandDispatcherPort,
-      commandDispatcherHealthPort,
-      domainEventDispatcherPort,
-      domainEventDispatcherHealthPort,
-      domainEventStorePort,
-      domainEventStoreHealthPort,
-      domainHealthPort,
-      publisherPort,
-      publisherHealthPort
-    ] = await getAvailablePorts({ count: 9 });
+      commandDispatcherSocket,
+      commandDispatcherHealthSocket,
+      domainEventDispatcherSocket,
+      domainEventDispatcherHealthSocket,
+      domainEventStoreSocket,
+      domainEventStoreHealthSocket,
+      domainHealthSocket,
+      publisherSocket,
+      publisherHealthSocket
+    ] = await getSocketPaths({ count: 9 });
 
     const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: commandDispatcherConfigurationDefinition }),
       applicationDirectory,
       priorityQueueStoreOptions: { type: 'InMemory', expirationTime: queueLockExpirationTime },
-      port: commandDispatcherPort,
-      healthPort: commandDispatcherHealthPort,
+      portOrSocket: commandDispatcherSocket,
+      healthPortOrSocket: commandDispatcherHealthSocket,
       missedCommandRecoveryInterval: queuePollInterval
     };
 
@@ -80,7 +80,7 @@ suite('domain', function (): void {
       runtime: 'microservice',
       name: 'commandDispatcher',
       enableDebugMode: false,
-      port: commandDispatcherHealthPort,
+      portOrSocket: commandDispatcherHealthSocket,
       env: toEnvironmentVariables({
         configuration: commandDispatcherConfiguration,
         configurationDefinition: commandDispatcherConfigurationDefinition
@@ -90,7 +90,7 @@ suite('domain', function (): void {
     handleCommandWithMetadataClient = new HandleCommandWithMetadataClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: commandDispatcherPort,
+      portOrSocket: commandDispatcherSocket,
       path: '/handle-command/v2'
     });
 
@@ -98,8 +98,8 @@ suite('domain', function (): void {
       ...getDefaultConfiguration({ configurationDefinition: domainEventDispatcherConfigurationDefinition }),
       applicationDirectory,
       priorityQueueStoreOptions: { type: 'InMemory', expirationTime: queueLockExpirationTime },
-      port: domainEventDispatcherPort,
-      healthPort: domainEventDispatcherHealthPort,
+      portOrSocket: domainEventDispatcherSocket,
+      healthPortOrSocket: domainEventDispatcherHealthSocket,
       missedDomainEventRecoveryInterval: queuePollInterval
     };
 
@@ -107,7 +107,7 @@ suite('domain', function (): void {
       runtime: 'microservice',
       name: 'domainEventDispatcher',
       enableDebugMode: false,
-      port: domainEventDispatcherHealthPort,
+      portOrSocket: domainEventDispatcherHealthSocket,
       env: toEnvironmentVariables({
         configuration: domainEventDispatcherConfiguration,
         configurationDefinition: domainEventDispatcherConfigurationDefinition
@@ -116,15 +116,15 @@ suite('domain', function (): void {
 
     const domainEventStoreConfiguration: DomainEventStoreConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventStoreConfigurationDefinition }),
-      port: domainEventStorePort,
-      healthPort: domainEventStoreHealthPort
+      portOrSocket: domainEventStoreSocket,
+      healthPortOrSocket: domainEventStoreHealthSocket
     };
 
     stopDomainEventStoreProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
       enableDebugMode: false,
-      port: domainEventStoreHealthPort,
+      portOrSocket: domainEventStoreHealthSocket,
       env: toEnvironmentVariables({
         configuration: domainEventStoreConfiguration,
         configurationDefinition: domainEventStoreConfigurationDefinition
@@ -134,21 +134,21 @@ suite('domain', function (): void {
     queryDomainEventStoreClient = new QueryDomainEventStoreClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: domainEventStorePort,
+      portOrSocket: domainEventStoreSocket,
       path: '/query/v2'
     });
 
     const publisherConfiguration: PublisherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: publisherConfigurationDefinition }),
-      port: publisherPort,
-      healthPort: publisherHealthPort
+      portOrSocket: publisherSocket,
+      healthPortOrSocket: publisherHealthSocket
     };
 
     stopPublisherProcess = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
       enableDebugMode: false,
-      port: publisherHealthPort,
+      portOrSocket: publisherHealthSocket,
       env: toEnvironmentVariables({
         configuration: publisherConfiguration,
         configurationDefinition: publisherConfigurationDefinition
@@ -158,7 +158,7 @@ suite('domain', function (): void {
     subscribeMessagesClient = new SubscribeMessagesClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: publisherPort,
+      portOrSocket: publisherSocket,
       path: '/subscribe/v2'
     });
 
@@ -166,11 +166,11 @@ suite('domain', function (): void {
       ...getDefaultConfiguration({ configurationDefinition: domainConfigurationDefinition }),
       applicationDirectory,
       commandDispatcherHostName: 'localhost',
-      commandDispatcherPort,
+      commandDispatcherPortOrSocket: commandDispatcherSocket,
       commandDispatcherRenewInterval: 5_000,
       commandDispatcherAcknowledgeRetries: 0,
       domainEventDispatcherHostName: 'localhost',
-      domainEventDispatcherPort,
+      domainEventDispatcherPortOrSocket: domainEventDispatcherSocket,
       pubSubOptions: {
         channelForNotifications: publisherChannelNotification,
         channelForNewDomainEvents: publisherChannelNewDomainEvent,
@@ -178,13 +178,13 @@ suite('domain', function (): void {
           type: 'Http',
           protocol: 'http',
           hostName: 'localhost',
-          port: publisherPort,
+          portOrSocket: publisherSocket,
           path: '/publish/v2'
         }
       },
       aeonstoreHostName: 'localhost',
-      aeonstorePort: domainEventStorePort,
-      healthPort: domainHealthPort,
+      aeonstorePortOrSocket: domainEventStoreSocket,
+      healthPortOrSocket: domainHealthSocket,
       concurrentCommands: 1,
       snapshotStrategy: { name: 'never' } as SnapshotStrategyConfiguration
     };
@@ -193,7 +193,7 @@ suite('domain', function (): void {
       runtime: 'microservice',
       name: 'domain',
       enableDebugMode: false,
-      port: domainHealthPort,
+      portOrSocket: domainHealthSocket,
       env: toEnvironmentVariables({
         configuration: domainConfiguration,
         configurationDefinition: domainConfigurationDefinition
@@ -230,7 +230,7 @@ suite('domain', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: domainHealthPort,
+        portOrSocket: domainHealthSocket,
         path: '/health/v2'
       });
 
@@ -380,7 +380,7 @@ suite('domain', function (): void {
       const awaitDomainEventClient = new AwaitDomainEventClient<DomainEvent<DomainEventData>>({
         protocol: 'http',
         hostName: 'localhost',
-        port: domainEventDispatcherPort,
+        portOrSocket: domainEventDispatcherSocket,
         path: '/await-domain-event/v2',
         createItemInstance: ({ item }): DomainEvent<DomainEventData> => new DomainEvent<DomainEventData>(item)
       });

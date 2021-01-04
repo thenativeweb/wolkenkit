@@ -92,14 +92,14 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
         type: 'Http',
         protocol: 'http',
         hostName: 'publisher',
-        port: 3_000,
+        portOrSocket: 3_000,
         path: '/publish/v2'
       },
       subscriber: {
         type: 'Http',
         protocol: 'http',
         hostName: 'publisher',
-        port: 3_000,
+        portOrSocket: 3_000,
         path: '/subscribe/v2'
       }
     },

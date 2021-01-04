@@ -1,6 +1,6 @@
 import { assert } from 'assertthat';
 import axios from 'axios';
-import { getAvailablePort } from '../../lib/common/utils/network/getAvailablePort';
+import { getSocketPaths } from '../shared/getSocketPaths';
 import path from 'path';
 import { retry } from 'retry-ignore-abort';
 import shell from 'shelljs';
@@ -12,8 +12,8 @@ suite('documentation', function (): void {
   this.timeout(30_000);
 
   test('starts the documentation.', async (): Promise<void> => {
-    const port = await getAvailablePort();
-    const documentationCommand = `node ${cliPath} --verbose documentation --port ${port}`;
+    const [ socket ] = await getSocketPaths({ count: 1 });
+    const documentationCommand = `node ${cliPath} --verbose documentation --socket ${socket}`;
 
     const childProcess = shell.exec(documentationCommand, { async: true });
 
@@ -21,7 +21,8 @@ suite('documentation', function (): void {
       await retry(async (): Promise<void> => {
         await axios({
           method: 'get',
-          url: `http://localhost:${port}/`,
+          url: `http://localhost/`,
+          socketPath: socket,
           validateStatus: (status): boolean => status === 200
         });
       }, { minTimeout: 100, maxTimeout: 100, retries: 20 });

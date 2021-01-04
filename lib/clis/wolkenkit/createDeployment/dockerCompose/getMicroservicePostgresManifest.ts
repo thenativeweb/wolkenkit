@@ -161,7 +161,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           type: 'Http',
           protocol: 'http',
           hostName: services.publisher.hostName,
-          port: services.publisher.privatePort,
+          portOrSocket: services.publisher.privatePort,
           path: '/publish/v2'
         },
         pubSubChannelForNewCommands = 'newCommand',
@@ -179,7 +179,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           type: 'Http',
           protocol: 'http',
           hostName: services.publisher.hostName,
-          port: services.publisher.privatePort,
+          portOrSocket: services.publisher.privatePort,
           path: '/subscribe/v2'
         };
 
