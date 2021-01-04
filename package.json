@@ -98,6 +98,10 @@
     {
       "name": "Mike Cann",
       "email": "mike.cann@gmail.com"
+    },
+    {
+      "name": "Nil Lin",
+      "email": "nil@lin.am"
     }
   ],
   "main": "build/lib/wolkenkit.js",
