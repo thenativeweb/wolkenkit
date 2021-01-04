@@ -97,6 +97,48 @@ const devCommand = function (): Command<DevOptions> {
           });
         }
 
+        const env: NodeJS.ProcessEnv = {
+          ...toEnvironmentVariables({
+            configuration: {
+              applicationDirectory,
+              commandQueueRenewInterval: 5_000,
+              concurrentCommands: 100,
+              concurrentFlows: configurationDefinition.concurrentFlows.defaultValue,
+              consumerProgressStoreOptions: configurationDefinition.consumerProgressStoreOptions.defaultValue,
+              corsOrigin: '*',
+              domainEventStoreOptions: { type: 'InMemory' },
+              enableOpenApiDocumentation: true,
+              fileStoreOptions: { type: 'InMemory' },
+              graphqlApi: { enableIntegratedClient: true },
+              healthPort,
+              httpApi: true,
+              identityProviders,
+              lockStoreOptions: { type: 'InMemory' },
+              port,
+              priorityQueueStoreForCommandsOptions: configurationDefinition.priorityQueueStoreForCommandsOptions.defaultValue,
+              priorityQueueStoreForDomainEventsOptions: configurationDefinition.priorityQueueStoreForDomainEventsOptions.defaultValue,
+              pubSubOptions: {
+                channelForNotifications: 'notification',
+                publisher: { type: 'InMemory' },
+                subscriber: { type: 'InMemory' }
+              },
+              snapshotStrategy: {
+                name: 'revision',
+                configuration: { revisionLimit: 100 }
+              }
+            },
+            configurationDefinition
+          }),
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          LOG_LEVEL: 'debug',
+
+          // Here, we don't want the environment variables to be parsed, but
+          // instead we need their raw values. This is why we do not use the
+          // processenv module here, but rely on process.env directly.
+          // eslint-disable-next-line no-process-env
+          ...process.env
+        };
+
         buntstift.verbose(`Compiling the '${name}' application...`);
         await buildApplication({ applicationDirectory });
         buntstift.verbose(`Compiled the '${name}' application.`);
@@ -106,8 +148,8 @@ const devCommand = function (): Command<DevOptions> {
 
         buntstift.info(`Starting the '${name}' application...`);
         buntstift.newLine();
-        buntstift.info(`  API port     ${port}`);
-        buntstift.info(`  Health port  ${healthPort}`);
+        buntstift.info(`  API port     ${env.PORT}`);
+        buntstift.info(`  Health port  ${env.HEALTH_PORT}`);
         buntstift.newLine();
         buntstift.info(`To stop the '${name}' application, press <Ctrl>+<C>.`);
         buntstift.line();
@@ -118,48 +160,8 @@ const devCommand = function (): Command<DevOptions> {
           runtime: 'singleProcess',
           name: 'main',
           enableDebugMode: debug,
-          port: healthPort,
-          env: {
-            ...toEnvironmentVariables({
-              configuration: {
-                applicationDirectory,
-                commandQueueRenewInterval: 5_000,
-                concurrentCommands: 100,
-                concurrentFlows: configurationDefinition.concurrentFlows.defaultValue,
-                consumerProgressStoreOptions: configurationDefinition.consumerProgressStoreOptions.defaultValue,
-                corsOrigin: '*',
-                domainEventStoreOptions: { type: 'InMemory' },
-                enableOpenApiDocumentation: true,
-                fileStoreOptions: { type: 'InMemory' },
-                graphqlApi: { enableIntegratedClient: true },
-                healthPort,
-                httpApi: true,
-                identityProviders,
-                lockStoreOptions: { type: 'InMemory' },
-                port,
-                priorityQueueStoreForCommandsOptions: configurationDefinition.priorityQueueStoreForCommandsOptions.defaultValue,
-                priorityQueueStoreForDomainEventsOptions: configurationDefinition.priorityQueueStoreForDomainEventsOptions.defaultValue,
-                pubSubOptions: {
-                  channelForNotifications: 'notification',
-                  publisher: { type: 'InMemory' },
-                  subscriber: { type: 'InMemory' }
-                },
-                snapshotStrategy: {
-                  name: 'revision',
-                  configuration: { revisionLimit: 100 }
-                }
-              },
-              configurationDefinition
-            }),
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            LOG_LEVEL: 'debug',
-
-            // Here, we don't want the environment variables to be parsed, but
-            // instead we need their raw values. This is why we do not use the
-            // processenv module here, but rely on process.env directly.
-            // eslint-disable-next-line no-process-env
-            ...process.env
-          },
+          port: Number(env.HEALTH_PORT),
+          env,
           onExit (exitCode): void {
             // eslint-disable-next-line unicorn/no-process-exit
             process.exit(exitCode);
