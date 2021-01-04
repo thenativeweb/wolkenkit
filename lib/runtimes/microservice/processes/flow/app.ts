@@ -41,7 +41,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const domainEventStore = await AeonstoreDomainEventStore.create({
       protocol: configuration.aeonstoreProtocol,
       hostName: configuration.aeonstoreHostName,
-      port: configuration.aeonstorePort
+      portOrSocket: configuration.aeonstorePortOrSocket
     });
 
     const lockStore = await createLockStore(configuration.lockStoreOptions);
@@ -62,7 +62,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const domainEventDispatcherClient = new DomainEventDispatcherClient<DomainEvent<DomainEventData>>({
       protocol: configuration.domainEventDispatcherProtocol,
       hostName: configuration.domainEventDispatcherHostName,
-      port: configuration.domainEventDispatcherPort,
+      portOrSocket: configuration.domainEventDispatcherPortOrSocket,
       path: '/await-domain-event/v2',
       createItemInstance: ({ item }: { item: DomainEvent<DomainEventData> }): DomainEvent<DomainEventData> => new DomainEvent<DomainEventData>(item)
     });
@@ -70,20 +70,25 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const commandDispatcherClient = new CommandDispatcherClient({
       protocol: configuration.commandDispatcherProtocol,
       hostName: configuration.commandDispatcherHostName,
-      port: configuration.commandDispatcherPort,
+      portOrSocket: configuration.commandDispatcherPortOrSocket,
       path: '/handle-command/v2'
     });
 
     const replayClient = new ReplayClient({
       protocol: configuration.replayServerProtocol,
       hostName: configuration.replayServerHostName,
-      port: configuration.replayServerPort,
+      portOrSocket: configuration.replayServerPortOrSocket,
       path: '/perform-replay/v2'
     });
 
-    await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
+    await runHealthServer({
+      corsOrigin: configuration.healthCorsOrigin,
+      portOrSocket: configuration.healthPortOrSocket
+    });
 
-    logger.info('Flow server started.', { healthPort: configuration.healthPort });
+    logger.info('Flow server started.', {
+      healthPortOrSocket: configuration.healthPortOrSocket
+    });
 
     const issueCommand = async function ({ command }: { command: CommandWithMetadata<CommandData> }): Promise<void> {
       await commandDispatcherClient.postCommand({ command });

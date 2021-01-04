@@ -6,7 +6,7 @@ export interface Configuration {
   fileCorsOrigin: string | string[];
   fileStoreOptions: FileStoreOptions;
   healthCorsOrigin: string | string[];
-  healthPort: number;
+  healthPortOrSocket: number | string;
   identityProviders: { issuer: string; certificate: string }[];
-  port: number;
+  portOrSocket: number | string;
 }

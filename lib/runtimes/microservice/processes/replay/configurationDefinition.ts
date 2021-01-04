@@ -1,12 +1,12 @@
 import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
-import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getPortOrSocketSchema } from '../../../shared/schemas/getPortOrSocketSchema';
 import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
 import path from 'path';
 
 const corsSchema = getCorsSchema(),
-      portSchema = getPortSchema(),
+      portOrSocketSchema = getPortOrSocketSchema(),
       protocolSchema = getProtocolSchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
@@ -15,10 +15,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: 'aeonstore',
     schema: { type: 'string', format: 'hostname' }
   },
-  aeonstorePort: {
-    environmentVariable: 'AEONSTORE_PORT',
+  aeonstorePortOrSocket: {
+    environmentVariable: 'AEONSTORE_PORT_OR_SOCKET',
     defaultValue: 3_000,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
   aeonstoreProtocol: {
     environmentVariable: 'AEONSTORE_PROTOCOL',
@@ -40,10 +40,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: 'domain-event-dispatcher',
     schema: { type: 'string', format: 'hostname' }
   },
-  domainEventDispatcherPort: {
-    environmentVariable: 'DOMAIN_EVENT_DISPATCHER_PORT',
+  domainEventDispatcherPortOrSocket: {
+    environmentVariable: 'DOMAIN_EVENT_DISPATCHER_PORT_OR_SOCKET',
     defaultValue: 3_000,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
   domainEventDispatcherProtocol: {
     environmentVariable: 'DOMAIN_EVENT_DISPATCHER_PROTOCOL',
@@ -55,15 +55,15 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: '*',
     schema: corsSchema
   },
-  healthPort: {
-    environmentVariable: 'HEALTH_PORT',
+  healthPortOrSocket: {
+    environmentVariable: 'HEALTH_PORT_OR_SOCKET',
     defaultValue: 3_001,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
-  port: {
-    environmentVariable: 'PORT',
+  portOrSocket: {
+    environmentVariable: 'PORT_OR_SOCKET',
     defaultValue: 3_000,
-    schema: portSchema
+    schema: portOrSocketSchema
   }
 };
 

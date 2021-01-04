@@ -1,4 +1,4 @@
-import { getAvailablePorts } from '../../../../lib/common/utils/network/getAvailablePorts';
+import { getSocketPaths } from '../../../shared/getSocketPaths';
 import { getTestsFor } from './getTestsFor';
 import { HttpPublisher } from '../../../../lib/messaging/pubSub/Http/HttpPublisher';
 import { HttpSubscriber } from '../../../../lib/messaging/pubSub/Http/HttpSubscriber';
@@ -7,22 +7,22 @@ import { startProcess } from '../../../../lib/runtimes/shared/startProcess';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 
 suite('Http', (): void => {
-  let healthPort: number,
-      port: number,
+  let healthSocket: string,
+      socket: string,
       stopProcess: () => Promise<void>;
 
   suiteSetup(async (): Promise<void> => {
-    [ port, healthPort ] = await getAvailablePorts({ count: 2 });
+    [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
 
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: {
         /* eslint-disable @typescript-eslint/naming-convention */
-        PORT: String(port),
-        HEALTH_PORT: String(healthPort)
+        PORT_OR_SOCKET: socket,
+        HEALTH_PORT_OR_SOCKET: healthSocket
         /* eslint-enable @typescript-eslint/naming-convention */
       }
     });
@@ -38,7 +38,7 @@ suite('Http', (): void => {
         type: 'Http',
         protocol: 'http',
         hostName: 'localhost',
-        port,
+        portOrSocket: socket,
         path: '/publish/v2'
       });
     },
@@ -47,7 +47,7 @@ suite('Http', (): void => {
         type: 'Http',
         protocol: 'http',
         hostName: 'localhost',
-        port,
+        portOrSocket: socket,
         path: '/subscribe/v2'
       });
     }

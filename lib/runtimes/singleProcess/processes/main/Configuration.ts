@@ -13,7 +13,7 @@ import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions'
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOptions';
 
-export interface Configuration {
+interface Configuration {
   applicationDirectory: string;
   commandQueueRenewInterval: number;
   concurrentCommands: number;
@@ -24,11 +24,11 @@ export interface Configuration {
   enableOpenApiDocumentation: boolean;
   fileStoreOptions: FileStoreOptions;
   graphqlApi: false | { enableIntegratedClient: boolean };
-  healthPort: number;
+  healthPortOrSocket: number | string;
   httpApi: boolean;
   identityProviders: { issuer: string; certificate: string }[];
   lockStoreOptions: LockStoreOptions;
-  port: number;
+  portOrSocket: number | string;
   priorityQueueStoreForCommandsOptions: DistributiveOmit<PriorityQueueStoreOptions<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   priorityQueueStoreForDomainEventsOptions: DistributiveOmit<PriorityQueueStoreOptions<DomainEvent<DomainEventData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   pubSubOptions: {
@@ -38,3 +38,5 @@ export interface Configuration {
   };
   snapshotStrategy: SnapshotStrategyConfiguration;
 }
+
+export { Configuration };

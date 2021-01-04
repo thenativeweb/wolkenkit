@@ -1,6 +1,6 @@
 import { AeonstoreDomainEventStore } from '../../../../lib/stores/domainEventStore/Aeonstore';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
-import { getAvailablePorts } from '../../../../lib/common/utils/network/getAvailablePorts';
+import { getSocketPaths } from '../../../shared/getSocketPaths';
 import { getTestsFor } from './getTestsFor';
 import { startProcess } from '../../../../lib/runtimes/shared/startProcess';
 
@@ -9,17 +9,17 @@ const processMap = new Map<string, () => Promise<void>>();
 suite('Aeonstore', (): void => {
   getTestsFor({
     async createDomainEventStore ({ suffix }: { suffix: string }): Promise<DomainEventStore> {
-      const [ port, healthPort ] = await getAvailablePorts({ count: 2 });
+      const [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
 
       const stopProcess = await startProcess({
         runtime: 'microservice',
         name: 'domainEventStore',
         enableDebugMode: false,
-        port: healthPort,
+        portOrSocket: healthSocket,
         env: {
           /* eslint-disable @typescript-eslint/naming-convention */
-          PORT: String(port),
-          HEALTH_PORT: String(healthPort)
+          PORT_OR_SOCKET: socket,
+          HEALTH_PORT_OR_SOCKET: healthSocket
           /* eslint-enable @typescript-eslint/naming-convention */
         }
       });
@@ -29,7 +29,7 @@ suite('Aeonstore', (): void => {
       const aeonstoreDomainEventStore = await AeonstoreDomainEventStore.create({
         protocol: 'http',
         hostName: 'localhost',
-        port,
+        portOrSocket: socket,
         path: '/'
       });
 

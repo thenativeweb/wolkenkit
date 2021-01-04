@@ -6,9 +6,9 @@ import http from 'http';
 
 const logger = flaschenpost.getLogger();
 
-const runHealthServer = async function ({ corsOrigin, port }: {
+const runHealthServer = async function ({ corsOrigin, portOrSocket }: {
   corsOrigin: string | string[];
-  port: number;
+  portOrSocket: number | string;
 }): Promise<void> {
   const app = express();
 
@@ -21,8 +21,8 @@ const runHealthServer = async function ({ corsOrigin, port }: {
   const server = http.createServer(app);
 
   return new Promise((resolve): void => {
-    server.listen(port, (): void => {
-      logger.info('Health server started.', { healthPort: port });
+    server.listen(portOrSocket, (): void => {
+      logger.info('Health server started.', { healthPortOrSocket: portOrSocket });
 
       resolve();
     });

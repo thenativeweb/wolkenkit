@@ -5,9 +5,9 @@ export interface Configuration {
   applicationDirectory: string;
   enableOpenApiDocumentation: boolean;
   healthCorsOrigin: string | string[];
-  healthPort: number;
+  healthPortOrSocket: number;
   identityProviders: { issuer: string; certificate: string }[];
-  port: number;
+  portOrSocket: number;
   pubSubOptions: {
     channelForNotifications: string;
     publisher: PublisherOptions;

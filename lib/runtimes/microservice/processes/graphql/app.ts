@@ -46,7 +46,7 @@ import { Value } from 'validate-value';
     const domainEventStore = await AeonstoreDomainEventStore.create({
       protocol: configuration.aeonstoreProtocol,
       hostName: configuration.aeonstoreHostName,
-      port: configuration.aeonstorePort
+      portOrSocket: configuration.aeonstorePortOrSocket
     });
 
     const publisher = await createPublisher<Notification>(configuration.pubSubOptions.publisher);
@@ -66,7 +66,7 @@ import { Value } from 'validate-value';
     const commandDispatcherClient = new CommandDispatcherClient({
       protocol: configuration.commandDispatcherProtocol,
       hostName: configuration.commandDispatcherHostName,
-      port: configuration.commandDispatcherPort,
+      portOrSocket: configuration.commandDispatcherPortOrSocket,
       path: '/handle-command/v2'
     });
 
@@ -92,18 +92,21 @@ import { Value } from 'validate-value';
 
     await initializeGraphQlOnServer?.({ server });
 
-    await runHealthServer({ corsOrigin: configuration.corsOrigin, port: configuration.healthPort });
+    await runHealthServer({
+      corsOrigin: configuration.corsOrigin,
+      portOrSocket: configuration.healthPortOrSocket
+    });
 
     await new Promise<void>((resolve): void => {
-      server.listen(configuration.port, (): void => {
+      server.listen(configuration.portOrSocket, (): void => {
         resolve();
       });
     });
 
-    logger.info(
-      'GraphQL server started.',
-      { port: configuration.port, healthPort: configuration.healthPort }
-    );
+    logger.info('GraphQL server started.', {
+      portOrSocket: configuration.portOrSocket,
+      healthPortOrSocket: configuration.healthPortOrSocket
+    });
 
     await subscriber.subscribe({
       channel: configuration.pubSubOptions.channelForNewDomainEvents,

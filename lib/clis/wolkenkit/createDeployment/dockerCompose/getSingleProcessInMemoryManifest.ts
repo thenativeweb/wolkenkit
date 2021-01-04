@@ -57,11 +57,11 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
     enableOpenApiDocumentation: true,
     fileStoreOptions,
     graphqlApi: { enableIntegratedClient: true },
-    healthPort: services.main.healthPort,
+    healthPortOrSocket: services.main.healthPort,
     httpApi: true,
     identityProviders,
     lockStoreOptions,
-    port: services.main.privatePort,
+    portOrSocket: services.main.privatePort,
     priorityQueueStoreForCommandsOptions,
     priorityQueueStoreForDomainEventsOptions,
     pubSubOptions: {

@@ -11,9 +11,9 @@ export interface Configuration {
   awaitCommandCorsOrigin: string | string[];
   handleCommandCorsOrigin: string | string[];
   healthCorsOrigin: string | string[];
-  healthPort: number;
+  healthPortOrSocket: number | string;
   missedCommandRecoveryInterval: number;
-  port: number;
+  portOrSocket: number | string;
   priorityQueueStoreOptions: DistributiveOmit<PriorityQueueStoreOptions<CommandWithMetadata<CommandData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   pubSubOptions: {
     channelForNewCommands: string;

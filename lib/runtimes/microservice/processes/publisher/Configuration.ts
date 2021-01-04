@@ -3,8 +3,8 @@ import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOption
 
 export interface Configuration {
   healthCorsOrigin: string | string[];
-  healthPort: number;
-  port: number;
+  healthPortOrSocket: number;
+  portOrSocket: number;
   publishCorsOrigin: string | string[];
   pubSubOptions: {
     publisher: PublisherOptions;

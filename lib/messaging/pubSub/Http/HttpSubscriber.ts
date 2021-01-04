@@ -21,7 +21,7 @@ class HttpSubscriber<T extends object> implements Subscriber<T> {
     const subscriberClient = new Client({
       protocol: options.protocol,
       hostName: options.hostName,
-      port: options.port,
+      portOrSocket: options.portOrSocket,
       path: options.path
     });
 

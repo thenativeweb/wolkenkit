@@ -1,8 +1,10 @@
 import { buntstift } from 'buntstift';
 import { Client } from '../../../apis/getHealth/http/v2/Client';
 import { Command } from 'command-line-interface';
+import { errors } from '../../../common/errors';
 import { HealthOptions } from './HealthOptions';
 import { validatePort } from '../dev/validatePort';
+import { validateSocket } from '../dev/validateSocket';
 
 const healthCommand = function (): Command<HealthOptions> {
   return {
@@ -35,8 +37,16 @@ const healthCommand = function (): Command<HealthOptions> {
         parameterName: 'port',
         type: 'number',
         isRequired: false,
-        defaultValue: 3_001,
         validate: validatePort
+      },
+      {
+        name: 'health-socket',
+        alias: 's',
+        description: 'set the health socket',
+        parameterName: 'path',
+        type: 'string',
+        isRequired: false,
+        validate: validateSocket
       },
       {
         name: 'base-path',
@@ -53,6 +63,7 @@ const healthCommand = function (): Command<HealthOptions> {
       protocol,
       'host-name': hostName,
       'health-port': healthPort,
+      'health-socket': healthSocket,
       'base-path': basePath,
       verbose
     }}): Promise<void> {
@@ -61,12 +72,19 @@ const healthCommand = function (): Command<HealthOptions> {
           withVerboseMode(verbose)
       );
 
+      if (healthPort && healthSocket) {
+        buntstift.info('Health port and health socket must not be set at the same time.');
+        throw new errors.ParameterInvalid();
+      }
+
+      const healthPortOrSocket = healthPort ?? healthSocket ?? 3_001;
+
       buntstift.info(`Sending health request to '${protocol}://${hostName}:${healthPort}${basePath}'.`);
 
       const healthClient = new Client({
         protocol,
         hostName,
-        port: healthPort,
+        portOrSocket: healthPortOrSocket,
         path: basePath
       });
 
