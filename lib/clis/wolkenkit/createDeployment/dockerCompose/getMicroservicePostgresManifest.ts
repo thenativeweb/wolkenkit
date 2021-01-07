@@ -773,10 +773,6 @@ ${
           timeout: 10s
           retries: 3
           start_period: 30s
-
-    volumes:
-      postgres:
-      minio:
   `;
 };
 

@@ -32,6 +32,10 @@ const getStoresPostgresManifest = function (): string {
         restart: 'always'
         volumes:
           - 'minio:/data'
+
+    volumes:
+      postgres:
+      minio:
   `;
 };
 
