@@ -19,8 +19,10 @@ import { configurationDefinition as flowConfigurationDefinition } from '../../..
 import { Configuration as GraphqlConfiguration } from '../../../../runtimes/microservice/processes/graphql/Configuration';
 import { configurationDefinition as graphqlConfigurationDefinition } from '../../../../runtimes/microservice/processes/graphql/configurationDefinition';
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
+import { minio } from './constants/minio';
 import { Configuration as NotificationConfiguration } from '../../../../runtimes/microservice/processes/notification/Configuration';
 import { configurationDefinition as notificationConfigurationDefinition } from '../../../../runtimes/microservice/processes/notification/configurationDefinition';
+import { postgres } from './constants/postgres';
 import { Configuration as PublisherConfiguration } from '../../../../runtimes/microservice/processes/publisher/Configuration';
 import { configurationDefinition as publisherConfigurationDefinition } from '../../../../runtimes/microservice/processes/publisher/configurationDefinition';
 import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
@@ -102,20 +104,8 @@ const getMicroservicePostgresManifest = function ({ appName }: {
       privatePort: 3_000,
       healthPort: 3_001
     },
-    postgres: {
-      hostName: 'postgres',
-      privatePort: 5_432,
-      userName: 'wolkenkit',
-      password: 'please-replace-this',
-      database: 'wolkenkit'
-    },
-    minio: {
-      hostName: 'minio',
-      privatePort: 9_000,
-      accessKey: 'wolkenkit',
-      secretKey: 'please-replace-this',
-      encryptConnection: false
-    },
+    postgres,
+    minio,
     traefik: {
       hostName: 'traefik',
       publicPort: 3_000
@@ -143,7 +133,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           encryptConnection: services.minio.encryptConnection,
           accessKey: services.minio.accessKey,
           secretKey: services.minio.secretKey,
-          bucketName: 'files'
+          bucketName: services.minio.bucketName
         },
         identityProviders: { issuer: string; certificate: string }[] = [],
         lockStoreOptions: LockStoreOptions = {
