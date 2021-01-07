@@ -732,27 +732,6 @@ ${
           - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
           - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.healthcheck.port=${services.file.healthPort}'
 
-      ${services.postgres.hostName}:
-        image: 'postgres:${versions.dockerImages.postgres}'
-        environment:
-          POSTGRES_DB: '${services.postgres.database}'
-          POSTGRES_USER: '${services.postgres.userName}'
-          POSTGRES_PASSWORD: '${services.postgres.password}'
-          PGDATA: '/var/lib/postgresql/data'
-        restart: 'always'
-        volumes:
-          - 'postgres:/var/lib/postgresql/data'
-
-      ${services.minio.hostName}:
-        image: 'minio/minio:${versions.dockerImages.minio}'
-        command: 'server /data'
-        environment:
-          MINIO_ACCESS_KEY: '${services.minio.accessKey}'
-          MINIO_SECRET_KEY: '${services.minio.secretKey}'
-        restart: 'always'
-        volumes:
-          - 'minio:/data'
-          
       ${services.traefik.hostName}:
         image: 'traefik:${versions.dockerImages.traefik}'
         command:
