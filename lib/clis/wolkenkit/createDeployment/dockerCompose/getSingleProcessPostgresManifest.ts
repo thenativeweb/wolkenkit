@@ -10,6 +10,8 @@ import { DomainEventStoreOptions } from '../../../../stores/domainEventStore/Dom
 import { FileStoreOptions } from '../../../../stores/fileStore/FileStoreOptions';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
+import { minio } from './constants/minio';
+import { postgres } from './constants/postgres';
 import { PriorityQueueStoreOptions } from '../../../../stores/priorityQueueStore/PriorityQueueStoreOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 import { toEnvironmentVariables } from '../../../../runtimes/shared/toEnvironmentVariables';
@@ -25,13 +27,8 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
       privatePort: 3_000,
       healthPort: 3_001
     },
-    postgres: {
-      hostName: 'postgres',
-      privatePort: 5_432,
-      userName: 'wolkenkit',
-      password: 'please-replace-this',
-      database: 'wolkenkit'
-    }
+    minio,
+    postgres
   };
 
   const postgresOptions = {
@@ -51,8 +48,13 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
           }
         },
         fileStoreOptions: FileStoreOptions = {
-          type: 'FileSystem',
-          directory: '/mnt/files'
+          type: 'S3',
+          hostName: services.minio.hostName,
+          port: services.minio.privatePort,
+          encryptConnection: services.minio.encryptConnection,
+          accessKey: services.minio.accessKey,
+          secretKey: services.minio.secretKey,
+          bucketName: services.minio.bucketName
         },
         flowProgressStoreOptions: ConsumerProgressStoreOptions = {
           type: 'Postgres',
@@ -141,8 +143,6 @@ ${
         ports:
           - '${services.main.publicPort}:${services.main.privatePort}'
         restart: 'always'
-        volumes:
-          - 'files:/mnt/files'
         healthcheck:
           test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.main.healthPort}"]
           interval: 30s
@@ -150,20 +150,8 @@ ${
           retries: 3
           start_period: 30s
 
-      ${services.postgres.hostName}:
-        image: 'postgres:${versions.dockerImages.postgres}'
-        environment:
-          POSTGRES_DB: '${services.postgres.database}'
-          POSTGRES_USER: '${services.postgres.userName}'
-          POSTGRES_PASSWORD: '${services.postgres.password}'
-          PGDATA: '/var/lib/postgresql/data'
-        restart: 'always'
-        volumes:
-          - 'postgres:/var/lib/postgresql/data'
-
     volumes:
       files:
-      postgres:
   `;
 };
 

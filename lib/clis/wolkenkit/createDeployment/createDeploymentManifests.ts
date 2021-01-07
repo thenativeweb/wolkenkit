@@ -1,7 +1,10 @@
 import fs from 'fs';
 import { getMicroservicePostgresManifest } from './dockerCompose/getMicroservicePostgresManifest';
+import { getSetupInMemoryManifest } from './dockerCompose/getSetupInMemoryManifest';
+import { getSetupPostgresManifest } from './dockerCompose/getSetupPostgresManifest';
 import { getSingleProcessInMemoryManifest } from './dockerCompose/getSingleProcessInMemoryManifest';
 import { getSingleProcessPostgresManifest } from './dockerCompose/getSingleProcessPostgresManifest';
+import { getStoresPostgresManifest } from './dockerCompose/getStoresPostgresManifest';
 import path from 'path';
 import { stripIndent } from 'common-tags';
 
@@ -10,6 +13,18 @@ const createDeploymentManifests = async function ({ directory, name }: {
   name: string;
 }): Promise<void> {
   const deploymentFiles = [
+    {
+      filePath: [ 'docker-compose', 'stores.postgres.yml' ],
+      content: getStoresPostgresManifest()
+    },
+    {
+      filePath: [ 'docker-compose', 'setup.postgres.yml' ],
+      content: getSetupPostgresManifest()
+    },
+    {
+      filePath: [ 'docker-compose', 'setup.in-memory.yml' ],
+      content: getSetupInMemoryManifest()
+    },
     {
       filePath: [ 'docker-compose', 'microservice.postgres.yml' ],
       content: getMicroservicePostgresManifest({ appName: name })
