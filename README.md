@@ -322,6 +322,24 @@ Basically, you can choose between the single-process runtime and the microservic
 
 Using `docker-compose` also allows you to connect your own databases and infrastructure components. For details see the respective scripts.
 
+To start the microservice runtime with a postgres database for persistence, first start the stores:
+
+```shell
+$ docker-compose -f stores.postgres.yml up -d
+```
+
+Then run the setup service to prepare the stores and any infrastructure you have added.
+
+```shell
+$ docker-compose -f setup.postgres.yml run setup
+```
+
+This will show a warning about orphaned containers, which you can safely ignore. Lastly start your application.
+
+```shell
+$ docker-compose -f microservice.postgres.yml up
+```
+
 ### Configuring data stores
 
 wolkenkit uses a number of stores to run your application. In the local development mode, these stores are all run in-memory, but if you run the application using Docker, you will probably want to use persistent data stores. The following databases are supported for the domain event store, the lock store, and the priority queue store:
