@@ -24,7 +24,7 @@ const getPublisherOptionsSchema = function (): Schema {
           portOrSocket: portOrSocketSchema,
           path: { type: 'string' }
         },
-        required: [ 'type', 'hostName', 'port' ],
+        required: [ 'type', 'hostName', 'portOrSocket' ],
         additionalProperties: false
       }
     ]

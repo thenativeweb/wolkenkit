@@ -24,7 +24,7 @@ const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 
 
 suite('command', (): void => {
   suite('without retries', function (): void {
-    this.timeout(10_000);
+    this.timeout(20_000);
 
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
           identityProviders = [{ issuer: 'https://token.invalid', certificate: certificateDirectory }];
@@ -155,6 +155,8 @@ suite('command', (): void => {
           await stopProcess();
         }
 
+        [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
+
         stopProcess = await startProcess({
           runtime: 'microservice',
           name: 'command',
@@ -164,7 +166,9 @@ suite('command', (): void => {
             configuration: {
               ...commandConfiguration,
               commandDispatcherHostName: 'non-existent',
-              commandDispatcherPortOrSocket: '/non-existent/socket'
+              commandDispatcherPortOrSocket: '/non-existent/socket',
+              portOrSocket: socket,
+              healthPortOrSocket: healthSocket
             },
             configurationDefinition
           })
@@ -216,6 +220,8 @@ suite('command', (): void => {
           await stopProcess();
         }
 
+        [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
+
         stopProcess = await startProcess({
           runtime: 'microservice',
           name: 'command',
@@ -225,7 +231,9 @@ suite('command', (): void => {
             configuration: {
               ...commandConfiguration,
               commandDispatcherHostName: 'non-existent',
-              commandDispatcherPortOrSocket: '/non-existent/socket'
+              commandDispatcherPortOrSocket: '/non-existent/socket',
+              portOrSocket: socket,
+              healthPortOrSocket: healthSocket
             },
             configurationDefinition
           })

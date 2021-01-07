@@ -1,5 +1,6 @@
 import { RootOptions } from '../RootOptions';
 
 export interface DocumentationOptions extends RootOptions {
-  port: number;
+  port?: number;
+  socket?: string;
 }

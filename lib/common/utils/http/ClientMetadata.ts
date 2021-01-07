@@ -23,7 +23,7 @@ class ClientMetadata {
 
     const header = isArray(headers) ? headers[0] : headers;
 
-    this.ip = header ?? req.connection.remoteAddress ?? '';
+    this.ip = header ?? req.connection.remoteAddress ?? '0.0.0.0';
   }
 }
 

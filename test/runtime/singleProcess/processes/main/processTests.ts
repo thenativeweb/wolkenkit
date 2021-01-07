@@ -1,3 +1,4 @@
+import { Agent } from 'http';
 import { ApolloClient } from 'apollo-client';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
@@ -38,7 +39,8 @@ suite('main', function (): void {
   this.timeout(10_000);
   const applicationDirectory = getTestApplicationDirectory({ name: 'withComplexFlow', language: 'javascript' });
 
-  let handleCommandClient: HandleCommandClient,
+  let agent: Agent,
+      handleCommandClient: HandleCommandClient,
       healthSocket: string,
       manageFileClient: ManageFileClient,
       observeDomainEventsClient: ObserveDomainEventsClient,
@@ -101,6 +103,13 @@ suite('main', function (): void {
       portOrSocket: socket,
       path: '/files/v2'
     });
+
+    // The parameter socketPath is necessary for the agent to connect to a
+    // unix socket. It is neither document in the node docs nor port of the
+    // @types/node package. Relevant issues:
+    // https://github.com/node-fetch/node-fetch/issues/336#issuecomment-689623290
+    // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/36463
+    agent = new Agent({ socketPath: socket } as any);
   });
 
   teardown(async (): Promise<void> => {
@@ -267,8 +276,9 @@ suite('main', function (): void {
   suite('graphql', (): void => {
     test('has a command mutation endpoint.', async (): Promise<void> => {
       const link = new HttpLink({
-        uri: `http://localhost:${socket}/graphql/v2/`,
-        fetch: fetch as any
+        uri: `http://localhost/graphql/v2/`,
+        fetch: fetch as any,
+        fetchOptions: { agent }
       });
       const cache = new InMemoryCache();
 
@@ -304,7 +314,7 @@ suite('main', function (): void {
 
     test('has a subscription endpoint for domain events.', async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${socket}/graphql/v2/`,
+        `ws+unix://${socket}:/graphql/v2/`,
         {},
         ws
       );
@@ -351,7 +361,7 @@ suite('main', function (): void {
 
     test('has a subscription endpoint for notifications.', async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${socket}/graphql/v2/`,
+        `ws+unix://${socket}:/graphql/v2/`,
         {},
         ws
       );
