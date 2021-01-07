@@ -3,8 +3,8 @@ import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { Configuration as DomainEventStoreConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/Configuration';
 import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Client as QueryDomainEventStoreClient } from '../../../../../lib/apis/queryDomainEventStore/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
@@ -16,26 +16,26 @@ import { Client as WriteDomainEventStoreClient } from '../../../../../lib/apis/w
 suite('domain event store', function (): void {
   this.timeout(10_000);
 
-  let healthPort: number,
-      port: number,
+  let healthSocket: string,
       queryDomainEventStoreClient: QueryDomainEventStoreClient,
+      socket: string,
       stopProcess: (() => Promise<void>) | undefined,
       writeDomainEventStoreClient: WriteDomainEventStoreClient;
 
   setup(async (): Promise<void> => {
-    [ port, healthPort ] = await getAvailablePorts({ count: 2 });
+    [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
 
     const domainEventStoreConfiguration: DomainEventStoreConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventStoreConfigurationDefinition }),
-      port,
-      healthPort
+      portOrSocket: socket,
+      healthPortOrSocket: healthSocket
     };
 
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: toEnvironmentVariables({
         configuration: domainEventStoreConfiguration,
         configurationDefinition: domainEventStoreConfigurationDefinition
@@ -45,14 +45,14 @@ suite('domain event store', function (): void {
     queryDomainEventStoreClient = new QueryDomainEventStoreClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/query/v2'
     });
 
     writeDomainEventStoreClient = new WriteDomainEventStoreClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/write/v2'
     });
   });
@@ -70,7 +70,7 @@ suite('domain event store', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPort,
+        portOrSocket: healthSocket,
         path: '/health/v2'
       });
 

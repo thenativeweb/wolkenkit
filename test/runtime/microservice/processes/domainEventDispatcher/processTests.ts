@@ -5,8 +5,8 @@ import { DomainEvent } from '../../../../../lib/common/elements/DomainEvent';
 import { DomainEventData } from '../../../../../lib/common/elements/DomainEventData';
 import { Configuration as DomainEventDispatcherConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventDispatcher/Configuration';
 import { configurationDefinition as domainEventDispatcherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventDispatcher/configurationDefinition';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleDomainEventClient } from '../../../../../lib/apis/handleDomainEvent/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
@@ -22,28 +22,28 @@ suite('domainEventDispatcher', function (): void {
   const queueLockExpirationTime = 600;
 
   let awaitDomainEventClient: AwaitDomainEventClient<DomainEvent<DomainEventData>>,
+      domainEventDispatcherHealthSocket: string,
+      domainEventDispatcherSocket: string,
       handleDomainEventClient: HandleDomainEventClient,
-      healthPortDomainEventDispatcher: number,
-      portDomainEventDispatcher: number,
       stopProcessDomainEventDispatcher: (() => Promise<void>) | undefined,
       stopProcessPublisher: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ portDomainEventDispatcher, healthPortDomainEventDispatcher ] = await getAvailablePorts({ count: 2 });
+    [ domainEventDispatcherSocket, domainEventDispatcherHealthSocket ] = await getSocketPaths({ count: 2 });
 
     const domainEventDispatcherConfiguration: DomainEventDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventDispatcherConfigurationDefinition }),
       applicationDirectory,
       priorityQueueStoreOptions: { type: 'InMemory', expirationTime: queueLockExpirationTime },
-      port: portDomainEventDispatcher,
-      healthPort: healthPortDomainEventDispatcher
+      portOrSocket: domainEventDispatcherSocket,
+      healthPortOrSocket: domainEventDispatcherHealthSocket
     };
 
     stopProcessDomainEventDispatcher = await startProcess({
       runtime: 'microservice',
       name: 'domainEventDispatcher',
       enableDebugMode: false,
-      port: healthPortDomainEventDispatcher,
+      portOrSocket: domainEventDispatcherHealthSocket,
       env: toEnvironmentVariables({
         configuration: domainEventDispatcherConfiguration,
         configurationDefinition: domainEventDispatcherConfigurationDefinition
@@ -53,7 +53,7 @@ suite('domainEventDispatcher', function (): void {
     awaitDomainEventClient = new AwaitDomainEventClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: portDomainEventDispatcher,
+      portOrSocket: domainEventDispatcherSocket,
       path: '/await-domain-event/v2',
       createItemInstance: ({ item }): DomainEvent<DomainEventData> => new DomainEvent<DomainEventData>(item)
     });
@@ -61,7 +61,7 @@ suite('domainEventDispatcher', function (): void {
     handleDomainEventClient = new HandleDomainEventClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: portDomainEventDispatcher,
+      portOrSocket: domainEventDispatcherSocket,
       path: '/handle-domain-event/v2'
     });
   });
@@ -83,7 +83,7 @@ suite('domainEventDispatcher', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPortDomainEventDispatcher,
+        portOrSocket: domainEventDispatcherHealthSocket,
         path: '/health/v2'
       });
 

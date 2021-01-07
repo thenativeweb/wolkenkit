@@ -1,3 +1,4 @@
+import { Agent } from 'http';
 import { ApolloClient } from 'apollo-client';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
@@ -7,8 +8,8 @@ import { configurationDefinition } from '../../../../../lib/runtimes/singleProce
 import { CustomError } from 'defekt';
 import { errors } from '../../../../../lib/common/errors';
 import fetch from 'node-fetch';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import gql from 'graphql-tag';
 import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
@@ -38,16 +39,17 @@ suite('main', function (): void {
   this.timeout(10_000);
   const applicationDirectory = getTestApplicationDirectory({ name: 'withComplexFlow', language: 'javascript' });
 
-  let handleCommandClient: HandleCommandClient,
-      healthPort: number,
+  let agent: Agent,
+      handleCommandClient: HandleCommandClient,
+      healthSocket: string,
       manageFileClient: ManageFileClient,
       observeDomainEventsClient: ObserveDomainEventsClient,
-      port: number,
       queryViewsClient: QueryViewsClient,
+      socket: string,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ port, healthPort ] = await getAvailablePorts({ count: 2 });
+    [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
 
     const configuration: Configuration = {
       ...getDefaultConfiguration({
@@ -58,8 +60,8 @@ suite('main', function (): void {
       graphqlApi: { enableIntegratedClient: false },
       httpApi: true,
       identityProviders: [{ issuer: 'https://token.invalid', certificate: certificateDirectory }],
-      port,
-      healthPort,
+      portOrSocket: socket,
+      healthPortOrSocket: healthSocket,
       snapshotStrategy: { name: 'never' } as SnapshotStrategyConfiguration
     };
 
@@ -67,7 +69,7 @@ suite('main', function (): void {
       runtime: 'singleProcess',
       name: 'main',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: toEnvironmentVariables({
         configuration,
         configurationDefinition
@@ -77,30 +79,37 @@ suite('main', function (): void {
     handleCommandClient = new HandleCommandClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/command/v2'
     });
 
     observeDomainEventsClient = new ObserveDomainEventsClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/domain-events/v2'
     });
 
     queryViewsClient = new QueryViewsClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/views/v2'
     });
 
     manageFileClient = new ManageFileClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/files/v2'
     });
+
+    // The parameter socketPath is necessary for the agent to connect to a
+    // unix socket. It is neither document in the node docs nor port of the
+    // @types/node package. Relevant issues:
+    // https://github.com/node-fetch/node-fetch/issues/336#issuecomment-689623290
+    // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/36463
+    agent = new Agent({ socketPath: socket } as any);
   });
 
   teardown(async (): Promise<void> => {
@@ -116,7 +125,7 @@ suite('main', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPort,
+        portOrSocket: healthSocket,
         path: '/health/v2'
       });
 
@@ -267,8 +276,9 @@ suite('main', function (): void {
   suite('graphql', (): void => {
     test('has a command mutation endpoint.', async (): Promise<void> => {
       const link = new HttpLink({
-        uri: `http://localhost:${port}/graphql/v2/`,
-        fetch: fetch as any
+        uri: `http://localhost/graphql/v2/`,
+        fetch: fetch as any,
+        fetchOptions: { agent }
       });
       const cache = new InMemoryCache();
 
@@ -304,7 +314,7 @@ suite('main', function (): void {
 
     test('has a subscription endpoint for domain events.', async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/graphql/v2/`,
+        `ws+unix://${socket}:/graphql/v2/`,
         {},
         ws
       );
@@ -351,7 +361,7 @@ suite('main', function (): void {
 
     test('has a subscription endpoint for notifications.', async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/graphql/v2/`,
+        `ws+unix://${socket}:/graphql/v2/`,
         {},
         ws
       );
@@ -485,7 +495,7 @@ suite('main', function (): void {
       const notificationsClient = new SubscribeNotificationsClient({
         protocol: 'http',
         hostName: 'localhost',
-        port,
+        portOrSocket: socket,
         path: '/notifications/v2'
       });
 

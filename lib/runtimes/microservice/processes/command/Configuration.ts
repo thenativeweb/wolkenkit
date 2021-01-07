@@ -2,12 +2,12 @@ export interface Configuration {
   applicationDirectory: string;
   commandCorsOrigin: string | string[];
   commandDispatcherHostName: string;
-  commandDispatcherPort: number;
+  commandDispatcherPortOrSocket: number | string;
   commandDispatcherProtocol: string;
   commandDispatcherRetries: number;
   enableOpenApiDocumentation: boolean;
   healthCorsOrigin: string | string[];
-  healthPort: number;
+  healthPortOrSocket: number | string;
   identityProviders: { issuer: string; certificate: string }[];
-  port: number;
+  portOrSocket: number | string;
 }

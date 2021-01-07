@@ -3,8 +3,8 @@ import { DomainEventStoreOptions } from '../../../../stores/domainEventStore/Dom
 export interface Configuration {
   domainEventStoreOptions: DomainEventStoreOptions;
   healthCorsOrigin: string | string[];
-  healthPort: number;
-  port: number;
+  healthPortOrSocket: number | string;
+  portOrSocket: number | string;
   queryDomainEventsCorsOrigin: string | string[];
   writeDomainEventsCorsOrigin: string | string[];
 }

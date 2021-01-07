@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
@@ -8,25 +7,22 @@ import streamToString from 'stream-to-string';
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async getFile ({ id }: {
     id: string;
   }): Promise<{ id: string; name: string; contentType: string; stream: Readable }> {
-    const { status, headers, data } = await axios({
+    const { status, headers, data } = await this.axios({
       method: 'get',
       url: `${this.url}/file/${id}`,
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
+      responseType: 'stream'
     });
 
     if (status === 200) {
@@ -61,7 +57,7 @@ class Client extends HttpClient {
     contentType: string;
     stream: Readable;
   }): Promise<void> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/add-file`,
       headers: {
@@ -69,10 +65,7 @@ class Client extends HttpClient {
         'x-name': name,
         'content-type': contentType
       },
-      data: stream,
-      validateStatus (): boolean {
-        return true;
-      }
+      data: stream
     });
 
     if (status === 200) {
@@ -97,13 +90,10 @@ class Client extends HttpClient {
   public async removeFile ({ id }: {
     id: string;
   }): Promise<void> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/remove-file`,
-      data: { id },
-      validateStatus (): boolean {
-        return true;
-      }
+      data: { id }
     });
 
     if (status === 200) {

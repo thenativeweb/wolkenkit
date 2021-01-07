@@ -39,7 +39,7 @@ import { State } from '../../../../common/elements/State';
     const domainEventStore = await AeonstoreDomainEventStore.create({
       protocol: configuration.aeonstoreProtocol,
       hostName: configuration.aeonstoreHostName,
-      port: configuration.aeonstorePort
+      portOrSocket: configuration.aeonstorePortOrSocket
     });
 
     const lockStore = await createLockStore(configuration.lockStoreOptions);
@@ -60,7 +60,7 @@ import { State } from '../../../../common/elements/State';
     const commandDispatcherClient = new CommandDispatcherClient<CommandWithMetadata<CommandData>>({
       protocol: configuration.commandDispatcherProtocol,
       hostName: configuration.commandDispatcherHostName,
-      port: configuration.commandDispatcherPort,
+      portOrSocket: configuration.commandDispatcherPortOrSocket,
       path: '/await-command/v2',
       createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
     });
@@ -68,7 +68,7 @@ import { State } from '../../../../common/elements/State';
     const domainEventDispatcherClient = new DomainEventDispatcherClient({
       protocol: configuration.domainEventDispatcherProtocol,
       hostName: configuration.domainEventDispatcherHostName,
-      port: configuration.domainEventDispatcherPort,
+      portOrSocket: configuration.domainEventDispatcherPortOrSocket,
       path: '/handle-domain-event/v2'
     });
 
@@ -86,9 +86,14 @@ import { State } from '../../../../common/elements/State';
       }
     };
 
-    await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
+    await runHealthServer({
+      corsOrigin: configuration.healthCorsOrigin,
+      portOrSocket: configuration.healthPortOrSocket
+    });
 
-    logger.info('Domain server started.', { healthPort: configuration.healthPort });
+    logger.info('Domain server started.', {
+      healthPortOrSocket: configuration.healthPortOrSocket
+    });
 
     for (let i = 0; i < configuration.concurrentCommands; i++) {
       pForever(async (): Promise<void> => {

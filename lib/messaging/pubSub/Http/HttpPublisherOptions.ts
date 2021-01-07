@@ -3,6 +3,6 @@ export interface HttpPublisherOptions {
 
   protocol?: string;
   hostName: string;
-  port: number;
+  portOrSocket: number | string;
   path?: string;
 }

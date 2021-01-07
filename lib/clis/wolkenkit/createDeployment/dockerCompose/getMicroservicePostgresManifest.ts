@@ -151,7 +151,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           type: 'Http',
           protocol: 'http',
           hostName: services.publisher.hostName,
-          port: services.publisher.privatePort,
+          portOrSocket: services.publisher.privatePort,
           path: '/publish/v2'
         },
         pubSubChannelForNewCommands = 'newCommand',
@@ -169,7 +169,7 @@ const getMicroservicePostgresManifest = function ({ appName }: {
           type: 'Http',
           protocol: 'http',
           hostName: services.publisher.hostName,
-          port: services.publisher.privatePort,
+          portOrSocket: services.publisher.privatePort,
           path: '/subscribe/v2'
         };
 
@@ -177,14 +177,14 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     applicationDirectory,
     commandCorsOrigin: corsOrigin,
     commandDispatcherHostName: services.commandDispatcher.hostName,
-    commandDispatcherPort: services.commandDispatcher.privatePort,
+    commandDispatcherPortOrSocket: services.commandDispatcher.privatePort,
     commandDispatcherProtocol: 'http',
     commandDispatcherRetries: 5,
     enableOpenApiDocumentation: true,
     healthCorsOrigin: corsOrigin,
-    healthPort: services.command.healthPort,
+    healthPortOrSocket: services.command.healthPort,
     identityProviders,
-    port: services.command.privatePort
+    portOrSocket: services.command.privatePort
   };
 
   const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
@@ -192,9 +192,9 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     awaitCommandCorsOrigin: corsOrigin,
     handleCommandCorsOrigin: corsOrigin,
     healthCorsOrigin: corsOrigin,
-    healthPort: services.commandDispatcher.healthPort,
+    healthPortOrSocket: services.commandDispatcher.healthPort,
     missedCommandRecoveryInterval: 5_000,
-    port: services.commandDispatcher.privatePort,
+    portOrSocket: services.commandDispatcher.privatePort,
     priorityQueueStoreOptions: {
       type: 'Postgres',
       hostName: services.postgres.hostName,
@@ -217,20 +217,20 @@ const getMicroservicePostgresManifest = function ({ appName }: {
 
   const domainConfiguration: DomainConfiguration = {
     aeonstoreHostName: services.aeonstore.hostName,
-    aeonstorePort: services.aeonstore.privatePort,
+    aeonstorePortOrSocket: services.aeonstore.privatePort,
     aeonstoreProtocol: 'http',
     applicationDirectory,
     commandDispatcherAcknowledgeRetries: 5,
     commandDispatcherHostName: services.commandDispatcher.hostName,
-    commandDispatcherPort: services.commandDispatcher.privatePort,
+    commandDispatcherPortOrSocket: services.commandDispatcher.privatePort,
     commandDispatcherProtocol: 'http',
     commandDispatcherRenewInterval: 5_000,
     concurrentCommands: 1,
     domainEventDispatcherHostName: services.domainEventDispatcher.hostName,
-    domainEventDispatcherPort: services.domainEventDispatcher.privatePort,
+    domainEventDispatcherPortOrSocket: services.domainEventDispatcher.privatePort,
     domainEventDispatcherProtocol: 'http',
     healthCorsOrigin: corsOrigin,
-    healthPort: services.domain.healthPort,
+    healthPortOrSocket: services.domain.healthPort,
     lockStoreOptions,
     pubSubOptions: {
       channelForNotifications: pubSubChannelForNotifications,
@@ -242,15 +242,15 @@ const getMicroservicePostgresManifest = function ({ appName }: {
 
   const domainEventConfiguration: DomainEventConfiguration = {
     aeonstoreHostName: services.aeonstore.hostName,
-    aeonstorePort: services.aeonstore.privatePort,
+    aeonstorePortOrSocket: services.aeonstore.privatePort,
     aeonstoreProtocol: 'http',
     applicationDirectory,
     domainEventCorsOrigin: corsOrigin,
     enableOpenApiDocumentation: true,
     healthCorsOrigin: corsOrigin,
-    healthPort: services.domainEvent.healthPort,
+    healthPortOrSocket: services.domainEvent.healthPort,
     identityProviders,
-    port: services.domainEvent.privatePort,
+    portOrSocket: services.domainEvent.privatePort,
     pubSubOptions: {
       channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
       channelForNotifications: pubSubChannelForNotifications,
@@ -263,16 +263,16 @@ const getMicroservicePostgresManifest = function ({ appName }: {
   const aeonstoreConfiguration: AeonstoreConfiguration = {
     domainEventStoreOptions,
     healthCorsOrigin: corsOrigin,
-    healthPort: services.aeonstore.healthPort,
-    port: services.aeonstore.privatePort,
+    healthPortOrSocket: services.aeonstore.healthPort,
+    portOrSocket: services.aeonstore.privatePort,
     queryDomainEventsCorsOrigin: corsOrigin,
     writeDomainEventsCorsOrigin: corsOrigin
   };
 
   const publisherConfiguration: PublisherConfiguration = {
     healthCorsOrigin: corsOrigin,
-    healthPort: services.publisher.healthPort,
-    port: services.publisher.privatePort,
+    healthPortOrSocket: services.publisher.healthPort,
+    portOrSocket: services.publisher.privatePort,
     publishCorsOrigin: corsOrigin,
     pubSubOptions: {
       subscriber: { type: 'InMemory' },
@@ -283,18 +283,18 @@ const getMicroservicePostgresManifest = function ({ appName }: {
 
   const graphqlConfiguration: GraphqlConfiguration = {
     aeonstoreHostName: services.aeonstore.hostName,
-    aeonstorePort: services.aeonstore.privatePort,
+    aeonstorePortOrSocket: services.aeonstore.privatePort,
     aeonstoreProtocol: 'http',
     applicationDirectory,
     commandDispatcherHostName: services.commandDispatcher.hostName,
-    commandDispatcherPort: services.commandDispatcher.privatePort,
+    commandDispatcherPortOrSocket: services.commandDispatcher.privatePort,
     commandDispatcherProtocol: 'http',
     commandDispatcherRetries: 5,
     corsOrigin,
     enableIntegratedClient: true,
-    healthPort: services.graphql.healthPort,
+    healthPortOrSocket: services.graphql.healthPort,
     identityProviders,
-    port: services.graphql.privatePort,
+    portOrSocket: services.graphql.privatePort,
     pubSubOptions: {
       channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
       channelForNotifications: pubSubChannelForNotifications,
@@ -309,9 +309,9 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     awaitDomainEventCorsOrigin: corsOrigin,
     handleDomainEventCorsOrigin: corsOrigin,
     healthCorsOrigin: corsOrigin,
-    healthPort: services.domainEventDispatcher.healthPort,
+    healthPortOrSocket: services.domainEventDispatcher.healthPort,
     missedDomainEventRecoveryInterval: 5_000,
-    port: services.domainEventDispatcher.privatePort,
+    portOrSocket: services.domainEventDispatcher.privatePort,
     priorityQueueStoreOptions: {
       type: 'Postgres',
       hostName: services.postgres.hostName,
@@ -334,11 +334,11 @@ const getMicroservicePostgresManifest = function ({ appName }: {
 
   const flowConfiguration: FlowConfiguration = {
     aeonstoreHostName: services.aeonstore.hostName,
-    aeonstorePort: services.aeonstore.privatePort,
+    aeonstorePortOrSocket: services.aeonstore.privatePort,
     aeonstoreProtocol: 'http',
     applicationDirectory,
     commandDispatcherHostName: services.commandDispatcher.hostName,
-    commandDispatcherPort: services.commandDispatcher.privatePort,
+    commandDispatcherPortOrSocket: services.commandDispatcher.privatePort,
     commandDispatcherProtocol: 'http',
     concurrentFlows: 1,
     consumerProgressStoreOptions: {
@@ -354,43 +354,43 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     },
     domainEventDispatcherAcknowledgeRetries: 5,
     domainEventDispatcherHostName: services.domainEventDispatcher.hostName,
-    domainEventDispatcherPort: services.domainEventDispatcher.privatePort,
+    domainEventDispatcherPortOrSocket: services.domainEventDispatcher.privatePort,
     domainEventDispatcherProtocol: 'http',
     domainEventDispatcherRenewInterval: 5_000,
     healthCorsOrigin: corsOrigin,
-    healthPort: services.flow.healthPort,
+    healthPortOrSocket: services.flow.healthPort,
     lockStoreOptions,
     pubSubOptions: {
       channelForNotifications: pubSubChannelForNotifications,
       publisher: publisherOptions
     },
     replayServerHostName: services.replay.hostName,
-    replayServerPort: services.replay.privatePort,
+    replayServerPortOrSocket: services.replay.privatePort,
     replayServerProtocol: 'http',
     snapshotStrategy
   };
 
   const replayConfiguration: ReplayConfiguration = {
     aeonstoreHostName: services.aeonstore.hostName,
-    aeonstorePort: services.aeonstore.privatePort,
+    aeonstorePortOrSocket: services.aeonstore.privatePort,
     aeonstoreProtocol: 'http',
     applicationDirectory,
     corsOrigin,
     domainEventDispatcherHostName: services.domainEventDispatcher.hostName,
-    domainEventDispatcherPort: services.domainEventDispatcher.privatePort,
+    domainEventDispatcherPortOrSocket: services.domainEventDispatcher.privatePort,
     domainEventDispatcherProtocol: 'http',
     healthCorsOrigin: corsOrigin,
-    healthPort: services.replay.healthPort,
-    port: services.replay.privatePort
+    healthPortOrSocket: services.replay.healthPort,
+    portOrSocket: services.replay.privatePort
   };
 
   const viewConfiguration: ViewConfiguration = {
     applicationDirectory,
     enableOpenApiDocumentation: true,
     healthCorsOrigin: corsOrigin,
-    healthPort: services.view.healthPort,
+    healthPortOrSocket: services.view.healthPort,
     identityProviders,
-    port: services.view.privatePort,
+    portOrSocket: services.view.privatePort,
     viewCorsOrigin: corsOrigin,
     pubSubOptions: {
       channelForNotifications: pubSubChannelForNotifications,
@@ -402,10 +402,10 @@ const getMicroservicePostgresManifest = function ({ appName }: {
   const notificationConfiguration: NotificationConfiguration = {
     applicationDirectory,
     healthCorsOrigin: corsOrigin,
-    healthPort: services.notification.healthPort,
+    healthPortOrSocket: services.notification.healthPort,
     identityProviders,
     notificationCorsOrigin: corsOrigin,
-    port: services.notification.privatePort,
+    portOrSocket: services.notification.privatePort,
     pubSubOptions: {
       channelForNotifications: pubSubChannelForNotifications,
       subscriber: subscriberOptions
@@ -418,9 +418,9 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     fileCorsOrigin: corsOrigin,
     fileStoreOptions,
     healthCorsOrigin: corsOrigin,
-    healthPort: services.file.healthPort,
+    healthPortOrSocket: services.file.healthPort,
     identityProviders,
-    port: services.file.privatePort
+    portOrSocket: services.file.privatePort
   };
 
   return `

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
@@ -6,13 +5,13 @@ import { HttpClient } from '../../../shared/HttpClient';
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async getHealth (): Promise<{
@@ -23,12 +22,9 @@ class Client extends HttpClient {
     memoryUsage: { rss: number; maxRss: number; heapTotal: number; heapUsed: number; external: number };
     diskUsage: { read: number; write: number };
   }> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'get',
-      url: `${this.url}/`,
-      validateStatus (): boolean {
-        return true;
-      }
+      url: `${this.url}/`
     });
 
     if (status !== 200) {

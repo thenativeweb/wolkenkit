@@ -1,8 +1,8 @@
-import { getPortSchema } from './getPortSchema';
+import { getPortOrSocketSchema } from './getPortOrSocketSchema';
 import { getProtocolSchema } from './getProtocolSchema';
 import { Schema } from '../../../common/elements/Schema';
 
-const portSchema = getPortSchema(),
+const portOrSocketSchema = getPortOrSocketSchema(),
       protocolSchema = getProtocolSchema();
 
 const getPublisherOptionsSchema = function (): Schema {
@@ -21,10 +21,10 @@ const getPublisherOptionsSchema = function (): Schema {
           type: { type: 'string', enum: [ 'Http' ]},
           protocol: protocolSchema,
           hostName: { type: 'string', format: 'hostname' },
-          port: portSchema,
+          portOrSocket: portOrSocketSchema,
           path: { type: 'string' }
         },
-        required: [ 'type', 'hostName', 'port' ],
+        required: [ 'type', 'hostName', 'portOrSocket' ],
         additionalProperties: false
       }
     ]

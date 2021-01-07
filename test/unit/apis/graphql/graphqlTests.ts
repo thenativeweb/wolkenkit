@@ -14,11 +14,10 @@ import { DomainEventWithState } from '../../../../lib/common/elements/DomainEven
 import { Application as ExpressApplication } from 'express';
 import fetch from 'node-fetch';
 import { getApi } from '../../../../lib/apis/graphql';
-import { getAvailablePort } from '../../../../lib/common/utils/network/getAvailablePort';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
+import { getSocketPaths } from '../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import gql from 'graphql-tag';
-import http from 'http';
 import { HttpLink } from 'apollo-link-http';
 import { identityProvider } from '../../../shared/identityProvider';
 import { InitializeGraphQlOnServer } from '../../../../lib/apis/graphql/InitializeGraphQlOnServer';
@@ -36,6 +35,7 @@ import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
+import http, { Agent } from 'http';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
 
 suite('graphql', function (): void {
@@ -44,17 +44,18 @@ suite('graphql', function (): void {
   const channelForNotifications = 'notifications',
         identityProviders = [ identityProvider ];
 
-  let api: ExpressApplication,
+  let agent: Agent,
+      api: ExpressApplication,
       application: Application,
       cancelledCommands: ItemIdentifierWithClient[],
       domainEventStore: DomainEventStore,
       initializeGraphQlOnServer: InitializeGraphQlOnServer,
-      port: number,
       publishDomainEvent: PublishDomainEvent | undefined,
       publisher: Publisher<Notification>,
       pubSubChannelForNotifications: string,
       receivedCommands: CommandWithMetadata<CommandData>[],
       repository: Repository,
+      socket: string,
       subscriber: Subscriber<Notification>;
 
   setup(async (): Promise<void> => {
@@ -104,12 +105,12 @@ suite('graphql', function (): void {
 
     const server = http.createServer(api);
 
-    port = await getAvailablePort();
+    [ socket ] = await getSocketPaths({ count: 1 });
 
     await initializeGraphQlOnServer({ server });
 
     await new Promise<void>((resolve, reject): void => {
-      server.listen(port, (): void => {
+      server.listen(socket, (): void => {
         resolve();
       });
 
@@ -117,6 +118,13 @@ suite('graphql', function (): void {
         reject(err);
       });
     });
+
+    // The parameter socketPath is necessary for the agent to connect to a
+    // unix socket. It is neither document in the node docs nor port of the
+    // @types/node package. Relevant issues:
+    // https://github.com/node-fetch/node-fetch/issues/336#issuecomment-689623290
+    // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/36463
+    agent = new Agent({ socketPath: socket } as any);
   });
 
   suite('startup', (): void => {
@@ -159,8 +167,9 @@ suite('graphql', function (): void {
 
     setup(async (): Promise<void> => {
       const link = new HttpLink({
-        uri: `http://localhost:${port}/v2/`,
-        fetch: fetch as any
+        uri: `http://localhost/v2/`,
+        fetch: fetch as any,
+        fetchOptions: { agent }
       });
       const cache = new InMemoryCache();
 
@@ -246,8 +255,9 @@ suite('graphql', function (): void {
 
     setup(async (): Promise<void> => {
       const link = new HttpLink({
-        uri: `http://localhost:${port}/v2/`,
-        fetch: fetch as any
+        uri: `http://localhost/v2/`,
+        fetch: fetch as any,
+        fetchOptions: { agent }
       });
       const cache = new InMemoryCache();
 
@@ -317,12 +327,12 @@ suite('graphql', function (): void {
 
       const server = http.createServer(api);
 
-      port = await getAvailablePort();
+      [ socket ] = await getSocketPaths({ count: 1 });
 
       await initializeGraphQlOnServer({ server });
 
       await new Promise<void>((resolve, reject): void => {
-        server.listen(port, (): void => {
+        server.listen(socket, (): void => {
           resolve();
         });
 
@@ -331,9 +341,12 @@ suite('graphql', function (): void {
         });
       });
 
+      agent = new Agent({ socketPath: socket } as any);
+
       const link = new HttpLink({
-        uri: `http://localhost:${port}/v2/`,
-        fetch: fetch as any
+        uri: `http://localhost/v2/`,
+        fetch: fetch as any,
+        fetchOptions: { agent }
       });
       const cache = new InMemoryCache();
 
@@ -377,7 +390,7 @@ suite('graphql', function (): void {
 
     setup(async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/v2/`,
+        `ws+unix://${socket}:/v2/`,
         {},
         ws
       );
@@ -586,7 +599,7 @@ suite('graphql', function (): void {
       });
 
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/v2/`,
+        `ws+unix://${socket}:/v2/`,
         {
           connectionParams: {
             token
@@ -714,7 +727,7 @@ suite('graphql', function (): void {
       `;
 
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/v2/`,
+        `ws+unix://${socket}:/v2/`,
         {
           connectionParams: {
             'x-anonymous-id': 'jane.doe'
@@ -816,7 +829,7 @@ suite('graphql', function (): void {
       `;
 
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/v2/`,
+        `ws+unix://${socket}:/v2/`,
         {
           connectionParams: {
             'x-anonymous-id': 'john.doe'
@@ -859,7 +872,7 @@ suite('graphql', function (): void {
 
     setup(async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/v2/`,
+        `ws+unix://${socket}:/v2/`,
         {},
         ws
       );
@@ -1083,8 +1096,9 @@ suite('graphql', function (): void {
 
     setup(async (): Promise<void> => {
       const link = new HttpLink({
-        uri: `http://localhost:${port}/v2/`,
-        fetch: fetch as any
+        uri: `http://localhost/v2/`,
+        fetch: fetch as any,
+        fetchOptions: { agent }
       });
       const cache = new InMemoryCache();
 

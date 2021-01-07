@@ -6,7 +6,7 @@ import { getDomainEventStoreOptionsSchema } from '../../../shared/schemas/getDom
 import { getFileStoreOptionsSchema } from '../../../shared/schemas/getFileStoreOptionsSchema';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
 import { getLockStoreOptionsSchema } from '../../../shared/schemas/getLockStoreOptionsSchema';
-import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getPortOrSocketSchema } from '../../../shared/schemas/getPortOrSocketSchema';
 import { getPriorityQueueStoreOptionsSchema } from '../../../shared/schemas/getPriorityQueueStoreOptionsSchema';
 import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
@@ -19,7 +19,7 @@ const consumerProgressStoreOptionsSchema = getConsumerProgressStoreOptionsSchema
       fileStoreOptionsSchema = getFileStoreOptionsSchema(),
       identityProviderSchema = getIdentityProviderSchema(),
       lockStoreOptionsSchema = getLockStoreOptionsSchema(),
-      portSchema = getPortSchema(),
+      portOrSocketSchema = getPortOrSocketSchema(),
       priorityQueueStoreOptionsSchema = getPriorityQueueStoreOptionsSchema(),
       publisherOptionsSchema = getPublisherOptionsSchema(),
       snapshotStrategySchema = getSnapshotStrategySchema(),
@@ -95,10 +95,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
       ]
     }
   },
-  healthPort: {
-    environmentVariable: 'HEALTH_PORT',
+  healthPortOrSocket: {
+    environmentVariable: 'HEALTH_PORT_OR_SOCKET',
     defaultValue: 3_001,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
   httpApi: {
     environmentVariable: 'HTTP_API',
@@ -115,10 +115,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: { type: 'InMemory' },
     schema: lockStoreOptionsSchema
   },
-  port: {
-    environmentVariable: 'PORT',
+  portOrSocket: {
+    environmentVariable: 'PORT_OR_SOCKET',
     defaultValue: 3_000,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
   priorityQueueStoreForCommandsOptions: {
     environmentVariable: 'PRIORITY_QUEUE_STORE_FOR_COMMANDS_OPTIONS',

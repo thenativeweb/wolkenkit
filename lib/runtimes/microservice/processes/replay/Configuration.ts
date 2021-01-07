@@ -1,13 +1,13 @@
 export interface Configuration {
   aeonstoreHostName: string;
-  aeonstorePort: number;
+  aeonstorePortOrSocket: number | string;
   aeonstoreProtocol: string;
   applicationDirectory: string;
   corsOrigin: string | string[];
   domainEventDispatcherHostName: string;
-  domainEventDispatcherPort: number;
+  domainEventDispatcherPortOrSocket: number | string;
   domainEventDispatcherProtocol: string;
   healthCorsOrigin: string | string[];
-  healthPort: number;
-  port: number;
+  healthPortOrSocket: number | string;
+  portOrSocket: number | string;
 }

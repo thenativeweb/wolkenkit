@@ -28,13 +28,13 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const domainEventStore = await AeonstoreDomainEventStore.create({
       protocol: configuration.aeonstoreProtocol,
       hostName: configuration.aeonstoreHostName,
-      port: configuration.aeonstorePort
+      portOrSocket: configuration.aeonstorePortOrSocket
     });
 
     const domainEventDispatcherClient = new DomainEventDispatcherClient({
       protocol: configuration.domainEventDispatcherProtocol,
       hostName: configuration.domainEventDispatcherHostName,
-      port: configuration.domainEventDispatcherPort,
+      portOrSocket: configuration.domainEventDispatcherPortOrSocket,
       path: '/handle-domain-event/v2'
     });
 
@@ -49,15 +49,18 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       performReplay
     });
 
-    await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
+    await runHealthServer({
+      corsOrigin: configuration.healthCorsOrigin,
+      portOrSocket: configuration.healthPortOrSocket
+    });
 
     const server = http.createServer(api);
 
-    server.listen(configuration.port, (): void => {
-      logger.info(
-        'Replay server started.',
-        { port: configuration.port, healthPort: configuration.healthPort }
-      );
+    server.listen(configuration.portOrSocket, (): void => {
+      logger.info('Replay server started.', {
+        portOrSocket: configuration.portOrSocket,
+        healthPortOrSocket: configuration.healthPortOrSocket
+      });
     });
   } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { ex });
