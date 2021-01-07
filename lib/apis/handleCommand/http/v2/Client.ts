@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandDescription } from '../../../../common/application/CommandDescription';
 import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
@@ -10,22 +9,19 @@ import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async getDescription (): Promise<Record<string, Record<string, Record<string, CommandDescription>>>> {
-    const { data } = await axios({
+    const { data } = await this.axios({
       method: 'get',
-      url: `${this.url}/description`,
-      validateStatus (): boolean {
-        return true;
-      }
+      url: `${this.url}/description`
     });
 
     return data;
@@ -46,13 +42,10 @@ class Client extends HttpClient {
       `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.aggregateIdentifier.id}/${command.name}` :
       `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.name}`;
 
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url,
-      data: command.data,
-      validateStatus (): boolean {
-        return true;
-      }
+      data: command.data
     });
 
     if (status === 200) {
@@ -91,13 +84,10 @@ class Client extends HttpClient {
   public async cancelCommand ({ commandIdentifier }: {
     commandIdentifier: ItemIdentifier;
   }): Promise<void> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/cancel`,
-      data: commandIdentifier,
-      validateStatus (): boolean {
-        return true;
-      }
+      data: commandIdentifier
     });
 
     switch (status) {

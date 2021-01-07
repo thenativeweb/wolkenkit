@@ -15,7 +15,7 @@ class HttpPublisher<T extends object> implements Publisher<T> {
     const publisherClient = new Client({
       protocol: options.protocol,
       hostName: options.hostName,
-      port: options.port,
+      portOrSocket: options.portOrSocket,
       path: options.path
     });
 

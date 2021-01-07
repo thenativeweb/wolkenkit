@@ -7,8 +7,8 @@ import { configurationDefinition as commandDispatcherConfigurationDefinition } f
 import { CommandWithMetadata } from '../../../../../lib/common/elements/CommandWithMetadata';
 import { Configuration } from '../../../../../lib/runtimes/microservice/processes/command/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/microservice/processes/command/configurationDefinition';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
@@ -24,30 +24,30 @@ const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 
 
 suite('command', (): void => {
   suite('without retries', function (): void {
-    this.timeout(10_000);
+    this.timeout(20_000);
 
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
           identityProviders = [{ issuer: 'https://token.invalid', certificate: certificateDirectory }];
 
     let awaitCommandClient: AwaitCommandClient<CommandWithMetadata<CommandData>>,
         commandConfiguration: Configuration,
-        commandDispatcherHealthPort: number,
-        commandDispatcherPort: number,
+        commandDispatcherHealthSocket: string,
+        commandDispatcherSocket: string,
         handleCommandClient: HandleCommandClient,
-        healthPort: number,
-        port: number,
+        healthSocket: string,
+        socket: string,
         stopCommandDispatcherProcess: (() => Promise<void>) | undefined,
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, healthPort, commandDispatcherPort, commandDispatcherHealthPort ] = await getAvailablePorts({ count: 4 });
+      [ socket, healthSocket, commandDispatcherSocket, commandDispatcherHealthSocket ] = await getSocketPaths({ count: 4 });
 
       const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
         ...getDefaultConfiguration({ configurationDefinition: commandDispatcherConfigurationDefinition }),
         applicationDirectory,
         priorityQueueStoreOptions: { type: 'InMemory', expirationTime: 600 },
-        port: commandDispatcherPort,
-        healthPort: commandDispatcherHealthPort,
+        portOrSocket: commandDispatcherSocket,
+        healthPortOrSocket: commandDispatcherHealthSocket,
         missedCommandRecoveryInterval: 600
       };
 
@@ -55,7 +55,7 @@ suite('command', (): void => {
         runtime: 'microservice',
         name: 'commandDispatcher',
         enableDebugMode: false,
-        port: commandDispatcherHealthPort,
+        portOrSocket: commandDispatcherHealthSocket,
         env: toEnvironmentVariables({
           configuration: commandDispatcherConfiguration,
           configurationDefinition: commandDispatcherConfigurationDefinition
@@ -65,7 +65,7 @@ suite('command', (): void => {
       awaitCommandClient = new AwaitCommandClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: commandDispatcherPort,
+        portOrSocket: commandDispatcherSocket,
         path: '/await-command/v2',
         createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
       });
@@ -73,10 +73,10 @@ suite('command', (): void => {
       commandConfiguration = {
         ...getDefaultConfiguration<Configuration>({ configurationDefinition }),
         applicationDirectory,
-        port,
-        healthPort,
+        portOrSocket: socket,
+        healthPortOrSocket: healthSocket,
         commandDispatcherHostName: 'localhost',
-        commandDispatcherPort,
+        commandDispatcherPortOrSocket: commandDispatcherSocket,
         commandDispatcherRetries: 0,
         identityProviders
       };
@@ -85,14 +85,14 @@ suite('command', (): void => {
         runtime: 'microservice',
         name: 'command',
         enableDebugMode: false,
-        port: healthPort,
+        portOrSocket: healthSocket,
         env: toEnvironmentVariables({ configuration: commandConfiguration, configurationDefinition })
       });
 
       handleCommandClient = new HandleCommandClient({
         protocol: 'http',
         hostName: 'localhost',
-        port,
+        portOrSocket: socket,
         path: '/command/v2'
       });
     });
@@ -114,7 +114,7 @@ suite('command', (): void => {
         const healthClient = new HealthClient({
           protocol: 'http',
           hostName: 'localhost',
-          port: healthPort,
+          portOrSocket: healthSocket,
           path: '/health/v2'
         });
 
@@ -155,16 +155,20 @@ suite('command', (): void => {
           await stopProcess();
         }
 
+        [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
+
         stopProcess = await startProcess({
           runtime: 'microservice',
           name: 'command',
           enableDebugMode: false,
-          port: healthPort,
+          portOrSocket: healthSocket,
           env: toEnvironmentVariables({
             configuration: {
               ...commandConfiguration,
               commandDispatcherHostName: 'non-existent',
-              commandDispatcherPort: 12_345
+              commandDispatcherPortOrSocket: '/non-existent/socket',
+              portOrSocket: socket,
+              healthPortOrSocket: healthSocket
             },
             configurationDefinition
           })
@@ -216,16 +220,20 @@ suite('command', (): void => {
           await stopProcess();
         }
 
+        [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
+
         stopProcess = await startProcess({
           runtime: 'microservice',
           name: 'command',
           enableDebugMode: false,
-          port: healthPort,
+          portOrSocket: healthSocket,
           env: toEnvironmentVariables({
             configuration: {
               ...commandConfiguration,
               commandDispatcherHostName: 'non-existent',
-              commandDispatcherPort: 12_345
+              commandDispatcherPortOrSocket: '/non-existent/socket',
+              portOrSocket: socket,
+              healthPortOrSocket: healthSocket
             },
             configurationDefinition
           })
@@ -253,30 +261,30 @@ suite('command', (): void => {
           identityProviders = [{ issuer: 'https://token.invalid', certificate: certificateDirectory }];
 
     let commandConfiguration: Configuration,
-        commandDispatcherPort: number,
+        commandDispatcherSocket: string,
         handleCommandClient: HandleCommandClient,
-        healthPort: number,
-        port: number,
+        healthSocket: string,
         requestCount: number,
+        socket: string,
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, healthPort, commandDispatcherPort ] = await getAvailablePorts({ count: 3 });
+      [ socket, healthSocket, commandDispatcherSocket ] = await getSocketPaths({ count: 3 });
 
       commandConfiguration = {
         ...getDefaultConfiguration<Configuration>({ configurationDefinition }),
         applicationDirectory,
-        port,
-        healthPort,
+        portOrSocket: socket,
+        healthPortOrSocket: healthSocket,
         commandDispatcherHostName: 'localhost',
-        commandDispatcherPort,
+        commandDispatcherPortOrSocket: commandDispatcherSocket,
         commandDispatcherRetries,
         identityProviders
       };
 
       requestCount = 0;
       await startCatchAllServer({
-        port: commandDispatcherPort,
+        portOrSocket: commandDispatcherSocket,
         onRequest (req, res): void {
           requestCount += 1;
           res.status(500).end();
@@ -287,14 +295,14 @@ suite('command', (): void => {
         runtime: 'microservice',
         name: 'command',
         enableDebugMode: false,
-        port: healthPort,
+        portOrSocket: healthSocket,
         env: toEnvironmentVariables({ configuration: commandConfiguration, configurationDefinition })
       });
 
       handleCommandClient = new HandleCommandClient({
         protocol: 'http',
         hostName: 'localhost',
-        port,
+        portOrSocket: socket,
         path: '/command/v2'
       });
     });
@@ -332,30 +340,30 @@ suite('command', (): void => {
           succeedAfterTries = 3;
 
     let commandConfiguration: Configuration,
-        commandDispatcherPort: number,
+        commandDispatcherSocket: string,
         handleCommandClient: HandleCommandClient,
-        healthPort: number,
-        port: number,
+        healthSocket: string,
         requestCount: number,
+        socket: string,
         stopProcess: (() => Promise<void>) | undefined;
 
     setup(async (): Promise<void> => {
-      [ port, healthPort, commandDispatcherPort ] = await getAvailablePorts({ count: 3 });
+      [ socket, healthSocket, commandDispatcherSocket ] = await getSocketPaths({ count: 3 });
 
       commandConfiguration = {
         ...getDefaultConfiguration<Configuration>({ configurationDefinition }),
         applicationDirectory,
-        port,
-        healthPort,
+        portOrSocket: socket,
+        healthPortOrSocket: healthSocket,
         commandDispatcherHostName: 'localhost',
-        commandDispatcherPort,
+        commandDispatcherPortOrSocket: commandDispatcherSocket,
         commandDispatcherRetries,
         identityProviders
       };
 
       requestCount = 0;
       await startCatchAllServer({
-        port: commandDispatcherPort,
+        portOrSocket: commandDispatcherSocket,
         onRequest (req, res): void {
           requestCount += 1;
           if (requestCount < succeedAfterTries) {
@@ -369,14 +377,14 @@ suite('command', (): void => {
         runtime: 'microservice',
         name: 'command',
         enableDebugMode: false,
-        port: healthPort,
+        portOrSocket: healthSocket,
         env: toEnvironmentVariables({ configuration: commandConfiguration, configurationDefinition })
       });
 
       handleCommandClient = new HandleCommandClient({
         protocol: 'http',
         hostName: 'localhost',
-        port,
+        portOrSocket: socket,
         path: '/command/v2'
       });
     });

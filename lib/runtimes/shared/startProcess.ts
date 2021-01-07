@@ -4,11 +4,11 @@ import path from 'path';
 import { retry } from 'retry-ignore-abort';
 import { runfork } from 'runfork';
 
-const startProcess = async function ({ runtime, name, enableDebugMode, port, env = {}, onExit }: {
+const startProcess = async function ({ runtime, name, enableDebugMode, portOrSocket, env = {}, onExit }: {
   runtime: string;
   name: string;
   enableDebugMode: boolean;
-  port: number;
+  portOrSocket: number | string;
   env: NodeJS.ProcessEnv;
   onExit?: (exitCode: number, stdout: string, stderr: string) => void;
 }): Promise<() => Promise<void>> {
@@ -23,10 +23,19 @@ const startProcess = async function ({ runtime, name, enableDebugMode, port, env
   });
 
   await retry(async (): Promise<void> => {
-    await axios({
-      method: 'get',
-      url: `http://localhost:${port}/health/v2`
-    });
+    // eslint-disable-next-line unicorn/prefer-ternary
+    if (typeof portOrSocket === 'number') {
+      await axios({
+        method: 'get',
+        url: `http://localhost:${portOrSocket}/health/v2`
+      });
+    } else {
+      await axios({
+        method: 'get',
+        url: `http://localhost/health/v2`,
+        socketPath: portOrSocket
+      });
+    }
   });
 
   return stopProcess;

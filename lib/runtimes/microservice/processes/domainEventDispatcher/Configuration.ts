@@ -11,9 +11,9 @@ export interface Configuration {
   awaitDomainEventCorsOrigin: string | string[];
   handleDomainEventCorsOrigin: string | string[];
   healthCorsOrigin: string | string[];
-  healthPort: number;
+  healthPortOrSocket: number | string;
   missedDomainEventRecoveryInterval: number;
-  port: number;
+  portOrSocket: number | string;
   priorityQueueStoreOptions: DistributiveOmit<PriorityQueueStoreOptions<DomainEvent<DomainEventData>, ItemIdentifierWithClient>, 'doesIdentifierMatchItem'>;
   pubSubOptions: {
     channelForNewInternalDomainEvents: string;

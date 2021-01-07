@@ -1,17 +1,17 @@
 import { Application } from 'express';
-import { getAvailablePort } from '../../../lib/common/utils/network/getAvailablePort';
+import { getSocketPaths } from '../getSocketPaths';
 import http from 'http';
 import axios, { AxiosInstance } from 'axios';
 
 const runAsServer = async function ({ app }: {
   app: Application;
-}): Promise<{ client: AxiosInstance; port: number }> {
+}): Promise<{ client: AxiosInstance; socket: string }> {
   const server = http.createServer(app);
 
-  const port = await getAvailablePort();
+  const [ socket ] = await getSocketPaths({ count: 1 });
 
   await new Promise<void>((resolve, reject): void => {
-    server.listen(port, (): void => {
+    server.listen(socket, (): void => {
       resolve();
     });
 
@@ -22,10 +22,11 @@ const runAsServer = async function ({ app }: {
 
   const axiosInstance = axios.create({
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    baseURL: `http://localhost:${port}`
+    baseURL: `http://localhost`,
+    socketPath: socket
   });
 
-  return { client: axiosInstance, port };
+  return { client: axiosInstance, socket };
 };
 
 export { runAsServer };

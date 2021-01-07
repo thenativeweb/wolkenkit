@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { DomainEventDescription } from '../../../../common/application/DomainEventDescription';
 import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsTransform } from '../../../../common/utils/http/FilterHeartbeatsTransform';
@@ -10,22 +9,19 @@ import { PassThrough, pipeline } from 'stream';
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async getDescription (): Promise<Record<string, Record<string, Record<string, DomainEventDescription>>>> {
-    const { data, status } = await axios({
+    const { data, status } = await this.axios({
       method: 'get',
-      url: `${this.url}/description`,
-      validateStatus (): boolean {
-        return true;
-      }
+      url: `${this.url}/description`
     });
 
     if (status === 200) {
@@ -40,7 +36,7 @@ class Client extends HttpClient {
   public async getDomainEvents ({ filter = {}}: {
     filter?: Record<string, unknown>;
   }): Promise<PassThrough> {
-    const { data, status } = await axios({
+    const { data, status } = await this.axios({
       method: 'get',
       url: this.url,
       params: { filter },
@@ -49,10 +45,7 @@ class Client extends HttpClient {
           map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
           join('&');
       },
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
+      responseType: 'stream'
     });
 
     if (status !== 200) {

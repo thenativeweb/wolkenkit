@@ -4,18 +4,18 @@ import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOption
 
 export interface Configuration {
   aeonstoreHostName: string;
-  aeonstorePort: number;
+  aeonstorePortOrSocket: number | string;
   aeonstoreProtocol: string;
   applicationDirectory: string;
   commandDispatcherHostName: string;
-  commandDispatcherPort: number;
+  commandDispatcherPortOrSocket: number | string;
   commandDispatcherProtocol: string;
   commandDispatcherRetries: number;
   corsOrigin: string | string[];
   enableIntegratedClient: boolean;
-  healthPort: number;
+  healthPortOrSocket: number | string;
   identityProviders: { issuer: string; certificate: string }[];
-  port: number;
+  portOrSocket: number | string;
   pubSubOptions: {
     channelForNewDomainEvents: string;
     channelForNotifications: string;

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { errors } from '../../../../common/errors';
@@ -10,25 +9,22 @@ import { State } from '../../../../common/elements/State';
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async storeDomainEvents <TDomainEventData extends DomainEventData> ({ domainEvents }: {
     domainEvents: DomainEvent<TDomainEventData>[];
   }): Promise<void> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/store-domain-events`,
-      data: domainEvents,
-      validateStatus (): boolean {
-        return true;
-      }
+      data: domainEvents
     });
 
     if (status === 200) {
@@ -58,13 +54,10 @@ class Client extends HttpClient {
   public async storeSnapshot <TState extends State> ({ snapshot }: {
     snapshot: Snapshot<TState>;
   }): Promise<void> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/store-snapshot`,
-      data: snapshot,
-      validateStatus (): boolean {
-        return true;
-      }
+      data: snapshot
     });
 
     if (status === 200) {

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
@@ -10,22 +9,19 @@ import { PassThrough, pipeline } from 'stream';
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async getDescription (): Promise<Record<string, Record<string, QueryDescription>>> {
-    const { data, status } = await axios({
+    const { data, status } = await this.axios({
       method: 'get',
-      url: `${this.url}/description`,
-      validateStatus (): boolean {
-        return true;
-      }
+      url: `${this.url}/description`
     });
 
     if (status === 200) {
@@ -42,7 +38,7 @@ class Client extends HttpClient {
     queryName: string;
     queryOptions?: Record<string, unknown>;
   }): Promise<PassThrough> {
-    const { data, status } = await axios({
+    const { data, status } = await this.axios({
       method: 'get',
       url: `${this.url}/${viewName}/${queryName}`,
       params: queryOptions,
@@ -51,10 +47,7 @@ class Client extends HttpClient {
           map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
           join('&');
       },
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
+      responseType: 'stream'
     });
 
     if (status !== 200) {

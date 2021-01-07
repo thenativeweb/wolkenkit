@@ -1,5 +1,4 @@
 import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
-import axios from 'axios';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { errors } from '../../../../common/errors';
@@ -15,24 +14,21 @@ import { PassThrough, pipeline } from 'stream';
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
-    const { data, status } = await axios({
+    const { data, status } = await this.axios({
       method: 'get',
-      url: `${this.url}/last-domain-event?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`,
-      validateStatus (): boolean {
-        return true;
-      }
+      url: `${this.url}/last-domain-event?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`
     });
 
     if (status === 200) {
@@ -58,13 +54,10 @@ class Client extends HttpClient {
   public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
   }): Promise<PassThrough> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'get',
       url: `${this.url}/domain-events-by-causation-id?causation-id=${causationId}`,
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
+      responseType: 'stream'
     });
 
     if (status !== 200) {
@@ -94,12 +87,9 @@ class Client extends HttpClient {
   public async hasDomainEventsWithCausationId ({ causationId }: {
     causationId: string;
   }): Promise<boolean> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'get',
-      url: `${this.url}/has-domain-events-with-causation-id?causation-id=${causationId}`,
-      validateStatus (): boolean {
-        return true;
-      }
+      url: `${this.url}/has-domain-events-with-causation-id?causation-id=${causationId}`
     });
 
     if (status !== 200) {
@@ -114,13 +104,10 @@ class Client extends HttpClient {
   public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
   }): Promise<PassThrough> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'get',
       url: `${this.url}/domain-events-by-correlation-id?correlation-id=${correlationId}`,
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
+      responseType: 'stream'
     });
 
     if (status !== 200) {
@@ -154,13 +141,10 @@ class Client extends HttpClient {
       throw new errors.ParameterInvalid(`Parameter 'fromTimestamp' must be at least 0.`);
     }
 
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'get',
       url: `${this.url}/replay?fromTimestamp=${fromTimestamp}`,
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
+      responseType: 'stream'
     });
 
     if (status !== 200) {
@@ -202,13 +186,10 @@ class Client extends HttpClient {
       throw new errors.ParameterInvalid(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
     }
 
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'get',
       url: `${this.url}/replay/${aggregateId}/?fromRevision=${fromRevision}&toRevision=${toRevision}`,
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
+      responseType: 'stream'
     });
 
     if (status !== 200) {
@@ -238,12 +219,9 @@ class Client extends HttpClient {
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<Snapshot<TState> | undefined> {
-    const { data, status } = await axios({
+    const { data, status } = await this.axios({
       method: 'get',
-      url: `${this.url}/snapshot?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`,
-      validateStatus (): boolean {
-        return true;
-      }
+      url: `${this.url}/snapshot?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`
     });
 
     if (status === 200) {

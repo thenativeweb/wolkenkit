@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { errors } from '../../../../common/errors';
 import { FilterHeartbeatsTransform } from '../../../../common/utils/http/FilterHeartbeatsTransform';
 import { flaschenpost } from 'flaschenpost';
@@ -15,23 +14,23 @@ class Client<TItem> extends HttpClient {
   public constructor ({
     protocol = 'http',
     hostName,
-    port,
+    portOrSocket,
     path = '/',
     createItemInstance = ({ item }: { item: TItem }): TItem => item
   }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
     createItemInstance: ({ item }: { item: TItem }) => TItem;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
 
     this.createItemInstance = createItemInstance;
   }
 
   public async awaitItem (): Promise<{ item: TItem; metadata: LockMetadata }> {
-    const { data } = await axios({
+    const { data } = await this.axios({
       method: 'get',
       url: this.url,
       responseType: 'stream'
@@ -85,7 +84,7 @@ class Client<TItem> extends HttpClient {
     discriminator: string;
     token: string;
   }): Promise<void> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/renew-lock`,
       data: { discriminator, token },
@@ -123,7 +122,7 @@ class Client<TItem> extends HttpClient {
     discriminator: string;
     token: string;
   }): Promise<void> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/acknowledge`,
       data: { discriminator, token },
@@ -162,7 +161,7 @@ class Client<TItem> extends HttpClient {
     token: string;
     priority: number;
   }): Promise<void> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/defer`,
       data: { discriminator, token, priority },

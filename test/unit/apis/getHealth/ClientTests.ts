@@ -79,10 +79,10 @@ suite('getHealth/http/Client', (): void => {
           additionalProperties: false
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 

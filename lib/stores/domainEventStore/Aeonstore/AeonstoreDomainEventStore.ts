@@ -13,29 +13,29 @@ class AeonstoreDomainEventStore implements DomainEventStore {
 
   protected writeClient: WriteClient;
 
-  protected constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  protected constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
     const trimmedPath = path.endsWith('/') ? path.slice(0, -1) : path;
 
     this.queryClient = new QueryClient({
-      protocol, hostName, port, path: `${trimmedPath}/query/v2`
+      protocol, hostName, portOrSocket, path: `${trimmedPath}/query/v2`
     });
     this.writeClient = new WriteClient({
-      protocol, hostName, port, path: `${trimmedPath}/write/v2`
+      protocol, hostName, portOrSocket, path: `${trimmedPath}/write/v2`
     });
   }
 
-  public static async create ({ protocol = 'http', hostName, port, path = '/' }: {
+  public static async create ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }): Promise<AeonstoreDomainEventStore> {
-    return new AeonstoreDomainEventStore({ protocol, hostName, port, path });
+    return new AeonstoreDomainEventStore({ protocol, hostName, portOrSocket, path });
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {

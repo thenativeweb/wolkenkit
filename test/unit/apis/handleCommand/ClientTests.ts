@@ -47,10 +47,10 @@ suite('handleCommand/http/Client', (): void => {
       });
 
       test('returns the commands description.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -100,10 +100,10 @@ suite('handleCommand/http/Client', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -122,10 +122,10 @@ suite('handleCommand/http/Client', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -144,10 +144,10 @@ suite('handleCommand/http/Client', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -166,10 +166,10 @@ suite('handleCommand/http/Client', (): void => {
           data: { strategy: 'invalid-value' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -188,10 +188,10 @@ suite('handleCommand/http/Client', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -229,10 +229,10 @@ suite('handleCommand/http/Client', (): void => {
           data: { strategy: 'succeed' }
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -273,10 +273,10 @@ suite('handleCommand/http/Client', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -306,10 +306,10 @@ suite('handleCommand/http/Client', (): void => {
           data: { strategy: 'succeed' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -351,10 +351,10 @@ suite('handleCommand/http/Client', (): void => {
           id: v4()
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -371,10 +371,10 @@ suite('handleCommand/http/Client', (): void => {
           id: v4()
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -391,10 +391,10 @@ suite('handleCommand/http/Client', (): void => {
           id: v4()
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -411,10 +411,10 @@ suite('handleCommand/http/Client', (): void => {
           id: v4()
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -452,10 +452,10 @@ suite('handleCommand/http/Client', (): void => {
           id: v4()
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 

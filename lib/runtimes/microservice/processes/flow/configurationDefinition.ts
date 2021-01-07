@@ -3,7 +3,7 @@ import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition
 import { getConsumerProgressStoreOptionsSchema } from '../../../shared/schemas/getConsumerProgressStoreOptionsSchema';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getLockStoreOptionsSchema } from '../../../shared/schemas/getLockStoreOptionsSchema';
-import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getPortOrSocketSchema } from '../../../shared/schemas/getPortOrSocketSchema';
 import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
 import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
@@ -12,7 +12,7 @@ import path from 'path';
 const consumerProgressStoreOptionsSchema = getConsumerProgressStoreOptionsSchema(),
       corsSchema = getCorsSchema(),
       lockStoreOptionsSchema = getLockStoreOptionsSchema(),
-      portSchema = getPortSchema(),
+      portOrSocketSchema = getPortOrSocketSchema(),
       protocolSchema = getProtocolSchema(),
       publisherOptionsSchema = getPublisherOptionsSchema(),
       snapshotStrategySchema = getSnapshotStrategySchema();
@@ -26,10 +26,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
       format: 'hostname'
     }
   },
-  aeonstorePort: {
-    environmentVariable: 'AEONSTORE_PORT',
+  aeonstorePortOrSocket: {
+    environmentVariable: 'AEONSTORE_PORT_OR_SOCKET',
     defaultValue: 3_000,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
   aeonstoreProtocol: {
     environmentVariable: 'AEONSTORE_PROTOCOL',
@@ -52,10 +52,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
       format: 'hostname'
     }
   },
-  commandDispatcherPort: {
-    environmentVariable: 'COMMAND_DISPATCHER_PORT',
+  commandDispatcherPortOrSocket: {
+    environmentVariable: 'COMMAND_DISPATCHER_PORT_OR_SOCKET',
     defaultValue: 3_000,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
   commandDispatcherProtocol: {
     environmentVariable: 'COMMAND_DISPATCHER_PROTOCOL',
@@ -88,10 +88,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
       format: 'hostname'
     }
   },
-  domainEventDispatcherPort: {
-    environmentVariable: 'DOMAIN_EVENT_DISPATCHER_PORT',
+  domainEventDispatcherPortOrSocket: {
+    environmentVariable: 'DOMAIN_EVENT_DISPATCHER_PORT_OR_SOCKET',
     defaultValue: 3_000,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
   domainEventDispatcherProtocol: {
     environmentVariable: 'DOMAIN_EVENT_DISPATCHER_PROTOCOL',
@@ -108,10 +108,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: '*',
     schema: corsSchema
   },
-  healthPort: {
-    environmentVariable: 'HEALTH_PORT',
+  healthPortOrSocket: {
+    environmentVariable: 'HEALTH_PORT_OR_SOCKET',
     defaultValue: 3_001,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
   lockStoreOptions: {
     environmentVariable: 'LOCK_STORE_OPTIONS',
@@ -126,7 +126,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
         type: 'Http',
         protocol: 'http',
         hostName: 'publisher',
-        port: 3_000,
+        portOrSocket: 3_000,
         path: '/publish/v2'
       }
     },
@@ -148,10 +148,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
       format: 'hostname'
     }
   },
-  replayServerPort: {
-    environmentVariable: 'REPLAY_SERVER_PORT',
+  replayServerPortOrSocket: {
+    environmentVariable: 'REPLAY_SERVER_PORT_OR_SOCKET',
     defaultValue: 3_000,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
   replayServerProtocol: {
     environmentVariable: 'REPLAY_SERVER_PROTOCOL',

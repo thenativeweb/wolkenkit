@@ -120,10 +120,10 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 
     await initializeGraphQlOnServer?.({ server });
 
-    await runHealthServer({ corsOrigin: configuration.corsOrigin, port: configuration.healthPort });
+    await runHealthServer({ corsOrigin: configuration.corsOrigin, portOrSocket: configuration.healthPortOrSocket });
 
-    server.listen(configuration.port, (): void => {
-      logger.info('Single process runtime server started.', { port: configuration.port });
+    server.listen(configuration.portOrSocket, (): void => {
+      logger.info('Single process runtime server started.', { portOrSocket: configuration.portOrSocket });
     });
 
     await subscriber.subscribe({

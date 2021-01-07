@@ -43,7 +43,7 @@ import { Value } from 'validate-value';
     const domainEventStore = await AeonstoreDomainEventStore.create({
       protocol: configuration.aeonstoreProtocol,
       hostName: configuration.aeonstoreHostName,
-      port: configuration.aeonstorePort
+      portOrSocket: configuration.aeonstorePortOrSocket
     });
 
     const publisher = await createPublisher<Notification>(configuration.pubSubOptions.publisher);
@@ -69,18 +69,21 @@ import { Value } from 'validate-value';
 
     const server = http.createServer(api);
 
-    await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
+    await runHealthServer({
+      corsOrigin: configuration.healthCorsOrigin,
+      portOrSocket: configuration.healthPortOrSocket
+    });
 
     await new Promise<void>((resolve): void => {
-      server.listen(configuration.port, (): void => {
+      server.listen(configuration.portOrSocket, (): void => {
         resolve();
       });
     });
 
-    logger.info(
-      'Domain event server started.',
-      { port: configuration.port, healthPort: configuration.healthPort }
-    );
+    logger.info('Domain event server started.', {
+      portOrSocket: configuration.portOrSocket,
+      healthPortOrSocket: configuration.healthPortOrSocket
+    });
 
     await subscriber.subscribe({
       channel: configuration.pubSubOptions.channelForNewDomainEvents,

@@ -58,10 +58,10 @@ suite('awaitItem/http/Client', (): void => {
 
     suite('awaitItem', (): void => {
       test('retrieves a lock item.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -98,10 +98,10 @@ suite('awaitItem/http/Client', (): void => {
 
     suite('renewLock', (): void => {
       test('throws a request malformed error if the discriminator is too short.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -116,10 +116,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -133,10 +133,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -172,10 +172,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -214,10 +214,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test('extends the lock expiry time.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -262,10 +262,10 @@ suite('awaitItem/http/Client', (): void => {
 
     suite('acknowledge', (): void => {
       test('throws a request malformed error if the discriminator is too short.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -280,10 +280,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -297,10 +297,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -336,10 +336,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -378,10 +378,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test('removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -438,10 +438,10 @@ suite('awaitItem/http/Client', (): void => {
 
     suite('defer', (): void => {
       test('throws a request malformed error if the discriminator is too short.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -457,10 +457,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -475,10 +475,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -515,10 +515,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -558,10 +558,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test('removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });

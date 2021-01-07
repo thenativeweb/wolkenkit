@@ -3,13 +3,13 @@ import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getFileStoreOptionsSchema } from '../../../shared/schemas/getFileStoreOptionsSchema';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
-import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getPortOrSocketSchema } from '../../../shared/schemas/getPortOrSocketSchema';
 import path from 'path';
 
 const corsSchema = getCorsSchema(),
       fileStoreOptionsSchema = getFileStoreOptionsSchema(),
       identityProviderSchema = getIdentityProviderSchema(),
-      portSchema = getPortSchema();
+      portOrSocketSchema = getPortOrSocketSchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
   applicationDirectory: {
@@ -40,10 +40,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: '*',
     schema: corsSchema
   },
-  healthPort: {
-    environmentVariable: 'HEALTH_PORT',
+  healthPortOrSocket: {
+    environmentVariable: 'HEALTH_PORT_OR_SOCKET',
     defaultValue: 3_001,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
   identityProviders: {
     environmentVariable: 'IDENTITY_PROVIDERS',
@@ -53,10 +53,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     }],
     schema: identityProviderSchema
   },
-  port: {
-    environmentVariable: 'PORT',
+  portOrSocket: {
+    environmentVariable: 'PORT_OR_SOCKET',
     defaultValue: 3_000,
-    schema: portSchema
+    schema: portOrSocketSchema
   }
 };
 

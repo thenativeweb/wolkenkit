@@ -5,24 +5,24 @@ import { SnapshotStrategyConfiguration } from '../../../../common/domain/Snapsho
 
 export interface Configuration {
   aeonstoreHostName: string;
-  aeonstorePort: number;
+  aeonstorePortOrSocket: number | string;
   aeonstoreProtocol: string;
   applicationDirectory: string;
   commandDispatcherHostName: string;
-  commandDispatcherPort: number;
+  commandDispatcherPortOrSocket: number | string;
   commandDispatcherProtocol: string;
   concurrentFlows: number;
   consumerProgressStoreOptions: ConsumerProgressStoreOptions;
   domainEventDispatcherAcknowledgeRetries: number;
   domainEventDispatcherHostName: string;
-  domainEventDispatcherPort: number;
+  domainEventDispatcherPortOrSocket: number | string;
   domainEventDispatcherProtocol: string;
   domainEventDispatcherRenewInterval: number;
   healthCorsOrigin: string | string[];
-  healthPort: number;
+  healthPortOrSocket: number | string;
   lockStoreOptions: LockStoreOptions;
   replayServerHostName: string;
-  replayServerPort: number;
+  replayServerPortOrSocket: number | string;
   replayServerProtocol: string;
   pubSubOptions: {
     channelForNotifications: string;
