@@ -124,10 +124,23 @@ To query a view, send a `GET` request to the views endpoint of the runtime. The 
 
 A sample call to `curl` might look like this:
 
+
 ```shell
 $ curl \
     -i \
     http://localhost:3000/views/v2/messages/all
+```
+
+##### Subscribing to domain events
+
+To receive domain events, send a `GET` request to the domain events endpoint of the runtime. The response is a stream of newline-separated JSON objects, using `application/x-ndjson` as its content-type. From time to time, a `heartbeat` will be sent by the server as well, which you may want to filter.
+
+A sample call to `curl` might look like this:
+
+```shell
+$ curl \
+    -i \
+    http://localhost:3000/domain-events/v2
 ```
 
 ##### Subscribing to notifications
@@ -186,7 +199,7 @@ mutation {
 
 *Please note that you can cancel commands only as long as they are not yet being processed by the domain.*
 
-###### Qerying a view
+###### Querying a view
 
 To query a view, send a query to the GraphQL endpoint of the runtime:
 
