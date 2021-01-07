@@ -70,7 +70,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     });
 
     pool.on('connection', (connection): void => {
-      connection.on('error', (err): never => {
+      connection.on('error', (err: MysqlError): never => {
         throw err;
       });
 
