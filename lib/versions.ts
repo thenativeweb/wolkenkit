@@ -4,7 +4,7 @@ const versions = {
     'docker-compose': '3.7'
   },
   packages: {
-    typescript: '4.1.2'
+    typescript: '4.1.3'
   },
   dockerImages: {
     minio: 'RELEASE.2019-10-12T01-39-57Z',
