@@ -10,12 +10,12 @@ import { DomainEventStoreOptions } from '../../../../stores/domainEventStore/Dom
 import { FileStoreOptions } from '../../../../stores/fileStore/FileStoreOptions';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
+import { minio } from './constants/minio';
 import { postgres } from './constants/postgres';
 import { PriorityQueueStoreOptions } from '../../../../stores/priorityQueueStore/PriorityQueueStoreOptions';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 import { toEnvironmentVariables } from '../../../../runtimes/shared/toEnvironmentVariables';
 import { versions } from '../../../../versions';
-import {minio} from "./constants/minio";
 
 const getSingleProcessPostgresManifest = function ({ appName }: {
   appName: string;
