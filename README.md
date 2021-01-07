@@ -124,7 +124,6 @@ To query a view, send a `GET` request to the views endpoint of the runtime. The 
 
 A sample call to `curl` might look like this:
 
-
 ```shell
 $ curl \
     -i \
