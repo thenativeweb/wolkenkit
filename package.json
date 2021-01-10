@@ -123,7 +123,7 @@
     "@types/ioredis": "4.17.10",
     "@types/lodash": "4.14.167",
     "@types/lru-cache": "5.1.0",
-    "@types/minio": "7.0.6",
+    "@types/minio": "7.0.7",
     "@types/mongodb": "3.6.3",
     "@types/mssql": "6.0.7",
     "@types/mysql": "2.15.17",
