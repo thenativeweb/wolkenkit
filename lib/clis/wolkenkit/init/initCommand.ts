@@ -3,7 +3,7 @@ import { adjustTsConfig } from './adjustTsConfig';
 import { arrayToSentence } from '../../../common/utils/arrayToSentence';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
-import { createDeploymentManifests } from '../createDeployment/createDeploymentManifests';
+import { createDeploymentManifests } from './createDeploymentManifests';
 import { createDockerConfiguration } from './createDockerConfiguration';
 import ejs from 'ejs';
 import { errors } from '../../../common/errors';

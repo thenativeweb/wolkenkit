@@ -1,6 +1,5 @@
 import { buildCommand } from './build/buildCommand';
 import { Command } from 'command-line-interface';
-import { createDeploymentCommand } from './createDeployment/createDeploymentCommand';
 import { devCommand } from './dev/devCommand';
 import { documentationCommand } from './documentation/documentationCommand';
 import { healthCommand } from './health/healthCommand';
@@ -35,7 +34,6 @@ const rootCommand = function (): Command<RootOptions> {
       init: initCommand(),
       dev: devCommand(),
       build: buildCommand(),
-      'create-deployment': createDeploymentCommand(),
       documentation: documentationCommand(),
       health: healthCommand(),
       setup: setupCommand(),
