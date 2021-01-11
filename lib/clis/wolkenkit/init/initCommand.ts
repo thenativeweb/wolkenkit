@@ -5,8 +5,10 @@ import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { createDeploymentManifests } from '../createDeployment/createDeploymentManifests';
 import { createDockerConfiguration } from './createDockerConfiguration';
+import ejs from 'ejs';
 import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
+import fs from 'fs';
 import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
 import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
 import { InitOptions } from './InitOptions';
@@ -15,6 +17,7 @@ import { map } from 'lodash';
 import { nameRegularExpression } from './nameRegularExpression';
 import path from 'path';
 import { printFooter } from '../printFooter';
+import { readdirRecursive } from '../../../common/utils/fs/readdirRecursive';
 import { templates } from './templates';
 import { validateLanguage } from './validateLanguage';
 import { validateName } from './validateName';
@@ -133,9 +136,25 @@ const initCommand = function (): Command<InitOptions> {
 
         buntstift.info(`Initializing the '${selectedName}' application...`);
 
-        buntstift.verbose(`Copying files from ${sourceDirectory} to ${targetDirectory}...`);
-        mkdir('-p', targetDirectory);
-        cp('-R', path.join(sourceDirectory, '*'), targetDirectory);
+        buntstift.verbose(`Copying and rendering files from ${sourceDirectory} to ${targetDirectory}...`);
+        const { directories, files } = await readdirRecursive({ path: sourceDirectory });
+
+        for (const relativeDirectoryPath of directories) {
+          mkdir('-p', path.join(targetDirectory, relativeDirectoryPath));
+        }
+        for (const relativeFilePath of files) {
+          if (relativeFilePath.endsWith('.ejs')) {
+            const renderedFile = await ejs.renderFile(
+              path.join(sourceDirectory, relativeFilePath),
+              {},
+              { strict: true }
+            );
+
+            await fs.promises.writeFile(path.join(targetDirectory, relativeFilePath), renderedFile, 'utf-8');
+          } else {
+            cp(path.join(sourceDirectory, relativeFilePath), path.join(targetDirectory, relativeFilePath));
+          }
+        }
         buntstift.verbose('Copied files.');
 
         buntstift.verbose(`Adjusting ${packageJson}...`);
