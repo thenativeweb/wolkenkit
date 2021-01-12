@@ -1,0 +1,87 @@
+version: '<%= versions.infrastructure['docker-compose'] %>'
+<%
+const domainEventStoreOptions = JSON.stringify({
+  type: 'Postgres',
+  hostName: services.stores.postgres.hostName,
+  port: services.stores.postgres.privatePort,
+  userName: services.stores.postgres.userName,
+  password: services.stores.postgres.password,
+  database: services.stores.postgres.database,
+  tableNames: {
+    domainEvents: 'domainEvents',
+    snapshots: 'snapshots'
+  }
+});
+const fileStoreOptions = JSON.stringify({
+  type: 'S3',
+  hostName: services.stores.minio.hostName,
+  port: services.stores.minio.privatePort,
+  encryptConnection: services.stores.minio.encryptConnection,
+  accessKey: services.stores.minio.accessKey,
+  secretKey: services.stores.minio.secretKey,
+  bucketName: services.stores.minio.bucketName
+});
+const lockStoreOptions = JSON.stringify({
+  type: 'Postgres',
+  hostName: services.stores.postgres.hostName,
+  port: services.stores.postgres.privatePort,
+  userName: services.stores.postgres.userName,
+  password: services.stores.postgres.password,
+  database: services.stores.postgres.database,
+  tableNames: {
+    locks: 'locks'
+  }
+});
+const priorityQueueStoreOptions = {
+  type: 'Postgres',
+  hostName: services.stores.postgres.hostName,
+  port: services.stores.postgres.privatePort,
+  userName: services.stores.postgres.userName,
+  password: services.stores.postgres.password,
+  database: services.stores.postgres.database,
+  tableNames: {
+    items: 'items-command',
+    priorityQueue: 'priorityQueue-command'
+  },
+  expirationTime: 30_000
+}
+const publisherOptions = JSON.stringify({
+  type: 'Http',
+  protocol: 'http',
+  hostName: services.microService.publisher.hostName,
+  portOrSocket: services.microService.publisher.privatePort,
+  path: '/publish/v2'
+});
+const pubSubChannelForNewCommands = 'newCommand';
+const pubSubChannelForNewDomainEvents = 'newDomainEvent';
+const pubSubChannelForNewInternalDomainEvents = 'newInternalDomainEvent';
+const pubSubChannelForNotifications = 'notification';
+const snapshotStrategy = JSON.stringify({
+  name: 'lowest',
+  configuration: {
+    revisionLimit: 100,
+    durationLimit: 500
+  }
+});
+const subscriberOptions = JSON.stringify({
+  type: 'Http',
+  protocol: 'http',
+  hostName: services.microService.publisher.hostName,
+  portOrSocket: services.microService.publisher.privatePort,
+  path: '/subscribe/v2'
+});
+-%>
+
+services:
+<%- include('./commandService.ejs') %>
+<%- include(
+  './commandDispatcherService.ejs',
+  {
+    priorityQueueStoreOptions,
+    pubSubOptions: {
+      channelForNewCommands: pubSubChannelForNewCommands,
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    }
+  }
+) %>

@@ -1,0 +1,27 @@
+<%
+const service = {
+  hostName: services.microService.command.hostName,
+  command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/command/app.js',
+  environmentVariables: toEnvironmentVariables({
+    configurationDefinition: configurationDefinitions.commandConfigurationDefinition,
+    configuration: {
+      applicationDirectory,
+      commandCorsOrigin: corsOrigin,
+      commandDispatcherHostName: services.microService.commandDispatcher.hostName,
+      commandDispatcherPortOrSocket: services.microService.commandDispatcher.privatePort,
+      commandDispatcherProtocol: 'http',
+      commandDispatcherRetries: 5,
+      enableOpenApiDocumentation: true,
+      healthCorsOrigin: corsOrigin,
+      healthPortOrSocket: services.microService.command.healthPort,
+      identityProviders,
+      portOrSocket: services.microService.command.privatePort
+    }
+  }),
+  port: services.microService.command.privatePort,
+  healthPort: services.microService.command.healthPort,
+  enableTraefik: true,
+  pathPrefix: '/command'
+}
+-%>
+<%- include('./service.ejs', { appName, service }) %>

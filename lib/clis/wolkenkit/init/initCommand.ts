@@ -3,26 +3,41 @@ import { adjustTsConfig } from './adjustTsConfig';
 import { arrayToSentence } from '../../../common/utils/arrayToSentence';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
-import { createDeploymentManifests } from './createDeploymentManifests';
 import { createDockerConfiguration } from './createDockerConfiguration';
+import { configurationDefinition as aeonstoreConfigurationDefinition } from '../../../runtimes/microservice/processes/domainEventStore/configurationDefinition';
+import { configurationDefinition as commandConfigurationDefinition } from '../../../runtimes/microservice/processes/command/configurationDefinition';
+import { configurationDefinition as commandDispatcherConfigurationDefinition } from '../../../runtimes/microservice/processes/commandDispatcher/configurationDefinition';
+import { configurationDefinition as domainConfigurationDefinition } from '../../../runtimes/microservice/processes/domain/configurationDefinition';
+import { configurationDefinition as domainEventConfigurationDefinition } from '../../../runtimes/microservice/processes/domainEvent/configurationDefinition';
+import { configurationDefinition as domainEventDispatcherConfigurationDefinition } from '../../../runtimes/microservice/processes/domainEventDispatcher/configurationDefinition';
 import ejs from 'ejs';
 import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
+import { configurationDefinition as fileConfigurationDefinition } from '../../../runtimes/microservice/processes/file/configurationDefinition';
+import { configurationDefinition as flowConfigurationDefinition } from '../../../runtimes/microservice/processes/flow/configurationDefinition';
 import fs from 'fs';
 import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
 import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
+import { configurationDefinition as graphqlConfigurationDefinition } from '../../../runtimes/microservice/processes/graphql/configurationDefinition';
 import { InitOptions } from './InitOptions';
 import { languages } from './languages';
 import { map } from 'lodash';
 import { nameRegularExpression } from './nameRegularExpression';
+import { configurationDefinition as notificationConfigurationDefinition } from '../../../runtimes/microservice/processes/notification/configurationDefinition';
 import path from 'path';
 import { printFooter } from '../printFooter';
+import { configurationDefinition as publisherConfigurationDefinition } from '../../../runtimes/microservice/processes/publisher/configurationDefinition';
 import { readdirRecursive } from '../../../common/utils/fs/readdirRecursive';
+import { configurationDefinition as replayConfigurationDefinition } from '../../../runtimes/microservice/processes/replay/configurationDefinition';
+import { services } from './dockerCompose/services';
 import { templates } from './templates';
 import { validateLanguage } from './validateLanguage';
 import { validateName } from './validateName';
 import { validateTemplate } from './validateTemplate';
+import { versions } from '../../../versions';
+import { configurationDefinition as viewConfigurationDefinition } from '../../../runtimes/microservice/processes/view/configurationDefinition';
 import { cp, mkdir } from 'shelljs';
+import {toEnvironmentVariables} from "../../../runtimes/shared/toEnvironmentVariables";
 
 const initCommand = function (): Command<InitOptions> {
   return {
@@ -146,11 +161,26 @@ const initCommand = function (): Command<InitOptions> {
           if (relativeFilePath.endsWith('.ejs')) {
             const renderedFile = await ejs.renderFile(
               path.join(sourceDirectory, relativeFilePath),
-              {},
-              { strict: true }
+              {
+                appName: selectedName,
+                applicationDirectory: '/app',
+                configurationDefinitions: {
+                  commandConfigurationDefinition,
+                  commandDispatcherConfigurationDefinition
+                },
+                corsOrigin: '*',
+                identityProviders: [],
+                services,
+                toEnvironmentVariables,
+                versions
+              }
             );
 
-            await fs.promises.writeFile(path.join(targetDirectory, relativeFilePath), renderedFile, 'utf-8');
+            await fs.promises.writeFile(
+              path.join(targetDirectory, relativeFilePath.replace('.ejs', '')),
+              renderedFile,
+              'utf-8'
+            );
           } else {
             cp(path.join(sourceDirectory, relativeFilePath), path.join(targetDirectory, relativeFilePath));
           }
@@ -178,10 +208,6 @@ const initCommand = function (): Command<InitOptions> {
         buntstift.verbose('Creating Docker configuration...');
         await createDockerConfiguration({ directory: targetDirectory });
         buntstift.verbose('Created Docker configuration.');
-
-        buntstift.verbose('Creating deployment manifests...');
-        await createDeploymentManifests({ directory: path.join(targetDirectory, 'deployment'), name: selectedName });
-        buntstift.verbose('Created deployment manifests.');
 
         buntstift.success(`Initialized the '${selectedName}' application.`);
         buntstift.newLine();

@@ -19,15 +19,14 @@ import { configurationDefinition as flowConfigurationDefinition } from '../../..
 import { Configuration as GraphqlConfiguration } from '../../../../runtimes/microservice/processes/graphql/Configuration';
 import { configurationDefinition as graphqlConfigurationDefinition } from '../../../../runtimes/microservice/processes/graphql/configurationDefinition';
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
-import { minio } from './constants/minio';
 import { Configuration as NotificationConfiguration } from '../../../../runtimes/microservice/processes/notification/Configuration';
 import { configurationDefinition as notificationConfigurationDefinition } from '../../../../runtimes/microservice/processes/notification/configurationDefinition';
-import { postgres } from './constants/postgres';
 import { Configuration as PublisherConfiguration } from '../../../../runtimes/microservice/processes/publisher/Configuration';
 import { configurationDefinition as publisherConfigurationDefinition } from '../../../../runtimes/microservice/processes/publisher/configurationDefinition';
 import { PublisherOptions } from '../../../../messaging/pubSub/PublisherOptions';
 import { Configuration as ReplayConfiguration } from '../../../../runtimes/microservice/processes/replay/Configuration';
 import { configurationDefinition as replayConfigurationDefinition } from '../../../../runtimes/microservice/processes/replay/configurationDefinition';
+import { services } from './services';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOptions';
 import { toEnvironmentVariables } from '../../../../runtimes/shared/toEnvironmentVariables';
@@ -38,89 +37,15 @@ import { configurationDefinition as viewConfigurationDefinition } from '../../..
 const getMicroservicePostgresManifest = function ({ appName }: {
   appName: string;
 }): string {
-  const services = {
-    command: {
-      hostName: 'command',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    commandDispatcher: {
-      hostName: 'command-dispatcher',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    domain: {
-      hostName: 'domain',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    domainEvent: {
-      hostName: 'domain-event',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    aeonstore: {
-      hostName: 'aeonstore',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    publisher: {
-      hostName: 'publisher',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    graphql: {
-      hostName: 'graphql',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    domainEventDispatcher: {
-      hostName: 'domain-event-dispatcher',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    flow: {
-      hostName: 'flow',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    replay: {
-      hostName: 'replay',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    view: {
-      hostName: 'view',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    notification: {
-      hostName: 'notification',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    file: {
-      hostName: 'file',
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    postgres,
-    minio,
-    traefik: {
-      hostName: 'traefik',
-      publicPort: 3_000
-    }
-  };
-
   const applicationDirectory = '/app',
         corsOrigin = '*',
         domainEventStoreOptions: DomainEventStoreOptions = {
           type: 'Postgres',
-          hostName: services.postgres.hostName,
-          port: services.postgres.privatePort,
-          userName: services.postgres.userName,
-          password: services.postgres.password,
-          database: services.postgres.database,
+          hostName: services.stores.postgres.hostName,
+          port: services.stores.postgres.privatePort,
+          userName: services.stores.postgres.userName,
+          password: services.stores.postgres.password,
+          database: services.stores.postgres.database,
           tableNames: {
             domainEvents: 'domainEvents',
             snapshots: 'snapshots'
@@ -128,21 +53,21 @@ const getMicroservicePostgresManifest = function ({ appName }: {
         },
         fileStoreOptions: FileStoreOptions = {
           type: 'S3',
-          hostName: services.minio.hostName,
-          port: services.minio.privatePort,
-          encryptConnection: services.minio.encryptConnection,
-          accessKey: services.minio.accessKey,
-          secretKey: services.minio.secretKey,
-          bucketName: services.minio.bucketName
+          hostName: services.stores.minio.hostName,
+          port: services.stores.minio.privatePort,
+          encryptConnection: services.stores.minio.encryptConnection,
+          accessKey: services.stores.minio.accessKey,
+          secretKey: services.stores.minio.secretKey,
+          bucketName: services.stores.minio.bucketName
         },
         identityProviders: { issuer: string; certificate: string }[] = [],
         lockStoreOptions: LockStoreOptions = {
           type: 'Postgres',
-          hostName: services.postgres.hostName,
-          port: services.postgres.privatePort,
-          userName: services.postgres.userName,
-          password: services.postgres.password,
-          database: services.postgres.database,
+          hostName: services.stores.postgres.hostName,
+          port: services.stores.postgres.privatePort,
+          userName: services.stores.postgres.userName,
+          password: services.stores.postgres.password,
+          database: services.stores.postgres.database,
           tableNames: {
             locks: 'locks'
           }
@@ -150,8 +75,8 @@ const getMicroservicePostgresManifest = function ({ appName }: {
         publisherOptions: PublisherOptions = {
           type: 'Http',
           protocol: 'http',
-          hostName: services.publisher.hostName,
-          portOrSocket: services.publisher.privatePort,
+          hostName: services.microService.publisher.hostName,
+          portOrSocket: services.microService.publisher.privatePort,
           path: '/publish/v2'
         },
         pubSubChannelForNewCommands = 'newCommand',
@@ -168,23 +93,23 @@ const getMicroservicePostgresManifest = function ({ appName }: {
         subscriberOptions: SubscriberOptions = {
           type: 'Http',
           protocol: 'http',
-          hostName: services.publisher.hostName,
-          portOrSocket: services.publisher.privatePort,
+          hostName: services.microService.publisher.hostName,
+          portOrSocket: services.microService.publisher.privatePort,
           path: '/subscribe/v2'
         };
 
   const commandConfiguration: CommandConfiguration = {
     applicationDirectory,
     commandCorsOrigin: corsOrigin,
-    commandDispatcherHostName: services.commandDispatcher.hostName,
-    commandDispatcherPortOrSocket: services.commandDispatcher.privatePort,
+    commandDispatcherHostName: services.microService.commandDispatcher.hostName,
+    commandDispatcherPortOrSocket: services.microService.commandDispatcher.privatePort,
     commandDispatcherProtocol: 'http',
     commandDispatcherRetries: 5,
     enableOpenApiDocumentation: true,
     healthCorsOrigin: corsOrigin,
-    healthPortOrSocket: services.command.healthPort,
+    healthPortOrSocket: services.microService.command.healthPort,
     identityProviders,
-    portOrSocket: services.command.privatePort
+    portOrSocket: services.microService.command.privatePort
   };
 
   const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
@@ -192,16 +117,16 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     awaitCommandCorsOrigin: corsOrigin,
     handleCommandCorsOrigin: corsOrigin,
     healthCorsOrigin: corsOrigin,
-    healthPortOrSocket: services.commandDispatcher.healthPort,
+    healthPortOrSocket: services.microService.commandDispatcher.healthPort,
     missedCommandRecoveryInterval: 5_000,
-    portOrSocket: services.commandDispatcher.privatePort,
+    portOrSocket: services.microService.commandDispatcher.privatePort,
     priorityQueueStoreOptions: {
       type: 'Postgres',
-      hostName: services.postgres.hostName,
-      port: services.postgres.privatePort,
-      userName: services.postgres.userName,
-      password: services.postgres.password,
-      database: services.postgres.database,
+      hostName: services.stores.postgres.hostName,
+      port: services.stores.postgres.privatePort,
+      userName: services.stores.postgres.userName,
+      password: services.stores.postgres.password,
+      database: services.stores.postgres.database,
       tableNames: {
         items: 'items-command',
         priorityQueue: 'priorityQueue-command'
@@ -216,21 +141,21 @@ const getMicroservicePostgresManifest = function ({ appName }: {
   };
 
   const domainConfiguration: DomainConfiguration = {
-    aeonstoreHostName: services.aeonstore.hostName,
-    aeonstorePortOrSocket: services.aeonstore.privatePort,
+    aeonstoreHostName: services.microService.aeonstore.hostName,
+    aeonstorePortOrSocket: services.microService.aeonstore.privatePort,
     aeonstoreProtocol: 'http',
     applicationDirectory,
     commandDispatcherAcknowledgeRetries: 5,
-    commandDispatcherHostName: services.commandDispatcher.hostName,
-    commandDispatcherPortOrSocket: services.commandDispatcher.privatePort,
+    commandDispatcherHostName: services.microService.commandDispatcher.hostName,
+    commandDispatcherPortOrSocket: services.microService.commandDispatcher.privatePort,
     commandDispatcherProtocol: 'http',
     commandDispatcherRenewInterval: 5_000,
     concurrentCommands: 1,
-    domainEventDispatcherHostName: services.domainEventDispatcher.hostName,
-    domainEventDispatcherPortOrSocket: services.domainEventDispatcher.privatePort,
+    domainEventDispatcherHostName: services.microService.domainEventDispatcher.hostName,
+    domainEventDispatcherPortOrSocket: services.microService.domainEventDispatcher.privatePort,
     domainEventDispatcherProtocol: 'http',
     healthCorsOrigin: corsOrigin,
-    healthPortOrSocket: services.domain.healthPort,
+    healthPortOrSocket: services.microService.domain.healthPort,
     lockStoreOptions,
     pubSubOptions: {
       channelForNotifications: pubSubChannelForNotifications,
@@ -241,16 +166,16 @@ const getMicroservicePostgresManifest = function ({ appName }: {
   };
 
   const domainEventConfiguration: DomainEventConfiguration = {
-    aeonstoreHostName: services.aeonstore.hostName,
-    aeonstorePortOrSocket: services.aeonstore.privatePort,
+    aeonstoreHostName: services.microService.aeonstore.hostName,
+    aeonstorePortOrSocket: services.microService.aeonstore.privatePort,
     aeonstoreProtocol: 'http',
     applicationDirectory,
     domainEventCorsOrigin: corsOrigin,
     enableOpenApiDocumentation: true,
     healthCorsOrigin: corsOrigin,
-    healthPortOrSocket: services.domainEvent.healthPort,
+    healthPortOrSocket: services.microService.domainEvent.healthPort,
     identityProviders,
-    portOrSocket: services.domainEvent.privatePort,
+    portOrSocket: services.microService.domainEvent.privatePort,
     pubSubOptions: {
       channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
       channelForNotifications: pubSubChannelForNotifications,
@@ -263,16 +188,16 @@ const getMicroservicePostgresManifest = function ({ appName }: {
   const aeonstoreConfiguration: AeonstoreConfiguration = {
     domainEventStoreOptions,
     healthCorsOrigin: corsOrigin,
-    healthPortOrSocket: services.aeonstore.healthPort,
-    portOrSocket: services.aeonstore.privatePort,
+    healthPortOrSocket: services.microService.aeonstore.healthPort,
+    portOrSocket: services.microService.aeonstore.privatePort,
     queryDomainEventsCorsOrigin: corsOrigin,
     writeDomainEventsCorsOrigin: corsOrigin
   };
 
   const publisherConfiguration: PublisherConfiguration = {
     healthCorsOrigin: corsOrigin,
-    healthPortOrSocket: services.publisher.healthPort,
-    portOrSocket: services.publisher.privatePort,
+    healthPortOrSocket: services.microService.publisher.healthPort,
+    portOrSocket: services.microService.publisher.privatePort,
     publishCorsOrigin: corsOrigin,
     pubSubOptions: {
       subscriber: { type: 'InMemory' },
@@ -282,19 +207,19 @@ const getMicroservicePostgresManifest = function ({ appName }: {
   };
 
   const graphqlConfiguration: GraphqlConfiguration = {
-    aeonstoreHostName: services.aeonstore.hostName,
-    aeonstorePortOrSocket: services.aeonstore.privatePort,
+    aeonstoreHostName: services.microService.aeonstore.hostName,
+    aeonstorePortOrSocket: services.microService.aeonstore.privatePort,
     aeonstoreProtocol: 'http',
     applicationDirectory,
-    commandDispatcherHostName: services.commandDispatcher.hostName,
-    commandDispatcherPortOrSocket: services.commandDispatcher.privatePort,
+    commandDispatcherHostName: services.microService.commandDispatcher.hostName,
+    commandDispatcherPortOrSocket: services.microService.commandDispatcher.privatePort,
     commandDispatcherProtocol: 'http',
     commandDispatcherRetries: 5,
     corsOrigin,
     enableIntegratedClient: true,
-    healthPortOrSocket: services.graphql.healthPort,
+    healthPortOrSocket: services.microService.graphql.healthPort,
     identityProviders,
-    portOrSocket: services.graphql.privatePort,
+    portOrSocket: services.microService.graphql.privatePort,
     pubSubOptions: {
       channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
       channelForNotifications: pubSubChannelForNotifications,
@@ -309,16 +234,16 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     awaitDomainEventCorsOrigin: corsOrigin,
     handleDomainEventCorsOrigin: corsOrigin,
     healthCorsOrigin: corsOrigin,
-    healthPortOrSocket: services.domainEventDispatcher.healthPort,
+    healthPortOrSocket: services.microService.domainEventDispatcher.healthPort,
     missedDomainEventRecoveryInterval: 5_000,
-    portOrSocket: services.domainEventDispatcher.privatePort,
+    portOrSocket: services.microService.domainEventDispatcher.privatePort,
     priorityQueueStoreOptions: {
       type: 'Postgres',
-      hostName: services.postgres.hostName,
-      port: services.postgres.privatePort,
-      userName: services.postgres.userName,
-      password: services.postgres.password,
-      database: services.postgres.database,
+      hostName: services.stores.postgres.hostName,
+      port: services.stores.postgres.privatePort,
+      userName: services.stores.postgres.userName,
+      password: services.stores.postgres.password,
+      database: services.stores.postgres.database,
       tableNames: {
         items: 'items-domain-event',
         priorityQueue: 'priorityQueue-domain-event'
@@ -333,64 +258,64 @@ const getMicroservicePostgresManifest = function ({ appName }: {
   };
 
   const flowConfiguration: FlowConfiguration = {
-    aeonstoreHostName: services.aeonstore.hostName,
-    aeonstorePortOrSocket: services.aeonstore.privatePort,
+    aeonstoreHostName: services.microService.aeonstore.hostName,
+    aeonstorePortOrSocket: services.microService.aeonstore.privatePort,
     aeonstoreProtocol: 'http',
     applicationDirectory,
-    commandDispatcherHostName: services.commandDispatcher.hostName,
-    commandDispatcherPortOrSocket: services.commandDispatcher.privatePort,
+    commandDispatcherHostName: services.microService.commandDispatcher.hostName,
+    commandDispatcherPortOrSocket: services.microService.commandDispatcher.privatePort,
     commandDispatcherProtocol: 'http',
     concurrentFlows: 1,
     consumerProgressStoreOptions: {
       type: 'Postgres',
-      hostName: services.postgres.hostName,
-      port: services.postgres.privatePort,
-      userName: services.postgres.userName,
-      password: services.postgres.password,
-      database: services.postgres.database,
+      hostName: services.stores.postgres.hostName,
+      port: services.stores.postgres.privatePort,
+      userName: services.stores.postgres.userName,
+      password: services.stores.postgres.password,
+      database: services.stores.postgres.database,
       tableNames: {
         progress: 'progress-flow'
       }
     },
     domainEventDispatcherAcknowledgeRetries: 5,
-    domainEventDispatcherHostName: services.domainEventDispatcher.hostName,
-    domainEventDispatcherPortOrSocket: services.domainEventDispatcher.privatePort,
+    domainEventDispatcherHostName: services.microService.domainEventDispatcher.hostName,
+    domainEventDispatcherPortOrSocket: services.microService.domainEventDispatcher.privatePort,
     domainEventDispatcherProtocol: 'http',
     domainEventDispatcherRenewInterval: 5_000,
     healthCorsOrigin: corsOrigin,
-    healthPortOrSocket: services.flow.healthPort,
+    healthPortOrSocket: services.microService.flow.healthPort,
     lockStoreOptions,
     pubSubOptions: {
       channelForNotifications: pubSubChannelForNotifications,
       publisher: publisherOptions
     },
-    replayServerHostName: services.replay.hostName,
-    replayServerPortOrSocket: services.replay.privatePort,
+    replayServerHostName: services.microService.replay.hostName,
+    replayServerPortOrSocket: services.microService.replay.privatePort,
     replayServerProtocol: 'http',
     snapshotStrategy
   };
 
   const replayConfiguration: ReplayConfiguration = {
-    aeonstoreHostName: services.aeonstore.hostName,
-    aeonstorePortOrSocket: services.aeonstore.privatePort,
+    aeonstoreHostName: services.microService.aeonstore.hostName,
+    aeonstorePortOrSocket: services.microService.aeonstore.privatePort,
     aeonstoreProtocol: 'http',
     applicationDirectory,
     corsOrigin,
-    domainEventDispatcherHostName: services.domainEventDispatcher.hostName,
-    domainEventDispatcherPortOrSocket: services.domainEventDispatcher.privatePort,
+    domainEventDispatcherHostName: services.microService.domainEventDispatcher.hostName,
+    domainEventDispatcherPortOrSocket: services.microService.domainEventDispatcher.privatePort,
     domainEventDispatcherProtocol: 'http',
     healthCorsOrigin: corsOrigin,
-    healthPortOrSocket: services.replay.healthPort,
-    portOrSocket: services.replay.privatePort
+    healthPortOrSocket: services.microService.replay.healthPort,
+    portOrSocket: services.microService.replay.privatePort
   };
 
   const viewConfiguration: ViewConfiguration = {
     applicationDirectory,
     enableOpenApiDocumentation: true,
     healthCorsOrigin: corsOrigin,
-    healthPortOrSocket: services.view.healthPort,
+    healthPortOrSocket: services.microService.view.healthPort,
     identityProviders,
-    portOrSocket: services.view.privatePort,
+    portOrSocket: services.microService.view.privatePort,
     viewCorsOrigin: corsOrigin,
     pubSubOptions: {
       channelForNotifications: pubSubChannelForNotifications,
@@ -402,10 +327,10 @@ const getMicroservicePostgresManifest = function ({ appName }: {
   const notificationConfiguration: NotificationConfiguration = {
     applicationDirectory,
     healthCorsOrigin: corsOrigin,
-    healthPortOrSocket: services.notification.healthPort,
+    healthPortOrSocket: services.microService.notification.healthPort,
     identityProviders,
     notificationCorsOrigin: corsOrigin,
-    portOrSocket: services.notification.privatePort,
+    portOrSocket: services.microService.notification.privatePort,
     pubSubOptions: {
       channelForNotifications: pubSubChannelForNotifications,
       subscriber: subscriberOptions
@@ -418,16 +343,16 @@ const getMicroservicePostgresManifest = function ({ appName }: {
     fileCorsOrigin: corsOrigin,
     fileStoreOptions,
     healthCorsOrigin: corsOrigin,
-    healthPortOrSocket: services.file.healthPort,
+    healthPortOrSocket: services.microService.file.healthPort,
     identityProviders,
-    portOrSocket: services.file.privatePort
+    portOrSocket: services.microService.file.privatePort
   };
 
   return `
     version: '${versions.infrastructure['docker-compose']}'
 
     services:
-      ${services.command.hostName}:
+      ${services.microService.command.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/command/app.js'
         environment:
@@ -441,20 +366,20 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.command.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.command.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
         labels:
           - 'traefik.enable=true'
-          - 'traefik.http.routers.${services.command.hostName}.rule=PathPrefix(\`/command\`)'
-          - 'traefik.http.routers.${services.command.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.server.port=${services.command.privatePort}'
-          - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
-          - 'traefik.http.services.${services.command.hostName}-service.loadbalancer.healthcheck.port=${services.command.healthPort}'
+          - 'traefik.http.routers.${services.microService.command.hostName}.rule=PathPrefix(\`/command\`)'
+          - 'traefik.http.routers.${services.microService.command.hostName}.entrypoints=web'
+          - 'traefik.http.services.microService.${services.microService.command.hostName}-service.loadbalancer.server.port=${services.microService.command.privatePort}'
+          - 'traefik.http.services.microService.${services.microService.command.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.microService.${services.microService.command.hostName}-service.loadbalancer.healthcheck.port=${services.microService.command.healthPort}'
 
-      ${services.commandDispatcher.hostName}:
+      ${services.microService.commandDispatcher.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/commandDispatcher/app.js'
         environment:
@@ -468,13 +393,13 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.commandDispatcher.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.commandDispatcher.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      ${services.domain.hostName}:
+      ${services.microService.domain.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domain/app.js'
         environment:
@@ -488,13 +413,13 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.domain.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.domain.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      ${services.domainEvent.hostName}:
+      ${services.microService.domainEvent.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEvent/app.js'
         environment:
@@ -508,20 +433,20 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.domainEvent.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.domainEvent.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
         labels:
           - 'traefik.enable=true'
-          - 'traefik.http.routers.${services.domainEvent.hostName}.rule=PathPrefix(\`/domain-events\`)'
-          - 'traefik.http.routers.${services.domainEvent.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.server.port=${services.domainEvent.privatePort}'
-          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
-          - 'traefik.http.services.${services.domainEvent.hostName}-service.loadbalancer.healthcheck.port=${services.domainEvent.healthPort}'
+          - 'traefik.http.routers.${services.microService.domainEvent.hostName}.rule=PathPrefix(\`/domain-events\`)'
+          - 'traefik.http.routers.${services.microService.domainEvent.hostName}.entrypoints=web'
+          - 'traefik.http.services.microService.${services.microService.domainEvent.hostName}-service.loadbalancer.server.port=${services.microService.domainEvent.privatePort}'
+          - 'traefik.http.services.microService.${services.microService.domainEvent.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.microService.${services.microService.domainEvent.hostName}-service.loadbalancer.healthcheck.port=${services.microService.domainEvent.healthPort}'
 
-      ${services.aeonstore.hostName}:
+      ${services.microService.aeonstore.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEventStore/app.js'
         environment:
@@ -535,13 +460,13 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.aeonstore.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.aeonstore.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      ${services.publisher.hostName}:
+      ${services.microService.publisher.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/publisher/app.js'
         environment:
@@ -555,13 +480,13 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.publisher.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.publisher.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      ${services.graphql.hostName}:
+      ${services.microService.graphql.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/graphql/app.js'
         environment:
@@ -575,20 +500,20 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.graphql.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.graphql.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
         labels:
           - 'traefik.enable=true'
-          - 'traefik.http.routers.${services.graphql.hostName}.rule=PathPrefix(\`/graphql\`)'
-          - 'traefik.http.routers.${services.graphql.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.server.port=${services.graphql.privatePort}'
-          - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
-          - 'traefik.http.services.${services.graphql.hostName}-service.loadbalancer.healthcheck.port=${services.graphql.healthPort}'
+          - 'traefik.http.routers.${services.microService.graphql.hostName}.rule=PathPrefix(\`/graphql\`)'
+          - 'traefik.http.routers.${services.microService.graphql.hostName}.entrypoints=web'
+          - 'traefik.http.services.microService.${services.microService.graphql.hostName}-service.loadbalancer.server.port=${services.microService.graphql.privatePort}'
+          - 'traefik.http.services.microService.${services.microService.graphql.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.microService.${services.microService.graphql.hostName}-service.loadbalancer.healthcheck.port=${services.microService.graphql.healthPort}'
 
-      ${services.domainEventDispatcher.hostName}:
+      ${services.microService.domainEventDispatcher.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEventDispatcher/app.js'
         environment:
@@ -602,13 +527,13 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.domainEventDispatcher.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.domainEventDispatcher.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      ${services.flow.hostName}:
+      ${services.microService.flow.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/flow/app.js'
         environment:
@@ -622,13 +547,13 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.flow.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.flow.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      ${services.replay.hostName}:
+      ${services.microService.replay.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/replay/app.js'
         environment:
@@ -642,13 +567,13 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.replay.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.replay.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
 
-      ${services.view.hostName}:
+      ${services.microService.view.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/view/app.js'
         environment:
@@ -662,20 +587,20 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.view.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.view.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
         labels:
           - 'traefik.enable=true'
-          - 'traefik.http.routers.${services.view.hostName}.rule=PathPrefix(\`/views\`)'
-          - 'traefik.http.routers.${services.view.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.server.port=${services.view.privatePort}'
-          - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
-          - 'traefik.http.services.${services.view.hostName}-service.loadbalancer.healthcheck.port=${services.view.healthPort}'
+          - 'traefik.http.routers.${services.microService.view.hostName}.rule=PathPrefix(\`/views\`)'
+          - 'traefik.http.routers.${services.microService.view.hostName}.entrypoints=web'
+          - 'traefik.http.services.microService.${services.microService.view.hostName}-service.loadbalancer.server.port=${services.microService.view.privatePort}'
+          - 'traefik.http.services.microService.${services.microService.view.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.microService.${services.microService.view.hostName}-service.loadbalancer.healthcheck.port=${services.microService.view.healthPort}'
 
-      ${services.notification.hostName}:
+      ${services.microService.notification.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/notification/app.js'
         environment:
@@ -692,20 +617,20 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.notification.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.notification.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
         labels:
           - 'traefik.enable=true'
-          - 'traefik.http.routers.${services.notification.hostName}.rule=PathPrefix(\`/notifications\`)'
-          - 'traefik.http.routers.${services.notification.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.notification.hostName}-service.loadbalancer.server.port=${services.notification.privatePort}'
-          - 'traefik.http.services.${services.notification.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
-          - 'traefik.http.services.${services.notification.hostName}-service.loadbalancer.healthcheck.port=${services.notification.healthPort}'
+          - 'traefik.http.routers.${services.microService.notification.hostName}.rule=PathPrefix(\`/notifications\`)'
+          - 'traefik.http.routers.${services.microService.notification.hostName}.entrypoints=web'
+          - 'traefik.http.services.microService.${services.microService.notification.hostName}-service.loadbalancer.server.port=${services.microService.notification.privatePort}'
+          - 'traefik.http.services.microService.${services.microService.notification.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.microService.${services.microService.notification.hostName}-service.loadbalancer.healthcheck.port=${services.microService.notification.healthPort}'
 
-      ${services.file.hostName}:
+      ${services.microService.file.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/file/app.js'
         environment:
@@ -719,20 +644,20 @@ ${
         init: true
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.file.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.microService.file.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
           start_period: 30s
         labels:
           - 'traefik.enable=true'
-          - 'traefik.http.routers.${services.file.hostName}.rule=PathPrefix(\`/files\`)'
-          - 'traefik.http.routers.${services.file.hostName}.entrypoints=web'
-          - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.server.port=${services.file.privatePort}'
-          - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
-          - 'traefik.http.services.${services.file.hostName}-service.loadbalancer.healthcheck.port=${services.file.healthPort}'
+          - 'traefik.http.routers.${services.microService.file.hostName}.rule=PathPrefix(\`/files\`)'
+          - 'traefik.http.routers.${services.microService.file.hostName}.entrypoints=web'
+          - 'traefik.http.services.microService.${services.microService.file.hostName}-service.loadbalancer.server.port=${services.microService.file.privatePort}'
+          - 'traefik.http.services.microService.${services.microService.file.hostName}-service.loadbalancer.healthcheck.path=/health/v2/'
+          - 'traefik.http.services.microService.${services.microService.file.hostName}-service.loadbalancer.healthcheck.port=${services.microService.file.healthPort}'
 
-      ${services.traefik.hostName}:
+      ${services.microService.traefik.hostName}:
         image: 'traefik:${versions.dockerImages.traefik}'
         command:
           - '--log.level=DEBUG'

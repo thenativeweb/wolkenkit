@@ -10,9 +10,8 @@ import { DomainEventStoreOptions } from '../../../../stores/domainEventStore/Dom
 import { FileStoreOptions } from '../../../../stores/fileStore/FileStoreOptions';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
-import { minio } from './constants/minio';
-import { postgres } from './constants/postgres';
 import { PriorityQueueStoreOptions } from '../../../../stores/priorityQueueStore/PriorityQueueStoreOptions';
+import { services } from './services';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 import { toEnvironmentVariables } from '../../../../runtimes/shared/toEnvironmentVariables';
 import { versions } from '../../../../versions';
@@ -20,23 +19,12 @@ import { versions } from '../../../../versions';
 const getSingleProcessPostgresManifest = function ({ appName }: {
   appName: string;
 }): string {
-  const services = {
-    main: {
-      hostName: 'main',
-      publicPort: 3_000,
-      privatePort: 3_000,
-      healthPort: 3_001
-    },
-    minio,
-    postgres
-  };
-
   const postgresOptions = {
-    hostName: services.postgres.hostName,
-    port: services.postgres.privatePort,
-    userName: services.postgres.userName,
-    password: services.postgres.password,
-    database: services.postgres.database
+    hostName: services.stores.postgres.hostName,
+    port: services.stores.postgres.privatePort,
+    userName: services.stores.postgres.userName,
+    password: services.stores.postgres.password,
+    database: services.stores.postgres.database
   };
 
   const domainEventStoreOptions: DomainEventStoreOptions = {
@@ -49,12 +37,12 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
         },
         fileStoreOptions: FileStoreOptions = {
           type: 'S3',
-          hostName: services.minio.hostName,
-          port: services.minio.privatePort,
-          encryptConnection: services.minio.encryptConnection,
-          accessKey: services.minio.accessKey,
-          secretKey: services.minio.secretKey,
-          bucketName: services.minio.bucketName
+          hostName: services.stores.minio.hostName,
+          port: services.stores.minio.privatePort,
+          encryptConnection: services.stores.minio.encryptConnection,
+          accessKey: services.stores.minio.accessKey,
+          secretKey: services.stores.minio.secretKey,
+          bucketName: services.stores.minio.bucketName
         },
         flowProgressStoreOptions: ConsumerProgressStoreOptions = {
           type: 'Postgres',
@@ -108,11 +96,11 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
     enableOpenApiDocumentation: true,
     fileStoreOptions,
     graphqlApi: { enableIntegratedClient: true },
-    healthPortOrSocket: services.main.healthPort,
+    healthPortOrSocket: services.singleProcess.main.healthPort,
     httpApi: true,
     identityProviders,
     lockStoreOptions,
-    portOrSocket: services.main.privatePort,
+    portOrSocket: services.singleProcess.main.privatePort,
     priorityQueueStoreForCommandsOptions,
     priorityQueueStoreForDomainEventsOptions,
     pubSubOptions: {
@@ -127,7 +115,7 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
     version: '${versions.infrastructure['docker-compose']}'
 
     services:
-      ${services.main.hostName}:
+      ${services.singleProcess.main.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/singleProcess/processes/main/app.js'
         environment:
@@ -141,10 +129,10 @@ ${
         image: '${appName}'
         init: true
         ports:
-          - '${services.main.publicPort}:${services.main.privatePort}'
+          - '${services.singleProcess.main.publicPort}:${services.singleProcess.main.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.main.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.singleProcess.main.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3

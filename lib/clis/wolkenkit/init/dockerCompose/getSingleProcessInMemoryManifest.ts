@@ -11,6 +11,7 @@ import { FileStoreOptions } from '../../../../stores/fileStore/FileStoreOptions'
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { LockStoreOptions } from '../../../../stores/lockStore/LockStoreOptions';
 import { PriorityQueueStoreOptions } from '../../../../stores/priorityQueueStore/PriorityQueueStoreOptions';
+import { services } from './services';
 import { SnapshotStrategyConfiguration } from '../../../../common/domain/SnapshotStrategyConfiguration';
 import { toEnvironmentVariables } from '../../../../runtimes/shared/toEnvironmentVariables';
 import { versions } from '../../../../versions';
@@ -18,15 +19,6 @@ import { versions } from '../../../../versions';
 const getSingleProcessInMemoryManifest = function ({ appName }: {
   appName: string;
 }): string {
-  const services = {
-    main: {
-      hostName: 'main',
-      publicPort: 3_000,
-      privatePort: 3_000,
-      healthPort: 3_001
-    }
-  };
-
   const domainEventStoreOptions: DomainEventStoreOptions = { type: 'InMemory' },
         fileStoreOptions: FileStoreOptions = { type: 'InMemory' },
         flowProgressStoreOptions: ConsumerProgressStoreOptions = { type: 'InMemory' },
@@ -57,11 +49,11 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
     enableOpenApiDocumentation: true,
     fileStoreOptions,
     graphqlApi: { enableIntegratedClient: true },
-    healthPortOrSocket: services.main.healthPort,
+    healthPortOrSocket: services.singleProcess.main.healthPort,
     httpApi: true,
     identityProviders,
     lockStoreOptions,
-    portOrSocket: services.main.privatePort,
+    portOrSocket: services.singleProcess.main.privatePort,
     priorityQueueStoreForCommandsOptions,
     priorityQueueStoreForDomainEventsOptions,
     pubSubOptions: {
@@ -76,7 +68,7 @@ const getSingleProcessInMemoryManifest = function ({ appName }: {
     version: '${versions.infrastructure['docker-compose']}'
 
     services:
-      ${services.main.hostName}:
+      ${services.singleProcess.main.hostName}:
         build: '../..'
         command: 'node ./node_modules/wolkenkit/build/lib/runtimes/singleProcess/processes/main/app.js'
         environment:
@@ -90,10 +82,10 @@ ${
         image: '${appName}'
         init: true
         ports:
-          - '${services.main.publicPort}:${services.main.privatePort}'
+          - '${services.singleProcess.main.publicPort}:${services.singleProcess.main.privatePort}'
         restart: 'always'
         healthcheck:
-          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.main.healthPort}"]
+          test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "${services.singleProcess.main.healthPort}"]
           interval: 30s
           timeout: 10s
           retries: 3
