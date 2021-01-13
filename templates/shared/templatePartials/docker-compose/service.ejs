@@ -6,6 +6,10 @@
 <%- Object.entries(service.environmentVariables).map(([ key, value ]) => `      ${key}: '${value}'`).join('\n') %>
     image: '<%= appName %>'
     init: true
+<% if (service.publishPorts) { -%>
+    ports:
+      - <%= service.publicPort %>:<%= service.privatePort %>
+<% } -%>
     restart: 'always'
     healthcheck:
       test: ["CMD", "node", "./node_modules/wolkenkit/build/lib/bin/wolkenkit", "health", "--health-port", "<%= service.healthPort %>"]
@@ -18,7 +22,7 @@
       - 'traefik.enable=true'
       - 'traefik.http.routers.<%= service.hostName %>.rule=PathPrefix(`<%= service.pathPrefix %>`)'
       - 'traefik.http.routers.<%= service.hostName %>.entrypoints=web'
-      - 'traefik.http.services.microService.<%= service.hostName %>-service.loadbalancer.server.port=<%= service.port %>'
-      - 'traefik.http.services.microService.<%= service.hostName %>-service.loadbalancer.healthcheck.path=/health/v2/'
-      - 'traefik.http.services.microService.<%= service.hostName %>-service.loadbalancer.healthcheck.port=<%= service.healthPort %>'
+      - 'traefik.http.services.<%= service.hostName %>-service.loadbalancer.server.port=<%= service.privatePort %>'
+      - 'traefik.http.services.<%= service.hostName %>-service.loadbalancer.healthcheck.path=/health/v2/'
+      - 'traefik.http.services.<%= service.hostName %>-service.loadbalancer.healthcheck.port=<%= service.healthPort %>'
 <% } -%>

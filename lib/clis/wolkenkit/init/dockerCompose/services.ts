@@ -1,5 +1,5 @@
 const services = {
-  microService: {
+  microservice: {
     command: {
       hostName: 'command',
       privatePort: 3_000,

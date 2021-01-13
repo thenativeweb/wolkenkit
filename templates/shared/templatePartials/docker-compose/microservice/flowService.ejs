@@ -1,0 +1,38 @@
+<%
+const service = {
+  hostName: services.microservice.flow.hostName,
+  command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/flow/app.js',
+  environmentVariables: toEnvironmentVariables({
+    configurationDefinition: configurationDefinitions.microservice.flow,
+    configuration: {
+      aeonstoreHostName: services.microservice.aeonstore.hostName,
+      aeonstorePortOrSocket: services.microservice.aeonstore.privatePort,
+      aeonstoreProtocol: 'http',
+      applicationDirectory,
+      commandDispatcherHostName: services.microservice.commandDispatcher.hostName,
+      commandDispatcherPortOrSocket: services.microservice.commandDispatcher.privatePort,
+      commandDispatcherProtocol: 'http',
+      concurrentFlows: 1,
+      consumerProgressStoreOptions,
+      domainEventDispatcherAcknowledgeRetries: 5,
+      domainEventDispatcherHostName: services.microservice.domainEventDispatcher.hostName,
+      domainEventDispatcherPortOrSocket: services.microservice.domainEventDispatcher.privatePort,
+      domainEventDispatcherProtocol: 'http',
+      domainEventDispatcherRenewInterval: 5_000,
+      healthCorsOrigin: corsOrigin,
+      healthPortOrSocket: services.microservice.flow.healthPort,
+      lockStoreOptions,
+      pubSubOptions,
+      replayServerHostName: services.microservice.replay.hostName,
+      replayServerPortOrSocket: services.microservice.replay.privatePort,
+      replayServerProtocol: 'http',
+      snapshotStrategy
+    }
+  }),
+  privatePort: services.microservice.flow.privatePort,
+  healthPort: services.microservice.flow.healthPort,
+  publishPorts: false,
+  enableTraefik: false
+};
+-%>
+<%- include('../service.ejs', { service }) %>

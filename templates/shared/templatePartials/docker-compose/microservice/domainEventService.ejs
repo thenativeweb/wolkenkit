@@ -1,0 +1,29 @@
+<%
+const service = {
+  hostName: services.microservice.domainEvent.hostName,
+  command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEvent/app.js',
+  environmentVariables: toEnvironmentVariables({
+    configurationDefinition: configurationDefinitions.microservice.domainEvent,
+    configuration: {
+      aeonstoreHostName: services.microservice.aeonstore.hostName,
+      aeonstorePortOrSocket: services.microservice.aeonstore.privatePort,
+      aeonstoreProtocol: 'http',
+      applicationDirectory,
+      domainEventCorsOrigin: corsOrigin,
+      enableOpenApiDocumentation: true,
+      healthCorsOrigin: corsOrigin,
+      healthPortOrSocket: services.microservice.domainEvent.healthPort,
+      identityProviders,
+      portOrSocket: services.microservice.domainEvent.privatePort,
+      pubSubOptions,
+      snapshotStrategy
+    }
+  }),
+  privatePort: services.microservice.domainEvent.privatePort,
+  healthPort: services.microservice.domainEvent.healthPort,
+  publishPorts: false,
+  enableTraefik: true,
+  pathPrefix: '/domain-events'
+};
+-%>
+<%- include('../service.ejs', { service }) %>

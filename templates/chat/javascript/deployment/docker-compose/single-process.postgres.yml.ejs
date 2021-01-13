@@ -1,1 +1,112 @@
-<%- include('../../../../shared/templatePartials/docker-compose/single-process.postgres.yml.ejs') %>
+version: '<%= versions.infrastructure['docker-compose'] %>'
+<%
+const postgresOptions = {
+  hostName: services.stores.postgres.hostName,
+  port: services.stores.postgres.privatePort,
+  userName: services.stores.postgres.userName,
+  password: services.stores.postgres.password,
+  database: services.stores.postgres.database
+};
+
+const domainEventStoreOptions = {
+        type: 'Postgres',
+        ...postgresOptions,
+        tableNames: {
+          domainEvents: 'domainEvents',
+          snapshots: 'snapshots'
+        }
+      },
+      fileStoreOptions = {
+        type: 'S3',
+        hostName: services.stores.minio.hostName,
+        port: services.stores.minio.privatePort,
+        encryptConnection: services.stores.minio.encryptConnection,
+        accessKey: services.stores.minio.accessKey,
+        secretKey: services.stores.minio.secretKey,
+        bucketName: services.stores.minio.bucketName
+      },
+      flowProgressStoreOptions = {
+        type: 'Postgres',
+        ...postgresOptions,
+        tableNames: {
+          progress: 'progress-flow'
+        }
+      },
+      identityProviders = [],
+      lockStoreOptions = {
+        type: 'Postgres',
+        ...postgresOptions,
+        tableNames: {
+          locks: 'locks'
+        }
+      },
+      priorityQueueStoreForCommandsOptions = {
+        type: 'Postgres',
+        ...postgresOptions,
+        tableNames: {
+          items: 'items-command',
+          priorityQueue: 'priorityQueue-command'
+        },
+        expirationTime: 30_000
+      },
+      priorityQueueStoreForDomainEventsOptions = {
+        type: 'Postgres',
+        ...postgresOptions,
+        tableNames: {
+          items: 'items-domain-event',
+          priorityQueue: 'priorityQueue-domain-event'
+        },
+        expirationTime: 30_000
+      },
+      snapshotStrategy = {
+        name: 'lowest',
+        configuration: {
+          revisionLimit: 100,
+          durationLimit: 500
+        }
+      };
+-%>
+
+services:
+<%
+const service = {
+  hostName: services.singleProcess.main.hostName,
+  command: 'node ./node_modules/wolkenkit/build/lib/runtimes/singleProcess/processes/main/app.js',
+  environmentVariables: {
+    ...toEnvironmentVariables({
+      configurationDefinition: configurationDefinitions.singleProcess.main,
+      configuration: {
+        applicationDirectory,
+        commandQueueRenewInterval: 5_000,
+        concurrentCommands: 100,
+        concurrentFlows: 1,
+        consumerProgressStoreOptions: flowProgressStoreOptions,
+        corsOrigin: '*',
+        domainEventStoreOptions,
+        enableOpenApiDocumentation: true,
+        fileStoreOptions,
+        graphqlApi: { enableIntegratedClient: true },
+        healthPortOrSocket: services.singleProcess.main.healthPort,
+        httpApi: true,
+        identityProviders,
+        lockStoreOptions,
+        portOrSocket: services.singleProcess.main.privatePort,
+        priorityQueueStoreForCommandsOptions,
+        priorityQueueStoreForDomainEventsOptions,
+        pubSubOptions: {
+          channelForNotifications: 'notification',
+          publisher: { type: 'InMemory' },
+          subscriber: { type: 'InMemory' }
+        },
+        snapshotStrategy
+      }
+    }),
+    MONGODB_URL: 'mongodb://wolkenkit:please-replace-this@mongodb:27017/wolkenkit'
+  },
+  privatePort: services.singleProcess.main.privatePort,
+  publicPort: services.singleProcess.main.publicPort,
+  healthPort: services.singleProcess.main.healthPort,
+  publishPorts: true
+};
+-%>
+<%- include('../../../../shared/templatePartials/docker-compose/service.ejs', { service }) %>

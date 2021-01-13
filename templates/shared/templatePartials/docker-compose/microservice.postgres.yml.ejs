@@ -1,6 +1,17 @@
 version: '<%= versions.infrastructure['docker-compose'] %>'
 <%
-const domainEventStoreOptions = JSON.stringify({
+const consumerProgressStoreOptions = {
+  type: 'Postgres',
+  hostName: services.stores.postgres.hostName,
+  port: services.stores.postgres.privatePort,
+  userName: services.stores.postgres.userName,
+  password: services.stores.postgres.password,
+  database: services.stores.postgres.database,
+  tableNames: {
+    progress: 'progress-flow'
+  }
+};
+const domainEventStoreOptions = {
   type: 'Postgres',
   hostName: services.stores.postgres.hostName,
   port: services.stores.postgres.privatePort,
@@ -11,8 +22,8 @@ const domainEventStoreOptions = JSON.stringify({
     domainEvents: 'domainEvents',
     snapshots: 'snapshots'
   }
-});
-const fileStoreOptions = JSON.stringify({
+};
+const fileStoreOptions = {
   type: 'S3',
   hostName: services.stores.minio.hostName,
   port: services.stores.minio.privatePort,
@@ -20,8 +31,8 @@ const fileStoreOptions = JSON.stringify({
   accessKey: services.stores.minio.accessKey,
   secretKey: services.stores.minio.secretKey,
   bucketName: services.stores.minio.bucketName
-});
-const lockStoreOptions = JSON.stringify({
+};
+const lockStoreOptions = {
   type: 'Postgres',
   hostName: services.stores.postgres.hostName,
   port: services.stores.postgres.privatePort,
@@ -31,7 +42,7 @@ const lockStoreOptions = JSON.stringify({
   tableNames: {
     locks: 'locks'
   }
-});
+};
 const priorityQueueStoreOptions = {
   type: 'Postgres',
   hostName: services.stores.postgres.hostName,
@@ -45,37 +56,37 @@ const priorityQueueStoreOptions = {
   },
   expirationTime: 30_000
 }
-const publisherOptions = JSON.stringify({
+const publisherOptions = {
   type: 'Http',
   protocol: 'http',
-  hostName: services.microService.publisher.hostName,
-  portOrSocket: services.microService.publisher.privatePort,
+  hostName: services.microservice.publisher.hostName,
+  portOrSocket: services.microservice.publisher.privatePort,
   path: '/publish/v2'
-});
+};
 const pubSubChannelForNewCommands = 'newCommand';
 const pubSubChannelForNewDomainEvents = 'newDomainEvent';
 const pubSubChannelForNewInternalDomainEvents = 'newInternalDomainEvent';
 const pubSubChannelForNotifications = 'notification';
-const snapshotStrategy = JSON.stringify({
+const snapshotStrategy = {
   name: 'lowest',
   configuration: {
     revisionLimit: 100,
     durationLimit: 500
   }
-});
-const subscriberOptions = JSON.stringify({
+};
+const subscriberOptions = {
   type: 'Http',
   protocol: 'http',
-  hostName: services.microService.publisher.hostName,
-  portOrSocket: services.microService.publisher.privatePort,
+  hostName: services.microservice.publisher.hostName,
+  portOrSocket: services.microservice.publisher.privatePort,
   path: '/subscribe/v2'
-});
+};
 -%>
 
 services:
-<%- include('./commandService.ejs') %>
+<%- include('./microservice/commandService.ejs') %>
 <%- include(
-  './commandDispatcherService.ejs',
+  './microservice/commandDispatcherService.ejs',
   {
     priorityQueueStoreOptions,
     pubSubOptions: {
@@ -85,3 +96,123 @@ services:
     }
   }
 ) %>
+<%- include(
+  './microservice/domainService.ejs',
+  {
+    lockStoreOptions,
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+      publisher: publisherOptions
+    },
+    snapshotStrategy
+  }
+) %>
+<%- include(
+  './microservice/domainEventService.ejs',
+  {
+    pubSubOptions: {
+      channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions,
+      subscriber: subscriberOptions
+    },
+    snapshotStrategy
+  }
+) %>
+<%- include(
+  './microservice/aeonstore.ejs',
+  {
+    domainEventStoreOptions
+  }
+)%>
+<%- include(
+  './microservice/publisherService.ejs',
+  {
+    pubSubOptions: {
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    }
+  }
+) %>
+<%- include(
+  './microservice/graphqlService.ejs',
+  {
+    pubSubOptions: {
+      channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions,
+      subscriber: subscriberOptions
+    },
+    snapshotStrategy
+  }
+) %>
+<%- include(
+  './microservice/domainEventDispatcherService.ejs',
+  {
+    priorityQueueStoreOptions,
+    pubSubOptions: {
+      channelForNewInternalDomainEvents: pubSubChannelForNewInternalDomainEvents,
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    }
+  }
+) %>
+<%- include(
+  './microservice/flowService.ejs',
+  {
+    consumerProgressStoreOptions,
+    lockStoreOptions,
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions
+    },
+    snapshotStrategy
+  }
+) %>
+<%- include('./microservice/replayService.ejs') %>
+<%- include(
+  './microservice/viewService.ejs',
+  {
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions,
+      subscriber: subscriberOptions
+    }
+  }
+) %>
+<%- include(
+  './microservice/notificationService.ejs',
+  {
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      subscriber: subscriberOptions
+    }
+  }
+) %>
+<%- include(
+  './microservice/fileService.ejs',
+  {
+    fileStoreOptions
+  }
+) %>
+  <%= services.microservice.traefik.hostName %>:
+    image: 'traefik:<%= versions.dockerImages.traefik %>'
+    command:
+      - '--log.level=DEBUG'
+      - '--api.insecure=true'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--entrypoints.web.address=:3000'
+      - '--ping'
+    ports:
+      - '3000:3000'
+      - '8080:8080'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

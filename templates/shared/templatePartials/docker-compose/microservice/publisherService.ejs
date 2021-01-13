@@ -1,0 +1,22 @@
+<%
+const service = {
+  hostName: services.microservice.publisher.hostName,
+  command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/publisher/app.js',
+  environmentVariables: toEnvironmentVariables({
+    configurationDefinition: configurationDefinitions.microservice.publisher,
+    configuration: {
+      healthCorsOrigin: corsOrigin,
+      healthPortOrSocket: services.microservice.publisher.healthPort,
+      portOrSocket: services.microservice.publisher.privatePort,
+      publishCorsOrigin: corsOrigin,
+      pubSubOptions,
+      subscribeCorsOrigin: corsOrigin
+    }
+  }),
+  privatePort: services.microservice.publisher.privatePort,
+  healthPort: services.microservice.publisher.healthPort,
+  publishPorts: false,
+  enableTraefik: false
+};
+-%>
+<%- include('../service.ejs', { service }) %>

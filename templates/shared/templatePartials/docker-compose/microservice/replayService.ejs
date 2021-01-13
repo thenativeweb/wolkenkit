@@ -1,0 +1,27 @@
+<%
+const service = {
+  hostName: services.microservice.replay.hostName,
+  command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/replay/app.js',
+  environmentVariables: toEnvironmentVariables({
+    configurationDefinition: configurationDefinitions.microservice.command,
+    configuration: {
+      aeonstoreHostName: services.microservice.aeonstore.hostName,
+      aeonstorePortOrSocket: services.microservice.aeonstore.privatePort,
+      aeonstoreProtocol: 'http',
+      applicationDirectory,
+      corsOrigin,
+      domainEventDispatcherHostName: services.microservice.domainEventDispatcher.hostName,
+      domainEventDispatcherPortOrSocket: services.microservice.domainEventDispatcher.privatePort,
+      domainEventDispatcherProtocol: 'http',
+      healthCorsOrigin: corsOrigin,
+      healthPortOrSocket: services.microservice.replay.healthPort,
+      portOrSocket: services.microservice.replay.privatePort
+    }
+  }),
+  privatePort: services.microservice.replay.privatePort,
+  healthPort: services.microservice.replay.healthPort,
+  publishPorts: false,
+  enableTraefik: false
+}
+-%>
+<%- include('../service.ejs', { service }) %>
