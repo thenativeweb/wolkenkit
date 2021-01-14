@@ -10,7 +10,7 @@ import { configurationDefinition as graphqlConfigurationDefinition } from '../..
 import { configurationDefinition as notificationConfigurationDefinition } from '../../../runtimes/microservice/processes/notification/configurationDefinition';
 import { configurationDefinition as publisherConfigurationDefinition } from '../../../runtimes/microservice/processes/publisher/configurationDefinition';
 import { configurationDefinition as replayConfigurationDefinition } from '../../../runtimes/microservice/processes/replay/configurationDefinition';
-import { services } from './dockerCompose/services';
+import { services } from './services';
 import { configurationDefinition as singleProcessMainConfigurationDefinition } from '../../../runtimes/singleProcess/processes/main/configurationDefinition';
 import { toEnvironmentVariables } from '../../../runtimes/shared/toEnvironmentVariables';
 import { versions } from '../../../versions';

@@ -43,7 +43,7 @@ const lockStoreOptions = {
     locks: 'locks'
   }
 };
-const priorityQueueStoreOptions = {
+const priorityQueueStoreForCommandsOptions = {
   type: 'Postgres',
   hostName: services.stores.postgres.hostName,
   port: services.stores.postgres.privatePort,
@@ -53,6 +53,19 @@ const priorityQueueStoreOptions = {
   tableNames: {
     items: 'items-command',
     priorityQueue: 'priorityQueue-command'
+  },
+  expirationTime: 30_000
+}
+const priorityQueueStoreForDomainEventsOptions = {
+  type: 'Postgres',
+  hostName: services.stores.postgres.hostName,
+  port: services.stores.postgres.privatePort,
+  userName: services.stores.postgres.userName,
+  password: services.stores.postgres.password,
+  database: services.stores.postgres.database,
+  tableNames: {
+    items: 'items-domain-event',
+    priorityQueue: 'priorityQueue-domain-event'
   },
   expirationTime: 30_000
 }
@@ -84,11 +97,16 @@ const subscriberOptions = {
 -%>
 
 services:
-<%- include('./microservice/commandService.ejs') %>
+<%- include(
+  './microservice/commandService.ejs',
+  {
+    customEnvironmentVariables
+  }
+) %>
 <%- include(
   './microservice/commandDispatcherService.ejs',
   {
-    priorityQueueStoreOptions,
+    priorityQueueStoreOptions: priorityQueueStoreForCommandsOptions,
     pubSubOptions: {
       channelForNewCommands: pubSubChannelForNewCommands,
       subscriber: { type: 'InMemory' },
@@ -99,6 +117,7 @@ services:
 <%- include(
   './microservice/domainService.ejs',
   {
+    customEnvironmentVariables,
     lockStoreOptions,
     pubSubOptions: {
       channelForNotifications: pubSubChannelForNotifications,
@@ -111,6 +130,7 @@ services:
 <%- include(
   './microservice/domainEventService.ejs',
   {
+    customEnvironmentVariables,
     pubSubOptions: {
       channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
       channelForNotifications: pubSubChannelForNotifications,
@@ -138,6 +158,7 @@ services:
 <%- include(
   './microservice/graphqlService.ejs',
   {
+    customEnvironmentVariables,
     pubSubOptions: {
       channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
       channelForNotifications: pubSubChannelForNotifications,
@@ -150,7 +171,7 @@ services:
 <%- include(
   './microservice/domainEventDispatcherService.ejs',
   {
-    priorityQueueStoreOptions,
+    priorityQueueStoreOptions: priorityQueueStoreForDomainEventsOptions,
     pubSubOptions: {
       channelForNewInternalDomainEvents: pubSubChannelForNewInternalDomainEvents,
       subscriber: { type: 'InMemory' },
@@ -162,6 +183,7 @@ services:
   './microservice/flowService.ejs',
   {
     consumerProgressStoreOptions,
+    customEnvironmentVariables,
     lockStoreOptions,
     pubSubOptions: {
       channelForNotifications: pubSubChannelForNotifications,
@@ -174,6 +196,7 @@ services:
 <%- include(
   './microservice/viewService.ejs',
   {
+    customEnvironmentVariables,
     pubSubOptions: {
       channelForNotifications: pubSubChannelForNotifications,
       publisher: publisherOptions,
@@ -184,6 +207,7 @@ services:
 <%- include(
   './microservice/notificationService.ejs',
   {
+    customEnvironmentVariables,
     pubSubOptions: {
       channelForNotifications: pubSubChannelForNotifications,
       subscriber: subscriberOptions
@@ -193,6 +217,7 @@ services:
 <%- include(
   './microservice/fileService.ejs',
   {
+    customEnvironmentVariables,
     fileStoreOptions
   }
 ) %>

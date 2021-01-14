@@ -2,26 +2,29 @@
 const service = {
   hostName: services.microservice.graphql.hostName,
   command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/graphql/app.js',
-  environmentVariables: toEnvironmentVariables({
-    configurationDefinition: configurationDefinitions.microservice.graphql,
-    configuration: {
-      aeonstoreHostName: services.microservice.aeonstore.hostName,
-      aeonstorePortOrSocket: services.microservice.aeonstore.privatePort,
-      aeonstoreProtocol: 'http',
-      applicationDirectory,
-      commandDispatcherHostName: services.microservice.commandDispatcher.hostName,
-      commandDispatcherPortOrSocket: services.microservice.commandDispatcher.privatePort,
-      commandDispatcherProtocol: 'http',
-      commandDispatcherRetries: 5,
-      corsOrigin,
-      enableIntegratedClient: true,
-      healthPortOrSocket: services.microservice.graphql.healthPort,
-      identityProviders,
-      portOrSocket: services.microservice.graphql.privatePort,
-      pubSubOptions,
-      snapshotStrategy
-    }
-  }),
+  environmentVariables: {
+    ...toEnvironmentVariables({
+      configurationDefinition: configurationDefinitions.microservice.graphql,
+      configuration: {
+        aeonstoreHostName: services.microservice.aeonstore.hostName,
+        aeonstorePortOrSocket: services.microservice.aeonstore.privatePort,
+        aeonstoreProtocol: 'http',
+        applicationDirectory,
+        commandDispatcherHostName: services.microservice.commandDispatcher.hostName,
+        commandDispatcherPortOrSocket: services.microservice.commandDispatcher.privatePort,
+        commandDispatcherProtocol: 'http',
+        commandDispatcherRetries: 5,
+        corsOrigin,
+        enableIntegratedClient: true,
+        healthPortOrSocket: services.microservice.graphql.healthPort,
+        identityProviders,
+        portOrSocket: services.microservice.graphql.privatePort,
+        pubSubOptions,
+        snapshotStrategy
+      }
+    }),
+    ...(customEnvironmentVariables || {})
+  },
   privatePort: services.microservice.graphql.privatePort,
   healthPort: services.microservice.graphql.healthPort,
   publishPorts: false,

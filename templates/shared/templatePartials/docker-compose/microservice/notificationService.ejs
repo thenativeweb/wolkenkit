@@ -2,18 +2,21 @@
 const service = {
   hostName: services.microservice.notification.hostName,
   command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/notification/app.js',
-  environmentVariables: toEnvironmentVariables({
-    configurationDefinition: configurationDefinitions.microservice.notification,
-    configuration: {
-      applicationDirectory,
-      healthCorsOrigin: corsOrigin,
-      healthPortOrSocket: services.microservice.notification.healthPort,
-      identityProviders,
-      notificationCorsOrigin: corsOrigin,
-      portOrSocket: services.microservice.notification.privatePort,
-      pubSubOptions
-    }
-  }),
+  environmentVariables: {
+    ...toEnvironmentVariables({
+      configurationDefinition: configurationDefinitions.microservice.notification,
+      configuration: {
+        applicationDirectory,
+        healthCorsOrigin: corsOrigin,
+        healthPortOrSocket: services.microservice.notification.healthPort,
+        identityProviders,
+        notificationCorsOrigin: corsOrigin,
+        portOrSocket: services.microservice.notification.privatePort,
+        pubSubOptions
+      }
+    }),
+    ...(customEnvironmentVariables || {})
+  },
   privatePort: services.microservice.notification.privatePort,
   healthPort: services.microservice.notification.healthPort,
   publishPorts: false,

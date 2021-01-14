@@ -3,7 +3,7 @@ const service = {
   hostName: services.microservice.replay.hostName,
   command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/replay/app.js',
   environmentVariables: toEnvironmentVariables({
-    configurationDefinition: configurationDefinitions.microservice.command,
+    configurationDefinition: configurationDefinitions.microservice.replay,
     configuration: {
       aeonstoreHostName: services.microservice.aeonstore.hostName,
       aeonstorePortOrSocket: services.microservice.aeonstore.privatePort,
