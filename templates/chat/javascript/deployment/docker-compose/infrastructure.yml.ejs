@@ -8,9 +8,6 @@ services:
       MONGODB_USERNAME: wolkenkit
       MONGODB_PASSWORD: please-replace-this
       MONGODB_DATABASE: wolkenkit
-      MONGODB_REPLICA_SET_MODE: primary
-      MONGODB_REPLICA_SET_NAME: rs0
-      MONGODB_REPLICA_SET_KEY: secret
     restart: always
     volumes:
       - mongodb:/bitnami/mongodb
