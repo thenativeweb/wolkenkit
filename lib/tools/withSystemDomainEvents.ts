@@ -1,7 +1,6 @@
 import { Application } from '../common/application/Application';
 import { ApplicationEnhancer } from './ApplicationEnhancer';
 import { AskInfrastructure } from '../common/elements/AskInfrastructure';
-import { cloneDeep } from 'lodash';
 import { DomainEventData } from '../common/elements/DomainEventData';
 import { DomainEventHandler } from '../common/elements/DomainEventHandler';
 import { errors } from '../common/errors';
@@ -10,19 +9,17 @@ import { State } from '../common/elements/State';
 import { TellInfrastructure } from '../common/elements/TellInfrastructure';
 
 const withSystemDomainEvents: ApplicationEnhancer = (application): Application => {
-  const clonedApplication = cloneDeep(application);
-
-  for (const [ contextName, contextDefinition ] of Object.entries(clonedApplication.domain)) {
+  for (const [ contextName, contextDefinition ] of Object.entries(application.domain)) {
     for (const [ aggregateName, aggregateDefinition ] of Object.entries(contextDefinition)) {
       for (const commandName of Object.keys(aggregateDefinition.commandHandlers)) {
         const domainEventNameFailed = `${commandName}Failed`;
         const domainEventNameRejected = `${commandName}Rejected`;
 
-        if (domainEventNameFailed in clonedApplication.domain[contextName][aggregateName].domainEventHandlers) {
+        if (domainEventNameFailed in application.domain[contextName][aggregateName].domainEventHandlers) {
           throw new errors.DomainEventAlreadyExists(`Reserved domain event name '${domainEventNameFailed}' used in '<app>/server/domain/${contextName}/${aggregateName}/'.`);
         }
 
-        if (domainEventNameRejected in clonedApplication.domain[contextName][aggregateName].domainEventHandlers) {
+        if (domainEventNameRejected in application.domain[contextName][aggregateName].domainEventHandlers) {
           throw new errors.DomainEventAlreadyExists(`Reserved domain event name '${domainEventNameRejected}' used in '<app>/server/domain/${contextName}/${aggregateName}/'.`);
         }
 
@@ -47,13 +44,15 @@ const withSystemDomainEvents: ApplicationEnhancer = (application): Application =
           }
         };
 
-        clonedApplication.domain[contextName][aggregateName].domainEventHandlers[domainEventNameFailed] = domainEventHandler;
-        clonedApplication.domain[contextName][aggregateName].domainEventHandlers[domainEventNameRejected] = domainEventHandler;
+        /* eslint-disable no-param-reassign */
+        application.domain[contextName][aggregateName].domainEventHandlers[domainEventNameFailed] = domainEventHandler;
+        application.domain[contextName][aggregateName].domainEventHandlers[domainEventNameRejected] = domainEventHandler;
+        /* eslint-enable no-param-reassign */
       }
     }
   }
 
-  return clonedApplication;
+  return application;
 };
 
 export { withSystemDomainEvents };
