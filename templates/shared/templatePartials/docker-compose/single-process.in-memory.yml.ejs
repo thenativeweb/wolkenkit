@@ -53,7 +53,7 @@ const service = {
         snapshotStrategy
       }
     }),
-    ...(customEnvironmentVariables || {})
+    ...(locals.customEnvironmentVariables || {})
   },
   privatePort: services.singleProcess.main.privatePort,
   publicPort: services.singleProcess.main.publicPort,

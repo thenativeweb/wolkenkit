@@ -3,6 +3,9 @@ version: '<%= versions.infrastructure['docker-compose'] %>'
 services:
   setup:
     build: '../../'
+    environment:
+      NODE_ENV: 'production'
+<%- Object.entries(locals.environmentVariables || {}).map(([ key, value ]) => `      ${key}: '${value}'`).join('\n') %>
     command: >
       sh -c "
         node ./node_modules/wolkenkit/build/lib/bin/wolkenkit.js setup infrastructure

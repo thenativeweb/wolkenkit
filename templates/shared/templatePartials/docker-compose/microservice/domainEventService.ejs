@@ -20,7 +20,7 @@ const service = {
         snapshotStrategy
       }
     }),
-    ...(customEnvironmentVariables || {})
+    ...(locals.customEnvironmentVariables || {})
   },
   privatePort: services.microservice.domainEvent.privatePort,
   healthPort: services.microservice.domainEvent.healthPort,

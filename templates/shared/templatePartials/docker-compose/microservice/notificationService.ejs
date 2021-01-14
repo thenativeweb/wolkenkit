@@ -15,7 +15,7 @@ const service = {
         pubSubOptions
       }
     }),
-    ...(customEnvironmentVariables || {})
+    ...(locals.customEnvironmentVariables || {})
   },
   privatePort: services.microservice.notification.privatePort,
   healthPort: services.microservice.notification.healthPort,

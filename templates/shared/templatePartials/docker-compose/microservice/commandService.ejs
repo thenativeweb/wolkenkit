@@ -19,7 +19,7 @@ const service = {
         portOrSocket: services.microservice.command.privatePort
       }
     }),
-    ...(customEnvironmentVariables || {})
+    ...(locals.customEnvironmentVariables || {})
   },
   privatePort: services.microservice.command.privatePort,
   healthPort: services.microservice.command.healthPort,

@@ -30,7 +30,7 @@ const service = {
         snapshotStrategy
       }
     }),
-    ...(customEnvironmentVariables || {})
+    ...(locals.customEnvironmentVariables || {})
   },
   privatePort: services.microservice.flow.privatePort,
   healthPort: services.microservice.flow.healthPort,

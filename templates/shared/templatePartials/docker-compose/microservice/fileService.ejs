@@ -16,7 +16,7 @@ const service = {
         portOrSocket: services.microservice.file.privatePort
       }
     }),
-    ...(customEnvironmentVariables || {})
+    ...(locals.customEnvironmentVariables || {})
   },
   privatePort: services.microservice.file.privatePort,
   healthPort: services.microservice.file.healthPort,
