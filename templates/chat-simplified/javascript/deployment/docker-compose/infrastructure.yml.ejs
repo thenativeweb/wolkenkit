@@ -1,0 +1,16 @@
+version: '<%= versions.infrastructure['docker-compose'] %>'
+
+services:
+  mongodb:
+    image: bitnami/mongodb:<%= versions.dockerImages.mongodb %>
+    environment:
+      MONGODB_ROOT_PASSWORD: please-replace-this
+      MONGODB_USERNAME: wolkenkit
+      MONGODB_PASSWORD: please-replace-this
+      MONGODB_DATABASE: wolkenkit
+    restart: always
+    volumes:
+      - mongodb:/bitnami/mongodb
+
+volumes:
+  mongodb:
