@@ -3,18 +3,21 @@ import { adjustTsConfig } from './adjustTsConfig';
 import { arrayToSentence } from '../../../common/utils/arrayToSentence';
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
-import { createDeploymentManifests } from '../createDeployment/createDeploymentManifests';
 import { createDockerConfiguration } from './createDockerConfiguration';
+import ejs from 'ejs';
 import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
+import fs from 'fs';
 import { getAbsolutePath } from '../../../common/utils/path/getAbsolutePath';
 import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
+import { getTemplateData } from './getTemplateData';
 import { InitOptions } from './InitOptions';
 import { languages } from './languages';
 import { map } from 'lodash';
 import { nameRegularExpression } from './nameRegularExpression';
 import path from 'path';
 import { printFooter } from '../printFooter';
+import { readdirRecursive } from '../../../common/utils/fs/readdirRecursive';
 import { templates } from './templates';
 import { validateLanguage } from './validateLanguage';
 import { validateName } from './validateName';
@@ -133,10 +136,31 @@ const initCommand = function (): Command<InitOptions> {
 
         buntstift.info(`Initializing the '${selectedName}' application...`);
 
-        buntstift.verbose(`Copying files from ${sourceDirectory} to ${targetDirectory}...`);
-        mkdir('-p', targetDirectory);
-        cp('-R', path.join(sourceDirectory, '*'), targetDirectory);
-        buntstift.verbose('Copied files.');
+        buntstift.verbose(`Copying and rendering files from ${sourceDirectory} to ${targetDirectory}...`);
+        const { directories, files } = await readdirRecursive({ path: sourceDirectory });
+
+        for (const relativeDirectoryPath of directories) {
+          mkdir('-p', path.join(targetDirectory, relativeDirectoryPath));
+        }
+        for (const relativeFilePath of files) {
+          if (!relativeFilePath.endsWith('.ejs')) {
+            cp(path.join(sourceDirectory, relativeFilePath), path.join(targetDirectory, relativeFilePath));
+
+            continue;
+          }
+
+          const renderedFile = await ejs.renderFile(
+            path.join(sourceDirectory, relativeFilePath),
+            getTemplateData({ appName: selectedName })
+          );
+
+          await fs.promises.writeFile(
+            path.join(targetDirectory, relativeFilePath.replace('.ejs', '')),
+            renderedFile,
+            'utf-8'
+          );
+        }
+        buntstift.verbose('Copied and rendered files.');
 
         buntstift.verbose(`Adjusting ${packageJson}...`);
         await adjustPackageJson({
@@ -159,10 +183,6 @@ const initCommand = function (): Command<InitOptions> {
         buntstift.verbose('Creating Docker configuration...');
         await createDockerConfiguration({ directory: targetDirectory });
         buntstift.verbose('Created Docker configuration.');
-
-        buntstift.verbose('Creating deployment manifests...');
-        await createDeploymentManifests({ directory: path.join(targetDirectory, 'deployment'), name: selectedName });
-        buntstift.verbose('Created deployment manifests.');
 
         buntstift.success(`Initialized the '${selectedName}' application.`);
         buntstift.newLine();

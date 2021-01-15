@@ -1,0 +1,37 @@
+<%
+const service = {
+  hostName: services.microservice.domain.hostName,
+  command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domain/app.js',
+  environmentVariables: {
+    ...toEnvironmentVariables({
+      configurationDefinition: configurationDefinitions.microservice.domain,
+      configuration: {
+        aeonstoreHostName: services.microservice.aeonstore.hostName,
+        aeonstorePortOrSocket: services.microservice.aeonstore.privatePort,
+        aeonstoreProtocol: 'http',
+        applicationDirectory,
+        commandDispatcherAcknowledgeRetries: 5,
+        commandDispatcherHostName: services.microservice.commandDispatcher.hostName,
+        commandDispatcherPortOrSocket: services.microservice.commandDispatcher.privatePort,
+        commandDispatcherProtocol: 'http',
+        commandDispatcherRenewInterval: 5_000,
+        concurrentCommands: 1,
+        domainEventDispatcherHostName: services.microservice.domainEventDispatcher.hostName,
+        domainEventDispatcherPortOrSocket: services.microservice.domainEventDispatcher.privatePort,
+        domainEventDispatcherProtocol: 'http',
+        healthCorsOrigin: corsOrigin,
+        healthPortOrSocket: services.microservice.domain.healthPort,
+        lockStoreOptions,
+        pubSubOptions,
+        snapshotStrategy
+      }
+    }),
+    ...(locals.customEnvironmentVariables || {})
+  },
+  privatePort: services.microservice.domain.privatePort,
+  healthPort: services.microservice.domain.healthPort,
+  publishPorts: false,
+  enableTraefik: false
+};
+-%>
+<%- include('../service.ejs', { service }) %>

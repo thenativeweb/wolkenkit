@@ -1,0 +1,28 @@
+<%
+const service = {
+  hostName: services.microservice.view.hostName,
+  command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/view/app.js',
+  environmentVariables: {
+    ...toEnvironmentVariables({
+      configurationDefinition: configurationDefinitions.microservice.view,
+      configuration: {
+        applicationDirectory,
+        enableOpenApiDocumentation: true,
+        healthCorsOrigin: corsOrigin,
+        healthPortOrSocket: services.microservice.view.healthPort,
+        identityProviders,
+        portOrSocket: services.microservice.view.privatePort,
+        viewCorsOrigin: corsOrigin,
+        pubSubOptions
+      }
+    }),
+    ...(locals.customEnvironmentVariables || {})
+  },
+  privatePort: services.microservice.view.privatePort,
+  healthPort: services.microservice.view.healthPort,
+  publishPorts: false,
+  enableTraefik: true,
+  pathPrefix: '/views'
+}
+-%>
+<%- include('../service.ejs', { service }) %>

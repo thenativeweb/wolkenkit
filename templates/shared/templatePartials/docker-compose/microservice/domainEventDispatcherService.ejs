@@ -1,0 +1,25 @@
+<%
+const service = {
+  hostName: services.microservice.domainEventDispatcher.hostName,
+  command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/domainEventDispatcher/app.js',
+  environmentVariables: toEnvironmentVariables({
+    configurationDefinition: configurationDefinitions.microservice.domainEventDispatcher,
+    configuration: {
+      applicationDirectory,
+      awaitDomainEventCorsOrigin: corsOrigin,
+      handleDomainEventCorsOrigin: corsOrigin,
+      healthCorsOrigin: corsOrigin,
+      healthPortOrSocket: services.microservice.domainEventDispatcher.healthPort,
+      missedDomainEventRecoveryInterval: 5_000,
+      portOrSocket: services.microservice.domainEventDispatcher.privatePort,
+      priorityQueueStoreOptions,
+      pubSubOptions
+    }
+  }),
+  privatePort: services.microservice.domainEventDispatcher.privatePort,
+  healthPort: services.microservice.domainEventDispatcher.healthPort,
+  publishPorts: false,
+  enableTraefik: false
+};
+-%>
+<%- include('../service.ejs', { service }) %>

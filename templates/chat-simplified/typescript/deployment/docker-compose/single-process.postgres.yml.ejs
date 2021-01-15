@@ -1,0 +1,11 @@
+<%
+const customEnvironmentVariables = {
+  MONGODB_URL: 'mongodb://wolkenkit:please-replace-this@mongodb:27017/wolkenkit'
+}
+-%>
+<%- include(
+  '../../../../shared/templatePartials/docker-compose/single-process.postgres.yml.ejs',
+  {
+    customEnvironmentVariables
+  }
+) %>
