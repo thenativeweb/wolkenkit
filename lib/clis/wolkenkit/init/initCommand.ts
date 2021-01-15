@@ -143,20 +143,22 @@ const initCommand = function (): Command<InitOptions> {
           mkdir('-p', path.join(targetDirectory, relativeDirectoryPath));
         }
         for (const relativeFilePath of files) {
-          if (relativeFilePath.endsWith('.ejs')) {
-            const renderedFile = await ejs.renderFile(
-              path.join(sourceDirectory, relativeFilePath),
-              getTemplateData({ appName: selectedName })
-            );
-
-            await fs.promises.writeFile(
-              path.join(targetDirectory, relativeFilePath.replace('.ejs', '')),
-              renderedFile,
-              'utf-8'
-            );
-          } else {
+          if (!relativeFilePath.endsWith('.ejs')) {
             cp(path.join(sourceDirectory, relativeFilePath), path.join(targetDirectory, relativeFilePath));
+
+            continue;
           }
+
+          const renderedFile = await ejs.renderFile(
+            path.join(sourceDirectory, relativeFilePath),
+            getTemplateData({ appName: selectedName })
+          );
+
+          await fs.promises.writeFile(
+            path.join(targetDirectory, relativeFilePath.replace('.ejs', '')),
+            renderedFile,
+            'utf-8'
+          );
         }
         buntstift.verbose('Copied files.');
 
