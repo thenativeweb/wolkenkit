@@ -1,6 +1,7 @@
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { GetApiBaseParameters } from './GetApiBaseParameters';
+import helmet from 'helmet';
 import { jsonQueryParserMiddleware } from './jsonQueryParserMiddleware';
 import nocache from 'nocache';
 import { streamNdjsonMiddleware } from './streamNdjsonMiddleware';
@@ -8,6 +9,8 @@ import express, { Application } from 'express';
 
 const getApiBase = async function ({ request, response }: GetApiBaseParameters): Promise<Application> {
   const api = express();
+
+  api.use(helmet());
 
   if (request.headers.cors) {
     api.options('*', cors({
