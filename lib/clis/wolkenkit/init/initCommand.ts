@@ -160,7 +160,7 @@ const initCommand = function (): Command<InitOptions> {
             'utf-8'
           );
         }
-        buntstift.verbose('Copied files.');
+        buntstift.verbose('Copied and rendered files.');
 
         buntstift.verbose(`Adjusting ${packageJson}...`);
         await adjustPackageJson({
