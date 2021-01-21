@@ -33,7 +33,7 @@ import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
 
-suite('graphql server', function (): void {
+suite('graphql process', function (): void {
   this.timeout(10_000);
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 

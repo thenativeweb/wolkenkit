@@ -11,7 +11,7 @@ import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subsc
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { waitForSignals } from 'wait-for-signals';
 
-suite('publisher', function (): void {
+suite('publisher process', function (): void {
   this.timeout(10_000);
 
   let healthSocket: string,

@@ -28,7 +28,7 @@ import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subsc
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
 
-suite('flow server', function (): void {
+suite('flow process', function (): void {
   this.timeout(60_000);
 
   const pubsubChannelForNotifications = 'notification';

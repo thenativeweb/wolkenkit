@@ -14,7 +14,7 @@ import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
 
-suite('commandDispatcher', function (): void {
+suite('command dispatcher process', function (): void {
   this.timeout(10_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });

@@ -14,7 +14,7 @@ import streamToString from 'stream-to-string';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
 
-suite('file', function (): void {
+suite('file process', function (): void {
   this.timeout(10_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' });
