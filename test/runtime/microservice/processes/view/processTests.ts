@@ -15,7 +15,7 @@ import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subsc
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { waitForSignals } from 'wait-for-signals';
 
-suite('view', function (): void {
+suite('view process', function (): void {
   this.timeout(10_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'withHardcodedViews', language: 'javascript' }),

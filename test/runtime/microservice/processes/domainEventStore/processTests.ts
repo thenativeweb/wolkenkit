@@ -13,7 +13,7 @@ import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 import { Client as WriteDomainEventStoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
 
-suite('domain event store', function (): void {
+suite('domain event store process', function (): void {
   this.timeout(10_000);
 
   let healthSocket: string,

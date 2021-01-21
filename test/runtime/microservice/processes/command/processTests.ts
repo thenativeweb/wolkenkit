@@ -22,7 +22,7 @@ import { v4 } from 'uuid';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
-suite('command', (): void => {
+suite('command process', (): void => {
   suite('without retries', function (): void {
     this.timeout(20_000);
 

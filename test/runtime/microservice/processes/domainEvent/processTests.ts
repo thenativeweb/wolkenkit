@@ -24,7 +24,7 @@ import { v4 } from 'uuid';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
-suite('domain event', function (): void {
+suite('domain event process', function (): void {
   this.timeout(10_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),

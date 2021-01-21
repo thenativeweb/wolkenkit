@@ -13,7 +13,7 @@ import { Client as SubscribeNotificationsClient } from '../../../../../lib/apis/
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { waitForSignals } from 'wait-for-signals';
 
-suite('notification', function (): void {
+suite('notification process', function (): void {
   this.timeout(10_000);
 
   const pubsubChannelForNotifications = 'notifications';

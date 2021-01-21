@@ -35,7 +35,7 @@ import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
-suite('main', function (): void {
+suite('main process', function (): void {
   this.timeout(10_000);
   const applicationDirectory = getTestApplicationDirectory({ name: 'withComplexFlow', language: 'javascript' });
 
