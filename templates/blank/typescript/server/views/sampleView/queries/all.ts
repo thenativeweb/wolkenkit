@@ -1,10 +1,10 @@
 import { Infrastructure } from '../../../infrastructure';
 import { Readable } from 'stream';
-import { QueryHandler, QueryResultItem, Schema } from 'wolkenkit';
+import { QueryHandlerReturnsStream, QueryResultItem, Schema } from 'wolkenkit';
 
 export type AllResultItem = QueryResultItem;
 
-export const all: QueryHandler<AllResultItem, Infrastructure> = {
+export const all: QueryHandlerReturnsStream<AllResultItem, Infrastructure> = {
   type: 'stream',
 
   getResultItemSchema (): Schema {

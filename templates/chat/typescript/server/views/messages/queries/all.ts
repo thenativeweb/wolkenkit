@@ -1,11 +1,11 @@
 import { Infrastructure } from '../../../infrastructure';
 import { Message } from '../../../types/Message';
 import { Readable } from 'stream';
-import { QueryHandler, QueryResultItem, Schema } from 'wolkenkit';
+import { QueryHandlerReturnsStream, QueryResultItem, Schema } from 'wolkenkit';
 
 export interface AllResultItem extends QueryResultItem, Message {}
 
-export const all: QueryHandler<AllResultItem, Infrastructure> = {
+export const all: QueryHandlerReturnsStream<AllResultItem, Infrastructure> = {
   type: 'stream',
 
   getResultItemSchema (): Schema {
