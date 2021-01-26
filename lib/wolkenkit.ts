@@ -30,7 +30,8 @@ import { NotificationHandler } from './common/elements/NotificationHandler';
 import { Notifications } from './common/elements/Notifications';
 import { NotificationService } from './common/services/NotificationService';
 import { NotificationSubscriber } from './common/elements/NotificationSubscriber';
-import { QueryHandler } from './common/elements/QueryHandler';
+import { QueryHandlerReturnsStream } from './common/elements/QueryHandlerReturnsStream';
+import { QueryHandlerReturnsValue } from './common/elements/QueryHandlerReturnsValue';
 import { QueryOptions } from './common/elements/QueryOptions';
 import { QueryResultItem } from './common/elements/QueryResultItem';
 import { createSandbox as sandbox } from './common/utils/test/sandbox/createSandbox';
@@ -72,7 +73,8 @@ export {
   Notifications,
   NotificationService,
   NotificationSubscriber,
-  QueryHandler,
+  QueryHandlerReturnsStream,
+  QueryHandlerReturnsValue,
   QueryOptions,
   QueryResultItem,
   sandbox,

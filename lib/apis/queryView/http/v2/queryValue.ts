@@ -1,7 +1,7 @@
 import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { errors } from '../../../../common/errors';
-import { executeQueryHandler } from '../../../../common/domain/executeQueryHandler';
+import { executeValueQueryHandler } from '../../../../common/domain/executeValueQueryHandler';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { isCustomError } from 'defekt';
@@ -9,13 +9,12 @@ import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandler
 import { Schema } from '../../../../common/elements/Schema';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import { writeLine } from '../../../base/writeLine';
 
 const logger = flaschenpost.getLogger();
 
-const query = {
-  description: 'Queries a view.',
-  path: ':viewName/:queryName',
+const queryValue = {
+  description: 'Queries a view and returns a value.',
+  path: ':viewName/value/:queryName',
 
   request: {
     query: {
@@ -52,10 +51,8 @@ const query = {
         return;
       }
 
-      let resultStream;
-
       try {
-        resultStream = await executeQueryHandler({
+        const queryResultItem = await executeValueQueryHandler({
           application,
           queryHandlerIdentifier,
           options: req.query,
@@ -63,6 +60,10 @@ const query = {
             client: getClientService({ clientMetadata: new ClientMetadata({ req }) })
           }
         });
+
+        res.status(200).json(queryResultItem);
+
+        return;
       } catch (ex: unknown) {
         const error = isCustomError(ex) ?
           ex :
@@ -76,10 +77,29 @@ const query = {
             });
             break;
           }
+          case errors.QueryHandlerTypeMismatch.code: {
+            res.status(400).json({
+              code: error.code,
+              message: 'Can not query for a stream on a value query handler.'
+            });
+            break;
+          }
           case errors.QueryResultInvalid.code: {
             logger.error('An invalid query result was caught.', { ex: error });
 
-            res.status(500).json({
+            res.status(404).json({
+              code: errors.NotFound.code
+            });
+            break;
+          }
+          case errors.QueryNotAuthorized.code: {
+            res.status(403).json({
+              code: error.code
+            });
+            break;
+          }
+          case errors.NotFound.code: {
+            res.status(404).json({
               code: error.code
             });
             break;
@@ -92,19 +112,9 @@ const query = {
             });
           }
         }
-
-        return;
       }
-
-      res.startStream({ heartbeatInterval: false });
-
-      for await (const resultItem of resultStream) {
-        writeLine({ res, data: resultItem });
-      }
-
-      res.end();
     };
   }
 };
 
-export { query };
+export { queryValue };

@@ -74,13 +74,13 @@ suite('queryView/http', (): void => {
       });
     });
 
-    suite('GET /:viewName/:queryName', (): void => {
-      test('returns 400 if an invalid view name is given.', async (): Promise<void> => {
+    suite('GET /:viewName/stream/:queryName', (): void => {
+      test('returns 400 if the view name does not exist.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
-          url: '/v2/nonExistent/all',
+          url: '/v2/nonExistent/stream/all',
           validateStatus (): boolean {
             return true;
           }
@@ -93,12 +93,12 @@ suite('queryView/http', (): void => {
         });
       });
 
-      test('returns 400 if an invalid query name is given.', async (): Promise<void> => {
+      test('returns 400 if the query handler name does not exist.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
-          url: '/v2/sampleView/nonExistent',
+          url: '/v2/sampleView/stream/nonExistent',
           validateStatus (): boolean {
             return true;
           }
@@ -111,12 +111,30 @@ suite('queryView/http', (): void => {
         });
       });
 
-      test('returns 400 if invalid options are given.', async (): Promise<void> => {
+      test('returns 400 if the query handler matches a value query, not a stream query.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
           method: 'get',
-          url: '/v2/sampleView/withOptions',
+          url: '/v2/sampleView/stream/first',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: errors.QueryHandlerTypeMismatch.code,
+          message: `Can not query for a stream on a value query handler.`
+        });
+      });
+
+      test('returns 400 if the options do not match the options schema.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'get',
+          url: '/v2/sampleView/stream/streamWithOptions',
           validateStatus (): boolean {
             return true;
           },
@@ -157,7 +175,7 @@ suite('queryView/http', (): void => {
 
         const { status, data } = await client({
           method: 'get',
-          url: '/v2/sampleView/all',
+          url: '/v2/sampleView/stream/all',
           responseType: 'stream'
         });
 
@@ -172,7 +190,78 @@ suite('queryView/http', (): void => {
         assert.that(parsedStreamContent).is.equalTo(domainEvents);
       });
 
-      test('returns 200 and streams the result items based on options.', async (): Promise<void> => {
+      test('returns 200 and omits items that do not match the item schema.', async (): Promise<void> => {
+        const domainEvents = [
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'executed',
+            id: v4()
+          },
+          {
+            foo: 'bar'
+          }
+        ];
+
+        (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'get',
+          url: '/v2/sampleView/stream/all',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+
+        const streamContent = await streamToString(data);
+        const parsedStreamContent = streamContent.
+          split('\n').
+          filter((line): boolean => line !== '').
+          map((line): any => JSON.parse(line));
+
+        assert.that(parsedStreamContent).is.equalTo([ domainEvents[0] ]);
+      });
+
+      test('returns 200 and omits unauthorized items.', async (): Promise<void> => {
+        const domainEvents = [
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'executed',
+            id: v4()
+          },
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'executed',
+            id: v4()
+          }
+        ];
+
+        (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'get',
+          url: '/v2/sampleView/stream/streamAuthorized',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+
+        const streamContent = await streamToString(data);
+        const parsedStreamContent = streamContent.
+          split('\n').
+          filter((line): boolean => line !== '').
+          map((line): any => JSON.parse(line));
+
+        assert.that(parsedStreamContent).is.equalTo([]);
+      });
+
+      test('returns 200 and respects the given options.', async (): Promise<void> => {
         const domainEvents = [
           {
             contextIdentifier: { name: 'sampleContext' },
@@ -194,7 +283,7 @@ suite('queryView/http', (): void => {
 
         const { status, data } = await client({
           method: 'get',
-          url: '/v2/sampleView/withOptions',
+          url: '/v2/sampleView/stream/streamWithOptions',
           params: { filter: { domainEventName: 'executed' }},
           paramsSerializer (params): string {
             return Object.entries(params).
@@ -213,6 +302,206 @@ suite('queryView/http', (): void => {
           map((line): any => JSON.parse(line));
 
         assert.that(parsedStreamContent).is.equalTo([ domainEvents[0] ]);
+      });
+    });
+
+    suite('GET /:viewName/value/:queryName', (): void => {
+      test('returns 400 if the view name does not exist.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'get',
+          url: '/v2/nonExistent/value/first',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: errors.ViewNotFound.code,
+          message: `View 'nonExistent' not found.`
+        });
+      });
+
+      test('returns 400 if the query handler name does not exist.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'get',
+          url: '/v2/sampleView/value/nonExistent',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: errors.QueryHandlerNotFound.code,
+          message: `Query handler 'sampleView.nonExistent' not found.`
+        });
+      });
+
+      test('returns 400 if the query handler matches a stream query, not a value query.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'get',
+          url: '/v2/sampleView/value/all',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: errors.QueryHandlerTypeMismatch.code,
+          message: `Can not query for a stream on a value query handler.`
+        });
+      });
+
+      test('returns 400 if the options do not match the options schema.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'get',
+          url: '/v2/sampleView/value/valueWithOptions',
+          validateStatus (): boolean {
+            return true;
+          },
+          params: { foo: 'bar' },
+          paramsSerializer (params): string {
+            return Object.entries(params).
+              map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
+              join('&');
+          }
+        });
+
+        assert.that(status).is.equalTo(400);
+        assert.that(data).is.equalTo({
+          code: errors.QueryOptionsInvalid.code,
+          message: `Missing required property: filter (at queryHandlerOptions.filter).`
+        });
+      });
+
+      test('returns 200 and the result item.', async (): Promise<void> => {
+        const domainEvents = [
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'executed',
+            id: v4()
+          },
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'not-executed',
+            id: v4()
+          }
+        ];
+
+        (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'get',
+          url: '/v2/sampleView/value/first'
+        });
+
+        assert.that(status).is.equalTo(200);
+
+        assert.that(data).is.equalTo(domainEvents[0]);
+      });
+
+      test('returns 404 if the query does not return a result.', async (): Promise<void> => {
+        (application.infrastructure.ask as any).viewStore.domainEvents = [];
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'get',
+          url: '/v2/sampleView/value/notFound',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(404);
+      });
+
+      test('returns 404 if the result item does not match the item schema.', async (): Promise<void> => {
+        const domainEvents = [
+          {
+            foo: 'bar'
+          }
+        ];
+
+        (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'get',
+          url: '/v2/sampleView/value/first',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(404);
+      });
+
+      test('returns 403 if the query is not authorized.', async (): Promise<void> => {
+        (application.infrastructure.ask as any).viewStore.domainEvents = [];
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status } = await client({
+          method: 'get',
+          url: '/v2/sampleView/value/valueAuthorized',
+          validateStatus (): boolean {
+            return true;
+          }
+        });
+
+        assert.that(status).is.equalTo(403);
+      });
+
+      test('returns 200 and respects the given options.', async (): Promise<void> => {
+        const domainEvents = [
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'executed',
+            id: v4()
+          },
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'not-executed',
+            id: v4()
+          }
+        ];
+
+        (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'get',
+          url: '/v2/sampleView/value/valueWithOptions',
+          params: { filter: { domainEventName: 'executed' }},
+          paramsSerializer (params): string {
+            return Object.entries(params).
+              map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
+              join('&');
+          }
+        });
+
+        assert.that(status).is.equalTo(200);
+
+        assert.that(data).is.equalTo(domainEvents[0]);
       });
     });
   });

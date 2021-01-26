@@ -428,7 +428,7 @@ suite('main process', function (): void {
 
       await sleep({ ms: 500 });
 
-      const resultStream = await queryViewsClient.query({
+      const resultStream = await queryViewsClient.queryStream({
         viewName: 'sampleView',
         queryName: 'all'
       });

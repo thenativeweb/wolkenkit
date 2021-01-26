@@ -7,23 +7,10 @@ import { Readable } from 'stream';
 import { Schema } from './Schema';
 import { TellInfrastructure } from './TellInfrastructure';
 
-interface QueryHandlerReturnsValue<
+export interface QueryHandlerReturnsStream<
   TQueryResultItem extends QueryResultItem,
   TInfrastructure extends AskInfrastructure & TellInfrastructure,
-  TQueryOptions extends QueryOptions
-> {
-  type: 'value';
-
-  handle: (options: TQueryOptions, services: {
-    client: ClientService;
-    infrastructure: Pick<TInfrastructure, 'ask'>;
-    logger: LoggerService;
-  }) => TQueryResultItem | Promise<TQueryResultItem>;
-}
-
-interface QueryHandlerReturnsStream<
-  TInfrastructure extends AskInfrastructure & TellInfrastructure,
-  TQueryOptions extends QueryOptions
+  TQueryOptions extends QueryOptions = QueryOptions
 > {
   type: 'stream';
 
@@ -32,13 +19,7 @@ interface QueryHandlerReturnsStream<
     infrastructure: Pick<TInfrastructure, 'ask'>;
     logger: LoggerService;
   }) => Readable | Promise<Readable>;
-}
 
-export type QueryHandler<
-  TQueryResultItem extends QueryResultItem,
-  TInfrastructure extends AskInfrastructure & TellInfrastructure,
-  TQueryOptions extends QueryOptions = QueryOptions
-> = {
   getDocumentation?: () => string;
 
   getOptionsSchema?: () => Schema;
@@ -49,7 +30,4 @@ export type QueryHandler<
     client: ClientService;
     logger: LoggerService;
   }) => boolean | Promise<boolean>;
-} & (
-  QueryHandlerReturnsValue<TQueryResultItem, TInfrastructure, TQueryOptions> |
-  QueryHandlerReturnsStream<TInfrastructure, TQueryOptions>
-);
+}

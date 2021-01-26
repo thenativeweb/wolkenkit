@@ -2,7 +2,7 @@
 
 const { Readable } = require('stream');
 
-const withOptions = {
+const streamWithOptions = {
   type: 'stream',
 
   getOptionsSchema () {
@@ -65,4 +65,4 @@ const withOptions = {
   }
 };
 
-module.exports = { withOptions };
+module.exports = { streamWithOptions };

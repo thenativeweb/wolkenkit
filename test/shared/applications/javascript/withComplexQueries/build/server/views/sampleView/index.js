@@ -1,16 +1,22 @@
 'use strict';
 
 const { all } = require('./queries/all');
-const { authorized } = require('./queries/authorized');
 const { first } = require('./queries/first');
-const { withOptions } = require('./queries/withOptions');
+const { notFound } = require('./queries/notFound');
+const { streamAuthorized } = require('./queries/streamAuthorized');
+const { streamWithOptions } = require('./queries/streamWithOptions');
+const { valueAuthorized } = require('./queries/valueAuthorized');
+const { valueWithOptions } = require('./queries/valueWithOptions');
 
 const sampleView = {
   queryHandlers: {
     all,
-    authorized,
     first,
-    withOptions
+    notFound,
+    streamAuthorized,
+    streamWithOptions,
+    valueAuthorized,
+    valueWithOptions
   },
   notificationSubscribers: {}
 };
