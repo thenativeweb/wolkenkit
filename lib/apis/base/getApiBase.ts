@@ -10,7 +10,13 @@ import express, { Application } from 'express';
 const getApiBase = async function ({ request, response }: GetApiBaseParameters): Promise<Application> {
   const api = express();
 
-  api.use(helmet());
+  const helmetOptions: any = {};
+
+  if (request.headers.csp === false) {
+    helmetOptions.contentSecurityPolicy = false;
+  }
+
+  api.use(helmet(helmetOptions));
 
   if (request.headers.cors) {
     api.options('*', cors({
