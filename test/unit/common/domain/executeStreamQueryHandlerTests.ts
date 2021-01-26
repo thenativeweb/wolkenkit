@@ -8,7 +8,6 @@ import { getClientService } from '../../../../lib/common/services/getClientServi
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { v4 } from 'uuid';
-import { waitForSignals } from 'wait-for-signals';
 import { PassThrough, pipeline } from 'stream';
 
 suite('executeStreamQueryHandler', (): void => {
