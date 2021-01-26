@@ -43,7 +43,7 @@ const renewLock = {
         const contentType = typer.parse(req);
 
         if (contentType.type !== 'application/json') {
-          throw new errors.RequestMalformed();
+          throw new errors.ContentTypeMismatch();
         }
       } catch {
         const error = new errors.ContentTypeMismatch('Header content-type must be application/json.');

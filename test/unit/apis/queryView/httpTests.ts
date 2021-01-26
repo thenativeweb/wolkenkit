@@ -452,7 +452,7 @@ suite('queryView/http', (): void => {
         assert.that(status).is.equalTo(404);
       });
 
-      test('returns 403 if the query is not authorized.', async (): Promise<void> => {
+      test('returns 404 if the query is not authorized.', async (): Promise<void> => {
         (application.infrastructure.ask as any).viewStore.domainEvents = [];
 
         const { client } = await runAsServer({ app: api });
@@ -465,7 +465,7 @@ suite('queryView/http', (): void => {
           }
         });
 
-        assert.that(status).is.equalTo(403);
+        assert.that(status).is.equalTo(404);
       });
 
       test('returns 200 and respects the given options.', async (): Promise<void> => {

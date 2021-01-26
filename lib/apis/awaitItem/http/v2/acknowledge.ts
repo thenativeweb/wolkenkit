@@ -43,14 +43,14 @@ const acknowledge = {
         const contentType = typer.parse(req);
 
         if (contentType.type !== 'application/json') {
-          throw new errors.RequestMalformed();
+          throw new errors.ContentTypeMismatch();
         }
       } catch {
-        const error = new errors.ContentTypeMismatch('Header content-type must be application/json.');
+        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
         res.status(415).json({
-          code: error.code,
-          message: error.message
+          code: ex.code,
+          message: ex.message
         });
 
         return;

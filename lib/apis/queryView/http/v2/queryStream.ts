@@ -25,7 +25,7 @@ const queryStream = {
     } as Schema
   },
   response: {
-    statusCodes: [ 200, 400, 415 ]
+    statusCodes: [ 200, 400 ]
   },
 
   getHandler ({ application }: {

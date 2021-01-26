@@ -35,16 +35,14 @@ const postMessage = {
           responseBodySchema = new Value(postMessage.response.body);
 
     return async function (req, res): Promise<void> {
-      let contentType: typer.ParsedMediaType;
-
       try {
-        contentType = typer.parse(req);
+        const contentType = typer.parse(req);
 
         if (contentType.type !== 'application/json') {
-          throw new errors.RequestMalformed();
+          throw new errors.ContentTypeMismatch();
         }
       } catch {
-        const ex = new errors.RequestMalformed('Header content-type must be application/json.');
+        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
         res.status(415).json({
           code: ex.code,

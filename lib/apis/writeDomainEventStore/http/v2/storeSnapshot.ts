@@ -29,26 +29,21 @@ const storeSnapshot = {
           responseBodySchema = new Value(storeSnapshot.response.body);
 
     return async function (req, res): Promise<any> {
-      let contentType: typer.ParsedMediaType;
-
       try {
-        contentType = typer.parse(req);
+        const contentType = typer.parse(req);
+
+        if (contentType.type !== 'application/json') {
+          throw new errors.ContentTypeMismatch();
+        }
       } catch {
         const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-        return res.status(415).json({
+        res.status(415).json({
           code: ex.code,
           message: ex.message
         });
-      }
 
-      if (contentType.type !== 'application/json') {
-        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
-
-        return res.status(415).json({
-          code: ex.code,
-          message: ex.message
-        });
+        return;
       }
 
       const snapshot = req.body;

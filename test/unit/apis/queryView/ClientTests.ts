@@ -462,7 +462,7 @@ suite('queryView/http/Client', (): void => {
             queryName: 'valueAuthorized'
           });
         }).is.throwingAsync<CustomError>(
-          (ex): boolean => ex.code === errors.QueryNotAuthorized.code
+          (ex): boolean => ex.code === errors.NotFound.code
         );
       });
 

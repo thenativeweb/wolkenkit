@@ -7,6 +7,7 @@ import { getClientService } from '../../../../common/services/getClientService';
 import { isCustomError } from 'defekt';
 import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandlerIdentifier';
 import { Schema } from '../../../../common/elements/Schema';
+import typer from 'content-type';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
@@ -24,7 +25,7 @@ const queryValue = {
     } as Schema
   },
   response: {
-    statusCodes: [ 200, 400, 403, 404, 415 ]
+    statusCodes: [ 200, 400, 404 ]
   },
 
   getHandler ({ application }: {
@@ -93,8 +94,8 @@ const queryValue = {
             break;
           }
           case errors.QueryNotAuthorized.code: {
-            res.status(403).json({
-              code: error.code
+            res.status(404).json({
+              code: errors.NotFound.code
             });
             break;
           }

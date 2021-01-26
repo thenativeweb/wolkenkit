@@ -59,7 +59,7 @@ suite('performReplay/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: errors.RequestMalformed.code,
+          code: errors.ContentTypeMismatch.code,
           message: 'Header content-type must be application/json.'
         });
       });
@@ -81,7 +81,7 @@ suite('performReplay/http', (): void => {
 
         assert.that(status).is.equalTo(415);
         assert.that(data).is.equalTo({
-          code: errors.RequestMalformed.code,
+          code: errors.ContentTypeMismatch.code,
           message: 'Header content-type must be application/json.'
         });
       });

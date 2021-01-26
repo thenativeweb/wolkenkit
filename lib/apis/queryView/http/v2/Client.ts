@@ -119,9 +119,6 @@ class Client extends HttpClient {
         case errors.QueryHandlerTypeMismatch.code: {
           throw new errors.QueryHandlerTypeMismatch(data.message);
         }
-        case errors.QueryNotAuthorized.code: {
-          throw new errors.QueryNotAuthorized(data.message);
-        }
         case errors.NotFound.code: {
           throw new errors.NotFound(data.message);
         }
