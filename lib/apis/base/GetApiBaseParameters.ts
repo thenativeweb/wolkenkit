@@ -8,6 +8,7 @@ export interface GetApiBaseParameters {
         allowedHeaders?: string[];
         exposedHeaders?: string[];
       } | false;
+      csp?: boolean;
     };
     body: {
       parser: {
