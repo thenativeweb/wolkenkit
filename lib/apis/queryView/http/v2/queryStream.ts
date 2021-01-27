@@ -1,7 +1,7 @@
 import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { errors } from '../../../../common/errors';
-import { executeQueryHandler } from '../../../../common/domain/executeQueryHandler';
+import { executeStreamQueryHandler } from '../../../../common/domain/executeStreamQueryHandler';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { isCustomError } from 'defekt';
@@ -13,9 +13,9 @@ import { writeLine } from '../../../base/writeLine';
 
 const logger = flaschenpost.getLogger();
 
-const query = {
-  description: 'Queries a view.',
-  path: ':viewName/:queryName',
+const queryStream = {
+  description: 'Queries a view and returns a stream.',
+  path: ':viewName/stream/:queryName',
 
   request: {
     query: {
@@ -25,7 +25,7 @@ const query = {
     } as Schema
   },
   response: {
-    statusCodes: [ 200, 400, 403, 404, 415 ]
+    statusCodes: [ 200, 400 ]
   },
 
   getHandler ({ application }: {
@@ -55,7 +55,7 @@ const query = {
       let resultStream;
 
       try {
-        resultStream = await executeQueryHandler({
+        resultStream = await executeStreamQueryHandler({
           application,
           queryHandlerIdentifier,
           options: req.query,
@@ -76,11 +76,10 @@ const query = {
             });
             break;
           }
-          case errors.QueryResultInvalid.code: {
-            logger.error('An invalid query result was caught.', { ex: error });
-
-            res.status(500).json({
-              code: error.code
+          case errors.QueryHandlerTypeMismatch.code: {
+            res.status(400).json({
+              code: error.code,
+              message: 'Can not query for a stream on a value query handler.'
             });
             break;
           }
@@ -107,4 +106,4 @@ const query = {
   }
 };
 
-export { query };
+export { queryStream };

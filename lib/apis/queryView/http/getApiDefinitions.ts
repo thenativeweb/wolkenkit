@@ -1,6 +1,6 @@
 import { ApiDefinition } from '../../openApi/ApiDefinition';
 import { Application } from '../../../common/application/Application';
-import { query } from './v2/query';
+import { queryStream } from './v2/queryStream';
 
 const getApiDefinitions = function ({ application, basePath }: {
   application: Application;
@@ -20,13 +20,13 @@ const getApiDefinitions = function ({ application, basePath }: {
   for (const [ viewName, viewDefinition ] of Object.entries(application.views)) {
     for (const [ queryHandlerName, queryDefinition ] of Object.entries(viewDefinition.queryHandlers)) {
       v2ApiDefinition.routes.get.push({
-        path: `${viewName}/${queryHandlerName}`,
-        description: queryDefinition.getDocumentation ? queryDefinition.getDocumentation() : query.description,
+        path: `${viewName}/${queryDefinition.type}/${queryHandlerName}`,
+        description: queryDefinition.getDocumentation ? queryDefinition.getDocumentation() : queryStream.description,
         request: {
-          query: queryDefinition.getOptionsSchema ? queryDefinition.getOptionsSchema() : query.request.query
+          query: queryDefinition.getOptionsSchema ? queryDefinition.getOptionsSchema() : queryStream.request.query
         },
         response: {
-          statusCodes: query.response.statusCodes,
+          statusCodes: queryStream.response.statusCodes,
           stream: queryDefinition.type === 'stream',
           body: queryDefinition.getResultItemSchema ? queryDefinition.getResultItemSchema() : {}
         }

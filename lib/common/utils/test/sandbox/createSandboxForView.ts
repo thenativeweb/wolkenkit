@@ -1,7 +1,7 @@
 import { ClientMetadata } from '../../http/ClientMetadata';
 import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { executeNotificationSubscribers } from '../../../domain/executeNotificationSubscribers';
-import { executeQueryHandler } from '../../../domain/executeQueryHandler';
+import { executeStreamQueryHandler } from '../../../domain/executeStreamQueryHandler';
 import { getClientService } from '../../../services/getClientService';
 import { getLoggerService } from '../../../services/getLoggerService';
 import { getNotificationService } from '../../../services/getNotificationService';
@@ -21,7 +21,7 @@ const createSandboxForView = function (sandboxConfiguration: SandboxConfiguratio
       const clientServiceFactory = sandboxConfiguration.clientServiceFactory ?? getClientService,
             loggerServiceFactory = sandboxConfiguration.loggerServiceFactory ?? getLoggerService;
 
-      return await executeQueryHandler({
+      return await executeStreamQueryHandler({
         application: sandboxConfiguration.application,
         queryHandlerIdentifier: {
           view: { name: sandboxConfiguration.viewName },

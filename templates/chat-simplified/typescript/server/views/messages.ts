@@ -2,7 +2,7 @@ import { Infrastructure } from '../infrastructure';
 import { Message } from '../types/Message';
 import { Readable } from 'stream';
 import { FlowUpdated, ViewUpdated } from '../notifications';
-import { NotificationService, NotificationSubscriber, QueryHandler, QueryResultItem, Schema, View } from 'wolkenkit';
+import { NotificationService, NotificationSubscriber, QueryHandlerReturnsStream, QueryResultItem, Schema, View } from 'wolkenkit';
 
 export interface AllResultItem extends QueryResultItem, Message {}
 
@@ -42,7 +42,7 @@ const messages: View<Infrastructure> = {
       isAuthorized (): boolean {
         return true;
       }
-    } as QueryHandler<AllResultItem, Infrastructure>
+    } as QueryHandlerReturnsStream<AllResultItem, Infrastructure>
   },
 
   notificationSubscribers: {

@@ -12,7 +12,7 @@ import { pipeline, Readable, Transform } from 'stream';
 
 const logger = flaschenpost.getLogger();
 
-const executeQueryHandler = async function ({
+const executeStreamQueryHandler = async function ({
   application,
   queryHandlerIdentifier,
   options,
@@ -30,6 +30,10 @@ const executeQueryHandler = async function ({
 
   const queryHandler = application.views[queryHandlerIdentifier.view.name]!.queryHandlers[queryHandlerIdentifier.name]!;
 
+  if (queryHandler.type !== 'stream') {
+    throw new errors.QueryHandlerTypeMismatch();
+  }
+
   const optionsSchema = new Value(queryHandler.getOptionsSchema ? queryHandler.getOptionsSchema() : {}),
         resultItemSchema = new Value(queryHandler.getResultItemSchema ? queryHandler.getResultItemSchema() : {});
 
@@ -44,13 +48,11 @@ const executeQueryHandler = async function ({
     packageManifest: application.packageManifest
   });
   // eslint-disable-next-line @typescript-eslint/await-thenable
-  const result = await queryHandler.handle(options, {
+  const resultStream = await queryHandler.handle(options, {
     client: services.client,
     infrastructure: application.infrastructure,
     logger: loggerService
   });
-
-  const resultStream = result instanceof Readable ? result : Readable.from([ result ]);
 
   const isAuthorizedServices = {
     client: services.client,
@@ -68,7 +70,9 @@ const executeQueryHandler = async function ({
       } catch (ex: unknown) {
         const error = new errors.QueryResultInvalid((ex as Error).message);
 
-        return callback(error);
+        logger.error(`An invalid item was omitted from a stream query handler's response.`, { err: error });
+
+        return callback(null);
       }
 
       return callback(null, resultItem);
@@ -88,4 +92,4 @@ const executeQueryHandler = async function ({
   return validateStream;
 };
 
-export { executeQueryHandler };
+export { executeStreamQueryHandler };

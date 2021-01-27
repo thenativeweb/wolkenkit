@@ -137,7 +137,7 @@ suite('view process', function (): void {
 
   suite('views', (): void => {
     test('queries the views.', async (): Promise<void> => {
-      const resultStream = await queryViewsClient.query({
+      const resultStream = await queryViewsClient.queryStream({
         viewName: 'sampleView',
         queryName: 'hardcoded'
       });

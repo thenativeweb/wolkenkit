@@ -59,7 +59,7 @@ suite('queryView/http/Client', (): void => {
       });
     });
 
-    suite('query', (): void => {
+    suite('queryStream', (): void => {
       let api: ExpressApplication;
 
       setup(async (): Promise<void> => {
@@ -70,7 +70,7 @@ suite('queryView/http/Client', (): void => {
         }));
       });
 
-      test('throws an exception if an invalid view name is given.', async (): Promise<void> => {
+      test('throws an exception if the view name does not exist.', async (): Promise<void> => {
         const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
@@ -79,13 +79,15 @@ suite('queryView/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<void> => {
-          await client.query({ viewName: 'nonExistent', queryName: 'all' });
-        }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === errors.ViewNotFound.code &&
-          (ex as CustomError).message === `View 'nonExistent' not found.`);
+          await client.queryStream({ viewName: 'nonExistent', queryName: 'all' });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as CustomError).code === errors.ViewNotFound.code &&
+          (ex as CustomError).message === `View 'nonExistent' not found.`
+        );
       });
 
-      test('throws an exception if an invalid query name is given.', async (): Promise<void> => {
+      test('throws an exception if the query handler name does not exist.', async (): Promise<void> => {
         const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
@@ -94,13 +96,15 @@ suite('queryView/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<void> => {
-          await client.query({ viewName: 'sampleView', queryName: 'nonExistent' });
-        }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === errors.QueryHandlerNotFound.code &&
-          (ex as CustomError).message === `Query handler 'sampleView.nonExistent' not found.`);
+          await client.queryStream({ viewName: 'sampleView', queryName: 'nonExistent' });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as CustomError).code === errors.QueryHandlerNotFound.code &&
+          (ex as CustomError).message === `Query handler 'sampleView.nonExistent' not found.`
+        );
       });
 
-      test('throws an exception if invalid options are given.', async (): Promise<void> => {
+      test('throws an exception if the query handler matches a value query, not a stream query.', async (): Promise<void> => {
         const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
@@ -109,14 +113,32 @@ suite('queryView/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<void> => {
-          await client.query({
+          await client.queryStream({ viewName: 'sampleView', queryName: 'first' });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as CustomError).code === errors.QueryHandlerTypeMismatch.code
+        );
+      });
+
+      test('throws an exception if the options do not match the options schema.', async (): Promise<void> => {
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.queryStream({
             viewName: 'sampleView',
-            queryName: 'withOptions',
+            queryName: 'streamWithOptions',
             queryOptions: { foo: 'bar' }
           });
-        }).is.throwingAsync((ex): boolean =>
-          (ex as CustomError).code === errors.QueryOptionsInvalid.code &&
-          (ex as CustomError).message === `Missing required property: filter (at queryHandlerOptions.filter).`);
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as CustomError).code === errors.QueryOptionsInvalid.code &&
+          (ex as CustomError).message === `Missing required property: filter (at queryHandlerOptions.filter).`
+        );
       });
 
       test('streams the result items.', async (): Promise<void> => {
@@ -144,7 +166,7 @@ suite('queryView/http/Client', (): void => {
           path: '/v2'
         });
 
-        const resultStream = await client.query({
+        const resultStream = await client.queryStream({
           viewName: 'sampleView',
           queryName: 'all'
         });
@@ -157,7 +179,42 @@ suite('queryView/http/Client', (): void => {
         assert.that(resultItems).is.equalTo(domainEvents);
       });
 
-      test('streams the result items based on options.', async (): Promise<void> => {
+      test('streams the result items and omits items that do not match the item schema.', async (): Promise<void> => {
+        const domainEvents = [
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'executed',
+            id: v4()
+          },
+          {
+            foo: 'bar'
+          }
+        ];
+
+        (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        const resultStream = await client.queryStream({
+          viewName: 'sampleView',
+          queryName: 'all'
+        });
+        const resultItems = [];
+
+        for await (const resultItem of resultStream) {
+          resultItems.push(resultItem);
+        }
+
+        assert.that(resultItems).is.equalTo([ domainEvents[0] ]);
+      });
+
+      test('streams the result items and omits unauthorized items.', async (): Promise<void> => {
         const domainEvents = [
           {
             contextIdentifier: { name: 'sampleContext' },
@@ -182,9 +239,47 @@ suite('queryView/http/Client', (): void => {
           path: '/v2'
         });
 
-        const resultStream = await client.query({
+        const resultStream = await client.queryStream({
           viewName: 'sampleView',
-          queryName: 'withOptions',
+          queryName: 'streamAuthorized'
+        });
+        const resultItems = [];
+
+        for await (const resultItem of resultStream) {
+          resultItems.push(resultItem);
+        }
+
+        assert.that(resultItems).is.equalTo([]);
+      });
+
+      test('streams the result items and respects the given options.', async (): Promise<void> => {
+        const domainEvents = [
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'executed',
+            id: v4()
+          },
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'not-executed',
+            id: v4()
+          }
+        ];
+
+        (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        const resultStream = await client.queryStream({
+          viewName: 'sampleView',
+          queryName: 'streamWithOptions',
           queryOptions: { filter: { domainEventName: 'executed' }}
         });
         const resultItems = [];
@@ -194,6 +289,215 @@ suite('queryView/http/Client', (): void => {
         }
 
         assert.that(resultItems).is.equalTo([ domainEvents[0] ]);
+      });
+    });
+
+    suite('queryValue', (): void => {
+      let api: ExpressApplication;
+
+      setup(async (): Promise<void> => {
+        ({ api } = await getApi({
+          corsOrigin: '*',
+          application,
+          identityProviders
+        }));
+      });
+
+      test('throws an exception if the view name does not exist.', async (): Promise<void> => {
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.queryValue({ viewName: 'nonExistent', queryName: 'first' });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as CustomError).code === errors.ViewNotFound.code &&
+            (ex as CustomError).message === `View 'nonExistent' not found.`
+        );
+      });
+
+      test('throws an exception if the query handler name does not exist.', async (): Promise<void> => {
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.queryValue({ viewName: 'sampleView', queryName: 'nonExistent' });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as CustomError).code === errors.QueryHandlerNotFound.code &&
+            (ex as CustomError).message === `Query handler 'sampleView.nonExistent' not found.`
+        );
+      });
+
+      test('throws an exception if the query handler matches a stream query, not a value query.', async (): Promise<void> => {
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.queryValue({ viewName: 'sampleView', queryName: 'all' });
+        }).is.throwingAsync(
+          (ex): boolean => (ex as CustomError).code === errors.QueryHandlerTypeMismatch.code
+        );
+      });
+
+      test('throws an exception if the options do not match the options schema.', async (): Promise<void> => {
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.queryValue({
+            viewName: 'sampleView',
+            queryName: 'valueWithOptions',
+            queryOptions: { foo: 'bar' }
+          });
+        }).is.throwingAsync(
+          (ex): boolean =>
+            (ex as CustomError).code === errors.QueryOptionsInvalid.code &&
+            (ex as CustomError).message === `Missing required property: filter (at queryHandlerOptions.filter).`
+        );
+      });
+
+      test('returns the result item.', async (): Promise<void> => {
+        const domainEvents = [
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'executed',
+            id: v4()
+          }
+        ];
+
+        (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        const queryResultItem = await client.queryValue({
+          viewName: 'sampleView',
+          queryName: 'first'
+        });
+
+        assert.that(queryResultItem).is.equalTo(domainEvents[0]);
+      });
+
+      test('throws an exception if the query does not return a result.', async (): Promise<void> => {
+        (application.infrastructure.ask as any).viewStore.domainEvents = [];
+
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.queryValue({
+            viewName: 'sampleView',
+            queryName: 'notFound'
+          });
+        }).is.throwingAsync<CustomError>(
+          (ex): boolean => ex.code === errors.NotFound.code
+        );
+      });
+
+      test('throws an exception if the result item does not match the item schema.', async (): Promise<void> => {
+        const domainEvents = [
+          {
+            foo: 'bar'
+          }
+        ];
+
+        (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.queryValue({
+            viewName: 'sampleView',
+            queryName: 'first'
+          });
+        }).is.throwingAsync<CustomError>(
+          (ex): boolean => ex.code === errors.NotFound.code
+        );
+      });
+
+      test('throws an exception if the query is not authorized.', async (): Promise<void> => {
+        (application.infrastructure.ask as any).viewStore.domainEvents = [];
+
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.queryValue({
+            viewName: 'sampleView',
+            queryName: 'valueAuthorized'
+          });
+        }).is.throwingAsync<CustomError>(
+          (ex): boolean => ex.code === errors.NotFound.code
+        );
+      });
+
+      test('returns the result item and respects the given options.', async (): Promise<void> => {
+        const domainEvents = [
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'executed',
+            id: v4()
+          },
+          {
+            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            name: 'not-executed',
+            id: v4()
+          }
+        ];
+
+        (application.infrastructure.ask as any).viewStore.domainEvents = domainEvents;
+
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        const queryResultItem = await client.queryValue({
+          viewName: 'sampleView',
+          queryName: 'valueWithOptions',
+          queryOptions: { filter: { domainEventName: 'executed' }}
+        });
+
+        assert.that(queryResultItem).is.equalTo(domainEvents[0]);
       });
     });
   });

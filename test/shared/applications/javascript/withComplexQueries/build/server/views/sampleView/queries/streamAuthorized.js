@@ -2,7 +2,7 @@
 
 const { Readable } = require('stream');
 
-const authorized = {
+const streamAuthorized = {
   type: 'stream',
 
   getResultItemSchema () {
@@ -43,4 +43,4 @@ const authorized = {
   }
 };
 
-module.exports = { authorized };
+module.exports = { streamAuthorized };
