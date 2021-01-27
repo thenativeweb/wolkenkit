@@ -7,7 +7,6 @@ import { getClientService } from '../../../../common/services/getClientService';
 import { isCustomError } from 'defekt';
 import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandlerIdentifier';
 import { Schema } from '../../../../common/elements/Schema';
-import typer from 'content-type';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
