@@ -468,6 +468,106 @@ class PostgresDomainEventStore implements DomainEventStore {
     }
   }
 
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    const connection = await this.getDatabase();
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const domainEventStream = connection.query(
+      new QueryStream(`
+        SELECT "domainEvent", "timestamp"
+          FROM "${this.tableNames.domainEvents}"
+          WHERE "revision" = 1
+          ORDER BY "timestamp"`)
+    );
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      connection.release();
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
+    };
+
+    onData = function (data: any): void {
+      passThrough.write(data.domainEvent.aggregateIdentifier);
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+
+    return passThrough;
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    const connection = await this.getDatabase();
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const domainEventStream = connection.query(
+      new QueryStream(`
+        SELECT "domainEvent", "timestamp"
+          FROM "${this.tableNames.domainEvents}"
+          WHERE "revision" = 1
+          ORDER BY "timestamp"`)
+    );
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      connection.release();
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
+    };
+
+    onData = function (data: any): void {
+      if (
+        data.domainEvent.contextIdentifier.name !== contextName ||
+          data.domainEvent.aggregateIdentifier.name !== aggregateName
+      ) {
+        return;
+      }
+
+      passThrough.write(data.domainEvent.aggregateIdentifier);
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+
+    return passThrough;
+  }
+
   public async setup (): Promise<void> {
     const connection = await this.getDatabase();
 

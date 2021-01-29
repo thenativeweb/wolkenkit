@@ -3,7 +3,7 @@ import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
-import { Readable } from 'stream';
+import { PassThrough, Readable, Transform, TransformCallback } from 'stream';
 import { Snapshot } from '../Snapshot';
 import { SqlServerDomainEventStoreOptions } from './SqlServerDomainEventStoreOptions';
 import { State } from '../../../common/elements/State';
@@ -291,6 +291,65 @@ class SqlServerDomainEventStore implements DomainEventStore {
           VALUES (@aggregateId, @revision, @state);
         END
     `);
+  }
+
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    const request = this.pool.request();
+    const toDomainEventStream = new ToDomainEventStream();
+    const toAggregateIdentifierStream = new Transform({
+      objectMode: true,
+      transform (chunk: any, encoding: string, callback: TransformCallback): void {
+        callback(null, chunk.aggregateIdentifier);
+      }
+    });
+
+    request.stream = true;
+    request.pipe(toDomainEventStream);
+    toDomainEventStream.pipe(toAggregateIdentifierStream);
+
+    await request.query(`
+      SELECT [domainEvent], [timestamp]
+        FROM [${this.tableNames.domainEvents}]
+        WHERE [revision] = 1
+        ORDER BY [timestamp];
+    `);
+
+    return toAggregateIdentifierStream;
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    const request = this.pool.request();
+    const toDomainEventStream = new ToDomainEventStream();
+    const toAggregateIdentifierStream = new Transform({
+      objectMode: true,
+      transform (chunk: any, encoding: string, callback: TransformCallback): void {
+        if (
+          chunk.contextIdentifier.name !== contextName ||
+            chunk.aggregateIdentifier.name !== aggregateName
+        ) {
+          callback(null);
+
+          return;
+        }
+        callback(null, chunk.aggregateIdentifier);
+      }
+    });
+
+    request.stream = true;
+    request.pipe(toDomainEventStream);
+    toDomainEventStream.pipe(toAggregateIdentifierStream);
+
+    await request.query(`
+      SELECT [domainEvent], [timestamp]
+        FROM [${this.tableNames.domainEvents}]
+        WHERE [revision] = 1
+        ORDER BY [timestamp];
+    `);
+
+    return toAggregateIdentifierStream;
   }
 
   public async setup (): Promise<void> {

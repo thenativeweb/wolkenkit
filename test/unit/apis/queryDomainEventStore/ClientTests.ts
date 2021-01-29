@@ -6,6 +6,7 @@ import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainE
 import { Client } from '../../../../lib/apis/queryDomainEventStore/http/v2/Client';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
 import { CustomError } from 'defekt';
+import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
@@ -1026,6 +1027,271 @@ suite('queryDomainEventStore/http/Client', (): void => {
         const data = await client.getSnapshot({ aggregateIdentifier });
 
         assert.that(data).is.undefined();
+      });
+    });
+
+    suite('getAggregateIdentifiers', (): void => {
+      test('returns an empty stream.', async (): Promise<void> => {
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        const aggregateIdentifierStream = await client.getAggregateIdentifiers();
+        const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+        assert.that(aggregateIdentifiers.length).is.equalTo(0);
+      });
+
+      test('streams the aggregate identifiers of all aggregates that have domain events in the store.', async (): Promise<void> => {
+        const aggregateIdentifierOne = {
+          id: v4(),
+          name: 'peerGroup'
+        };
+        const domainEventStartedOne = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const aggregateIdentifierTwo = {
+          id: v4(),
+          name: 'peerGroup'
+        };
+        const domainEventStartedTwo = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier: aggregateIdentifierTwo,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 2,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({
+          domainEvents: [ domainEventStartedOne, domainEventStartedTwo ]
+        });
+
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        const aggregateIdentifierStream = await client.getAggregateIdentifiers();
+        const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+        assert.that(aggregateIdentifiers.length).is.equalTo(2);
+        assert.that(aggregateIdentifiers).is.equalTo([ aggregateIdentifierOne, aggregateIdentifierTwo ]);
+      });
+
+      test('emits each aggregate identifier only once.', async (): Promise<void> => {
+        const aggregateIdentifier = {
+          id: v4(),
+          name: 'peerGroup'
+        };
+
+        const domainEventStarted = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const domainEventJoinedFirst = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier,
+          name: 'joined',
+          data: { participant: 'Jane Doe' },
+          metadata: {
+            revision: 2,
+            timestamp: 2,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        await domainEventStore.storeDomainEvents<DomainEventData>({
+          domainEvents: [ domainEventStarted, domainEventJoinedFirst ]
+        });
+
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        const aggregateIdentifierStream = await client.getAggregateIdentifiers();
+        const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+        console.log({ aggregateIdentifiers });
+
+        assert.that(aggregateIdentifiers.length).is.equalTo(1);
+        assert.that(aggregateIdentifiers).is.equalTo([ aggregateIdentifier ]);
+      });
+    });
+
+    suite('getAggregateIdentifiersByName', (): void => {
+      test('returns an empty stream.', async (): Promise<void> => {
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        const aggregateIdentifierStream = await client.getAggregateIdentifiersByName({
+          contextName: 'planning',
+          aggregateName: 'peerGroup'
+        });
+        const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+        assert.that(aggregateIdentifiers.length).is.equalTo(0);
+      });
+
+      test('streams the aggregate identifiers that belong to the given aggregate name and have domain events in the store.', async (): Promise<void> => {
+        const aggregateIdentifierOne = {
+          id: v4(),
+          name: 'peerGroup'
+        };
+        const domainEventStartedOne = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const aggregateIdentifierTwo = {
+          id: v4(),
+          name: 'peerGroup'
+        };
+        const domainEventStartedTwo = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier: aggregateIdentifierTwo,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 2,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const aggregateIdentifierThree = {
+          name: 'somethingElse',
+          id: v4()
+        };
+        const domainEventThree = buildDomainEvent({
+          contextIdentifier: { name: 'somethingElse' },
+          aggregateIdentifier: aggregateIdentifierThree,
+          name: 'foo',
+          data: {},
+          metadata: {
+            revision: 1,
+            timestamp: 3,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({
+          domainEvents: [ domainEventStartedOne, domainEventStartedTwo, domainEventThree ]
+        });
+
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        const aggregateIdentifierStream = await client.getAggregateIdentifiersByName({
+          contextName: 'planning',
+          aggregateName: 'peerGroup'
+        });
+        const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+        assert.that(aggregateIdentifiers.length).is.equalTo(2);
+        assert.that(aggregateIdentifiers).is.equalTo([ aggregateIdentifierOne, aggregateIdentifierTwo ]);
+      });
+
+      test('emits each aggregate identifier only once.', async (): Promise<void> => {
+        const aggregateIdentifier = {
+          id: v4(),
+          name: 'peerGroup'
+        };
+
+        const domainEventStarted = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const domainEventJoinedFirst = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier,
+          name: 'joined',
+          data: { participant: 'Jane Doe' },
+          metadata: {
+            revision: 2,
+            timestamp: 2,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        await domainEventStore.storeDomainEvents<DomainEventData>({
+          domainEvents: [ domainEventStarted, domainEventJoinedFirst ]
+        });
+
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
+
+        const aggregateIdentifierStream = await client.getAggregateIdentifiersByName({
+          contextName: 'planning',
+          aggregateName: 'peerGroup'
+        });
+        const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+        assert.that(aggregateIdentifiers.length).is.equalTo(1);
+        assert.that(aggregateIdentifiers).is.equalTo([ aggregateIdentifier ]);
       });
     });
   });

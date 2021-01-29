@@ -188,6 +188,34 @@ class InMemoryDomainEventStore implements DomainEventStore {
     });
   }
 
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    const aggregateIdentifiers: Map<string, AggregateIdentifier> = new Map();
+
+    for (const domainEvent of this.getStoredDomainEvents()) {
+      aggregateIdentifiers.set(domainEvent.aggregateIdentifier.id, domainEvent.aggregateIdentifier);
+    }
+
+    return Readable.from(aggregateIdentifiers.values());
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    const aggregateIdentifiers: Map<string, AggregateIdentifier> = new Map();
+
+    for (const domainEvent of this.getStoredDomainEvents()) {
+      if (
+        domainEvent.contextIdentifier.name === contextName &&
+          domainEvent.aggregateIdentifier.name === aggregateName
+      ) {
+        aggregateIdentifiers.set(domainEvent.aggregateIdentifier.id, domainEvent.aggregateIdentifier);
+      }
+    }
+
+    return Readable.from(aggregateIdentifiers.values());
+  }
+
   protected getStoredDomainEvents <TState extends State> (): DomainEvent<TState>[] {
     return this.domainEvents as DomainEvent<TState>[];
   }

@@ -1200,6 +1200,257 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       );
     });
   });
+
+  suite('getAggregateIdentifiers', function (): void {
+    this.timeout(5_000);
+
+    setup(async (): Promise<void> => {
+      suffix = getShortId();
+      domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
+    });
+
+    teardown(async (): Promise<void> => {
+      await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
+    });
+
+    test('returns an empty stream.', async (): Promise<void> => {
+      const aggregateIdentifierStream = await domainEventStore.getAggregateIdentifiers();
+      const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+      assert.that(aggregateIdentifiers.length).is.equalTo(0);
+    });
+
+    test('streams the aggregate identifiers of all aggregates that have domain events in the store.', async (): Promise<void> => {
+      const aggregateIdentifierOne = {
+        id: v4(),
+        name: 'peerGroup'
+      };
+      const domainEventStartedOne = buildDomainEvent({
+        contextIdentifier: { name: 'planning' },
+        aggregateIdentifier: aggregateIdentifierOne,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          timestamp: 1,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      const aggregateIdentifierTwo = {
+        id: v4(),
+        name: 'peerGroup'
+      };
+      const domainEventStartedTwo = buildDomainEvent({
+        contextIdentifier: { name: 'planning' },
+        aggregateIdentifier: aggregateIdentifierTwo,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          timestamp: 2,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      await domainEventStore.storeDomainEvents({
+        domainEvents: [ domainEventStartedOne, domainEventStartedTwo ]
+      });
+
+      const aggregateIdentifierStream = await domainEventStore.getAggregateIdentifiers();
+      const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+      assert.that(aggregateIdentifiers.length).is.equalTo(2);
+      assert.that(aggregateIdentifiers).is.equalTo([ aggregateIdentifierOne, aggregateIdentifierTwo ]);
+    });
+
+    test('emits each aggregate identifier only once.', async (): Promise<void> => {
+      const aggregateIdentifier = {
+        id: v4(),
+        name: 'peerGroup'
+      };
+
+      const domainEventStarted = buildDomainEvent({
+        contextIdentifier: { name: 'planning' },
+        aggregateIdentifier,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          timestamp: 1,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      const domainEventJoinedFirst = buildDomainEvent({
+        contextIdentifier: { name: 'planning' },
+        aggregateIdentifier,
+        name: 'joined',
+        data: { participant: 'Jane Doe' },
+        metadata: {
+          revision: 2,
+          timestamp: 2,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      await domainEventStore.storeDomainEvents<DomainEventData>({
+        domainEvents: [ domainEventStarted, domainEventJoinedFirst ]
+      });
+
+      const aggregateIdentifierStream = await domainEventStore.getAggregateIdentifiers();
+      const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+      assert.that(aggregateIdentifiers.length).is.equalTo(1);
+      assert.that(aggregateIdentifiers).is.equalTo([ aggregateIdentifier ]);
+    });
+  });
+
+  suite('getAggregateIdentifiersByName', function (): void {
+    this.timeout(5_000);
+
+    setup(async (): Promise<void> => {
+      suffix = getShortId();
+      domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
+    });
+
+    teardown(async (): Promise<void> => {
+      await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
+    });
+
+    test('returns an empty stream.', async (): Promise<void> => {
+      const aggregateIdentifierStream = await domainEventStore.getAggregateIdentifiersByName({
+        contextName: 'planning',
+        aggregateName: 'peerGroup'
+      });
+      const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+      assert.that(aggregateIdentifiers.length).is.equalTo(0);
+    });
+
+    test('streams the aggregate identifiers that belong to the given aggregate name and have domain events in the store.', async (): Promise<void> => {
+      const aggregateIdentifierOne = {
+        id: v4(),
+        name: 'peerGroup'
+      };
+      const domainEventStartedOne = buildDomainEvent({
+        contextIdentifier: { name: 'planning' },
+        aggregateIdentifier: aggregateIdentifierOne,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          timestamp: 1,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      const aggregateIdentifierTwo = {
+        id: v4(),
+        name: 'peerGroup'
+      };
+      const domainEventStartedTwo = buildDomainEvent({
+        contextIdentifier: { name: 'planning' },
+        aggregateIdentifier: aggregateIdentifierTwo,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          timestamp: 2,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      const aggregateIdentifierThree = {
+        name: 'somethingElse',
+        id: v4()
+      };
+      const domainEventThree = buildDomainEvent({
+        contextIdentifier: { name: 'somethingElse' },
+        aggregateIdentifier: aggregateIdentifierThree,
+        name: 'foo',
+        data: {},
+        metadata: {
+          revision: 1,
+          timestamp: 3,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
+      });
+
+      await domainEventStore.storeDomainEvents({
+        domainEvents: [ domainEventStartedOne, domainEventStartedTwo, domainEventThree ]
+      });
+
+      const aggregateIdentifierStream = await domainEventStore.getAggregateIdentifiersByName({
+        contextName: 'planning',
+        aggregateName: 'peerGroup'
+      });
+      const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+      assert.that(aggregateIdentifiers.length).is.equalTo(2);
+      assert.that(aggregateIdentifiers).is.equalTo([ aggregateIdentifierOne, aggregateIdentifierTwo ]);
+    });
+
+    test('emits each aggregate identifier only once.', async (): Promise<void> => {
+      const aggregateIdentifier = {
+        id: v4(),
+        name: 'peerGroup'
+      };
+
+      const domainEventStarted = buildDomainEvent({
+        contextIdentifier: { name: 'planning' },
+        aggregateIdentifier,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          timestamp: 1,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      const domainEventJoinedFirst = buildDomainEvent({
+        contextIdentifier: { name: 'planning' },
+        aggregateIdentifier,
+        name: 'joined',
+        data: { participant: 'Jane Doe' },
+        metadata: {
+          revision: 2,
+          timestamp: 2,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      await domainEventStore.storeDomainEvents<DomainEventData>({
+        domainEvents: [ domainEventStarted, domainEventJoinedFirst ]
+      });
+
+      const aggregateIdentifierStream = await domainEventStore.getAggregateIdentifiersByName({
+        contextName: 'planning',
+        aggregateName: 'peerGroup'
+      });
+      const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+      assert.that(aggregateIdentifiers.length).is.equalTo(1);
+      assert.that(aggregateIdentifiers).is.equalTo([ aggregateIdentifier ]);
+    });
+  });
 };
 /* eslint-enable mocha/max-top-level-suites */
 

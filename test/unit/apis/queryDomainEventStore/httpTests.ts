@@ -4,6 +4,7 @@ import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
+import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
@@ -1197,6 +1198,398 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(404);
+      });
+    });
+
+    suite('GET /get-aggregate-identifiers', (): void => {
+      test('returns a stream that sends a heartbeat and then ends instantly if there are no aggregate identifiers to deliver.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: '/v2/get-aggregate-identifiers',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const counter = waitForSignals({ count: 1 });
+
+        data.on('data', async (stuff: any): Promise<void> => {
+          assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
+          await counter.signal();
+        });
+        data.on('error', async (): Promise<void> => {
+          await counter.fail();
+        });
+
+        await counter.promise;
+      });
+
+      test('returns a stream that sends a heartbeat and then all aggregate identifiers of all aggregates that have domain events in the store.', async (): Promise<void> => {
+        const aggregateIdentifierOne = {
+          id: v4(),
+          name: 'peerGroup'
+        };
+        const domainEventStartedOne = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const aggregateIdentifierTwo = {
+          id: v4(),
+          name: 'peerGroup'
+        };
+        const domainEventStartedTwo = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier: aggregateIdentifierTwo,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({
+          domainEvents: [ domainEventStartedOne, domainEventStartedTwo ]
+        });
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: '/v2/get-aggregate-identifiers',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const counter = waitForSignals({ count: 3 });
+
+        data.on('error', async (): Promise<void> => {
+          await counter.fail();
+        });
+
+        data.pipe(asJsonStream([
+          async (heartbeat): Promise<void> => {
+            try {
+              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (aggregateIdentifier): Promise<void> => {
+            try {
+              assert.that(aggregateIdentifier).is.equalTo(aggregateIdentifierOne);
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (aggregateIdentifier): Promise<void> => {
+            try {
+              assert.that(aggregateIdentifier).is.equalTo(aggregateIdentifierTwo);
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          }
+        ]));
+
+        await counter.promise;
+      });
+
+      test('emits each aggregate identifier only once.', async (): Promise<void> => {
+        const aggregateIdentifierOne = {
+          id: v4(),
+          name: 'peerGroup'
+        };
+
+        const domainEventStarted = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const domainEventJoinedFirst = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'joined',
+          data: { participant: 'Jane Doe' },
+          metadata: {
+            revision: 2,
+            timestamp: 2,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        await domainEventStore.storeDomainEvents<DomainEventData>({
+          domainEvents: [ domainEventStarted, domainEventJoinedFirst ]
+        });
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: '/v2/get-aggregate-identifiers',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const counter = waitForSignals({ count: 2 });
+
+        data.on('error', async (): Promise<void> => {
+          await counter.fail();
+        });
+
+        data.pipe(asJsonStream([
+          async (heartbeat): Promise<void> => {
+            try {
+              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (aggregateIdentifier): Promise<void> => {
+            try {
+              assert.that(aggregateIdentifier).is.equalTo(aggregateIdentifier);
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          }
+        ]));
+
+        await counter.promise;
+      });
+    });
+
+    suite('GET /get-aggregate-identifiers-by-name', (): void => {
+      test('returns a stream that sends a heartbeat and then ends instantly if there are no aggregate identifiers to deliver.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: '/v2/get-aggregate-identifiers-by-name?contextName=planning&aggregateName=peerGroup',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const counter = waitForSignals({ count: 1 });
+
+        data.on('data', async (stuff: any): Promise<void> => {
+          assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
+          await counter.signal();
+        });
+        data.on('error', async (): Promise<void> => {
+          await counter.fail();
+        });
+
+        await counter.promise;
+      });
+
+      test('returns a stream that sends a heartbeat and then streams the aggregate identifiers that belong to the given aggregate name and have domain events in the store.', async (): Promise<void> => {
+        const aggregateIdentifierOne = {
+          id: v4(),
+          name: 'peerGroup'
+        };
+        const domainEventStartedOne = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const aggregateIdentifierTwo = {
+          id: v4(),
+          name: 'peerGroup'
+        };
+        const domainEventStartedTwo = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier: aggregateIdentifierTwo,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 2,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const aggregateIdentifierThree = {
+          name: 'somethingElse',
+          id: v4()
+        };
+        const domainEventThree = buildDomainEvent({
+          contextIdentifier: { name: 'somethingElse' },
+          aggregateIdentifier: aggregateIdentifierThree,
+          name: 'foo',
+          data: {},
+          metadata: {
+            revision: 1,
+            timestamp: 3,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({
+          domainEvents: [ domainEventStartedOne, domainEventStartedTwo, domainEventThree ]
+        });
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: '/v2/get-aggregate-identifiers-by-name?contextName=planning&aggregateName=peerGroup',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const counter = waitForSignals({ count: 3 });
+
+        data.on('error', async (): Promise<void> => {
+          await counter.fail();
+        });
+
+        data.pipe(asJsonStream([
+          async (heartbeat): Promise<void> => {
+            try {
+              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (aggregateIdentifier): Promise<void> => {
+            try {
+              assert.that(aggregateIdentifier).is.equalTo(aggregateIdentifierOne);
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (aggregateIdentifier): Promise<void> => {
+            try {
+              assert.that(aggregateIdentifier).is.equalTo(aggregateIdentifierTwo);
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          }
+        ]));
+
+        await counter.promise;
+      });
+
+      test('emits each aggregate identifier only once.', async (): Promise<void> => {
+        const aggregateIdentifierOne = {
+          id: v4(),
+          name: 'peerGroup'
+        };
+
+        const domainEventStarted = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const domainEventJoinedFirst = buildDomainEvent({
+          contextIdentifier: { name: 'planning' },
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'joined',
+          data: { participant: 'Jane Doe' },
+          metadata: {
+            revision: 2,
+            timestamp: 2,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        await domainEventStore.storeDomainEvents<DomainEventData>({
+          domainEvents: [ domainEventStarted, domainEventJoinedFirst ]
+        });
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: '/v2/get-aggregate-identifiers-by-name?contextName=planning&aggregateName=peerGroup',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const counter = waitForSignals({ count: 2 });
+
+        data.on('error', async (): Promise<void> => {
+          await counter.fail();
+        });
+
+        data.pipe(asJsonStream([
+          async (heartbeat): Promise<void> => {
+            try {
+              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (aggregateIdentifier): Promise<void> => {
+            try {
+              assert.that(aggregateIdentifier).is.equalTo(aggregateIdentifier);
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          }
+        ]));
+
+        await counter.promise;
       });
     });
   });

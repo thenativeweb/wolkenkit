@@ -403,6 +403,115 @@ class MongoDbDomainEventStore implements DomainEventStore {
     );
   }
 
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    const passThrough = new PassThrough({ objectMode: true });
+    const replayStream = this.collections.domainEvents.find({
+      'metadata.revision': { $eq: 1 }
+    }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      projection: { _id: 0, aggregateIdentifier: 1 },
+      sort: [[ 'metadata.timestamp', 1 ]]
+    }).stream();
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      replayStream.removeListener('data', onData);
+      replayStream.removeListener('end', onEnd);
+      replayStream.removeListener('error', onError);
+    };
+
+    onData = function (data: any): void {
+      passThrough.write(data.aggregateIdentifier);
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+
+      // In the PostgreSQL eventstore, we call replayStream.end() here. In
+      // MongoDB, this function apparently is not implemented. This note is just
+      // for informational purposes to ensure that you are aware that the two
+      // implementations differ here.
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+
+      // In the PostgreSQL eventstore, we call replayStream.end() here. In
+      // MongoDB, this function apparently is not implemented. This note is just
+      // for informational purposes to ensure that you are aware that the two
+      // implementations differ here.
+    };
+
+    replayStream.on('data', onData);
+    replayStream.on('end', onEnd);
+    replayStream.on('error', onError);
+
+    return passThrough;
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    const passThrough = new PassThrough({ objectMode: true });
+    const replayStream = this.collections.domainEvents.find({
+      'metadata.revision': { $eq: 1 },
+      'contextIdentifier.name': { $eq: contextName },
+      'aggregateIdentifier.name': { $eq: aggregateName }
+    }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      projection: { _id: 0, aggregateIdentifier: 1 },
+      sort: [[ 'metadata.timestamp', 1 ]]
+    }).stream();
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      replayStream.removeListener('data', onData);
+      replayStream.removeListener('end', onEnd);
+      replayStream.removeListener('error', onError);
+    };
+
+    onData = function (data: any): void {
+      passThrough.write(data.aggregateIdentifier);
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+
+      // In the PostgreSQL eventstore, we call replayStream.end() here. In
+      // MongoDB, this function apparently is not implemented. This note is just
+      // for informational purposes to ensure that you are aware that the two
+      // implementations differ here.
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+
+      // In the PostgreSQL eventstore, we call replayStream.end() here. In
+      // MongoDB, this function apparently is not implemented. This note is just
+      // for informational purposes to ensure that you are aware that the two
+      // implementations differ here.
+    };
+
+    replayStream.on('data', onData);
+    replayStream.on('end', onEnd);
+    replayStream.on('error', onError);
+
+    return passThrough;
+  }
+
   public async setup (): Promise<void> {
     await this.collections.domainEvents.createIndexes([
       {

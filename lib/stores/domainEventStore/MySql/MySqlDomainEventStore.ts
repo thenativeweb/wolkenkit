@@ -410,6 +410,94 @@ class MySqlDomainEventStore implements DomainEventStore {
     }
   }
 
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    const connection = await this.getDatabase();
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const domainEventStream = connection.query(`
+      SELECT domainEvent, timestamp
+        FROM \`${this.tableNames.domainEvents}\`
+        WHERE revision = 1
+        ORDER BY timestamp ASC
+      `);
+
+    const unsubscribe = function (): void {
+      // Listeners should be removed here, but the mysql typings don't support
+      // that.
+      MySqlDomainEventStore.releaseConnection({ connection });
+    };
+
+    const onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+    const onError = function (err: MysqlError): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+    const onResult = function (row: any): void {
+      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
+
+      passThrough.write(domainEvent.aggregateIdentifier);
+    };
+
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+    domainEventStream.on('result', onResult);
+
+    return passThrough;
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    const connection = await this.getDatabase();
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const domainEventStream = connection.query(`
+      SELECT domainEvent, timestamp
+        FROM \`${this.tableNames.domainEvents}\`
+        WHERE revision = 1
+        ORDER BY timestamp ASC
+      `);
+
+    const unsubscribe = function (): void {
+      // Listeners should be removed here, but the mysql typings don't support
+      // that.
+      MySqlDomainEventStore.releaseConnection({ connection });
+    };
+
+    const onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+    const onError = function (err: MysqlError): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+    const onResult = function (row: any): void {
+      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
+
+      if (
+        domainEvent.contextIdentifier.name !== contextName ||
+          domainEvent.aggregateIdentifier.name !== aggregateName
+      ) {
+        return;
+      }
+
+      passThrough.write(domainEvent.aggregateIdentifier);
+    };
+
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+    domainEventStream.on('result', onResult);
+
+    return passThrough;
+  }
+
   public async setup (): Promise<void> {
     const connection = await this.getDatabase();
 

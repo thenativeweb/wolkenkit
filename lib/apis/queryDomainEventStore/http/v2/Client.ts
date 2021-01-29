@@ -9,7 +9,7 @@ import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTrans
 import { Snapshot } from '../../../../stores/domainEventStore/Snapshot';
 import { State } from '../../../../common/elements/State';
 import { toArray } from 'streamtoarray';
-import { PassThrough, pipeline } from 'stream';
+import { PassThrough, pipeline, Readable } from 'stream';
 
 const logger = flaschenpost.getLogger();
 
@@ -53,7 +53,7 @@ class Client extends HttpClient {
 
   public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
-  }): Promise<PassThrough> {
+  }): Promise<Readable> {
     const { status, data } = await this.axios({
       method: 'get',
       url: `${this.url}/domain-events-by-causation-id?causation-id=${causationId}`,
@@ -103,7 +103,7 @@ class Client extends HttpClient {
 
   public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
-  }): Promise<PassThrough> {
+  }): Promise<Readable> {
     const { status, data } = await this.axios({
       method: 'get',
       url: `${this.url}/domain-events-by-correlation-id?correlation-id=${correlationId}`,
@@ -136,7 +136,7 @@ class Client extends HttpClient {
 
   public async getReplay ({ fromTimestamp = 0 }: {
     fromTimestamp?: number;
-  }): Promise<PassThrough> {
+  }): Promise<Readable> {
     if (fromTimestamp < 0) {
       throw new errors.ParameterInvalid(`Parameter 'fromTimestamp' must be at least 0.`);
     }
@@ -175,7 +175,7 @@ class Client extends HttpClient {
     aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
-  }): Promise<PassThrough> {
+  }): Promise<Readable> {
     if (fromRevision < 1) {
       throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
     }
@@ -242,6 +242,71 @@ class Client extends HttpClient {
         throw new errors.UnknownError(data.message);
       }
     }
+  }
+
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    const { status, data } = await this.axios({
+      method: 'get',
+      url: `${this.url}/get-aggregate-identifiers`,
+      responseType: 'stream'
+    });
+
+    if (status !== 200) {
+      logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
+
+      throw new errors.UnknownError(data.message);
+    }
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const jsonParser = new ParseJsonTransform();
+    const heartbeatFilter = new FilterHeartbeatsTransform();
+
+    return pipeline(
+      data,
+      jsonParser,
+      heartbeatFilter,
+      passThrough,
+      (err): void => {
+        if (err) {
+          // Do not handle errors explicitly. The returned stream will just close.
+          logger.error('An error occured during stream piping.', { err });
+        }
+      }
+    );
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    const { status, data } = await this.axios({
+      method: 'get',
+      url: `${this.url}/get-aggregate-identifiers-by-name?contextName=${contextName}&aggregateName=${aggregateName}`,
+      responseType: 'stream'
+    });
+
+    if (status !== 200) {
+      logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
+
+      throw new errors.UnknownError(data.message);
+    }
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const jsonParser = new ParseJsonTransform();
+    const heartbeatFilter = new FilterHeartbeatsTransform();
+
+    return pipeline(
+      data,
+      jsonParser,
+      heartbeatFilter,
+      passThrough,
+      (err): void => {
+        if (err) {
+          // Do not handle errors explicitly. The returned stream will just close.
+          logger.error('An error occured during stream piping.', { err });
+        }
+      }
+    );
   }
 }
 

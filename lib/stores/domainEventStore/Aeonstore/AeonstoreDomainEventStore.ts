@@ -102,6 +102,20 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     await this.writeClient.storeSnapshot({ snapshot });
   }
 
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    return await this.queryClient.getAggregateIdentifiers();
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    return await this.queryClient.getAggregateIdentifiersByName({
+      contextName,
+      aggregateName
+    });
+  }
+
   // eslint-disable-next-line class-methods-use-this
   public async setup (): Promise<void> {
     // There is nothing to do here.
