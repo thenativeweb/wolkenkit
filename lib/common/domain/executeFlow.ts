@@ -46,7 +46,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     throw new errors.FlowNotFound(`Flow '${flowName}' not found.`);
   }
 
-  logger.info(`Executing flow '${flowName}'...`, { domainEvent });
+  logger.debug(`Executing flow '${flowName}'...`, { domainEvent });
 
   const flowDefinition = application.flows[flowName];
 
@@ -56,7 +56,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
   });
 
   if (latestHandledRevision >= domainEvent.metadata.revision) {
-    logger.info('Domain event was already seen, skipping.');
+    logger.debug('Domain event was already seen, skipping.');
 
     return 'acknowledge';
   }
@@ -64,11 +64,11 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
   if (latestHandledRevision < domainEvent.metadata.revision - 1) {
     switch (flowDefinition.replayPolicy) {
       case 'never': {
-        logger.info(`Domain event is too old. Ignoring due to replay policy 'never'.`);
+        logger.debug(`Domain event is too old. Ignoring due to replay policy 'never'.`);
         break;
       }
       case 'on-demand': {
-        logger.info(`Domain event is too old. Deferring due to replay policy 'on-demand'.`);
+        logger.debug(`Domain event is too old. Deferring due to replay policy 'on-demand'.`);
 
         return 'defer';
       }
@@ -77,7 +77,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
           const from = latestHandledRevision + 1,
                 to = domainEvent.metadata.revision - 1;
 
-          logger.info(`Domain event is too old. Requesting replay from ${from} to ${to} and deferring due to replay policy 'always'.`);
+          logger.debug(`Domain event is too old. Requesting replay from ${from} to ${to} and deferring due to replay policy 'always'.`);
 
           await requestReplay({
             flowName,
@@ -105,7 +105,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
       fullyQualifiedName: domainEvent.getFullyQualifiedName(),
       itemIdentifier: domainEvent.getItemIdentifier()
     })) {
-      logger.info(`Executing handler '${flowName}.${handlerName}...'`);
+      logger.debug(`Executing handler '${flowName}.${handlerName}...'`);
       try {
         await handler.handle(domainEvent, services);
       } catch (ex: unknown) {
@@ -129,7 +129,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     });
   }
 
-  logger.info(`Flow '${flowName}' was successfully executed.`);
+  logger.debug(`Flow '${flowName}' was successfully executed.`);
 
   return 'acknowledge';
 };
