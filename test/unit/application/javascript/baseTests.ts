@@ -12,12 +12,14 @@ suite('javascript/base', (): void => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
     const application = await loadApplication({ applicationDirectory });
 
-    const contextIdentifier = { name: 'sampleContext' };
-    const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
+    const aggregateIdentifier = {
+      context: { name: 'sampleContext' },
+      aggregate: { name: 'sampleAggregate', id: v4() }
+    };
 
     await sandbox().
       withApplication({ application }).
-      forAggregate({ contextIdentifier, aggregateIdentifier }).
+      forAggregate({ aggregateIdentifier }).
       when<ExecuteData>({ name: 'execute', data: { strategy: 'succeed' }}).
       then(({ state, domainEvents }): void => {
         assert.that(domainEvents[0].name).is.equalTo('succeeded');
@@ -30,12 +32,14 @@ suite('javascript/base', (): void => {
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
     const application = await loadApplication({ applicationDirectory });
 
-    const contextIdentifier = { name: 'sampleContext' };
-    const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
+    const aggregateIdentifier = {
+      context: { name: 'sampleContext' },
+      aggregate: { name: 'sampleAggregate', id: v4() }
+    };
 
     await sandbox().
       withApplication({ application }).
-      forAggregate({ contextIdentifier, aggregateIdentifier }).
+      forAggregate({ aggregateIdentifier }).
       given<SucceededData>({ name: 'succeeded', data: {}}).
       and<ExecutedData>({ name: 'executed', data: { strategy: 'succeed' }}).
       when<ExecuteData>({ name: 'execute', data: { strategy: 'succeed' }}).

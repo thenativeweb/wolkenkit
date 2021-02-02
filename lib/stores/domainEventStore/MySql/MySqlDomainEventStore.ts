@@ -93,7 +93,7 @@ class MySqlDomainEventStore implements DomainEventStore {
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revision DESC
           LIMIT 1`,
-        parameters: [ aggregateIdentifier.id ]
+        parameters: [ aggregateIdentifier.aggregate.id ]
       });
 
       if (rows.length === 0) {
@@ -327,7 +327,7 @@ class MySqlDomainEventStore implements DomainEventStore {
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revision DESC
           LIMIT 1`,
-        parameters: [ aggregateIdentifier.id ]
+        parameters: [ aggregateIdentifier.aggregate.id ]
       });
 
       if (rows.length === 0) {
@@ -359,7 +359,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     for (const domainEvent of domainEvents) {
       placeholders.push('(UuidToBin(?), ?, UuidToBin(?), UuidToBin(?), ?, ?)');
       parameters.push(
-        domainEvent.aggregateIdentifier.id,
+        domainEvent.aggregateIdentifier.aggregate.id,
         domainEvent.metadata.revision,
         domainEvent.metadata.causationId,
         domainEvent.metadata.correlationId,
@@ -400,7 +400,7 @@ class MySqlDomainEventStore implements DomainEventStore {
           (aggregateId, revision, state)
           VALUES (UuidToBin(?), ?, ?);`,
         parameters: [
-          snapshot.aggregateIdentifier.id,
+          snapshot.aggregateIdentifier.aggregate.id,
           snapshot.revision,
           JSON.stringify(snapshot.state)
         ]
@@ -482,8 +482,8 @@ class MySqlDomainEventStore implements DomainEventStore {
       const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
 
       if (
-        domainEvent.contextIdentifier.name !== contextName ||
-          domainEvent.aggregateIdentifier.name !== aggregateName
+        domainEvent.aggregateIdentifier.context.name !== contextName ||
+          domainEvent.aggregateIdentifier.aggregate.name !== aggregateName
       ) {
         return;
       }

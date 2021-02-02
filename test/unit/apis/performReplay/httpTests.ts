@@ -95,8 +95,10 @@ suite('performReplay/http', (): void => {
           data: {
             flowNames: [],
             aggregates: [{
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: v4() }
+              },
               from: 23,
               to: 42
             }]
@@ -122,8 +124,10 @@ suite('performReplay/http', (): void => {
           url: `/v2/`,
           data: {
             aggregates: [{
-              contextIdentifier: { name: 'nonExistent' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+              aggregateIdentifier: {
+                context: { name: 'nonExistent' },
+                aggregate: { name: 'sampleAggregate', id: v4() }
+              },
               from: 23,
               to: 42
             }]
@@ -149,8 +153,10 @@ suite('performReplay/http', (): void => {
           url: `/v2/`,
           data: {
             aggregates: [{
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'nonExistent', id: v4() },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'nonExistent', id: v4() }
+              },
               from: 23,
               to: 42
             }]
@@ -177,8 +183,10 @@ suite('performReplay/http', (): void => {
           data: {
             flowNames: [ 'nonExistent' ],
             aggregates: [{
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: v4() }
+              },
               from: 23,
               to: 42
             }]
@@ -205,8 +213,10 @@ suite('performReplay/http', (): void => {
           data: {
             flowNames: [ 'sampleFlow' ],
             aggregates: [{
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: v4() }
+              },
               from: 23,
               to: 42
             }]
@@ -226,8 +236,10 @@ suite('performReplay/http', (): void => {
           data: {
             flowNames: [ 'sampleFlow' ],
             aggregates: [{
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               from: 23,
               to: 42
             }]
@@ -238,8 +250,10 @@ suite('performReplay/http', (): void => {
         assert.that(requestedReplays[0]).is.equalTo({
           flowNames: [ 'sampleFlow' ],
           aggregates: [{
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: aggregateId }
+            },
             from: 23,
             to: 42
           }]
@@ -255,8 +269,10 @@ suite('performReplay/http', (): void => {
           url: `/v2/`,
           data: {
             aggregates: [{
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               from: 23,
               to: 42
             }]
@@ -267,8 +283,10 @@ suite('performReplay/http', (): void => {
         assert.that(requestedReplays[0]).is.equalTo({
           flowNames: [ 'sampleFlow' ],
           aggregates: [{
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: aggregateId }
+            },
             from: 23,
             to: 42
           }]
@@ -292,8 +310,10 @@ suite('performReplay/http', (): void => {
           data: {
             flowNames: [ 'sampleFlow' ],
             aggregates: [{
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: v4() }
+              },
               from: 23,
               to: 42
             }]

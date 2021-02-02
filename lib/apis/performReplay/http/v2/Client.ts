@@ -1,5 +1,4 @@
 import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
-import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
@@ -19,7 +18,6 @@ class Client extends HttpClient {
   public async performReplay ({ flowNames, aggregates }: {
     flowNames?: string[];
     aggregates: {
-      contextIdentifier: ContextIdentifier;
       aggregateIdentifier: AggregateIdentifier;
       from: number;
       to: number;

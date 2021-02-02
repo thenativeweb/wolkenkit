@@ -1,3 +1,4 @@
+import { AggregateIdentifier } from '../../../../../lib/common/elements/AggregateIdentifier';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
@@ -83,8 +84,10 @@ suite('domain event store process', function (): void {
   suite('getReplay', (): void => {
     test('streams all previously stored domain events.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: v4() }
+        },
         name: 'execute',
         data: {},
         metadata: {
@@ -117,8 +120,10 @@ suite('domain event store process', function (): void {
   suite('getReplayForAggregate', (): void => {
     test('streams only domain events for the requested aggregate.', async (): Promise<void> => {
       const wrongDomainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: v4() }
+        },
         name: 'execute',
         data: {},
         metadata: {
@@ -130,8 +135,10 @@ suite('domain event store process', function (): void {
       const aggregateId = v4();
 
       const rightDomainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'execute',
         data: {},
         metadata: {
@@ -163,9 +170,17 @@ suite('domain event store process', function (): void {
 
   suite('getLastDomainEvent', (): void => {
     test('returns the last stored domain event.', async (): Promise<void> => {
-      const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
+      };
+
       const firstDomainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier,
         name: 'execute',
         data: {},
@@ -175,7 +190,6 @@ suite('domain event store process', function (): void {
         }
       });
       const secondDomainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier,
         name: 'execute',
         data: {},
@@ -195,7 +209,16 @@ suite('domain event store process', function (): void {
 
   suite('getSnapshot', (): void => {
     test('returns the previously stored snapshot.', async (): Promise<void> => {
-      const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
+      };
+
       const snapshot = {
         aggregateIdentifier,
         revision: 1,

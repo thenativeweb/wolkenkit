@@ -86,7 +86,7 @@ const getDomainEvents = {
                 aggregates: aggregatesService,
                 client: clientService,
                 logger: getLoggerService({
-                  fileName: `<app>/server/domain/${domainEventWithState.contextIdentifier.name}/${domainEventWithState.aggregateIdentifier.name}/`,
+                  fileName: `<app>/server/domain/${domainEventWithState.aggregateIdentifier.context.name}/${domainEventWithState.aggregateIdentifier.aggregate.name}/`,
                   packageManifest: application.packageManifest
                 }),
                 infrastructure: {

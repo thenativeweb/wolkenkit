@@ -11,7 +11,7 @@ const handleMessageSent: FlowHandler<SentData, Infrastructure> = {
 
   async handle (domainEvent, { infrastructure, notification }): Promise<void> {
     const message: Message = {
-      id: domainEvent.aggregateIdentifier.id,
+      id: domainEvent.aggregateIdentifier.aggregate.id,
       timestamp: domainEvent.metadata.timestamp,
       text: domainEvent.data.text,
       likes: 0

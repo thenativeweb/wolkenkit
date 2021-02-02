@@ -1,7 +1,6 @@
 import { AggregateIdentifier } from '../../../elements/AggregateIdentifier';
 import { Application } from '../../../application/Application';
 import { ConsumerProgressStore } from '../../../../stores/consumerProgressStore/ConsumerProgressStore';
-import { ContextIdentifier } from '../../../elements/ContextIdentifier';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { GetAggregateService } from '../../../services/types/GetAggregateService';
 import { GetAggregatesService } from '../../../services/types/GetAggregatesService';
@@ -75,7 +74,6 @@ export interface Sandbox {
   }) => Sandbox;
 
   forAggregate: <TState extends State>(parameters: {
-    contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
   }) => SandboxForAggregate<TState>;
 

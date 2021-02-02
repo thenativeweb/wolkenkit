@@ -1,3 +1,4 @@
+import { AggregateIdentifier } from '../../../../../lib/common/elements/AggregateIdentifier';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { Client as AwaitDomainEventClient } from '../../../../../lib/apis/awaitItem/http/v2/Client';
@@ -243,14 +244,16 @@ suite('domain process', function (): void {
   suite('authorization', (): void => {
     test(`publishes (and does not store) a rejected event if the sender of a command is not authorized.`, async (): Promise<void> => {
       const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
       };
 
       const command = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier,
         name: 'authorize',
         data: {
@@ -276,9 +279,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'authorizeRejected',
                   data: {
@@ -306,15 +306,17 @@ suite('domain process', function (): void {
 
   suite('handling', (): void => {
     test('publishes (and stores) an appropriate event for the incoming command.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
       };
 
       const command = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier,
         name: 'execute',
         data: {
@@ -340,9 +342,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'succeeded',
                   data: {}
@@ -355,9 +354,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'executed',
                   data: {
@@ -388,9 +384,6 @@ suite('domain process', function (): void {
       let { item, metadata } = await awaitDomainEventClient.awaitItem();
 
       assert.that(item).is.atLeast({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier,
         name: 'succeeded',
         data: {}
@@ -404,9 +397,6 @@ suite('domain process', function (): void {
       ({ item, metadata } = await awaitDomainEventClient.awaitItem());
 
       assert.that(item).is.atLeast({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier,
         name: 'executed',
         data: {
@@ -419,7 +409,7 @@ suite('domain process', function (): void {
         token: metadata.token
       });
 
-      const eventStream = await queryDomainEventStoreClient.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
+      const eventStream = await queryDomainEventStoreClient.getReplayForAggregate({ aggregateId: aggregateIdentifier.aggregate.id });
 
       await new Promise<void>((resolve, reject): void => {
         eventStream.on('error', (err: any): void => {
@@ -433,9 +423,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'succeeded',
                   data: {}
@@ -448,9 +435,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'executed',
                   data: {
@@ -473,12 +457,14 @@ suite('domain process', function (): void {
 
     test('handles multiple events in independent aggregates after each other.', async (): Promise<void> => {
       const command1 = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {
@@ -486,12 +472,14 @@ suite('domain process', function (): void {
         }
       });
       const command2 = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {
@@ -518,9 +506,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier: command1.aggregateIdentifier,
                   name: 'succeeded',
                   data: {}
@@ -533,9 +518,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier: command1.aggregateIdentifier,
                   name: 'executed',
                   data: {
@@ -550,9 +532,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier: command2.aggregateIdentifier,
                   name: 'succeeded',
                   data: {}
@@ -565,9 +544,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier: command2.aggregateIdentifier,
                   name: 'executed',
                   data: {
@@ -589,15 +565,17 @@ suite('domain process', function (): void {
     });
 
     test('publishes notifications from command handlers.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
       };
 
       const command = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier,
         name: 'execute',
         data: {

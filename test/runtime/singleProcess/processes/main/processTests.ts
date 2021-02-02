@@ -1,4 +1,5 @@
 import { Agent } from 'http';
+import { AggregateIdentifier } from '../../../../../lib/common/elements/AggregateIdentifier';
 import { ApolloClient } from 'apollo-client';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
@@ -137,14 +138,16 @@ suite('main process', function (): void {
 
   suite('command handling', (): void => {
     test('handles commands and publishes events.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
-      };
-      const command = buildCommand({
-        contextIdentifier: {
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
           name: 'sampleContext'
         },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
+      };
+      const command = buildCommand({
         aggregateIdentifier,
         name: 'execute',
         data: {
@@ -168,9 +171,6 @@ suite('main process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'succeeded',
                   data: {}
@@ -183,9 +183,6 @@ suite('main process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'executed',
                   data: {
@@ -207,14 +204,16 @@ suite('main process', function (): void {
     });
 
     test('executes flows.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
-      };
-      const command = buildCommand({
-        contextIdentifier: {
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
           name: 'sampleContext'
         },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
+      };
+      const command = buildCommand({
         aggregateIdentifier,
         name: 'triggerFlow',
         data: {
@@ -236,7 +235,6 @@ suite('main process', function (): void {
           async (data): Promise<void> => {
             try {
               assert.that(data).is.atLeast({
-                contextIdentifier: { name: 'sampleContext' },
                 aggregateIdentifier,
                 name: 'triggeredFlow',
                 data: { flowName: 'neverFlow' }
@@ -249,7 +247,6 @@ suite('main process', function (): void {
           async (data): Promise<void> => {
             try {
               assert.that(data).is.atLeast({
-                contextIdentifier: { name: 'sampleContext' },
                 aggregateIdentifier,
                 name: 'executedFromFlow',
                 data: {
@@ -340,8 +337,10 @@ suite('main process', function (): void {
 
       const aggregateId = v4();
       const command = buildCommand({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'execute',
         data: { strategy: 'succeed' }
       });
@@ -387,8 +386,10 @@ suite('main process', function (): void {
 
       const aggregateId = v4();
       const command = buildCommand({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'execute',
         data: { strategy: 'succeed' }
       });
@@ -409,14 +410,16 @@ suite('main process', function (): void {
 
   suite('views', (): void => {
     test('runs queries against the views.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
-      };
-      const command = buildCommand({
-        contextIdentifier: {
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
           name: 'sampleContext'
         },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
+      };
+      const command = buildCommand({
         aggregateIdentifier,
         name: 'execute',
         data: {
@@ -440,8 +443,10 @@ suite('main process', function (): void {
 
       assert.that(resultItems.length).is.equalTo(1);
       assert.that(resultItems[0]).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate' },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate' }
+        },
         name: 'executed'
       });
     });
@@ -537,14 +542,16 @@ suite('main process', function (): void {
         true
       ));
 
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
-      };
-      const command = buildCommand({
-        contextIdentifier: {
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
           name: 'sampleContext'
         },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
+      };
+      const command = buildCommand({
         aggregateIdentifier,
         name: 'execute',
         data: {

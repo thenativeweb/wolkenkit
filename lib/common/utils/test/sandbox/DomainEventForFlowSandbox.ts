@@ -1,9 +1,9 @@
+import { AggregateIdentifier } from '../../../elements/AggregateIdentifier';
 import { DomainEventData } from '../../../elements/DomainEventData';
 import { Initiator } from '../../../elements/Initiator';
 
 export interface DomainEventForFlowSandbox<TDomainEventData extends DomainEventData> {
-  contextIdentifier: { name: string };
-  aggregateIdentifier: { name: string; id: string };
+  aggregateIdentifier: AggregateIdentifier;
   name: string;
   data: TDomainEventData;
   id?: string;

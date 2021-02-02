@@ -127,8 +127,10 @@ suite('command process', (): void => {
     suite('postCommand', (): void => {
       test('sends commands to the correct endpoint at the command dispatcher.', async (): Promise<void> => {
         const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' }
         });
@@ -175,8 +177,10 @@ suite('command process', (): void => {
         });
 
         const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' }
         });
@@ -190,8 +194,10 @@ suite('command process', (): void => {
     suite('cancelCommand', (): void => {
       test('sends a cancel request to the correct endpoint at the command dispatcher.', async (): Promise<void> => {
         const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' }
         });
@@ -199,7 +205,6 @@ suite('command process', (): void => {
         const { id } = await handleCommandClient.postCommand({ command });
 
         const commandIdentifier = {
-          contextIdentifier: command.contextIdentifier,
           aggregateIdentifier: command.aggregateIdentifier,
           name: command.name,
           id
@@ -240,8 +245,10 @@ suite('command process', (): void => {
         });
 
         const commandIdentifier: ItemIdentifier = {
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           id: v4()
         };
@@ -317,8 +324,10 @@ suite('command process', (): void => {
 
     test('retries as many times as configured and then crashes.', async (): Promise<void> => {
       const command = new Command({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: v4() }
+        },
         name: 'execute',
         data: { strategy: 'succeed' }
       });
@@ -399,8 +408,10 @@ suite('command process', (): void => {
 
     test('retries and succeeds at some point.', async (): Promise<void> => {
       const command = new Command({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: v4() }
+        },
         name: 'execute',
         data: { strategy: 'succeed' }
       });

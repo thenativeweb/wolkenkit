@@ -14,8 +14,10 @@ const validateCommand = function <TCommandData extends CommandData> ({
   const contextDefinitions = application.domain;
 
   const {
-    contextIdentifier: { name: contextName },
-    aggregateIdentifier: { name: aggregateName },
+    aggregateIdentifier: {
+      context: { name: contextName },
+      aggregate: { name: aggregateName }
+    },
     name: commandName,
     data: commandData
   } = command;

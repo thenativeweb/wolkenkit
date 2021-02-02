@@ -50,8 +50,10 @@ suite('Repository', (): void => {
   suite('getAggregateInstance', (): void => {
     test('returns the current state of the requested aggregate.', async (): Promise<void> => {
       const domainEventSucceeded = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'succeeded',
         data: {},
         metadata: {
@@ -61,8 +63,10 @@ suite('Repository', (): void => {
       });
 
       const domainEventExecuted = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executed',
         data: { strategy: 'succeed' },
         metadata: {
@@ -76,8 +80,10 @@ suite('Repository', (): void => {
       });
 
       const aggregateInstance = await repository.getAggregateInstance({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId }
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        }
       });
 
       assert.that(aggregateInstance.state).is.equalTo({
@@ -96,11 +102,13 @@ suite('Repository', (): void => {
         pubSubChannelForNotifications
       });
 
-      const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
+      const aggregateIdentifier = {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: v4() }
+      };
 
       const domainEvents = [
         buildDomainEvent({
-          contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -110,7 +118,6 @@ suite('Repository', (): void => {
           }
         }),
         buildDomainEvent({
-          contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -120,7 +127,6 @@ suite('Repository', (): void => {
           }
         }),
         buildDomainEvent({
-          contextIdentifier: { name: 'sampleContext' },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -134,7 +140,6 @@ suite('Repository', (): void => {
       await domainEventStore.storeDomainEvents({ domainEvents });
 
       await repository.getAggregateInstance({
-        contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier
       });
 
@@ -161,10 +166,12 @@ suite('Repository', (): void => {
         pubSubChannelForNotifications
       });
 
-      const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
+      const aggregateIdentifier = {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: v4() }
+      };
 
       await repository.getAggregateInstance({
-        contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier
       });
 

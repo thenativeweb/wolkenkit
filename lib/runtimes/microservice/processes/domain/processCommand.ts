@@ -32,7 +32,6 @@ const processCommand = async function ({
     }
 
     const aggregateInstance = await repository.getAggregateInstance({
-      contextIdentifier: command.contextIdentifier,
       aggregateIdentifier: command.aggregateIdentifier
     });
 

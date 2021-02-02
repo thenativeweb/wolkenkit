@@ -7,27 +7,34 @@ const notFound = {
     return {
       type: 'object',
       properties: {
-        contextIdentifier: {
-          type: 'object',
-          properties: {
-            name: { type: 'string', minLength: 1 }
-          },
-          required: [ 'name' ],
-          additionalProperties: false
-        },
         aggregateIdentifier: {
           type: 'object',
           properties: {
-            name: { type: 'string', minLength: 1 },
-            id: { type: 'string' }
+            context: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', minLength: 1 }
+              },
+              required: [ 'name' ],
+              additionalProperties: false
+            },
+            aggregate: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', minLength: 1 },
+                id: { type: 'string' }
+              },
+              required: [ 'name', 'id' ],
+              additionalProperties: false
+            }
           },
-          required: [ 'name', 'id' ],
+          required: [ 'context', 'aggregate' ],
           additionalProperties: false
         },
         name: { type: 'string', minLength: 1 },
         id: { type: 'string' }
       },
-      required: [ 'contextIdentifier', 'aggregateIdentifier', 'name', 'id' ],
+      required: [ 'aggregateIdentifier', 'name', 'id' ],
       additionalProperties: false
     };
   },

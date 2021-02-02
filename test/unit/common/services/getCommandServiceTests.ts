@@ -15,8 +15,10 @@ suite('getCommandService', (): void => {
     };
 
     const domainEvent = buildDomainEvent({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: v4() }
+      },
       name: 'executed',
       data: { strategy: 'succeed' },
       metadata: {
@@ -30,8 +32,10 @@ suite('getCommandService', (): void => {
     const commandService = getCommandService({ domainEvent, issueCommand: onIssueCommand });
 
     const command = buildCommand({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: v4() }
+      },
       name: 'execute',
       data: { strategy: 'succeed' }
     });
@@ -67,8 +71,10 @@ suite('getCommandService', (): void => {
     };
 
     const domainEvent = buildDomainEvent({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: v4() }
+      },
       name: 'executed',
       data: { strategy: 'succeed' },
       metadata: {
@@ -82,8 +88,10 @@ suite('getCommandService', (): void => {
     const commandService = getCommandService({ domainEvent, issueCommand: onIssueCommand });
 
     const command = buildCommand({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: v4() }
+      },
       name: 'execute',
       data: { strategy: 'succeed' }
     });

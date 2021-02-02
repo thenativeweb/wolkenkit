@@ -167,7 +167,7 @@ suite('handleCommand/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'Value does not satisfy format: uuid (at command.aggregateIdentifier.id).'
+          message: 'Value does not satisfy format: uuid (at command.aggregateIdentifier.aggregate.id).'
         });
       });
 
@@ -277,8 +277,10 @@ suite('handleCommand/http', (): void => {
 
         assert.that(receivedCommands.length).is.equalTo(1);
         assert.that(receivedCommands[0]).is.atLeast({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id }
+          },
           name: 'execute',
           data: { strategy: 'succeed' },
           metadata: {
@@ -538,8 +540,10 @@ suite('handleCommand/http', (): void => {
             'content-type': ''
           },
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'execute',
             id: v4()
           },
@@ -566,8 +570,10 @@ suite('handleCommand/http', (): void => {
             'content-type': 'text/plain'
           },
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'execute',
             id: v4()
           },
@@ -604,7 +610,7 @@ suite('handleCommand/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'Missing required property: contextIdentifier (at requestBody.contextIdentifier).'
+          message: 'Missing required property: context (at requestBody.aggregateIdentifier.context).'
         });
       });
 
@@ -615,8 +621,10 @@ suite('handleCommand/http', (): void => {
           method: 'post',
           url: `/v2/cancel`,
           data: {
-            contextIdentifier: { name: 'nonExistent' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'nonExistent' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'execute',
             id: v4()
           },
@@ -640,8 +648,10 @@ suite('handleCommand/http', (): void => {
           method: 'post',
           url: `/v2/cancel`,
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'nonExistent', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'nonExistent', id: v4() }
+            },
             name: 'execute',
             id: v4()
           },
@@ -665,8 +675,10 @@ suite('handleCommand/http', (): void => {
           method: 'post',
           url: `/v2/cancel`,
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'nonExistent',
             id: v4()
           },
@@ -690,8 +702,10 @@ suite('handleCommand/http', (): void => {
           method: 'post',
           url: `/v2/cancel`,
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'execute',
             id: v4()
           }
@@ -719,8 +733,10 @@ suite('handleCommand/http', (): void => {
           method: 'post',
           url: `/v2/cancel`,
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'execute',
             id: v4()
           },
@@ -740,8 +756,10 @@ suite('handleCommand/http', (): void => {
           method: 'post',
           url: `/v2/cancel`,
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: aggregateId }
+            },
             name: 'execute',
             id: commandId
           }
@@ -749,8 +767,10 @@ suite('handleCommand/http', (): void => {
 
         assert.that(cancelledCommands.length).is.equalTo(1);
         assert.that(cancelledCommands[0]).is.atLeast({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: aggregateId }
+          },
           name: 'execute',
           id: commandId,
           client: {
@@ -778,8 +798,10 @@ suite('handleCommand/http', (): void => {
           method: 'post',
           url: `/v2/cancel`,
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'execute',
             id: v4()
           },

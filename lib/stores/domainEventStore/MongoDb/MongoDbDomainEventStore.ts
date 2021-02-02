@@ -84,7 +84,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
     const lastDomainEvent = await this.collections.domainEvents.findOne({
-      'aggregateIdentifier.id': aggregateIdentifier.id
+      'aggregateIdentifier.aggregate.id': aggregateIdentifier.aggregate.id
     }, {
       // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0 },
@@ -278,7 +278,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = this.collections.domainEvents.find({
       $and: [
-        { 'aggregateIdentifier.id': aggregateId },
+        { 'aggregateIdentifier.aggregate.id': aggregateId },
         { 'metadata.revision': { $gte: fromRevision }},
         { 'metadata.revision': { $lte: toRevision }}
       ]
@@ -462,8 +462,8 @@ class MongoDbDomainEventStore implements DomainEventStore {
     const passThrough = new PassThrough({ objectMode: true });
     const replayStream = this.collections.domainEvents.find({
       'metadata.revision': { $eq: 1 },
-      'contextIdentifier.name': { $eq: contextName },
-      'aggregateIdentifier.name': { $eq: aggregateName }
+      'aggregateIdentifier.context.name': { $eq: contextName },
+      'aggregateIdentifier.aggregate.name': { $eq: aggregateName }
     }, {
       // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0, aggregateIdentifier: 1 },
@@ -515,11 +515,11 @@ class MongoDbDomainEventStore implements DomainEventStore {
   public async setup (): Promise<void> {
     await this.collections.domainEvents.createIndexes([
       {
-        key: { 'aggregateIdentifier.id': 1 },
+        key: { 'aggregateIdentifier.aggregate.id': 1 },
         name: `${this.collectionNames.domainEvents}_aggregateId`
       },
       {
-        key: { 'aggregateIdentifier.id': 1, 'metadata.revision': 1 },
+        key: { 'aggregateIdentifier.aggregate.id': 1, 'metadata.revision': 1 },
         name: `${this.collectionNames.domainEvents}_aggregateId_revision`,
         unique: true
       },
@@ -538,7 +538,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     ]);
     await this.collections.snapshots.createIndexes([
       {
-        key: { 'aggregateIdentifier.id': 1 },
+        key: { 'aggregateIdentifier.aggregate.id': 1 },
         name: `${this.collectionNames.snapshots}_aggregateId`,
         unique: true
       }

@@ -3,11 +3,10 @@ import { CustomError } from 'defekt';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
-import { getContextIdentifierSchema } from '../../../../common/schemas/getContextIdentifierSchema';
 import { PerformReplay } from '../../PerformReplay';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
-import { validateContextAndAggregateIdentifier } from '../../../../common/validators/validateContextAndAggregateIdentifier';
+import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
 import { validateFlowNames } from '../../../../common/validators/validateFlowNames';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -32,12 +31,11 @@ const postPerformReplay = {
           items: {
             type: 'object',
             properties: {
-              contextIdentifier: getContextIdentifierSchema(),
               aggregateIdentifier: getAggregateIdentifierSchema(),
               from: { type: 'number', minimum: 1 },
               to: { type: 'number', minimum: 1 }
             },
-            required: [ 'contextIdentifier', 'aggregateIdentifier', 'from', 'to' ]
+            required: [ 'aggregateIdentifier', 'from', 'to' ]
           },
           minItems: 1
         }
@@ -103,8 +101,7 @@ const postPerformReplay = {
         validateFlowNames({ flowNames, application });
 
         for (const aggregate of aggregates) {
-          validateContextAndAggregateIdentifier({
-            contextIdentifier: aggregate.contextIdentifier,
+          validateAggregateIdentifier({
             aggregateIdentifier: aggregate.aggregateIdentifier,
             application
           });

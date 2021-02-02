@@ -96,8 +96,10 @@ suite('executeFlow', (): void => {
 
   test('throws an error if the flow name does not exist.', async (): Promise<void> => {
     const domainEvent = buildDomainEvent({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: v4() }
+      },
       name: 'executed',
       data: {},
       metadata: { revision: 1 }
@@ -128,8 +130,10 @@ suite('executeFlow', (): void => {
 
   test('does nothing if the domain event revision is lower than the latest handled revision.', async (): Promise<void> => {
     const domainEvent = buildDomainEvent({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: v4() }
+      },
       name: 'executed',
       data: {},
       metadata: { revision: 5 }
@@ -165,8 +169,10 @@ suite('executeFlow', (): void => {
 
   test('does nothing if the domain event revision is equal to the latest handled revision.', async (): Promise<void> => {
     const domainEvent = buildDomainEvent({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: v4() }
+      },
       name: 'executed',
       data: {},
       metadata: { revision: 7 }
@@ -202,8 +208,10 @@ suite('executeFlow', (): void => {
 
   test('executes the relevant handlers.', async (): Promise<void> => {
     const domainEvent = buildDomainEvent({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: v4() }
+      },
       name: 'executed',
       data: {},
       metadata: { revision: 7 }
@@ -263,8 +271,10 @@ suite('executeFlow', (): void => {
     aggregatesService = getAggregatesService({ repository });
 
     const domainEvent = buildDomainEvent({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: v4() }
+      },
       name: 'executed',
       data: {},
       metadata: { revision: 7 }
@@ -323,22 +333,28 @@ suite('executeFlow', (): void => {
     const aggregateId = v4();
     const domainEvents = [
       buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'triggeredFlow',
         data: { flowName: 'onDemandFlow' },
         metadata: { revision: 1 }
       }),
       buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'triggeredFlow',
         data: { flowName: 'onDemandFlow' },
         metadata: { revision: 2 }
       }),
       buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'triggeredFlow',
         data: { flowName: 'onDemandFlow' },
         metadata: { revision: 3 }
@@ -397,22 +413,28 @@ suite('executeFlow', (): void => {
     const aggregateId = v4();
     const domainEvents = [
       buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'triggeredFlow',
         data: { flowName: 'alwaysFlow' },
         metadata: { revision: 1 }
       }),
       buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'triggeredFlow',
         data: { flowName: 'alwaysFlow' },
         metadata: { revision: 2 }
       }),
       buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'triggeredFlow',
         data: { flowName: 'alwaysFlow' },
         metadata: { revision: 3 }
@@ -454,8 +476,10 @@ suite('executeFlow', (): void => {
 
   test('notifications in flows are published correctly.', async (): Promise<void> => {
     const domainEvent = buildDomainEvent({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: v4() }
+      },
       name: 'executed',
       data: {},
       metadata: { revision: 7 }

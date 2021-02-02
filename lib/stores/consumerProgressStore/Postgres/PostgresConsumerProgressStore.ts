@@ -100,7 +100,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
             FROM "${this.tableNames.progress}"
             WHERE "consumerId" = $1 AND "aggregateId" = $2;
         `,
-        values: [ hash, aggregateIdentifier.id ]
+        values: [ hash, aggregateIdentifier.aggregate.id ]
       });
 
       if (rows.length === 0) {
@@ -136,7 +136,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
               SET "revision" = $1
               WHERE "consumerId" = $2 AND "aggregateId" = $3 AND "revision" < $4;
           `,
-          values: [ revision, hash, aggregateIdentifier.id, revision ]
+          values: [ revision, hash, aggregateIdentifier.aggregate.id, revision ]
         });
 
         if (rowCount === 1) {
@@ -151,7 +151,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
                 ("consumerId", "aggregateId", "revision")
                 VALUES ($1, $2, $3);
             `,
-            values: [ hash, aggregateIdentifier.id, revision ]
+            values: [ hash, aggregateIdentifier.aggregate.id, revision ]
           });
         } catch (ex: unknown) {
           if ((ex as any).code === '23505' && (ex as any).detail?.startsWith('Key ("consumerId", "aggregateId")')) {
@@ -187,7 +187,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
               SET "isReplayingFrom" = NULL, "isReplayingTo" = NULL
               WHERE "consumerId" = $1 AND "aggregateId" = $2;
           `,
-            values: [ hash, aggregateIdentifier.id ]
+            values: [ hash, aggregateIdentifier.aggregate.id ]
           }));
         } else {
           ({ rowCount } = await connection.query({
@@ -197,7 +197,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
               SET "isReplayingFrom" = $1, "isReplayingTo" = $2
               WHERE "consumerId" = $3 AND "aggregateId" = $4 AND "isReplayingFrom" IS NULL AND "isReplayingTo" IS NULL;
           `,
-            values: [ isReplaying.from, isReplaying.to, hash, aggregateIdentifier.id ]
+            values: [ isReplaying.from, isReplaying.to, hash, aggregateIdentifier.aggregate.id ]
           }));
         }
 
@@ -213,7 +213,7 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
                 ("consumerId", "aggregateId", "revision", "isReplayingFrom", "isReplayingTo")
                 VALUES ($1, $2, 0, $3, $4);
             `,
-            values: [ hash, aggregateIdentifier.id, isReplaying ? isReplaying.from : null, isReplaying ? isReplaying.to : null ]
+            values: [ hash, aggregateIdentifier.aggregate.id, isReplaying ? isReplaying.from : null, isReplaying ? isReplaying.to : null ]
           });
         } catch (ex: unknown) {
           if ((ex as any).code === '23505' && (ex as any).detail?.startsWith('Key ("consumerId", "aggregateId")')) {

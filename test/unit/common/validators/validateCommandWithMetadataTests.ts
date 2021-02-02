@@ -18,8 +18,10 @@ suite('validateCommandWithMetadata', (): void => {
   };
 
   const command = new CommandWithMetadata({
-    contextIdentifier: { name: 'sampleContext' },
-    aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+    aggregateIdentifier: {
+      context: { name: 'sampleContext' },
+      aggregate: { name: 'sampleAggregate', id: v4() }
+    },
     name: 'execute',
     data: {
       strategy: 'succeed'
@@ -51,8 +53,9 @@ suite('validateCommandWithMetadata', (): void => {
       validateCommandWithMetadata({
         command: ({
           ...command,
-          contextIdentifier: {
-            name: 'someContext'
+          aggregateIdentifier: {
+            context: { name: 'someContext' },
+            aggregate: command.aggregateIdentifier
           }
         }) as any,
         application
@@ -70,8 +73,11 @@ suite('validateCommandWithMetadata', (): void => {
         command: ({
           ...command,
           aggregateIdentifier: {
-            name: 'someAggregate',
-            id: v4()
+            context: command.aggregateIdentifier.context,
+            aggregate: {
+              name: 'someAggregate',
+              id: v4()
+            }
           }
         }) as any,
         application
