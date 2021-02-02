@@ -46,6 +46,8 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     throw new errors.FlowNotFound(`Flow '${flowName}' not found.`);
   }
 
+  logger.info(`Executing flow '${flowName}'...`, { domainEvent });
+
   const flowDefinition = application.flows[flowName];
 
   const { revision: latestHandledRevision, isReplaying } = await flowProgressStore.getProgress({
@@ -54,21 +56,28 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
   });
 
   if (latestHandledRevision >= domainEvent.metadata.revision) {
+    logger.info('Domain event was already seen, skipping.');
+
     return 'acknowledge';
   }
 
   if (latestHandledRevision < domainEvent.metadata.revision - 1) {
     switch (flowDefinition.replayPolicy) {
       case 'never': {
+        logger.info(`Domain event is too old. Ignoring due to replay policy 'never'.`);
         break;
       }
       case 'on-demand': {
+        logger.info(`Domain event is too old. Deferring due to replay policy 'on-demand'.`);
+
         return 'defer';
       }
       case 'always': {
         if (!isReplaying) {
           const from = latestHandledRevision + 1,
                 to = domainEvent.metadata.revision - 1;
+
+          logger.info(`Domain event is too old. Requesting replay from ${from} to ${to} and deferring due to replay policy 'always'.`);
 
           await requestReplay({
             flowName,
@@ -96,6 +105,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
       fullyQualifiedName: domainEvent.getFullyQualifiedName(),
       itemIdentifier: domainEvent.getItemIdentifier()
     })) {
+      logger.info(`Executing handler '${flowName}.${handlerName}...'`);
       try {
         await handler.handle(domainEvent, services);
       } catch (ex: unknown) {
@@ -118,6 +128,8 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
       isReplaying: false
     });
   }
+
+  logger.info(`Flow '${flowName}' was successfully executed.`);
 
   return 'acknowledge';
 };
