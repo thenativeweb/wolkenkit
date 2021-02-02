@@ -27,8 +27,10 @@ suite('messages', () => {
       await sandboxWithApplication.
         forFlow({ flowName: 'messages' }).
         when({
-          contextIdentifier: { name: 'communication' },
-          aggregateIdentifier: { name: 'message', id: aggregateId },
+          aggregateIdentifier: {
+            context: { name: 'communication' },
+            aggregate: { name: 'message', id: aggregateId }
+          },
           name: 'sent',
           data: { text },
           metadata: {
@@ -37,8 +39,10 @@ suite('messages', () => {
           }
         }).
         and({
-          contextIdentifier: { name: 'communication' },
-          aggregateIdentifier: { name: 'message', id: aggregateId },
+          aggregateIdentifier: {
+            context: { name: 'communication' },
+            aggregate: { name: 'message', id: aggregateId }
+          },
           name: 'liked',
           data: { likes: 5 },
           metadata: {
