@@ -1,5 +1,9 @@
 export interface AggregateIdentifier {
-  name: string;
-
-  id: string;
+  context: {
+    name: string;
+  };
+  aggregate: {
+    name: string;
+    id: string;
+  };
 }

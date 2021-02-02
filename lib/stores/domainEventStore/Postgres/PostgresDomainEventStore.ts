@@ -104,7 +104,7 @@ class PostgresDomainEventStore implements DomainEventStore {
             ORDER BY "revision" DESC
             LIMIT 1
         `,
-        values: [ aggregateIdentifier.id ]
+        values: [ aggregateIdentifier.aggregate.id ]
       });
 
       if (result.rows.length === 0) {
@@ -376,7 +376,7 @@ class PostgresDomainEventStore implements DomainEventStore {
 
       placeholders.push(`($${base}, $${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`);
       values.push(
-        domainEvent.aggregateIdentifier.id,
+        domainEvent.aggregateIdentifier.aggregate.id,
         domainEvent.metadata.revision,
         domainEvent.metadata.causationId,
         domainEvent.metadata.correlationId,
@@ -426,7 +426,7 @@ class PostgresDomainEventStore implements DomainEventStore {
             ORDER BY "revision" DESC
             LIMIT 1
         `,
-        values: [ aggregateIdentifier.id ]
+        values: [ aggregateIdentifier.aggregate.id ]
       });
 
       if (result.rows.length === 0) {
@@ -458,7 +458,7 @@ class PostgresDomainEventStore implements DomainEventStore {
         ON CONFLICT DO NOTHING;
         `,
         values: [
-          snapshot.aggregateIdentifier.id,
+          snapshot.aggregateIdentifier.aggregate.id,
           snapshot.revision,
           omitDeepBy(snapshot.state, (value): boolean => value === undefined)
         ]
@@ -541,8 +541,8 @@ class PostgresDomainEventStore implements DomainEventStore {
 
     onData = function (data: any): void {
       if (
-        data.domainEvent.contextIdentifier.name !== contextName ||
-          data.domainEvent.aggregateIdentifier.name !== aggregateName
+        data.domainEvent.aggregateIdentifier.context.name !== contextName ||
+          data.domainEvent.aggregateIdentifier.aggregate.name !== aggregateName
       ) {
         return;
       }

@@ -19,7 +19,7 @@ const keepRenewingLock = async function ({ command, handleCommandPromise, priori
     }
 
     await priorityQueue.store.renewLock({
-      discriminator: command.aggregateIdentifier.id,
+      discriminator: command.aggregateIdentifier.aggregate.id,
       token
     });
   }

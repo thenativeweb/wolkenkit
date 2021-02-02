@@ -32,14 +32,16 @@ suite('writeDomainEventStore/http/Client', (): void => {
     suite('storeDomainEvents', (): void => {
       test('stores the given domain events.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const firstDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -49,9 +51,6 @@ suite('writeDomainEventStore/http/Client', (): void => {
           }
         });
         const secondDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -75,7 +74,7 @@ suite('writeDomainEventStore/http/Client', (): void => {
           ]
         });
 
-        const domainEventReplay = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
+        const domainEventReplay = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.aggregate.id });
 
         await new Promise<void>((resolve): void => {
           domainEventReplay.pipe(asJsonStream(
@@ -113,8 +112,13 @@ suite('writeDomainEventStore/http/Client', (): void => {
     suite('storeSnapshot', (): void => {
       test('stores the given snapshot.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const snapshot: Snapshot<object> = {
@@ -137,8 +141,13 @@ suite('writeDomainEventStore/http/Client', (): void => {
 
       test('overwrites the previous snapshot if one existed.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const firstSnapshot: Snapshot<object> = {

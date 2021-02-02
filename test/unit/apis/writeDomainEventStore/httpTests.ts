@@ -30,14 +30,16 @@ suite('writeDomainEventStore/http', (): void => {
     suite('POST /store-domain-events', (): void => {
       test('stores the given domain events.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const firstDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -47,9 +49,6 @@ suite('writeDomainEventStore/http', (): void => {
           }
         });
         const secondDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -70,7 +69,7 @@ suite('writeDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(200);
         assert.that(data).is.equalTo({});
 
-        const domainEventReplay = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
+        const domainEventReplay = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.aggregate.id });
 
         await new Promise<void>((resolve): void => {
           domainEventReplay.pipe(asJsonStream(
@@ -119,7 +118,7 @@ suite('writeDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'Missing required property: contextIdentifier (at requestBody.0.contextIdentifier).'
+          message: 'Missing required property: aggregateIdentifier (at requestBody.0.aggregateIdentifier).'
         });
       });
 
@@ -160,8 +159,13 @@ suite('writeDomainEventStore/http', (): void => {
     suite('POST /store-snapshot', (): void => {
       test('stores the given snapshot.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const snapshot: Snapshot<object> = {
@@ -184,8 +188,13 @@ suite('writeDomainEventStore/http', (): void => {
 
       test('overwrites the previous snapshot if one existed.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const firstSnapshot: Snapshot<object> = {

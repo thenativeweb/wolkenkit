@@ -284,8 +284,10 @@ suite('flow process', function (): void {
     test('for a domain received via the domain event dispatcher.', async (): Promise<void> => {
       const aggregateId = v4();
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'triggeredFlow',
         data: { flowName: 'neverFlow' },
         metadata: { revision: 1 }
@@ -300,8 +302,10 @@ suite('flow process', function (): void {
 
       assert.that(lock).is.not.undefined();
       assert.that(lock.item).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executeFromFlow',
         data: { fromFlow: 'neverFlow' }
       });
@@ -311,22 +315,28 @@ suite('flow process', function (): void {
       const aggregateId = v4();
       const domainEvents = [
         buildDomainEvent({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: aggregateId }
+          },
           name: 'triggeredFlow',
           data: { flowName: 'alwaysFlow' },
           metadata: { revision: 1 }
         }),
         buildDomainEvent({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: aggregateId }
+          },
           name: 'triggeredFlow',
           data: { flowName: 'alwaysFlow' },
           metadata: { revision: 2 }
         }),
         buildDomainEvent({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: aggregateId }
+          },
           name: 'triggeredFlow',
           data: { flowName: 'alwaysFlow' },
           metadata: { revision: 3 }
@@ -342,8 +352,10 @@ suite('flow process', function (): void {
 
       assert.that(lock).is.not.undefined();
       assert.that(lock.item).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executeFromFlow',
         data: { basedOnRevision: 1, fromFlow: 'alwaysFlow' }
       });
@@ -354,8 +366,10 @@ suite('flow process', function (): void {
 
       assert.that(lock).is.not.undefined();
       assert.that(lock.item).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executeFromFlow',
         data: { basedOnRevision: 2, fromFlow: 'alwaysFlow' }
       });
@@ -366,8 +380,10 @@ suite('flow process', function (): void {
 
       assert.that(lock).is.not.undefined();
       assert.that(lock.item).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executeFromFlow',
         data: { basedOnRevision: 3, fromFlow: 'alwaysFlow' }
       });
@@ -378,8 +394,10 @@ suite('flow process', function (): void {
     test('publishes notifications.', async (): Promise<void> => {
       const aggregateId = v4();
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executed',
         data: { strategy: 'succeed' },
         metadata: { revision: 1 }

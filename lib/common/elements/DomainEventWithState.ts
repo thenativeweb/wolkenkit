@@ -1,5 +1,4 @@
 import { AggregateIdentifier } from './AggregateIdentifier';
-import { ContextIdentifier } from './ContextIdentifier';
 import { DomainEvent } from './DomainEvent';
 import { DomainEventData } from './DomainEventData';
 import { DomainEventMetadata } from './DomainEventMetadata';
@@ -11,7 +10,6 @@ class DomainEventWithState<TDomainEventData extends DomainEventData, TState> ext
   };
 
   public constructor ({
-    contextIdentifier,
     aggregateIdentifier,
     name,
     data,
@@ -19,7 +17,6 @@ class DomainEventWithState<TDomainEventData extends DomainEventData, TState> ext
     metadata,
     state
   }: {
-    contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
     name: string;
     data: TDomainEventData;
@@ -31,7 +28,6 @@ class DomainEventWithState<TDomainEventData extends DomainEventData, TState> ext
     };
   }) {
     super({
-      contextIdentifier,
       aggregateIdentifier,
       name,
       data,

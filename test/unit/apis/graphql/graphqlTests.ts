@@ -205,8 +205,10 @@ suite('graphql', function (): void {
 
       assert.that(receivedCommands.length).is.equalTo(1);
       assert.that(receivedCommands[0]).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateIdentifier.id },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateIdentifier.id }
+        },
         name: 'execute',
         id: response.data.command.sampleContext_sampleAggregate_execute.id,
         data: { strategy: 'succeed' }
@@ -240,8 +242,10 @@ suite('graphql', function (): void {
       assert.that(response.data.command.sampleContext_sampleAggregate_execute.aggregateIdentifier.id).is.not.undefined();
       assert.that(receivedCommands.length).is.equalTo(1);
       assert.that(receivedCommands[0]).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate' },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate' }
+        },
         name: 'execute',
         id: response.data.command.sampleContext_sampleAggregate_execute.id,
         data: { strategy: 'succeed' }
@@ -269,12 +273,14 @@ suite('graphql', function (): void {
 
     test('calls onCancelCommand for requests to cancel commands.', async (): Promise<void> => {
       const commandIdentifier = {
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         id: v4()
@@ -356,12 +362,14 @@ suite('graphql', function (): void {
       });
 
       const commandIdentifier = {
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         id: v4()
@@ -409,12 +417,14 @@ suite('graphql', function (): void {
       const aggregateId = v4();
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'succeeded',
           data: {},
@@ -432,12 +442,14 @@ suite('graphql', function (): void {
       const query = gql`
         subscription {
           domainEvents {
-            contextIdentifier {
-              name
-            }
             aggregateIdentifier {
-              name
-              id
+              context {
+                name
+              }
+              aggregate {
+                name
+                id
+              }
             }
             name
             id
@@ -455,7 +467,6 @@ suite('graphql', function (): void {
           assert.that(message).is.atLeast({
             data: {
               domainEvents: {
-                contextIdentifier: domainEvent.contextIdentifier,
                 aggregateIdentifier: domainEvent.aggregateIdentifier,
                 name: domainEvent.name,
                 id: domainEvent.id,
@@ -483,12 +494,14 @@ suite('graphql', function (): void {
       const aggregateId = v4();
       const domainEvent1 = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'authenticated',
           data: {},
@@ -504,12 +517,14 @@ suite('graphql', function (): void {
       });
       const domainEvent2 = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'succeeded',
           data: {},
@@ -527,12 +542,14 @@ suite('graphql', function (): void {
       const query = gql`
         subscription {
           domainEvents {
-            contextIdentifier {
-              name
-            }
             aggregateIdentifier {
-              name
-              id
+              context {
+                name
+              }
+              aggregate {
+                name
+                id
+              }
             }
             name
             id
@@ -571,12 +588,14 @@ suite('graphql', function (): void {
       const aggregateId = v4();
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'authenticated',
           data: {},
@@ -618,12 +637,14 @@ suite('graphql', function (): void {
       const query = gql`
         subscription {
           domainEvents {
-            contextIdentifier {
-              name
-            }
             aggregateIdentifier {
-              name
-              id
+              context {
+                name
+              }
+              aggregate {
+                name
+                id
+              }
             }
             name
             id
@@ -668,12 +689,14 @@ suite('graphql', function (): void {
       const aggregateId = v4();
       const domainEvent1 = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'authenticateFailed',
           data: { reason: 'some reason' },
@@ -689,12 +712,14 @@ suite('graphql', function (): void {
       });
       const domainEvent2 = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'authenticateRejected',
           data: { reason: 'some reason' },
@@ -712,12 +737,14 @@ suite('graphql', function (): void {
       const query = gql`
         subscription {
           domainEvents {
-            contextIdentifier {
-              name
-            }
             aggregateIdentifier {
-              name
-              id
+              context {
+                name
+              }
+              aggregate {
+                name
+                id
+              }
             }
             name
             id
@@ -770,12 +797,14 @@ suite('graphql', function (): void {
       const aggregateId = v4();
       const domainEvent1 = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'authenticateFailed',
           data: { reason: 'some reason' },
@@ -791,12 +820,14 @@ suite('graphql', function (): void {
       });
       const domainEvent2 = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'authenticateRejected',
           data: { reason: 'some reason' },
@@ -814,12 +845,14 @@ suite('graphql', function (): void {
       const query = gql`
         subscription {
           domainEvents {
-            contextIdentifier {
-              name
-            }
             aggregateIdentifier {
-              name
-              id
+              context {
+                name
+              }
+              aggregate {
+                name
+                id
+              }
             }
             name
             id
@@ -1111,14 +1144,18 @@ suite('graphql', function (): void {
     test('returns the result items returned by the query.', async (): Promise<void> => {
       const viewItems = [
         {
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'executed',
           id: v4()
         },
         {
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'executed',
           id: v4()
         }
@@ -1130,8 +1167,10 @@ suite('graphql', function (): void {
         query {
           sampleView {
             all {
-              contextIdentifier {
-                name
+              aggregateIdentifier {
+                context {
+                  name
+                }
               }
               id
             }
@@ -1145,11 +1184,11 @@ suite('graphql', function (): void {
         sampleView: {
           all: [
             {
-              contextIdentifier: { name: 'sampleContext' },
+              aggregateIdentifier: { context: { name: 'sampleContext' }},
               id: viewItems[0].id
             },
             {
-              contextIdentifier: { name: 'sampleContext' },
+              aggregateIdentifier: { context: { name: 'sampleContext' }},
               id: viewItems[1].id
             }
           ]

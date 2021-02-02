@@ -1,19 +1,16 @@
 import { AggregateIdentifier } from '../../elements/AggregateIdentifier';
-import { ContextIdentifier } from '../../elements/ContextIdentifier';
 import { DomainEvent } from '../../elements/DomainEvent';
 import { DomainEventData } from '../../elements/DomainEventData';
 import { Initiator } from '../../elements/Initiator';
 import { v4 } from 'uuid';
 
 const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
-  contextIdentifier,
   aggregateIdentifier,
   name,
   data,
   id,
   metadata
 }: {
-  contextIdentifier: ContextIdentifier;
   aggregateIdentifier: AggregateIdentifier;
   name: string;
   data: TDomainEventData;
@@ -28,7 +25,6 @@ const buildDomainEvent = function <TDomainEventData extends DomainEventData> ({
   };
 }): DomainEvent<TDomainEventData> {
   return new DomainEvent({
-    contextIdentifier,
     aggregateIdentifier,
     name,
     data,

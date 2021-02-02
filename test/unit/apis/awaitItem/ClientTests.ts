@@ -67,12 +67,14 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -142,12 +144,14 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -155,7 +159,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -164,7 +168,7 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.renewLock({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ItemNotLocked.code
@@ -181,12 +185,14 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -194,7 +200,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -205,11 +211,11 @@ suite('awaitItem/http/Client', (): void => {
         await client.awaitItem();
 
         await assert.that(async (): Promise<any> => client.renewLock({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.TokenMismatch.code &&
-            ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
+            ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.aggregate.id}'.`
         );
       });
 
@@ -223,12 +229,14 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -236,7 +244,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -248,7 +256,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await sleep({ ms: 0.6 * expirationTime });
 
-        await client.renewLock({ discriminator: item.aggregateIdentifier.id, token });
+        await client.renewLock({ discriminator: item.aggregateIdentifier.aggregate.id, token });
 
         await sleep({ ms: 0.6 * expirationTime });
 
@@ -306,12 +314,14 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -319,7 +329,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -328,7 +338,7 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.acknowledge({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ItemNotLocked.code
@@ -345,12 +355,14 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -358,7 +370,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -369,11 +381,11 @@ suite('awaitItem/http/Client', (): void => {
         await client.awaitItem();
 
         await assert.that(async (): Promise<any> => client.acknowledge({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.TokenMismatch.code &&
-            ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
+            ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.aggregate.id}'.`
         );
       });
 
@@ -388,23 +400,27 @@ suite('awaitItem/http/Client', (): void => {
 
         const aggregateId = v4();
         const commandOne = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'execute',
           data: {}
         });
         const commandTwo = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'execute',
           data: {}
@@ -412,12 +428,12 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandOne,
-          discriminator: commandOne.aggregateIdentifier.id,
+          discriminator: commandOne.aggregateIdentifier.aggregate.id,
           priority: commandOne.metadata.timestamp
         });
         await priorityQueueStore.enqueue({
           item: commandTwo,
-          discriminator: commandTwo.aggregateIdentifier.id,
+          discriminator: commandTwo.aggregateIdentifier.aggregate.id,
           priority: commandTwo.metadata.timestamp
         });
 
@@ -426,7 +442,7 @@ suite('awaitItem/http/Client', (): void => {
         const commandWithMetadata = new CommandWithMetadata(item);
 
         await client.acknowledge({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token
         });
 
@@ -484,12 +500,14 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -497,7 +515,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -506,7 +524,7 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.defer({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token: v4(),
           priority: Date.now()
         })).is.throwingAsync(
@@ -524,12 +542,14 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -537,7 +557,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -548,12 +568,12 @@ suite('awaitItem/http/Client', (): void => {
         await client.awaitItem();
 
         await assert.that(async (): Promise<any> => client.defer({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token: v4(),
           priority: Date.now()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.TokenMismatch.code &&
-                ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
+                ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.aggregate.id}'.`
         );
       });
 
@@ -568,23 +588,27 @@ suite('awaitItem/http/Client', (): void => {
 
         const aggregateId = v4();
         const commandOne = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'execute',
           data: {}
         });
         const commandTwo = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'execute',
           data: {}
@@ -592,12 +616,12 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandOne,
-          discriminator: commandOne.aggregateIdentifier.id,
+          discriminator: commandOne.aggregateIdentifier.aggregate.id,
           priority: commandOne.metadata.timestamp
         });
         await priorityQueueStore.enqueue({
           item: commandTwo,
-          discriminator: commandTwo.aggregateIdentifier.id,
+          discriminator: commandTwo.aggregateIdentifier.aggregate.id,
           priority: commandTwo.metadata.timestamp
         });
 
@@ -606,7 +630,7 @@ suite('awaitItem/http/Client', (): void => {
         const commandWithMetadata = new CommandWithMetadata(item);
 
         await client.defer({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token,
           priority: Date.now()
         });
@@ -616,7 +640,7 @@ suite('awaitItem/http/Client', (): void => {
         const nextCommandWithMetadata = new CommandWithMetadata(nextItem);
 
         await client.acknowledge({
-          discriminator: nextCommandWithMetadata.aggregateIdentifier.id,
+          discriminator: nextCommandWithMetadata.aggregateIdentifier.aggregate.id,
           token: nextToken
         });
 

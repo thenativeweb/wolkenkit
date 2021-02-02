@@ -83,13 +83,13 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const onReceiveCommand: OnReceiveCommand = async function ({ command }): Promise<void> {
       await priorityQueueStoreForCommands.enqueue({
         item: command,
-        discriminator: command.aggregateIdentifier.id,
+        discriminator: command.aggregateIdentifier.aggregate.id,
         priority: command.metadata.timestamp
       });
     };
     const onCancelCommand: OnCancelCommand = async function ({ commandIdentifierWithClient }): Promise<void> {
       await priorityQueueStoreForCommands.remove({
-        discriminator: commandIdentifierWithClient.aggregateIdentifier.id,
+        discriminator: commandIdentifierWithClient.aggregateIdentifier.aggregate.id,
         itemIdentifier: commandIdentifierWithClient
       });
     };
@@ -97,7 +97,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const issueCommand = async function ({ command }: { command: CommandWithMetadata<CommandData> }): Promise<void> {
       await priorityQueueStoreForCommands.enqueue({
         item: command,
-        discriminator: command.aggregateIdentifier.id,
+        discriminator: command.aggregateIdentifier.aggregate.id,
         priority: command.metadata.timestamp
       });
     };
@@ -180,7 +180,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       to: number;
     }): Promise<void> {
       const domainEventStream = await domainEventStore.getReplayForAggregate({
-        aggregateId: aggregateIdentifier.id,
+        aggregateId: aggregateIdentifier.aggregate.id,
         fromRevision: from,
         toRevision: to
       });

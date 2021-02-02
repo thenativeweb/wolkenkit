@@ -63,7 +63,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
     const hash = getHash({ value: consumerId });
 
     request.input('consumerId', Types.NChar, hash);
-    request.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+    request.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
 
     const { recordset } = await request.query(`
       SELECT [revision], [isReplayingFrom], [isReplayingTo]
@@ -100,7 +100,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
 
       requestUpdate.input('revision', Types.Int, revision);
       requestUpdate.input('consumerId', Types.NChar, hash);
-      requestUpdate.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+      requestUpdate.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
 
       const { rowsAffected } = await requestUpdate.query(`
         UPDATE [${this.tableNames.progress}]
@@ -118,7 +118,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
         const requestInsert = transaction.request();
 
         requestInsert.input('consumerId', Types.NChar, hash);
-        requestInsert.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+        requestInsert.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
         requestInsert.input('revision', Types.Int, revision);
 
         await requestInsert.query(`
@@ -161,7 +161,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
       const requestUpdate = transaction.request();
 
       requestUpdate.input('consumerId', Types.NChar, hash);
-      requestUpdate.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+      requestUpdate.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
       requestUpdate.input('isReplayingFrom', Types.Int, isReplaying ? isReplaying.from : null);
       requestUpdate.input('isReplayingTo', Types.Int, isReplaying ? isReplaying.to : null);
 
@@ -197,7 +197,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
         const requestInsert = transaction.request();
 
         requestInsert.input('consumerId', Types.NChar, hash);
-        requestInsert.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+        requestInsert.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
         requestInsert.input('isReplayingFrom', Types.Int, isReplaying ? isReplaying.from : null);
         requestInsert.input('isReplayingTo', Types.Int, isReplaying ? isReplaying.to : null);
 

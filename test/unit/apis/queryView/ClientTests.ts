@@ -144,14 +144,18 @@ suite('queryView/http/Client', (): void => {
       test('streams the result items.', async (): Promise<void> => {
         const domainEvents = [
           {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             id: v4()
           },
           {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'not-executed',
             id: v4()
           }
@@ -182,8 +186,10 @@ suite('queryView/http/Client', (): void => {
       test('streams the result items and omits items that do not match the item schema.', async (): Promise<void> => {
         const domainEvents = [
           {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             id: v4()
           },
@@ -217,14 +223,18 @@ suite('queryView/http/Client', (): void => {
       test('streams the result items and omits unauthorized items.', async (): Promise<void> => {
         const domainEvents = [
           {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             id: v4()
           },
           {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'not-executed',
             id: v4()
           }
@@ -255,14 +265,18 @@ suite('queryView/http/Client', (): void => {
       test('streams the result items and respects the given options.', async (): Promise<void> => {
         const domainEvents = [
           {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             id: v4()
           },
           {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'not-executed',
             id: v4()
           }
@@ -376,8 +390,10 @@ suite('queryView/http/Client', (): void => {
       test('returns the result item.', async (): Promise<void> => {
         const domainEvents = [
           {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             id: v4()
           }
@@ -469,14 +485,18 @@ suite('queryView/http/Client', (): void => {
       test('returns the result item and respects the given options.', async (): Promise<void> => {
         const domainEvents = [
           {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             id: v4()
           },
           {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'not-executed',
             id: v4()
           }

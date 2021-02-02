@@ -19,7 +19,7 @@ const keepRenewingLock = async function ({ command, handleCommandPromise, comman
     }
 
     await commandDispatcher.client.renewLock({
-      discriminator: command.aggregateIdentifier.id,
+      discriminator: command.aggregateIdentifier.aggregate.id,
       token
     });
   }

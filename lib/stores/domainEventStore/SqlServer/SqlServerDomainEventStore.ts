@@ -3,13 +3,13 @@ import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
-import { PassThrough, Readable, Transform, TransformCallback } from 'stream';
 import { Snapshot } from '../Snapshot';
 import { SqlServerDomainEventStoreOptions } from './SqlServerDomainEventStoreOptions';
 import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
 import { ToDomainEventStream } from '../../utils/sqlServer/ToDomainEventStream';
 import { ConnectionPool, RequestError, Table, TYPES as Types } from 'mssql';
+import { Readable, Transform, TransformCallback } from 'stream';
 
 class SqlServerDomainEventStore implements DomainEventStore {
   protected pool: ConnectionPool;
@@ -64,7 +64,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
     const request = this.pool.request();
 
-    request.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+    request.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
 
     const { recordset } = await request.query(`
       SELECT TOP(1) [domainEvent]
@@ -221,7 +221,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
 
     for (const domainEvent of domainEvents.values()) {
       table.rows.add(
-        domainEvent.aggregateIdentifier.id,
+        domainEvent.aggregateIdentifier.aggregate.id,
         domainEvent.metadata.revision,
         domainEvent.metadata.causationId,
         domainEvent.metadata.correlationId,
@@ -253,7 +253,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
   }): Promise<Snapshot<TState> | undefined> {
     const request = this.pool.request();
 
-    request.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+    request.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
 
     const { recordset } = await request.query(`
       SELECT TOP(1) [state], [revision]
@@ -280,7 +280,7 @@ class SqlServerDomainEventStore implements DomainEventStore {
   }): Promise<void> {
     const request = this.pool.request();
 
-    request.input('aggregateId', Types.UniqueIdentifier, snapshot.aggregateIdentifier.id);
+    request.input('aggregateId', Types.UniqueIdentifier, snapshot.aggregateIdentifier.aggregate.id);
     request.input('revision', Types.Int, snapshot.revision);
     request.input('state', Types.NVarChar, JSON.stringify(snapshot.state));
 
@@ -327,8 +327,8 @@ class SqlServerDomainEventStore implements DomainEventStore {
       objectMode: true,
       transform (chunk: any, encoding: string, callback: TransformCallback): void {
         if (
-          chunk.contextIdentifier.name !== contextName ||
-            chunk.aggregateIdentifier.name !== aggregateName
+          chunk.aggregateIdentifier.context.name !== contextName ||
+            chunk.aggregateIdentifier.aggregate.name !== aggregateName
         ) {
           callback(null);
 

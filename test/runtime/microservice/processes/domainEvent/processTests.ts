@@ -178,8 +178,10 @@ suite('domain event process', function (): void {
   suite('getDomainEvents', (): void => {
     test('does not stream invalid domain events.', async (): Promise<void> => {
       const domainEventWithoutState = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: v4() }
+        },
         name: 'nonExistent',
         data: {},
         metadata: {
@@ -220,8 +222,10 @@ suite('domain event process', function (): void {
     test('streams domain events from the publisher.', async (): Promise<void> => {
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {

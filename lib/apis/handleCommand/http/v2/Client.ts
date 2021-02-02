@@ -1,6 +1,5 @@
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandDescription } from '../../../../common/application/CommandDescription';
-import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
@@ -29,18 +28,22 @@ class Client extends HttpClient {
 
   public async postCommand ({ command }: {
     command: {
-      contextIdentifier: ContextIdentifier;
       aggregateIdentifier: {
-        name: string;
-        id?: string;
+        context: {
+          name: string;
+        };
+        aggregate: {
+          name: string;
+          id?: string;
+        };
       };
       name: string;
       data: CommandData;
     };
   }): Promise<{ id: string; aggregateIdentifier: { id: string }}> {
-    const url = command.aggregateIdentifier.id ?
-      `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.aggregateIdentifier.id}/${command.name}` :
-      `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.name}`;
+    const url = command.aggregateIdentifier.aggregate.id ?
+      `${this.url}/${command.aggregateIdentifier.context.name}/${command.aggregateIdentifier.aggregate.name}/${command.aggregateIdentifier.aggregate.id}/${command.name}` :
+      `${this.url}/${command.aggregateIdentifier.context.name}/${command.aggregateIdentifier.aggregate.name}/${command.name}`;
 
     const { status, data } = await this.axios({
       method: 'post',
@@ -52,7 +55,7 @@ class Client extends HttpClient {
       return {
         id: data.id,
         aggregateIdentifier: {
-          id: data.aggregateIdentifier.id
+          id: data.aggregateIdentifier.aggregate.id
         }
       };
     }

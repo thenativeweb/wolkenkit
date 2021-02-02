@@ -6,7 +6,6 @@ import { CommandData } from '../../../../common/elements/CommandData';
 import { Client as CommandDispatcherClient } from '../../../../apis/handleCommandWithMetadata/http/v2/Client';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { configurationDefinition } from './configurationDefinition';
-import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { createConsumerProgressStore } from '../../../../stores/consumerProgressStore/createConsumerProgressStore';
 import { createLockStore } from '../../../../stores/lockStore/createLockStore';
 import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
@@ -94,9 +93,8 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       await commandDispatcherClient.postCommand({ command });
     };
 
-    const requestReplay = async function ({ flowName, contextIdentifier, aggregateIdentifier, from, to }: {
+    const requestReplay = async function ({ flowName, aggregateIdentifier, from, to }: {
       flowName: string;
-      contextIdentifier: ContextIdentifier;
       aggregateIdentifier: AggregateIdentifier;
       from: number;
       to: number;
@@ -104,7 +102,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       await replayClient.performReplay({
         flowNames: [ flowName ],
         aggregates: [
-          { contextIdentifier, aggregateIdentifier, from, to }
+          { aggregateIdentifier, from, to }
         ]
       });
     };

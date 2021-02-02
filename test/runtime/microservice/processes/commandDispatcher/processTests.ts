@@ -89,12 +89,14 @@ suite('command dispatcher process', function (): void {
   suite('awaitCommand', (): void => {
     test('delivers a command that is sent to /handle-command/v2.', async (): Promise<void> => {
       const command = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {

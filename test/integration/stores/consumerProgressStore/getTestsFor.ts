@@ -20,7 +20,10 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
     consumerProgressStore = await createConsumerProgressStore({ suffix });
     await consumerProgressStore.setup();
 
-    aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
+    aggregateIdentifier = {
+      context: { name: 'sampleContext' },
+      aggregate: { name: 'sampleAggregate', id: v4() }
+    };
     consumerId = v4();
   });
 
@@ -43,7 +46,10 @@ const getTestsFor = function ({ createConsumerProgressStore }: {
     test('returns revision 0 and is replaying false for unknown aggregates.', async (): Promise<void> => {
       await consumerProgressStore.setProgress({
         consumerId,
-        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+        aggregateIdentifier: {
+          context: aggregateIdentifier.context,
+          aggregate: { name: 'sampleAggregate', id: v4() }
+        },
         revision: 1
       });
 

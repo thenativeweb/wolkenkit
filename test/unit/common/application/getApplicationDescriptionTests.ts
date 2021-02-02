@@ -182,34 +182,41 @@ suite('getApplicationDescription', (): void => {
             itemSchema: {
               type: 'object',
               properties: {
-                contextIdentifier: {
-                  type: 'object',
-                  properties: {
-                    name: {
-                      type: 'string',
-                      minLength: 1
-                    }
-                  },
-                  required: [
-                    'name'
-                  ],
-                  additionalProperties: false
-                },
                 aggregateIdentifier: {
                   type: 'object',
                   properties: {
-                    name: {
-                      type: 'string',
-                      minLength: 1
+                    context: {
+                      type: 'object',
+                      properties: {
+                        name: {
+                          type: 'string',
+                          minLength: 1
+                        }
+                      },
+                      required: [
+                        'name'
+                      ],
+                      additionalProperties: false
                     },
-                    id: {
-                      type: 'string'
+                    aggregate: {
+                      type: 'object',
+                      properties: {
+                        name: {
+                          type: 'string',
+                          minLength: 1
+                        },
+                        id: {
+                          type: 'string'
+                        }
+                      },
+                      required: [
+                        'name',
+                        'id'
+                      ],
+                      additionalProperties: false
                     }
                   },
-                  required: [
-                    'name',
-                    'id'
-                  ],
+                  required: [ 'context', 'aggregate' ],
                   additionalProperties: false
                 },
                 name: {
@@ -221,7 +228,6 @@ suite('getApplicationDescription', (): void => {
                 }
               },
               required: [
-                'contextIdentifier',
                 'aggregateIdentifier',
                 'name',
                 'id'

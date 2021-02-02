@@ -94,7 +94,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
             FROM \`${this.tableNames.progress}\`
             WHERE consumerId = ? AND aggregateId = UuidToBin(?);
         `,
-        parameters: [ hash, aggregateIdentifier.id ]
+        parameters: [ hash, aggregateIdentifier.aggregate.id ]
       });
 
       if (rows.length === 0) {
@@ -130,7 +130,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
               SET revision = ?
               WHERE consumerId = ? AND aggregateId = UuidToBin(?) AND revision < ?;
           `,
-          parameters: [ revision, hash, aggregateIdentifier.id, revision ]
+          parameters: [ revision, hash, aggregateIdentifier.aggregate.id, revision ]
         });
 
         if (rows.affectedRows === 1) {
@@ -145,7 +145,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
                 (consumerId, aggregateId, revision)
                 VALUES (?, UuidToBin(?), ?);
             `,
-            parameters: [ hash, aggregateIdentifier.id, revision ]
+            parameters: [ hash, aggregateIdentifier.aggregate.id, revision ]
           });
         } catch (ex: unknown) {
           if ((ex as MysqlError).code === 'ER_DUP_ENTRY' && (ex as MysqlError).sqlMessage?.endsWith('for key \'PRIMARY\'')) {
@@ -181,7 +181,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
               SET isReplayingFrom = NULL, isReplayingTo = NULL
               WHERE consumerId = ? AND aggregateId = UuidToBin(?);
           `,
-            parameters: [ hash, aggregateIdentifier.id ]
+            parameters: [ hash, aggregateIdentifier.aggregate.id ]
           });
         } else {
           [ rows ] = await runQuery({
@@ -191,7 +191,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
               SET isReplayingFrom = ?, isReplayingTo = ?
               WHERE consumerId = ? AND aggregateId = UuidToBin(?) AND isReplayingFrom IS NULL AND isReplayingTo IS NULL;
           `,
-            parameters: [ isReplaying.from, isReplaying.to, hash, aggregateIdentifier.id ]
+            parameters: [ isReplaying.from, isReplaying.to, hash, aggregateIdentifier.aggregate.id ]
           });
         }
 
@@ -207,7 +207,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
                 (consumerId, aggregateId, revision, isReplayingFrom, isReplayingTo)
                 VALUES (?, UuidToBin(?), 0, ?, ?);
             `,
-            parameters: [ hash, aggregateIdentifier.id, isReplaying ? isReplaying.from : null, isReplaying ? isReplaying.to : null ]
+            parameters: [ hash, aggregateIdentifier.aggregate.id, isReplaying ? isReplaying.from : null, isReplaying ? isReplaying.to : null ]
           });
         } catch (ex: unknown) {
           if ((ex as MysqlError).code === 'ER_DUP_ENTRY' && (ex as MysqlError).sqlMessage?.endsWith('for key \'PRIMARY\'')) {

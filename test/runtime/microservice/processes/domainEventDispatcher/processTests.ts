@@ -96,12 +96,14 @@ suite('domain event dispatcher process', function (): void {
   suite('awaitDomainEvent', (): void => {
     test('delivers a domain event that is sent using the handle route.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'executed',
         data: { strategy: 'succeed' },

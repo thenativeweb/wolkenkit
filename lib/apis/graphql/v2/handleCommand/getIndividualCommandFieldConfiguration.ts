@@ -7,7 +7,6 @@ import { cloneDeep } from 'lodash';
 import { Command } from '../../../../common/elements/Command';
 import { CommandHandler } from '../../../../common/elements/CommandHandler';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
-import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
@@ -43,7 +42,7 @@ const getIndividualCommandFieldConfiguration = function ({
   commandName: string;
   commandHandler: CommandHandler<any, any, any>;
   onReceiveCommand: OnReceiveCommand;
-}): GraphQLFieldConfig<{ contextIdentifier: ContextIdentifier; aggregateIdentifier: AggregateIdentifier }, ResolverContext> {
+}): GraphQLFieldConfig<{ aggregateIdentifier: AggregateIdentifier }, ResolverContext> {
   const resolverArguments: Record<string, GraphQLArgumentConfig> = {
     aggregateIdentifier: {
       type: AggregateIdentifierInputType
@@ -93,8 +92,10 @@ const getIndividualCommandFieldConfiguration = function ({
       const aggregateId = aggregateIdentifier?.id ?? v4();
 
       const command = new Command({
-        contextIdentifier: { name: contextName },
-        aggregateIdentifier: { name: aggregateName, id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: contextName },
+          aggregate: { name: aggregateName, id: aggregateId }
+        },
         name: commandName,
         data: data === undefined ? {} : cloneDeep(data)
       });
@@ -126,7 +127,7 @@ const getIndividualCommandFieldConfiguration = function ({
       return {
         id: commandId,
         aggregateIdentifier: {
-          id: commandWithMetadata.aggregateIdentifier.id
+          id: commandWithMetadata.aggregateIdentifier.aggregate.id
         }
       };
     }

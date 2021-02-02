@@ -4,7 +4,6 @@ import { Application } from '../../../../common/application/Application';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { ConsumerProgressStore } from '../../../../stores/consumerProgressStore/ConsumerProgressStore';
-import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { DomainEventDispatcher } from './DomainEventDispatcher';
 import { errors } from '../../../../common/errors';
 import { executeFlow } from '../../../../common/domain/executeFlow';
@@ -40,7 +39,6 @@ const processDomainEvent = async function ({
   issueCommand: (parameters: { command: CommandWithMetadata<CommandData> }) => void | Promise<void>;
   requestReplay: (parameters: {
     flowName: string;
-    contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
     from: number;
     to: number;

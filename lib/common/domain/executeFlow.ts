@@ -4,7 +4,6 @@ import { Application } from '../application/Application';
 import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { CommandService } from '../services/CommandService';
 import { ConsumerProgressStore } from '../../stores/consumerProgressStore/ConsumerProgressStore';
-import { ContextIdentifier } from '../elements/ContextIdentifier';
 import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
 import { errors } from '../errors';
@@ -38,7 +37,6 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
   };
   requestReplay: (parameters: {
     flowName: string;
-    contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
     from: number;
     to: number;
@@ -74,7 +72,6 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
 
           await requestReplay({
             flowName,
-            contextIdentifier: domainEvent.contextIdentifier,
             aggregateIdentifier: domainEvent.aggregateIdentifier,
             from,
             to

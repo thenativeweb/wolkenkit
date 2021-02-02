@@ -22,7 +22,7 @@ const getAggregateService: GetAggregateService = function <TState extends State>
 }): AggregateService<TState> {
   return {
     id (): string {
-      return aggregateInstance.aggregateIdentifier.id;
+      return aggregateInstance.aggregateIdentifier.aggregate.id;
     },
 
     isPristine (): boolean {
@@ -35,8 +35,8 @@ const getAggregateService: GetAggregateService = function <TState extends State>
       // eslint-disable-next-line unicorn/no-object-as-default-parameter
       metadata: { tags: string[] } = { tags: []}
     ): TState {
-      const contextName = aggregateInstance.contextIdentifier.name;
-      const aggregateName = aggregateInstance.aggregateIdentifier.name;
+      const contextName = aggregateInstance.aggregateIdentifier.context.name;
+      const aggregateName = aggregateInstance.aggregateIdentifier.aggregate.name;
 
       const domainEventHandler = get(
         application.domain,
@@ -55,7 +55,6 @@ const getAggregateService: GetAggregateService = function <TState extends State>
       }
 
       const domainEvent = new DomainEvent({
-        contextIdentifier: aggregateInstance.contextIdentifier,
         aggregateIdentifier: aggregateInstance.aggregateIdentifier,
         name: domainEventName,
         data,

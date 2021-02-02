@@ -289,12 +289,14 @@ suite('graphql process', function (): void {
       const aggregateId = v4();
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'succeeded',
           data: {},
@@ -384,8 +386,10 @@ suite('graphql process', function (): void {
         query {
           sampleView {
             all {
-              contextIdentifier {
-                name
+              aggregateIdentifier {
+                context {
+                  name
+                }
               }
               id
             }

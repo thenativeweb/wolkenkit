@@ -77,7 +77,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
   }): Promise<{ revision: number; isReplaying: IsReplaying }> {
     const result = await this.collections.progress.findOne({
       consumerId,
-      aggregateId: aggregateIdentifier.id
+      aggregateId: aggregateIdentifier.aggregate.id
     });
 
     if (!result) {
@@ -98,7 +98,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
         const { matchedCount } = await this.collections.progress.updateOne(
           {
             consumerId,
-            aggregateId: aggregateIdentifier.id,
+            aggregateId: aggregateIdentifier.aggregate.id,
             revision: { $lt: revision }
           },
           { $set: { revision }},
@@ -111,7 +111,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
 
         try {
           await this.collections.progress.insertOne(
-            { consumerId, aggregateId: aggregateIdentifier.id, revision, isReplaying: false },
+            { consumerId, aggregateId: aggregateIdentifier.aggregate.id, revision, isReplaying: false },
             { session }
           );
         } catch {
@@ -132,7 +132,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
         const { matchedCount } = await this.collections.progress.updateOne(
           {
             consumerId,
-            aggregateId: aggregateIdentifier.id,
+            aggregateId: aggregateIdentifier.aggregate.id,
             isReplaying: { $eq: false }
           },
           { $set: { isReplaying }},
@@ -145,7 +145,7 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
 
         try {
           await this.collections.progress.insertOne(
-            { consumerId, aggregateId: aggregateIdentifier.id, revision: 0, isReplaying },
+            { consumerId, aggregateId: aggregateIdentifier.aggregate.id, revision: 0, isReplaying },
             { session }
           );
         } catch {

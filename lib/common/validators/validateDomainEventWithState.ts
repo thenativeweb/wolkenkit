@@ -14,8 +14,10 @@ const validateDomainEventWithState = function <TDomainEventData extends DomainEv
   const contextDefinitions = application.domain;
 
   const {
-    contextIdentifier: { name: contextName },
-    aggregateIdentifier: { name: aggregateName },
+    aggregateIdentifier: {
+      context: { name: contextName },
+      aggregate: { name: aggregateName }
+    },
     name: domainEventName,
     data: domainEventData
   } = domainEvent;

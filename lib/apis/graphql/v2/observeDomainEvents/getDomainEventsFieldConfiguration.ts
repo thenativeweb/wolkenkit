@@ -90,7 +90,7 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
             aggregates: aggregatesService,
             client: clientService,
             logger: getLoggerService({
-              fileName: `<app>/server/domain/${domainEvent.contextIdentifier.name}/${domainEvent.aggregateIdentifier.name}/`,
+              fileName: `<app>/server/domain/${domainEvent.aggregateIdentifier.context.name}/${domainEvent.aggregateIdentifier.aggregate.name}/`,
               packageManifest: application.packageManifest
             }),
             infrastructure: {
