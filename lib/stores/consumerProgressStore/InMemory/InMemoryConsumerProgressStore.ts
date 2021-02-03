@@ -31,6 +31,10 @@ class InMemoryConsumerProgressStore implements ConsumerProgressStore {
     aggregateIdentifier: AggregateIdentifier;
     revision: number;
   }): Promise<void> {
+    if (revision < 0) {
+      throw new errors.ParameterInvalid('Revision must be at least zero.');
+    }
+
     if (!this.progress[consumerId]) {
       this.progress[consumerId] = {};
     }
@@ -50,6 +54,15 @@ class InMemoryConsumerProgressStore implements ConsumerProgressStore {
     aggregateIdentifier: AggregateIdentifier;
     isReplaying: IsReplaying;
   }): Promise<void> {
+    if (isReplaying) {
+      if (isReplaying.from < 1) {
+        throw new errors.ParameterInvalid('Replays must start from at least one.');
+      }
+      if (isReplaying.from > isReplaying.to) {
+        throw new errors.ParameterInvalid('Replays must start at an earlier revision than where they end at.');
+      }
+    }
+
     if (!this.progress[consumerId]) {
       this.progress[consumerId] = {};
     }
@@ -68,6 +81,32 @@ class InMemoryConsumerProgressStore implements ConsumerProgressStore {
     consumerId: string;
   }): Promise<void> {
     Reflect.deleteProperty(this.progress, consumerId);
+  }
+
+  public async resetProgressToRevision ({ consumerId, aggregateIdentifier, revision }: {
+    consumerId: string;
+    aggregateIdentifier: AggregateIdentifier;
+    revision: number;
+  }): Promise<void> {
+    if (revision < 0) {
+      throw new errors.ParameterInvalid('Revision must be at least zero.');
+    }
+
+    if (!this.progress[consumerId]) {
+      return;
+    }
+    if (!this.progress[consumerId]![aggregateIdentifier.aggregate.id]) {
+      return;
+    }
+
+    const progress = this.progress[consumerId]![aggregateIdentifier.aggregate.id]!;
+
+    if (progress.revision < revision) {
+      throw new errors.ParameterInvalid('Can not reset a consumer to a newer revision than it currently is at.');
+    }
+
+    progress.revision = revision;
+    progress.isReplaying = false;
   }
 
   // eslint-disable-next-line class-methods-use-this

@@ -120,6 +120,10 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
   }): Promise<void> {
     const hash = getHash({ value: consumerId });
 
+    if (revision < 0) {
+      throw new errors.ParameterInvalid('Revision must be at least zero.');
+    }
+
     await withTransaction({
       getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
       fn: async ({ connection }): Promise<void> => {
@@ -166,6 +170,15 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
     aggregateIdentifier: AggregateIdentifier;
     isReplaying: IsReplaying;
   }): Promise<void> {
+    if (isReplaying) {
+      if (isReplaying.from < 1) {
+        throw new errors.ParameterInvalid('Replays must start from at least one.');
+      }
+      if (isReplaying.from > isReplaying.to) {
+        throw new errors.ParameterInvalid('Replays must start at an earlier revision than where they end at.');
+      }
+    }
+
     const hash = getHash({ value: consumerId });
 
     await withTransaction({
@@ -241,6 +254,59 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
     } finally {
       MySqlConsumerProgressStore.releaseConnection({ connection });
     }
+  }
+
+  public async resetProgressToRevision ({ consumerId, aggregateIdentifier, revision }: {
+    consumerId: string;
+    aggregateIdentifier: AggregateIdentifier;
+    revision: number;
+  }): Promise<void> {
+    if (revision < 0) {
+      throw new errors.ParameterInvalid('Revision must be at least zero.');
+    }
+
+    const { revision: currentRevision } = await this.getProgress({
+      consumerId,
+      aggregateIdentifier
+    });
+
+    if (currentRevision < revision) {
+      throw new errors.ParameterInvalid('Can not reset a consumer to a newer revision than it currently is at.');
+    }
+
+    const hash = getHash({ value: consumerId });
+
+    await withTransaction({
+      getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
+      fn: async ({ connection }): Promise<void> => {
+        const [ rows ] = await runQuery({
+          connection,
+          query: `
+            UPDATE \`${this.tableNames.progress}\`
+              SET revision = ?, isReplayingFrom = NULL, isReplayingTo = NULL
+              WHERE consumerId = ? AND aggregateId = UuidToBin(?);
+          `,
+          parameters: [ revision, hash, aggregateIdentifier.aggregate.id, revision ]
+        });
+
+        if (rows.affectedRows === 1) {
+          return;
+        }
+
+        await runQuery({
+          connection,
+          query: `
+              INSERT INTO \`${this.tableNames.progress}\`
+                (consumerId, aggregateId, revision)
+                VALUES (?, UuidToBin(?), ?);
+            `,
+          parameters: [ hash, aggregateIdentifier.aggregate.id, revision ]
+        });
+      },
+      async releaseConnection ({ connection }): Promise<void> {
+        MySqlConsumerProgressStore.releaseConnection({ connection });
+      }
+    });
   }
 
   public async setup (): Promise<void> {

@@ -92,6 +92,10 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
     aggregateIdentifier: AggregateIdentifier;
     revision: number;
   }): Promise<void> {
+    if (revision < 0) {
+      throw new errors.ParameterInvalid('Revision must be at least zero.');
+    }
+
     await withTransaction({
       client: this.client,
       fn: async ({ session }): Promise<void> => {
@@ -126,6 +130,15 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
     aggregateIdentifier: AggregateIdentifier;
     isReplaying: IsReplaying;
   }): Promise<void> {
+    if (isReplaying) {
+      if (isReplaying.from < 1) {
+        throw new errors.ParameterInvalid('Replays must start from at least one.');
+      }
+      if (isReplaying.from > isReplaying.to) {
+        throw new errors.ParameterInvalid('Replays must start at an earlier revision than where they end at.');
+      }
+    }
+
     await withTransaction({
       client: this.client,
       fn: async ({ session }): Promise<void> => {
@@ -163,6 +176,50 @@ class MongoDbConsumerProgressStore implements ConsumerProgressStore {
       fn: async ({ session }): Promise<void> => {
         await this.collections.progress.deleteMany(
           { consumerId },
+          { session }
+        );
+      }
+    });
+  }
+
+  public async resetProgressToRevision ({ consumerId, aggregateIdentifier, revision }: {
+    consumerId: string;
+    aggregateIdentifier: AggregateIdentifier;
+    revision: number;
+  }): Promise<void> {
+    const { revision: currentRevision } = await this.getProgress({ consumerId, aggregateIdentifier });
+
+    if (currentRevision < revision) {
+      throw new errors.ParameterInvalid('Can not reset a consumer to a newer revision than it currently is at.');
+    }
+
+    await withTransaction({
+      client: this.client,
+      fn: async ({ session }): Promise<void> => {
+        if (revision < 0) {
+          throw new errors.ParameterInvalid('Revision must be at least zero.');
+        }
+
+        await this.collections.progress.deleteMany(
+          { consumerId },
+          { session }
+        );
+
+        const { matchedCount } = await this.collections.progress.updateOne(
+          {
+            consumerId,
+            aggregateId: aggregateIdentifier.aggregate.id
+          },
+          { $set: { revision, isReplaying: false }},
+          { session }
+        );
+
+        if (matchedCount === 1) {
+          return;
+        }
+
+        await this.collections.progress.insertOne(
+          { consumerId, aggregateId: aggregateIdentifier.aggregate.id, revision, isReplaying: false },
           { session }
         );
       }

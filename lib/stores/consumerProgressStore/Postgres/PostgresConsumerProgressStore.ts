@@ -124,6 +124,10 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
     aggregateIdentifier: AggregateIdentifier;
     revision: number;
   }): Promise<void> {
+    if (revision < 0) {
+      throw new errors.ParameterInvalid('Revision must be at least zero.');
+    }
+
     const hash = getHash({ value: consumerId });
 
     await withTransaction({
@@ -172,6 +176,15 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
     aggregateIdentifier: AggregateIdentifier;
     isReplaying: IsReplaying;
   }): Promise<void> {
+    if (isReplaying) {
+      if (isReplaying.from < 1) {
+        throw new errors.ParameterInvalid('Replays must start from at least one.');
+      }
+      if (isReplaying.from > isReplaying.to) {
+        throw new errors.ParameterInvalid('Replays must start at an earlier revision than where they end at.');
+      }
+    }
+
     const hash = getHash({ value: consumerId });
 
     await withTransaction({
@@ -247,6 +260,59 @@ class PostgresConsumerProgressStore implements ConsumerProgressStore {
     } finally {
       connection.release();
     }
+  }
+
+  public async resetProgressToRevision ({ consumerId, aggregateIdentifier, revision }: {
+    consumerId: string;
+    aggregateIdentifier: AggregateIdentifier;
+    revision: number;
+  }): Promise<void> {
+    if (revision < 0) {
+      throw new errors.ParameterInvalid('Revision must be at least zero.');
+    }
+
+    const { revision: currentRevision } = await this.getProgress({
+      consumerId,
+      aggregateIdentifier
+    });
+
+    if (currentRevision < revision) {
+      throw new errors.ParameterInvalid('Can not reset a consumer to a newer revision than it currently is at.');
+    }
+
+    const hash = getHash({ value: consumerId });
+
+    await withTransaction({
+      getConnection: async (): Promise<PoolClient> => await PostgresConsumerProgressStore.getDatabase(this.pool),
+      fn: async ({ connection }): Promise<void> => {
+        const { rowCount } = await connection.query({
+          name: 'reset progress to revision',
+          text: `
+            UPDATE "${this.tableNames.progress}"
+              SET "revision" = $1, "isReplayingFrom" = NULL, "isReplayingTo" = NULL
+              WHERE "consumerId" = $2 AND "aggregateId" = $3;
+          `,
+          values: [ revision, hash, aggregateIdentifier.aggregate.id ]
+        });
+
+        if (rowCount === 1) {
+          return;
+        }
+
+        await connection.query({
+          name: 'insert progress with default is replaying for resetting purposes',
+          text: `
+              INSERT INTO "${this.tableNames.progress}"
+                ("consumerId", "aggregateId", "revision")
+                VALUES ($1, $2, $3);
+            `,
+          values: [ hash, aggregateIdentifier.aggregate.id, revision ]
+        });
+      },
+      async releaseConnection ({ connection }): Promise<void> {
+        connection.release();
+      }
+    });
   }
 
   public async setup (): Promise<void> {
