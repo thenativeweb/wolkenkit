@@ -1,4 +1,3 @@
-import { AggregateIdentifier } from '../elements/AggregateIdentifier';
 import { AggregatesService } from '../services/AggregatesService';
 import { Application } from '../application/Application';
 import { AskInfrastructure } from '../elements/AskInfrastructure';
@@ -11,6 +10,7 @@ import { flaschenpost } from 'flaschenpost';
 import { LockService } from '../services/LockService';
 import { LoggerService } from '../services/LoggerService';
 import { NotificationService } from '../services/NotificationService';
+import { PerformReplay } from './PerformReplay';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
 
 const logger = flaschenpost.getLogger();
@@ -21,7 +21,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
   domainEvent,
   flowProgressStore,
   services,
-  requestReplay
+  performReplay
 }: {
   application: Application;
   flowName: string;
@@ -35,12 +35,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     lock: LockService;
     notification: NotificationService;
   };
-  requestReplay: (parameters: {
-    flowName: string;
-    aggregateIdentifier: AggregateIdentifier;
-    from: number;
-    to: number;
-  }) => void | Promise<void>;
+  performReplay: PerformReplay;
 }): Promise<'acknowledge' | 'defer'> {
   if (!(flowName in application.flows)) {
     throw new errors.FlowNotFound(`Flow '${flowName}' not found.`);
@@ -79,11 +74,13 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
 
           logger.debug(`Domain event is too old. Requesting replay from ${from} to ${to} and deferring due to replay policy 'always'.`);
 
-          await requestReplay({
-            flowName,
-            aggregateIdentifier: domainEvent.aggregateIdentifier,
-            from,
-            to
+          await performReplay({
+            flowNames: [ flowName ],
+            aggregates: [{
+              aggregateIdentifier: domainEvent.aggregateIdentifier,
+              from,
+              to
+            }]
           });
           await flowProgressStore.setIsReplaying({
             consumerId: flowName,

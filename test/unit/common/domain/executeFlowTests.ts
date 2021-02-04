@@ -24,9 +24,15 @@ import { noop } from 'lodash';
 import { Notification } from '../../../../lib/common/elements/Notification';
 import { NotificationDefinition } from '../../../../lib/common/elements/NotificationDefinition';
 import { NotificationService } from '../../../../lib/common/services/NotificationService';
+import { PerformReplay } from '../../../../lib/common/domain/PerformReplay';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { Repository } from '../../../../lib/common/domain/Repository';
 import { v4 } from 'uuid';
+
+const issueCommandNoop = noop;
+const performReplayNoop: PerformReplay = async (): Promise<void> => {
+  // Intentionally left blank.
+};
 
 suite('executeFlow', (): void => {
   let aggregatesService: AggregatesService,
@@ -105,7 +111,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 1 }
     });
 
-    const commandService = getCommandService({ domainEvent, issueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: issueCommandNoop });
 
     await assert.that(async (): Promise<void> => {
       await executeFlow({
@@ -121,7 +127,7 @@ suite('executeFlow', (): void => {
           logger: loggerService,
           notification: notificationService
         },
-        requestReplay: noop
+        performReplay: performReplayNoop
       });
     }).is.throwingAsync(
       (ex): boolean => (ex as CustomError).code === errors.FlowNotFound.code
@@ -139,7 +145,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 5 }
     });
 
-    const commandService = getCommandService({ domainEvent, issueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: issueCommandNoop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',
@@ -160,7 +166,7 @@ suite('executeFlow', (): void => {
         logger: loggerService,
         notification: notificationService
       },
-      requestReplay: noop
+      performReplay: performReplayNoop
     });
 
     assert.that(loggedMessages).is.equalTo([]);
@@ -178,7 +184,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 7 }
     });
 
-    const commandService = getCommandService({ domainEvent, issueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: issueCommandNoop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',
@@ -199,7 +205,7 @@ suite('executeFlow', (): void => {
         logger: loggerService,
         notification: notificationService
       },
-      requestReplay: noop
+      performReplay: performReplayNoop
     });
 
     assert.that(loggedMessages).is.equalTo([]);
@@ -217,7 +223,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 7 }
     });
 
-    const commandService = getCommandService({ domainEvent, issueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: issueCommandNoop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',
@@ -238,7 +244,7 @@ suite('executeFlow', (): void => {
         logger: loggerService,
         notification: notificationService
       },
-      requestReplay: noop
+      performReplay: performReplayNoop
     });
 
     assert.that(await consumerProgressStore.getProgress({
@@ -280,7 +286,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 7 }
     });
 
-    const commandService = getCommandService({ domainEvent, issueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: issueCommandNoop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',
@@ -302,7 +308,7 @@ suite('executeFlow', (): void => {
           logger: loggerService,
           notification: notificationService
         },
-        requestReplay: noop
+        performReplay: performReplayNoop
       });
     }).is.throwingAsync(
       (ex): boolean => ex.message === 'An expected error occured.'
@@ -363,7 +369,7 @@ suite('executeFlow', (): void => {
 
     await domainEventStore.storeDomainEvents({ domainEvents });
 
-    const commandService = getCommandService({ domainEvent: domainEvents[2], issueCommand: noop });
+    const commandService = getCommandService({ domainEvent: domainEvents[2], issueCommand: issueCommandNoop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'onDemandFlow',
@@ -385,7 +391,7 @@ suite('executeFlow', (): void => {
         logger: loggerService,
         notification: notificationService
       },
-      requestReplay (): void {
+      async performReplay (): Promise<void> {
         replayRequested = true;
       }
     });
@@ -443,7 +449,7 @@ suite('executeFlow', (): void => {
 
     await domainEventStore.storeDomainEvents({ domainEvents });
 
-    const commandService = getCommandService({ domainEvent: domainEvents[2], issueCommand: noop });
+    const commandService = getCommandService({ domainEvent: domainEvents[2], issueCommand: issueCommandNoop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'alwaysFlow',
@@ -465,7 +471,7 @@ suite('executeFlow', (): void => {
         logger: loggerService,
         notification: notificationService
       },
-      requestReplay (): void {
+      async performReplay (): Promise<void> {
         replayRequested = true;
       }
     });
@@ -485,7 +491,7 @@ suite('executeFlow', (): void => {
       metadata: { revision: 7 }
     });
 
-    const commandService = getCommandService({ domainEvent, issueCommand: noop });
+    const commandService = getCommandService({ domainEvent, issueCommand: issueCommandNoop });
 
     await consumerProgressStore.setProgress({
       consumerId: 'sampleFlow',
@@ -506,7 +512,7 @@ suite('executeFlow', (): void => {
         logger: loggerService,
         notification: notificationService
       },
-      requestReplay: noop
+      performReplay: performReplayNoop
     });
 
     assert.that(notifications.length).is.equalTo(1);

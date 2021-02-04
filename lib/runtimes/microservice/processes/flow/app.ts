@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { AeonstoreDomainEventStore } from '../../../../stores/domainEventStore/Aeonstore';
-import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { Client as CommandDispatcherClient } from '../../../../apis/handleCommandWithMetadata/http/v2/Client';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
@@ -17,6 +16,7 @@ import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariabl
 import { getSnapshotStrategy } from '../../../../common/domain/getSnapshotStrategy';
 import { loadApplication } from '../../../../common/application/loadApplication';
 import { Notification } from '../../../../common/elements/Notification';
+import { PerformReplay } from '../../../../common/domain/PerformReplay';
 import pForever from 'p-forever';
 import { processDomainEvent } from './processDomainEvent';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
@@ -93,17 +93,13 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       await commandDispatcherClient.postCommand({ command });
     };
 
-    const requestReplay = async function ({ flowName, aggregateIdentifier, from, to }: {
-      flowName: string;
-      aggregateIdentifier: AggregateIdentifier;
-      from: number;
-      to: number;
+    const performReplay: PerformReplay = async function ({
+      flowNames,
+      aggregates
     }): Promise<void> {
       await replayClient.performReplay({
-        flowNames: [ flowName ],
-        aggregates: [
-          { aggregateIdentifier, from, to }
-        ]
+        flowNames,
+        aggregates
       });
     };
 
@@ -120,7 +116,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
           lockStore,
           repository,
           issueCommand,
-          requestReplay
+          performReplay
         });
       });
     }

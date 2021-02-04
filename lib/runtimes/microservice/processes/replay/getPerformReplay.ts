@@ -4,7 +4,7 @@ import { Client as DomainEventDispatcherClient } from '../../../../apis/handleDo
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
-import { PerformReplay } from '../../../../apis/performReplay/PerformReplay';
+import { PerformReplay } from '../../../../common/domain/PerformReplay';
 
 const logger = flaschenpost.getLogger();
 

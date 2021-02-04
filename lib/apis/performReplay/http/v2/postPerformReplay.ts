@@ -3,7 +3,7 @@ import { CustomError } from 'defekt';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
-import { PerformReplay } from '../../PerformReplay';
+import { PerformReplay } from '../../../../common/domain/PerformReplay';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';

@@ -1,4 +1,4 @@
-import { AggregateIdentifier } from '../../common/elements/AggregateIdentifier';
+import { AggregateIdentifier } from '../elements/AggregateIdentifier';
 
 export type PerformReplay = ({ flowNames, aggregates }: {
   flowNames: string[];
