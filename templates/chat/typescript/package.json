@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "dependencies": {
-    "@types/mongodb": "3.6.3",
+    "@types/mongodb": "3.6.4",
     "mongodb": "3.6.3",
     "processenv": "3.0.3"
   },
