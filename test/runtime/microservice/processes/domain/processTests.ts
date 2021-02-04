@@ -26,6 +26,7 @@ import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subscribeMessages/http/v2/Client';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
+import { waitForSignals } from 'wait-for-signals';
 
 suite('domain process', function (): void {
   this.timeout(10_000);
@@ -494,74 +495,73 @@ suite('domain process', function (): void {
       await handleCommandWithMetadataClient.postCommand({ command: command1 });
       await handleCommandWithMetadataClient.postCommand({ command: command2 });
 
-      await new Promise<void>((resolve, reject): void => {
-        messageStream.on('error', (err: any): void => {
-          reject(err);
-        });
-        messageStream.on('close', (): void => {
-          resolve();
-        });
-        messageStream.pipe(asJsonStream(
-          [
-            (data): void => {
-              try {
-                assert.that(data).is.atLeast({
-                  aggregateIdentifier: command1.aggregateIdentifier,
-                  name: 'succeeded',
-                  data: {}
-                });
-                resolve();
-              } catch (ex: unknown) {
-                reject(ex);
-              }
-            },
-            (data): void => {
-              try {
-                assert.that(data).is.atLeast({
-                  aggregateIdentifier: command1.aggregateIdentifier,
-                  name: 'executed',
-                  data: {
-                    strategy: 'succeed'
-                  }
-                });
-                resolve();
-              } catch (ex: unknown) {
-                reject(ex);
-              }
-            },
-            (data): void => {
-              try {
-                assert.that(data).is.atLeast({
-                  aggregateIdentifier: command2.aggregateIdentifier,
-                  name: 'succeeded',
-                  data: {}
-                });
-                resolve();
-              } catch (ex: unknown) {
-                reject(ex);
-              }
-            },
-            (data): void => {
-              try {
-                assert.that(data).is.atLeast({
-                  aggregateIdentifier: command2.aggregateIdentifier,
-                  name: 'executed',
-                  data: {
-                    strategy: 'succeed'
-                  }
-                });
-                resolve();
-              } catch (ex: unknown) {
-                reject(ex);
-              }
-            },
-            (): void => {
-              reject(new Error('Should only have received four messages.'));
-            }
-          ],
-          true
-        ));
+      const counter = waitForSignals({ count: 4 });
+
+      messageStream.on('error', async (err: any): Promise<void> => {
+        await counter.fail(err);
       });
+      messageStream.pipe(asJsonStream(
+        [
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
+                aggregateIdentifier: command1.aggregateIdentifier,
+                name: 'succeeded',
+                data: {}
+              });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
+                aggregateIdentifier: command1.aggregateIdentifier,
+                name: 'executed',
+                data: {
+                  strategy: 'succeed'
+                }
+              });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
+                aggregateIdentifier: command2.aggregateIdentifier,
+                name: 'succeeded',
+                data: {}
+              });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
+                aggregateIdentifier: command2.aggregateIdentifier,
+                name: 'executed',
+                data: {
+                  strategy: 'succeed'
+                }
+              });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (): Promise<void> => {
+            await counter.fail(new Error('Should only have received four messages.'));
+          }
+        ],
+        true
+      ));
+
+      await counter.promise;
     });
 
     test('publishes notifications from command handlers.', async (): Promise<void> => {
