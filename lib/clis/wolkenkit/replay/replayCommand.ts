@@ -23,31 +23,31 @@ const replayCommand = function (): Command<ReplayOptions> {
     optionDefinitions: [
       {
         name: 'replay-api-protocol',
-        description: `set the replay api's protocol`,
+        description: `set the replay API protocol`,
         type: 'string',
         isRequired: false
       },
       {
         name: 'replay-api-host-name',
-        description: `set the replay api's host name`,
+        description: `set the replay API host name`,
         type: 'string',
         isRequired: false
       },
       {
         name: 'replay-api-port',
-        description: `set the replay api's port`,
+        description: `set the replay API port`,
         type: 'number',
         isRequired: false
       },
       {
         name: 'replay-api-socket',
-        description: `set the replay api's socket`,
+        description: `set the replay API socket`,
         type: 'string',
         isRequired: false
       },
       {
         name: 'replay-api-base-path',
-        description: `set the replay api's base path`,
+        description: `set the replay API base path`,
         type: 'string',
         isRequired: false
       },
