@@ -68,6 +68,7 @@ const errors = defekt({
   QueryOptionsInvalid: {},
   QueryResultInvalid: {},
   ReplayFailed: {},
+  ReplayConfigurationInvalid: {},
   RequestFailed: {},
   RequestMalformed: {},
   RevisionAlreadyExists: {},

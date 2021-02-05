@@ -4,6 +4,7 @@ import { devCommand } from './dev/devCommand';
 import { documentationCommand } from './documentation/documentationCommand';
 import { healthCommand } from './health/healthCommand';
 import { initCommand } from './init/initCommand';
+import { replayCommand } from './replay/replayCommand';
 import { RootOptions } from './RootOptions';
 import { setupCommand } from './setup/setupCommand';
 import { tokenCommand } from './token/tokenCommand';
@@ -37,6 +38,7 @@ const rootCommand = function (): Command<RootOptions> {
       documentation: documentationCommand(),
       health: healthCommand(),
       setup: setupCommand(),
+      replay: replayCommand(),
       token: tokenCommand()
     }
   };
