@@ -102,7 +102,6 @@ const replayCommand = function (): Command<ReplayOptions> {
       domainEventStoreOptionsSchema.validate(domainEventStoreOptions);
       consumerProgressStoreOptionsSchema.validate(consumerProgressStoreOptions);
 
-
       const domainEventStore = await createDomainEventStore(domainEventStoreOptions);
 
       const consumerProgressStore = await createConsumerProgressStore(consumerProgressStoreOptions);
