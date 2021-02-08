@@ -12,7 +12,7 @@ import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnv
 import { waitForSignals } from 'wait-for-signals';
 
 suite('publisher process', function (): void {
-  this.timeout(10_000);
+  this.timeout(60_000);
 
   let healthSocket: string,
       publishMessageClient: PublishMessageClient,

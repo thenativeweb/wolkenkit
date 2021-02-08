@@ -34,7 +34,7 @@ import ws from 'ws';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
 
 suite('graphql process', function (): void {
-  this.timeout(10_000);
+  this.timeout(60_000);
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   const subscribeMessagesChannel = 'newDomainEvent',

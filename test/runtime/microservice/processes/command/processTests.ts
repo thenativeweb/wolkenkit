@@ -24,7 +24,7 @@ const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 
 
 suite('command process', (): void => {
   suite('without retries', function (): void {
-    this.timeout(20_000);
+    this.timeout(60_000);
 
     const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
           identityProviders = [{ issuer: 'https://token.invalid', certificate: certificateDirectory }];

@@ -15,7 +15,7 @@ import { waitForSignals } from 'wait-for-signals';
 import { Client as WriteDomainEventStoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
 
 suite('domain event store process', function (): void {
-  this.timeout(10_000);
+  this.timeout(60_000);
 
   let healthSocket: string,
       queryDomainEventStoreClient: QueryDomainEventStoreClient,

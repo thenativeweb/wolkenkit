@@ -29,7 +29,7 @@ import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 
 suite('domain process', function (): void {
-  this.timeout(10_000);
+  this.timeout(60_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
