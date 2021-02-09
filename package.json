@@ -177,7 +177,7 @@
     "swagger-ui-express": "4.1.6",
     "untildify": "4.0.0",
     "uuid": "8.3.2",
-    "validate-value": "8.9.14"
+    "validate-value": "8.9.15"
   },
   "devDependencies": {
     "@types/react": "17.0.0",
