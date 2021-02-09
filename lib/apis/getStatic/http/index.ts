@@ -4,7 +4,7 @@ import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
 import fs from 'fs';
 import { getApiBase } from '../../base/getApiBase';
-import express, { Application } from 'express';
+import express, { Application, Request } from 'express';
 
 const getApi = async function ({ corsOrigin, directory }: {
   corsOrigin: CorsOrigin;
@@ -30,7 +30,7 @@ const getApi = async function ({ corsOrigin, directory }: {
   }
 
   api.use(compression());
-  api.use('/', express.static(directory));
+  api.use<Request>('/', express.static(directory));
 
   return { api };
 };
