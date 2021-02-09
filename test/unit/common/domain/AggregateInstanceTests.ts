@@ -449,7 +449,7 @@ suite('AggregateInstance', (): void => {
       });
 
       test('updates the state.', async (): Promise<void> => {
-        const { aggregateIdentifier, state } = aggregateInstance;
+        const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
           aggregateIdentifier,
@@ -463,7 +463,8 @@ suite('AggregateInstance', (): void => {
           command
         });
 
-        assert.that(state).is.equalTo({
+        // eslint-disable-next-line unicorn/consistent-destructuring
+        assert.that(aggregateInstance.state).is.equalTo({
           domainEventNames: [ 'succeeded', 'executed' ]
         });
       });
