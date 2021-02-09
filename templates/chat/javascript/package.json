@@ -9,7 +9,7 @@
   "devDependencies": {
     "assertthat": "5.2.5",
     "mocha": "8.2.1",
-    "run-script-os": "1.1.4",
+    "run-script-os": "1.1.5",
     "uuid": "8.3.2"
   },
   "scripts": {
