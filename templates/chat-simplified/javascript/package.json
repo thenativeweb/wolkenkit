@@ -3,13 +3,13 @@
   "version": "0.0.1",
   "description": "",
   "dependencies": {
-    "mongodb": "3.6.3",
+    "mongodb": "3.6.4",
     "processenv": "3.0.3"
   },
   "devDependencies": {
     "assertthat": "5.2.5",
     "mocha": "8.2.1",
-    "run-script-os": "1.1.4",
+    "run-script-os": "1.1.5",
     "uuid": "8.3.2"
   },
   "scripts": {
