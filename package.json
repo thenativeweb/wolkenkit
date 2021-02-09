@@ -149,7 +149,7 @@
     "express": "4.17.1",
     "flaschenpost": "4.3.37",
     "get-cors-origin": "4.0.10",
-    "get-graphql-from-jsonschema": "7.0.4",
+    "get-graphql-from-jsonschema": "7.0.5",
     "graphql": "15.5.0",
     "helmet": "4.4.1",
     "ioredis": "4.22.0",
@@ -198,7 +198,7 @@
     "roboter": "11.6.11",
     "subscriptions-transport-ws": "0.9.18",
     "temp": "0.9.4",
-    "thenativeweb-ux": "5.8.34",
+    "thenativeweb-ux": "5.8.35",
     "wait-for-signals": "1.2.1",
     "ws": "7.4.3"
   },
