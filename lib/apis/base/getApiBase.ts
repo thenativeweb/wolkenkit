@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import { jsonQueryParserMiddleware } from './jsonQueryParserMiddleware';
 import nocache from 'nocache';
 import { streamNdjsonMiddleware } from './streamNdjsonMiddleware';
-import express, { Application } from 'express';
+import express, { Application, Request } from 'express';
 
 const getApiBase = async function ({ request, response }: GetApiBaseParameters): Promise<Application> {
   const api = express();
@@ -19,7 +19,7 @@ const getApiBase = async function ({ request, response }: GetApiBaseParameters):
   api.use(helmet(helmetOptions));
 
   if (request.headers.cors) {
-    api.options('*', cors({
+    api.options('*', cors<Request>({
       methods: [ 'GET', 'POST' ],
       origin: request.headers.cors.origin,
       allowedHeaders: request.headers.cors.allowedHeaders,
