@@ -17,12 +17,14 @@ suite('message', () => {
 
   suite('send', () => {
     test('sends a message.', async () => {
-      const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: v4() };
+      const aggregateIdentifier = {
+        context: { name: 'communication' },
+        aggregate: { name: 'message', id: v4() }
+      };
 
       await sandbox().
         withApplication({ application }).
-        forAggregate({ contextIdentifier, aggregateIdentifier }).
+        forAggregate({ aggregateIdentifier }).
         when({ name: 'send', data: { text: 'Hello world!' }}).
         then(({ domainEvents, state }) => {
           assert.that(domainEvents.length).is.equalTo(1);
@@ -33,12 +35,14 @@ suite('message', () => {
     });
 
     test('fails if the message was already sent.', async () => {
-      const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: v4() };
+      const aggregateIdentifier = {
+        context: { name: 'communication' },
+        aggregate: { name: 'message', id: v4() }
+      };
 
       await sandbox().
         withApplication({ application }).
-        forAggregate({ contextIdentifier, aggregateIdentifier }).
+        forAggregate({ aggregateIdentifier }).
         given({ name: 'sent', data: { text: 'Hello world!' }}).
         when({ name: 'send', data: { text: 'Hello world!' }}).
         then(({ domainEvents, state }) => {
@@ -52,12 +56,14 @@ suite('message', () => {
 
   suite('like', () => {
     test('likes a message.', async () => {
-      const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: v4() };
+      const aggregateIdentifier = {
+        context: { name: 'communication' },
+        aggregate: { name: 'message', id: v4() }
+      };
 
       await sandbox().
         withApplication({ application }).
-        forAggregate({ contextIdentifier, aggregateIdentifier }).
+        forAggregate({ aggregateIdentifier }).
         given({ name: 'sent', data: { text: 'Hello world!' }}).
         when({ name: 'like', data: {}}).
         then(({ domainEvents, state }) => {
@@ -69,12 +75,14 @@ suite('message', () => {
     });
 
     test('fails if the message was not yet sent.', async () => {
-      const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: v4() };
+      const aggregateIdentifier = {
+        context: { name: 'communication' },
+        aggregate: { name: 'message', id: v4() }
+      };
 
       await sandbox().
         withApplication({ application }).
-        forAggregate({ contextIdentifier, aggregateIdentifier }).
+        forAggregate({ aggregateIdentifier }).
         when({ name: 'like', data: {}}).
         then(({ domainEvents, state }) => {
           assert.that(domainEvents.length).is.equalTo(1);

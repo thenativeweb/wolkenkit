@@ -35,8 +35,10 @@ const Chat = {
 
       try {
         await wolkenkit.issueCommand({
-          contextIdentifier: { name: 'communication' },
-          aggregateIdentifier: { name: 'message' },
+          aggregateIdentifier: {
+            context: { name: 'communication' },
+            aggregate: { name: 'message' }
+          },
           name: 'send',
           data: { text: state.newMessage }
         });
@@ -50,8 +52,10 @@ const Chat = {
     const likeMessage = async function (aggregateId) {
       try {
         await wolkenkit.issueCommand({
-          contextIdentifier: { name: 'communication' },
-          aggregateIdentifier: { name: 'message', id: aggregateId },
+          aggregateIdentifier: {
+            context: { name: 'communication' },
+            aggregate: { name: 'message', id: aggregateId }
+          },
           name: 'like',
           data: {}
         });
@@ -95,7 +99,7 @@ const Chat = {
         switch (domainEvent.name) {
           case 'sent': {
             state.messages.push({
-              id: domainEvent.aggregateIdentifier.id,
+              id: domainEvent.aggregateIdentifier.aggregate.id,
               user: domainEvent.metadata.initiator.user.id,
               timestamp: new Date(domainEvent.metadata.timestamp),
               text: domainEvent.data.text,
@@ -105,7 +109,7 @@ const Chat = {
           }
           case 'liked': {
             const index = state.messages.findIndex(
-              row => row.id === domainEvent.aggregateIdentifier.id
+              row => row.id === domainEvent.aggregateIdentifier.aggregate.id
             );
 
             if (index === -1) {

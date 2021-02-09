@@ -15,7 +15,7 @@ const messages: Flow<Infrastructure> = {
 
       async handle (domainEvent, { infrastructure, notification }): Promise<void> {
         const message: Message = {
-          id: domainEvent.aggregateIdentifier.id,
+          id: domainEvent.aggregateIdentifier.aggregate.id,
           timestamp: domainEvent.metadata.timestamp,
           text: domainEvent.data.text,
           likes: 0
@@ -43,7 +43,7 @@ const messages: Flow<Infrastructure> = {
       async handle (domainEvent, { infrastructure, notification }): Promise<void> {
         if (Array.isArray(infrastructure.tell.viewStore.messages)) {
           const messageToUpdate = infrastructure.tell.viewStore.messages.find(
-            (message): boolean => message.id === domainEvent.aggregateIdentifier.id
+            (message): boolean => message.id === domainEvent.aggregateIdentifier.aggregate.id
           );
 
           messageToUpdate!.likes = domainEvent.data.likes;
@@ -54,7 +54,7 @@ const messages: Flow<Infrastructure> = {
         }
 
         await infrastructure.tell.viewStore.messages.updateOne(
-          { id: domainEvent.aggregateIdentifier.id },
+          { id: domainEvent.aggregateIdentifier.aggregate.id },
           { $set: { likes: domainEvent.data.likes }}
         );
 

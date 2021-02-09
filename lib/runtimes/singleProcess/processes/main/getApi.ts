@@ -7,6 +7,7 @@ import { getApi as getHandleCommandApi } from '../../../../apis/handleCommand/ht
 import { getApi as getManageFileApi } from '../../../../apis/manageFile/http';
 import { getApi as getObserveDomainEventsApi } from '../../../../apis/observeDomainEvents/http';
 import { getApi as getOpenApiApi } from '../../../../apis/openApi/http';
+import { getApi as getPerformReplayApi } from '../../../../apis/performReplay/http';
 import { getApi as getQueryViewApi } from '../../../../apis/queryView/http';
 import { getApi as getSubscribeNotificationsApi } from '../../../../apis/subscribeNotifications/http';
 import { IdentityProvider } from 'limes';
@@ -14,6 +15,7 @@ import { InitializeGraphQlOnServer } from '../../../../apis/graphql/InitializeGr
 import { Notification } from '../../../../common/elements/Notification';
 import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
+import { PerformReplay } from '../../../../common/domain/PerformReplay';
 import { PublishDomainEvent } from '../../../../apis/observeDomainEvents/PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
@@ -28,7 +30,8 @@ const getApi = async function ({
   repository,
   fileStore,
   subscriber,
-  channelForNotifications
+  channelForNotifications,
+  performReplay
 }: {
   configuration: Configuration;
   application: Application;
@@ -39,6 +42,7 @@ const getApi = async function ({
   fileStore: FileStore;
   subscriber: Subscriber<Notification>;
   channelForNotifications: string;
+  performReplay: PerformReplay;
 }): Promise<{
     api: ExpressApplication;
     publishDomainEvent: PublishDomainEvent;
@@ -91,10 +95,17 @@ const getApi = async function ({
       subscriber
     });
 
+    const { api: performReplayApi } = await getPerformReplayApi({
+      application,
+      corsOrigin,
+      performReplay
+    });
+
     api.use('/command', handleCommandApi);
     api.use('/domain-events', observeDomainEventsApi);
     api.use('/files', manageFileApi);
     api.use('/notifications', subscribeNotificationsApi);
+    api.use('/perform-replay', performReplayApi);
     api.use('/views', queryViewApi);
 
     if (configuration.enableOpenApiDocumentation) {

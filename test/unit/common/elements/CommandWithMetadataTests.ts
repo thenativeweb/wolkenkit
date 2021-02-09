@@ -11,8 +11,10 @@ suite('CommandWithMetadata', (): void => {
           timestamp = Date.now();
 
     const command = new CommandWithMetadata({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregateId }
+      },
       name: 'sampleCommand',
       data: {
         strategy: 'succeed'
@@ -28,8 +30,10 @@ suite('CommandWithMetadata', (): void => {
     });
 
     assert.that(command).is.equalTo({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregateId }
+      },
       name: 'sampleCommand',
       data: {
         strategy: 'succeed'
@@ -54,8 +58,10 @@ suite('CommandWithMetadata', (): void => {
             timestamp = Date.now();
 
       const command = new CommandWithMetadata({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'sampleCommand',
         data: {
           strategy: 'succeed'
@@ -73,8 +79,10 @@ suite('CommandWithMetadata', (): void => {
       const itemIdentifier = command.getItemIdentifier();
 
       assert.that(itemIdentifier).is.equalTo({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'sampleCommand',
         id
       });

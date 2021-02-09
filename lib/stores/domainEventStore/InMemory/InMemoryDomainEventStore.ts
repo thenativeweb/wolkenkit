@@ -29,7 +29,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
     const storedDomainEvents = this.getStoredDomainEvents().filter(
-      (domainEvent): boolean => domainEvent.aggregateIdentifier.id === aggregateIdentifier.id
+      (domainEvent): boolean => domainEvent.aggregateIdentifier.aggregate.id === aggregateIdentifier.aggregate.id
     );
 
     const lastDomainEvent = last(storedDomainEvents);
@@ -113,7 +113,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
 
     const storedDomainEvents = this.getStoredDomainEvents().filter(
       (domainEvent): boolean =>
-        domainEvent.aggregateIdentifier.id === aggregateId &&
+        domainEvent.aggregateIdentifier.aggregate.id === aggregateId &&
         domainEvent.metadata.revision >= fromRevision &&
         domainEvent.metadata.revision <= toRevision
     );
@@ -131,7 +131,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<Snapshot<TState> | undefined> {
     const storedSnapshots = this.getStoredSnapshots().filter(
-      (snapshot): boolean => snapshot.aggregateIdentifier.id === aggregateIdentifier.id
+      (snapshot): boolean => snapshot.aggregateIdentifier.aggregate.id === aggregateIdentifier.aggregate.id
     );
 
     const newestSnapshotRevision = Math.max(
@@ -160,7 +160,7 @@ class InMemoryDomainEventStore implements DomainEventStore {
     for (const domainEvent of domainEvents) {
       const alreadyExists = storedDomainEvents.some(
         (eventInDatabase): boolean =>
-          domainEvent.aggregateIdentifier.id === eventInDatabase.aggregateIdentifier.id &&
+          domainEvent.aggregateIdentifier.aggregate.id === eventInDatabase.aggregateIdentifier.aggregate.id &&
           domainEvent.metadata.revision === eventInDatabase.metadata.revision
       );
 
@@ -188,6 +188,34 @@ class InMemoryDomainEventStore implements DomainEventStore {
     });
   }
 
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    const aggregateIdentifiers: Map<string, AggregateIdentifier> = new Map();
+
+    for (const domainEvent of this.getStoredDomainEvents()) {
+      aggregateIdentifiers.set(domainEvent.aggregateIdentifier.aggregate.id, domainEvent.aggregateIdentifier);
+    }
+
+    return Readable.from(aggregateIdentifiers.values());
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    const aggregateIdentifiers: Map<string, AggregateIdentifier> = new Map();
+
+    for (const domainEvent of this.getStoredDomainEvents()) {
+      if (
+        domainEvent.aggregateIdentifier.context.name === contextName &&
+          domainEvent.aggregateIdentifier.aggregate.name === aggregateName
+      ) {
+        aggregateIdentifiers.set(domainEvent.aggregateIdentifier.aggregate.id, domainEvent.aggregateIdentifier);
+      }
+    }
+
+    return Readable.from(aggregateIdentifiers.values());
+  }
+
   protected getStoredDomainEvents <TState extends State> (): DomainEvent<TState>[] {
     return this.domainEvents as DomainEvent<TState>[];
   }
@@ -206,13 +234,6 @@ class InMemoryDomainEventStore implements DomainEventStore {
     snapshot: Snapshot<State>;
   }): void {
     this.snapshots.push(snapshot);
-  }
-
-  protected updateDomainEventInDatabaseAtIndex ({ index, updatedDomainEvent }: {
-    index: number;
-    updatedDomainEvent: DomainEvent<State>;
-  }): void {
-    this.domainEvents[index] = updatedDomainEvent;
   }
 
   // eslint-disable-next-line class-methods-use-this

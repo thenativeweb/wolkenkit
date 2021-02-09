@@ -17,12 +17,14 @@ suite('message', (): void => {
 
   suite('send', (): void => {
     test('sends a message.', async (): Promise<void> => {
-      const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: v4() };
+      const aggregateIdentifier = {
+        context: { name: 'communication' },
+        aggregate: { name: 'message', id: v4() }
+      };
 
       await sandbox().
         withApplication({ application }).
-        forAggregate({ contextIdentifier, aggregateIdentifier }).
+        forAggregate({ aggregateIdentifier }).
         when<SendData>({ name: 'send', data: { text: 'Hello world!' }}).
         then(({ domainEvents, state }): void => {
           assert.that(domainEvents.length).is.equalTo(1);
@@ -33,12 +35,14 @@ suite('message', (): void => {
     });
 
     test('fails if the message was already sent.', async (): Promise<void> => {
-      const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: v4() };
+      const aggregateIdentifier = {
+        context: { name: 'communication' },
+        aggregate: { name: 'message', id: v4() }
+      };
 
       await sandbox().
         withApplication({ application }).
-        forAggregate({ contextIdentifier, aggregateIdentifier }).
+        forAggregate({ aggregateIdentifier }).
         given<SentData>({ name: 'sent', data: { text: 'Hello world!' }}).
         when<SendData>({ name: 'send', data: { text: 'Hello world!' }}).
         then(({ domainEvents, state }): void => {
@@ -52,12 +56,14 @@ suite('message', (): void => {
 
   suite('like', (): void => {
     test('likes a message.', async (): Promise<void> => {
-      const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: v4() };
+      const aggregateIdentifier = {
+        context: { name: 'communication' },
+        aggregate: { name: 'message', id: v4() }
+      };
 
       await sandbox().
         withApplication({ application }).
-        forAggregate({ contextIdentifier, aggregateIdentifier }).
+        forAggregate({ aggregateIdentifier }).
         given<SentData>({ name: 'sent', data: { text: 'Hello world!' }}).
         when<LikeData>({ name: 'like', data: {}}).
         then(({ domainEvents, state }): void => {
@@ -69,12 +75,14 @@ suite('message', (): void => {
     });
 
     test('fails if the message was not yet sent.', async (): Promise<void> => {
-      const contextIdentifier = { name: 'communication' };
-      const aggregateIdentifier = { name: 'message', id: v4() };
+      const aggregateIdentifier = {
+        context: { name: 'communication' },
+        aggregate: { name: 'message', id: v4() }
+      };
 
       await sandbox().
         withApplication({ application }).
-        forAggregate({ contextIdentifier, aggregateIdentifier }).
+        forAggregate({ aggregateIdentifier }).
         when<LikeData>({ name: 'like', data: {}}).
         then(({ domainEvents, state }): void => {
           assert.that(domainEvents.length).is.equalTo(1);

@@ -93,7 +93,7 @@ class MySqlDomainEventStore implements DomainEventStore {
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revision DESC
           LIMIT 1`,
-        parameters: [ aggregateIdentifier.id ]
+        parameters: [ aggregateIdentifier.aggregate.id ]
       });
 
       if (rows.length === 0) {
@@ -327,7 +327,7 @@ class MySqlDomainEventStore implements DomainEventStore {
           WHERE aggregateId = UuidToBin(?)
           ORDER BY revision DESC
           LIMIT 1`,
-        parameters: [ aggregateIdentifier.id ]
+        parameters: [ aggregateIdentifier.aggregate.id ]
       });
 
       if (rows.length === 0) {
@@ -359,7 +359,7 @@ class MySqlDomainEventStore implements DomainEventStore {
     for (const domainEvent of domainEvents) {
       placeholders.push('(UuidToBin(?), ?, UuidToBin(?), UuidToBin(?), ?, ?)');
       parameters.push(
-        domainEvent.aggregateIdentifier.id,
+        domainEvent.aggregateIdentifier.aggregate.id,
         domainEvent.metadata.revision,
         domainEvent.metadata.causationId,
         domainEvent.metadata.correlationId,
@@ -400,7 +400,7 @@ class MySqlDomainEventStore implements DomainEventStore {
           (aggregateId, revision, state)
           VALUES (UuidToBin(?), ?, ?);`,
         parameters: [
-          snapshot.aggregateIdentifier.id,
+          snapshot.aggregateIdentifier.aggregate.id,
           snapshot.revision,
           JSON.stringify(snapshot.state)
         ]
@@ -408,6 +408,94 @@ class MySqlDomainEventStore implements DomainEventStore {
     } finally {
       MySqlDomainEventStore.releaseConnection({ connection });
     }
+  }
+
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    const connection = await this.getDatabase();
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const domainEventStream = connection.query(`
+      SELECT domainEvent, timestamp
+        FROM \`${this.tableNames.domainEvents}\`
+        WHERE revision = 1
+        ORDER BY timestamp ASC
+      `);
+
+    const unsubscribe = function (): void {
+      // Listeners should be removed here, but the mysql typings don't support
+      // that.
+      MySqlDomainEventStore.releaseConnection({ connection });
+    };
+
+    const onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+    const onError = function (err: MysqlError): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+    const onResult = function (row: any): void {
+      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
+
+      passThrough.write(domainEvent.aggregateIdentifier);
+    };
+
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+    domainEventStream.on('result', onResult);
+
+    return passThrough;
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    const connection = await this.getDatabase();
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const domainEventStream = connection.query(`
+      SELECT domainEvent, timestamp
+        FROM \`${this.tableNames.domainEvents}\`
+        WHERE revision = 1
+        ORDER BY timestamp ASC
+      `);
+
+    const unsubscribe = function (): void {
+      // Listeners should be removed here, but the mysql typings don't support
+      // that.
+      MySqlDomainEventStore.releaseConnection({ connection });
+    };
+
+    const onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+    const onError = function (err: MysqlError): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+    const onResult = function (row: any): void {
+      const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row.domainEvent));
+
+      if (
+        domainEvent.aggregateIdentifier.context.name !== contextName ||
+          domainEvent.aggregateIdentifier.aggregate.name !== aggregateName
+      ) {
+        return;
+      }
+
+      passThrough.write(domainEvent.aggregateIdentifier);
+    };
+
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+    domainEventStream.on('result', onResult);
+
+    return passThrough;
   }
 
   public async setup (): Promise<void> {

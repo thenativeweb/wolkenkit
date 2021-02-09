@@ -16,7 +16,7 @@ import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnv
 import { waitForSignals } from 'wait-for-signals';
 
 suite('view process', function (): void {
-  this.timeout(10_000);
+  this.timeout(60_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'withHardcodedViews', language: 'javascript' }),
         pubSubChannelForNotifications = 'notifications';

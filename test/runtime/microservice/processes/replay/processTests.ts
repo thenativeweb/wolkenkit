@@ -20,7 +20,7 @@ import { v4 } from 'uuid';
 import { Client as WriteDomainEventStoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
 
 suite('replay process', function (): void {
-  this.timeout(10_000);
+  this.timeout(60_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' });
 
@@ -170,29 +170,37 @@ suite('replay process', function (): void {
       await writeDomainEventStoreClient.storeDomainEvents({
         domainEvents: [
           buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: aggregateId }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: { revision: 1 }
           }),
           buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: aggregateId }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: { revision: 2 }
           }),
           buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: aggregateId }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: { revision: 3 }
           }),
           buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: aggregateId }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: { revision: 4 }
@@ -202,8 +210,10 @@ suite('replay process', function (): void {
 
       await replayClient.performReplay({
         aggregates: [{
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: aggregateId }
+          },
           from: 2,
           to: 3
         }]

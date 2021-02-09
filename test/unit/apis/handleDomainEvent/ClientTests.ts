@@ -44,8 +44,10 @@ suite('handleDomainEvent/http/Client', (): void => {
       test('throws an error if a domain event is sent with a non-existent context name.', async (): Promise<void> => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'nonExistent' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'nonExistent' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             id: v4(),
@@ -73,8 +75,10 @@ suite('handleDomainEvent/http/Client', (): void => {
       test('throws an error if a domain event is sent with a non-existent aggregate name.', async (): Promise<void> => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'nonExistent', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'nonExistent', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             id: v4(),
@@ -102,8 +106,10 @@ suite('handleDomainEvent/http/Client', (): void => {
       test('throws an error if a domain event is sent with a non-existent domain event name.', async (): Promise<void> => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'nonExistent',
             data: { strategy: 'succeed' },
             id: v4(),
@@ -131,8 +137,10 @@ suite('handleDomainEvent/http/Client', (): void => {
       test('throws an error if a domain event is sent with a payload that does not match the schema.', async (): Promise<void> => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'invalidValue' },
             id: v4(),
@@ -160,8 +168,10 @@ suite('handleDomainEvent/http/Client', (): void => {
       test('throws an error if a non-existent flow name is sent.', async (): Promise<void> => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             id: v4(),
@@ -189,8 +199,10 @@ suite('handleDomainEvent/http/Client', (): void => {
       test('sends domain events.', async (): Promise<void> => {
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             id: v4(),
@@ -212,7 +224,6 @@ suite('handleDomainEvent/http/Client', (): void => {
 
         assert.that(receivedDomainEvents.length).is.equalTo(1);
         assert.that(receivedDomainEvents[0]).is.atLeast({
-          contextIdentifier: domainEventExecuted.contextIdentifier,
           aggregateIdentifier: domainEventExecuted.aggregateIdentifier,
           name: domainEventExecuted.name,
           data: domainEventExecuted.data,
@@ -238,8 +249,10 @@ suite('handleDomainEvent/http/Client', (): void => {
 
         const domainEventExecuted = new DomainEvent({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             id: v4(),

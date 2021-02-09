@@ -23,8 +23,10 @@ suite('messages', (): void => {
       withApplication({ application }).
       forFlow({ flowName: 'messages' }).
       when({
-        contextIdentifier: { name: 'communication' },
-        aggregateIdentifier: { name: 'message', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'communication' },
+          aggregate: { name: 'message', id: aggregateId }
+        },
         name: 'sent',
         data: { text },
         metadata: { revision: 1, timestamp }
@@ -49,15 +51,19 @@ suite('messages', (): void => {
       withApplication({ application }).
       forFlow({ flowName: 'messages' }).
       when({
-        contextIdentifier: { name: 'communication' },
-        aggregateIdentifier: { name: 'message', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'communication' },
+          aggregate: { name: 'message', id: aggregateId }
+        },
         name: 'sent',
         data: { text: 'Hello world!' },
         metadata: { revision: 1 }
       }).
       and({
-        contextIdentifier: { name: 'communication' },
-        aggregateIdentifier: { name: 'message', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'communication' },
+          aggregate: { name: 'message', id: aggregateId }
+        },
         name: 'liked',
         data: { likes: 5 },
         metadata: { revision: 2 }
@@ -88,8 +94,10 @@ suite('messages', (): void => {
       withPublisher({ publisher }).
       forFlow({ flowName: 'messages' }).
       when({
-        contextIdentifier: { name: 'communication' },
-        aggregateIdentifier: { name: 'message', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'communication' },
+          aggregate: { name: 'message', id: aggregateId }
+        },
         name: 'sent',
         data: { text: 'Hello world!' },
         metadata: { revision: 1 }

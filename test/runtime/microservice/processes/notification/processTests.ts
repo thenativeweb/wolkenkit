@@ -14,7 +14,7 @@ import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnv
 import { waitForSignals } from 'wait-for-signals';
 
 suite('notification process', function (): void {
-  this.timeout(10_000);
+  this.timeout(60_000);
 
   const pubsubChannelForNotifications = 'notifications';
 

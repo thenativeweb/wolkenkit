@@ -2,19 +2,16 @@ import { AggregateIdentifier } from '../../elements/AggregateIdentifier';
 import { Client } from '../../elements/Client';
 import { CommandData } from '../../elements/CommandData';
 import { CommandWithMetadata } from '../../elements/CommandWithMetadata';
-import { ContextIdentifier } from '../../elements/ContextIdentifier';
 import { Initiator } from '../../elements/Initiator';
 import { v4 } from 'uuid';
 
 const buildCommandWithMetadata = function <TCommandData extends CommandData> ({
-  contextIdentifier,
   aggregateIdentifier,
   name,
   data,
   id,
   metadata
 }: {
-  contextIdentifier: ContextIdentifier;
   aggregateIdentifier: AggregateIdentifier;
   name: string;
   data: TCommandData;
@@ -28,7 +25,6 @@ const buildCommandWithMetadata = function <TCommandData extends CommandData> ({
   };
 }): CommandWithMetadata<TCommandData> {
   return new CommandWithMetadata({
-    contextIdentifier,
     aggregateIdentifier,
     name,
     data,

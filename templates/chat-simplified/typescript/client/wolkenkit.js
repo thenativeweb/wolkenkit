@@ -109,10 +109,10 @@ class Wolkenkit {
     this.port = port;
   }
 
-  async issueCommand ({ contextIdentifier, aggregateIdentifier, name, data }) {
-    const url = aggregateIdentifier.id ?
-      `${this.protocol}://${this.hostName}:${this.port}/command/v2/${contextIdentifier.name}/${aggregateIdentifier.name}/${aggregateIdentifier.id}/${name}` :
-      `${this.protocol}://${this.hostName}:${this.port}/command/v2/${contextIdentifier.name}/${aggregateIdentifier.name}/${name}`;
+  async issueCommand ({ aggregateIdentifier, name, data }) {
+    const url = aggregateIdentifier.aggregate.id ?
+      `${this.protocol}://${this.hostName}:${this.port}/command/v2/${aggregateIdentifier.context.name}/${aggregateIdentifier.aggregate.name}/${aggregateIdentifier.aggregate.id}/${name}` :
+      `${this.protocol}://${this.hostName}:${this.port}/command/v2/${aggregateIdentifier.context.name}/${aggregateIdentifier.aggregate.name}/${name}`;
 
     let response;
 

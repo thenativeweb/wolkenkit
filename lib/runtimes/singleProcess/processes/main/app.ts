@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { configurationDefinition } from './configurationDefinition';
@@ -28,6 +27,7 @@ import { loadApplication } from '../../../../common/application/loadApplication'
 import { Notification } from '../../../../common/elements/Notification';
 import { OnCancelCommand } from '../../../../apis/handleCommand/OnCancelCommand';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
+import { PerformReplay } from '../../../../common/domain/PerformReplay';
 import pForever from 'p-forever';
 import { processCommand } from './domain/processCommand';
 import { processDomainEvent } from './flow/processDomainEvent';
@@ -83,13 +83,13 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const onReceiveCommand: OnReceiveCommand = async function ({ command }): Promise<void> {
       await priorityQueueStoreForCommands.enqueue({
         item: command,
-        discriminator: command.aggregateIdentifier.id,
+        discriminator: command.aggregateIdentifier.aggregate.id,
         priority: command.metadata.timestamp
       });
     };
     const onCancelCommand: OnCancelCommand = async function ({ commandIdentifierWithClient }): Promise<void> {
       await priorityQueueStoreForCommands.remove({
-        discriminator: commandIdentifierWithClient.aggregateIdentifier.id,
+        discriminator: commandIdentifierWithClient.aggregateIdentifier.aggregate.id,
         itemIdentifier: commandIdentifierWithClient
       });
     };
@@ -97,9 +97,32 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const issueCommand = async function ({ command }: { command: CommandWithMetadata<CommandData> }): Promise<void> {
       await priorityQueueStoreForCommands.enqueue({
         item: command,
-        discriminator: command.aggregateIdentifier.id,
+        discriminator: command.aggregateIdentifier.aggregate.id,
         priority: command.metadata.timestamp
       });
+    };
+
+    const performReplay: PerformReplay = async function ({
+      flowNames,
+      aggregates
+    }): Promise<void> {
+      for (const flowName of flowNames) {
+        for (const aggregate of aggregates) {
+          const domainEventStream = await domainEventStore.getReplayForAggregate({
+            aggregateId: aggregate.aggregateIdentifier.aggregate.id,
+            fromRevision: aggregate.from,
+            toRevision: aggregate.to
+          });
+
+          for await (const domainEvent of domainEventStream) {
+            await priorityQueueStoreForDomainEvents.enqueue({
+              item: domainEvent,
+              discriminator: flowName,
+              priority: (domainEvent as DomainEvent<DomainEventData>).metadata.timestamp
+            });
+          }
+        }
+      }
     };
 
     const fileStore = await createFileStore(configuration.fileStoreOptions);
@@ -113,7 +136,8 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       repository,
       fileStore,
       subscriber,
-      channelForNotifications: configuration.pubSubOptions.channelForNotifications
+      channelForNotifications: configuration.pubSubOptions.channelForNotifications,
+      performReplay
     });
 
     const server = http.createServer(api);
@@ -173,27 +197,6 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       }
     };
 
-    const requestReplay = async function ({ flowName, aggregateIdentifier, from, to }: {
-      flowName: string;
-      aggregateIdentifier: AggregateIdentifier;
-      from: number;
-      to: number;
-    }): Promise<void> {
-      const domainEventStream = await domainEventStore.getReplayForAggregate({
-        aggregateId: aggregateIdentifier.id,
-        fromRevision: from,
-        toRevision: to
-      });
-
-      for await (const domainEvent of domainEventStream) {
-        await priorityQueueStoreForDomainEvents.enqueue({
-          item: domainEvent,
-          discriminator: flowName,
-          priority: (domainEvent as DomainEvent<DomainEventData>).metadata.timestamp
-        });
-      }
-    };
-
     for (let i = 0; i < configuration.concurrentCommands; i++) {
       pForever(async (): Promise<void> => {
         await processCommand({
@@ -221,7 +224,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
           },
           consumerProgressStore,
           issueCommand,
-          requestReplay
+          performReplay
         });
       });
     }

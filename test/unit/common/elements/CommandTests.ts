@@ -7,8 +7,10 @@ suite('Command', (): void => {
     const aggregateId = v4();
 
     const command = new Command({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregateId }
+      },
       name: 'sampleCommand',
       data: {
         strategy: 'succeed'
@@ -16,8 +18,10 @@ suite('Command', (): void => {
     });
 
     assert.that(command).is.equalTo({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregateId }
+      },
       name: 'sampleCommand',
       data: {
         strategy: 'succeed'

@@ -13,7 +13,7 @@ const getOnCancelCommand = function ({ priorityQueueStore }: {
   return async function ({ commandIdentifierWithClient }): Promise<void> {
     await priorityQueueStore.remove({
       itemIdentifier: commandIdentifierWithClient,
-      discriminator: commandIdentifierWithClient.aggregateIdentifier.id
+      discriminator: commandIdentifierWithClient.aggregateIdentifier.aggregate.id
     });
 
     logger.debug('Cancelled command by removing it from the priority queue.', { commandIdentifierWithClient });

@@ -1,7 +1,6 @@
 import { AggregateIdentifier } from '../elements/AggregateIdentifier';
 import { AggregateInstance } from './AggregateInstance';
 import { Application } from '../application/Application';
-import { ContextIdentifier } from '../elements/ContextIdentifier';
 import { DomainEventStore } from '../../stores/domainEventStore/DomainEventStore';
 import { GetAggregateService } from '../services/types/GetAggregateService';
 import { GetAggregatesService } from '../services/types/GetAggregatesService';
@@ -70,13 +69,11 @@ class Repository {
     this.serviceFactories = serviceFactories;
   }
 
-  public async getAggregateInstance <TState extends State> ({ contextIdentifier, aggregateIdentifier }: {
-    contextIdentifier: ContextIdentifier;
+  public async getAggregateInstance <TState extends State> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<AggregateInstance<TState>> {
     return await AggregateInstance.create({
       application: this.application,
-      contextIdentifier,
       aggregateIdentifier,
       lockStore: this.lockStore,
       domainEventStore: this.domainEventStore,

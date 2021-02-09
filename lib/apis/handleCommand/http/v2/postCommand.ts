@@ -32,9 +32,16 @@ const postCommand = {
         aggregateIdentifier: {
           type: 'object',
           properties: {
-            id: { type: 'string', format: 'uuid' }
+            aggregate: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', format: 'uuid' }
+              },
+              required: [ 'id' ],
+              additionalProperties: false
+            }
           },
-          required: [ 'id' ],
+          required: [ 'aggregate' ],
           additionalProperties: false
         }
       },
@@ -79,12 +86,14 @@ const postCommand = {
       }
 
       const command = new Command({
-        contextIdentifier: {
-          name: req.params.contextName
-        },
         aggregateIdentifier: {
-          name: req.params.aggregateName,
-          id: req.params.aggregateId
+          context: {
+            name: req.params.contextName
+          },
+          aggregate: {
+            name: req.params.aggregateName,
+            id: req.params.aggregateId
+          }
         },
         name: req.params.commandName,
         data: req.body
@@ -135,7 +144,9 @@ const postCommand = {
         const response = {
           id: commandId,
           aggregateIdentifier: {
-            id: commandWithMetadata.aggregateIdentifier.id
+            aggregate: {
+              id: commandWithMetadata.aggregateIdentifier.aggregate.id
+            }
           }
         };
 

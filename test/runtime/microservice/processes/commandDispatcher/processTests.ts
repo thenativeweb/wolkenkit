@@ -15,7 +15,7 @@ import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnv
 import { v4 } from 'uuid';
 
 suite('command dispatcher process', function (): void {
-  this.timeout(10_000);
+  this.timeout(60_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
@@ -89,12 +89,14 @@ suite('command dispatcher process', function (): void {
   suite('awaitCommand', (): void => {
     test('delivers a command that is sent to /handle-command/v2.', async (): Promise<void> => {
       const command = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {

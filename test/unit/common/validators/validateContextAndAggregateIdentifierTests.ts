@@ -5,13 +5,15 @@ import { errors } from '../../../../lib/common/errors';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { v4 } from 'uuid';
-import { validateContextAndAggregateIdentifier } from '../../../../lib/common/validators/validateContextAndAggregateIdentifier';
+import { validateAggregateIdentifier } from '../../../../lib/common/validators/validateAggregateIdentifier';
 
 suite('validateContextAndAggregateIdentifier', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-  const aggregateIdentifier = { name: 'sampleAggregate', id: v4() },
-        contextIdentifier = { name: 'sampleContext' };
+  const aggregateIdentifier = {
+    context: { name: 'sampleContext' },
+    aggregate: { name: 'sampleAggregate', id: v4() }
+  };
 
   let application: Application;
 
@@ -21,15 +23,17 @@ suite('validateContextAndAggregateIdentifier', (): void => {
 
   test('does not throw an error if everything is fine.', async (): Promise<void> => {
     assert.that((): void => {
-      validateContextAndAggregateIdentifier({ contextIdentifier, aggregateIdentifier, application });
+      validateAggregateIdentifier({ aggregateIdentifier, application });
     }).is.not.throwing();
   });
 
   test(`throws an error if the context doesn't exist in the application definition.`, async (): Promise<void> => {
     assert.that((): void => {
-      validateContextAndAggregateIdentifier({
-        contextIdentifier: { name: 'someContext' },
-        aggregateIdentifier,
+      validateAggregateIdentifier({
+        aggregateIdentifier: {
+          context: { name: 'someContext' },
+          aggregate: aggregateIdentifier.aggregate
+        },
         application
       });
     }).is.throwing(
@@ -41,9 +45,11 @@ suite('validateContextAndAggregateIdentifier', (): void => {
 
   test(`throws an error if the aggregate doesn't exist in the application definition.`, async (): Promise<void> => {
     assert.that((): void => {
-      validateContextAndAggregateIdentifier({
-        contextIdentifier,
-        aggregateIdentifier: { name: 'someAggregate', id: v4() },
+      validateAggregateIdentifier({
+        aggregateIdentifier: {
+          context: aggregateIdentifier.context,
+          aggregate: { name: 'someAggregate', id: v4() }
+        },
         application
       });
     }).is.throwing(

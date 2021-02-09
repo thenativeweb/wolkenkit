@@ -63,7 +63,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
     const hash = getHash({ value: consumerId });
 
     request.input('consumerId', Types.NChar, hash);
-    request.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+    request.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
 
     const { recordset } = await request.query(`
       SELECT [revision], [isReplayingFrom], [isReplayingTo]
@@ -89,6 +89,10 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
     aggregateIdentifier: AggregateIdentifier;
     revision: number;
   }): Promise<void> {
+    if (revision < 0) {
+      throw new errors.ParameterInvalid('Revision must be at least zero.');
+    }
+
     const hash = getHash({ value: consumerId });
 
     const transaction = this.pool.transaction();
@@ -100,7 +104,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
 
       requestUpdate.input('revision', Types.Int, revision);
       requestUpdate.input('consumerId', Types.NChar, hash);
-      requestUpdate.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+      requestUpdate.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
 
       const { rowsAffected } = await requestUpdate.query(`
         UPDATE [${this.tableNames.progress}]
@@ -118,7 +122,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
         const requestInsert = transaction.request();
 
         requestInsert.input('consumerId', Types.NChar, hash);
-        requestInsert.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+        requestInsert.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
         requestInsert.input('revision', Types.Int, revision);
 
         await requestInsert.query(`
@@ -151,6 +155,15 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
     aggregateIdentifier: AggregateIdentifier;
     isReplaying: IsReplaying;
   }): Promise<void> {
+    if (isReplaying) {
+      if (isReplaying.from < 1) {
+        throw new errors.ParameterInvalid('Replays must start from at least one.');
+      }
+      if (isReplaying.from > isReplaying.to) {
+        throw new errors.ParameterInvalid('Replays must start at an earlier revision than where they end at.');
+      }
+    }
+
     const hash = getHash({ value: consumerId });
 
     const transaction = this.pool.transaction();
@@ -161,7 +174,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
       const requestUpdate = transaction.request();
 
       requestUpdate.input('consumerId', Types.NChar, hash);
-      requestUpdate.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+      requestUpdate.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
       requestUpdate.input('isReplayingFrom', Types.Int, isReplaying ? isReplaying.from : null);
       requestUpdate.input('isReplayingTo', Types.Int, isReplaying ? isReplaying.to : null);
 
@@ -197,7 +210,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
         const requestInsert = transaction.request();
 
         requestInsert.input('consumerId', Types.NChar, hash);
-        requestInsert.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.id);
+        requestInsert.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
         requestInsert.input('isReplayingFrom', Types.Int, isReplaying ? isReplaying.from : null);
         requestInsert.input('isReplayingTo', Types.Int, isReplaying ? isReplaying.to : null);
 
@@ -238,6 +251,68 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
       DELETE FROM [${this.tableNames.progress}]
         WHERE [consumerId] = @consumerId;
     `);
+  }
+
+  public async resetProgressToRevision ({ consumerId, aggregateIdentifier, revision }: {
+    consumerId: string;
+    aggregateIdentifier: AggregateIdentifier;
+    revision: number;
+  }): Promise<void> {
+    if (revision < 0) {
+      throw new errors.ParameterInvalid('Revision must be at least zero.');
+    }
+
+    const { revision: currentRevision } = await this.getProgress({
+      consumerId,
+      aggregateIdentifier
+    });
+
+    if (currentRevision < revision) {
+      throw new errors.ParameterInvalid('Can not reset a consumer to a newer revision than it currently is at.');
+    }
+
+    const hash = getHash({ value: consumerId });
+
+    const transaction = this.pool.transaction();
+
+    await transaction.begin();
+
+    try {
+      const requestUpdate = transaction.request();
+
+      requestUpdate.input('revision', Types.Int, revision);
+      requestUpdate.input('consumerId', Types.NChar, hash);
+      requestUpdate.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
+
+      const { rowsAffected } = await requestUpdate.query(`
+        UPDATE [${this.tableNames.progress}]
+          SET [revision] = @revision, [isReplayingFrom] = NULL, [isReplayingTo] = NULL
+          WHERE [consumerId] = @consumerId AND [aggregateId] = @aggregateId;
+      `);
+
+      if (rowsAffected[0] === 1) {
+        await transaction.commit();
+
+        return;
+      }
+
+      const requestInsert = transaction.request();
+
+      requestInsert.input('consumerId', Types.NChar, hash);
+      requestInsert.input('aggregateId', Types.UniqueIdentifier, aggregateIdentifier.aggregate.id);
+      requestInsert.input('revision', Types.Int, revision);
+
+      await requestInsert.query(`
+        INSERT INTO [${this.tableNames.progress}]
+          ([consumerId], [aggregateId], [revision], [isReplayingFrom], [isReplayingTo])
+          VALUES (@consumerId, @aggregateId, @revision, NULL, NULL);
+      `);
+
+      await transaction.commit();
+    } catch (ex: unknown) {
+      await transaction.rollback();
+      throw ex;
+    }
   }
 
   public async setup (): Promise<void> {

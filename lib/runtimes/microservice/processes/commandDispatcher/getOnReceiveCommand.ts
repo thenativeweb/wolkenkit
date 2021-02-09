@@ -22,7 +22,7 @@ const getOnReceiveCommand = function ({
 
     await priorityQueueStore.enqueue({
       item: command,
-      discriminator: command.aggregateIdentifier.id,
+      discriminator: command.aggregateIdentifier.aggregate.id,
       priority: command.metadata.timestamp
     });
     await newCommandPublisher.publish({

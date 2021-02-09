@@ -103,14 +103,16 @@ suite('handleCommandWithMetadata/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.CommandMalformed.code,
-          message: 'Missing required property: contextIdentifier (at requestBody.contextIdentifier).'
+          message: 'Missing required property: aggregateIdentifier (at requestBody.aggregateIdentifier).'
         });
       });
 
       test('returns 400 if a wellformed command is sent with a non-existent context name.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
-          contextIdentifier: { name: 'nonExistent' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'nonExistent' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' },
           id: v4(),
@@ -150,8 +152,10 @@ suite('handleCommandWithMetadata/http', (): void => {
 
       test('returns 400 if a wellformed command is sent with a non-existent aggregate name.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'nonExistent', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'nonExistent', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' },
           id: v4(),
@@ -191,8 +195,10 @@ suite('handleCommandWithMetadata/http', (): void => {
 
       test('returns 400 if a wellformed command is sent with a non-existent command name.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'nonExistent',
           data: { strategy: 'succeed' },
           id: v4(),
@@ -232,8 +238,10 @@ suite('handleCommandWithMetadata/http', (): void => {
 
       test('returns 400 if a command is sent with a payload that does not match the schema.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'invalid-value' },
           id: v4(),
@@ -273,8 +281,10 @@ suite('handleCommandWithMetadata/http', (): void => {
 
       test('returns 200 if a wellformed and existing command is sent.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' },
           id: v4(),
@@ -306,8 +316,10 @@ suite('handleCommandWithMetadata/http', (): void => {
 
       test('receives commands.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' },
           id: v4(),
@@ -340,8 +352,10 @@ suite('handleCommandWithMetadata/http', (): void => {
 
       test('returns the ID of the received command.', async (): Promise<void> => {
         const command = new CommandWithMetadata({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' },
           id: v4(),
@@ -384,8 +398,10 @@ suite('handleCommandWithMetadata/http', (): void => {
         }));
 
         const command = new CommandWithMetadata({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' },
           id: v4(),
@@ -454,8 +470,10 @@ suite('handleCommandWithMetadata/http', (): void => {
             'content-type': ''
           },
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'execute',
             id: v4(),
             client: {
@@ -487,8 +505,10 @@ suite('handleCommandWithMetadata/http', (): void => {
             'content-type': 'text/plain'
           },
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'execute',
             id: v4(),
             client: {
@@ -526,7 +546,7 @@ suite('handleCommandWithMetadata/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.RequestMalformed.code,
-          message: 'Missing required property: contextIdentifier (at requestBody.contextIdentifier).'
+          message: 'Missing required property: aggregateIdentifier (at requestBody.aggregateIdentifier).'
         });
       });
 
@@ -537,8 +557,10 @@ suite('handleCommandWithMetadata/http', (): void => {
           method: 'post',
           url: '/v2/cancel',
           data: {
-            contextIdentifier: { name: 'nonExistent' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'nonExistent' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'execute',
             id: v4(),
             client: {
@@ -567,8 +589,10 @@ suite('handleCommandWithMetadata/http', (): void => {
           method: 'post',
           url: '/v2/cancel',
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'nonExistent', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'nonExistent', id: v4() }
+            },
             name: 'execute',
             id: v4(),
             client: {
@@ -597,8 +621,10 @@ suite('handleCommandWithMetadata/http', (): void => {
           method: 'post',
           url: '/v2/cancel',
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'nonExistent',
             id: v4(),
             client: {
@@ -627,8 +653,10 @@ suite('handleCommandWithMetadata/http', (): void => {
           method: 'post',
           url: '/v2/cancel',
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'execute',
             id: v4(),
             client: {
@@ -646,8 +674,10 @@ suite('handleCommandWithMetadata/http', (): void => {
         const { client } = await runAsServer({ app: api });
 
         const commandIdentifierWithClient = {
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           id: v4(),
           client: {
@@ -685,8 +715,10 @@ suite('handleCommandWithMetadata/http', (): void => {
           method: 'post',
           url: '/v2/cancel',
           data: {
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'execute',
             id: v4(),
             client: {

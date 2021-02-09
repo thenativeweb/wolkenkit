@@ -15,7 +15,7 @@ import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnv
 import { v4 } from 'uuid';
 
 suite('domain event dispatcher process', function (): void {
-  this.timeout(10_000);
+  this.timeout(60_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
@@ -96,12 +96,14 @@ suite('domain event dispatcher process', function (): void {
   suite('awaitDomainEvent', (): void => {
     test('delivers a domain event that is sent using the handle route.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'executed',
         data: { strategy: 'succeed' },

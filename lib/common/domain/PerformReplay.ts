@@ -1,10 +1,8 @@
-import { AggregateIdentifier } from '../../common/elements/AggregateIdentifier';
-import { ContextIdentifier } from '../../common/elements/ContextIdentifier';
+import { AggregateIdentifier } from '../elements/AggregateIdentifier';
 
 export type PerformReplay = ({ flowNames, aggregates }: {
   flowNames: string[];
   aggregates: {
-    contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
     from: number;
     to: number;

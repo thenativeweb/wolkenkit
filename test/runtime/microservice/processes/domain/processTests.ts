@@ -1,3 +1,4 @@
+import { AggregateIdentifier } from '../../../../../lib/common/elements/AggregateIdentifier';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { Client as AwaitDomainEventClient } from '../../../../../lib/apis/awaitItem/http/v2/Client';
@@ -25,9 +26,10 @@ import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subscribeMessages/http/v2/Client';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
+import { waitForSignals } from 'wait-for-signals';
 
 suite('domain process', function (): void {
-  this.timeout(10_000);
+  this.timeout(60_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
@@ -243,14 +245,16 @@ suite('domain process', function (): void {
   suite('authorization', (): void => {
     test(`publishes (and does not store) a rejected event if the sender of a command is not authorized.`, async (): Promise<void> => {
       const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
       };
 
       const command = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier,
         name: 'authorize',
         data: {
@@ -276,9 +280,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'authorizeRejected',
                   data: {
@@ -306,15 +307,17 @@ suite('domain process', function (): void {
 
   suite('handling', (): void => {
     test('publishes (and stores) an appropriate event for the incoming command.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
       };
 
       const command = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier,
         name: 'execute',
         data: {
@@ -340,9 +343,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'succeeded',
                   data: {}
@@ -355,9 +355,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'executed',
                   data: {
@@ -388,9 +385,6 @@ suite('domain process', function (): void {
       let { item, metadata } = await awaitDomainEventClient.awaitItem();
 
       assert.that(item).is.atLeast({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier,
         name: 'succeeded',
         data: {}
@@ -404,9 +398,6 @@ suite('domain process', function (): void {
       ({ item, metadata } = await awaitDomainEventClient.awaitItem());
 
       assert.that(item).is.atLeast({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier,
         name: 'executed',
         data: {
@@ -419,7 +410,7 @@ suite('domain process', function (): void {
         token: metadata.token
       });
 
-      const eventStream = await queryDomainEventStoreClient.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
+      const eventStream = await queryDomainEventStoreClient.getReplayForAggregate({ aggregateId: aggregateIdentifier.aggregate.id });
 
       await new Promise<void>((resolve, reject): void => {
         eventStream.on('error', (err: any): void => {
@@ -433,9 +424,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'succeeded',
                   data: {}
@@ -448,9 +436,6 @@ suite('domain process', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'executed',
                   data: {
@@ -473,12 +458,14 @@ suite('domain process', function (): void {
 
     test('handles multiple events in independent aggregates after each other.', async (): Promise<void> => {
       const command1 = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {
@@ -486,12 +473,14 @@ suite('domain process', function (): void {
         }
       });
       const command2 = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {
@@ -506,98 +495,87 @@ suite('domain process', function (): void {
       await handleCommandWithMetadataClient.postCommand({ command: command1 });
       await handleCommandWithMetadataClient.postCommand({ command: command2 });
 
-      await new Promise<void>((resolve, reject): void => {
-        messageStream.on('error', (err: any): void => {
-          reject(err);
-        });
-        messageStream.on('close', (): void => {
-          resolve();
-        });
-        messageStream.pipe(asJsonStream(
-          [
-            (data): void => {
-              try {
-                assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
-                  aggregateIdentifier: command1.aggregateIdentifier,
-                  name: 'succeeded',
-                  data: {}
-                });
-                resolve();
-              } catch (ex: unknown) {
-                reject(ex);
-              }
-            },
-            (data): void => {
-              try {
-                assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
-                  aggregateIdentifier: command1.aggregateIdentifier,
-                  name: 'executed',
-                  data: {
-                    strategy: 'succeed'
-                  }
-                });
-                resolve();
-              } catch (ex: unknown) {
-                reject(ex);
-              }
-            },
-            (data): void => {
-              try {
-                assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
-                  aggregateIdentifier: command2.aggregateIdentifier,
-                  name: 'succeeded',
-                  data: {}
-                });
-                resolve();
-              } catch (ex: unknown) {
-                reject(ex);
-              }
-            },
-            (data): void => {
-              try {
-                assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
-                  aggregateIdentifier: command2.aggregateIdentifier,
-                  name: 'executed',
-                  data: {
-                    strategy: 'succeed'
-                  }
-                });
-                resolve();
-              } catch (ex: unknown) {
-                reject(ex);
-              }
-            },
-            (): void => {
-              reject(new Error('Should only have received four messages.'));
-            }
-          ],
-          true
-        ));
+      const counter = waitForSignals({ count: 4 });
+
+      messageStream.on('error', async (err: any): Promise<void> => {
+        await counter.fail(err);
       });
+      messageStream.pipe(asJsonStream(
+        [
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
+                aggregateIdentifier: command1.aggregateIdentifier,
+                name: 'succeeded',
+                data: {}
+              });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
+                aggregateIdentifier: command1.aggregateIdentifier,
+                name: 'executed',
+                data: {
+                  strategy: 'succeed'
+                }
+              });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
+                aggregateIdentifier: command2.aggregateIdentifier,
+                name: 'succeeded',
+                data: {}
+              });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (data): Promise<void> => {
+            try {
+              assert.that(data).is.atLeast({
+                aggregateIdentifier: command2.aggregateIdentifier,
+                name: 'executed',
+                data: {
+                  strategy: 'succeed'
+                }
+              });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (): Promise<void> => {
+            await counter.fail(new Error('Should only have received four messages.'));
+          }
+        ],
+        true
+      ));
+
+      await counter.promise;
     });
 
     test('publishes notifications from command handlers.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
       };
 
       const command = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier,
         name: 'execute',
         data: {

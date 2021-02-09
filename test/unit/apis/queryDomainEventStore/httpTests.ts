@@ -4,6 +4,7 @@ import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createDomainEventStore } from '../../../../lib/stores/domainEventStore/createDomainEventStore';
+import { DomainEventData } from '../../../../lib/common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../lib/common/errors';
 import { getApi } from '../../../../lib/apis/queryDomainEventStore/http';
@@ -56,14 +57,16 @@ suite('queryDomainEventStore/http', (): void => {
 
       test('returns a stream that sends a heartbeat and then all domain events.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const firstDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -73,9 +76,6 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const secondDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -129,14 +129,16 @@ suite('queryDomainEventStore/http', (): void => {
 
       test('returns a stream that sends a heartbeat and then all domain events that match the given timestamp constraint.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const firstDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -147,9 +149,6 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const secondDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -160,9 +159,6 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const thirdDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -241,18 +237,25 @@ suite('queryDomainEventStore/http', (): void => {
     suite('GET /replay/:aggregateId', (): void => {
       test('returns a stream that sends a heartbeat and then ends instantly if there are no domain events for the selected aggregate to deliver.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
         const differentAggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const firstDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -268,7 +271,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         const { status, data, headers } = await client({
           method: 'get',
-          url: `/v2/replay/${differentAggregateIdentifier.id}`,
+          url: `/v2/replay/${differentAggregateIdentifier.aggregate.id}`,
           responseType: 'stream'
         });
 
@@ -290,14 +293,16 @@ suite('queryDomainEventStore/http', (): void => {
 
       test('returns a stream that sends a heartbeat and then all domain events.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const firstDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -307,9 +312,6 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const secondDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -325,7 +327,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         const { status, data, headers } = await client({
           method: 'get',
-          url: `/v2/replay/${aggregateIdentifier.id}`,
+          url: `/v2/replay/${aggregateIdentifier.aggregate.id}`,
           responseType: 'stream'
         });
 
@@ -363,14 +365,16 @@ suite('queryDomainEventStore/http', (): void => {
 
       test('returns a stream that sends a heartbeat and then all domain events that match the given revision constraints.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const firstDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -380,9 +384,6 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const secondDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -392,9 +393,6 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const thirdDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -410,7 +408,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         const { status, data, headers } = await client({
           method: 'get',
-          url: `/v2/replay/${aggregateIdentifier.id}?fromRevision=2&toRevision=2`,
+          url: `/v2/replay/${aggregateIdentifier.aggregate.id}?fromRevision=2&toRevision=2`,
           responseType: 'stream'
         });
 
@@ -444,14 +442,16 @@ suite('queryDomainEventStore/http', (): void => {
 
       test('closes the stream once the given to-revision-global is reached and does not deliver it.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const firstDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -461,9 +461,6 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const secondDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -479,7 +476,7 @@ suite('queryDomainEventStore/http', (): void => {
 
         const { status, data, headers } = await client({
           method: 'get',
-          url: `/v2/replay/${aggregateIdentifier.id}?toRevision=1`,
+          url: `/v2/replay/${aggregateIdentifier.aggregate.id}?toRevision=1`,
           responseType: 'stream'
         });
 
@@ -582,14 +579,16 @@ suite('queryDomainEventStore/http', (): void => {
     suite('GET /last-domain-event', (): void => {
       test('retrieves the last domain event for a given aggregate identifier.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const domainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -614,14 +613,16 @@ suite('queryDomainEventStore/http', (): void => {
 
       test('retrieves the latest domain event if multiple were stored.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const firstDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -631,9 +632,6 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const secondDomainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {},
@@ -668,14 +666,19 @@ suite('queryDomainEventStore/http', (): void => {
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
           code: errors.AggregateIdentifierMalformed.code,
-          message: 'Missing required property: name (at requestQuery.aggregateIdentifier.name).'
+          message: 'Missing required property: context (at requestQuery.aggregateIdentifier.context).'
         });
       });
 
       test('returns 404 if no domain events exist for the given aggregate identifier.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const { client } = await runAsServer({ app: api });
@@ -693,12 +696,14 @@ suite('queryDomainEventStore/http', (): void => {
     suite('GET /domain-events-by-causation-id', (): void => {
       test('stream ends immediately if no events with a matching causation id exist.', async (): Promise<void> => {
         const domainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {},
@@ -740,12 +745,14 @@ suite('queryDomainEventStore/http', (): void => {
         const causationId = v4();
 
         const domainEvent1 = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {},
@@ -758,12 +765,14 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const domainEvent2 = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {},
@@ -776,12 +785,14 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const domainEvent3 = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {},
@@ -849,12 +860,14 @@ suite('queryDomainEventStore/http', (): void => {
     suite('GET /has-domain-events-with-causation-id', (): void => {
       test('returns false if no events with a matching causation id exist.', async (): Promise<void> => {
         const domainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {},
@@ -883,12 +896,14 @@ suite('queryDomainEventStore/http', (): void => {
         const causationId = v4();
 
         const domainEvent1 = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {},
@@ -901,12 +916,14 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const domainEvent2 = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {},
@@ -919,12 +936,14 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const domainEvent3 = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {},
@@ -953,12 +972,14 @@ suite('queryDomainEventStore/http', (): void => {
     suite('GET /domain-events-by-correlation-id', (): void => {
       test('returns an empty array if no events with a matching correlation id exist.', async (): Promise<void> => {
         const domainEvent = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {},
@@ -1000,12 +1021,14 @@ suite('queryDomainEventStore/http', (): void => {
         const correlationId = v4();
 
         const domainEvent1 = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {},
@@ -1018,12 +1041,14 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const domainEvent2 = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {},
@@ -1036,12 +1061,14 @@ suite('queryDomainEventStore/http', (): void => {
           }
         });
         const domainEvent3 = buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {},
@@ -1109,8 +1136,13 @@ suite('queryDomainEventStore/http', (): void => {
     suite('GET /snapshot', (): void => {
       test('retrieves the snapshot for a given aggregate identifier.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const snapshot: Snapshot<object> = {
@@ -1136,8 +1168,13 @@ suite('queryDomainEventStore/http', (): void => {
 
       test('retrieves the latest snapshot if multiple were stored.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const firstSnapshot: Snapshot<object> = {
@@ -1179,13 +1216,18 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(400);
-        assert.that(data).is.equalTo('Missing required property: name (at requestQuery.aggregateIdentifier.name).');
+        assert.that(data).is.equalTo('Missing required property: context (at requestQuery.aggregateIdentifier.context).');
       });
 
       test('returns 404 if no snapshot exists for the given aggregate identifier.', async (): Promise<void> => {
         const aggregateIdentifier: AggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         };
 
         const { client } = await runAsServer({ app: api });
@@ -1197,6 +1239,425 @@ suite('queryDomainEventStore/http', (): void => {
         });
 
         assert.that(status).is.equalTo(404);
+      });
+    });
+
+    suite('GET /get-aggregate-identifiers', (): void => {
+      test('returns a stream that sends a heartbeat and then ends instantly if there are no aggregate identifiers to deliver.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: '/v2/get-aggregate-identifiers',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const counter = waitForSignals({ count: 1 });
+
+        data.on('data', async (stuff: any): Promise<void> => {
+          assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
+          await counter.signal();
+        });
+        data.on('error', async (): Promise<void> => {
+          await counter.fail();
+        });
+
+        await counter.promise;
+      });
+
+      test('returns a stream that sends a heartbeat and then all aggregate identifiers of all aggregates that have domain events in the store.', async (): Promise<void> => {
+        const aggregateIdentifierOne: AggregateIdentifier = {
+          context: {
+            name: 'planning'
+          },
+          aggregate: {
+            name: 'peerGroup',
+            id: v4()
+          }
+        };
+
+        const domainEventStartedOne = buildDomainEvent({
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const aggregateIdentifierTwo: AggregateIdentifier = {
+          context: {
+            name: 'planning'
+          },
+          aggregate: {
+            name: 'peerGroup',
+            id: v4()
+          }
+        };
+        const domainEventStartedTwo = buildDomainEvent({
+          aggregateIdentifier: aggregateIdentifierTwo,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({
+          domainEvents: [ domainEventStartedOne, domainEventStartedTwo ]
+        });
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: '/v2/get-aggregate-identifiers',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const counter = waitForSignals({ count: 3 });
+
+        data.on('error', async (): Promise<void> => {
+          await counter.fail();
+        });
+
+        data.pipe(asJsonStream([
+          async (heartbeat): Promise<void> => {
+            try {
+              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (aggregateIdentifier): Promise<void> => {
+            try {
+              assert.that(aggregateIdentifier).is.equalTo(aggregateIdentifierOne);
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (aggregateIdentifier): Promise<void> => {
+            try {
+              assert.that(aggregateIdentifier).is.equalTo(aggregateIdentifierTwo);
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          }
+        ]));
+
+        await counter.promise;
+      });
+
+      test('emits each aggregate identifier only once.', async (): Promise<void> => {
+        const aggregateIdentifierOne: AggregateIdentifier = {
+          context: {
+            name: 'planning'
+          },
+          aggregate: {
+            name: 'peerGroup',
+            id: v4()
+          }
+        };
+
+        const domainEventStarted = buildDomainEvent({
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const domainEventJoinedFirst = buildDomainEvent({
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'joined',
+          data: { participant: 'Jane Doe' },
+          metadata: {
+            revision: 2,
+            timestamp: 2,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        await domainEventStore.storeDomainEvents<DomainEventData>({
+          domainEvents: [ domainEventStarted, domainEventJoinedFirst ]
+        });
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: '/v2/get-aggregate-identifiers',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const counter = waitForSignals({ count: 2 });
+
+        data.on('error', async (): Promise<void> => {
+          await counter.fail();
+        });
+
+        data.pipe(asJsonStream([
+          async (heartbeat): Promise<void> => {
+            try {
+              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (aggregateIdentifier): Promise<void> => {
+            try {
+              assert.that(aggregateIdentifier).is.equalTo(aggregateIdentifier);
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          }
+        ]));
+
+        await counter.promise;
+      });
+    });
+
+    suite('GET /get-aggregate-identifiers-by-name', (): void => {
+      test('returns a stream that sends a heartbeat and then ends instantly if there are no aggregate identifiers to deliver.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: '/v2/get-aggregate-identifiers-by-name?contextName=planning&aggregateName=peerGroup',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const counter = waitForSignals({ count: 1 });
+
+        data.on('data', async (stuff: any): Promise<void> => {
+          assert.that(JSON.parse(stuff.toString())).is.equalTo({ name: 'heartbeat' });
+          await counter.signal();
+        });
+        data.on('error', async (): Promise<void> => {
+          await counter.fail();
+        });
+
+        await counter.promise;
+      });
+
+      test('returns a stream that sends a heartbeat and then streams the aggregate identifiers that belong to the given aggregate name and have domain events in the store.', async (): Promise<void> => {
+        const aggregateIdentifierOne: AggregateIdentifier = {
+          context: {
+            name: 'planning'
+          },
+          aggregate: {
+            name: 'peerGroup',
+            id: v4()
+          }
+        };
+        const domainEventStartedOne = buildDomainEvent({
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const aggregateIdentifierTwo: AggregateIdentifier = {
+          context: {
+            name: 'planning'
+          },
+          aggregate: {
+            name: 'peerGroup',
+            id: v4()
+          }
+        };
+        const domainEventStartedTwo = buildDomainEvent({
+          aggregateIdentifier: aggregateIdentifierTwo,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 2,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const aggregateIdentifierThree: AggregateIdentifier = {
+          context: {
+            name: 'planning'
+          },
+          aggregate: {
+            name: 'peerGroup',
+            id: v4()
+          }
+        };
+        const domainEventThree = buildDomainEvent({
+          aggregateIdentifier: aggregateIdentifierThree,
+          name: 'foo',
+          data: {},
+          metadata: {
+            revision: 1,
+            timestamp: 3,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+          }
+        });
+
+        await domainEventStore.storeDomainEvents({
+          domainEvents: [ domainEventStartedOne, domainEventStartedTwo, domainEventThree ]
+        });
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: '/v2/get-aggregate-identifiers-by-name?contextName=planning&aggregateName=peerGroup',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const counter = waitForSignals({ count: 3 });
+
+        data.on('error', async (): Promise<void> => {
+          await counter.fail();
+        });
+
+        data.pipe(asJsonStream([
+          async (heartbeat): Promise<void> => {
+            try {
+              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (aggregateIdentifier): Promise<void> => {
+            try {
+              assert.that(aggregateIdentifier).is.equalTo(aggregateIdentifierOne);
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (aggregateIdentifier): Promise<void> => {
+            try {
+              assert.that(aggregateIdentifier).is.equalTo(aggregateIdentifierTwo);
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          }
+        ]));
+
+        await counter.promise;
+      });
+
+      test('emits each aggregate identifier only once.', async (): Promise<void> => {
+        const aggregateIdentifierOne: AggregateIdentifier = {
+          context: {
+            name: 'planning'
+          },
+          aggregate: {
+            name: 'peerGroup',
+            id: v4()
+          }
+        };
+
+        const domainEventStarted = buildDomainEvent({
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'started',
+          data: { initiator: 'Jane Doe', destination: 'Riva' },
+          metadata: {
+            revision: 1,
+            timestamp: 1,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        const domainEventJoinedFirst = buildDomainEvent({
+          aggregateIdentifier: aggregateIdentifierOne,
+          name: 'joined',
+          data: { participant: 'Jane Doe' },
+          metadata: {
+            revision: 2,
+            timestamp: 2,
+            initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+            tags: [ 'gdpr' ]
+          }
+        });
+
+        await domainEventStore.storeDomainEvents<DomainEventData>({
+          domainEvents: [ domainEventStarted, domainEventJoinedFirst ]
+        });
+
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data, headers } = await client({
+          method: 'get',
+          url: '/v2/get-aggregate-identifiers-by-name?contextName=planning&aggregateName=peerGroup',
+          responseType: 'stream'
+        });
+
+        assert.that(status).is.equalTo(200);
+        assert.that(headers['content-type']).is.equalTo('application/x-ndjson');
+
+        const counter = waitForSignals({ count: 2 });
+
+        data.on('error', async (): Promise<void> => {
+          await counter.fail();
+        });
+
+        data.pipe(asJsonStream([
+          async (heartbeat): Promise<void> => {
+            try {
+              assert.that(heartbeat).is.equalTo({ name: 'heartbeat' });
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          },
+          async (aggregateIdentifier): Promise<void> => {
+            try {
+              assert.that(aggregateIdentifier).is.equalTo(aggregateIdentifier);
+              await counter.signal();
+            } catch (ex: unknown) {
+              await counter.fail(ex);
+            }
+          }
+        ]));
+
+        await counter.promise;
       });
     });
   });

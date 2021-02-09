@@ -6,8 +6,7 @@ import { ItemIdentifierWithClient } from '../elements/ItemIdentifierWithClient';
 
 const doesItemIdentifierWithClientMatchDomainEvent: DoesIdentifierMatchItem<DomainEvent<DomainEventData>, ItemIdentifierWithClient> =
     function ({ item, itemIdentifier }): boolean {
-      return isEqual(item.contextIdentifier, itemIdentifier.contextIdentifier) &&
-        isEqual(item.aggregateIdentifier, itemIdentifier.aggregateIdentifier) &&
+      return isEqual(item.aggregateIdentifier, itemIdentifier.aggregateIdentifier) &&
         item.name === itemIdentifier.name &&
         item.id === itemIdentifier.id &&
         isEqual(item.metadata.initiator.user, itemIdentifier.client.user);
