@@ -183,7 +183,7 @@ class PostgresDomainEventStore implements DomainEventStore {
         values: [ causationId ]
       });
 
-      return result.rows.length !== 0;
+      return result.rows.length > 0;
     } finally {
       connection.release();
     }

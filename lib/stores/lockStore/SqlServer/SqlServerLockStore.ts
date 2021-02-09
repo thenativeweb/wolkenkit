@@ -176,7 +176,7 @@ class SqlServerLockStore implements LockStore {
           END
       `);
     } catch (ex: unknown) {
-      if (!/There is already an object named.*_locks/u.exec((ex as Error).message)) {
+      if (!/There is already an object named.*_locks/u.test((ex as Error).message)) {
         throw ex;
       }
 

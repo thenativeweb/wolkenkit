@@ -177,12 +177,12 @@ const replayCommand = function (): Command<ReplayOptions> {
         }[] = [];
 
         for (const aggregateConfiguration of aggregateConfigurationsWithOptionalRevisions) {
-          const { aggregateIdentifier } = aggregateConfiguration;
+          const { aggregateIdentifier, from, to } = aggregateConfiguration;
 
           aggregateConfigurations.push({
             aggregateIdentifier,
-            from: aggregateConfiguration.from ?? 1,
-            to: aggregateConfiguration.to ?? (await domainEventStore.getLastDomainEvent({ aggregateIdentifier }))!.metadata.revision
+            from: from ?? 1,
+            to: to ?? (await domainEventStore.getLastDomainEvent({ aggregateIdentifier }))!.metadata.revision
           });
         }
 

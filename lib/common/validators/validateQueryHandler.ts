@@ -29,22 +29,16 @@ const validateQueryHandler = function ({ queryHandler }: {
     throw new errors.QueryHandlerMalformed(`Property 'isAuthorized' is not a function.`);
   }
 
-  if (!isUndefined(queryHandler.getDocumentation)) {
-    if (!isFunction(queryHandler.getDocumentation)) {
-      throw new errors.QueryHandlerMalformed(`Property 'getDocumentation' is not a function.`);
-    }
+  if (!isUndefined(queryHandler.getDocumentation) && !isFunction(queryHandler.getDocumentation)) {
+    throw new errors.QueryHandlerMalformed(`Property 'getDocumentation' is not a function.`);
   }
 
-  if (!isUndefined(queryHandler.getOptionsSchema)) {
-    if (!isFunction(queryHandler.getOptionsSchema)) {
-      throw new errors.QueryHandlerMalformed(`Property 'getOptionsSchema' is not a function.`);
-    }
+  if (!isUndefined(queryHandler.getOptionsSchema) && !isFunction(queryHandler.getOptionsSchema)) {
+    throw new errors.QueryHandlerMalformed(`Property 'getOptionsSchema' is not a function.`);
   }
 
-  if (!isUndefined(queryHandler.getItemSchema)) {
-    if (!isFunction(queryHandler.getItemSchema)) {
-      throw new errors.QueryHandlerMalformed(`Property 'getItemSchema' is not a function.`);
-    }
+  if (!isUndefined(queryHandler.getItemSchema) && !isFunction(queryHandler.getItemSchema)) {
+    throw new errors.QueryHandlerMalformed(`Property 'getItemSchema' is not a function.`);
   }
 };
 

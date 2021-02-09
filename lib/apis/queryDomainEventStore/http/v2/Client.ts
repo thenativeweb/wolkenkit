@@ -148,6 +148,7 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
+      // eslint-disable-next-line unicorn/prefer-spread
       logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
 
       throw new errors.UnknownError(data.message);
@@ -252,6 +253,7 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
+      // eslint-disable-next-line unicorn/prefer-spread
       logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
 
       throw new errors.UnknownError(data.message);
@@ -286,6 +288,7 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
+      // eslint-disable-next-line unicorn/prefer-spread
       logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
 
       throw new errors.UnknownError(data.message);
