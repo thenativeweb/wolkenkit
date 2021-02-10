@@ -5,6 +5,7 @@ import { Response } from 'express';
 import { Schema } from '../../../../common/elements/Schema';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 
@@ -61,7 +62,10 @@ const awaitItem = {
       const nextLock = await priorityQueueStore.lockNext();
 
       if (nextLock !== undefined) {
-        logger.info('Locked priority queue item.', nextLock);
+        logger.info(
+          'Locked priority queue item.',
+          withLogMetadata('api', 'awaitItem', { nextLock })
+        );
 
         await validateOutgoingItem({ item: nextLock.item });
         responseBodySchema.validate(nextLock, { valueName: 'responseBody' });
@@ -95,7 +99,10 @@ const awaitItem = {
             });
           }
         } catch (ex: unknown) {
-          logger.error('An unexpected error occured when locking an item.', { ex });
+          logger.error(
+            'An unexpected error occured when locking an item.',
+            withLogMetadata('api', 'awaitItem', { err: ex })
+          );
         }
       };
 

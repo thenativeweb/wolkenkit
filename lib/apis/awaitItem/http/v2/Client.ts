@@ -4,6 +4,7 @@ import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { LockMetadata } from '../../../../stores/priorityQueueStore/LockMetadata';
 import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -68,6 +69,10 @@ class Client<TItem> extends HttpClient {
         passThrough,
         (err): void => {
           if (err) {
+            logger.error(
+              'An error occured during stream piping.',
+              withLogMetadata('api-client', 'awaitItem', { err })
+            );
             reject(err);
           }
         }
@@ -111,7 +116,10 @@ class Client<TItem> extends HttpClient {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'awaitItem', { err: data, status })
+        );
 
         throw new errors.UnknownError();
       }
@@ -149,7 +157,10 @@ class Client<TItem> extends HttpClient {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'awaitItem', { err: data, status })
+        );
 
         throw new errors.UnknownError();
       }
@@ -188,7 +199,10 @@ class Client<TItem> extends HttpClient {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'awaitItem', { err: data, status })
+        );
 
         throw new errors.UnknownError();
       }

@@ -6,6 +6,7 @@ import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/Priori
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
@@ -77,6 +78,11 @@ const renewLock = {
           token
         });
 
+        logger.info(
+          'Renewed priority queue item lock.',
+          withLogMetadata('api', 'awaitItem')
+        );
+
         const response = {};
 
         responseBodySchema.validate(response, { valueName: 'responseBody' });
@@ -105,7 +111,10 @@ const renewLock = {
             return;
           }
           default: {
-            logger.error('An unknown error occured.', { ex: error });
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'awaitItem', { err: ex })
+            );
 
             res.status(500).json({
               code: error.code,
