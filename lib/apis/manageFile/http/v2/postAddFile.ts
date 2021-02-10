@@ -75,7 +75,7 @@ const postAddFile = {
         let fileAddMetadata = {
           id: req.headers['x-id'] as string,
           name: req.headers['x-name'] as string,
-          contentType: req.headers['content-type'] as string
+          contentType: req.headers['content-type']!
         };
 
         if (application.hooks.addingFile) {

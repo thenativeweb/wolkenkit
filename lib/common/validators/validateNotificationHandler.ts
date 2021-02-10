@@ -15,22 +15,16 @@ const validateNotificationHandler = function ({ notificationHandler }: {
     throw new errors.NotificationHandlerMalformed(`Property 'isAuthorized' is not a function.`);
   }
 
-  if (!isUndefined(notificationHandler.getDocumentation)) {
-    if (!isFunction(notificationHandler.getDocumentation)) {
-      throw new errors.NotificationHandlerMalformed(`Property 'getDocumentation' is not a function.`);
-    }
+  if (!isUndefined(notificationHandler.getDocumentation) && !isFunction(notificationHandler.getDocumentation)) {
+    throw new errors.NotificationHandlerMalformed(`Property 'getDocumentation' is not a function.`);
   }
 
-  if (!isUndefined(notificationHandler.getDataSchema)) {
-    if (!isFunction(notificationHandler.getDataSchema)) {
-      throw new errors.NotificationHandlerMalformed(`Property 'getDataSchema' is not a function.`);
-    }
+  if (!isUndefined(notificationHandler.getDataSchema) && !isFunction(notificationHandler.getDataSchema)) {
+    throw new errors.NotificationHandlerMalformed(`Property 'getDataSchema' is not a function.`);
   }
 
-  if (!isUndefined(notificationHandler.getMetadataSchema)) {
-    if (!isFunction(notificationHandler.getMetadataSchema)) {
-      throw new errors.NotificationHandlerMalformed(`Property 'getMetadataSchema' is not a function.`);
-    }
+  if (!isUndefined(notificationHandler.getMetadataSchema) && !isFunction(notificationHandler.getMetadataSchema)) {
+    throw new errors.NotificationHandlerMalformed(`Property 'getMetadataSchema' is not a function.`);
   }
 };
 

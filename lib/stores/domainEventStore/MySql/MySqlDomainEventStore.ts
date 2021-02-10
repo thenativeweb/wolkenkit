@@ -163,7 +163,7 @@ class MySqlDomainEventStore implements DomainEventStore {
         parameters: [ causationId ]
       });
 
-      return rows.length !== 0;
+      return rows.length > 0;
     } finally {
       MySqlDomainEventStore.releaseConnection({ connection });
     }

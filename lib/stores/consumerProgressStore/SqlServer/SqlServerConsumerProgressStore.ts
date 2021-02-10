@@ -332,7 +332,7 @@ class SqlServerConsumerProgressStore implements ConsumerProgressStore {
           END
       `);
     } catch (ex: unknown) {
-      if (!/There is already an object named.*_progress/u.exec((ex as Error).message)) {
+      if (!/There is already an object named.*_progress/u.test((ex as Error).message)) {
         throw ex;
       }
 

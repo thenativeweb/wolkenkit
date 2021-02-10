@@ -463,6 +463,10 @@ suite('AggregateInstance', (): void => {
           command
         });
 
+        // Since state is being replaced internally when handling a command with a new instance,
+        // using destructuring for getting the state does not work, since then you'd only have
+        // a reference to the old state. Hence we need to disable this ESLint rule here.
+        // eslint-disable-next-line unicorn/consistent-destructuring
         assert.that(aggregateInstance.state).is.equalTo({
           domainEventNames: [ 'succeeded', 'executed' ]
         });

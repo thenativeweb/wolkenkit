@@ -10,7 +10,7 @@ import { v4 } from 'uuid';
 suite('getCommandService', (): void => {
   test('calls onIssueCommand with the created command with metadata.', async (): Promise<void> => {
     const issuedCommands: CommandWithMetadata<CommandData>[] = [];
-    const onIssueCommand = ({ command }: { command: CommandWithMetadata<CommandData>}): void => {
+    const onIssueCommand = ({ command }: { command: CommandWithMetadata<CommandData> }): void => {
       issuedCommands.push(command);
     };
 
@@ -66,7 +66,7 @@ suite('getCommandService', (): void => {
 
   test(`uses the domain event's initiator if none is given.`, async (): Promise<void> => {
     const issuedCommands: CommandWithMetadata<CommandData>[] = [];
-    const onIssueCommand = ({ command }: { command: CommandWithMetadata<CommandData>}): void => {
+    const onIssueCommand = ({ command }: { command: CommandWithMetadata<CommandData> }): void => {
       issuedCommands.push(command);
     };
 

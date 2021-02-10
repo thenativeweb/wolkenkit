@@ -208,7 +208,7 @@ class InMemoryPriorityQueueStore<TItem extends object, TItemIdentifier> implemen
     );
   }
 
-  protected lockNextInternal (): { item: TItem; metadata: LockMetadata} | undefined {
+  protected lockNextInternal (): { item: TItem; metadata: LockMetadata } | undefined {
     if (this.queues.length === 0) {
       return;
     }
@@ -314,7 +314,7 @@ class InMemoryPriorityQueueStore<TItem extends object, TItemIdentifier> implemen
       throw new errors.ItemNotFound();
     }
 
-    const queue = this.queues[queueIndex] as Queue<TItem>;
+    const queue = this.queues[queueIndex]!;
 
     const foundItemIndex = queue.items.findIndex(({ item }: { item: TItem }): boolean => this.doesIdentifierMatchItem({ item, itemIdentifier }));
 

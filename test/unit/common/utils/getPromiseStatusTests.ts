@@ -17,7 +17,7 @@ suite('getPromiseStatus', (): void => {
   });
 
   test(`returns 'rejected' for a rejected promise.`, async (): Promise<void> => {
-    const promise = Promise.reject(new Error());
+    const promise = Promise.reject(new Error('Something went wrong.'));
 
     assert.that(await getPromiseStatus(promise)).is.equalTo('rejected');
   });

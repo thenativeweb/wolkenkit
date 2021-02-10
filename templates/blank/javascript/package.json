@@ -5,7 +5,7 @@
   "dependencies": {},
   "devDependencies": {
     "mocha": "8.2.1",
-    "run-script-os": "1.1.4"
+    "run-script-os": "1.1.5"
   },
   "scripts": {
     "test": "run-script-os",
