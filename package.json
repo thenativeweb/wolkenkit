@@ -110,7 +110,7 @@
     "wolkenkit": "build/lib/bin/wolkenkit.js"
   },
   "engines": {
-    "node": ">=14.15.4"
+    "node": ">=14.15.5"
   },
   "dependencies": {
     "@types/async-retry": "1.4.2",
@@ -195,7 +195,7 @@
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "record-stdstreams": "3.0.39",
-    "roboter": "11.6.13",
+    "roboter": "11.6.14",
     "subscriptions-transport-ws": "0.9.18",
     "temp": "0.9.4",
     "thenativeweb-ux": "5.8.38",

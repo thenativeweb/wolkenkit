@@ -32,7 +32,6 @@ class InMemoryFileStore implements FileStore {
       contentLength += chunk.length;
     }
 
-    // eslint-disable-next-line unicorn/prefer-spread
     const data = Buffer.concat(chunks),
           metadata = { id, name, contentType, contentLength };
 
