@@ -7,6 +7,7 @@ import { Notification } from '../../../../common/elements/Notification';
 import PQueue from 'p-queue';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { validateNotification } from '../../../../common/validators/validateNotification';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import { Request, Response } from 'express';
@@ -46,7 +47,10 @@ const getNotifications = {
           try {
             validateNotification({ notification, application });
           } catch {
-            logger.warn('Dropping invalid notification.', { notification });
+            logger.warn(
+              'Dropping invalid notification.',
+              withLogMetadata('api', 'subscribeNotifications', { notification })
+            );
 
             return;
           }
@@ -93,7 +97,10 @@ const getNotifications = {
           return;
         }
 
-        logger.error('An unexpected error occured.', { ex });
+        logger.error(
+          'An unexpected error occured.',
+          withLogMetadata('api', 'subscribeNotifications', { err: ex })
+        );
 
         throw ex;
       }
