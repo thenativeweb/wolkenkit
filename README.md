@@ -13,7 +13,7 @@ wolkenkit is a CQRS and event-sourcing framework based on Node.js. It empowers y
 | Version          | [![npm](https://img.shields.io/npm/v/wolkenkit)](https://www.npmjs.com/package/wolkenkit)                                                      |
 | Dependencies     | ![David](https://img.shields.io/david/thenativeweb/wolkenkit)                                                                                  |
 | Dev dependencies | ![David](https://img.shields.io/david/dev/thenativeweb/wolkenkit)                                                                              |
-| Build            | ![GitHub Actions](https://github.com/thenativeweb/wolkenkit/workflows/Release/badge.svg?branch=master) |
+| Build            | ![GitHub Actions](https://github.com/thenativeweb/wolkenkit/workflows/Release/badge.svg?branch=main) |
 | License          | ![GitHub](https://img.shields.io/github/license/thenativeweb/wolkenkit)                                                                        |
 
 ## Quick start
