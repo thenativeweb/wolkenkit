@@ -105,7 +105,7 @@ const cancelCommand = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'handleCommandWithMetadata', { ex })
+              withLogMetadata('api', 'handleCommandWithMetadata', { err: ex })
             );
 
             res.status(500).json({

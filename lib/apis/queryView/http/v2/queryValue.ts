@@ -85,7 +85,7 @@ const queryValue = {
             break;
           }
           case errors.QueryResultInvalid.code: {
-            logger.error('An invalid query result was caught.', { ex: error });
+            logger.error('An invalid query result was caught.', { err: error });
 
             res.status(404).json({
               code: errors.NotFound.code
@@ -105,7 +105,7 @@ const queryValue = {
             break;
           }
           default: {
-            logger.error('An unknown error occured.', { ex });
+            logger.error('An unknown error occured.', { err: ex });
 
             res.status(500).json({
               code: error.code

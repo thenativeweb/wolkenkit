@@ -91,7 +91,7 @@ const getV2 = async function ({
     for (const error of schemaValidationErrors) {
       logger.fatal(
         'GraphQL schema validation failed.',
-        withLogMetadata('api', 'graphql', { error })
+        withLogMetadata('api', 'graphql', { err: error })
       );
     }
     throw new errors.GraphQlError('GraphQL schema validation failed.');

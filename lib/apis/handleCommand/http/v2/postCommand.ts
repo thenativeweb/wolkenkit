@@ -160,7 +160,7 @@ const postCommand = {
       } catch (ex: unknown) {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api', 'handleCommand', { ex })
+          withLogMetadata('api', 'handleCommand', { err: ex })
         );
 
         const error = new errors.UnknownError();

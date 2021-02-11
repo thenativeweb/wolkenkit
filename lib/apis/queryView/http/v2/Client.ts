@@ -133,7 +133,7 @@ class Client extends HttpClient {
           throw new errors.NotFound(data.message);
         }
         default: {
-          logger.error('An unknown error occured.', { ex: data, status });
+          logger.error('An unknown error occured.', { err: data, status });
 
           throw new errors.UnknownError();
         }

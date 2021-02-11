@@ -290,7 +290,7 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
+      logger.error('An unknown error occured.', { err: Buffer.concat(await toArray(data)).toString(), status });
 
       throw new errors.UnknownError(data.message);
     }
@@ -324,7 +324,7 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
+      logger.error('An unknown error occured.', { err: Buffer.concat(await toArray(data)).toString(), status });
 
       throw new errors.UnknownError(data.message);
     }

@@ -98,10 +98,6 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
           { portOrSocket: configuration.portOrSocket, healthPortOrSocket: configuration.healthPortOrSocket }
         )
       );
-      logger.info('Command dispatcher server started.', {
-        portOrSocket: configuration.portOrSocket,
-        healthPortOrSocket: configuration.healthPortOrSocket
-      });
     });
   } catch (ex: unknown) {
     logger.fatal(

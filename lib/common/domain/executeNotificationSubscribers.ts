@@ -39,7 +39,7 @@ const executeNotificationSubscribers = async function ({ application, notificati
         }
       );
     } catch (ex: unknown) {
-      logger.error(`The notification subscriber '${viewName}.${notificationSubscriberName}' threw an error.`, { ex });
+      logger.error(`The notification subscriber '${viewName}.${notificationSubscriberName}' threw an error.`, { err: ex });
 
       throw ex;
     }

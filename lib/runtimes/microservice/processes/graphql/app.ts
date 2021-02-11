@@ -117,7 +117,7 @@ import { Value } from 'validate-value';
           new Value(getDomainEventWithStateSchema()).validate(domainEvent, { valueName: 'domainEvent' });
           validateDomainEventWithState({ domainEvent, application });
         } catch (ex: unknown) {
-          logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, ex });
+          logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, err: ex });
 
           return;
         }
@@ -126,7 +126,7 @@ import { Value } from 'validate-value';
       }
     });
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { ex });
+    logger.fatal('An unexpected error occured.', { err: ex });
     process.exit(1);
   }
 })();

@@ -109,7 +109,7 @@ const postDomainEvent = {
       } catch (ex: unknown) {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api', 'handleDomainEvent', { ex })
+          withLogMetadata('api', 'handleDomainEvent', { err: ex })
         );
 
         const error = new errors.UnknownError();

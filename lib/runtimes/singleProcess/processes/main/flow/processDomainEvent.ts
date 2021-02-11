@@ -107,7 +107,7 @@ const processDomainEvent = async function ({
       }
     }
   } catch (ex: unknown) {
-    logger.error('Failed to handle domain event.', { domainEvent, ex });
+    logger.error('Failed to handle domain event.', { domainEvent, err: ex });
 
     await acknowledgeDomainEvent({ flowName, token: metadata.token, priorityQueue });
   }

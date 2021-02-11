@@ -123,7 +123,7 @@ const cancelCommand = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'handleCommand', { ex })
+              withLogMetadata('api', 'handleCommand', { err: ex })
             );
 
             res.status(500).json({

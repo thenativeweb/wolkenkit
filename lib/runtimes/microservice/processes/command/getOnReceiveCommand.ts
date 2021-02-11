@@ -12,16 +12,14 @@ const getOnReceiveCommand = function ({ commandDispatcher }: {
 }): OnReceiveCommand {
   return async function ({ command }): Promise<void> {
     try {
-      if (logger.isDebugMode) {
-        logger.debug(
-          'Sending command to command dispatcher...',
-          withLogMetadata(
-            'runtime',
-            'microservice/command',
-            { command }
-          )
-        );
-      }
+      logger.debug(
+        'Sending command to command dispatcher...',
+        withLogMetadata(
+          'runtime',
+          'microservice/command',
+          { command }
+        )
+      );
 
       await retry(async (): Promise<void> => {
         await commandDispatcher.client.postCommand({ command });

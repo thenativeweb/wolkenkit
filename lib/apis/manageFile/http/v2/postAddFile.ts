@@ -134,7 +134,7 @@ const postAddFile = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'manageFile', { error })
+              withLogMetadata('api', 'manageFile', { err: error })
             );
 
             res.status(500).json({ code: error.code, message: error.message });

@@ -11,16 +11,14 @@ const getOnCancelCommand = function ({ commandDispatcher }: {
 }): OnCancelCommand {
   return async function ({ commandIdentifierWithClient }): Promise<void> {
     try {
-      if (logger.isDebugMode) {
-        logger.debug(
-          'Cancelling command in command dispatcher...',
-          withLogMetadata(
-            'runtime',
-            'microservice/command',
-            { commandIdentifierWithClient }
-          )
-        );
-      }
+      logger.debug(
+        'Cancelling command in command dispatcher...',
+        withLogMetadata(
+          'runtime',
+          'microservice/command',
+          { commandIdentifierWithClient }
+        )
+      );
 
       await commandDispatcher.client.cancelCommand({ commandIdentifierWithClient });
 

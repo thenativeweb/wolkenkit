@@ -17,7 +17,7 @@ const getOnReceiveCommand = function ({ commandDispatcher }: {
 
       logger.info('Command sent to command dispatcher.', { command });
     } catch (ex: unknown) {
-      logger.error('Failed to send command to command dispatcher.', { command, ex });
+      logger.error('Failed to send command to command dispatcher.', { command, err: ex });
 
       throw new errors.RequestFailed('Failed to send command to command dispatcher.', {
         cause: ex as Error,

@@ -68,7 +68,7 @@ const prepareForPublication = async function ({
         // In case of an actual error, we don't want the runtime to crash. So we
         // only log that something went wrong and hinder that the domain event
         // gets served.
-        services.logger.error('Prepare for publication failed.', { ex });
+        services.logger.error('Prepare for publication failed.', { err: ex });
     }
   }
 };
