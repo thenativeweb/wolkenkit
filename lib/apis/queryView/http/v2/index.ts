@@ -7,6 +7,7 @@ import { getDescription } from './getDescription';
 import { IdentityProvider } from 'limes';
 import { queryStream } from './queryStream';
 import { queryValue } from './queryValue';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost/build/lib/middleware/getMiddleware';
 
 const getV2 = async function ({ application, corsOrigin, identityProviders }: {
   application: Application;
@@ -24,21 +25,38 @@ const getV2 = async function ({ application, corsOrigin, identityProviders }: {
     }
   });
 
+  const loggingOnResponseMiddleware = getLoggingMiddleware();
+  const loggingOnRequestMiddleware = getLoggingMiddleware({ logOn: 'request' });
+
   const authenticationMiddleware = await getAuthenticationMiddleware({
     identityProviders
   });
 
-  api.get(`/${getDescription.path}`, getDescription.getHandler({
-    application
-  }));
+  api.get(
+    `/${getDescription.path}`,
+    loggingOnResponseMiddleware,
+    getDescription.getHandler({
+      application
+    })
+  );
 
-  api.get(`/${queryStream.path}`, authenticationMiddleware, queryStream.getHandler({
-    application
-  }));
+  api.get(
+    `/${queryStream.path}`,
+    loggingOnRequestMiddleware,
+    authenticationMiddleware,
+    queryStream.getHandler({
+      application
+    })
+  );
 
-  api.get(`/${queryValue.path}`, authenticationMiddleware, queryValue.getHandler({
-    application
-  }));
+  api.get(
+    `/${queryValue.path}`,
+    loggingOnResponseMiddleware,
+    authenticationMiddleware,
+    queryValue.getHandler({
+      application
+    })
+  );
 
   return { api };
 };

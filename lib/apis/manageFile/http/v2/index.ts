@@ -6,6 +6,7 @@ import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
 import { getFile } from './getFile';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import { IdentityProvider } from 'limes';
 import { postAddFile } from './postAddFile';
 import { postRemoveFile } from './postRemoveFile';
@@ -32,6 +33,8 @@ const getV2 = async function ({ application, corsOrigin, identityProviders, file
       headers: { cache: false }
     }
   });
+
+  api.use(getLoggingMiddleware());
 
   const authenticationMiddleware = await getAuthenticationMiddleware({ identityProviders });
 

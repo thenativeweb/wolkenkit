@@ -4,7 +4,6 @@ import { ClientMetadata } from '../../../common/utils/http/ClientMetadata';
 import { CorsOrigin } from 'get-cors-origin';
 import { errors } from '../../../common/errors';
 import { Application as ExpressApplication } from 'express';
-import { flaschenpost } from 'flaschenpost';
 import { getApiBase } from '../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../base/getAuthenticationMiddleware';
 import { getSchema } from './getSchema';
@@ -21,6 +20,7 @@ import { Server } from 'http';
 import { Subscriber } from '../../../messaging/pubSub/Subscriber';
 import { validateSchema } from 'graphql';
 import { withLogMetadata } from '../../../common/utils/logging/withLogMetadata';
+import { flaschenpost, getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 
 const logger = flaschenpost.getLogger();
 
@@ -68,6 +68,8 @@ const getV2 = async function ({
       headers: { cache: false }
     }
   });
+
+  api.use(getLoggingMiddleware());
 
   const authenticationMiddleware = await getAuthenticationMiddleware({
     identityProviders

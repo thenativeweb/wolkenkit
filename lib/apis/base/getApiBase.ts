@@ -3,8 +3,6 @@ import cors from 'cors';
 import { GetApiBaseParameters } from './GetApiBaseParameters';
 import helmet from 'helmet';
 import { jsonQueryParserMiddleware } from './jsonQueryParserMiddleware';
-import morgan from 'morgan';
-import { MorganPlugin } from 'flaschenpost';
 import nocache from 'nocache';
 import { streamNdjsonMiddleware } from './streamNdjsonMiddleware';
 import express, { Application, Request } from 'express';
@@ -36,10 +34,6 @@ const getApiBase = async function ({ request, response }: GetApiBaseParameters):
       optionsSuccessStatus: 200
     }));
   }
-
-  const morganPlugin = new MorganPlugin('debug');
-
-  api.use(morgan('short', { stream: morganPlugin }));
 
   if (!response.headers.cache) {
     api.use(nocache());
