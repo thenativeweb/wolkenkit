@@ -45,7 +45,7 @@ const getOnReceiveDomainEvent = function ({
         'Enqueued domain event in priority queue.',
         withLogMetadata('runtime', 'microservice/domainEventDispatcher', { domainEvent })
       );
-    } catch (ex) {
+    } catch (ex: unknown) {
       logger.error(
         'Failed to enqueue domain event in priority queue.',
         withLogMetadata(

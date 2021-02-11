@@ -129,7 +129,7 @@ const postPerformReplay = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex) {
+      } catch (ex: unknown) {
         logger.error(
           'An unknown error occured.',
           withLogMetadata('api', 'performReplay', { err: ex })

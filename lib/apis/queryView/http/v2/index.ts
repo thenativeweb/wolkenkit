@@ -4,10 +4,10 @@ import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
 import { getDescription } from './getDescription';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost/build/lib/middleware/getMiddleware';
 import { IdentityProvider } from 'limes';
 import { queryStream } from './queryStream';
 import { queryValue } from './queryValue';
-import { getMiddleware as getLoggingMiddleware } from 'flaschenpost/build/lib/middleware/getMiddleware';
 
 const getV2 = async function ({ application, corsOrigin, identityProviders }: {
   application: Application;

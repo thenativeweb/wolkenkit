@@ -114,16 +114,11 @@ const getFile = {
             })
           });
         }
-<<<<<<< HEAD
       } catch (ex: unknown) {
-        logger.error('An unknown error occured.', { ex });
-=======
-      } catch (ex) {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api', 'manageFile', { ex })
+          withLogMetadata('api', 'manageFile', { err: ex })
         );
->>>>>>> a3f5e66c (feat: Improve logs of manageFile api.)
       }
     };
   }
