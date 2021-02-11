@@ -40,7 +40,7 @@ const getV2 = async function ({ application, corsOrigin, identityProviders, file
 
   api.get(`/${getFile.path}`,
     authenticationMiddleware,
-    bodyParser({ limit: 100_000 }),
+    bodyParser.json({ limit: 100_000 }),
     getFile.getHandler({ application, fileStore }));
 
   api.post(`/${postAddFile.path}`,
@@ -49,7 +49,7 @@ const getV2 = async function ({ application, corsOrigin, identityProviders, file
 
   api.post(`/${postRemoveFile.path}`,
     authenticationMiddleware,
-    bodyParser({ limit: 100_000 }),
+    bodyParser.json({ limit: 100_000 }),
     postRemoveFile.getHandler({ application, fileStore }));
 
   return { api };
