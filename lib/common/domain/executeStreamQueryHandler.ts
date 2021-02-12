@@ -9,6 +9,7 @@ import { QueryOptions } from '../elements/QueryOptions';
 import { validateQueryHandlerIdentifier } from '../validators/validateQueryHandlerIdentifier';
 import { Value } from 'validate-value';
 import { pipeline, Readable, Transform } from 'stream';
+import { withLogMetadata } from '../utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -70,7 +71,10 @@ const executeStreamQueryHandler = async function ({
       } catch (ex: unknown) {
         const error = new errors.QueryResultInvalid((ex as Error).message);
 
-        logger.error(`An invalid item was omitted from a stream query handler's response.`, { err: error });
+        logger.warn(
+          `An invalid item was omitted from a stream query handler's response.`,
+          withLogMetadata('common', 'executeStreamQueryHandler', { err: error })
+        );
 
         return callback(null);
       }
@@ -84,7 +88,10 @@ const executeStreamQueryHandler = async function ({
     validateStream,
     (err): void => {
       if (err) {
-        logger.error('An error occured during stream piping.', { err });
+        logger.error(
+          'An error occured during stream piping.',
+          withLogMetadata('common', 'executeStreamQueryHandler', { err })
+        );
       }
     }
   );
