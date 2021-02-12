@@ -19,6 +19,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import { Request, Response } from 'express';
+import typer from "content-type";
 
 const logger = flaschenpost.getLogger();
 
@@ -59,6 +60,23 @@ const getDomainEvents = {
     const aggregatesService = getAggregatesService({ repository });
 
     return async function (req: Request, res: Response): Promise<void> {
+      try {
+        const contentType = typer.parse(req);
+
+        if (contentType.type !== 'application/x-ndjson') {
+          throw new errors.ContentTypeMismatch();
+        }
+      } catch {
+        const error = new errors.ContentTypeMismatch('Header content-type must be application/x-ndjson.');
+
+        res.status(415).json({
+          code: error.code,
+          message: error.message
+        });
+
+        return;
+      }
+
       try {
         querySchema.validate(req.query, { valueName: 'requestQuery' });
       } catch (ex: unknown) {

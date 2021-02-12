@@ -56,16 +56,33 @@ suite('awaitItem/http', (): void => {
     });
 
     suite('GET /', (): void => {
-      test('returns the status code 200.', async (): Promise<void> => {
+      test('returns 200.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
         assert.that(status).is.equalTo(200);
+      });
+
+      test('returns 415 if the content type header is not application/x-ndjson.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'get',
+          url: '/v2/',
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(415);
+        assert.that(data).is.equalTo({
+          code: errors.ContentTypeMismatch.code,
+          message: 'Header content-type must be application/x-ndjson.'
+        });
       });
 
       test('returns the content-type application/x-ndjson.', async (): Promise<void> => {
@@ -74,6 +91,7 @@ suite('awaitItem/http', (): void => {
         const { headers } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -86,6 +104,7 @@ suite('awaitItem/http', (): void => {
         const { data } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -116,6 +135,7 @@ suite('awaitItem/http', (): void => {
         const { data } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -196,6 +216,7 @@ suite('awaitItem/http', (): void => {
         const { data: dataFirstTry } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -218,6 +239,7 @@ suite('awaitItem/http', (): void => {
         const { data: dataSecondTry } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -284,12 +306,14 @@ suite('awaitItem/http', (): void => {
         const { data: dataFirstTry } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
         const { data: dataSecondTry } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -330,7 +354,7 @@ suite('awaitItem/http', (): void => {
     });
 
     suite('POST /renew-lock', (): void => {
-      test('returns a 400 status code if a too short discriminator is sent.', async (): Promise<void> => {
+      test('returns 400 if a too short discriminator is sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
@@ -351,7 +375,7 @@ suite('awaitItem/http', (): void => {
         });
       });
 
-      test('returns a 403 status code if an unknown token is sent.', async (): Promise<void> => {
+      test('returns 403 if an unknown token is sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -381,6 +405,7 @@ suite('awaitItem/http', (): void => {
         await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -402,7 +427,23 @@ suite('awaitItem/http', (): void => {
         });
       });
 
-      test('extends the lock expiry time.', async (): Promise<void> => {
+      test('returns 415 if the content type header is not application/json.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/renew-lock',
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(415);
+        assert.that(data).is.equalTo({
+          code: errors.ContentTypeMismatch.code,
+          message: 'Header content-type must be application/json.'
+        });
+      });
+
+      test('returns 200 and extends the lock expiry time.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -429,11 +470,14 @@ suite('awaitItem/http', (): void => {
           message: {}
         });
 
-        const { data: lockData } = await client({
+        const { status, data: lockData } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         const { metadata: { token }} = await new Promise((resolve, reject): void => {
           lockData.on('error', (err: any): void => {
@@ -471,6 +515,7 @@ suite('awaitItem/http', (): void => {
         const { data: unavailableLockData } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -497,7 +542,7 @@ suite('awaitItem/http', (): void => {
     });
 
     suite('POST /acknowledge', (): void => {
-      test('returns a 400 status code if a too short discriminator is sent.', async (): Promise<void> => {
+      test('returns 400 if a too short discriminator is sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
@@ -518,7 +563,7 @@ suite('awaitItem/http', (): void => {
         });
       });
 
-      test('returns a 403 status code if an unknown token is sent.', async (): Promise<void> => {
+      test('returns 403 if an unknown token is sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -548,6 +593,7 @@ suite('awaitItem/http', (): void => {
         await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -569,7 +615,23 @@ suite('awaitItem/http', (): void => {
         });
       });
 
-      test('removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
+      test('returns 415 if the content type header is not application/json.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/acknowledge',
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(415);
+        assert.that(data).is.equalTo({
+          code: errors.ContentTypeMismatch.code,
+          message: 'Header content-type must be application/json.'
+        });
+      });
+
+      test('returns 200 and removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const aggregateId = v4();
@@ -611,11 +673,14 @@ suite('awaitItem/http', (): void => {
           priority: commandTwo.metadata.timestamp
         });
 
-        const { data: firstLockData } = await client({
+        const { status, data: firstLockData } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         const { item, metadata: { token }} = await new Promise((resolve, reject): void => {
           firstLockData.on('error', (err: any): void => {
@@ -647,6 +712,7 @@ suite('awaitItem/http', (): void => {
         const { data: secondLockData } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -670,7 +736,7 @@ suite('awaitItem/http', (): void => {
     });
 
     suite('POST /defer', (): void => {
-      test('returns a 400 status code if a too short discriminator is sent.', async (): Promise<void> => {
+      test('returns 400 if a too short discriminator is sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
@@ -692,7 +758,7 @@ suite('awaitItem/http', (): void => {
         });
       });
 
-      test('returns a 403 status code if an unknown token is sent.', async (): Promise<void> => {
+      test('returns 403 if an unknown token is sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -722,6 +788,7 @@ suite('awaitItem/http', (): void => {
         await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -744,7 +811,7 @@ suite('awaitItem/http', (): void => {
         });
       });
 
-      test('returns a 400 status code if an invalid priority is sent.', async (): Promise<void> => {
+      test('returns 400 if an invalid priority is sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const commandWithMetadata = buildCommandWithMetadata({
@@ -780,7 +847,23 @@ suite('awaitItem/http', (): void => {
         });
       });
 
-      test('defers the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
+      test('returns 415 if the content type header is not application/json.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'post',
+          url: '/v2/defer',
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(415);
+        assert.that(data).is.equalTo({
+          code: errors.ContentTypeMismatch.code,
+          message: 'Header content-type must be application/json.'
+        });
+      });
+
+      test('returns 200 and defers the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const aggregateId = v4();
@@ -825,6 +908,7 @@ suite('awaitItem/http', (): void => {
         const { data: firstLockData } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -856,11 +940,14 @@ suite('awaitItem/http', (): void => {
           }
         });
 
-        const { data: secondLockData } = await client({
+        const { status, data: secondLockData } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         const { item: nextItem, metadata: { token: nextToken }} = await new Promise((resolve, reject): void => {
           secondLockData.on('error', (err: any): void => {
@@ -892,6 +979,7 @@ suite('awaitItem/http', (): void => {
         const { data: thirdLockData } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 

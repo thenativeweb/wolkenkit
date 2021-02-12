@@ -107,29 +107,7 @@ suite('handleCommand/http', (): void => {
         }));
       });
 
-      test('returns 415 if the content-type header is missing.', async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: `/v2/sampleContext/sampleAggregate/${v4()}/execute`,
-          headers: {
-            'content-type': ''
-          },
-          responseType: 'text',
-          validateStatus (): boolean {
-            return true;
-          }
-        });
-
-        assert.that(status).is.equalTo(415);
-        assert.that(data).is.equalTo({
-          code: errors.ContentTypeMismatch.code,
-          message: 'Header content-type must be application/json.'
-        });
-      });
-
-      test('returns 415 if content-type is not set to application/json.', async (): Promise<void> => {
+      test('returns 415 if the content-type header is not set to application/json.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
@@ -369,29 +347,7 @@ suite('handleCommand/http', (): void => {
         }));
       });
 
-      test('returns 415 if the content-type header is missing.', async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: `/v2/sampleContext/sampleAggregate/execute`,
-          headers: {
-            'content-type': ''
-          },
-          responseType: 'text',
-          validateStatus (): boolean {
-            return true;
-          }
-        });
-
-        assert.that(status).is.equalTo(415);
-        assert.that(data).is.equalTo({
-          code: errors.ContentTypeMismatch.code,
-          message: 'Header content-type must be application/json.'
-        });
-      });
-
-      test('returns 415 if content-type is not set to application/json.', async (): Promise<void> => {
+      test('returns 415 if the content-type header is not set to application/json.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
@@ -530,37 +486,7 @@ suite('handleCommand/http', (): void => {
         }));
       });
 
-      test('returns 415 if the content-type header is missing.', async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: `/v2/cancel`,
-          headers: {
-            'content-type': ''
-          },
-          data: {
-            aggregateIdentifier: {
-              context: { name: 'sampleContext' },
-              aggregate: { name: 'sampleAggregate', id: v4() }
-            },
-            name: 'execute',
-            id: v4()
-          },
-          responseType: 'text',
-          validateStatus (): boolean {
-            return true;
-          }
-        });
-
-        assert.that(status).is.equalTo(415);
-        assert.that(data).is.equalTo({
-          code: errors.ContentTypeMismatch.code,
-          message: 'Header content-type must be application/json.'
-        });
-      });
-
-      test('returns 415 if content-type is not set to application/json.', async (): Promise<void> => {
+      test('returns 415 if the content-type header is not set to application/json.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({
@@ -746,13 +672,13 @@ suite('handleCommand/http', (): void => {
         assert.that(status).is.equalTo(404);
       });
 
-      test('cancels commands.', async (): Promise<void> => {
+      test('returns 200 and cancels the given command.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const aggregateId = v4(),
               commandId = v4();
 
-        await client({
+        const { status } = await client({
           method: 'post',
           url: `/v2/cancel`,
           data: {
@@ -765,6 +691,7 @@ suite('handleCommand/http', (): void => {
           }
         });
 
+        assert.that(status).is.equalTo(200);
         assert.that(cancelledCommands.length).is.equalTo(1);
         assert.that(cancelledCommands[0]).is.atLeast({
           aggregateIdentifier: {

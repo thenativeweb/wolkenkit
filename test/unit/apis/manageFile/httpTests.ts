@@ -47,7 +47,7 @@ suite('manageFile/http', (): void => {
     });
 
     suite('POST /add-file', (): void => {
-      test('returns a 400 if invalid headers are sent.', async (): Promise<void> => {
+      test('returns 400 if invalid headers are sent.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
@@ -66,7 +66,7 @@ suite('manageFile/http', (): void => {
         assert.that(status).is.equalTo(400);
       });
 
-      test('returns a 401 if the adding file hook throws a not authorized exception.', async (): Promise<void> => {
+      test('returns 401 if the adding file hook throws a not authorized exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
@@ -85,7 +85,7 @@ suite('manageFile/http', (): void => {
         assert.that(status).is.equalTo(401);
       });
 
-      test('returns a 500 if the adding file hook throws another exception.', async (): Promise<void> => {
+      test('returns 500 if the adding file hook throws another exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
@@ -104,7 +104,7 @@ suite('manageFile/http', (): void => {
         assert.that(status).is.equalTo(500);
       });
 
-      test('returns a 500 if the added file hook throws an exception.', async (): Promise<void> => {
+      test('returns 500 if the added file hook throws an exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
@@ -149,7 +149,7 @@ suite('manageFile/http', (): void => {
         });
       });
 
-      test('returns a 409 when the file to upload already exists.', async (): Promise<void> => {
+      test('returns 409 when the file to upload already exists.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         await client({
@@ -182,7 +182,7 @@ suite('manageFile/http', (): void => {
     });
 
     suite('GET /file/:id', (): void => {
-      test('returns a 401 if the getting file hook throws a not authorized exception.', async (): Promise<void> => {
+      test('returns 401 if the getting file hook throws a not authorized exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         await client({
@@ -207,7 +207,7 @@ suite('manageFile/http', (): void => {
         assert.that(status).is.equalTo(401);
       });
 
-      test('returns a 500 if the getting file hook throws any other exception.', async (): Promise<void> => {
+      test('returns 500 if the getting file hook throws any other exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         await client({
@@ -232,7 +232,7 @@ suite('manageFile/http', (): void => {
         assert.that(status).is.equalTo(500);
       });
 
-      test('returns a 200 even if the got file hook throws an exception.', async (): Promise<void> => {
+      test('returns 200 even if the got file hook throws an exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         await client({
@@ -257,7 +257,7 @@ suite('manageFile/http', (): void => {
         assert.that(status).is.equalTo(200);
       });
 
-      test('returns a 404 if the requested file does not exist.', async (): Promise<void> => {
+      test('returns 404 if the requested file does not exist.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
@@ -304,7 +304,7 @@ suite('manageFile/http', (): void => {
     });
 
     suite('POST /remove-file', (): void => {
-      test('returns a 415 if the content-type header is not set to application/json.', async (): Promise<void> => {
+      test('returns 415 if the content-type header is not set to application/json.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
@@ -321,7 +321,7 @@ suite('manageFile/http', (): void => {
         assert.that(status).is.equalTo(415);
       });
 
-      test('returns a 401 if the removing file hook throws a not authorized exception.', async (): Promise<void> => {
+      test('returns 401 if the removing file hook throws a not authorized exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         await client({
@@ -347,7 +347,7 @@ suite('manageFile/http', (): void => {
         assert.that(status).is.equalTo(401);
       });
 
-      test('returns a 500 if the removing file hook throws another exception.', async (): Promise<void> => {
+      test('returns 500 if the removing file hook throws another exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         await client({
@@ -373,7 +373,7 @@ suite('manageFile/http', (): void => {
         assert.that(status).is.equalTo(500);
       });
 
-      test('returns a 500 if the removed file hook throws an exception.', async (): Promise<void> => {
+      test('returns 500 if the removed file hook throws an exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         await client({
@@ -399,7 +399,7 @@ suite('manageFile/http', (): void => {
         assert.that(status).is.equalTo(500);
       });
 
-      test('removes the given file.', async (): Promise<void> => {
+      test('returns 200 and removes the given file.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         await client({
@@ -428,7 +428,7 @@ suite('manageFile/http', (): void => {
         }).is.throwingAsync<CustomError>((ex): boolean => ex.code === errors.FileNotFound.code);
       });
 
-      test('returns a 404 if the given file does not exist.', async (): Promise<void> => {
+      test('returns 404 if the given file does not exist.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status } = await client({

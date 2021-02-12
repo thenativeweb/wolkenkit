@@ -8,6 +8,8 @@ import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
+import typer from "content-type";
+import {errors} from "../../../../common/errors";
 
 const logger = flaschenpost.getLogger();
 
@@ -80,6 +82,23 @@ const awaitItem = {
     };
 
     return async function (req, res): Promise<void> {
+      try {
+        const contentType = typer.parse(req);
+
+        if (contentType.type !== 'application/x-ndjson') {
+          throw new errors.ContentTypeMismatch();
+        }
+      } catch {
+        const error = new errors.ContentTypeMismatch('Header content-type must be application/x-ndjson.');
+
+        res.status(415).json({
+          code: error.code,
+          message: error.message
+        });
+
+        return;
+      }
+
       res.startStream({ heartbeatInterval });
 
       const instantSuccess = await maybeHandleLock({ res });

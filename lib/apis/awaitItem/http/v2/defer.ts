@@ -99,7 +99,7 @@ const defer = {
           case errors.TokenMismatch.code: {
             res.status(403).json({
               code: error.code,
-              message: `Token mismatch for discriminator '${discriminator}'.`
+              message: error.message
             });
 
             return;

@@ -126,7 +126,24 @@ suite('observeDomainEvents/http', (): void => {
         }));
       });
 
-      test('returns a 400 if the query is malformed.', async (): Promise<void> => {
+      test('returns 415 if the content type header is not application/x-ndjson.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { status, data } = await client({
+          method: 'get',
+          url: '/v2/?foo=bar',
+          responseType: 'stream',
+          validateStatus: (): boolean => true
+        });
+
+        assert.that(status).is.equalTo(415);
+        assert.that(data).is.equalTo({
+          code: errors.ContentTypeMismatch.code,
+          message: 'Header content-type must be application/x-ndjson.'
+        });
+      });
+
+      test('returns 400 if the query is malformed.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
@@ -139,7 +156,7 @@ suite('observeDomainEvents/http', (): void => {
         assert.that(status).is.equalTo(400);
       });
 
-      test('delivers a single domain event.', async (): Promise<void> => {
+      test('returns 200 and delivers a single domain event.', async (): Promise<void> => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             aggregateIdentifier: {
@@ -162,11 +179,13 @@ suite('observeDomainEvents/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        const { data } = await client({
+        const { status, data } = await client({
           method: 'get',
           url: '/v2/',
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
@@ -189,7 +208,7 @@ suite('observeDomainEvents/http', (): void => {
         });
       });
 
-      test('delivers multiple domain events.', async (): Promise<void> => {
+      test('returns 200 and delivers multiple domain events.', async (): Promise<void> => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
             aggregateIdentifier: {
@@ -228,11 +247,13 @@ suite('observeDomainEvents/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        const { data } = await client({
+        const { status, data } = await client({
           method: 'get',
           url: '/v2/',
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
@@ -260,7 +281,7 @@ suite('observeDomainEvents/http', (): void => {
         });
       });
 
-      test('delivers filtered domain events.', async (): Promise<void> => {
+      test('returns 200 and delivers filtered domain events.', async (): Promise<void> => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
             aggregateIdentifier: {
@@ -299,7 +320,7 @@ suite('observeDomainEvents/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        const { data } = await client({
+        const { status, data } = await client({
           method: 'get',
           url: '/v2/',
           params: { filter: { name: 'executed' }},
@@ -310,6 +331,8 @@ suite('observeDomainEvents/http', (): void => {
           },
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
@@ -333,7 +356,7 @@ suite('observeDomainEvents/http', (): void => {
         });
       });
 
-      test('delivers filtered domain events with a nested filter.', async (): Promise<void> => {
+      test('returns 200 and delivers filtered domain events with a nested filter.', async (): Promise<void> => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
             aggregateIdentifier: {
@@ -372,7 +395,7 @@ suite('observeDomainEvents/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        const { data } = await client({
+        const { status, data } = await client({
           method: 'get',
           url: '/v2/',
           params: { filter: {
@@ -387,6 +410,8 @@ suite('observeDomainEvents/http', (): void => {
           responseType: 'stream'
         });
 
+        assert.that(status).is.equalTo(200);
+
         await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
@@ -409,7 +434,7 @@ suite('observeDomainEvents/http', (): void => {
         });
       });
 
-      test('delivers rejected/failed events to their initiator.', async (): Promise<void> => {
+      test('returns 200 and delivers rejected/failed events to their initiator.', async (): Promise<void> => {
         const failed = new DomainEventWithState({
           ...buildDomainEvent({
             aggregateIdentifier: {
@@ -448,7 +473,7 @@ suite('observeDomainEvents/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        const { data } = await client({
+        const { status, data } = await client({
           method: 'get',
           url: '/v2/',
           headers: {
@@ -456,6 +481,8 @@ suite('observeDomainEvents/http', (): void => {
           },
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         const collector = waitForSignals({ count: 2 });
 
@@ -492,7 +519,7 @@ suite('observeDomainEvents/http', (): void => {
         await collector.promise;
       });
 
-      test('does not deliver rejected/failed events to other clients than the initiator.', async (): Promise<void> => {
+      test('returns 200 and does not deliver rejected/failed events to other clients than the initiator.', async (): Promise<void> => {
         const failed = new DomainEventWithState({
           ...buildDomainEvent({
             aggregateIdentifier: {
@@ -531,7 +558,7 @@ suite('observeDomainEvents/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        const { data } = await client({
+        const { status, data } = await client({
           method: 'get',
           url: '/v2/',
           headers: {
@@ -539,6 +566,8 @@ suite('observeDomainEvents/http', (): void => {
           },
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         const collector = waitForSignals({ count: 1 });
 
