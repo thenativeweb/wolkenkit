@@ -11,6 +11,7 @@ import { createSubscriber } from '../../../../lib/messaging/pubSub/createSubscri
 import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
+import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import fetch from 'node-fetch';
 import { getApi } from '../../../../lib/apis/graphql';
@@ -897,6 +898,16 @@ suite('graphql', function (): void {
       }, 200);
 
       await collector.promise;
+    });
+
+    test('can not publish invalid events.', async (): Promise<void> => {
+      const invalid = { foo: 'bar' };
+
+      await assert.that(async (): Promise<void> => {
+        publishDomainEvent!({ domainEvent: invalid as any });
+      }).is.throwingAsync<CustomError>(
+        (ex): boolean => ex.code === errors.DomainEventMalformed.code
+      );
     });
   });
 

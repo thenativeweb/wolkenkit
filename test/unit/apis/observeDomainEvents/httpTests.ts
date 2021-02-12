@@ -23,6 +23,8 @@ import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
+import { CustomError } from 'defekt';
+import { errors } from '../../../../lib/common/errors';
 
 suite('observeDomainEvents/http', (): void => {
   const identityProviders = [ identityProvider ];
@@ -562,6 +564,16 @@ suite('observeDomainEvents/http', (): void => {
         }, 200);
 
         await collector.promise;
+      });
+
+      test('can not publish invalid events.', async (): Promise<void> => {
+        const invalid = { foo: 'bar' };
+
+        await assert.that(async (): Promise<void> => {
+          publishDomainEvent({ domainEvent: invalid as any });
+        }).is.throwingAsync<CustomError>(
+          (ex): boolean => ex.code === errors.DomainEventMalformed.code
+        );
       });
 
       test('removes state before delivery.', async (): Promise<void> => {
