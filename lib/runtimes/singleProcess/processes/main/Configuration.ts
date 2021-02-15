@@ -25,6 +25,7 @@ export interface Configuration {
   fileStoreOptions: FileStoreOptions;
   graphqlApi: false | { enableIntegratedClient: boolean };
   healthPort: number;
+  heartbeatInterval: number;
   httpApi: boolean;
   identityProviders: { issuer: string; certificate: string }[];
   lockStoreOptions: LockStoreOptions;

@@ -133,6 +133,7 @@ const devCommand = function (): Command<DevOptions> {
                 fileStoreOptions: { type: 'InMemory' },
                 graphqlApi: { enableIntegratedClient: true },
                 healthPort,
+                heartbeatInterval: 90_000,
                 httpApi: true,
                 identityProviders,
                 lockStoreOptions: { type: 'InMemory' },

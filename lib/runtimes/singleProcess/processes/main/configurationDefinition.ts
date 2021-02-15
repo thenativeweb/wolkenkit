@@ -100,6 +100,11 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: 3001,
     schema: portSchema
   },
+  heartbeatInterval: {
+    environmentVariable: 'HEARTBEAT_INTERVAL',
+    defaultValue: 90_000,
+    schema: { type: 'integer' }
+  },
   httpApi: {
     environmentVariable: 'HTTP_API',
     defaultValue: true,
