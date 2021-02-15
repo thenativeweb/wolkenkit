@@ -15,7 +15,7 @@ const getV2 = async function<TItem> ({
   newItemSubscriber,
   newItemSubscriberChannel,
   validateOutgoingItem,
-  heartbeatInterval = 90_000
+  heartbeatInterval = 50_000
 }: {
   corsOrigin: CorsOrigin;
   priorityQueueStore: PriorityQueueStore<TItem, ItemIdentifier>;
