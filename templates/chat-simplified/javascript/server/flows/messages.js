@@ -11,7 +11,7 @@ const messages = {
 
       async handle (domainEvent, { infrastructure, notification }) {
         const message = {
-          id: domainEvent.aggregateIdentifier.id,
+          id: domainEvent.aggregateIdentifier.aggregate.id,
           timestamp: domainEvent.metadata.timestamp,
           text: domainEvent.data.text,
           likes: 0
@@ -39,7 +39,7 @@ const messages = {
       async handle (domainEvent, { infrastructure, notification }) {
         if (Array.isArray(infrastructure.tell.viewStore.messages)) {
           const messageToUpdate = infrastructure.tell.viewStore.messages.find(
-            message => message.id === domainEvent.aggregateIdentifier.id
+            message => message.id === domainEvent.aggregateIdentifier.aggregate.id
           );
 
           messageToUpdate.likes = domainEvent.data.likes;
@@ -50,7 +50,7 @@ const messages = {
         }
 
         await infrastructure.tell.viewStore.messages.updateOne(
-          { id: domainEvent.aggregateIdentifier.id },
+          { id: domainEvent.aggregateIdentifier.aggregate.id },
           { $set: { likes: domainEvent.data.likes }}
         );
 

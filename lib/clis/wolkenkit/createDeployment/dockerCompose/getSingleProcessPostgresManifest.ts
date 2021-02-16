@@ -106,12 +106,10 @@ const getSingleProcessPostgresManifest = function ({ appName }: {
     enableOpenApiDocumentation: true,
     fileStoreOptions,
     graphqlApi: { enableIntegratedClient: true },
-    healthPort: services.main.healthPort,
     heartbeatInterval: 90_000,
     httpApi: true,
     identityProviders,
     lockStoreOptions,
-    port: services.main.privatePort,
     priorityQueueStoreForCommandsOptions,
     priorityQueueStoreForDomainEventsOptions,
     pubSubOptions: {

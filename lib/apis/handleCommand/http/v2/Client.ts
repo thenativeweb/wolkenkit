@@ -1,7 +1,5 @@
-import axios from 'axios';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandDescription } from '../../../../common/application/CommandDescription';
-import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
@@ -10,22 +8,19 @@ import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async getDescription (): Promise<Record<string, Record<string, Record<string, CommandDescription>>>> {
-    const { data } = await axios({
+    const { data } = await this.axios({
       method: 'get',
-      url: `${this.url}/description`,
-      validateStatus (): boolean {
-        return true;
-      }
+      url: `${this.url}/description`
     });
 
     return data;
@@ -33,37 +28,34 @@ class Client extends HttpClient {
 
   public async postCommand ({ command }: {
     command: {
-      contextIdentifier: ContextIdentifier;
       aggregateIdentifier: {
-        name: string;
-        id?: string;
+        context: {
+          name: string;
+        };
+        aggregate: {
+          name: string;
+          id?: string;
+        };
       };
       name: string;
       data: CommandData;
     };
   }): Promise<{ id: string; aggregateIdentifier: { id: string }}> {
-    let url: string;
+    const url = command.aggregateIdentifier.aggregate.id ?
+      `${this.url}/${command.aggregateIdentifier.context.name}/${command.aggregateIdentifier.aggregate.name}/${command.aggregateIdentifier.aggregate.id}/${command.name}` :
+      `${this.url}/${command.aggregateIdentifier.context.name}/${command.aggregateIdentifier.aggregate.name}/${command.name}`;
 
-    if (command.aggregateIdentifier.id) {
-      url = `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.aggregateIdentifier.id}/${command.name}`;
-    } else {
-      url = `${this.url}/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/${command.name}`;
-    }
-
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url,
-      data: command.data,
-      validateStatus (): boolean {
-        return true;
-      }
+      data: command.data
     });
 
     if (status === 200) {
       return {
         id: data.id,
         aggregateIdentifier: {
-          id: data.aggregateIdentifier.id
+          id: data.aggregateIdentifier.aggregate.id
         }
       };
     }
@@ -95,13 +87,10 @@ class Client extends HttpClient {
   public async cancelCommand ({ commandIdentifier }: {
     commandIdentifier: ItemIdentifier;
   }): Promise<void> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/cancel`,
-      data: commandIdentifier,
-      validateStatus (): boolean {
-        return true;
-      }
+      data: commandIdentifier
     });
 
     switch (status) {

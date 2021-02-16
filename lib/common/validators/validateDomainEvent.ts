@@ -14,8 +14,10 @@ const validateDomainEvent = function <TDomainEventData extends DomainEventData> 
   const contextDefinitions = application.domain;
 
   const {
-    contextIdentifier: { name: contextName },
-    aggregateIdentifier: { name: aggregateName },
+    aggregateIdentifier: {
+      context: { name: contextName },
+      aggregate: { name: aggregateName }
+    },
     name: domainEventName,
     data: domainEventData
   } = domainEvent;
@@ -30,18 +32,18 @@ const validateDomainEvent = function <TDomainEventData extends DomainEventData> 
     throw new errors.DomainEventNotFound(`Domain event '${contextName}.${aggregateName}.${domainEventName}' not found.`);
   }
 
-  const { getSchema } = contextDefinitions[contextName][aggregateName].domainEventHandlers[domainEventName];
+  const domainEventHandler = contextDefinitions[contextName][aggregateName].domainEventHandlers[domainEventName];
 
-  if (!getSchema) {
+  if (!domainEventHandler.getSchema) {
     return;
   }
 
-  const schemaData = new Value(getSchema());
+  const schemaData = new Value(domainEventHandler.getSchema());
 
   try {
     schemaData.validate(domainEventData, { valueName: 'domainEvent.data' });
-  } catch (ex) {
-    throw new errors.DomainEventMalformed(ex.message, { cause: ex });
+  } catch (ex: unknown) {
+    throw new errors.DomainEventMalformed((ex as Error).message, { cause: ex as Error });
   }
 };
 

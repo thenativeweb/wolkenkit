@@ -7,7 +7,6 @@ import { cloneDeep } from 'lodash';
 import { Command } from '../../../../common/elements/Command';
 import { CommandHandler } from '../../../../common/elements/CommandHandler';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
-import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
@@ -43,21 +42,20 @@ const getIndividualCommandFieldConfiguration = function ({
   commandName: string;
   commandHandler: CommandHandler<any, any, any>;
   onReceiveCommand: OnReceiveCommand;
-}): GraphQLFieldConfig<{ contextIdentifier: ContextIdentifier; aggregateIdentifier: AggregateIdentifier }, ResolverContext> {
-  const resolverArguments: { [argName: string]: GraphQLArgumentConfig } = {
+}): GraphQLFieldConfig<{ aggregateIdentifier: AggregateIdentifier }, ResolverContext> {
+  const resolverArguments: Record<string, GraphQLArgumentConfig> = {
     aggregateIdentifier: {
       type: AggregateIdentifierInputType
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/unbound-method
   if (!commandHandler.getSchema) {
     throw new errors.GraphQlError(`Schema in command '${contextName}.${aggregateName}.${commandName}' is missing, but required for GraphQL.`);
   }
 
   const schema = commandHandler.getSchema();
 
-  if (!(schema.type === 'object' && Object.keys(schema.properties as object).length === 0)) {
+  if (!(schema.type === 'object' && Object.keys(schema.properties!).length === 0)) {
     const typeDefs = getGraphqlFromJsonSchema({
       schema: commandHandler.getSchema(),
       rootName: `${contextName}_${aggregateName}_${commandName}`,
@@ -83,8 +81,9 @@ const getIndividualCommandFieldConfiguration = function ({
       }
     }),
     args: resolverArguments,
+    description: commandHandler.getDocumentation?.() ?? 'No documentation available.',
     async resolve (
-      _source,
+      source,
       { aggregateIdentifier, data: rawData },
       { clientMetadata }
     ): Promise<{ id: string; aggregateIdentifier: { id: string }}> {
@@ -93,16 +92,18 @@ const getIndividualCommandFieldConfiguration = function ({
       const aggregateId = aggregateIdentifier?.id ?? v4();
 
       const command = new Command({
-        contextIdentifier: { name: contextName },
-        aggregateIdentifier: { name: aggregateName, id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: contextName },
+          aggregate: { name: aggregateName, id: aggregateId }
+        },
         name: commandName,
         data: data === undefined ? {} : cloneDeep(data)
       });
 
       try {
         commandSchema.validate(command, { valueName: 'command' });
-      } catch (ex) {
-        throw new errors.CommandMalformed(ex.message);
+      } catch (ex: unknown) {
+        throw new errors.CommandMalformed((ex as Error).message);
       }
       validateCommand({ command, application });
 
@@ -126,7 +127,7 @@ const getIndividualCommandFieldConfiguration = function ({
       return {
         id: commandId,
         aggregateIdentifier: {
-          id: commandWithMetadata.aggregateIdentifier.id
+          id: commandWithMetadata.aggregateIdentifier.aggregate.id
         }
       };
     }

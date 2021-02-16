@@ -1,0 +1,243 @@
+version: '<%= versions.infrastructure['docker-compose'] %>'
+<%
+const consumerProgressStoreOptions = {
+  type: 'Postgres',
+  hostName: services.stores.postgres.hostName,
+  port: services.stores.postgres.privatePort,
+  userName: services.stores.postgres.userName,
+  password: services.stores.postgres.password,
+  database: services.stores.postgres.database,
+  tableNames: {
+    progress: 'progress-flow'
+  }
+};
+const domainEventStoreOptions = {
+  type: 'Postgres',
+  hostName: services.stores.postgres.hostName,
+  port: services.stores.postgres.privatePort,
+  userName: services.stores.postgres.userName,
+  password: services.stores.postgres.password,
+  database: services.stores.postgres.database,
+  tableNames: {
+    domainEvents: 'domainEvents',
+    snapshots: 'snapshots'
+  }
+};
+const fileStoreOptions = {
+  type: 'S3',
+  hostName: services.stores.minio.hostName,
+  port: services.stores.minio.privatePort,
+  encryptConnection: services.stores.minio.encryptConnection,
+  accessKey: services.stores.minio.accessKey,
+  secretKey: services.stores.minio.secretKey,
+  bucketName: services.stores.minio.bucketName
+};
+const lockStoreOptions = {
+  type: 'Postgres',
+  hostName: services.stores.postgres.hostName,
+  port: services.stores.postgres.privatePort,
+  userName: services.stores.postgres.userName,
+  password: services.stores.postgres.password,
+  database: services.stores.postgres.database,
+  tableNames: {
+    locks: 'locks'
+  }
+};
+const priorityQueueStoreForCommandsOptions = {
+  type: 'Postgres',
+  hostName: services.stores.postgres.hostName,
+  port: services.stores.postgres.privatePort,
+  userName: services.stores.postgres.userName,
+  password: services.stores.postgres.password,
+  database: services.stores.postgres.database,
+  tableNames: {
+    items: 'items-command',
+    priorityQueue: 'priorityQueue-command'
+  },
+  expirationTime: 30_000
+}
+const priorityQueueStoreForDomainEventsOptions = {
+  type: 'Postgres',
+  hostName: services.stores.postgres.hostName,
+  port: services.stores.postgres.privatePort,
+  userName: services.stores.postgres.userName,
+  password: services.stores.postgres.password,
+  database: services.stores.postgres.database,
+  tableNames: {
+    items: 'items-domain-event',
+    priorityQueue: 'priorityQueue-domain-event'
+  },
+  expirationTime: 30_000
+}
+const publisherOptions = {
+  type: 'Http',
+  protocol: 'http',
+  hostName: services.microservice.publisher.hostName,
+  portOrSocket: services.microservice.publisher.privatePort,
+  path: '/publish/v2'
+};
+const pubSubChannelForNewCommands = 'newCommand';
+const pubSubChannelForNewDomainEvents = 'newDomainEvent';
+const pubSubChannelForNewInternalDomainEvents = 'newInternalDomainEvent';
+const pubSubChannelForNotifications = 'notification';
+const snapshotStrategy = {
+  name: 'lowest',
+  configuration: {
+    revisionLimit: 100,
+    durationLimit: 500
+  }
+};
+const subscriberOptions = {
+  type: 'Http',
+  protocol: 'http',
+  hostName: services.microservice.publisher.hostName,
+  portOrSocket: services.microservice.publisher.privatePort,
+  path: '/subscribe/v2'
+};
+-%>
+
+services:
+<%- include(
+  './microservice/commandService.ejs',
+  {
+    customEnvironmentVariables: locals.customEnvironmentVariables || {}
+  }
+) %>
+<%- include(
+  './microservice/commandDispatcherService.ejs',
+  {
+    priorityQueueStoreOptions: priorityQueueStoreForCommandsOptions,
+    pubSubOptions: {
+      channelForNewCommands: pubSubChannelForNewCommands,
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    }
+  }
+) %>
+<%- include(
+  './microservice/domainService.ejs',
+  {
+    customEnvironmentVariables: locals.customEnvironmentVariables || {},
+    lockStoreOptions,
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+      publisher: publisherOptions
+    },
+    snapshotStrategy
+  }
+) %>
+<%- include(
+  './microservice/domainEventService.ejs',
+  {
+    customEnvironmentVariables: locals.customEnvironmentVariables || {},
+    pubSubOptions: {
+      channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions,
+      subscriber: subscriberOptions
+    },
+    snapshotStrategy
+  }
+) %>
+<%- include(
+  './microservice/aeonstore.ejs',
+  {
+    domainEventStoreOptions
+  }
+)%>
+<%- include(
+  './microservice/publisherService.ejs',
+  {
+    pubSubOptions: {
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    }
+  }
+) %>
+<%- include(
+  './microservice/graphqlService.ejs',
+  {
+    customEnvironmentVariables: locals.customEnvironmentVariables || {},
+    pubSubOptions: {
+      channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions,
+      subscriber: subscriberOptions
+    },
+    snapshotStrategy
+  }
+) %>
+<%- include(
+  './microservice/domainEventDispatcherService.ejs',
+  {
+    priorityQueueStoreOptions: priorityQueueStoreForDomainEventsOptions,
+    pubSubOptions: {
+      channelForNewInternalDomainEvents: pubSubChannelForNewInternalDomainEvents,
+      subscriber: { type: 'InMemory' },
+      publisher: { type: 'InMemory' }
+    }
+  }
+) %>
+<%- include(
+  './microservice/flowService.ejs',
+  {
+    consumerProgressStoreOptions,
+    customEnvironmentVariables: locals.customEnvironmentVariables || {},
+    lockStoreOptions,
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions
+    },
+    snapshotStrategy
+  }
+) %>
+<%- include('./microservice/replayService.ejs') %>
+<%- include(
+  './microservice/viewService.ejs',
+  {
+    customEnvironmentVariables: locals.customEnvironmentVariables || {},
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      publisher: publisherOptions,
+      subscriber: subscriberOptions
+    }
+  }
+) %>
+<%- include(
+  './microservice/notificationService.ejs',
+  {
+    customEnvironmentVariables: locals.customEnvironmentVariables || {},
+    pubSubOptions: {
+      channelForNotifications: pubSubChannelForNotifications,
+      subscriber: subscriberOptions
+    }
+  }
+) %>
+<%- include(
+  './microservice/fileService.ejs',
+  {
+    customEnvironmentVariables: locals.customEnvironmentVariables || {},
+    fileStoreOptions
+  }
+) %>
+  <%= services.microservice.traefik.hostName %>:
+    image: 'traefik:<%= versions.dockerImages.traefik %>'
+    command:
+      - '--log.level=DEBUG'
+      - '--api.insecure=true'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--entrypoints.web.address=:3000'
+      - '--ping'
+    ports:
+      - '3000:3000'
+      - '8080:8080'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

@@ -1,5 +1,6 @@
 import { errors } from '../../errors';
 import fs from 'fs';
+// eslint-disable-next-line unicorn/import-style
 import { join } from 'path';
 
 const readdirRecursive = async function ({ path }: {

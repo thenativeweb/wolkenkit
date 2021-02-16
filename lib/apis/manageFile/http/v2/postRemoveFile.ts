@@ -6,7 +6,7 @@ import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
-import { jsonSchema } from '../../../../common/utils/uuid';
+import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
@@ -22,7 +22,7 @@ const postRemoveFile = {
     body: {
       type: 'object',
       properties: {
-        id: jsonSchema
+        id: { type: 'string', format: 'uuid' }
       },
       required: [ 'id' ],
       additionalProperties: false
@@ -58,20 +58,23 @@ const postRemoveFile = {
         const contentType = typer.parse(req);
 
         if (contentType.type !== 'application/json') {
-          throw new errors.RequestMalformed();
+          throw new errors.ContentTypeMismatch();
         }
       } catch {
-        const ex = new errors.RequestMalformed('Header content-type must be application/json.');
+        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-        res.status(415).json({ code: ex.code, message: ex.message });
+        res.status(415).json({
+          code: ex.code,
+          message: ex.message
+        });
 
         return;
       }
 
       try {
-        new Value(requestBodySchema).validate(req.body, { valueName: 'requestBody' });
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
+        requestBodySchema.validate(req.body, { valueName: 'requestBody' });
+      } catch (ex: unknown) {
+        const error = new errors.RequestMalformed((ex as Error).message);
 
         res.status(400).json({ code: error.code, message: error.message });
 
@@ -116,20 +119,22 @@ const postRemoveFile = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex) {
-        switch (ex.code) {
+      } catch (ex: unknown) {
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
+
+        switch (error.code) {
           case errors.NotAuthenticated.code: {
-            res.status(401).json({ code: ex.code, message: ex.message });
+            res.status(401).json({ code: error.code, message: error.message });
             break;
           }
           case errors.FileNotFound.code: {
-            res.status(404).json({ code: ex.code, message: ex.message });
+            res.status(404).json({ code: error.code, message: error.message });
             break;
           }
           default: {
-            logger.error('An unknown error occured.', { ex });
-
-            const error = new errors.UnknownError(ex.message);
+            logger.error('An unknown error occured.', { ex: error });
 
             res.status(500).json({ code: error.code, message: error.message });
           }

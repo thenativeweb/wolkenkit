@@ -11,7 +11,6 @@ const sampleHandler = {
     }
 
     await command.issueCommand({
-      contextIdentifier: domainEvent.contextIdentifier,
       aggregateIdentifier: domainEvent.aggregateIdentifier,
       name: 'executeFromFlow',
       data: {

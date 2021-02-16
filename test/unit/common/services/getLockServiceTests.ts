@@ -30,6 +30,9 @@ suite('getLockService', (): void => {
       async releaseLock (): Promise<void> {
         releaseLockCalled = true;
       },
+      async setup (): Promise<void> {
+        // Intentionally left blank.
+      },
       async destroy (): Promise<void> {
         throw new Error('Invalid operation.');
       }

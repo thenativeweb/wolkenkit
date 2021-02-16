@@ -14,7 +14,7 @@ class InMemoryLockStore implements LockStore {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static async create (_options: InMemoryLockStoreOptions): Promise<InMemoryLockStore> {
+  public static async create (options: InMemoryLockStoreOptions): Promise<InMemoryLockStore> {
     return new InMemoryLockStore();
   }
 
@@ -96,6 +96,11 @@ class InMemoryLockStore implements LockStore {
     }
 
     this.database.locks.splice(index, 1);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async setup (): Promise<void> {
+    // There is nothing to do here.
   }
 
   public async destroy (): Promise<void> {

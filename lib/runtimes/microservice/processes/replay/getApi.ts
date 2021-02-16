@@ -2,7 +2,7 @@ import { Application } from '../../../../common/application/Application';
 import { Configuration } from './Configuration';
 import { getCorsOrigin } from 'get-cors-origin';
 import { getApi as getPerformReplayApi } from '../../../../apis/performReplay/http';
-import { PerformReplay } from '../../../../apis/performReplay/PerformReplay';
+import { PerformReplay } from '../../../../common/domain/PerformReplay';
 import express, { Application as ExpressApplication } from 'express';
 
 const getApi = async function ({ configuration, application, performReplay }: {

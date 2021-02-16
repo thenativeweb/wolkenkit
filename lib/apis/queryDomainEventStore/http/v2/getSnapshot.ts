@@ -3,6 +3,8 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
 import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
+import { isCustomError } from 'defekt';
+import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
@@ -19,8 +21,8 @@ const getSnapshot = {
         aggregateIdentifier: getAggregateIdentifierSchema()
       },
       required: [ 'aggregateIdentifier' ],
-      additionalParameters: false
-    }
+      additionalProperties: false
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400, 404 ],
@@ -41,8 +43,8 @@ const getSnapshot = {
 
       try {
         querySchema.validate(req.query, { valueName: 'requestQuery' });
-      } catch (ex) {
-        return res.status(400).send(ex.message);
+      } catch (ex: unknown) {
+        return res.status(400).send((ex as Error).message);
       }
 
       try {
@@ -55,12 +57,16 @@ const getSnapshot = {
         responseBodySchema.validate(snapshot, { valueName: 'responseBody' });
 
         res.json(snapshot);
-      } catch (ex) {
-        logger.error('An unknown error occured.', { ex });
+      } catch (ex: unknown) {
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
+
+        logger.error('An unknown error occured.', { ex: error });
 
         return res.status(400).json({
-          code: ex.code ?? errors.UnknownError.code,
-          message: ex.message
+          code: error.code,
+          message: error.message
         });
       }
     };

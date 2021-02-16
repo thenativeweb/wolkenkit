@@ -2,14 +2,14 @@ import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
-import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getPortOrSocketSchema } from '../../../shared/schemas/getPortOrSocketSchema';
 import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSubscriberOptionsSchema } from '../../../shared/schemas/getSubscriberOptionsSchema';
 import path from 'path';
 
 const corsSchema = getCorsSchema(),
       identityProviderSchema = getIdentityProviderSchema(),
-      portSchema = getPortSchema();
+      portOrSocketSchema = getPortOrSocketSchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
   applicationDirectory: {
@@ -30,10 +30,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: '*',
     schema: corsSchema
   },
-  healthPort: {
-    environmentVariable: 'HEALTH_PORT',
-    defaultValue: 3001,
-    schema: portSchema
+  healthPortOrSocket: {
+    environmentVariable: 'HEALTH_PORT_OR_SOCKET',
+    defaultValue: 3_001,
+    schema: portOrSocketSchema
   },
   identityProviders: {
     environmentVariable: 'IDENTITY_PROVIDERS',
@@ -43,10 +43,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     }],
     schema: identityProviderSchema
   },
-  port: {
-    environmentVariable: 'PORT',
-    defaultValue: 3000,
-    schema: portSchema
+  portOrSocket: {
+    environmentVariable: 'PORT_OR_SOCKET',
+    defaultValue: 3_000,
+    schema: portOrSocketSchema
   },
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',

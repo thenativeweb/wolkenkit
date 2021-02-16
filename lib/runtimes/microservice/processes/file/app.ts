@@ -18,7 +18,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
   try {
     registerExceptionHandler();
 
-    const configuration = fromEnvironmentVariables({ configurationDefinition });
+    const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
@@ -37,17 +37,20 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       fileStore
     });
 
-    await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
+    await runHealthServer({
+      corsOrigin: configuration.healthCorsOrigin,
+      portOrSocket: configuration.healthPortOrSocket
+    });
 
     const server = http.createServer(api);
 
-    server.listen(configuration.port, (): void => {
-      logger.info(
-        'File server started.',
-        { port: configuration.port, healthPort: configuration.healthPort }
-      );
+    server.listen(configuration.portOrSocket, (): void => {
+      logger.info('File server started.', {
+        portOrSocket: configuration.portOrSocket,
+        healthPortOrSocket: configuration.healthPortOrSocket
+      });
     });
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);
   }

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { errors } from '../../../../common/errors';
@@ -9,25 +8,22 @@ import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdenti
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async postCommand ({ command }: {
     command: CommandWithMetadata<CommandData>;
   }): Promise<{ id: string }> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/`,
-      data: command,
-      validateStatus (): boolean {
-        return true;
-      }
+      data: command
     });
 
     if (status === 200) {
@@ -58,13 +54,10 @@ class Client extends HttpClient {
   public async cancelCommand ({ commandIdentifierWithClient }: {
     commandIdentifierWithClient: ItemIdentifierWithClient;
   }): Promise<void> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/cancel`,
-      data: commandIdentifierWithClient,
-      validateStatus (): boolean {
-        return true;
-      }
+      data: commandIdentifierWithClient
     });
 
     switch (status) {

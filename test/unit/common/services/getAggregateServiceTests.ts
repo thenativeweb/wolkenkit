@@ -34,8 +34,10 @@ suite('getAggregateService', (): void => {
     }
   };
   const command = new CommandWithMetadata({
-    contextIdentifier: { name: contextName },
-    aggregateIdentifier: { id: v4(), name: aggregateName },
+    aggregateIdentifier: {
+      context: { name: contextName },
+      aggregate: { id: v4(), name: aggregateName }
+    },
     name: commandName,
     data: {
       strategy: 'succeed'
@@ -95,12 +97,14 @@ suite('getAggregateService', (): void => {
     });
 
     aggregateInstance = await repository.getAggregateInstance({
-      contextIdentifier: {
-        name: contextName
-      },
       aggregateIdentifier: {
-        name: aggregateName,
-        id: v4()
+        context: {
+          name: contextName
+        },
+        aggregate: {
+          name: aggregateName,
+          id: v4()
+        }
       }
     });
 
@@ -109,7 +113,7 @@ suite('getAggregateService', (): void => {
 
   suite('id', (): void => {
     test(`returns the aggregate's id.`, async (): Promise<void> => {
-      assert.that(aggregateService.id()).is.equalTo(aggregateInstance.aggregateIdentifier.id);
+      assert.that(aggregateService.id()).is.equalTo(aggregateInstance.aggregateIdentifier.aggregate.id);
     });
   });
 

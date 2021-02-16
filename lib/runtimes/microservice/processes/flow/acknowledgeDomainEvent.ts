@@ -11,7 +11,7 @@ const acknowledgeDomainEvent = async function ({ flowName, token, domainEventDis
       discriminator: flowName,
       token
     });
-  }, { retries: domainEventDispatcher.acknowledgeRetries, maxTimeout: 1000 });
+  }, { retries: domainEventDispatcher.acknowledgeRetries, maxTimeout: 1_000 });
 };
 
 export {

@@ -60,8 +60,10 @@ suite('AggregateInstance', (): void => {
 
     aggregateInstance = await AggregateInstance.create({
       application,
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregateId }
+      },
       lockStore,
       domainEventStore,
       repository,
@@ -71,19 +73,16 @@ suite('AggregateInstance', (): void => {
     });
   });
 
-  suite('contextIdentifier', (): void => {
-    test('is initialized with the given value.', async (): Promise<void> => {
-      assert.that(aggregateInstance.contextIdentifier).is.equalTo({
-        name: 'sampleContext'
-      });
-    });
-  });
-
   suite('aggregateIdentifier', (): void => {
     test('is initialized with the given value.', async (): Promise<void> => {
       assert.that(aggregateInstance.aggregateIdentifier).is.equalTo({
-        name: 'sampleAggregate',
-        id: aggregateId
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: aggregateId
+        }
       });
     });
   });
@@ -115,7 +114,10 @@ suite('AggregateInstance', (): void => {
       assert.that((): void => {
         aggregateInstance.applySnapshot({
           snapshot: {
-            aggregateIdentifier: { name: 'sampleAggregate', id: snapshotAggregateIdentifierId },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: snapshotAggregateIdentifierId }
+            },
             revision: 1,
             state: {
               domainEventNames: [ 'executed' ]
@@ -179,8 +181,10 @@ suite('AggregateInstance', (): void => {
   suite('applyDomainEvent', (): void => {
     test('throws an error if the context name does not match.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'nonExistent' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'nonExistent' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executed',
         data: {
           strategy: 'succeed'
@@ -198,8 +202,10 @@ suite('AggregateInstance', (): void => {
 
     test('throws an error if the aggregate name does not match.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'nonExistent', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'nonExistent', id: aggregateId }
+        },
         name: 'executed',
         data: {
           strategy: 'succeed'
@@ -217,8 +223,10 @@ suite('AggregateInstance', (): void => {
 
     test('throws an error if the aggregate id does not match.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: v4() }
+        },
         name: 'executed',
         data: {
           strategy: 'succeed'
@@ -236,8 +244,10 @@ suite('AggregateInstance', (): void => {
 
     test('throws an error if the event is not known.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'nonExistent',
         data: {
           strategy: 'succeed'
@@ -255,8 +265,10 @@ suite('AggregateInstance', (): void => {
 
     test('returns the next state.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executed',
         data: {
           strategy: 'succeed'
@@ -278,15 +290,13 @@ suite('AggregateInstance', (): void => {
   suite('handleCommand', (): void => {
     suite('validation', (): void => {
       test(`throws an error if the data of a command doesn't match its schema.`, async (): Promise<void> => {
-        const aggregateIdentifier = {
-          name: 'sampleAggregate',
-          id: v4()
-        };
+        const aggregateIdentifier = { context: { name: 'sampleContext' },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }};
 
         const command = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'execute',
           data: {
@@ -309,9 +319,6 @@ suite('AggregateInstance', (): void => {
         const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'authorize',
           data: {
@@ -325,9 +332,6 @@ suite('AggregateInstance', (): void => {
 
         assert.that(domainEvents.length).is.equalTo(1);
         assert.that(domainEvents[0]).is.atLeast({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'authorizeRejected',
           data: {
@@ -344,9 +348,6 @@ suite('AggregateInstance', (): void => {
         const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'authorize',
           data: {
@@ -360,9 +361,6 @@ suite('AggregateInstance', (): void => {
 
         assert.that(domainEvents.length).is.equalTo(1);
         assert.that(domainEvents[0]).is.atLeast({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'authorized',
           data: {}
@@ -379,9 +377,6 @@ suite('AggregateInstance', (): void => {
         const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'execute',
           data: {
@@ -395,17 +390,11 @@ suite('AggregateInstance', (): void => {
 
         assert.that(domainEvents.length).is.equalTo(2);
         assert.that(domainEvents[0]).is.atLeast({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'succeeded',
           data: {}
         });
         assert.that(domainEvents[1]).is.atLeast({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'executed',
           data: {
@@ -413,9 +402,9 @@ suite('AggregateInstance', (): void => {
           }
         });
 
-        const eventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
+        const eventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.aggregate.id });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           eventStream.on('error', (err: any): void => {
             reject(err);
           });
@@ -427,24 +416,18 @@ suite('AggregateInstance', (): void => {
               (data): void => {
                 try {
                   assert.that(data).is.atLeast({
-                    contextIdentifier: {
-                      name: 'sampleContext'
-                    },
                     aggregateIdentifier,
                     name: 'succeeded',
                     data: {}
                   });
                   resolve();
-                } catch (ex) {
+                } catch (ex: unknown) {
                   reject(ex);
                 }
               },
               (data): void => {
                 try {
                   assert.that(data).is.atLeast({
-                    contextIdentifier: {
-                      name: 'sampleContext'
-                    },
                     aggregateIdentifier,
                     name: 'executed',
                     data: {
@@ -452,7 +435,7 @@ suite('AggregateInstance', (): void => {
                     }
                   });
                   resolve();
-                } catch (ex) {
+                } catch (ex: unknown) {
                   reject(ex);
                 }
               },
@@ -469,9 +452,6 @@ suite('AggregateInstance', (): void => {
         const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'execute',
           data: {
@@ -483,6 +463,10 @@ suite('AggregateInstance', (): void => {
           command
         });
 
+        // Since state is being replaced internally when handling a command with a new instance,
+        // using destructuring for getting the state does not work, since then you'd only have
+        // a reference to the old state. Hence we need to disable this ESLint rule here.
+        // eslint-disable-next-line unicorn/consistent-destructuring
         assert.that(aggregateInstance.state).is.equalTo({
           domainEventNames: [ 'succeeded', 'executed' ]
         });
@@ -492,9 +476,6 @@ suite('AggregateInstance', (): void => {
         const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'execute',
           data: {
@@ -508,9 +489,6 @@ suite('AggregateInstance', (): void => {
 
         assert.that(domainEvents.length).is.equalTo(1);
         assert.that(domainEvents[0]).is.atLeast({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'executeRejected',
           data: {
@@ -527,9 +505,6 @@ suite('AggregateInstance', (): void => {
         const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'execute',
           data: {
@@ -543,9 +518,6 @@ suite('AggregateInstance', (): void => {
 
         assert.that(domainEvents.length).is.equalTo(1);
         assert.that(domainEvents[0]).is.atLeast({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'executeFailed',
           data: {
@@ -573,9 +545,6 @@ suite('AggregateInstance', (): void => {
         const { aggregateIdentifier } = aggregateInstance;
 
         const command = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier,
           name: 'execute',
           data: {
@@ -614,7 +583,6 @@ suite('AggregateInstance', (): void => {
       aggregateInstance.unstoredDomainEvents.push(
         new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: aggregateInstance.contextIdentifier,
             aggregateIdentifier: aggregateInstance.aggregateIdentifier,
             name: 'executed',
             data: {
@@ -655,7 +623,6 @@ suite('AggregateInstance', (): void => {
       aggregateInstance.unstoredDomainEvents.push(
         new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: aggregateInstance.contextIdentifier,
             aggregateIdentifier: aggregateInstance.aggregateIdentifier,
             name: 'succeeded',
             data: {},
@@ -677,7 +644,6 @@ suite('AggregateInstance', (): void => {
       aggregateInstance.unstoredDomainEvents.push(
         new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: aggregateInstance.contextIdentifier,
             aggregateIdentifier: aggregateInstance.aggregateIdentifier,
             name: 'executed',
             data: {

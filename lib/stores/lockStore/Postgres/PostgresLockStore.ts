@@ -73,42 +73,13 @@ class PostgresLockStore implements LockStore {
       throw err;
     });
 
-    await new Promise((resolve, reject): void => {
-      try {
-        disconnectWatcher.connect(resolve);
-      } catch (ex) {
-        reject(ex);
-      }
-    });
+    await disconnectWatcher.connect();
 
-    const lockStore = new PostgresLockStore({
+    return new PostgresLockStore({
       tableNames,
       pool,
       disconnectWatcher
     });
-
-    const connection = await PostgresLockStore.getDatabase(pool);
-
-    try {
-      await retry(async (): Promise<void> => {
-        await connection.query(`
-          CREATE TABLE IF NOT EXISTS "${tableNames.locks}" (
-            "value" CHAR(64) NOT NULL,
-            "expiresAt" BIGINT NOT NULL,
-
-            CONSTRAINT "${tableNames.locks}_pk" PRIMARY KEY("value")
-          );
-        `);
-      }, {
-        retries: 3,
-        minTimeout: 100,
-        factor: 1
-      });
-    } finally {
-      connection.release();
-    }
-
-    return lockStore;
   }
 
   protected async removeExpiredLocks ({ connection }: {
@@ -233,6 +204,29 @@ class PostgresLockStore implements LockStore {
             WHERE "value" = $1
         `,
         values: [ hash ]
+      });
+    } finally {
+      connection.release();
+    }
+  }
+
+  public async setup (): Promise<void> {
+    const connection = await PostgresLockStore.getDatabase(this.pool);
+
+    try {
+      await retry(async (): Promise<void> => {
+        await connection.query(`
+          CREATE TABLE IF NOT EXISTS "${this.tableNames.locks}" (
+            "value" CHAR(64) NOT NULL,
+            "expiresAt" BIGINT NOT NULL,
+
+            CONSTRAINT "${this.tableNames.locks}_pk" PRIMARY KEY("value")
+          );
+        `);
+      }, {
+        retries: 3,
+        minTimeout: 100,
+        factor: 1
       });
     } finally {
       connection.release();

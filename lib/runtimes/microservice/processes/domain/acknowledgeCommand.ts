@@ -10,10 +10,10 @@ const acknowledgeCommand = async function ({ command, token, commandDispatcher }
 }): Promise<void> {
   await retry(async (): Promise<void> => {
     await commandDispatcher.client.acknowledge({
-      discriminator: command.aggregateIdentifier.id,
+      discriminator: command.aggregateIdentifier.aggregate.id,
       token
     });
-  }, { retries: commandDispatcher.acknowledgeRetries, maxTimeout: 1000 });
+  }, { retries: commandDispatcher.acknowledgeRetries, maxTimeout: 1_000 });
 };
 
 export {

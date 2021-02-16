@@ -50,10 +50,10 @@ suite('manageFile/http/Client', (): void => {
 
     suite('addFile', (): void => {
       test('throws a not authorized exception if the adding file hook throws a not authorized exception.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -68,10 +68,10 @@ suite('manageFile/http/Client', (): void => {
       });
 
       test('throws an unknown error if the adding file hook throws another exception.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -86,10 +86,10 @@ suite('manageFile/http/Client', (): void => {
       });
 
       test('throws an unknown error if the added file hook throws an exception.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -104,10 +104,10 @@ suite('manageFile/http/Client', (): void => {
       });
 
       test('adds the given file.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -127,10 +127,10 @@ suite('manageFile/http/Client', (): void => {
       });
 
       test('throws a file already exists error when the file to upload already exists.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -154,10 +154,10 @@ suite('manageFile/http/Client', (): void => {
 
     suite('getFile', (): void => {
       test('throws a not authorized exception if the getting file hook throws a not authorized exception.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -174,10 +174,10 @@ suite('manageFile/http/Client', (): void => {
       });
 
       test('throws an unknown error if the getting file hook throws any other exception.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -194,10 +194,10 @@ suite('manageFile/http/Client', (): void => {
       });
 
       test('returns the file even if the got file hook throws an exception.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -215,10 +215,10 @@ suite('manageFile/http/Client', (): void => {
       });
 
       test('throws a file not found exception if the requested file does not exist.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -228,10 +228,10 @@ suite('manageFile/http/Client', (): void => {
       });
 
       test('returns the requested file and its metadata.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -254,10 +254,10 @@ suite('manageFile/http/Client', (): void => {
 
     suite('removeFile', (): void => {
       test('throws a not authenticated if the removing file hook throws a not authorized exception.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -274,10 +274,10 @@ suite('manageFile/http/Client', (): void => {
       });
 
       test('throws an unknown error if the removing file hook throws another exception.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -294,10 +294,10 @@ suite('manageFile/http/Client', (): void => {
       });
 
       test('throws an unknown error if the removed file hook throws an exception.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -314,10 +314,10 @@ suite('manageFile/http/Client', (): void => {
       });
 
       test('removes the given file.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -336,10 +336,10 @@ suite('manageFile/http/Client', (): void => {
       });
 
       test('returns a file not found exception if the given file does not exist.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 

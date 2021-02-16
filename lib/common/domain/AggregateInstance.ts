@@ -3,7 +3,7 @@ import { Application } from '../application/Application';
 import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { CommandData } from '../elements/CommandData';
 import { CommandWithMetadata } from '../elements/CommandWithMetadata';
-import { ContextIdentifier } from '../elements/ContextIdentifier';
+import { CustomError } from 'defekt';
 import { DomainEvent } from '../elements/DomainEvent';
 import { DomainEventData } from '../elements/DomainEventData';
 import { DomainEventHandler } from '../elements/DomainEventHandler';
@@ -37,8 +37,6 @@ import { cloneDeep, get } from 'lodash';
 class AggregateInstance<TState extends State> {
   public readonly application: Application;
 
-  public readonly contextIdentifier: ContextIdentifier;
-
   public readonly aggregateIdentifier: AggregateIdentifier;
 
   public state: TState;
@@ -70,7 +68,6 @@ class AggregateInstance<TState extends State> {
 
   protected constructor ({
     application,
-    contextIdentifier,
     aggregateIdentifier,
     initialState,
     domainEventStore,
@@ -82,7 +79,6 @@ class AggregateInstance<TState extends State> {
     repository
   }: {
     application: Application;
-    contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
     initialState: TState;
     domainEventStore: DomainEventStore;
@@ -101,7 +97,6 @@ class AggregateInstance<TState extends State> {
     repository: Repository;
   }) {
     this.application = application;
-    this.contextIdentifier = contextIdentifier;
     this.aggregateIdentifier = aggregateIdentifier;
     this.state = initialState;
     this.revision = 0;
@@ -122,9 +117,8 @@ class AggregateInstance<TState extends State> {
     this.repository = repository;
   }
 
-  public static async create <TState extends State> ({
+  public static async create <TCreateState extends State> ({
     application,
-    contextIdentifier,
     aggregateIdentifier,
     domainEventStore,
     lockStore,
@@ -135,7 +129,6 @@ class AggregateInstance<TState extends State> {
     repository
   }: {
     application: Application;
-    contextIdentifier: ContextIdentifier;
     aggregateIdentifier: AggregateIdentifier;
     domainEventStore: DomainEventStore;
     lockStore: LockStore;
@@ -151,22 +144,21 @@ class AggregateInstance<TState extends State> {
       getNotificationService?: GetNotificationService;
     };
     repository: Repository;
-  }): Promise<AggregateInstance<TState>> {
-    if (!(contextIdentifier.name in application.domain)) {
+  }): Promise<AggregateInstance<TCreateState>> {
+    if (!(aggregateIdentifier.context.name in application.domain)) {
       throw new errors.ContextNotFound();
     }
 
-    const contextDefinition = application.domain[contextIdentifier.name];
+    const contextDefinition = application.domain[aggregateIdentifier.context.name];
 
-    if (!(aggregateIdentifier.name in contextDefinition)) {
+    if (!(aggregateIdentifier.aggregate.name in contextDefinition)) {
       throw new errors.AggregateNotFound();
     }
 
-    const initialState = contextDefinition[aggregateIdentifier.name].getInitialState() as TState;
+    const initialState = contextDefinition[aggregateIdentifier.aggregate.name].getInitialState() as TCreateState;
 
-    const aggregateInstance = new AggregateInstance<TState>({
+    const aggregateInstance = new AggregateInstance<TCreateState>({
       application,
-      contextIdentifier,
       aggregateIdentifier,
       initialState,
       domainEventStore,
@@ -178,7 +170,7 @@ class AggregateInstance<TState extends State> {
       repository
     });
 
-    const snapshot = await domainEventStore.getSnapshot<TState>({
+    const snapshot = await domainEventStore.getSnapshot<TCreateState>({
       aggregateIdentifier
     });
 
@@ -190,7 +182,7 @@ class AggregateInstance<TState extends State> {
     }
 
     const domainEventStream = await domainEventStore.getReplayForAggregate({
-      aggregateId: aggregateIdentifier.id,
+      aggregateId: aggregateIdentifier.aggregate.id,
       fromRevision
     });
 
@@ -241,40 +233,50 @@ class AggregateInstance<TState extends State> {
     command: CommandWithMetadata<CommandData>;
   }): Promise<DomainEventWithState<DomainEventData, TState>[]> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const { application } = this;
+    const {
+      aggregateIdentifier,
+      application,
+      domainEventStore,
+      lockStore,
+      publisher,
+      pubSubChannelForNotifications,
+      repository,
+      state,
+      unstoredDomainEvents
+    } = this;
 
     validateCommandWithMetadata({ command, application });
-    if (command.contextIdentifier.name !== this.contextIdentifier.name) {
+    if (command.aggregateIdentifier.context.name !== aggregateIdentifier.context.name) {
       throw new errors.IdentifierMismatch('Context name does not match.');
     }
-    if (command.aggregateIdentifier.name !== this.aggregateIdentifier.name) {
+    if (command.aggregateIdentifier.aggregate.name !== aggregateIdentifier.aggregate.name) {
       throw new errors.IdentifierMismatch('Aggregate name does not match.');
     }
-    if (command.aggregateIdentifier.id !== this.aggregateIdentifier.id) {
+    if (command.aggregateIdentifier.aggregate.id !== aggregateIdentifier.aggregate.id) {
       throw new errors.IdentifierMismatch('Aggregate id does not match.');
     }
 
-    if (await this.domainEventStore.hasDomainEventsWithCausationId({ causationId: command.id })) {
+    if (await domainEventStore.hasDomainEventsWithCausationId({ causationId: command.id })) {
       return [];
     }
 
     const isAuthorizedServices = {
       aggregate: getAggregateService({ application, command, aggregateInstance: this }),
-      aggregates: getAggregatesService({ repository: this.repository }),
+      aggregates: getAggregatesService({ repository }),
       client: getClientService({ clientMetadata: command.metadata.client }),
       error: getErrorService({ errors: [ 'CommandRejected' ]}),
       infrastructure: {
         ask: application.infrastructure.ask
       },
-      lock: getLockService({ lockStore: this.lockStore }),
+      lock: getLockService({ lockStore }),
       logger: getLoggerService({
-        fileName: `<app>/server/domain/${command.contextIdentifier.name}/${command.aggregateIdentifier.name}/`,
+        fileName: `<app>/server/domain/${command.aggregateIdentifier.context.name}/${command.aggregateIdentifier.aggregate.name}/`,
         packageManifest: application.packageManifest
       }),
       notification: getNotificationService({
         application,
-        publisher: this.publisher,
-        channel: this.pubSubChannelForNotifications
+        publisher,
+        channel: pubSubChannelForNotifications
       })
     };
     const handleServices = {
@@ -285,41 +287,41 @@ class AggregateInstance<TState extends State> {
       }
     };
 
-    const commandHandler = application.domain[command.contextIdentifier.name][command.aggregateIdentifier.name].commandHandlers[command.name];
+    const commandHandler = application.domain[command.aggregateIdentifier.context.name][command.aggregateIdentifier.aggregate.name].commandHandlers[command.name];
 
     let domainEvents: DomainEventWithState<DomainEventData, TState>[];
 
     try {
       const clonedCommand = cloneDeep(command);
 
-      const isAuthorized = await commandHandler.isAuthorized(this.state, clonedCommand, isAuthorizedServices);
+      const isAuthorized = await commandHandler.isAuthorized(state, clonedCommand, isAuthorizedServices);
 
       if (!isAuthorized) {
         throw new errors.CommandNotAuthorized();
       }
 
-      await commandHandler.handle(this.state, clonedCommand, handleServices);
+      await commandHandler.handle(state, clonedCommand, handleServices);
 
       await this.storeCurrentAggregateState();
-      domainEvents = this.unstoredDomainEvents;
-    } catch (ex) {
-      switch (ex.code) {
+      domainEvents = unstoredDomainEvents;
+    } catch (ex: unknown) {
+      switch ((ex as CustomError).code) {
         case errors.CommandNotAuthorized.code:
         case errors.CommandRejected.code: {
           handleServices.aggregate.publishDomainEvent(`${command.name}Rejected`, {
-            reason: ex.message
+            reason: (ex as Error).message
           });
           break;
         }
         default: {
           handleServices.aggregate.publishDomainEvent(`${command.name}Failed`, {
-            reason: ex.message
+            reason: (ex as Error).message
           });
         }
       }
 
       domainEvents = [
-        this.unstoredDomainEvents[this.unstoredDomainEvents.length - 1]
+        unstoredDomainEvents[unstoredDomainEvents.length - 1]
       ];
     }
 
@@ -343,7 +345,7 @@ class AggregateInstance<TState extends State> {
   public applySnapshot ({ snapshot }: {
     snapshot: Snapshot<TState>;
   }): void {
-    if (this.aggregateIdentifier.id !== snapshot.aggregateIdentifier.id) {
+    if (this.aggregateIdentifier.aggregate.id !== snapshot.aggregateIdentifier.aggregate.id) {
       throw new errors.IdentifierMismatch('Failed to apply snapshot. Aggregate id does not match.');
     }
 
@@ -355,28 +357,28 @@ class AggregateInstance<TState extends State> {
     application: Application;
     domainEvent: DomainEvent<TDomainEventData>;
   }): TState {
-    if (domainEvent.contextIdentifier.name !== this.contextIdentifier.name) {
+    if (domainEvent.aggregateIdentifier.context.name !== this.aggregateIdentifier.context.name) {
       throw new errors.IdentifierMismatch('Context name does not match.');
     }
-    if (domainEvent.aggregateIdentifier.name !== this.aggregateIdentifier.name) {
+    if (domainEvent.aggregateIdentifier.aggregate.name !== this.aggregateIdentifier.aggregate.name) {
       throw new errors.IdentifierMismatch('Aggregate name does not match.');
     }
-    if (domainEvent.aggregateIdentifier.id !== this.aggregateIdentifier.id) {
+    if (domainEvent.aggregateIdentifier.aggregate.id !== this.aggregateIdentifier.aggregate.id) {
       throw new errors.IdentifierMismatch('Aggregate id does not match.');
     }
 
     const domainEventHandler = get(
       application.domain,
-      [ this.contextIdentifier.name, this.aggregateIdentifier.name, 'domainEventHandlers', domainEvent.name ]
+      [ this.aggregateIdentifier.context.name, this.aggregateIdentifier.aggregate.name, 'domainEventHandlers', domainEvent.name ]
     ) as DomainEventHandler<State, DomainEventData, AskInfrastructure & TellInfrastructure> | undefined;
 
     if (!domainEventHandler) {
-      throw new errors.DomainEventUnknown(`Failed to apply unknown domain event '${domainEvent.name}' in '${this.contextIdentifier.name}.${this.aggregateIdentifier.name}'.`);
+      throw new errors.DomainEventUnknown(`Failed to apply unknown domain event '${domainEvent.name}' in '${this.aggregateIdentifier.context.name}.${this.aggregateIdentifier.aggregate.name}'.`);
     }
 
     const services = {
       logger: this.serviceFactories.getLoggerService({
-        fileName: `<app>/server/domain/${domainEvent.contextIdentifier.name}/${domainEvent.aggregateIdentifier.name}/`,
+        fileName: `<app>/server/domain/${domainEvent.aggregateIdentifier.context.name}/${domainEvent.aggregateIdentifier.aggregate.name}/`,
         packageManifest: application.packageManifest
       }),
       infrastructure: {

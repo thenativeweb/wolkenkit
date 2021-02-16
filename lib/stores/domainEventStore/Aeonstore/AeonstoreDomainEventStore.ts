@@ -13,29 +13,29 @@ class AeonstoreDomainEventStore implements DomainEventStore {
 
   protected writeClient: WriteClient;
 
-  protected constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  protected constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
     const trimmedPath = path.endsWith('/') ? path.slice(0, -1) : path;
 
     this.queryClient = new QueryClient({
-      protocol, hostName, port, path: `${trimmedPath}/query/v2`
+      protocol, hostName, portOrSocket, path: `${trimmedPath}/query/v2`
     });
     this.writeClient = new WriteClient({
-      protocol, hostName, port, path: `${trimmedPath}/write/v2`
+      protocol, hostName, portOrSocket, path: `${trimmedPath}/write/v2`
     });
   }
 
-  public static async create ({ protocol = 'http', hostName, port, path = '/' }: {
+  public static async create ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }): Promise<AeonstoreDomainEventStore> {
-    return new AeonstoreDomainEventStore({ protocol, hostName, port, path });
+    return new AeonstoreDomainEventStore({ protocol, hostName, portOrSocket, path });
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
@@ -44,13 +44,13 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     return await this.queryClient.getLastDomainEvent({ aggregateIdentifier });
   }
 
-  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
     return await this.queryClient.getDomainEventsByCausationId({ causationId });
   }
 
-  public async hasDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async hasDomainEventsWithCausationId ({ causationId }: {
     causationId: string;
   }): Promise<boolean> {
     return await this.queryClient.hasDomainEventsWithCausationId({ causationId });
@@ -102,11 +102,29 @@ class AeonstoreDomainEventStore implements DomainEventStore {
     await this.writeClient.storeSnapshot({ snapshot });
   }
 
-  /* eslint-disable class-methods-use-this */
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    return await this.queryClient.getAggregateIdentifiers();
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    return await this.queryClient.getAggregateIdentifiersByName({
+      contextName,
+      aggregateName
+    });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async setup (): Promise<void> {
+    // There is nothing to do here.
+  }
+
+  // eslint-disable-next-line class-methods-use-this
   public async destroy (): Promise<void> {
     // There is nothing to do here.
   }
-  /* eslint-disable class-methods-use-this */
 }
 
 export { AeonstoreDomainEventStore };

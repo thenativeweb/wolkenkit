@@ -13,7 +13,7 @@ class InMemoryFileStore implements FileStore {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public static async create (_options: InMemoryFileStoreOptions): Promise<InMemoryFileStore> {
+  public static async create (options: InMemoryFileStoreOptions): Promise<InMemoryFileStore> {
     return new InMemoryFileStore();
   }
 
@@ -79,6 +79,16 @@ class InMemoryFileStore implements FileStore {
     }
 
     Reflect.deleteProperty(this.files, id);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async setup (): Promise<void> {
+    // There is nothing to do here.
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async destroy (): Promise<void> {
+    // There is nothing to do here.
   }
 }
 

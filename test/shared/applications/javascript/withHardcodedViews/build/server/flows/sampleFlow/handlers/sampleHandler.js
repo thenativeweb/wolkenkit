@@ -9,7 +9,6 @@ const sampleHandler = {
     logger.info('Received domain event.', { domainEvent });
 
     infrastructure.tell.viewStore.domainEvents.push({
-      contextIdentifier: domainEvent.contextIdentifier,
       aggregateIdentifier: domainEvent.aggregateIdentifier,
       name: domainEvent.name,
       id: domainEvent.id

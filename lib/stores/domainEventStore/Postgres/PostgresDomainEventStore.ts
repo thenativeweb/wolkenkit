@@ -80,53 +80,13 @@ class PostgresDomainEventStore implements DomainEventStore {
       throw err;
     });
 
-    await new Promise((resolve, reject): void => {
-      try {
-        disconnectWatcher.connect(resolve);
-      } catch (ex) {
-        reject(ex);
-      }
-    });
+    await disconnectWatcher.connect();
 
-    const domainEventStore = new PostgresDomainEventStore({
+    return new PostgresDomainEventStore({
       pool,
       tableNames,
       disconnectWatcher
     });
-
-    const connection = await domainEventStore.getDatabase();
-
-    try {
-      await retry(async (): Promise<void> => {
-        await connection.query(`
-          CREATE TABLE IF NOT EXISTS "${tableNames.domainEvents}" (
-            "aggregateId" uuid NOT NULL,
-            "revision" integer NOT NULL,
-            "causationId" uuid NOT NULL,
-            "correlationId" uuid NOT NULL,
-            "timestamp" bigint NOT NULL,
-            "domainEvent" jsonb NOT NULL,
-
-            CONSTRAINT "${tableNames.domainEvents}_pk" PRIMARY KEY ("aggregateId", "revision")
-          );
-          CREATE TABLE IF NOT EXISTS "${tableNames.snapshots}" (
-            "aggregateId" uuid NOT NULL,
-            "revision" integer NOT NULL,
-            "state" jsonb NOT NULL,
-
-            CONSTRAINT "${tableNames.snapshots}_pk" PRIMARY KEY ("aggregateId", "revision")
-          );
-        `);
-      }, {
-        retries: 3,
-        minTimeout: 100,
-        factor: 1
-      });
-    } finally {
-      connection.release();
-    }
-
-    return domainEventStore;
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
@@ -144,7 +104,7 @@ class PostgresDomainEventStore implements DomainEventStore {
             ORDER BY "revision" DESC
             LIMIT 1
         `,
-        values: [ aggregateIdentifier.id ]
+        values: [ aggregateIdentifier.aggregate.id ]
       });
 
       if (result.rows.length === 0) {
@@ -159,7 +119,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     }
   }
 
-  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
     const connection = await this.getDatabase();
@@ -223,13 +183,13 @@ class PostgresDomainEventStore implements DomainEventStore {
         values: [ causationId ]
       });
 
-      return result.rows.length !== 0;
+      return result.rows.length > 0;
     } finally {
       connection.release();
     }
   }
 
-  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
     const connection = await this.getDatabase();
@@ -416,7 +376,7 @@ class PostgresDomainEventStore implements DomainEventStore {
 
       placeholders.push(`($${base}, $${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`);
       values.push(
-        domainEvent.aggregateIdentifier.id,
+        domainEvent.aggregateIdentifier.aggregate.id,
         domainEvent.metadata.revision,
         domainEvent.metadata.causationId,
         domainEvent.metadata.correlationId,
@@ -440,8 +400,8 @@ class PostgresDomainEventStore implements DomainEventStore {
         text,
         values
       });
-    } catch (ex) {
-      if (ex.code === '23505' && ex.detail.startsWith('Key ("aggregateId", revision)')) {
+    } catch (ex: unknown) {
+      if ((ex as any).code === '23505' && (ex as any).detail?.startsWith('Key ("aggregateId", revision)')) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
@@ -466,7 +426,7 @@ class PostgresDomainEventStore implements DomainEventStore {
             ORDER BY "revision" DESC
             LIMIT 1
         `,
-        values: [ aggregateIdentifier.id ]
+        values: [ aggregateIdentifier.aggregate.id ]
       });
 
       if (result.rows.length === 0) {
@@ -498,10 +458,144 @@ class PostgresDomainEventStore implements DomainEventStore {
         ON CONFLICT DO NOTHING;
         `,
         values: [
-          snapshot.aggregateIdentifier.id,
+          snapshot.aggregateIdentifier.aggregate.id,
           snapshot.revision,
           omitDeepBy(snapshot.state, (value): boolean => value === undefined)
         ]
+      });
+    } finally {
+      connection.release();
+    }
+  }
+
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    const connection = await this.getDatabase();
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const domainEventStream = connection.query(
+      new QueryStream(`
+        SELECT "domainEvent", "timestamp"
+          FROM "${this.tableNames.domainEvents}"
+          WHERE "revision" = 1
+          ORDER BY "timestamp"`)
+    );
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      connection.release();
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
+    };
+
+    onData = function (data: any): void {
+      passThrough.write(data.domainEvent.aggregateIdentifier);
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+
+    return passThrough;
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    const connection = await this.getDatabase();
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const domainEventStream = connection.query(
+      new QueryStream(`
+        SELECT "domainEvent", "timestamp"
+          FROM "${this.tableNames.domainEvents}"
+          WHERE "revision" = 1
+          ORDER BY "timestamp"`)
+    );
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      connection.release();
+      domainEventStream.removeListener('data', onData);
+      domainEventStream.removeListener('end', onEnd);
+      domainEventStream.removeListener('error', onError);
+    };
+
+    onData = function (data: any): void {
+      if (
+        data.domainEvent.aggregateIdentifier.context.name !== contextName ||
+          data.domainEvent.aggregateIdentifier.aggregate.name !== aggregateName
+      ) {
+        return;
+      }
+
+      passThrough.write(data.domainEvent.aggregateIdentifier);
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+    };
+
+    domainEventStream.on('data', onData);
+    domainEventStream.on('end', onEnd);
+    domainEventStream.on('error', onError);
+
+    return passThrough;
+  }
+
+  public async setup (): Promise<void> {
+    const connection = await this.getDatabase();
+
+    try {
+      await retry(async (): Promise<void> => {
+        await connection.query(`
+          CREATE TABLE IF NOT EXISTS "${this.tableNames.domainEvents}" (
+            "aggregateId" uuid NOT NULL,
+            "revision" integer NOT NULL,
+            "causationId" uuid NOT NULL,
+            "correlationId" uuid NOT NULL,
+            "timestamp" bigint NOT NULL,
+            "domainEvent" jsonb NOT NULL,
+
+            CONSTRAINT "${this.tableNames.domainEvents}_pk" PRIMARY KEY ("aggregateId", "revision")
+          );
+          CREATE TABLE IF NOT EXISTS "${this.tableNames.snapshots}" (
+            "aggregateId" uuid NOT NULL,
+            "revision" integer NOT NULL,
+            "state" jsonb NOT NULL,
+
+            CONSTRAINT "${this.tableNames.snapshots}_pk" PRIMARY KEY ("aggregateId", "revision")
+          );
+        `);
+      }, {
+        retries: 3,
+        minTimeout: 100,
+        factor: 1
       });
     } finally {
       connection.release();

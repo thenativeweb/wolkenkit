@@ -2,10 +2,10 @@ import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { Command } from '../../../../common/elements/Command';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
+import { CustomError } from 'defekt';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
-import { jsonSchema } from '../../../../common/utils/uuid';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
@@ -28,13 +28,20 @@ const postCommandWithoutAggregateId = {
     body: {
       type: 'object',
       properties: {
-        id: jsonSchema,
+        id: { type: 'string', format: 'uuid' },
         aggregateIdentifier: {
           type: 'object',
           properties: {
-            id: jsonSchema
+            aggregate: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', format: 'uuid' }
+              },
+              required: [ 'id' ],
+              additionalProperties: false
+            }
           },
-          required: [ 'id' ],
+          required: [ 'aggregate' ],
           additionalProperties: false
         }
       },
@@ -65,10 +72,10 @@ const postCommandWithoutAggregateId = {
         const contentType = typer.parse(req);
 
         if (contentType.type !== 'application/json') {
-          throw new errors.RequestMalformed();
+          throw new errors.ContentTypeMismatch();
         }
       } catch {
-        const ex = new errors.RequestMalformed('Header content-type must be application/json.');
+        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
         res.status(415).json({
           code: ex.code,
@@ -80,12 +87,14 @@ const postCommandWithoutAggregateId = {
 
       const aggregateId = v4();
       const command = new Command({
-        contextIdentifier: {
-          name: req.params.contextName
-        },
         aggregateIdentifier: {
-          name: req.params.aggregateName,
-          id: aggregateId
+          context: {
+            name: req.params.contextName
+          },
+          aggregate: {
+            name: req.params.aggregateName,
+            id: aggregateId
+          }
         },
         name: req.params.commandName,
         data: req.body
@@ -93,8 +102,8 @@ const postCommandWithoutAggregateId = {
 
       try {
         new Value(getCommandSchema()).validate(command, { valueName: 'command' });
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.RequestMalformed((ex as Error).message);
 
         res.status(400).json({
           code: error.code,
@@ -106,10 +115,10 @@ const postCommandWithoutAggregateId = {
 
       try {
         validateCommand({ command, application });
-      } catch (ex) {
+      } catch (ex: unknown) {
         res.status(400).json({
-          code: ex.code,
-          message: ex.message
+          code: (ex as CustomError).code,
+          message: (ex as CustomError).message
         });
 
         return;
@@ -136,14 +145,16 @@ const postCommandWithoutAggregateId = {
         const response = {
           id: commandId,
           aggregateIdentifier: {
-            id: commandWithMetadata.aggregateIdentifier.id
+            aggregate: {
+              id: commandWithMetadata.aggregateIdentifier.aggregate.id
+            }
           }
         };
 
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex) {
+      } catch (ex: unknown) {
         logger.error('An unknown error occured.', { ex });
 
         const error = new errors.UnknownError();

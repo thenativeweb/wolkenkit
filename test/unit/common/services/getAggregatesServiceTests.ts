@@ -62,8 +62,10 @@ suite('getAggregatesService', (): void => {
       };
 
       const sampleDomainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id }
+        },
         name: 'succeeded',
         data: {},
         metadata: {
@@ -76,8 +78,10 @@ suite('getAggregatesService', (): void => {
 
       const aggregatesService = getAggregatesService({ repository });
       const sampleAggregateState = await aggregatesService.read({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id }
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id }
+        }
       });
 
       assert.that(sampleAggregateState).is.equalTo({
@@ -91,8 +95,10 @@ suite('getAggregatesService', (): void => {
 
       await assert.that(async (): Promise<void> => {
         await aggregatesService.read({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id }
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id }
+          }
         });
       }).is.throwingAsync(`Aggregate 'sampleContext.sampleAggregate.${id}' not found.`);
     });

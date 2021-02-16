@@ -10,9 +10,9 @@ import { Queue } from './Queue';
 import { SqlServerPriorityQueueStoreOptions } from './SqlServerPriorityQueueStoreOptions';
 import { TableNames } from './TableNames';
 import { v4 } from 'uuid';
-import { ConnectionPool, Transaction, TYPES as Types } from 'mssql';
+import { ConnectionPool, RequestError, Transaction, TYPES as Types } from 'mssql';
 
-class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
+class SqlServerPriorityQueueStore<TItem extends object, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;
 
   protected pool: ConnectionPool;
@@ -48,7 +48,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> (
+  public static async create<TCreateItem extends object, TCreateItemIdentifier> (
     {
       doesIdentifierMatchItem,
       expirationTime = 15_000,
@@ -59,8 +59,8 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
       database,
       tableNames,
       encryptConnection = false
-    }: SqlServerPriorityQueueStoreOptions<TItem, TItemIdentifier>
-  ): Promise<SqlServerPriorityQueueStore<TItem, TItemIdentifier>> {
+    }: SqlServerPriorityQueueStoreOptions<TCreateItem, TCreateItemIdentifier>
+  ): Promise<SqlServerPriorityQueueStore<TCreateItem, TCreateItemIdentifier>> {
     const pool = new ConnectionPool({
       server: hostName,
       port,
@@ -80,60 +80,12 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
 
     await pool.connect();
 
-    const priorityQueueStore = new SqlServerPriorityQueueStore<TItem, TItemIdentifier>({
+    return new SqlServerPriorityQueueStore<TCreateItem, TCreateItemIdentifier>({
       tableNames,
       pool,
       doesIdentifierMatchItem,
       expirationTime
     });
-
-    try {
-      await pool.query(`
-        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.items}')
-          BEGIN
-            CREATE TABLE [${tableNames.items}] (
-              [discriminator] NVARCHAR(100) NOT NULL,
-              [indexInQueue] INT NOT NULL,
-              [priority] BIGINT NOT NULL,
-              [item] NVARCHAR(4000) NOT NULL,
-
-              CONSTRAINT [${tableNames.items}_pk] PRIMARY KEY([discriminator], [indexInQueue])
-            );
-
-            CREATE INDEX [${tableNames.items}_idx_discriminator]
-              ON [${tableNames.items}] ([discriminator]);
-          END
-
-        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${tableNames.priorityQueue}')
-          BEGIN
-            CREATE TABLE [${tableNames.priorityQueue}] (
-              [discriminator] NVARCHAR(100) NOT NULL,
-              [indexInPriorityQueue] INT NOT NULL,
-              [lockUntil] BIGINT,
-              [lockToken] UNIQUEIDENTIFIER,
-
-              CONSTRAINT [${tableNames.priorityQueue}_pk] PRIMARY KEY([discriminator])
-            );
-
-            CREATE UNIQUE INDEX [${tableNames.priorityQueue}_idx_indexInPriorityQueue]
-              ON [${tableNames.priorityQueue}] ([indexInPriorityQueue]);
-          END
-      `);
-    } catch (ex) {
-      if (!ex.message.includes('There is already an object named')) {
-        throw ex;
-      }
-
-      // When multiple clients initialize at the same time, e.g. during
-      // integration tests, SQL Server might throw an error. In this case we
-      // simply ignore it
-    }
-
-    return priorityQueueStore;
-  }
-
-  public async destroy (): Promise<void> {
-    await this.pool.close();
   }
 
   protected async swapPositionsInPriorityQueue ({ transaction, firstQueue, secondQueue }: {
@@ -271,29 +223,44 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
     const requestTwo = transaction.request();
 
     requestTwo.input('discriminator', Types.NVarChar, discriminator);
-    requestTwo.input('index', Types.Int, recordset[0].indexInPriorityQueue);
 
-    const { rowsAffected, recordsets } = await requestTwo.query(`
+    await requestTwo.query(`
       DELETE
         FROM [${this.tableNames.priorityQueue}]
         WHERE [discriminator] = @discriminator;
-      WITH [CTE] AS (
-        SELECT TOP 1 *
-          FROM [${this.tableNames.priorityQueue}]
-          ORDER BY [indexInPriorityQueue] DESC
-      ) UPDATE [CTE] SET [indexInPriorityQueue] = @index;
+    `);
+
+    const requestThree = transaction.request();
+
+    const { recordset: [{ count }] } = await requestThree.query(`
+      SELECT count(*) as count
+        FROM [${this.tableNames.priorityQueue}];
+    `);
+
+    if (recordset[0].indexInPriorityQueue >= count) {
+      return;
+    }
+
+    const requestFour = transaction.request();
+
+    requestFour.input('index', Types.Int, recordset[0].indexInPriorityQueue);
+    requestFour.input('lastIndex', Types.Int, count);
+    await requestFour.query(`
+      UPDATE [${this.tableNames.priorityQueue}]
+        SET [indexInPriorityQueue] = @index
+        WHERE [indexInPriorityQueue] = @lastIndex;
+    `);
+
+    const requestFive = transaction.request();
+
+    requestFive.input('index', Types.Int, recordset[0].indexInPriorityQueue);
+    const { recordset: [{ discriminator: movedQueueDiscriminator }] } = await requestFive.query(`
       SELECT [discriminator]
         FROM [${this.tableNames.priorityQueue}]
         WHERE [indexInPriorityQueue] = @index;
     `);
 
-    // If the update did not change any rows, we removed the last queue and
-    // don't have to repair.
-    if (rowsAffected[1] === 0) {
-      return;
-    }
-
-    await this.repairDown({ transaction, discriminator: recordsets[0][0].discriminator });
+    await this.repairDown({ transaction, discriminator: movedQueueDiscriminator });
   }
 
   protected async getQueueByDiscriminator ({ transaction, discriminator }: {
@@ -469,8 +436,13 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
           INTO [${this.tableNames.priorityQueue}] ([discriminator], [indexInPriorityQueue])
           VALUES (@discriminator, @indexInPriorityQueue);
       `);
-    } catch (ex) {
-      if (ex.code === 'EREQUEST' && ex.number === 2627 && ex.message.startsWith('Violation of PRIMARY KEY constraint')) {
+    } catch (ex: unknown) {
+      if (
+        ex instanceof RequestError &&
+        ex.code === 'EREQUEST' &&
+        ex.number === 2_627 &&
+        ex.message.startsWith('Violation of PRIMARY KEY constraint')
+      ) {
         return;
       }
 
@@ -494,7 +466,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         try {
           await this.enqueueInternal({ transaction, item, discriminator, priority });
           await transaction.commit();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await transaction.rollback();
           throw ex;
         }
@@ -555,7 +527,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         try {
           nextItem = await this.lockNextInternal({ transaction });
           await transaction.commit();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await transaction.rollback();
           throw ex;
         }
@@ -600,7 +572,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         try {
           await this.renewLockInternal({ transaction, discriminator, token });
           await transaction.commit();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await transaction.rollback();
           throw ex;
         }
@@ -662,7 +634,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         try {
           await this.acknowledgeInternal({ transaction, discriminator, token });
           await transaction.commit();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await transaction.rollback();
           throw ex;
         }
@@ -698,7 +670,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         try {
           await this.deferInternal({ transaction, discriminator, token, priority });
           await transaction.commit();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await transaction.rollback();
           throw ex;
         }
@@ -737,7 +709,7 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
     }
 
     if (foundItemIndex === 0) {
-      if (queue?.lock && queue.lock.until > Date.now()) {
+      if (queue.lock && queue.lock.until > Date.now()) {
         throw new errors.ItemNotFound();
       }
 
@@ -794,12 +766,60 @@ class SqlServerPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQue
         try {
           await this.removeInternal({ transaction, discriminator, itemIdentifier });
           await transaction.commit();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await transaction.rollback();
           throw ex;
         }
       }
     );
+  }
+
+  public async setup (): Promise<void> {
+    try {
+      await this.pool.query(`
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${this.tableNames.items}')
+          BEGIN
+            CREATE TABLE [${this.tableNames.items}] (
+              [discriminator] NVARCHAR(100) NOT NULL,
+              [indexInQueue] INT NOT NULL,
+              [priority] BIGINT NOT NULL,
+              [item] NVARCHAR(4000) NOT NULL,
+
+              CONSTRAINT [${this.tableNames.items}_pk] PRIMARY KEY([discriminator], [indexInQueue])
+            );
+
+            CREATE INDEX [${this.tableNames.items}_idx_discriminator]
+              ON [${this.tableNames.items}] ([discriminator]);
+          END
+
+        IF NOT EXISTS (SELECT [name] FROM sys.tables WHERE [name] = '${this.tableNames.priorityQueue}')
+          BEGIN
+            CREATE TABLE [${this.tableNames.priorityQueue}] (
+              [discriminator] NVARCHAR(100) NOT NULL,
+              [indexInPriorityQueue] INT NOT NULL,
+              [lockUntil] BIGINT,
+              [lockToken] UNIQUEIDENTIFIER,
+
+              CONSTRAINT [${this.tableNames.priorityQueue}_pk] PRIMARY KEY([discriminator])
+            );
+
+            CREATE UNIQUE INDEX [${this.tableNames.priorityQueue}_idx_indexInPriorityQueue]
+              ON [${this.tableNames.priorityQueue}] ([indexInPriorityQueue]);
+          END
+      `);
+    } catch (ex: unknown) {
+      if (!(ex as Error).message.includes('There is already an object named')) {
+        throw ex;
+      }
+
+      // When multiple clients initialize at the same time, e.g. during
+      // integration tests, SQL Server might throw an error. In this case we
+      // simply ignore it
+    }
+  }
+
+  public async destroy (): Promise<void> {
+    await this.pool.close();
   }
 }
 

@@ -54,7 +54,12 @@ const getV2 = async function ({
 
   const api = await getApiBase({
     request: {
-      headers: { cors: { origin: corsOrigin }},
+      headers: {
+        cors: { origin: corsOrigin },
+
+        // If the GraphQL playground is enabled, CSP must be disabled for the apollo cdn to work.
+        csp: !enableIntegratedClient
+      },
       body: { parser: { sizeLimit: 100_000 }},
       query: { parser: { useJson: false }}
     },
@@ -81,7 +86,7 @@ const getV2 = async function ({
 
   if (schemaValidationErrors.length > 0) {
     for (const error of schemaValidationErrors) {
-      logger.error(error.message, error);
+      logger.error(error.message, { ex: error });
     }
     throw new errors.GraphQlError('GraphQL schema validation failed.');
   }

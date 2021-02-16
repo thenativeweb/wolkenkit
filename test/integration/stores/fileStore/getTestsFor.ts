@@ -2,14 +2,14 @@ import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import { errors } from '../../../../lib/common/errors';
 import { FileStore } from '../../../../lib/stores/fileStore/FileStore';
+import fs from 'fs';
 import path from 'path';
 import streamToString from 'stream-to-string';
 import { v4 } from 'uuid';
-import { createReadStream, ReadStream } from 'fs';
 
 /* eslint-disable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 const getTestsFor = function ({ createFileStore }: {
-  createFileStore (): Promise<FileStore>;
+  createFileStore: () => Promise<FileStore>;
 }): void {
   const contentType = 'application/json',
         name = 'someFile.json';
@@ -18,21 +18,26 @@ const getTestsFor = function ({ createFileStore }: {
       contentLength: number,
       fileStore: FileStore,
       id: string,
-      stream: ReadStream;
+      stream: fs.ReadStream;
 
   setup(async (): Promise<void> => {
     id = v4();
 
     const filePath = path.join(__dirname, '..', '..', '..', 'shared', 'files', 'someFile.json');
 
-    content = await streamToString(createReadStream(filePath));
+    content = await streamToString(fs.createReadStream(filePath));
     contentLength = content.length;
-    stream = createReadStream(filePath);
+    stream = fs.createReadStream(filePath);
+  });
+
+  teardown(async (): Promise<void> => {
+    await fileStore.destroy();
   });
 
   suite('addFile', (): void => {
     setup(async (): Promise<void> => {
       fileStore = await createFileStore();
+      await fileStore.setup();
     });
 
     test('does not throw an error.', async (): Promise<void> => {
@@ -59,6 +64,7 @@ const getTestsFor = function ({ createFileStore }: {
   suite('getMetadata', (): void => {
     setup(async (): Promise<void> => {
       fileStore = await createFileStore();
+      await fileStore.setup();
     });
 
     test('throws an error if the id does not exist.', async (): Promise<void> => {
@@ -79,6 +85,7 @@ const getTestsFor = function ({ createFileStore }: {
   suite('getFile', (): void => {
     setup(async (): Promise<void> => {
       fileStore = await createFileStore();
+      await fileStore.setup();
     });
 
     test('throws an error if the id does not exist.', async (): Promise<void> => {
@@ -100,6 +107,7 @@ const getTestsFor = function ({ createFileStore }: {
   suite('removeFile', (): void => {
     setup(async (): Promise<void> => {
       fileStore = await createFileStore();
+      await fileStore.setup();
     });
 
     test('throws an error if the id does not exist.', async (): Promise<void> => {
@@ -119,4 +127,5 @@ const getTestsFor = function ({ createFileStore }: {
 };
 /* eslint-enable mocha/max-top-level-suites, mocha/no-top-level-hooks */
 
+// eslint-disable-next-line mocha/no-exports
 export { getTestsFor };

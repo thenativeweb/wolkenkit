@@ -17,8 +17,10 @@ suite('validateDomainEvent', (): void => {
   };
 
   const domainEvent = buildDomainEvent({
-    contextIdentifier: { name: 'sampleContext' },
-    aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+    aggregateIdentifier: {
+      context: { name: 'sampleContext' },
+      aggregate: { name: 'sampleAggregate', id: v4() }
+    },
     name: 'executed',
     data: {
       strategy: 'succeed'
@@ -46,8 +48,9 @@ suite('validateDomainEvent', (): void => {
       validateDomainEvent({
         domainEvent: new DomainEvent({
           ...domainEvent,
-          contextIdentifier: {
-            name: 'someContext'
+          aggregateIdentifier: {
+            context: { name: 'someContext' },
+            aggregate: domainEvent.aggregateIdentifier.aggregate
           }
         }),
         application
@@ -65,8 +68,11 @@ suite('validateDomainEvent', (): void => {
         domainEvent: new DomainEvent({
           ...domainEvent,
           aggregateIdentifier: {
-            name: 'someAggregate',
-            id: v4()
+            context: domainEvent.aggregateIdentifier.context,
+            aggregate: {
+              name: 'someAggregate',
+              id: v4()
+            }
           }
         }),
         application

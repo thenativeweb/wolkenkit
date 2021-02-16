@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
@@ -6,26 +5,23 @@ import { HttpClient } from '../../../shared/HttpClient';
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async postMessage ({ channel, message }: {
     channel: string;
     message: object;
   }): Promise<void> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/`,
-      data: { channel, message },
-      validateStatus (): boolean {
-        return true;
-      }
+      data: { channel, message }
     });
 
     if (status === 200) {

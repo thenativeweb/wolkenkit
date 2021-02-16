@@ -2,7 +2,7 @@ import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
-import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getPortOrSocketSchema } from '../../../shared/schemas/getPortOrSocketSchema';
 import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
 import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSnapshotStrategySchema } from '../../../shared/schemas/getSnapshotStrategySchema';
@@ -11,7 +11,7 @@ import path from 'path';
 
 const corsSchema = getCorsSchema(),
       identityProviderSchema = getIdentityProviderSchema(),
-      portSchema = getPortSchema(),
+      portOrSocketSchema = getPortOrSocketSchema(),
       protocolSchema = getProtocolSchema(),
       publisherOptionsSchema = getPublisherOptionsSchema(),
       snapshotStrategySchema = getSnapshotStrategySchema(),
@@ -23,10 +23,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: 'aeonstore',
     schema: { type: 'string', format: 'hostname' }
   },
-  aeonstorePort: {
-    environmentVariable: 'AEONSTORE_PORT',
-    defaultValue: 3000,
-    schema: portSchema
+  aeonstorePortOrSocket: {
+    environmentVariable: 'AEONSTORE_PORT_OR_SOCKET',
+    defaultValue: 3_000,
+    schema: portOrSocketSchema
   },
   aeonstoreProtocol: {
     environmentVariable: 'AEONSTORE_PROTOCOL',
@@ -53,10 +53,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: '*',
     schema: corsSchema
   },
-  healthPort: {
-    environmentVariable: 'HEALTH_PORT',
-    defaultValue: 3000,
-    schema: portSchema
+  healthPortOrSocket: {
+    environmentVariable: 'HEALTH_PORT_OR_SOCKET',
+    defaultValue: 3_000,
+    schema: portOrSocketSchema
   },
   identityProviders: {
     environmentVariable: 'IDENTITY_PROVIDERS',
@@ -66,10 +66,10 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     }],
     schema: identityProviderSchema
   },
-  port: {
-    environmentVariable: 'PORT',
-    defaultValue: 3000,
-    schema: portSchema
+  portOrSocket: {
+    environmentVariable: 'PORT_OR_SOCKET',
+    defaultValue: 3_000,
+    schema: portOrSocketSchema
   },
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',
@@ -80,14 +80,14 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
         type: 'Http',
         protocol: 'http',
         hostName: 'publisher',
-        port: 3000,
+        portOrSocket: 3_000,
         path: '/publish/v2'
       },
       publisher: {
         type: 'Http',
         protocol: 'http',
         hostName: 'publisher',
-        port: 3000,
+        portOrSocket: 3_000,
         path: '/publish/v2'
       }
     },

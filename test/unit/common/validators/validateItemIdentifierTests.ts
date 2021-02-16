@@ -11,8 +11,10 @@ suite('validateItemIdentifier', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   const itemIdentifier = {
-    contextIdentifier: { name: 'sampleContext' },
-    aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+    aggregateIdentifier: {
+      context: { name: 'sampleContext' },
+      aggregate: { name: 'sampleAggregate', id: v4() }
+    },
     id: v4(),
     name: 'execute'
   };
@@ -34,8 +36,9 @@ suite('validateItemIdentifier', (): void => {
       validateItemIdentifier({
         itemIdentifier: {
           ...itemIdentifier,
-          contextIdentifier: {
-            name: 'someContext'
+          aggregateIdentifier: {
+            context: { name: 'someContext' },
+            aggregate: itemIdentifier.aggregateIdentifier.aggregate
           }
         },
         application
@@ -53,8 +56,11 @@ suite('validateItemIdentifier', (): void => {
         itemIdentifier: {
           ...itemIdentifier,
           aggregateIdentifier: {
-            name: 'someAggregate',
-            id: v4()
+            context: itemIdentifier.aggregateIdentifier.context,
+            aggregate: {
+              name: 'someAggregate',
+              id: v4()
+            }
           }
         },
         application

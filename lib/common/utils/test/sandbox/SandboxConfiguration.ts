@@ -3,7 +3,6 @@ import { Application } from '../../../application/Application';
 import { CommandData } from '../../../elements/CommandData';
 import { CommandWithMetadata } from '../../../elements/CommandWithMetadata';
 import { ConsumerProgressStore } from '../../../../stores/consumerProgressStore/ConsumerProgressStore';
-import { ContextIdentifier } from '../../../elements/ContextIdentifier';
 import { DomainEvent } from '../../../elements/DomainEvent';
 import { DomainEventData } from '../../../elements/DomainEventData';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
@@ -38,7 +37,6 @@ export interface SandboxConfiguration {
 }
 
 export interface SandboxConfigurationForAggregate extends SandboxConfiguration {
-  contextIdentifier: ContextIdentifier;
   aggregateIdentifier: AggregateIdentifier;
 
   domainEvents: DomainEvent<DomainEventData>[];

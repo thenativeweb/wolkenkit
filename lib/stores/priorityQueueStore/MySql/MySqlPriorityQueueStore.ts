@@ -15,7 +15,7 @@ import { v4 } from 'uuid';
 import { withTransaction } from '../../utils/mySql/withTransaction';
 import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
 
-class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
+class MySqlPriorityQueueStore<TItem extends object, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;
 
   protected pool: Pool;
@@ -73,7 +73,7 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> (
+  public static async create<TCreateItem extends object, TCreateItemIdentifier> (
     {
       doesIdentifierMatchItem,
       expirationTime = 15_000,
@@ -83,8 +83,8 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
       password,
       database,
       tableNames
-    }: MySqlPriorityQueueStoreOptions<TItem, TItemIdentifier>
-  ): Promise<MySqlPriorityQueueStore<TItem, TItemIdentifier>> {
+    }: MySqlPriorityQueueStoreOptions<TCreateItem, TCreateItemIdentifier>
+  ): Promise<MySqlPriorityQueueStore<TCreateItem, TCreateItemIdentifier>> {
     const pool = createPool({
       host: hostName,
       port,
@@ -102,98 +102,11 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
       connection.on('end', MySqlPriorityQueueStore.onUnexpectedClose);
     });
 
-    const priorityQueueStore = new MySqlPriorityQueueStore<TItem, TItemIdentifier>({
+    return new MySqlPriorityQueueStore<TCreateItem, TCreateItemIdentifier>({
       tableNames,
       pool,
       doesIdentifierMatchItem,
       expirationTime
-    });
-    const connection = await priorityQueueStore.getDatabase();
-
-    const createUuidToBinFunction = `
-      CREATE FUNCTION UuidToBin(_uuid CHAR(36))
-        RETURNS BINARY(16)
-        RETURN UNHEX(CONCAT(
-          SUBSTR(_uuid, 15, 4),
-          SUBSTR(_uuid, 10, 4),
-          SUBSTR(_uuid, 1, 8),
-          SUBSTR(_uuid, 20, 4),
-          SUBSTR(_uuid, 25)
-        ));
-    `;
-
-    try {
-      await runQuery({ connection, query: createUuidToBinFunction });
-    } catch (ex) {
-      // If the function already exists, we can ignore this error; otherwise
-      // rethrow it. Generally speaking, this should be done using a SQL clause
-      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
-      // there is a ready-made function UUID_TO_BIN, but this is only available
-      // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidToBin already exists')) {
-        throw ex;
-      }
-    }
-
-    const createUuidFromBinFunction = `
-      CREATE FUNCTION UuidFromBin(_bin BINARY(16))
-        RETURNS CHAR(36)
-        RETURN LCASE(CONCAT_WS('-',
-          HEX(SUBSTR(_bin,  5, 4)),
-          HEX(SUBSTR(_bin,  3, 2)),
-          HEX(SUBSTR(_bin,  1, 2)),
-          HEX(SUBSTR(_bin,  9, 2)),
-          HEX(SUBSTR(_bin, 11))
-        ));
-    `;
-
-    try {
-      await runQuery({ connection, query: createUuidFromBinFunction });
-    } catch (ex) {
-      // If the function already exists, we can ignore this error; otherwise
-      // rethrow it. Generally speaking, this should be done using a SQL clause
-      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
-      // there is a ready-made function BIN_TO_UUID, but this is only available
-      // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidFromBin already exists')) {
-        throw ex;
-      }
-    }
-
-    const query = `
-      CREATE TABLE IF NOT EXISTS \`${tableNames.items}\`
-      (
-        discriminator VARCHAR(100) NOT NULL,
-        indexInQueue INT NOT NULL,
-        priority BIGINT NOT NULL,
-        item JSON NOT NULL,
-
-        PRIMARY KEY (discriminator, indexInQueue),
-        INDEX (discriminator)
-      ) ENGINE=InnoDB;
-
-      CREATE TABLE IF NOT EXISTS \`${tableNames.priorityQueue}\`
-      (
-        discriminator VARCHAR(100) NOT NULL,
-        indexInPriorityQueue INT NOT NULL,
-        lockUntil BIGINT,
-        lockToken BINARY(16),
-
-        PRIMARY KEY (discriminator),
-        UNIQUE INDEX (indexInPriorityQueue)
-      ) ENGINE=InnoDB;
-    `;
-
-    await runQuery({ connection, query });
-
-    MySqlPriorityQueueStore.releaseConnection({ connection });
-
-    return priorityQueueStore;
-  }
-
-  public async destroy (): Promise<void> {
-    await new Promise((resolve): void => {
-      this.pool.end(resolve);
     });
   }
 
@@ -325,28 +238,48 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
       throw new errors.InvalidOperation();
     }
 
-    const [ results ] = await runQuery({
+    await runQuery({
       connection,
       query: `
         DELETE FROM \`${this.tableNames.priorityQueue}\`
           WHERE discriminator = ?;
-        UPDATE \`${this.tableNames.priorityQueue}\`
-          SET indexInPriorityQueue = ?
-          ORDER BY indexInPriorityQueue DESC
-          LIMIT 1;
-        SELECT discriminator FROM \`${this.tableNames.priorityQueue}\`
-          WHERE indexInPriorityQueue = ?;
       `,
       parameters: [ discriminator, rows[0].indexInPriorityQueue, rows[0].indexInPriorityQueue ]
     });
 
-    // If the update did not change any rows, we removed the last queue and
-    // don't have to repair.
-    if (results[1].changedRows === 0) {
+    const [[{ count }]] = await runQuery({
+      connection,
+      query: `
+        SELECT count(*) as count
+          FROM \`${this.tableNames.priorityQueue}\`
+      `
+    });
+
+    if (rows[0].indexInPriorityQueue >= count) {
       return;
     }
 
-    await this.repairDown({ connection, discriminator: results[2][0].discriminator });
+    await runQuery({
+      connection,
+      query: `
+        UPDATE \`${this.tableNames.priorityQueue}\`
+          SET indexInPriorityQueue = ?
+          WHERE indexInPriorityQueue = ?;
+      `,
+      parameters: [ rows[0].indexInPriorityQueue, count ]
+    });
+
+    const [[{ discriminator: movedQueueDiscriminator }]] = await runQuery({
+      connection,
+      query: `
+        SELECT discriminator
+          FROM \`${this.tableNames.priorityQueue}\`
+          WHERE indexInPriorityQueue = ?;
+      `,
+      parameters: [ rows[0].indexInPriorityQueue ]
+    });
+
+    await this.repairDown({ connection, discriminator: movedQueueDiscriminator });
   }
 
   protected async getQueueByDiscriminator ({ connection, discriminator }: {
@@ -514,8 +447,11 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
         `,
         parameters: [ discriminator, nextIndexInPriorityQueue ]
       });
-    } catch (ex) {
-      if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
+    } catch (ex: unknown) {
+      if (
+        (ex as MysqlError).code === 'ER_DUP_ENTRY' &&
+        (ex as MysqlError).sqlMessage?.endsWith('for key \'PRIMARY\'')
+      ) {
         return;
       }
 
@@ -761,7 +697,7 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
     }
 
     if (foundItemIndex === 0) {
-      if (queue?.lock && queue.lock.until > Date.now()) {
+      if (queue.lock && queue.lock.until > Date.now()) {
         throw new errors.ItemNotFound();
       }
 
@@ -818,6 +754,99 @@ class MySqlPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueSt
         });
       }
     );
+  }
+
+  public async setup (): Promise<void> {
+    const connection = await this.getDatabase();
+
+    const createUuidToBinFunction = `
+      CREATE FUNCTION UuidToBin(_uuid CHAR(36))
+        RETURNS BINARY(16)
+        RETURN UNHEX(CONCAT(
+          SUBSTR(_uuid, 15, 4),
+          SUBSTR(_uuid, 10, 4),
+          SUBSTR(_uuid, 1, 8),
+          SUBSTR(_uuid, 20, 4),
+          SUBSTR(_uuid, 25)
+        ));
+    `;
+
+    try {
+      await runQuery({ connection, query: createUuidToBinFunction });
+    } catch (ex: unknown) {
+      // If the function already exists, we can ignore this error; otherwise
+      // rethrow it. Generally speaking, this should be done using a SQL clause
+      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
+      // there is a ready-made function UUID_TO_BIN, but this is only available
+      // from MySQL 8.0 upwards.
+      if (!(ex as Error).message.includes('FUNCTION UuidToBin already exists')) {
+        throw ex;
+      }
+    }
+
+    const createUuidFromBinFunction = `
+      CREATE FUNCTION UuidFromBin(_bin BINARY(16))
+        RETURNS CHAR(36)
+        RETURN LCASE(CONCAT_WS('-',
+          HEX(SUBSTR(_bin,  5, 4)),
+          HEX(SUBSTR(_bin,  3, 2)),
+          HEX(SUBSTR(_bin,  1, 2)),
+          HEX(SUBSTR(_bin,  9, 2)),
+          HEX(SUBSTR(_bin, 11))
+        ));
+    `;
+
+    try {
+      await runQuery({ connection, query: createUuidFromBinFunction });
+    } catch (ex: unknown) {
+      // If the function already exists, we can ignore this error; otherwise
+      // rethrow it. Generally speaking, this should be done using a SQL clause
+      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
+      // there is a ready-made function BIN_TO_UUID, but this is only available
+      // from MySQL 8.0 upwards.
+      if (!(ex as Error).message.includes('FUNCTION UuidFromBin already exists')) {
+        throw ex;
+      }
+    }
+
+    const query = `
+      CREATE TABLE IF NOT EXISTS \`${this.tableNames.items}\`
+      (
+        discriminator VARCHAR(100) NOT NULL,
+        indexInQueue INT NOT NULL,
+        priority BIGINT NOT NULL,
+        item JSON NOT NULL,
+
+        PRIMARY KEY (discriminator, indexInQueue),
+        INDEX (discriminator)
+      ) ENGINE=InnoDB;
+
+      CREATE TABLE IF NOT EXISTS \`${this.tableNames.priorityQueue}\`
+      (
+        discriminator VARCHAR(100) NOT NULL,
+        indexInPriorityQueue INT NOT NULL,
+        lockUntil BIGINT,
+        lockToken BINARY(16),
+
+        PRIMARY KEY (discriminator),
+        UNIQUE INDEX (indexInPriorityQueue)
+      ) ENGINE=InnoDB;
+    `;
+
+    await runQuery({ connection, query });
+
+    MySqlPriorityQueueStore.releaseConnection({ connection });
+  }
+
+  public async destroy (): Promise<void> {
+    await new Promise<void>((resolve, reject): void => {
+      this.pool.end((err: MysqlError | null): void => {
+        if (err) {
+          return reject(err);
+        }
+        resolve();
+      });
+    });
   }
 }
 

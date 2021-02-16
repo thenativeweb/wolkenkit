@@ -20,7 +20,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
   try {
     registerExceptionHandler();
 
-    const configuration = fromEnvironmentVariables({ configurationDefinition });
+    const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
@@ -33,7 +33,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const commandDispatcherClient = new CommandDispatcherClient({
       protocol: configuration.commandDispatcherProtocol,
       hostName: configuration.commandDispatcherHostName,
-      port: configuration.commandDispatcherPort,
+      portOrSocket: configuration.commandDispatcherPortOrSocket,
       path: '/handle-command/v2'
     });
 
@@ -52,17 +52,20 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       onCancelCommand
     });
 
-    await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
+    await runHealthServer({
+      corsOrigin: configuration.healthCorsOrigin,
+      portOrSocket: configuration.healthPortOrSocket
+    });
 
     const server = http.createServer(api);
 
-    server.listen(configuration.port, (): void => {
-      logger.info(
-        'Command server started.',
-        { port: configuration.port, healthPort: configuration.healthPort }
-      );
+    server.listen(configuration.portOrSocket, (): void => {
+      logger.info('Command server started.', {
+        portOrSocket: configuration.portOrSocket,
+        healthPortOrSocket: configuration.healthPortOrSocket
+      });
     });
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);
   }

@@ -8,7 +8,7 @@ class FilterHeartbeatsTransform extends Transform {
     });
   }
 
-  /* eslint-disable @typescript-eslint/member-naming, no-underscore-dangle, class-methods-use-this */
+  /* eslint-disable @typescript-eslint/naming-convention, no-underscore-dangle, class-methods-use-this */
   public _transform (streamItem: any, encoding: string, next: TransformCallback): void {
     if (isEqual(streamItem, { name: 'heartbeat' })) {
       return next();

@@ -1,12 +1,12 @@
 import { Application } from '../../../../common/application/Application';
+import { CustomError } from 'defekt';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
-import { getContextIdentifierSchema } from '../../../../common/schemas/getContextIdentifierSchema';
-import { PerformReplay } from '../../PerformReplay';
+import { PerformReplay } from '../../../../common/domain/PerformReplay';
 import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
-import { validateContextAndAggregateIdentifier } from '../../../../common/validators/validateContextAndAggregateIdentifier';
+import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
 import { validateFlowNames } from '../../../../common/validators/validateFlowNames';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -31,12 +31,11 @@ const postPerformReplay = {
           items: {
             type: 'object',
             properties: {
-              contextIdentifier: getContextIdentifierSchema(),
               aggregateIdentifier: getAggregateIdentifierSchema(),
               from: { type: 'number', minimum: 1 },
               to: { type: 'number', minimum: 1 }
             },
-            required: [ 'contextIdentifier', 'aggregateIdentifier', 'from', 'to' ]
+            required: [ 'aggregateIdentifier', 'from', 'to' ]
           },
           minItems: 1
         }
@@ -67,10 +66,10 @@ const postPerformReplay = {
         const contentType = typer.parse(req);
 
         if (contentType.type !== 'application/json') {
-          throw new errors.RequestMalformed();
+          throw new errors.ContentTypeMismatch();
         }
       } catch {
-        const ex = new errors.RequestMalformed('Header content-type must be application/json.');
+        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
         res.status(415).json({
           code: ex.code,
@@ -82,8 +81,8 @@ const postPerformReplay = {
 
       try {
         requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.RequestMalformed((ex as Error).message);
 
         res.status(400).json({
           code: error.code,
@@ -102,16 +101,15 @@ const postPerformReplay = {
         validateFlowNames({ flowNames, application });
 
         for (const aggregate of aggregates) {
-          validateContextAndAggregateIdentifier({
-            contextIdentifier: aggregate.contextIdentifier,
+          validateAggregateIdentifier({
             aggregateIdentifier: aggregate.aggregateIdentifier,
             application
           });
         }
-      } catch (ex) {
+      } catch (ex: unknown) {
         res.status(400).json({
-          code: ex.code,
-          message: ex.message
+          code: (ex as CustomError).code,
+          message: (ex as CustomError).message
         });
 
         return;
@@ -127,7 +125,7 @@ const postPerformReplay = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex) {
+      } catch (ex: unknown) {
         logger.error('An unknown error occured.', { ex });
 
         const error = new errors.UnknownError();

@@ -1,14 +1,18 @@
 import { AskInfrastructure } from './AskInfrastructure';
+import { CommandData } from './CommandData';
 import { NotificationDefinition } from './NotificationDefinition';
-import { NotificationSubscriber } from './NotificationSubscriber';
-import { QueryHandler } from './QueryHandler';
-import { QueryResultItem } from './QueryResultItem';
+import { TellInfrastructure } from './TellInfrastructure';
+import { ViewDefinition } from '../application/ViewDefinition';
 import { ViewEnhancer } from '../../tools/ViewEnhancer';
 
-export interface View {
-  queryHandlers: Record<string, QueryHandler<QueryResultItem, AskInfrastructure>>;
-
-  notificationSubscribers?: Record<string, NotificationSubscriber<NotificationDefinition, AskInfrastructure>>;
-
+interface View<
+  TInfrastructure extends AskInfrastructure & TellInfrastructure,
+  TQueries extends Record<string, CommandData> = Record<string, any>,
+  TNotificationDefinitions extends Record<string, NotificationDefinition> = Record<string, any>
+> extends ViewDefinition<TInfrastructure, TQueries, TNotificationDefinitions> {
   enhancers?: ViewEnhancer[];
 }
+
+export type {
+  View
+};

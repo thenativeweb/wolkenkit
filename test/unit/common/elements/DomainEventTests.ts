@@ -11,8 +11,10 @@ suite('DomainEvent', (): void => {
           timestamp = Date.now();
 
     const domainEvent = new DomainEvent({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregateId }
+      },
       name: 'succeeded',
       data: {
         strategy: 'succeed'
@@ -29,8 +31,10 @@ suite('DomainEvent', (): void => {
     });
 
     assert.that(domainEvent).is.equalTo({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregateId }
+      },
       name: 'succeeded',
       data: {
         strategy: 'succeed'
@@ -56,8 +60,10 @@ suite('DomainEvent', (): void => {
             timestamp = Date.now();
 
       const domainEvent = new DomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'succeeded',
         data: {
           strategy: 'succeed'
@@ -76,8 +82,10 @@ suite('DomainEvent', (): void => {
       const itemIdentifier = domainEvent.getItemIdentifier();
 
       assert.that(itemIdentifier).is.equalTo({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'succeeded',
         id
       });

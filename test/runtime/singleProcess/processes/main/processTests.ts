@@ -1,3 +1,5 @@
+import { Agent } from 'http';
+import { AggregateIdentifier } from '../../../../../lib/common/elements/AggregateIdentifier';
 import { ApolloClient } from 'apollo-client';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
@@ -7,8 +9,8 @@ import { configurationDefinition } from '../../../../../lib/runtimes/singleProce
 import { CustomError } from 'defekt';
 import { errors } from '../../../../../lib/common/errors';
 import fetch from 'node-fetch';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import gql from 'graphql-tag';
 import { Client as HandleCommandClient } from '../../../../../lib/apis/handleCommand/http/v2/Client';
@@ -34,20 +36,21 @@ import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
-suite('main', function (): void {
-  this.timeout(10_000);
+suite('main process', function (): void {
+  this.timeout(60_000);
   const applicationDirectory = getTestApplicationDirectory({ name: 'withComplexFlow', language: 'javascript' });
 
-  let handleCommandClient: HandleCommandClient,
-      healthPort: number,
+  let agent: Agent,
+      handleCommandClient: HandleCommandClient,
+      healthSocket: string,
       manageFileClient: ManageFileClient,
       observeDomainEventsClient: ObserveDomainEventsClient,
-      port: number,
       queryViewsClient: QueryViewsClient,
+      socket: string,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ port, healthPort ] = await getAvailablePorts({ count: 2 });
+    [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
 
     const configuration: Configuration = {
       ...getDefaultConfiguration({
@@ -58,8 +61,8 @@ suite('main', function (): void {
       graphqlApi: { enableIntegratedClient: false },
       httpApi: true,
       identityProviders: [{ issuer: 'https://token.invalid', certificate: certificateDirectory }],
-      port,
-      healthPort,
+      portOrSocket: socket,
+      healthPortOrSocket: healthSocket,
       snapshotStrategy: { name: 'never' } as SnapshotStrategyConfiguration
     };
 
@@ -67,7 +70,7 @@ suite('main', function (): void {
       runtime: 'singleProcess',
       name: 'main',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: toEnvironmentVariables({
         configuration,
         configurationDefinition
@@ -77,30 +80,37 @@ suite('main', function (): void {
     handleCommandClient = new HandleCommandClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/command/v2'
     });
 
     observeDomainEventsClient = new ObserveDomainEventsClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/domain-events/v2'
     });
 
     queryViewsClient = new QueryViewsClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/views/v2'
     });
 
     manageFileClient = new ManageFileClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/files/v2'
     });
+
+    // The parameter socketPath is necessary for the agent to connect to a
+    // unix socket. It is neither document in the node docs nor port of the
+    // @types/node package. Relevant issues:
+    // https://github.com/node-fetch/node-fetch/issues/336#issuecomment-689623290
+    // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/36463
+    agent = new Agent({ socketPath: socket } as any);
   });
 
   teardown(async (): Promise<void> => {
@@ -116,7 +126,7 @@ suite('main', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPort,
+        portOrSocket: healthSocket,
         path: '/health/v2'
       });
 
@@ -128,14 +138,16 @@ suite('main', function (): void {
 
   suite('command handling', (): void => {
     test('handles commands and publishes events.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
-      };
-      const command = buildCommand({
-        contextIdentifier: {
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
           name: 'sampleContext'
         },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
+      };
+      const command = buildCommand({
         aggregateIdentifier,
         name: 'execute',
         data: {
@@ -147,7 +159,7 @@ suite('main', function (): void {
 
       await handleCommandClient.postCommand({ command });
 
-      await new Promise((resolve, reject): void => {
+      await new Promise<void>((resolve, reject): void => {
         eventStream.on('error', (err: any): void => {
           reject(err);
         });
@@ -159,24 +171,18 @@ suite('main', function (): void {
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'succeeded',
                   data: {}
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
             (data): void => {
               try {
                 assert.that(data).is.atLeast({
-                  contextIdentifier: {
-                    name: 'sampleContext'
-                  },
                   aggregateIdentifier,
                   name: 'executed',
                   data: {
@@ -184,7 +190,7 @@ suite('main', function (): void {
                   }
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             },
@@ -198,14 +204,16 @@ suite('main', function (): void {
     });
 
     test('executes flows.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
-      };
-      const command = buildCommand({
-        contextIdentifier: {
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
           name: 'sampleContext'
         },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
+      };
+      const command = buildCommand({
         aggregateIdentifier,
         name: 'triggerFlow',
         data: {
@@ -227,29 +235,27 @@ suite('main', function (): void {
           async (data): Promise<void> => {
             try {
               assert.that(data).is.atLeast({
-                contextIdentifier: { name: 'sampleContext' },
                 aggregateIdentifier,
                 name: 'triggeredFlow',
                 data: { flowName: 'neverFlow' }
               });
               await counter.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await counter.fail(ex);
             }
           },
           async (data): Promise<void> => {
             try {
               assert.that(data).is.atLeast({
-                contextIdentifier: { name: 'sampleContext' },
                 aggregateIdentifier,
                 name: 'executedFromFlow',
                 data: {
                   basedOnRevision: 1,
-                  flowName: 'neverFlow'
+                  fromFlow: 'neverFlow'
                 }
               });
               await counter.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await counter.fail(ex);
             }
           },
@@ -259,14 +265,17 @@ suite('main', function (): void {
         ],
         true
       ));
+
+      await counter.promise;
     });
   });
 
   suite('graphql', (): void => {
     test('has a command mutation endpoint.', async (): Promise<void> => {
       const link = new HttpLink({
-        uri: `http://localhost:${port}/graphql/v2/`,
-        fetch: fetch as any
+        uri: `http://localhost/graphql/v2/`,
+        fetch: fetch as any,
+        fetchOptions: { agent }
       });
       const cache = new InMemoryCache();
 
@@ -297,12 +306,12 @@ suite('main', function (): void {
         }
       });
 
-      assert.that(result?.data?.command.sampleContext_sampleAggregate_execute?.id).is.not.undefined();
+      assert.that(result.data?.command.sampleContext_sampleAggregate_execute?.id).is.not.undefined();
     });
 
     test('has a subscription endpoint for domain events.', async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/graphql/v2/`,
+        `ws+unix://${socket}:/graphql/v2/`,
         {},
         ws
       );
@@ -328,8 +337,10 @@ suite('main', function (): void {
 
       const aggregateId = v4();
       const command = buildCommand({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'execute',
         data: { strategy: 'succeed' }
       });
@@ -349,7 +360,7 @@ suite('main', function (): void {
 
     test('has a subscription endpoint for notifications.', async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/graphql/v2/`,
+        `ws+unix://${socket}:/graphql/v2/`,
         {},
         ws
       );
@@ -375,8 +386,10 @@ suite('main', function (): void {
 
       const aggregateId = v4();
       const command = buildCommand({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'execute',
         data: { strategy: 'succeed' }
       });
@@ -397,14 +410,16 @@ suite('main', function (): void {
 
   suite('views', (): void => {
     test('runs queries against the views.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
-      };
-      const command = buildCommand({
-        contextIdentifier: {
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
           name: 'sampleContext'
         },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
+      };
+      const command = buildCommand({
         aggregateIdentifier,
         name: 'execute',
         data: {
@@ -416,7 +431,7 @@ suite('main', function (): void {
 
       await sleep({ ms: 500 });
 
-      const resultStream = await queryViewsClient.query({
+      const resultStream = await queryViewsClient.queryStream({
         viewName: 'sampleView',
         queryName: 'all'
       });
@@ -428,8 +443,10 @@ suite('main', function (): void {
 
       assert.that(resultItems.length).is.equalTo(1);
       assert.that(resultItems[0]).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate' },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate' }
+        },
         name: 'executed'
       });
     });
@@ -483,7 +500,7 @@ suite('main', function (): void {
       const notificationsClient = new SubscribeNotificationsClient({
         protocol: 'http',
         hostName: 'localhost',
-        port,
+        portOrSocket: socket,
         path: '/notifications/v2'
       });
 
@@ -503,7 +520,7 @@ suite('main', function (): void {
                 data: {}
               });
               await counter.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await counter.fail(ex);
             }
           },
@@ -514,7 +531,7 @@ suite('main', function (): void {
                 data: {}
               });
               await counter.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await counter.fail(ex);
             }
           },
@@ -525,14 +542,16 @@ suite('main', function (): void {
         true
       ));
 
-      const aggregateIdentifier = {
-        name: 'sampleAggregate',
-        id: v4()
-      };
-      const command = buildCommand({
-        contextIdentifier: {
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
           name: 'sampleContext'
         },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
+      };
+      const command = buildCommand({
         aggregateIdentifier,
         name: 'execute',
         data: {

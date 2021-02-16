@@ -1,0 +1,25 @@
+<%
+const service = {
+  hostName: services.microservice.commandDispatcher.hostName,
+  command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/commandDispatcher/app.js',
+  environmentVariables: toEnvironmentVariables({
+    configurationDefinition: configurationDefinitions.microservice.commandDispatcher,
+    configuration: {
+      applicationDirectory,
+      awaitCommandCorsOrigin: corsOrigin,
+      handleCommandCorsOrigin: corsOrigin,
+      healthCorsOrigin: corsOrigin,
+      healthPortOrSocket: services.microservice.commandDispatcher.healthPort,
+      missedCommandRecoveryInterval: 5_000,
+      portOrSocket: services.microservice.commandDispatcher.privatePort,
+      priorityQueueStoreOptions,
+      pubSubOptions
+    }
+  }),
+  privatePort: services.microservice.commandDispatcher.privatePort,
+  healthPort: services.microservice.commandDispatcher.healthPort,
+  publishPorts: false,
+  enableTraefik: false
+};
+-%>
+<%- include('../service.ejs', { service }) %>

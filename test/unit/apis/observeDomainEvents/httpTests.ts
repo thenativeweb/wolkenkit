@@ -1,6 +1,7 @@
 import { Application } from '../../../../lib/common/application/Application';
 import { asJsonStream } from '../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
+import { AxiosError } from 'axios';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
@@ -139,8 +140,10 @@ suite('observeDomainEvents/http', (): void => {
       test('delivers a single domain event.', async (): Promise<void> => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -163,7 +166,7 @@ suite('observeDomainEvents/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -187,8 +190,10 @@ suite('observeDomainEvents/http', (): void => {
       test('delivers multiple domain events.', async (): Promise<void> => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'succeeded',
             data: {},
             metadata: {
@@ -200,8 +205,10 @@ suite('observeDomainEvents/http', (): void => {
         });
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -225,7 +232,7 @@ suite('observeDomainEvents/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -254,8 +261,10 @@ suite('observeDomainEvents/http', (): void => {
       test('delivers filtered domain events.', async (): Promise<void> => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'succeeded',
             data: {},
             metadata: {
@@ -267,8 +276,10 @@ suite('observeDomainEvents/http', (): void => {
         });
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -298,7 +309,7 @@ suite('observeDomainEvents/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -323,8 +334,10 @@ suite('observeDomainEvents/http', (): void => {
       test('delivers filtered domain events with a nested filter.', async (): Promise<void> => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'succeeded',
             data: {},
             metadata: {
@@ -336,8 +349,10 @@ suite('observeDomainEvents/http', (): void => {
         });
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -359,7 +374,7 @@ suite('observeDomainEvents/http', (): void => {
           method: 'get',
           url: '/v2/',
           params: { filter: {
-            contextIdentifier: { name: 'sampleContext' },
+            aggregateIdentifier: { context: { name: 'sampleContext' }},
             name: 'executed'
           }},
           paramsSerializer (params): string {
@@ -370,7 +385,7 @@ suite('observeDomainEvents/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -395,8 +410,10 @@ suite('observeDomainEvents/http', (): void => {
       test('delivers rejected/failed events to their initiator.', async (): Promise<void> => {
         const failed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'authenticateFailed',
             data: { reason: 'test' },
             metadata: {
@@ -408,8 +425,10 @@ suite('observeDomainEvents/http', (): void => {
         });
         const rejected = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'authenticateRejected',
             data: { reason: 'test' },
             metadata: {
@@ -454,7 +473,7 @@ suite('observeDomainEvents/http', (): void => {
             try {
               assert.that(streamElement.name).is.equalTo('authenticateFailed');
               await collector.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await collector.fail(ex);
             }
           },
@@ -462,7 +481,7 @@ suite('observeDomainEvents/http', (): void => {
             try {
               assert.that(streamElement.name).is.equalTo('authenticateRejected');
               await collector.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await collector.fail(ex);
             }
           }
@@ -474,8 +493,10 @@ suite('observeDomainEvents/http', (): void => {
       test('does not deliver rejected/failed events to other clients than the initiator.', async (): Promise<void> => {
         const failed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'authenticateFailed',
             data: { reason: 'test' },
             metadata: {
@@ -487,8 +508,10 @@ suite('observeDomainEvents/http', (): void => {
         });
         const rejected = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'authenticateRejected',
             data: { reason: 'test' },
             metadata: {
@@ -544,8 +567,10 @@ suite('observeDomainEvents/http', (): void => {
       test('removes state before delivery.', async (): Promise<void> => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -568,7 +593,7 @@ suite('observeDomainEvents/http', (): void => {
           responseType: 'stream'
         });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -592,8 +617,10 @@ suite('observeDomainEvents/http', (): void => {
       test('gracefully handles connections that get closed by the client.', async (): Promise<void> => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -613,8 +640,8 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream',
             timeout: 100
           });
-        } catch (ex) {
-          if (ex.code !== 'ECONNABORTED') {
+        } catch (ex: unknown) {
+          if ((ex as AxiosError).code !== 'ECONNABORTED') {
             throw ex;
           }
 
@@ -656,8 +683,10 @@ suite('observeDomainEvents/http', (): void => {
 
           const authorizationDenied = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'authorizationDenied',
               data: {},
               metadata: {
@@ -669,8 +698,10 @@ suite('observeDomainEvents/http', (): void => {
           });
           const executed = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
@@ -694,7 +725,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -741,8 +772,10 @@ suite('observeDomainEvents/http', (): void => {
 
           const authorizationFailed = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'authorizationFailed',
               data: {},
               metadata: {
@@ -754,8 +787,10 @@ suite('observeDomainEvents/http', (): void => {
           });
           const executed = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
@@ -779,7 +814,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -824,8 +859,10 @@ suite('observeDomainEvents/http', (): void => {
 
           const authorizationWithMutation = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'authorizationWithMutation',
               data: {},
               metadata: {
@@ -848,7 +885,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -897,8 +934,10 @@ suite('observeDomainEvents/http', (): void => {
 
           const filterPassed = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'filterPassed',
               data: {},
               metadata: {
@@ -921,7 +960,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -966,8 +1005,10 @@ suite('observeDomainEvents/http', (): void => {
 
           const filterDenied = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'filterDenied',
               data: {},
               metadata: {
@@ -979,8 +1020,10 @@ suite('observeDomainEvents/http', (): void => {
           });
           const executed = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
@@ -1004,7 +1047,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1049,8 +1092,10 @@ suite('observeDomainEvents/http', (): void => {
 
           const filterFailed = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'filterFailed',
               data: {},
               metadata: {
@@ -1062,8 +1107,10 @@ suite('observeDomainEvents/http', (): void => {
           });
           const executed = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
@@ -1087,7 +1134,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1132,8 +1179,10 @@ suite('observeDomainEvents/http', (): void => {
 
           const filterWithMutation = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'filterWithMutation',
               data: {},
               metadata: {
@@ -1156,7 +1205,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1205,8 +1254,10 @@ suite('observeDomainEvents/http', (): void => {
 
           const mapApplied = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'mapApplied',
               data: {},
               metadata: {
@@ -1229,7 +1280,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1275,8 +1326,10 @@ suite('observeDomainEvents/http', (): void => {
 
           const mapToUndefined = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'mapToUndefined',
               data: {},
               metadata: {
@@ -1288,8 +1341,10 @@ suite('observeDomainEvents/http', (): void => {
           });
           const executed = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
@@ -1313,7 +1368,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1358,8 +1413,10 @@ suite('observeDomainEvents/http', (): void => {
 
           const mapFailed = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'mapFailed',
               data: {},
               metadata: {
@@ -1371,8 +1428,10 @@ suite('observeDomainEvents/http', (): void => {
           });
           const executed = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'executed',
               data: { strategy: 'succeed' },
               metadata: {
@@ -1396,7 +1455,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });
@@ -1441,8 +1500,10 @@ suite('observeDomainEvents/http', (): void => {
 
           const mapWithMutation = new DomainEventWithState({
             ...buildDomainEvent({
-              contextIdentifier: { name: 'sampleContext' },
-              aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+              aggregateIdentifier: {
+                context: { name: 'sampleContext' },
+                aggregate: { name: 'sampleAggregate', id: aggregateId }
+              },
               name: 'mapWithMutation',
               data: {},
               metadata: {
@@ -1465,7 +1526,7 @@ suite('observeDomainEvents/http', (): void => {
             responseType: 'stream'
           });
 
-          await new Promise((resolve, reject): void => {
+          await new Promise<void>((resolve, reject): void => {
             data.on('error', (err: any): void => {
               reject(err);
             });

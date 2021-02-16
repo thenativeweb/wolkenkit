@@ -1,7 +1,7 @@
 import { Application } from '../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
 import { getV2 } from './v2';
-import { PerformReplay } from '../PerformReplay';
+import { PerformReplay } from '../../../common/domain/PerformReplay';
 import express, { Application as ExpressApplication } from 'express';
 
 const getApi = async function ({ corsOrigin, performReplay, application }: {

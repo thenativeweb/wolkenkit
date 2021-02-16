@@ -5,23 +5,23 @@ import { oneLine } from 'common-tags';
 import { retry } from 'retry-ignore-abort';
 import { retryOptions } from './retryOptions';
 import shell from 'shelljs';
+import { URL } from 'url';
 
 const mongoDb = {
   async start (): Promise<void> {
     const {
-      hostName,
-      port,
-      userName,
-      password,
-      database
+      connectionString
     } = connectionOptions.mongoDb;
+
+    const { username, password, hostname, pathname, port } = new URL(connectionString);
+    const database = pathname.slice(1);
 
     shell.exec(oneLine`
       docker run
         -d
         -p 27017:27017
         -e MONGODB_ROOT_PASSWORD=${password}
-        -e MONGODB_USERNAME=${userName}
+        -e MONGODB_USERNAME=${username}
         -e MONGODB_PASSWORD=${password}
         -e MONGODB_DATABASE=${database}
         -e MONGODB_REPLICA_SET_MODE=primary
@@ -31,7 +31,7 @@ const mongoDb = {
         thenativeweb/wolkenkit-mongodb:latest
     `);
 
-    const url = `mongodb://${userName}:${password}@${hostName}:${port}/${database}`;
+    const url = `mongodb://${username}:${password}@${hostname}:${port}/${database}`;
 
     try {
       await retry(async (): Promise<void> => {
@@ -44,8 +44,8 @@ const mongoDb = {
 
         await client.close();
       }, retryOptions);
-    } catch (ex) {
-      buntstift.info(ex.message);
+    } catch (ex: unknown) {
+      buntstift.info((ex as Error).message);
       buntstift.error('Failed to connect to MongoDB.');
       throw ex;
     }

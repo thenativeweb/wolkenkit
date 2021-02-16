@@ -31,9 +31,11 @@ suite('toEnvironmentVariables', (): void => {
 
     const environmentVariables = toEnvironmentVariables({ configuration, configurationDefinition });
 
+    /* eslint-disable @typescript-eslint/naming-convention */
     assert.that(environmentVariables).is.equalTo({
       FOO_ENV_VAR: 'baz',
       BAR: '{"baz":5}'
     });
+    /* eslint-enable @typescript-eslint/naming-convention */
   });
 });

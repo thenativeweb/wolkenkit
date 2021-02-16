@@ -22,10 +22,10 @@ suite('subscribeMessages/http/Client', (): void => {
         const channel = 'messages',
               message = { text: 'Hello world!' };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -35,7 +35,7 @@ suite('subscribeMessages/http/Client', (): void => {
 
         const data = await client.getMessages({ channel });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -61,10 +61,10 @@ suite('subscribeMessages/http/Client', (): void => {
               messageFirst = { text: 'Hello world!' },
               messageSecond = { text: 'Goodbye world!' };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -75,7 +75,7 @@ suite('subscribeMessages/http/Client', (): void => {
 
         const data = await client.getMessages({ channel });
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });

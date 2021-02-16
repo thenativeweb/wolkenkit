@@ -13,6 +13,7 @@ import { getCommandWithMetadataSchema } from '../../../../lib/common/schemas/get
 import { getPromiseStatus } from '../../../../lib/common/utils/getPromiseStatus';
 import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
 import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
+import { ItemIdentifier } from '../../../../lib/common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
@@ -46,7 +47,7 @@ suite('awaitItem/http/Client', (): void => {
 
       ({ api } = await getApi({
         corsOrigin: '*',
-        priorityQueueStore,
+        priorityQueueStore: priorityQueueStore as PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifier>,
         newItemSubscriber,
         newItemSubscriberChannel,
         validateOutgoingItem ({ item }: { item: any }): void {
@@ -57,21 +58,23 @@ suite('awaitItem/http/Client', (): void => {
 
     suite('awaitItem', (): void => {
       test('retrieves a lock item.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -97,10 +100,10 @@ suite('awaitItem/http/Client', (): void => {
 
     suite('renewLock', (): void => {
       test('throws a request malformed error if the discriminator is too short.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -115,10 +118,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -132,21 +135,23 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -154,7 +159,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -163,7 +168,7 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.renewLock({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ItemNotLocked.code
@@ -171,21 +176,23 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -193,7 +200,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -204,30 +211,32 @@ suite('awaitItem/http/Client', (): void => {
         await client.awaitItem();
 
         await assert.that(async (): Promise<any> => client.renewLock({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.TokenMismatch.code &&
-            ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
+            ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.aggregate.id}'.`
         );
       });
 
       test('extends the lock expiry time.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -235,7 +244,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -247,7 +256,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await sleep({ ms: 0.6 * expirationTime });
 
-        await client.renewLock({ discriminator: item.aggregateIdentifier.id, token });
+        await client.renewLock({ discriminator: item.aggregateIdentifier.aggregate.id, token });
 
         await sleep({ ms: 0.6 * expirationTime });
 
@@ -261,10 +270,10 @@ suite('awaitItem/http/Client', (): void => {
 
     suite('acknowledge', (): void => {
       test('throws a request malformed error if the discriminator is too short.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -279,10 +288,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -296,21 +305,23 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -318,7 +329,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -327,7 +338,7 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.acknowledge({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.ItemNotLocked.code
@@ -335,21 +346,23 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -357,7 +370,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -368,42 +381,46 @@ suite('awaitItem/http/Client', (): void => {
         await client.awaitItem();
 
         await assert.that(async (): Promise<any> => client.acknowledge({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token: v4()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.TokenMismatch.code &&
-            ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
+            ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.aggregate.id}'.`
         );
       });
 
       test('removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const aggregateId = v4();
         const commandOne = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'execute',
           data: {}
         });
         const commandTwo = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'execute',
           data: {}
@@ -411,12 +428,12 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandOne,
-          discriminator: commandOne.aggregateIdentifier.id,
+          discriminator: commandOne.aggregateIdentifier.aggregate.id,
           priority: commandOne.metadata.timestamp
         });
         await priorityQueueStore.enqueue({
           item: commandTwo,
-          discriminator: commandTwo.aggregateIdentifier.id,
+          discriminator: commandTwo.aggregateIdentifier.aggregate.id,
           priority: commandTwo.metadata.timestamp
         });
 
@@ -425,7 +442,7 @@ suite('awaitItem/http/Client', (): void => {
         const commandWithMetadata = new CommandWithMetadata(item);
 
         await client.acknowledge({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token
         });
 
@@ -437,10 +454,10 @@ suite('awaitItem/http/Client', (): void => {
 
     suite('defer', (): void => {
       test('throws a request malformed error if the discriminator is too short.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -456,10 +473,10 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws an item not found error if the item doesn't exist.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
@@ -474,21 +491,23 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws an item not locked error if the item isn't locked.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -496,7 +515,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -505,7 +524,7 @@ suite('awaitItem/http/Client', (): void => {
         });
 
         await assert.that(async (): Promise<any> => client.defer({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token: v4(),
           priority: Date.now()
         })).is.throwingAsync(
@@ -514,21 +533,23 @@ suite('awaitItem/http/Client', (): void => {
       });
 
       test(`throws a token mismatched error if the token doesn't match.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const commandWithMetadata = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: v4()
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
           },
           name: 'execute',
           data: {}
@@ -536,7 +557,7 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandWithMetadata,
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           priority: commandWithMetadata.metadata.timestamp
         });
         await newItemPublisher.publish({
@@ -547,43 +568,47 @@ suite('awaitItem/http/Client', (): void => {
         await client.awaitItem();
 
         await assert.that(async (): Promise<any> => client.defer({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token: v4(),
           priority: Date.now()
         })).is.throwingAsync(
           (ex): boolean => (ex as CustomError).code === errors.TokenMismatch.code &&
-                ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.id}'.`
+                ex.message === `Token mismatch for discriminator '${commandWithMetadata.aggregateIdentifier.aggregate.id}'.`
         );
       });
 
       test('removes the item from the queue and lets the next item for the same aggregate pass.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client<CommandWithMetadata<CommandData>>({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2',
           createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
         });
 
         const aggregateId = v4();
         const commandOne = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'execute',
           data: {}
         });
         const commandTwo = buildCommandWithMetadata({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'execute',
           data: {}
@@ -591,12 +616,12 @@ suite('awaitItem/http/Client', (): void => {
 
         await priorityQueueStore.enqueue({
           item: commandOne,
-          discriminator: commandOne.aggregateIdentifier.id,
+          discriminator: commandOne.aggregateIdentifier.aggregate.id,
           priority: commandOne.metadata.timestamp
         });
         await priorityQueueStore.enqueue({
           item: commandTwo,
-          discriminator: commandTwo.aggregateIdentifier.id,
+          discriminator: commandTwo.aggregateIdentifier.aggregate.id,
           priority: commandTwo.metadata.timestamp
         });
 
@@ -605,7 +630,7 @@ suite('awaitItem/http/Client', (): void => {
         const commandWithMetadata = new CommandWithMetadata(item);
 
         await client.defer({
-          discriminator: commandWithMetadata.aggregateIdentifier.id,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
           token,
           priority: Date.now()
         });
@@ -615,7 +640,7 @@ suite('awaitItem/http/Client', (): void => {
         const nextCommandWithMetadata = new CommandWithMetadata(nextItem);
 
         await client.acknowledge({
-          discriminator: nextCommandWithMetadata.aggregateIdentifier.id,
+          discriminator: nextCommandWithMetadata.aggregateIdentifier.aggregate.id,
           token: nextToken
         });
 

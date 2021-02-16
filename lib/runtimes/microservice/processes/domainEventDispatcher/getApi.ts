@@ -6,7 +6,7 @@ import { getApi as getAwaitDomainEventApi } from '../../../../apis/awaitItem/htt
 import { getCorsOrigin } from 'get-cors-origin';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { getApi as getHandleDomainEventApi } from '../../../../apis/handleDomainEvent/http';
-import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { OnReceiveDomainEvent } from '../../../../apis/handleDomainEvent/OnReceiveDomainEvent';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
@@ -24,7 +24,7 @@ const getApi = async function ({
 }: {
   configuration: Configuration;
   application: Application;
-  priorityQueueStore: PriorityQueueStore<DomainEvent<DomainEventData>, ItemIdentifierWithClient>;
+  priorityQueueStore: PriorityQueueStore<DomainEvent<DomainEventData>, ItemIdentifier>;
   newDomainEventSubscriber: Subscriber<object>;
   newDomainEventPubSubChannel: string;
   onReceiveDomainEvent: OnReceiveDomainEvent;

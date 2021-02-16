@@ -31,7 +31,6 @@ const createSandboxForAggregate = function <TState extends State> (sandboxConfig
         domainEvents: [
           ...sandboxConfiguration.domainEvents,
           buildDomainEvent<TDomainEventData>({
-            contextIdentifier: sandboxConfiguration.contextIdentifier,
             aggregateIdentifier: sandboxConfiguration.aggregateIdentifier,
             name,
             data,
@@ -50,7 +49,6 @@ const createSandboxForAggregate = function <TState extends State> (sandboxConfig
         domainEvents: [
           ...sandboxConfiguration.domainEvents,
           buildDomainEvent<TDomainEventData>({
-            contextIdentifier: sandboxConfiguration.contextIdentifier,
             aggregateIdentifier: sandboxConfiguration.aggregateIdentifier,
             name,
             data,
@@ -70,7 +68,6 @@ const createSandboxForAggregate = function <TState extends State> (sandboxConfig
         commands: [
           ...sandboxConfiguration.commands,
           buildCommandWithMetadata<TCommandData>({
-            contextIdentifier: sandboxConfiguration.contextIdentifier,
             aggregateIdentifier: sandboxConfiguration.aggregateIdentifier,
             name,
             data,
@@ -94,7 +91,6 @@ const createSandboxForAggregateWithResult = function <TState extends State> (san
         commands: [
           ...sandboxConfiguration.commands,
           buildCommandWithMetadata<TCommandData>({
-            contextIdentifier: sandboxConfiguration.contextIdentifier,
             aggregateIdentifier: sandboxConfiguration.aggregateIdentifier,
             name,
             data,
@@ -151,7 +147,6 @@ const createSandboxForAggregateWithResult = function <TState extends State> (san
       });
 
       const aggregateInstance = await repository.getAggregateInstance<TState>({
-        contextIdentifier: sandboxConfiguration.contextIdentifier,
         aggregateIdentifier: sandboxConfiguration.aggregateIdentifier
       });
 

@@ -29,7 +29,7 @@ export interface LikedData extends DomainEventData {
   likes: number;
 }
 
-const message: Aggregate = {
+const message: Aggregate<MessageState, Infrastructure> = {
   getInitialState: function (): MessageState {
     return {
       text: '',
@@ -54,7 +54,7 @@ const message: Aggregate = {
         return true;
       },
 
-      handle (_state, command, { aggregate, error }): void {
+      handle (state, command, { aggregate, error }): void {
         if (!command.data.text) {
           throw new error.CommandRejected('Text is missing.');
         }
@@ -82,7 +82,7 @@ const message: Aggregate = {
         return true;
       },
 
-      handle (state, _command, { aggregate, error }): void {
+      handle (state, command, { aggregate, error }): void {
         if (aggregate.isPristine()) {
           throw new error.CommandRejected('Message was not yet sent.');
         }

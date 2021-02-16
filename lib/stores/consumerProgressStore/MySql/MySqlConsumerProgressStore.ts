@@ -73,81 +73,10 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
       connection.on('end', MySqlConsumerProgressStore.onUnexpectedClose);
     });
 
-    const lockStore = new MySqlConsumerProgressStore({
+    return new MySqlConsumerProgressStore({
       tableNames,
       pool
     });
-
-    const connection = await lockStore.getDatabase();
-
-    const createUuidToBinFunction = `
-      CREATE FUNCTION UuidToBin(_uuid CHAR(36))
-        RETURNS BINARY(16)
-        RETURN UNHEX(CONCAT(
-          SUBSTR(_uuid, 15, 4),
-          SUBSTR(_uuid, 10, 4),
-          SUBSTR(_uuid, 1, 8),
-          SUBSTR(_uuid, 20, 4),
-          SUBSTR(_uuid, 25)
-        ));
-    `;
-
-    try {
-      await runQuery({ connection, query: createUuidToBinFunction });
-    } catch (ex) {
-      // If the function already exists, we can ignore this error; otherwise
-      // rethrow it. Generally speaking, this should be done using a SQL clause
-      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
-      // there is a ready-made function UUID_TO_BIN, but this is only available
-      // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidToBin already exists')) {
-        throw ex;
-      }
-    }
-
-    const createUuidFromBinFunction = `
-      CREATE FUNCTION UuidFromBin(_bin BINARY(16))
-        RETURNS CHAR(36)
-        RETURN LCASE(CONCAT_WS('-',
-          HEX(SUBSTR(_bin,  5, 4)),
-          HEX(SUBSTR(_bin,  3, 2)),
-          HEX(SUBSTR(_bin,  1, 2)),
-          HEX(SUBSTR(_bin,  9, 2)),
-          HEX(SUBSTR(_bin, 11))
-        ));
-    `;
-
-    try {
-      await runQuery({ connection, query: createUuidFromBinFunction });
-    } catch (ex) {
-      // If the function already exists, we can ignore this error; otherwise
-      // rethrow it. Generally speaking, this should be done using a SQL clause
-      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
-      // there is a ready-made function BIN_TO_UUID, but this is only available
-      // from MySQL 8.0 upwards.
-      if (!ex.message.includes('FUNCTION UuidFromBin already exists')) {
-        throw ex;
-      }
-    }
-
-    await runQuery({
-      connection,
-      query: `
-        CREATE TABLE IF NOT EXISTS \`${tableNames.progress}\` (
-          consumerId CHAR(64) NOT NULL,
-          aggregateId BINARY(16) NOT NULL,
-          revision INT NOT NULL,
-          isReplayingFrom INT,
-          isReplayingTo INT,
-
-          PRIMARY KEY(consumerId, aggregateId)
-        );
-      `
-    });
-
-    MySqlConsumerProgressStore.releaseConnection({ connection });
-
-    return lockStore;
   }
 
   public async getProgress ({ consumerId, aggregateIdentifier }: {
@@ -165,7 +94,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
             FROM \`${this.tableNames.progress}\`
             WHERE consumerId = ? AND aggregateId = UuidToBin(?);
         `,
-        parameters: [ hash, aggregateIdentifier.id ]
+        parameters: [ hash, aggregateIdentifier.aggregate.id ]
       });
 
       if (rows.length === 0) {
@@ -191,6 +120,10 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
   }): Promise<void> {
     const hash = getHash({ value: consumerId });
 
+    if (revision < 0) {
+      throw new errors.ParameterInvalid('Revision must be at least zero.');
+    }
+
     await withTransaction({
       getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
       fn: async ({ connection }): Promise<void> => {
@@ -201,7 +134,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
               SET revision = ?
               WHERE consumerId = ? AND aggregateId = UuidToBin(?) AND revision < ?;
           `,
-          parameters: [ revision, hash, aggregateIdentifier.id, revision ]
+          parameters: [ revision, hash, aggregateIdentifier.aggregate.id, revision ]
         });
 
         if (rows.affectedRows === 1) {
@@ -216,10 +149,10 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
                 (consumerId, aggregateId, revision)
                 VALUES (?, UuidToBin(?), ?);
             `,
-            parameters: [ hash, aggregateIdentifier.id, revision ]
+            parameters: [ hash, aggregateIdentifier.aggregate.id, revision ]
           });
-        } catch (ex) {
-          if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
+        } catch (ex: unknown) {
+          if ((ex as MysqlError).code === 'ER_DUP_ENTRY' && (ex as MysqlError).sqlMessage?.endsWith('for key \'PRIMARY\'')) {
             throw new errors.RevisionTooLow();
           }
 
@@ -237,6 +170,15 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
     aggregateIdentifier: AggregateIdentifier;
     isReplaying: IsReplaying;
   }): Promise<void> {
+    if (isReplaying) {
+      if (isReplaying.from < 1) {
+        throw new errors.ParameterInvalid('Replays must start from at least one.');
+      }
+      if (isReplaying.from > isReplaying.to) {
+        throw new errors.ParameterInvalid('Replays must start at an earlier revision than where they end at.');
+      }
+    }
+
     const hash = getHash({ value: consumerId });
 
     await withTransaction({
@@ -252,7 +194,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
               SET isReplayingFrom = NULL, isReplayingTo = NULL
               WHERE consumerId = ? AND aggregateId = UuidToBin(?);
           `,
-            parameters: [ hash, aggregateIdentifier.id ]
+            parameters: [ hash, aggregateIdentifier.aggregate.id ]
           });
         } else {
           [ rows ] = await runQuery({
@@ -262,7 +204,7 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
               SET isReplayingFrom = ?, isReplayingTo = ?
               WHERE consumerId = ? AND aggregateId = UuidToBin(?) AND isReplayingFrom IS NULL AND isReplayingTo IS NULL;
           `,
-            parameters: [ isReplaying.from, isReplaying.to, hash, aggregateIdentifier.id ]
+            parameters: [ isReplaying.from, isReplaying.to, hash, aggregateIdentifier.aggregate.id ]
           });
         }
 
@@ -278,10 +220,10 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
                 (consumerId, aggregateId, revision, isReplayingFrom, isReplayingTo)
                 VALUES (?, UuidToBin(?), 0, ?, ?);
             `,
-            parameters: [ hash, aggregateIdentifier.id, isReplaying ? isReplaying.from : null, isReplaying ? isReplaying.to : null ]
+            parameters: [ hash, aggregateIdentifier.aggregate.id, isReplaying ? isReplaying.from : null, isReplaying ? isReplaying.to : null ]
           });
-        } catch (ex) {
-          if (ex.code === 'ER_DUP_ENTRY' && ex.sqlMessage.endsWith('for key \'PRIMARY\'')) {
+        } catch (ex: unknown) {
+          if ((ex as MysqlError).code === 'ER_DUP_ENTRY' && (ex as MysqlError).sqlMessage?.endsWith('for key \'PRIMARY\'')) {
             throw new errors.FlowIsAlreadyReplaying();
           }
 
@@ -314,9 +256,138 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
     }
   }
 
+  public async resetProgressToRevision ({ consumerId, aggregateIdentifier, revision }: {
+    consumerId: string;
+    aggregateIdentifier: AggregateIdentifier;
+    revision: number;
+  }): Promise<void> {
+    if (revision < 0) {
+      throw new errors.ParameterInvalid('Revision must be at least zero.');
+    }
+
+    const { revision: currentRevision } = await this.getProgress({
+      consumerId,
+      aggregateIdentifier
+    });
+
+    if (currentRevision < revision) {
+      throw new errors.ParameterInvalid('Can not reset a consumer to a newer revision than it currently is at.');
+    }
+
+    const hash = getHash({ value: consumerId });
+
+    await withTransaction({
+      getConnection: async (): Promise<PoolConnection> => await this.getDatabase(),
+      fn: async ({ connection }): Promise<void> => {
+        const [ rows ] = await runQuery({
+          connection,
+          query: `
+            UPDATE \`${this.tableNames.progress}\`
+              SET revision = ?, isReplayingFrom = NULL, isReplayingTo = NULL
+              WHERE consumerId = ? AND aggregateId = UuidToBin(?);
+          `,
+          parameters: [ revision, hash, aggregateIdentifier.aggregate.id, revision ]
+        });
+
+        if (rows.affectedRows === 1) {
+          return;
+        }
+
+        await runQuery({
+          connection,
+          query: `
+              INSERT INTO \`${this.tableNames.progress}\`
+                (consumerId, aggregateId, revision)
+                VALUES (?, UuidToBin(?), ?);
+            `,
+          parameters: [ hash, aggregateIdentifier.aggregate.id, revision ]
+        });
+      },
+      async releaseConnection ({ connection }): Promise<void> {
+        MySqlConsumerProgressStore.releaseConnection({ connection });
+      }
+    });
+  }
+
+  public async setup (): Promise<void> {
+    const connection = await this.getDatabase();
+
+    const createUuidToBinFunction = `
+      CREATE FUNCTION UuidToBin(_uuid CHAR(36))
+        RETURNS BINARY(16)
+        RETURN UNHEX(CONCAT(
+          SUBSTR(_uuid, 15, 4),
+          SUBSTR(_uuid, 10, 4),
+          SUBSTR(_uuid, 1, 8),
+          SUBSTR(_uuid, 20, 4),
+          SUBSTR(_uuid, 25)
+        ));
+    `;
+
+    try {
+      await runQuery({ connection, query: createUuidToBinFunction });
+    } catch (ex: unknown) {
+      // If the function already exists, we can ignore this error; otherwise
+      // rethrow it. Generally speaking, this should be done using a SQL clause
+      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
+      // there is a ready-made function UUID_TO_BIN, but this is only available
+      // from MySQL 8.0 upwards.
+      if (!(ex as Error).message.includes('FUNCTION UuidToBin already exists')) {
+        throw ex;
+      }
+    }
+
+    const createUuidFromBinFunction = `
+      CREATE FUNCTION UuidFromBin(_bin BINARY(16))
+        RETURNS CHAR(36)
+        RETURN LCASE(CONCAT_WS('-',
+          HEX(SUBSTR(_bin,  5, 4)),
+          HEX(SUBSTR(_bin,  3, 2)),
+          HEX(SUBSTR(_bin,  1, 2)),
+          HEX(SUBSTR(_bin,  9, 2)),
+          HEX(SUBSTR(_bin, 11))
+        ));
+    `;
+
+    try {
+      await runQuery({ connection, query: createUuidFromBinFunction });
+    } catch (ex: unknown) {
+      // If the function already exists, we can ignore this error; otherwise
+      // rethrow it. Generally speaking, this should be done using a SQL clause
+      // such as 'IF NOT EXISTS', but MySQL does not support this yet. Also,
+      // there is a ready-made function BIN_TO_UUID, but this is only available
+      // from MySQL 8.0 upwards.
+      if (!(ex as Error).message.includes('FUNCTION UuidFromBin already exists')) {
+        throw ex;
+      }
+    }
+
+    await runQuery({
+      connection,
+      query: `
+        CREATE TABLE IF NOT EXISTS \`${this.tableNames.progress}\` (
+          consumerId CHAR(64) NOT NULL,
+          aggregateId BINARY(16) NOT NULL,
+          revision INT NOT NULL,
+          isReplayingFrom INT,
+          isReplayingTo INT,
+
+          PRIMARY KEY(consumerId, aggregateId)
+        );
+      `
+    });
+
+    MySqlConsumerProgressStore.releaseConnection({ connection });
+  }
+
   public async destroy (): Promise<void> {
-    await new Promise((resolve): void => {
-      this.pool.end(resolve);
+    await new Promise<void>((resolve, reject): void => {
+      this.pool.end((err: MysqlError | null): void => {
+        if (err) {
+          return reject(err);
+        }
+        resolve();
+      });
     });
   }
 }

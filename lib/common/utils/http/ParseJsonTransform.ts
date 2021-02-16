@@ -8,11 +8,21 @@ class ParseJsonTransform extends Transform {
     });
   }
 
-  /* eslint-disable @typescript-eslint/member-naming, no-underscore-dangle, class-methods-use-this */
+  /* eslint-disable @typescript-eslint/naming-convention, no-underscore-dangle, class-methods-use-this */
   public _transform (chunk: any, encoding: string, next: TransformCallback): void {
-    const data = JSON.parse(chunk.toString());
+    const text = chunk.toString();
 
-    next(null, data);
+    const parts = text.split('\n');
+
+    for (const part of parts) {
+      if (part !== '') {
+        const data = JSON.parse(part);
+
+        this.push(data);
+      }
+    }
+
+    next(null);
   }
   /* eslint-enable no-underscore-dangle, class-methods-use-this */
 }

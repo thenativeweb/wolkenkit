@@ -1,3 +1,4 @@
+import { AggregateIdentifier } from '../../../../lib/common/elements/AggregateIdentifier';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { CustomError } from 'defekt';
@@ -11,12 +12,12 @@ import { v4 } from 'uuid';
 
 /* eslint-disable mocha/max-top-level-suites */
 const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore }: {
-  createDomainEventStore ({ suffix }: {
+  createDomainEventStore: ({ suffix }: {
     suffix: string;
-  }): Promise<DomainEventStore>;
-  teardownDomainEventStore? ({ suffix }: {
+  }) => Promise<DomainEventStore>;
+  teardownDomainEventStore?: ({ suffix }: {
     suffix: string;
-  }): Promise<void>;
+  }) => Promise<void>;
 }): void {
   let domainEventStore: DomainEventStore,
       suffix: string;
@@ -27,6 +28,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -38,8 +40,11 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('returns undefined for an aggregate without domain events.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'foo'
+        context: { name: 'sampleContext' },
+        aggregate: {
+          id: v4(),
+          name: 'foo'
+        }
       };
       const domainEvent = await domainEventStore.getLastDomainEvent({ aggregateIdentifier });
 
@@ -48,12 +53,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('returns the last domain event for the given aggregate.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: { name: 'sampleContext' },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const domainEventStarted = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
@@ -64,7 +71,6 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       });
 
       const domainEventJoined = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'joined',
         data: { participant: 'Jane Doe' },
@@ -87,12 +93,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('correctly handles null, undefined and empty arrays.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: { name: 'sampleContext' },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const domainEventJoined = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'joined',
         data: {
@@ -118,12 +126,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('supports tags.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: { name: 'sampleContext' },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const domainEventStarted = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
@@ -150,6 +160,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -161,12 +172,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('stream ends immediately if no events with a matching causation id exist.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {},
@@ -190,12 +203,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       const causationId = v4();
 
       const domainEvent1 = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {},
@@ -208,12 +223,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         }
       });
       const domainEvent2 = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {},
@@ -226,12 +243,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         }
       });
       const domainEvent3 = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {},
@@ -261,6 +280,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -272,12 +292,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('returns false if no events with a matching causation id exist.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {},
@@ -301,12 +323,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       const causationId = v4();
 
       const domainEvent1 = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {},
@@ -319,12 +343,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         }
       });
       const domainEvent2 = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {},
@@ -337,12 +363,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         }
       });
       const domainEvent3 = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {},
@@ -369,6 +397,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -380,12 +409,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('returns an empty array if no events with a matching correlation id exist.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {},
@@ -409,12 +440,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       const correlationId = v4();
 
       const domainEvent1 = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {},
@@ -427,12 +460,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         }
       });
       const domainEvent2 = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {},
@@ -445,12 +480,14 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         }
       });
       const domainEvent3 = buildDomainEvent({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {},
@@ -480,6 +517,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -490,12 +528,17 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     });
 
     test('returns an empty stream for a non-existent aggregate.', async (): Promise<void> => {
-      const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
       };
 
-      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
+      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.aggregate.id });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(0);
@@ -503,12 +546,16 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('returns a stream of domain events for the given aggregate.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const domainEventStarted = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
@@ -519,7 +566,6 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       });
 
       const domainEventJoined = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'joined',
         data: { participant: 'Jane Doe' },
@@ -533,7 +579,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         domainEvents: [ domainEventStarted, domainEventJoined ]
       });
 
-      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
+      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.aggregate.id });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(2);
@@ -543,12 +589,16 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('returns a stream from revision.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const domainEventStarted = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
@@ -559,7 +609,6 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       });
 
       const domainEventJoined = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'joined',
         data: { participant: 'Jane Doe' },
@@ -574,7 +623,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       });
 
       const domainEventStream = await domainEventStore.getReplayForAggregate({
-        aggregateId: aggregateIdentifier.id,
+        aggregateId: aggregateIdentifier.aggregate.id,
         fromRevision: 2
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
@@ -585,12 +634,16 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('returns a stream to revision.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const domainEventStarted = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
@@ -601,7 +654,6 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       });
 
       const domainEventJoined = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'joined',
         data: { participant: 'Jane Doe' },
@@ -616,7 +668,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       });
 
       const domainEventStream = await domainEventStore.getReplayForAggregate({
-        aggregateId: aggregateIdentifier.id,
+        aggregateId: aggregateIdentifier.aggregate.id,
         toRevision: 1
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
@@ -627,12 +679,16 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('supports tags.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const domainEventStarted = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
@@ -648,7 +704,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       });
 
       const domainEventStream = await domainEventStore.getReplayForAggregate({
-        aggregateId: aggregateIdentifier.id
+        aggregateId: aggregateIdentifier.aggregate.id
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
@@ -686,6 +742,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -705,12 +762,16 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('stores domain events.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const domainEventStarted = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
@@ -721,7 +782,6 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       });
 
       const domainEventJoined = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'joined',
         data: { participant: 'Jane Doe' },
@@ -736,7 +796,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       });
 
       const domainEventStream = await domainEventStore.getReplayForAggregate({
-        aggregateId: aggregateIdentifier.id
+        aggregateId: aggregateIdentifier.aggregate.id
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
@@ -747,12 +807,16 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('stores domain events with special characters in keys.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const domainEventStarted = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
@@ -775,12 +839,16 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('throws an error if the aggregate id and revision of the new domain event are already in use.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
@@ -801,12 +869,16 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('correctly handles undefined and null.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'started',
         data: { initiator: null, destination: undefined },
@@ -818,7 +890,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
       await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
-      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.id });
+      const domainEventStream = await domainEventStore.getReplayForAggregate({ aggregateId: aggregateIdentifier.aggregate.id });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
       assert.that(aggregateDomainEvents.length).is.equalTo(1);
@@ -827,12 +899,16 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('supports tags.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'planning' },
         aggregateIdentifier,
         name: 'started',
         data: { initiator: 'Jane Doe', destination: 'Riva' },
@@ -846,7 +922,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       await domainEventStore.storeDomainEvents({ domainEvents: [ domainEvent ]});
 
       const domainEventStream = await domainEventStore.getReplayForAggregate({
-        aggregateId: aggregateIdentifier.id
+        aggregateId: aggregateIdentifier.aggregate.id
       });
       const aggregateDomainEvents = await toArray(domainEventStream);
 
@@ -861,6 +937,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -872,8 +949,13 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('returns undefined for an aggregate without a snapshot.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
@@ -883,8 +965,13 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('returns a snapshot for the given aggregate.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const state = {
@@ -906,8 +993,13 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('correctly handles null, undefined and empty arrays.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const state = {
@@ -931,8 +1023,13 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('returns the newest snapshot for the given aggregate.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const stateOld = {
@@ -966,6 +1063,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -977,8 +1075,13 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('stores a snapshot.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
 
       const state = {
@@ -1007,16 +1110,25 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
       const aggregateIdentifiers = [
         {
-          id: v4(),
-          name: 'foo'
+          context: { name: 'sampleContext' },
+          aggregate: {
+            id: v4(),
+            name: 'foo'
+          }
         },
         {
-          id: v4(),
-          name: 'bar'
+          context: { name: 'sampleContext' },
+          aggregate: {
+            id: v4(),
+            name: 'bar'
+          }
         },
         {
-          id: v4(),
-          name: 'baz'
+          context: { name: 'sampleContext' },
+          aggregate: {
+            id: v4(),
+            name: 'baz'
+          }
         }
       ];
 
@@ -1037,9 +1149,15 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('correctly handles null, undefined and empty arrays.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
+
       const state = {
         initiator: null,
         destination: undefined,
@@ -1062,9 +1180,15 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
 
     test('does not throw an error if trying to store an already stored snapshot.', async (): Promise<void> => {
       const aggregateIdentifier = {
-        id: v4(),
-        name: 'peerGroup'
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
       };
+
       const state = {
         initiator: 'Jane Doe',
         destination: 'Riva',
@@ -1082,6 +1206,7 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     setup(async (): Promise<void> => {
       suffix = getShortId();
       domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
     });
 
     teardown(async (): Promise<void> => {
@@ -1101,12 +1226,16 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
     suite('with existent data', (): void => {
       setup(async (): Promise<void> => {
         const aggregateIdentifier = {
-          id: v4(),
-          name: 'peerGroup'
+          context: {
+            name: 'planning'
+          },
+          aggregate: {
+            id: v4(),
+            name: 'peerGroup'
+          }
         };
 
         const domainEventStarted = buildDomainEvent({
-          contextIdentifier: { name: 'planning' },
           aggregateIdentifier,
           name: 'started',
           data: { initiator: 'Jane Doe', destination: 'Riva' },
@@ -1119,7 +1248,6 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         });
 
         const domainEventJoinedFirst = buildDomainEvent({
-          contextIdentifier: { name: 'planning' },
           aggregateIdentifier,
           name: 'joined',
           data: { participant: 'Jane Doe' },
@@ -1132,7 +1260,6 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
         });
 
         const domainEventJoinedSecond = buildDomainEvent({
-          contextIdentifier: { name: 'planning' },
           aggregateIdentifier,
           name: 'joined',
           data: { participant: 'Jennifer Doe' },
@@ -1191,7 +1318,281 @@ const getTestsFor = function ({ createDomainEventStore, teardownDomainEventStore
       );
     });
   });
+
+  suite('getAggregateIdentifiers', function (): void {
+    this.timeout(5_000);
+
+    setup(async (): Promise<void> => {
+      suffix = getShortId();
+      domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
+    });
+
+    teardown(async (): Promise<void> => {
+      await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
+    });
+
+    test('returns an empty stream.', async (): Promise<void> => {
+      const aggregateIdentifierStream = await domainEventStore.getAggregateIdentifiers();
+      const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+      assert.that(aggregateIdentifiers.length).is.equalTo(0);
+    });
+
+    test('streams the aggregate identifiers of all aggregates that have domain events in the store.', async (): Promise<void> => {
+      const aggregateIdentifierOne = {
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
+      };
+
+      const domainEventStartedOne = buildDomainEvent({
+        aggregateIdentifier: aggregateIdentifierOne,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          timestamp: 1,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      const aggregateIdentifierTwo = {
+        context: { name: 'planning' },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
+      };
+      const domainEventStartedTwo = buildDomainEvent({
+        aggregateIdentifier: aggregateIdentifierTwo,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          timestamp: 2,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      await domainEventStore.storeDomainEvents({
+        domainEvents: [ domainEventStartedOne, domainEventStartedTwo ]
+      });
+
+      const aggregateIdentifierStream = await domainEventStore.getAggregateIdentifiers();
+      const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+      assert.that(aggregateIdentifiers.length).is.equalTo(2);
+      assert.that(aggregateIdentifiers).is.equalTo([ aggregateIdentifierOne, aggregateIdentifierTwo ]);
+    });
+
+    test('emits each aggregate identifier only once.', async (): Promise<void> => {
+      const aggregateIdentifier = {
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
+      };
+
+      const domainEventStarted = buildDomainEvent({
+        aggregateIdentifier,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          timestamp: 1,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      const domainEventJoinedFirst = buildDomainEvent({
+        aggregateIdentifier,
+        name: 'joined',
+        data: { participant: 'Jane Doe' },
+        metadata: {
+          revision: 2,
+          timestamp: 2,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      await domainEventStore.storeDomainEvents<DomainEventData>({
+        domainEvents: [ domainEventStarted, domainEventJoinedFirst ]
+      });
+
+      const aggregateIdentifierStream = await domainEventStore.getAggregateIdentifiers();
+      const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+      assert.that(aggregateIdentifiers.length).is.equalTo(1);
+      assert.that(aggregateIdentifiers).is.equalTo([ aggregateIdentifier ]);
+    });
+  });
+
+  suite('getAggregateIdentifiersByName', function (): void {
+    this.timeout(5_000);
+
+    setup(async (): Promise<void> => {
+      suffix = getShortId();
+      domainEventStore = await createDomainEventStore({ suffix });
+      await domainEventStore.setup();
+    });
+
+    teardown(async (): Promise<void> => {
+      await domainEventStore.destroy();
+      if (teardownDomainEventStore) {
+        await teardownDomainEventStore({ suffix });
+      }
+    });
+
+    test('returns an empty stream.', async (): Promise<void> => {
+      const aggregateIdentifierStream = await domainEventStore.getAggregateIdentifiersByName({
+        contextName: 'planning',
+        aggregateName: 'peerGroup'
+      });
+      const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+      assert.that(aggregateIdentifiers.length).is.equalTo(0);
+    });
+
+    test('streams the aggregate identifiers that belong to the given aggregate name and have domain events in the store.', async (): Promise<void> => {
+      const aggregateIdentifierOne = {
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
+      };
+
+      const domainEventStartedOne = buildDomainEvent({
+        aggregateIdentifier: aggregateIdentifierOne,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          timestamp: 1,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      const aggregateIdentifierTwo = {
+        context: { name: 'planning' },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
+      };
+      const domainEventStartedTwo = buildDomainEvent({
+        aggregateIdentifier: aggregateIdentifierTwo,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          timestamp: 2,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      const aggregateIdentifierThree = {
+        context: { name: 'planning' },
+        aggregate: {
+          name: 'somethingElse',
+          id: v4()
+        }
+      };
+      const domainEventThree = buildDomainEvent({
+        aggregateIdentifier: aggregateIdentifierThree,
+        name: 'foo',
+        data: {},
+        metadata: {
+          revision: 1,
+          timestamp: 3,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}}
+        }
+      });
+
+      await domainEventStore.storeDomainEvents({
+        domainEvents: [ domainEventStartedOne, domainEventStartedTwo, domainEventThree ]
+      });
+
+      const aggregateIdentifierStream = await domainEventStore.getAggregateIdentifiersByName({
+        contextName: 'planning',
+        aggregateName: 'peerGroup'
+      });
+      const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+      assert.that(aggregateIdentifiers.length).is.equalTo(2);
+      assert.that(aggregateIdentifiers).is.equalTo([ aggregateIdentifierOne, aggregateIdentifierTwo ]);
+    });
+
+    test('emits each aggregate identifier only once.', async (): Promise<void> => {
+      const aggregateIdentifier = {
+        context: {
+          name: 'planning'
+        },
+        aggregate: {
+          id: v4(),
+          name: 'peerGroup'
+        }
+      };
+
+      const domainEventStarted = buildDomainEvent({
+        aggregateIdentifier,
+        name: 'started',
+        data: { initiator: 'Jane Doe', destination: 'Riva' },
+        metadata: {
+          revision: 1,
+          timestamp: 1,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      const domainEventJoinedFirst = buildDomainEvent({
+        aggregateIdentifier,
+        name: 'joined',
+        data: { participant: 'Jane Doe' },
+        metadata: {
+          revision: 2,
+          timestamp: 2,
+          initiator: { user: { id: 'jane.doe', claims: { sub: 'jane.doe' }}},
+          tags: [ 'gdpr' ]
+        }
+      });
+
+      await domainEventStore.storeDomainEvents<DomainEventData>({
+        domainEvents: [ domainEventStarted, domainEventJoinedFirst ]
+      });
+
+      const aggregateIdentifierStream = await domainEventStore.getAggregateIdentifiersByName({
+        contextName: 'planning',
+        aggregateName: 'peerGroup'
+      });
+      const aggregateIdentifiers = await toArray(aggregateIdentifierStream);
+
+      assert.that(aggregateIdentifiers.length).is.equalTo(1);
+      assert.that(aggregateIdentifiers).is.equalTo([ aggregateIdentifier ]);
+    });
+  });
 };
 /* eslint-enable mocha/max-top-level-suites */
 
+// eslint-disable-next-line mocha/no-exports
 export { getTestsFor };

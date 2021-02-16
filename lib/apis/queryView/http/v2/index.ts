@@ -5,9 +5,10 @@ import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
 import { getDescription } from './getDescription';
 import { IdentityProvider } from 'limes';
-import { query } from './query';
+import { queryStream } from './queryStream';
+import { queryValue } from './queryValue';
 
-const getV2 = async function<TItem> ({ application, corsOrigin, identityProviders }: {
+const getV2 = async function ({ application, corsOrigin, identityProviders }: {
   application: Application;
   corsOrigin: CorsOrigin;
   identityProviders: IdentityProvider[];
@@ -31,7 +32,11 @@ const getV2 = async function<TItem> ({ application, corsOrigin, identityProvider
     application
   }));
 
-  api.get(`/${query.path}`, authenticationMiddleware, query.getHandler({
+  api.get(`/${queryStream.path}`, authenticationMiddleware, queryStream.getHandler({
+    application
+  }));
+
+  api.get(`/${queryValue.path}`, authenticationMiddleware, queryValue.getHandler({
     application
   }));
 

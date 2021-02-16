@@ -6,7 +6,8 @@
       "wolkenkit": [ "../../../lib/wolkenkit" ]
     },
     "rootDir": ".",
-    "sourceMap": true
+    "sourceMap": true,
+    "strict": true
   },
   "include": [
     "./**/*.ts"

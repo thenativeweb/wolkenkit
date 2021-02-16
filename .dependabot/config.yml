@@ -3,7 +3,7 @@ version: 1
 update_configs:
   - package_manager: "javascript"
     directory: "/"
-    update_schedule: "live"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -20,7 +20,7 @@ update_configs:
 
   - package_manager: "javascript"
     directory: "/templates/blank/javascript"
-    update_schedule: "live"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -37,7 +37,7 @@ update_configs:
 
   - package_manager: "javascript"
     directory: "/templates/blank/typescript"
-    update_schedule: "live"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -54,7 +54,7 @@ update_configs:
 
   - package_manager: "javascript"
     directory: "/templates/chat/javascript"
-    update_schedule: "live"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -71,7 +71,7 @@ update_configs:
 
   - package_manager: "javascript"
     directory: "/templates/chat/typescript"
-    update_schedule: "live"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -88,7 +88,7 @@ update_configs:
 
   - package_manager: "javascript"
     directory: "/templates/chat-simplified/javascript"
-    update_schedule: "live"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -105,7 +105,7 @@ update_configs:
 
   - package_manager: "javascript"
     directory: "/templates/chat-simplified/typescript"
-    update_schedule: "live"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -122,7 +122,7 @@ update_configs:
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-mariadb"
-    update_schedule: "daily"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -133,7 +133,7 @@ update_configs:
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-minio"
-    update_schedule: "daily"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -144,7 +144,7 @@ update_configs:
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-mongodb"
-    update_schedule: "daily"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -155,7 +155,7 @@ update_configs:
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-mysql"
-    update_schedule: "daily"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -166,7 +166,7 @@ update_configs:
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-nodejs"
-    update_schedule: "daily"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -177,7 +177,7 @@ update_configs:
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-postgres"
-    update_schedule: "daily"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -188,7 +188,7 @@ update_configs:
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-redis"
-    update_schedule: "daily"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"
@@ -199,7 +199,7 @@ update_configs:
 
   - package_manager: "docker"
     directory: "/docker/wolkenkit-sqlserver"
-    update_schedule: "daily"
+    update_schedule: "monthly"
     default_assignees:
     - "goloroden"
     - "yeldiRium"

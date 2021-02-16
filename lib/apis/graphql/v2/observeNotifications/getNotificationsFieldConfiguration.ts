@@ -1,11 +1,13 @@
 import { Application } from '../../../../common/application/Application';
 import { flaschenpost } from 'flaschenpost';
+import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { Notification } from '../../../../common/elements/Notification';
 import { ResolverContext } from '../ResolverContext';
 import { Schema } from '../../../../common/elements/Schema';
+import { source } from 'common-tags';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { validateNotification } from '../../../../common/validators/validateNotification';
 import { buildSchema, GraphQLFieldConfig, GraphQLObjectType } from 'graphql';
@@ -25,16 +27,31 @@ const getNotificationsFieldConfiguration = function ({ application, notification
     required: [ 'name', 'data' ]
   };
 
-  const notificationGraphQL = getGraphqlFromJsonSchema({
+  const notificationGraphQl = getGraphqlFromJsonSchema({
     schema: notificationSchemaForGraphQl,
     rootName: `notification`
   });
 
+  let description = '';
+  const applicationDescription = getApplicationDescription({ application });
+
+  for (const [ notificationName, notificationDescription ] of Object.entries(applicationDescription.notifications)) {
+    description += source`
+      # Notification '${notificationName}'
+
+      ${notificationDescription.documentation ?? 'No documentation available.'}
+
+          ${notificationDescription.dataSchema ? JSON.stringify(notificationDescription.dataSchema, null, 2) : 'No schema available.'}
+    `;
+    description += '\n';
+  }
+
   return {
-    type: buildSchema(notificationGraphQL.typeDefinitions.join('\n')).getType(notificationGraphQL.typeName) as GraphQLObjectType,
+    type: buildSchema(notificationGraphQl.typeDefinitions.join('\n')).getType(notificationGraphQl.typeName) as GraphQLObjectType,
+    description,
     async * subscribe (
-      _source,
-      _args,
+      innerSource,
+      args,
       { clientMetadata }: ResolverContext
     ): AsyncIterator<Notification> {
       const clientService = getClientService({ clientMetadata });
@@ -42,7 +59,7 @@ const getNotificationsFieldConfiguration = function ({ application, notification
       for await (const [ notification ] of notificationEmitter) {
         try {
           validateNotification({ notification, application });
-        } catch (ex) {
+        } catch {
           logger.warn('Dropping invalid notification.', { notification });
 
           continue;

@@ -14,8 +14,10 @@ const validateItemIdentifier = function ({
   const contextDefinitions = application.domain;
 
   const {
-    contextIdentifier: { name: contextName },
-    aggregateIdentifier: { name: aggregateName },
+    aggregateIdentifier: {
+      context: { name: contextName },
+      aggregate: { name: aggregateName }
+    },
     name
   } = itemIdentifier;
 

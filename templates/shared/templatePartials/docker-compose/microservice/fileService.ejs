@@ -1,0 +1,28 @@
+<%
+const service = {
+  hostName: services.microservice.file.hostName,
+  command: 'node ./node_modules/wolkenkit/build/lib/runtimes/microservice/processes/file/app.js',
+  environmentVariables: {
+    ...toEnvironmentVariables({
+      configurationDefinition: configurationDefinitions.microservice.file,
+      configuration: {
+        applicationDirectory,
+        enableOpenApiDocumentation: true,
+        fileCorsOrigin: corsOrigin,
+        fileStoreOptions,
+        healthCorsOrigin: corsOrigin,
+        healthPortOrSocket: services.microservice.file.healthPort,
+        identityProviders,
+        portOrSocket: services.microservice.file.privatePort
+      }
+    }),
+    ...(locals.customEnvironmentVariables || {})
+  },
+  privatePort: services.microservice.file.privatePort,
+  healthPort: services.microservice.file.healthPort,
+  publishPorts: false,
+  enableTraefik: true,
+  pathPrefix: '/files'
+}
+-%>
+<%- include('../service.ejs', { service }) %>

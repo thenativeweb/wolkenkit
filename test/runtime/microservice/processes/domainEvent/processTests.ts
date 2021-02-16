@@ -8,8 +8,8 @@ import { Configuration as DomainEventStoreConfiguration } from '../../../../../l
 import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
 import { DomainEventWithState } from '../../../../../lib/common/elements/DomainEventWithState';
 import { errors } from '../../../../../lib/common/errors';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Client as ObserveDomainEventsClient } from '../../../../../lib/apis/observeDomainEvents/http/v2/Client';
@@ -24,21 +24,21 @@ import { v4 } from 'uuid';
 
 const certificateDirectory = path.join(__dirname, '..', '..', '..', '..', '..', 'keys', 'local.wolkenkit.io');
 
-suite('domain event', function (): void {
-  this.timeout(10_000);
+suite('domain event process', function (): void {
+  this.timeout(60_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
         pubSubChannelForNewDomainEvents = 'newDomainEvent',
         pubSubChannelNotification = 'notification';
 
-  let domainEventStoreHealthPort: number,
-      domainEventStorePort: number,
-      healthPort: number,
+  let domainEventStoreHealthSocket: string,
+      domainEventStoreSocket: string,
+      healthSocket: string,
       observeDomainEventsClient: ObserveDomainEventsClient,
-      port: number,
-      publisherHealthPort: number,
-      publisherPort: number,
+      publisherHealthSocket: string,
+      publisherSocket: string,
       publishMessageClient: PublishMessageClient,
+      socket: string,
       stopProcess: (() => Promise<void>) | undefined,
       stopProcessDomainEventStore: (() => Promise<void>) | undefined,
       stopProcessPublisher: (() => Promise<void>) | undefined;
@@ -47,25 +47,25 @@ suite('domain event', function (): void {
     this.timeout(60_000);
 
     [
-      port,
-      healthPort,
-      publisherPort,
-      publisherHealthPort,
-      domainEventStorePort,
-      domainEventStoreHealthPort
-    ] = await getAvailablePorts({ count: 6 });
+      socket,
+      healthSocket,
+      publisherSocket,
+      publisherHealthSocket,
+      domainEventStoreSocket,
+      domainEventStoreHealthSocket
+    ] = await getSocketPaths({ count: 6 });
 
     const publisherConfiguration: PublisherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: publisherConfigurationDefinition }),
-      port: publisherPort,
-      healthPort: publisherHealthPort
+      portOrSocket: publisherSocket,
+      healthPortOrSocket: publisherHealthSocket
     };
 
     stopProcessPublisher = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
       enableDebugMode: false,
-      port: publisherHealthPort,
+      portOrSocket: publisherHealthSocket,
       env: toEnvironmentVariables({
         configuration: publisherConfiguration,
         configurationDefinition: publisherConfigurationDefinition
@@ -75,21 +75,21 @@ suite('domain event', function (): void {
     publishMessageClient = new PublishMessageClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: publisherPort,
+      portOrSocket: publisherSocket,
       path: '/publish/v2'
     });
 
     const domainEventStoreConfiguration: DomainEventStoreConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventStoreConfigurationDefinition }),
-      port: domainEventStorePort,
-      healthPort: domainEventStoreHealthPort
+      portOrSocket: domainEventStoreSocket,
+      healthPortOrSocket: domainEventStoreHealthSocket
     };
 
     stopProcessDomainEventStore = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
       enableDebugMode: false,
-      port: domainEventStoreHealthPort,
+      portOrSocket: domainEventStoreHealthSocket,
       env: toEnvironmentVariables({
         configuration: domainEventStoreConfiguration,
         configurationDefinition: domainEventStoreConfigurationDefinition
@@ -99,10 +99,10 @@ suite('domain event', function (): void {
     const domainEventConfiguration: DomainEventConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventConfigurationDefinition }),
       aeonstoreHostName: 'localhost',
-      aeonstorePort: domainEventStorePort,
+      aeonstorePortOrSocket: domainEventStoreSocket,
       applicationDirectory,
-      port,
-      healthPort,
+      portOrSocket: socket,
+      healthPortOrSocket: healthSocket,
       identityProviders: [{ issuer: 'https://token.invalid', certificate: certificateDirectory }],
       pubSubOptions: {
         channelForNewDomainEvents: pubSubChannelForNewDomainEvents,
@@ -111,14 +111,14 @@ suite('domain event', function (): void {
           type: 'Http',
           protocol: 'http',
           hostName: 'localhost',
-          port: publisherPort,
+          portOrSocket: publisherSocket,
           path: '/publish/v2'
         },
         subscriber: {
           type: 'Http',
           protocol: 'http',
           hostName: 'localhost',
-          port: publisherPort,
+          portOrSocket: publisherSocket,
           path: '/subscribe/v2'
         }
       },
@@ -129,7 +129,7 @@ suite('domain event', function (): void {
       runtime: 'microservice',
       name: 'domainEvent',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: toEnvironmentVariables({
         configuration: domainEventConfiguration,
         configurationDefinition: domainEventConfigurationDefinition
@@ -139,7 +139,7 @@ suite('domain event', function (): void {
     observeDomainEventsClient = new ObserveDomainEventsClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/domain-events/v2'
     });
   });
@@ -165,7 +165,7 @@ suite('domain event', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPort,
+        portOrSocket: healthSocket,
         path: '/health/v2'
       });
 
@@ -178,8 +178,10 @@ suite('domain event', function (): void {
   suite('getDomainEvents', (): void => {
     test('does not stream invalid domain events.', async (): Promise<void> => {
       const domainEventWithoutState = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: v4() }
+        },
         name: 'nonExistent',
         data: {},
         metadata: {
@@ -197,7 +199,7 @@ suite('domain event', function (): void {
 
       const domainEventStream = await observeDomainEventsClient.getDomainEvents({});
 
-      await new Promise(async (resolve, reject): Promise<void> => {
+      await new Promise<void>(async (resolve, reject): Promise<void> => {
         try {
           domainEventStream.pipe(asJsonStream<DomainEvent<any>>(
             [
@@ -211,7 +213,7 @@ suite('domain event', function (): void {
           setTimeout((): void => {
             resolve();
           }, 500);
-        } catch (ex) {
+        } catch (ex: unknown) {
           reject(ex);
         }
       });
@@ -220,8 +222,10 @@ suite('domain event', function (): void {
     test('streams domain events from the publisher.', async (): Promise<void> => {
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'executed',
           data: { strategy: 'succeed' },
           metadata: {
@@ -242,7 +246,7 @@ suite('domain event', function (): void {
         });
       }, 50);
 
-      await new Promise(async (resolve, reject): Promise<void> => {
+      await new Promise<void>(async (resolve, reject): Promise<void> => {
         try {
           const domainEventStream = await observeDomainEventsClient.getDomainEvents({});
 
@@ -255,7 +259,7 @@ suite('domain event', function (): void {
             ],
             true
           ));
-        } catch (ex) {
+        } catch (ex: unknown) {
           reject(ex);
         }
       });

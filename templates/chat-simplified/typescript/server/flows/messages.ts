@@ -4,7 +4,7 @@ import { Message } from '../types/Message';
 import { Flow, FlowHandler } from 'wolkenkit';
 import { LikedData, SentData } from '../domain/communication/message';
 
-const messages: Flow = {
+const messages: Flow<Infrastructure> = {
   replayPolicy: 'always',
 
   domainEventHandlers: {
@@ -15,7 +15,7 @@ const messages: Flow = {
 
       async handle (domainEvent, { infrastructure, notification }): Promise<void> {
         const message: Message = {
-          id: domainEvent.aggregateIdentifier.id,
+          id: domainEvent.aggregateIdentifier.aggregate.id,
           timestamp: domainEvent.metadata.timestamp,
           text: domainEvent.data.text,
           likes: 0
@@ -43,10 +43,10 @@ const messages: Flow = {
       async handle (domainEvent, { infrastructure, notification }): Promise<void> {
         if (Array.isArray(infrastructure.tell.viewStore.messages)) {
           const messageToUpdate = infrastructure.tell.viewStore.messages.find(
-            (message): boolean => message.id === domainEvent.aggregateIdentifier.id
+            (message): boolean => message.id === domainEvent.aggregateIdentifier.aggregate.id
           );
 
-          messageToUpdate.likes = domainEvent.data.likes;
+          messageToUpdate!.likes = domainEvent.data.likes;
 
           await notification.publish<FlowUpdated>('flowMessagesUpdated', {});
 
@@ -54,7 +54,7 @@ const messages: Flow = {
         }
 
         await infrastructure.tell.viewStore.messages.updateOne(
-          { id: domainEvent.aggregateIdentifier.id },
+          { id: domainEvent.aggregateIdentifier.aggregate.id },
           { $set: { likes: domainEvent.data.likes }}
         );
 

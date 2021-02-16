@@ -6,6 +6,7 @@ import { createPublisher } from '../../../../lib/messaging/pubSub/createPublishe
 import { createSubscriber } from '../../../../lib/messaging/pubSub/createSubscriber';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/subscribeNotifications/http';
+import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
@@ -15,39 +16,64 @@ import { runAsServer } from '../../../shared/http/runAsServer';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 
 suite('subscribeNotifications/http/Client', (): void => {
+  const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' }),
+        channelForNotifications = 'notifications',
+        identityProviders = [ identityProvider ];
+
+  let api: ExpressApplication,
+      application: Application,
+      publisher: Publisher<Notification>,
+      subscriber: Subscriber<Notification>;
+
+  setup(async (): Promise<void> => {
+    application = await loadApplication({ applicationDirectory });
+
+    publisher = await createPublisher<Notification>({ type: 'InMemory' });
+    subscriber = await createSubscriber<Notification>({ type: 'InMemory' });
+
+    ({ api } = await getApi({
+      application,
+      corsOrigin: '*',
+      identityProviders,
+      subscriber,
+      channelForNotifications
+    }));
+  });
+
   suite('/v2', (): void => {
-    suite('getNotifications', (): void => {
-      const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' }),
-            channelForNotifications = 'notifications',
-            identityProviders = [ identityProvider ];
+    suite('getDescription', (): void => {
+      test(`returns the notifications' descriptions.`, async (): Promise<void> => {
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2'
+        });
 
-      let api: ExpressApplication,
-          application: Application,
-          publisher: Publisher<Notification>,
-          subscriber: Subscriber<Notification>;
+        const data = await client.getDescription();
 
-      setup(async (): Promise<void> => {
-        application = await loadApplication({ applicationDirectory });
+        const { notifications: notificationsDescription } = getApplicationDescription({
+          application
+        });
 
-        publisher = await createPublisher<Notification>({ type: 'InMemory' });
-        subscriber = await createSubscriber<Notification>({ type: 'InMemory' });
+        // Convert and parse as JSON, to get rid of any values that are undefined.
+        // This is what the HTTP API does internally, and here we need to simulate
+        // this to make things work.
+        const expectedNotificationsDescription =
+            JSON.parse(JSON.stringify(notificationsDescription));
 
-        ({ api } = await getApi({
-          application,
-          corsOrigin: '*',
-          identityProviders,
-          subscriber,
-          channelForNotifications
-        }));
+        assert.that(data).is.equalTo(expectedNotificationsDescription);
       });
+    });
 
+    suite('getNotifications', (): void => {
       test('delivers a single notification.', async (): Promise<void> => {
         const notification = { name: 'flowSampleFlowUpdated', data: {}};
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -57,7 +83,7 @@ suite('subscribeNotifications/http/Client', (): void => {
 
         const data = await client.getNotifications();
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -82,10 +108,10 @@ suite('subscribeNotifications/http/Client', (): void => {
         const notificationFirst = { name: 'complex', data: { message: '1' }, metadata: { public: true }},
               notificationSecond = { name: 'complex', data: { message: '2' }, metadata: { public: true }};
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -96,7 +122,7 @@ suite('subscribeNotifications/http/Client', (): void => {
 
         const data = await client.getNotifications();
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });

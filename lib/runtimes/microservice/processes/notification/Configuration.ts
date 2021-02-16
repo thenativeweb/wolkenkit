@@ -3,10 +3,10 @@ import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOption
 export interface Configuration {
   applicationDirectory: string;
   healthCorsOrigin: string | string[];
-  healthPort: number;
+  healthPortOrSocket: number | string;
   identityProviders: { issuer: string; certificate: string }[];
   notificationCorsOrigin: string | string[];
-  port: number;
+  portOrSocket: number | string;
   pubSubOptions: {
     channelForNotifications: string;
     subscriber: SubscriberOptions;

@@ -4,7 +4,7 @@ import { Client as DomainEventDispatcherClient } from '../../../../apis/handleDo
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
-import { PerformReplay } from '../../../../apis/performReplay/PerformReplay';
+import { PerformReplay } from '../../../../common/domain/PerformReplay';
 
 const logger = flaschenpost.getLogger();
 
@@ -21,7 +21,7 @@ const getPerformReplay = function ({
 
       for (const aggregate of aggregates) {
         const domainEventStream = await domainEventStore.getReplayForAggregate({
-          aggregateId: aggregate.aggregateIdentifier.id,
+          aggregateId: aggregate.aggregateIdentifier.aggregate.id,
           fromRevision: aggregate.from,
           toRevision: aggregate.to
         });
@@ -34,11 +34,11 @@ const getPerformReplay = function ({
       }
 
       logger.info('Replay performed.', { flowNames, aggregates });
-    } catch (ex) {
+    } catch (ex: unknown) {
       logger.error('Failed to perform replay.', { flowNames, aggregates, ex });
 
       throw new errors.ReplayFailed('Failed to perform replay.', {
-        cause: ex,
+        cause: ex as Error,
         data: { flowNames, aggregates }
       });
     }

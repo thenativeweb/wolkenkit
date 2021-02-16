@@ -3,38 +3,40 @@ import { LockMetadata } from './LockMetadata';
 // The priority queues implementing this interface are based on a heap data
 // structure, where items with smaller priorities move closer to the root node.
 // Hence, this represents a min-heap.
-export interface PriorityQueueStore<TItem, TItemIdentifier> {
-  enqueue ({ item, discriminator, priority }: {
+export interface PriorityQueueStore<TItem extends object, TItemIdentifier> {
+  enqueue: ({ item, discriminator, priority }: {
     item: TItem;
     discriminator: string;
     priority: number;
-  }): Promise<void>;
+  }) => Promise<void>;
 
-  lockNext (): Promise<{
+  lockNext: () => Promise<{
     item: TItem;
     metadata: LockMetadata;
   } | undefined>;
 
-  renewLock ({ discriminator, token }: {
+  renewLock: ({ discriminator, token }: {
     discriminator: string;
     token: string;
-  }): Promise<void>;
+  }) => Promise<void>;
 
-  acknowledge ({ discriminator, token }: {
+  acknowledge: ({ discriminator, token }: {
     discriminator: string;
     token: string;
-  }): Promise<void>;
+  }) => Promise<void>;
 
-  defer ({ discriminator, token, priority }: {
+  defer: ({ discriminator, token, priority }: {
     discriminator: string;
     token: string;
     priority: number;
-  }): Promise<void>;
+  }) => Promise<void>;
 
-  remove ({ discriminator, itemIdentifier }: {
+  remove: ({ discriminator, itemIdentifier }: {
     discriminator: string;
     itemIdentifier: TItemIdentifier;
-  }): Promise<void>;
+  }) => Promise<void>;
 
-  destroy (): Promise<void>;
+  setup: () => Promise<void>;
+
+  destroy: () => Promise<void>;
 }

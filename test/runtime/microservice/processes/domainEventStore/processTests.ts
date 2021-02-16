@@ -1,10 +1,11 @@
+import { AggregateIdentifier } from '../../../../../lib/common/elements/AggregateIdentifier';
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { buildDomainEvent } from '../../../../../lib/common/utils/test/buildDomainEvent';
 import { Configuration as DomainEventStoreConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/Configuration';
 import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Client as QueryDomainEventStoreClient } from '../../../../../lib/apis/queryDomainEventStore/http/v2/Client';
 import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
@@ -13,29 +14,29 @@ import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 import { Client as WriteDomainEventStoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
 
-suite('domain event store', function (): void {
-  this.timeout(10_000);
+suite('domain event store process', function (): void {
+  this.timeout(60_000);
 
-  let healthPort: number,
-      port: number,
+  let healthSocket: string,
       queryDomainEventStoreClient: QueryDomainEventStoreClient,
+      socket: string,
       stopProcess: (() => Promise<void>) | undefined,
       writeDomainEventStoreClient: WriteDomainEventStoreClient;
 
   setup(async (): Promise<void> => {
-    [ port, healthPort ] = await getAvailablePorts({ count: 2 });
+    [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
 
     const domainEventStoreConfiguration: DomainEventStoreConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventStoreConfigurationDefinition }),
-      port,
-      healthPort
+      portOrSocket: socket,
+      healthPortOrSocket: healthSocket
     };
 
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: toEnvironmentVariables({
         configuration: domainEventStoreConfiguration,
         configurationDefinition: domainEventStoreConfigurationDefinition
@@ -45,14 +46,14 @@ suite('domain event store', function (): void {
     queryDomainEventStoreClient = new QueryDomainEventStoreClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/query/v2'
     });
 
     writeDomainEventStoreClient = new WriteDomainEventStoreClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/write/v2'
     });
   });
@@ -70,7 +71,7 @@ suite('domain event store', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPort,
+        portOrSocket: healthSocket,
         path: '/health/v2'
       });
 
@@ -83,8 +84,10 @@ suite('domain event store', function (): void {
   suite('getReplay', (): void => {
     test('streams all previously stored domain events.', async (): Promise<void> => {
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: v4() }
+        },
         name: 'execute',
         data: {},
         metadata: {
@@ -117,8 +120,10 @@ suite('domain event store', function (): void {
   suite('getReplayForAggregate', (): void => {
     test('streams only domain events for the requested aggregate.', async (): Promise<void> => {
       const wrongDomainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: v4() }
+        },
         name: 'execute',
         data: {},
         metadata: {
@@ -130,8 +135,10 @@ suite('domain event store', function (): void {
       const aggregateId = v4();
 
       const rightDomainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'execute',
         data: {},
         metadata: {
@@ -163,9 +170,17 @@ suite('domain event store', function (): void {
 
   suite('getLastDomainEvent', (): void => {
     test('returns the last stored domain event.', async (): Promise<void> => {
-      const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
+      };
+
       const firstDomainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier,
         name: 'execute',
         data: {},
@@ -175,7 +190,6 @@ suite('domain event store', function (): void {
         }
       });
       const secondDomainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
         aggregateIdentifier,
         name: 'execute',
         data: {},
@@ -195,7 +209,16 @@ suite('domain event store', function (): void {
 
   suite('getSnapshot', (): void => {
     test('returns the previously stored snapshot.', async (): Promise<void> => {
-      const aggregateIdentifier = { name: 'sampleAggregate', id: v4() };
+      const aggregateIdentifier: AggregateIdentifier = {
+        context: {
+          name: 'sampleContext'
+        },
+        aggregate: {
+          name: 'sampleAggregate',
+          id: v4()
+        }
+      };
+
       const snapshot = {
         aggregateIdentifier,
         revision: 1,

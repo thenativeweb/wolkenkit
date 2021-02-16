@@ -1,7 +1,6 @@
 import { AggregateIdentifier } from '../../../elements/AggregateIdentifier';
 import { Application } from '../../../application/Application';
 import { ConsumerProgressStore } from '../../../../stores/consumerProgressStore/ConsumerProgressStore';
-import { ContextIdentifier } from '../../../elements/ContextIdentifier';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { GetAggregateService } from '../../../services/types/GetAggregateService';
 import { GetAggregatesService } from '../../../services/types/GetAggregatesService';
@@ -20,70 +19,69 @@ import { SnapshotStrategy } from '../../../domain/SnapshotStrategy';
 import { State } from '../../../elements/State';
 
 export interface UninitializedSandbox {
-  withApplication({ application }: {
+  withApplication: ({ application }: {
     application: Application;
-  }): Sandbox;
+  }) => Sandbox;
 }
 
 export interface Sandbox {
-  withDomainEventStore(parameters: {
+  withDomainEventStore: (parameters: {
     domainEventStore: DomainEventStore;
-  }): Sandbox;
+  }) => Sandbox;
 
-  withFlowProgressStore(parameters: {
+  withFlowProgressStore: (parameters: {
     flowProgressStore: ConsumerProgressStore;
-  }): Sandbox;
+  }) => Sandbox;
 
-  withLockStore(parameters: {
+  withLockStore: (parameters: {
     lockStore: LockStore;
-  }): Sandbox;
+  }) => Sandbox;
 
-  withSnapshotStrategy(parameters: {
+  withSnapshotStrategy: (parameters: {
     snapshotStrategy: SnapshotStrategy;
-  }): Sandbox;
+  }) => Sandbox;
 
-  withPublisher(parameters: {
+  withPublisher: (parameters: {
     publisher: Publisher<Notification>;
-  }): Sandbox;
+  }) => Sandbox;
 
-  withAggregateServiceFactory(parameters: {
+  withAggregateServiceFactory: (parameters: {
     aggregateServiceFactory: GetAggregateService;
-  }): Sandbox;
+  }) => Sandbox;
 
-  withAggregatesServiceFactory(parameters: {
+  withAggregatesServiceFactory: (parameters: {
     aggregatesServiceFactory: GetAggregatesService;
-  }): Sandbox;
+  }) => Sandbox;
 
-  withClientServiceFactory(parameters: {
+  withClientServiceFactory: (parameters: {
     clientServiceFactory: GetClientService;
-  }): Sandbox;
+  }) => Sandbox;
 
-  withCommandServiceFactory(parameters: {
+  withCommandServiceFactory: (parameters: {
     commandServiceFactory: GetCommandService;
-  }): Sandbox;
+  }) => Sandbox;
 
-  withLockServiceFactory(parameters: {
+  withLockServiceFactory: (parameters: {
     lockServiceFactory: GetLockService;
-  }): Sandbox;
+  }) => Sandbox;
 
-  withLoggerServiceFactory(parameters: {
+  withLoggerServiceFactory: (parameters: {
     loggerServiceFactory: GetLoggerService;
-  }): Sandbox;
+  }) => Sandbox;
 
-  withNotificationServiceFactory(parameters: {
+  withNotificationServiceFactory: (parameters: {
     notificationServiceFactory: GetNotificationService;
-  }): Sandbox;
+  }) => Sandbox;
 
-  forAggregate<TState extends State>(parameters: {
-    contextIdentifier: ContextIdentifier;
+  forAggregate: <TState extends State>(parameters: {
     aggregateIdentifier: AggregateIdentifier;
-  }): SandboxForAggregate<TState>;
+  }) => SandboxForAggregate<TState>;
 
-  forFlow(parameters: {
+  forFlow: (parameters: {
     flowName: string;
-  }): SandboxForFlow;
+  }) => SandboxForFlow;
 
-  forView(parameters: {
+  forView: (parameters: {
     viewName: string;
-  }): SandboxForView;
+  }) => SandboxForView;
 }

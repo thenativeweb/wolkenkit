@@ -10,6 +10,7 @@ import { getApplicationRoot } from '../../../common/application/getApplicationRo
 import { startProcess } from '../../../runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../runtimes/shared/toEnvironmentVariables';
 import { validatePort } from './validatePort';
+import { validateSocket } from './validateSocket';
 
 const devCommand = function (): Command<DevOptions> {
   return {
@@ -24,18 +25,32 @@ const devCommand = function (): Command<DevOptions> {
         parameterName: 'port',
         type: 'number',
         isRequired: false,
-        defaultValue: 3000,
         validate: validatePort
       },
       {
+        name: 'socket',
+        alias: 's',
+        description: 'set a socket',
+        parameterName: 'path',
+        type: 'string',
+        isRequired: false,
+        validate: validateSocket
+      },
+      {
         name: 'health-port',
-        alias: 'e',
         description: 'set a port for the health endpoint',
         parameterName: 'port',
         type: 'number',
         isRequired: false,
-        defaultValue: 3001,
         validate: validatePort
+      },
+      {
+        name: 'health-socket',
+        description: 'set a socket for the health endpoint',
+        parameterName: 'path',
+        type: 'string',
+        isRequired: false,
+        validate: validateSocket
       },
       {
         name: 'identity-provider-issuer',
@@ -66,7 +81,9 @@ const devCommand = function (): Command<DevOptions> {
     async handle ({ options: {
       verbose,
       port,
+      socket,
       'health-port': healthPort,
+      'health-socket': healthSocket,
       'identity-provider-issuer': identityProviderIssuer,
       'identity-provider-certificate': identityProviderCertificate,
       debug
@@ -76,6 +93,18 @@ const devCommand = function (): Command<DevOptions> {
           withVerboseMode(verbose)
       );
       const stopWaiting = buntstift.wait();
+
+      if (port && socket) {
+        buntstift.info('Port and socket must not be set at the same time.');
+        throw new errors.ParameterInvalid();
+      }
+      if (healthPort && healthSocket) {
+        buntstift.info('Health port and health socket must not be set at the same time.');
+        throw new errors.ParameterInvalid();
+      }
+
+      const portOrSocket = port ?? socket ?? 3_000;
+      const healthPortOrSocket = healthPort ?? healthSocket ?? 3_001;
 
       try {
         const applicationDirectory =
@@ -97,6 +126,48 @@ const devCommand = function (): Command<DevOptions> {
           });
         }
 
+        const env: NodeJS.ProcessEnv = {
+          ...toEnvironmentVariables({
+            configuration: {
+              applicationDirectory,
+              commandQueueRenewInterval: 5_000,
+              concurrentCommands: 100,
+              concurrentFlows: configurationDefinition.concurrentFlows.defaultValue,
+              consumerProgressStoreOptions: configurationDefinition.consumerProgressStoreOptions.defaultValue,
+              corsOrigin: '*',
+              domainEventStoreOptions: { type: 'InMemory' },
+              enableOpenApiDocumentation: true,
+              fileStoreOptions: { type: 'InMemory' },
+              graphqlApi: { enableIntegratedClient: true },
+              healthPortOrSocket,
+              httpApi: true,
+              identityProviders,
+              lockStoreOptions: { type: 'InMemory' },
+              portOrSocket,
+              priorityQueueStoreForCommandsOptions: configurationDefinition.priorityQueueStoreForCommandsOptions.defaultValue,
+              priorityQueueStoreForDomainEventsOptions: configurationDefinition.priorityQueueStoreForDomainEventsOptions.defaultValue,
+              pubSubOptions: {
+                channelForNotifications: 'notification',
+                publisher: { type: 'InMemory' },
+                subscriber: { type: 'InMemory' }
+              },
+              snapshotStrategy: {
+                name: 'revision',
+                configuration: { revisionLimit: 100 }
+              }
+            },
+            configurationDefinition
+          }),
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          LOG_LEVEL: 'debug',
+
+          // Here, we don't want the environment variables to be parsed, but
+          // instead we need their raw values. This is why we do not use the
+          // processenv module here, but rely on process.env directly.
+          // eslint-disable-next-line no-process-env
+          ...process.env
+        };
+
         buntstift.verbose(`Compiling the '${name}' application...`);
         await buildApplication({ applicationDirectory });
         buntstift.verbose(`Compiled the '${name}' application.`);
@@ -106,8 +177,8 @@ const devCommand = function (): Command<DevOptions> {
 
         buntstift.info(`Starting the '${name}' application...`);
         buntstift.newLine();
-        buntstift.info(`  API port     ${port}`);
-        buntstift.info(`  Health port  ${healthPort}`);
+        buntstift.info(`  API port or socket     ${env.PORT_OR_SOCKET}`);
+        buntstift.info(`  Health port or socket  ${env.HEALTH_PORT_OR_SOCKET}`);
         buntstift.newLine();
         buntstift.info(`To stop the '${name}' application, press <Ctrl>+<C>.`);
         buntstift.line();
@@ -118,54 +189,14 @@ const devCommand = function (): Command<DevOptions> {
           runtime: 'singleProcess',
           name: 'main',
           enableDebugMode: debug,
-          port: healthPort,
-          env: {
-            ...toEnvironmentVariables({
-              configuration: {
-                applicationDirectory,
-                commandQueueRenewInterval: 5_000,
-                concurrentCommands: 100,
-                concurrentFlows: configurationDefinition.concurrentFlows.defaultValue,
-                consumerProgressStoreOptions: configurationDefinition.consumerProgressStoreOptions.defaultValue,
-                corsOrigin: '*',
-                domainEventStoreOptions: { type: 'InMemory' },
-                enableOpenApiDocumentation: true,
-                fileStoreOptions: { type: 'InMemory' },
-                graphqlApi: { enableIntegratedClient: true },
-                healthPort,
-                heartbeatInterval: 90_000,
-                httpApi: true,
-                identityProviders,
-                lockStoreOptions: { type: 'InMemory' },
-                port,
-                priorityQueueStoreForCommandsOptions: configurationDefinition.priorityQueueStoreForCommandsOptions.defaultValue,
-                priorityQueueStoreForDomainEventsOptions: configurationDefinition.priorityQueueStoreForDomainEventsOptions.defaultValue,
-                pubSubOptions: {
-                  channelForNotifications: 'notification',
-                  publisher: { type: 'InMemory' },
-                  subscriber: { type: 'InMemory' }
-                },
-                snapshotStrategy: {
-                  name: 'revision',
-                  configuration: { revisionLimit: 100 }
-                }
-              },
-              configurationDefinition
-            }),
-            LOG_LEVEL: 'debug',
-
-            // Here, we don't want the environment variables to be parsed, but
-            // instead we need their raw values. This is why we do not use the
-            // processenv module here, but rely on process.env directly.
-            // eslint-disable-next-line no-process-env
-            ...process.env
-          },
+          portOrSocket: Number(env.HEALTH_PORT_OR_SOCKET),
+          env,
           onExit (exitCode): void {
             // eslint-disable-next-line unicorn/no-process-exit
             process.exit(exitCode);
           }
         });
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to run the application.');
 
         throw ex;

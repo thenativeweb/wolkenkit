@@ -1,6 +1,6 @@
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
-import { jsonSchema } from '../../../../common/utils/uuid';
+import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -13,11 +13,11 @@ const getDomainEventsByCausationId = {
     query: {
       type: 'object',
       properties: {
-        'causation-id': jsonSchema
+        'causation-id': { type: 'string', format: 'uuid' }
       },
       required: [ 'causation-id' ],
       additionalProperties: false
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200 ],
@@ -39,8 +39,8 @@ const getDomainEventsByCausationId = {
     return async function (req, res): Promise<any> {
       try {
         querySchema.validate(req.query, { valueName: 'requestQuery' });
-      } catch (ex) {
-        res.status(400).end(ex.message);
+      } catch (ex: unknown) {
+        res.status(400).end((ex as Error).message);
       }
 
       const causationId = req.query['causation-id'] as string;

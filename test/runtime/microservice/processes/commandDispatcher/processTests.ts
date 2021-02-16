@@ -5,8 +5,8 @@ import { CommandData } from '../../../../../lib/common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../../lib/common/elements/CommandWithMetadata';
 import { Configuration } from '../../../../../lib/runtimes/microservice/processes/commandDispatcher/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/microservice/processes/commandDispatcher/configurationDefinition';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleCommandWithMetadataClient } from '../../../../../lib/apis/handleCommandWithMetadata/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
@@ -14,8 +14,8 @@ import { startProcess } from '../../../../../lib/runtimes/shared/startProcess';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
 
-suite('commandDispatcher', function (): void {
-  this.timeout(10_000);
+suite('command dispatcher process', function (): void {
+  this.timeout(60_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
@@ -24,33 +24,33 @@ suite('commandDispatcher', function (): void {
   let awaitCommandClient: AwaitCommandClient<CommandWithMetadata<CommandData>>,
       commandDispatcherConfiguration: Configuration,
       handleCommandWithMetadataClient: HandleCommandWithMetadataClient,
-      healthPort: number,
-      port: number,
+      healthSocket: string,
+      socket: string,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ port, healthPort ] = await getAvailablePorts({ count: 2 });
+    [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
 
     commandDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition }),
       applicationDirectory,
       priorityQueueStoreOptions: { type: 'InMemory', expirationTime: queueLockExpirationTime },
-      port,
-      healthPort
+      portOrSocket: socket,
+      healthPortOrSocket: healthSocket
     };
 
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'commandDispatcher',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: toEnvironmentVariables({ configuration: commandDispatcherConfiguration, configurationDefinition })
     });
 
     awaitCommandClient = new AwaitCommandClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/await-command/v2',
       createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
     });
@@ -58,7 +58,7 @@ suite('commandDispatcher', function (): void {
     handleCommandWithMetadataClient = new HandleCommandWithMetadataClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/handle-command/v2'
     });
   });
@@ -76,7 +76,7 @@ suite('commandDispatcher', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPort,
+        portOrSocket: healthSocket,
         path: '/health/v2'
       });
 
@@ -89,12 +89,14 @@ suite('commandDispatcher', function (): void {
   suite('awaitCommand', (): void => {
     test('delivers a command that is sent to /handle-command/v2.', async (): Promise<void> => {
       const command = buildCommandWithMetadata({
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         data: {

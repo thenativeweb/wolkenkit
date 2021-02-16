@@ -1,11 +1,11 @@
 import { Infrastructure } from '../../../infrastructure';
 import { Message } from '../../../types/Message';
 import { Readable } from 'stream';
-import { QueryHandler, QueryResultItem, Schema } from 'wolkenkit';
+import { QueryHandlerReturnsStream, QueryResultItem, Schema } from 'wolkenkit';
 
 export interface AllResultItem extends QueryResultItem, Message {}
 
-export const all: QueryHandler<AllResultItem, Infrastructure> = {
+export const all: QueryHandlerReturnsStream<AllResultItem, Infrastructure> = {
   type: 'stream',
 
   getResultItemSchema (): Schema {
@@ -22,7 +22,7 @@ export const all: QueryHandler<AllResultItem, Infrastructure> = {
     };
   },
 
-  async handle (_options, { infrastructure }): Promise<Readable> {
+  async handle (options, { infrastructure }): Promise<Readable> {
     if (Array.isArray(infrastructure.ask.viewStore.messages)) {
       const sortedMessages = [ ...infrastructure.ask.viewStore.messages ].reverse();
 
@@ -30,6 +30,7 @@ export const all: QueryHandler<AllResultItem, Infrastructure> = {
     }
 
     return infrastructure.ask.viewStore.messages.find({}, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0, id: 1, timestamp: 1, text: 1, likes: 1 },
       sort: [[ 'timestamp', -1 ]]
     }).stream();

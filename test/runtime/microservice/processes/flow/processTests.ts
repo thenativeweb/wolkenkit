@@ -13,8 +13,8 @@ import { Configuration as DomainEventStoreConfiguration } from '../../../../../l
 import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
 import { Configuration as FlowConfiguration } from '../../../../../lib/runtimes/microservice/processes/flow/Configuration';
 import { configurationDefinition as flowConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/flow/configurationDefinition';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HandleDomainEventClient } from '../../../../../lib/apis/handleDomainEvent/http/v2/Client';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
@@ -28,26 +28,26 @@ import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subsc
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
 
-suite('flow server', function (): void {
+suite('flow process', function (): void {
   this.timeout(60_000);
 
   const pubsubChannelForNotifications = 'notification';
 
   let aeonstoreClient: AeonstoreClient,
+      aeonstoreHealthSocket: string,
+      aeonstoreSocket: string,
       applicationDirectory: string,
       commandDispatcherClient: CommandDispatcherClient<CommandWithMetadata<CommandData>>,
+      commandDispatcherHealthSocket: string,
+      commandDispatcherSocket: string,
+      domainEventDispatcherHealthSocket: string,
+      domainEventDispatcherSocket: string,
       handleDomainEventClient: HandleDomainEventClient,
-      healthPort: number,
-      healthPortAeonstore: number,
-      healthPortCommandDispatcher: number,
-      healthPortDomainEventDispatcher: number,
-      healthPortPublisher: number,
-      healthPortReplay: number,
-      portAeonstore: number,
-      portCommandDispatcher: number,
-      portDomainEventDispatcher: number,
-      portPublisher: number,
-      portReplay: number,
+      healthSocket: string,
+      publisherHealthSocket: string,
+      publisherSocket: string,
+      replayHealthSocket: string,
+      replaySocket: string,
       stopProcess: (() => Promise<void>) | undefined,
       stopProcessAeonstore: (() => Promise<void>) | undefined,
       stopProcessCommandDispatcher: (() => Promise<void>) | undefined,
@@ -60,32 +60,32 @@ suite('flow server', function (): void {
     applicationDirectory = getTestApplicationDirectory({ name: 'withComplexFlow', language: 'javascript' });
 
     [
-      healthPort,
-      portCommandDispatcher,
-      healthPortCommandDispatcher,
-      portDomainEventDispatcher,
-      healthPortDomainEventDispatcher,
-      portReplay,
-      healthPortReplay,
-      portAeonstore,
-      healthPortAeonstore,
-      portPublisher,
-      healthPortPublisher
-    ] = await getAvailablePorts({ count: 11 });
+      healthSocket,
+      commandDispatcherSocket,
+      commandDispatcherHealthSocket,
+      domainEventDispatcherSocket,
+      domainEventDispatcherHealthSocket,
+      replaySocket,
+      replayHealthSocket,
+      aeonstoreSocket,
+      aeonstoreHealthSocket,
+      publisherSocket,
+      publisherHealthSocket
+    ] = await getSocketPaths({ count: 11 });
 
     const commandDispatcherConfiguration: CommandDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: commandDispatcherConfigurationDefinition }),
       applicationDirectory,
       priorityQueueStoreOptions: { type: 'InMemory', expirationTime: 5_000 },
-      port: portCommandDispatcher,
-      healthPort: healthPortCommandDispatcher
+      portOrSocket: commandDispatcherSocket,
+      healthPortOrSocket: commandDispatcherHealthSocket
     };
 
     stopProcessCommandDispatcher = await startProcess({
       runtime: 'microservice',
       name: 'commandDispatcher',
       enableDebugMode: false,
-      port: healthPortCommandDispatcher,
+      portOrSocket: commandDispatcherHealthSocket,
       env: toEnvironmentVariables({
         configuration: commandDispatcherConfiguration,
         configurationDefinition: commandDispatcherConfigurationDefinition
@@ -95,7 +95,7 @@ suite('flow server', function (): void {
     commandDispatcherClient = new CommandDispatcherClient<CommandWithMetadata<CommandData>>({
       protocol: 'http',
       hostName: 'localhost',
-      port: portCommandDispatcher,
+      portOrSocket: commandDispatcherSocket,
       path: '/await-command/v2',
       createItemInstance: ({ item }: { item: CommandWithMetadata<CommandData> }): CommandWithMetadata<CommandData> => new CommandWithMetadata<CommandData>(item)
     });
@@ -104,15 +104,15 @@ suite('flow server', function (): void {
       ...getDefaultConfiguration({ configurationDefinition: domainEventDispatcherConfigurationDefinition }),
       applicationDirectory,
       priorityQueueStoreOptions: { type: 'InMemory', expirationTime: 5_000 },
-      port: portDomainEventDispatcher,
-      healthPort: healthPortDomainEventDispatcher
+      portOrSocket: domainEventDispatcherSocket,
+      healthPortOrSocket: domainEventDispatcherHealthSocket
     };
 
     stopProcessDomainEventDispatcher = await startProcess({
       runtime: 'microservice',
       name: 'domainEventDispatcher',
       enableDebugMode: false,
-      port: healthPortDomainEventDispatcher,
+      portOrSocket: domainEventDispatcherHealthSocket,
       env: toEnvironmentVariables({
         configuration: domainEventDispatcherConfiguration,
         configurationDefinition: domainEventDispatcherConfigurationDefinition
@@ -122,7 +122,7 @@ suite('flow server', function (): void {
     handleDomainEventClient = new HandleDomainEventClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: portDomainEventDispatcher,
+      portOrSocket: domainEventDispatcherSocket,
       path: '/handle-domain-event/v2'
     });
 
@@ -130,18 +130,18 @@ suite('flow server', function (): void {
       ...getDefaultConfiguration({ configurationDefinition: replayConfigurationDefinition }),
       applicationDirectory,
       domainEventDispatcherHostName: 'localhost',
-      domainEventDispatcherPort: portDomainEventDispatcher,
+      domainEventDispatcherPortOrSocket: domainEventDispatcherSocket,
       aeonstoreHostName: 'localhost',
-      aeonstorePort: portAeonstore,
-      port: portReplay,
-      healthPort: healthPortReplay
+      aeonstorePortOrSocket: aeonstoreSocket,
+      portOrSocket: replaySocket,
+      healthPortOrSocket: replayHealthSocket
     };
 
     stopReplayServer = await startProcess({
       runtime: 'microservice',
       name: 'replay',
       enableDebugMode: false,
-      port: healthPortReplay,
+      portOrSocket: replayHealthSocket,
       env: toEnvironmentVariables({
         configuration: replayConfiguration,
         configurationDefinition: replayConfigurationDefinition
@@ -150,15 +150,15 @@ suite('flow server', function (): void {
 
     const domainEventStoreConfiguration: DomainEventStoreConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventStoreConfigurationDefinition }),
-      port: portAeonstore,
-      healthPort: healthPortAeonstore
+      portOrSocket: aeonstoreSocket,
+      healthPortOrSocket: aeonstoreHealthSocket
     };
 
     stopProcessAeonstore = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
       enableDebugMode: false,
-      port: healthPortAeonstore,
+      portOrSocket: aeonstoreHealthSocket,
       env: toEnvironmentVariables({
         configuration: domainEventStoreConfiguration,
         configurationDefinition: domainEventStoreConfigurationDefinition
@@ -168,21 +168,21 @@ suite('flow server', function (): void {
     aeonstoreClient = new AeonstoreClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: portAeonstore,
+      portOrSocket: aeonstoreSocket,
       path: '/write/v2'
     });
 
     const publisherConfiguration: PublisherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: publisherConfigurationDefinition }),
-      port: portPublisher,
-      healthPort: healthPortPublisher
+      portOrSocket: publisherSocket,
+      healthPortOrSocket: publisherHealthSocket
     };
 
     stopProcessPublisher = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
       enableDebugMode: false,
-      port: healthPortPublisher,
+      portOrSocket: publisherHealthSocket,
       env: toEnvironmentVariables({
         configuration: publisherConfiguration,
         configurationDefinition: publisherConfigurationDefinition
@@ -192,7 +192,7 @@ suite('flow server', function (): void {
     subscribeMessagesClient = new SubscribeMessagesClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: portPublisher,
+      portOrSocket: publisherSocket,
       path: '/subscribe/v2'
     });
 
@@ -200,18 +200,18 @@ suite('flow server', function (): void {
       ...getDefaultConfiguration({ configurationDefinition: flowConfigurationDefinition }),
       applicationDirectory,
       domainEventDispatcherHostName: 'localhost',
-      domainEventDispatcherPort: portDomainEventDispatcher,
+      domainEventDispatcherPortOrSocket: domainEventDispatcherSocket,
       domainEventDispatcherRenewInterval: 5_000,
       domainEventDispatcherAcknowledgeRetries: 5,
       commandDispatcherHostName: 'localhost',
-      commandDispatcherPort: portCommandDispatcher,
+      commandDispatcherPortOrSocket: commandDispatcherSocket,
       replayServerHostName: 'localhost',
-      replayServerPort: portReplay,
+      replayServerPortOrSocket: replaySocket,
       aeonstoreHostName: 'localhost',
-      aeonstorePort: portAeonstore,
+      aeonstorePortOrSocket: aeonstoreSocket,
       lockStoreOptions: { type: 'InMemory' },
       consumerProgressStoreOptions: { type: 'InMemory' },
-      healthPort,
+      healthPortOrSocket: healthSocket,
       concurrentFlows: 1,
       pubSubOptions: {
         channelForNotifications: pubsubChannelForNotifications,
@@ -219,7 +219,7 @@ suite('flow server', function (): void {
           type: 'Http',
           protocol: 'http',
           hostName: 'localhost',
-          port: portPublisher,
+          portOrSocket: publisherSocket,
           path: '/publish/v2'
         }
       }
@@ -229,7 +229,7 @@ suite('flow server', function (): void {
       runtime: 'microservice',
       name: 'flow',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: toEnvironmentVariables({
         configuration: flowConfiguration,
         configurationDefinition: flowConfigurationDefinition
@@ -270,7 +270,7 @@ suite('flow server', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPort,
+        portOrSocket: healthSocket,
         path: '/health/v2'
       });
 
@@ -284,8 +284,10 @@ suite('flow server', function (): void {
     test('for a domain received via the domain event dispatcher.', async (): Promise<void> => {
       const aggregateId = v4();
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'triggeredFlow',
         data: { flowName: 'neverFlow' },
         metadata: { revision: 1 }
@@ -294,14 +296,16 @@ suite('flow server', function (): void {
       await aeonstoreClient.storeDomainEvents({ domainEvents: [ domainEvent ]});
       await handleDomainEventClient.postDomainEvent({ domainEvent });
 
-      await sleep({ ms: 1500 });
+      await sleep({ ms: 1_500 });
 
       const lock = await commandDispatcherClient.awaitItem();
 
       assert.that(lock).is.not.undefined();
       assert.that(lock.item).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executeFromFlow',
         data: { fromFlow: 'neverFlow' }
       });
@@ -311,22 +315,28 @@ suite('flow server', function (): void {
       const aggregateId = v4();
       const domainEvents = [
         buildDomainEvent({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: aggregateId }
+          },
           name: 'triggeredFlow',
           data: { flowName: 'alwaysFlow' },
           metadata: { revision: 1 }
         }),
         buildDomainEvent({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: aggregateId }
+          },
           name: 'triggeredFlow',
           data: { flowName: 'alwaysFlow' },
           metadata: { revision: 2 }
         }),
         buildDomainEvent({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: aggregateId }
+          },
           name: 'triggeredFlow',
           data: { flowName: 'alwaysFlow' },
           metadata: { revision: 3 }
@@ -336,14 +346,16 @@ suite('flow server', function (): void {
       await aeonstoreClient.storeDomainEvents({ domainEvents });
       await handleDomainEventClient.postDomainEvent({ domainEvent: domainEvents[2] });
 
-      await sleep({ ms: 1500 });
+      await sleep({ ms: 1_500 });
 
       let lock = await commandDispatcherClient.awaitItem();
 
       assert.that(lock).is.not.undefined();
       assert.that(lock.item).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executeFromFlow',
         data: { basedOnRevision: 1, fromFlow: 'alwaysFlow' }
       });
@@ -354,8 +366,10 @@ suite('flow server', function (): void {
 
       assert.that(lock).is.not.undefined();
       assert.that(lock.item).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executeFromFlow',
         data: { basedOnRevision: 2, fromFlow: 'alwaysFlow' }
       });
@@ -366,8 +380,10 @@ suite('flow server', function (): void {
 
       assert.that(lock).is.not.undefined();
       assert.that(lock.item).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executeFromFlow',
         data: { basedOnRevision: 3, fromFlow: 'alwaysFlow' }
       });
@@ -378,8 +394,10 @@ suite('flow server', function (): void {
     test('publishes notifications.', async (): Promise<void> => {
       const aggregateId = v4();
       const domainEvent = buildDomainEvent({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateId }
+        },
         name: 'executed',
         data: { strategy: 'succeed' },
         metadata: { revision: 1 }
@@ -392,7 +410,7 @@ suite('flow server', function (): void {
       await aeonstoreClient.storeDomainEvents({ domainEvents: [ domainEvent ]});
       await handleDomainEventClient.postDomainEvent({ domainEvent });
 
-      await new Promise((resolve, reject): void => {
+      await new Promise<void>((resolve, reject): void => {
         messageStreamNotification.on('error', (err: any): void => {
           reject(err);
         });
@@ -408,7 +426,7 @@ suite('flow server', function (): void {
                   data: {}
                 });
                 resolve();
-              } catch (ex) {
+              } catch (ex: unknown) {
                 reject(ex);
               }
             }

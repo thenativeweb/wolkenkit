@@ -1,12 +1,12 @@
 import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
-import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getPortOrSocketSchema } from '../../../shared/schemas/getPortOrSocketSchema';
 import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSubscriberOptionsSchema } from '../../../shared/schemas/getSubscriberOptionsSchema';
 
 const corsSchema = getCorsSchema(),
-      portSchema = getPortSchema();
+      portOrSocketSchema = getPortOrSocketSchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
   healthCorsOrigin: {
@@ -14,15 +14,15 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: '*',
     schema: corsSchema
   },
-  healthPort: {
-    environmentVariable: 'HEALTH_PORT',
-    defaultValue: 3001,
-    schema: portSchema
+  healthPortOrSocket: {
+    environmentVariable: 'HEALTH_PORT_OR_SOCKET',
+    defaultValue: 3_001,
+    schema: portOrSocketSchema
   },
-  port: {
-    environmentVariable: 'PORT',
-    defaultValue: 3000,
-    schema: portSchema
+  portOrSocket: {
+    environmentVariable: 'PORT_OR_SOCKET',
+    defaultValue: 3_000,
+    schema: portOrSocketSchema
   },
   publishCorsOrigin: {
     environmentVariable: 'PUBLISH_CORS_ORIGIN',

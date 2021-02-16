@@ -40,13 +40,13 @@ const getCancelCommandFieldConfiguration = function ({ application, onCancelComm
         type: buildSchema(cancelTypeDefs.typeDefinitions.join('\n')).getType(cancelTypeDefs.typeName) as GraphQLInputObjectType
       }
     },
-    async resolve (_source, { commandIdentifier: rawCommandIdentifier }, { clientMetadata }): Promise<{ success: boolean }> {
+    async resolve (source, { commandIdentifier: rawCommandIdentifier }, { clientMetadata }): Promise<{ success: boolean }> {
       const commandIdentifier = addMissingPrototype({ value: rawCommandIdentifier });
 
       try {
         new Value(getItemIdentifierSchema()).validate(commandIdentifier, { valueName: 'commandIdentifier' });
-      } catch (ex) {
-        throw new errors.ItemIdentifierMalformed(ex.message);
+      } catch (ex: unknown) {
+        throw new errors.ItemIdentifierMalformed((ex as Error).message);
       }
       validateItemIdentifier({ itemIdentifier: commandIdentifier, application, itemType: 'command' });
 

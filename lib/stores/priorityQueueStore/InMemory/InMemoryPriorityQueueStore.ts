@@ -10,7 +10,7 @@ import { PriorityQueueStore } from '../PriorityQueueStore';
 import { Queue } from './Queue';
 import { v4 } from 'uuid';
 
-class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
+class InMemoryPriorityQueueStore<TItem extends object, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected doesIdentifierMatchItem: DoesIdentifierMatchItem<TItem, TItemIdentifier>;
 
   protected expirationTime: number;
@@ -44,13 +44,13 @@ class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     this.functionCallQueue = new PQueue({ concurrency: 1 });
   }
 
-  public static async create<TItem, TItemIdentifier> (
+  public static async create<TCreateItem extends object, TCreateItemIdentifier> (
     {
       doesIdentifierMatchItem,
       expirationTime = 15_000
-    }: InMemoryPriorityQueueStoreOptions<TItem, TItemIdentifier>
-  ): Promise<InMemoryPriorityQueueStore<TItem, TItemIdentifier>> {
-    return new InMemoryPriorityQueueStore<TItem, TItemIdentifier>({ doesIdentifierMatchItem, options: { expirationTime }});
+    }: InMemoryPriorityQueueStoreOptions<TCreateItem, TCreateItemIdentifier>
+  ): Promise<InMemoryPriorityQueueStore<TCreateItem, TCreateItemIdentifier>> {
+    return new InMemoryPriorityQueueStore<TCreateItem, TCreateItemIdentifier>({ doesIdentifierMatchItem, options: { expirationTime }});
   }
 
   protected repairUp ({ queue }: { queue: Queue<TItem> }): void {
@@ -208,7 +208,7 @@ class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     );
   }
 
-  protected lockNextInternal (): { item: TItem; metadata: LockMetadata} | undefined {
+  protected lockNextInternal (): { item: TItem; metadata: LockMetadata } | undefined {
     if (this.queues.length === 0) {
       return;
     }
@@ -314,7 +314,7 @@ class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
       throw new errors.ItemNotFound();
     }
 
-    const queue = this.queues[queueIndex] as Queue<TItem>;
+    const queue = this.queues[queueIndex]!;
 
     const foundItemIndex = queue.items.findIndex(({ item }: { item: TItem }): boolean => this.doesIdentifierMatchItem({ item, itemIdentifier }));
 
@@ -323,7 +323,7 @@ class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     }
 
     if (foundItemIndex === 0) {
-      if (queue?.lock && queue.lock.until > Date.now()) {
+      if (queue.lock && queue.lock.until > Date.now()) {
         throw new errors.ItemNotFound();
       }
 
@@ -348,6 +348,11 @@ class InMemoryPriorityQueueStore<TItem, TItemIdentifier> implements PriorityQueu
     await this.functionCallQueue.add(
       async (): Promise<void> => this.removeInternal({ discriminator, itemIdentifier })
     );
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async setup (): Promise<void> {
+    // There is nothing to do here.
   }
 
   protected destroyInternal (): void {

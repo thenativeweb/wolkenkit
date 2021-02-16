@@ -9,7 +9,7 @@ import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/Priori
 import { renewLock } from './renewLock';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 
-const getV2 = async function<TItem> ({
+const getV2 = async function<TItem extends object> ({
   corsOrigin,
   priorityQueueStore,
   newItemSubscriber,

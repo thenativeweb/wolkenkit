@@ -1,10 +1,8 @@
 import { acknowledgeDomainEvent } from './acknowledgeDomainEvent';
-import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
 import { Application } from '../../../../common/application/Application';
 import { CommandData } from '../../../../common/elements/CommandData';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
 import { ConsumerProgressStore } from '../../../../stores/consumerProgressStore/ConsumerProgressStore';
-import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { DomainEventDispatcher } from './DomainEventDispatcher';
 import { errors } from '../../../../common/errors';
 import { executeFlow } from '../../../../common/domain/executeFlow';
@@ -18,6 +16,7 @@ import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { getNotificationService } from '../../../../common/services/getNotificationService';
 import { keepRenewingLock } from './keepRenewingLock';
 import { LockStore } from '../../../../stores/lockStore/LockStore';
+import { PerformReplay } from '../../../../common/domain/PerformReplay';
 import { Repository } from '../../../../common/domain/Repository';
 import { Value } from 'validate-value';
 
@@ -30,7 +29,7 @@ const processDomainEvent = async function ({
   lockStore,
   repository,
   issueCommand,
-  requestReplay
+  performReplay
 }: {
   application: Application;
   domainEventDispatcher: DomainEventDispatcher;
@@ -38,13 +37,7 @@ const processDomainEvent = async function ({
   lockStore: LockStore;
   repository: Repository;
   issueCommand: (parameters: { command: CommandWithMetadata<CommandData> }) => void | Promise<void>;
-  requestReplay: (parameters: {
-    flowName: string;
-    contextIdentifier: ContextIdentifier;
-    aggregateIdentifier: AggregateIdentifier;
-    from: number;
-    to: number;
-  }) => void | Promise<void>;
+  performReplay: PerformReplay;
 }): Promise<void> {
   const { domainEvent, metadata } = await fetchDomainEvent({ domainEventDispatcher });
   const flowName = metadata.discriminator;
@@ -54,8 +47,8 @@ const processDomainEvent = async function ({
   try {
     try {
       new Value(getDomainEventSchema()).validate(domainEvent, { valueName: 'domainEvent' });
-    } catch (ex) {
-      throw new errors.DomainEventMalformed(ex.message);
+    } catch (ex: unknown) {
+      throw new errors.DomainEventMalformed((ex as Error).message);
     }
 
     if (!(flowName in application.flows)) {
@@ -82,7 +75,7 @@ const processDomainEvent = async function ({
         }),
         infrastructure: application.infrastructure
       },
-      requestReplay
+      performReplay
     });
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -113,7 +106,7 @@ const processDomainEvent = async function ({
         throw new errors.InvalidOperation();
       }
     }
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.error('Failed to handle domain event.', { domainEvent, ex });
     await acknowledgeDomainEvent({ flowName, token: metadata.token, domainEventDispatcher });
   }

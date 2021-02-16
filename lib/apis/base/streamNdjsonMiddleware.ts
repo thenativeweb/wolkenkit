@@ -14,17 +14,19 @@ const streamNdjsonMiddleware: WolkenkitRequestHandler = async function (
   res,
   next
 ): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/unbound-method,no-param-reassign
+  // eslint-disable-next-line no-param-reassign
   res.startStream = function ({ heartbeatInterval }): void {
     try {
       let heartbeatIntervalId: NodeJS.Timeout;
 
-      req.setTimeout(0, (): void => undefined);
+      req.setTimeout(0, (): void => {
+        // Intentionally left blank.
+      });
       res.setTimeout(0);
 
       res.writeHead(200, { 'content-type': 'application/x-ndjson' });
 
-      res.connection.once('close', (): void => {
+      res.socket?.once('close', (): void => {
         if (heartbeatInterval !== false) {
           clearInterval(heartbeatIntervalId);
         }
@@ -42,14 +44,14 @@ const streamNdjsonMiddleware: WolkenkitRequestHandler = async function (
       }
 
       return next();
-    } catch (ex) {
+    } catch (ex: unknown) {
       // It can happen that the connection gets closed in the background, and
       // hence the underlying socket does not have a remote address any more. We
       // can't detect this using an if statement, because connection handling is
       // done by Node.js in a background thread, and we may have a race
       // condition here. So, we decided to actively catch this exception, and
       // take it as an indicator that the connection has been closed meanwhile.
-      if (ex.message === 'Remote address is missing.') {
+      if (ex instanceof Error && ex.message === 'Remote address is missing.') {
         return;
       }
 

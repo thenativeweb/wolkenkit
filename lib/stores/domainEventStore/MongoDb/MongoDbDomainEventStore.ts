@@ -6,12 +6,12 @@ import { DomainEventStore } from '../DomainEventStore';
 import { errors } from '../../../common/errors';
 import { MongoDbDomainEventStoreOptions } from './MongoDbDomainEventStoreOptions';
 import { omitDeepBy } from '../../../common/utils/omitDeepBy';
-import { parse } from 'url';
 import { retry } from 'retry-ignore-abort';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
+import { URL } from 'url';
 import { withTransaction } from '../../utils/mongoDb/withTransaction';
-import { Collection, Db, MongoClient } from 'mongodb';
+import { Collection, Db, MongoClient, MongoError } from 'mongodb';
 import { escapeFieldNames, unescapeFieldNames } from '../../utils/mongoDb/escapeFieldNames';
 import { PassThrough, Readable } from 'stream';
 
@@ -60,11 +60,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
       return connection;
     });
 
-    const { pathname } = parse(connectionString);
-
-    if (!pathname) {
-      throw new Error('Pathname is missing.');
-    }
+    const { pathname } = new URL(connectionString);
 
     const databaseName = pathname.slice(1);
     const db = client.db(databaseName);
@@ -76,53 +72,21 @@ class MongoDbDomainEventStore implements DomainEventStore {
       snapshots: db.collection(collectionNames.snapshots)
     };
 
-    const domainEventStore = new MongoDbDomainEventStore({
+    return new MongoDbDomainEventStore({
       client,
       db,
       collectionNames,
       collections
     });
-
-    await collections.domainEvents.createIndexes([
-      {
-        key: { 'aggregateIdentifier.id': 1 },
-        name: `${collectionNames.domainEvents}_aggregateId`
-      },
-      {
-        key: { 'aggregateIdentifier.id': 1, 'metadata.revision': 1 },
-        name: `${collectionNames.domainEvents}_aggregateId_revision`,
-        unique: true
-      },
-      {
-        key: { 'metadata.causationId': 1 },
-        name: `${collectionNames.domainEvents}_causationId`
-      },
-      {
-        key: { 'metadata.correlationId': 1 },
-        name: `${collectionNames.domainEvents}_correlationId`
-      },
-      {
-        key: { 'metadata.timestamp': 1 },
-        name: `${collectionNames.domainEvents}_timestamp`
-      }
-    ]);
-    await collections.snapshots.createIndexes([
-      {
-        key: { 'aggregateIdentifier.id': 1 },
-        name: `${collectionNames.snapshots}_aggregateId`,
-        unique: true
-      }
-    ]);
-
-    return domainEventStore;
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
     const lastDomainEvent = await this.collections.domainEvents.findOne({
-      'aggregateIdentifier.id': aggregateIdentifier.id
+      'aggregateIdentifier.aggregate.id': aggregateIdentifier.aggregate.id
     }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0 },
       sort: [[ 'metadata.revision', -1 ]]
     });
@@ -134,12 +98,13 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return new DomainEvent<TDomainEventData>(unescapeFieldNames(lastDomainEvent) as any);
   }
 
-  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
   }): Promise<Readable> {
     const domainEventStream = this.collections.domainEvents.find({
       'metadata.causationId': causationId
     }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0 }
     }).stream();
 
@@ -187,12 +152,13 @@ class MongoDbDomainEventStore implements DomainEventStore {
     return domainEventCount !== null;
   }
 
-  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
   }): Promise<Readable> {
     const domainEventStream = this.collections.domainEvents.find({
       'metadata.correlationId': correlationId
     }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0 }
     }).stream();
 
@@ -243,6 +209,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
     const replayStream = this.collections.domainEvents.find({
       'metadata.timestamp': { $gte: fromTimestamp }
     }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0 },
       sort: [[ 'aggregateId', 1 ], [ 'metadata.revision', 1 ]]
     }).stream();
@@ -311,11 +278,12 @@ class MongoDbDomainEventStore implements DomainEventStore {
     const passThrough = new PassThrough({ objectMode: true });
     const domainEventStream = this.collections.domainEvents.find({
       $and: [
-        { 'aggregateIdentifier.id': aggregateId },
+        { 'aggregateIdentifier.aggregate.id': aggregateId },
         { 'metadata.revision': { $gte: fromRevision }},
         { 'metadata.revision': { $lte: toRevision }}
       ]
     }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       projection: { _id: 0 },
       sort: [[ 'metadata.revision', 1 ]]
     }).stream();
@@ -385,8 +353,12 @@ class MongoDbDomainEventStore implements DomainEventStore {
           );
         }
       });
-    } catch (ex) {
-      if (ex.code === 11000 && ex.message.includes('_aggregateId_revision')) {
+    } catch (ex: unknown) {
+      if (
+        ex instanceof MongoError &&
+        ex.code === 11_000 &&
+        ex.message.includes('_aggregateId_revision')
+      ) {
         throw new errors.RevisionAlreadyExists('Aggregate id and revision already exist.');
       }
 
@@ -399,6 +371,7 @@ class MongoDbDomainEventStore implements DomainEventStore {
   }): Promise<Snapshot<TState> | undefined> {
     const snapshot = await this.collections.snapshots.findOne<Snapshot<TState>>(
       { aggregateIdentifier },
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       { projection: { _id: false, revision: true, state: true }}
     );
 
@@ -428,6 +401,148 @@ class MongoDbDomainEventStore implements DomainEventStore {
       }},
       { upsert: true }
     );
+  }
+
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    const passThrough = new PassThrough({ objectMode: true });
+    const replayStream = this.collections.domainEvents.find({
+      'metadata.revision': { $eq: 1 }
+    }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      projection: { _id: 0, aggregateIdentifier: 1 },
+      sort: [[ 'metadata.timestamp', 1 ]]
+    }).stream();
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      replayStream.removeListener('data', onData);
+      replayStream.removeListener('end', onEnd);
+      replayStream.removeListener('error', onError);
+    };
+
+    onData = function (data: any): void {
+      passThrough.write(data.aggregateIdentifier);
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+
+      // In the PostgreSQL eventstore, we call replayStream.end() here. In
+      // MongoDB, this function apparently is not implemented. This note is just
+      // for informational purposes to ensure that you are aware that the two
+      // implementations differ here.
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+
+      // In the PostgreSQL eventstore, we call replayStream.end() here. In
+      // MongoDB, this function apparently is not implemented. This note is just
+      // for informational purposes to ensure that you are aware that the two
+      // implementations differ here.
+    };
+
+    replayStream.on('data', onData);
+    replayStream.on('end', onEnd);
+    replayStream.on('error', onError);
+
+    return passThrough;
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    const passThrough = new PassThrough({ objectMode: true });
+    const replayStream = this.collections.domainEvents.find({
+      'metadata.revision': { $eq: 1 },
+      'aggregateIdentifier.context.name': { $eq: contextName },
+      'aggregateIdentifier.aggregate.name': { $eq: aggregateName }
+    }, {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      projection: { _id: 0, aggregateIdentifier: 1 },
+      sort: [[ 'metadata.timestamp', 1 ]]
+    }).stream();
+
+    let onData: (data: any) => void,
+        onEnd: () => void,
+        onError: (err: Error) => void;
+
+    const unsubscribe = function (): void {
+      replayStream.removeListener('data', onData);
+      replayStream.removeListener('end', onEnd);
+      replayStream.removeListener('error', onError);
+    };
+
+    onData = function (data: any): void {
+      passThrough.write(data.aggregateIdentifier);
+    };
+
+    onEnd = function (): void {
+      unsubscribe();
+      passThrough.end();
+
+      // In the PostgreSQL eventstore, we call replayStream.end() here. In
+      // MongoDB, this function apparently is not implemented. This note is just
+      // for informational purposes to ensure that you are aware that the two
+      // implementations differ here.
+    };
+
+    onError = function (err: Error): void {
+      unsubscribe();
+      passThrough.emit('error', err);
+      passThrough.end();
+
+      // In the PostgreSQL eventstore, we call replayStream.end() here. In
+      // MongoDB, this function apparently is not implemented. This note is just
+      // for informational purposes to ensure that you are aware that the two
+      // implementations differ here.
+    };
+
+    replayStream.on('data', onData);
+    replayStream.on('end', onEnd);
+    replayStream.on('error', onError);
+
+    return passThrough;
+  }
+
+  public async setup (): Promise<void> {
+    await this.collections.domainEvents.createIndexes([
+      {
+        key: { 'aggregateIdentifier.aggregate.id': 1 },
+        name: `${this.collectionNames.domainEvents}_aggregateId`
+      },
+      {
+        key: { 'aggregateIdentifier.aggregate.id': 1, 'metadata.revision': 1 },
+        name: `${this.collectionNames.domainEvents}_aggregateId_revision`,
+        unique: true
+      },
+      {
+        key: { 'metadata.causationId': 1 },
+        name: `${this.collectionNames.domainEvents}_causationId`
+      },
+      {
+        key: { 'metadata.correlationId': 1 },
+        name: `${this.collectionNames.domainEvents}_correlationId`
+      },
+      {
+        key: { 'metadata.timestamp': 1 },
+        name: `${this.collectionNames.domainEvents}_timestamp`
+      }
+    ]);
+    await this.collections.snapshots.createIndexes([
+      {
+        key: { 'aggregateIdentifier.aggregate.id': 1 },
+        name: `${this.collectionNames.snapshots}_aggregateId`,
+        unique: true
+      }
+    ]);
   }
 
   public async destroy (): Promise<void> {

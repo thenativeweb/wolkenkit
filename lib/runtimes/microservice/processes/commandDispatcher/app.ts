@@ -13,8 +13,10 @@ import { getApi } from './getApi';
 import { getOnCancelCommand } from './getOnCancelCommand';
 import { getOnReceiveCommand } from './getOnReceiveCommand';
 import http from 'http';
+import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { loadApplication } from '../../../../common/application/loadApplication';
+import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
 
@@ -25,7 +27,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
   try {
     registerExceptionHandler();
 
-    const configuration = fromEnvironmentVariables({ configurationDefinition });
+    const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
     const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
@@ -63,24 +65,27 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const { api } = await getApi({
       configuration,
       application,
-      priorityQueueStore,
+      priorityQueueStore: priorityQueueStore as PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifier>,
       newCommandSubscriber,
       newCommandPubSubChannel: configuration.pubSubOptions.channelForNewCommands,
       onReceiveCommand,
       onCancelCommand
     });
 
-    await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
+    await runHealthServer({
+      corsOrigin: configuration.healthCorsOrigin,
+      portOrSocket: configuration.healthPortOrSocket
+    });
 
     const server = http.createServer(api);
 
-    server.listen(configuration.port, (): void => {
-      logger.info(
-        'Command dispatcher server started.',
-        { port: configuration.port, healthPort: configuration.healthPort }
-      );
+    server.listen(configuration.portOrSocket, (): void => {
+      logger.info('Command dispatcher server started.', {
+        portOrSocket: configuration.portOrSocket,
+        healthPortOrSocket: configuration.healthPortOrSocket
+      });
     });
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);
   }

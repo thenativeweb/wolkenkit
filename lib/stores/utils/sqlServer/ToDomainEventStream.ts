@@ -13,15 +13,15 @@ class ToDomainEventStream extends Transform {
     this.column = column;
   }
 
-  // eslint-disable-next-line no-underscore-dangle, @typescript-eslint/member-naming
-  public _transform (row: any, _encoding: string, callback: Function): void {
+  // eslint-disable-next-line no-underscore-dangle, @typescript-eslint/naming-convention
+  public _transform (row: any, _encoding: string, callback: (error: any) => void): void {
     try {
       const domainEvent = new DomainEvent<DomainEventData>(JSON.parse(row[this.column]));
 
       this.push(domainEvent);
 
       return callback(null);
-    } catch (ex) {
+    } catch (ex: unknown) {
       return callback(ex);
     }
   }

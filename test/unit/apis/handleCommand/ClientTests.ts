@@ -47,10 +47,10 @@ suite('handleCommand/http/Client', (): void => {
       });
 
       test('returns the commands description.', async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -94,16 +94,18 @@ suite('handleCommand/http/Client', (): void => {
 
       test('throws an exception if a command is sent with a non-existent context name.', async (): Promise<void> => {
         const command = new Command({
-          contextIdentifier: { name: 'nonExistent' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'nonExistent' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -116,16 +118,18 @@ suite('handleCommand/http/Client', (): void => {
 
       test('throws an exception if a command is sent with a non-existent aggregate name.', async (): Promise<void> => {
         const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'nonExistent', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'nonExistent', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -138,16 +142,18 @@ suite('handleCommand/http/Client', (): void => {
 
       test('throws an exception if a command is sent with a non-existent command name.', async (): Promise<void> => {
         const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'nonExistent',
           data: { strategy: 'succeed' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -160,16 +166,18 @@ suite('handleCommand/http/Client', (): void => {
 
       test('throws an exception if a command is sent with a payload that does not match the schema.', async (): Promise<void> => {
         const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'invalid-value' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -182,16 +190,18 @@ suite('handleCommand/http/Client', (): void => {
 
       test('sends commands.', async (): Promise<void> => {
         const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -199,7 +209,6 @@ suite('handleCommand/http/Client', (): void => {
 
         assert.that(receivedCommands.length).is.equalTo(1);
         assert.that(receivedCommands[0]).is.atLeast({
-          contextIdentifier: command.contextIdentifier,
           aggregateIdentifier: command.aggregateIdentifier,
           name: command.name,
           data: command.data,
@@ -223,16 +232,18 @@ suite('handleCommand/http/Client', (): void => {
 
       test('sends commands without aggregate id.', async (): Promise<void> => {
         const command = {
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate' },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate' }
+          },
           name: 'execute',
           data: { strategy: 'succeed' }
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -240,9 +251,10 @@ suite('handleCommand/http/Client', (): void => {
 
         assert.that(receivedCommands.length).is.equalTo(1);
         assert.that(receivedCommands[0]).is.atLeast({
-          contextIdentifier: command.contextIdentifier,
           aggregateIdentifier: {
-            name: command.aggregateIdentifier.name
+            aggregate: {
+              name: command.aggregateIdentifier.aggregate.name
+            }
           },
           name: command.name,
           data: command.data,
@@ -256,7 +268,7 @@ suite('handleCommand/http/Client', (): void => {
           }
         });
 
-        assert.that(receivedCommands[0].aggregateIdentifier.id).is.ofType('string');
+        assert.that(receivedCommands[0].aggregateIdentifier.aggregate.id).is.ofType('string');
         assert.that(receivedCommands[0].id).is.ofType('string');
         assert.that(receivedCommands[0].metadata.causationId).is.equalTo(receivedCommands[0].id);
         assert.that(receivedCommands[0].metadata.correlationId).is.equalTo(receivedCommands[0].id);
@@ -267,23 +279,25 @@ suite('handleCommand/http/Client', (): void => {
 
       test('returns the ID and the aggregate ID of the sent command.', async (): Promise<void> => {
         const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
         const { id, aggregateIdentifier } = await client.postCommand({ command });
 
         assert.that(id).is.equalTo(receivedCommands[0].id);
-        assert.that(aggregateIdentifier).is.equalTo({ id: command.aggregateIdentifier.id });
+        assert.that(aggregateIdentifier).is.equalTo({ id: command.aggregateIdentifier.aggregate.id });
       });
 
       test('throws an error if on received command throws an error.', async (): Promise<void> => {
@@ -300,16 +314,18 @@ suite('handleCommand/http/Client', (): void => {
         }));
 
         const command = new Command({
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           data: { strategy: 'succeed' }
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -345,16 +361,18 @@ suite('handleCommand/http/Client', (): void => {
 
       test('throws an exception if a non-existent context name is given.', async (): Promise<void> => {
         const commandIdentifier: ItemIdentifier = {
-          contextIdentifier: { name: 'nonExistent' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'nonExistent' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           id: v4()
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -365,16 +383,18 @@ suite('handleCommand/http/Client', (): void => {
 
       test('throws an exception if a non-existent aggregate name is given.', async (): Promise<void> => {
         const commandIdentifier: ItemIdentifier = {
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'nonExistent', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'nonExistent', id: v4() }
+          },
           name: 'execute',
           id: v4()
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -385,16 +405,18 @@ suite('handleCommand/http/Client', (): void => {
 
       test('throws an exception if a non-existent command name is given.', async (): Promise<void> => {
         const commandIdentifier: ItemIdentifier = {
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'nonExistent',
           id: v4()
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -405,16 +427,18 @@ suite('handleCommand/http/Client', (): void => {
 
       test('cancels commands.', async (): Promise<void> => {
         const commandIdentifier: ItemIdentifier = {
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           id: v4()
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -422,7 +446,6 @@ suite('handleCommand/http/Client', (): void => {
 
         assert.that(cancelledCommands.length).is.equalTo(1);
         assert.that(cancelledCommands[0]).is.atLeast({
-          contextIdentifier: commandIdentifier.contextIdentifier,
           aggregateIdentifier: commandIdentifier.aggregateIdentifier,
           name: commandIdentifier.name,
           id: commandIdentifier.id,
@@ -446,16 +469,18 @@ suite('handleCommand/http/Client', (): void => {
         }));
 
         const commandIdentifier: ItemIdentifier = {
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'execute',
           id: v4()
         };
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 

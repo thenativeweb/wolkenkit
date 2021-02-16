@@ -1,6 +1,7 @@
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { OnReceiveMessage } from '../../OnReceiveMessage';
+import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -20,11 +21,11 @@ const postMessage = {
       },
       required: [ 'channel', 'message' ],
       additionalProperties: false
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 415 ],
-    body: { type: 'object' }
+    body: { type: 'object' } as Schema
   },
 
   getHandler ({ onReceiveMessage }: {
@@ -34,16 +35,14 @@ const postMessage = {
           responseBodySchema = new Value(postMessage.response.body);
 
     return async function (req, res): Promise<void> {
-      let contentType: typer.ParsedMediaType;
-
       try {
-        contentType = typer.parse(req);
+        const contentType = typer.parse(req);
 
         if (contentType.type !== 'application/json') {
-          throw new errors.RequestMalformed();
+          throw new errors.ContentTypeMismatch();
         }
       } catch {
-        const ex = new errors.RequestMalformed('Header content-type must be application/json.');
+        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
         res.status(415).json({
           code: ex.code,
@@ -55,8 +54,8 @@ const postMessage = {
 
       try {
         requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.RequestMalformed((ex as Error).message);
 
         res.status(400).json({
           code: error.code,

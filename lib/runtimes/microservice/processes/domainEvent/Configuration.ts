@@ -4,15 +4,15 @@ import { SubscriberOptions } from '../../../../messaging/pubSub/SubscriberOption
 
 export interface Configuration {
   aeonstoreHostName: string;
-  aeonstorePort: number;
+  aeonstorePortOrSocket: number | string;
   aeonstoreProtocol: string;
   applicationDirectory: string;
   domainEventCorsOrigin: string | string[];
   enableOpenApiDocumentation: boolean;
   healthCorsOrigin: string | string[];
-  healthPort: number;
+  healthPortOrSocket: number | string;
   identityProviders: { issuer: string; certificate: string }[];
-  port: number;
+  portOrSocket: number | string;
   pubSubOptions: {
     channelForNewDomainEvents: string;
     channelForNotifications: string;

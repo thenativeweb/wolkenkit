@@ -7,8 +7,8 @@ import { WolkenkitRequestHandler } from '../../../lib/apis/base/WolkenkitRequest
 
 const logger = flaschenpost.getLogger();
 
-const startCatchAllServer = async function ({ port, onRequest, parseJson = true }: {
-  port: number;
+const startCatchAllServer = async function ({ portOrSocket, onRequest, parseJson = true }: {
+  portOrSocket: number | string;
   onRequest: WolkenkitRequestHandler;
   parseJson?: boolean;
 }): Promise<void> {
@@ -24,17 +24,17 @@ const startCatchAllServer = async function ({ port, onRequest, parseJson = true 
 
   const server = http.createServer(app);
 
-  await new Promise((resolve, reject): void => {
+  await new Promise<void>((resolve, reject): void => {
     try {
       server.on('error', (err): void => {
         reject(err);
       });
 
-      server.listen(port, (): void => {
-        logger.info('Catch all server started.', { port });
+      server.listen(portOrSocket, (): void => {
+        logger.info('Catch all server started.', { portOrSocket });
         resolve();
       });
-    } catch (ex) {
+    } catch (ex: unknown) {
       reject(ex);
     }
   });

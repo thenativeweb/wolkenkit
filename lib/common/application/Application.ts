@@ -20,7 +20,7 @@ export interface Application {
 
   infrastructure: AskInfrastructure & TellInfrastructure;
 
-  notifications: Notifications;
+  notifications: Notifications<AskInfrastructure & TellInfrastructure>;
 
   views: ViewsDefinition;
 }

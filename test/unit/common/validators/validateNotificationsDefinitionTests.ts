@@ -1,11 +1,13 @@
+import { AskInfrastructure } from '../../../../lib/common/elements/AskInfrastructure';
 import { assert } from 'assertthat';
 import { CustomError } from 'defekt';
 import { errors } from '../../../../lib/common/errors';
 import { Notifications } from '../../../../lib/common/elements/Notifications';
+import { TellInfrastructure } from '../../../../lib/common/elements/TellInfrastructure';
 import { validateNotificationsDefinition } from '../../../../lib/common/validators/validateNotificationsDefinition';
 
 suite('validateNotificationsDefinition', (): void => {
-  const notificationsDefinition: Notifications = {
+  const notificationsDefinition: Notifications<AskInfrastructure & TellInfrastructure> = {
     sampleNotification: {
       isAuthorized (): boolean {
         return true;

@@ -6,7 +6,7 @@ import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
-import { jsonSchema } from '../../../../common/utils/uuid';
+import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -26,7 +26,7 @@ const postAddFile = {
     headers: {
       type: 'object',
       properties: {
-        'x-id': jsonSchema,
+        'x-id': { type: 'string', format: 'uuid' },
         'x-name': { type: 'string', minLength: 1 },
         'content-type': { type: 'string', pattern: contentTypeRegexAsString }
       },
@@ -62,8 +62,8 @@ const postAddFile = {
 
       try {
         requestHeadersSchema.validate(req.headers, { valueName: 'requestHeaders' });
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.RequestMalformed((ex as Error).message);
 
         res.status(400).json({ code: error.code, message: error.message });
 
@@ -75,7 +75,7 @@ const postAddFile = {
         let fileAddMetadata = {
           id: req.headers['x-id'] as string,
           name: req.headers['x-name'] as string,
-          contentType: req.headers['content-type'] as string
+          contentType: req.headers['content-type']!
         };
 
         if (application.hooks.addingFile) {
@@ -116,20 +116,22 @@ const postAddFile = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex) {
-        switch (ex.code) {
+      } catch (ex: unknown) {
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
+
+        switch (error.code) {
           case errors.NotAuthenticated.code: {
-            res.status(401).json({ code: ex.code, message: ex.message });
+            res.status(401).json({ code: error.code, message: error.message });
             break;
           }
           case errors.FileAlreadyExists.code: {
-            res.status(409).json({ code: ex.code, message: ex.message });
+            res.status(409).json({ code: error.code, message: error.message });
             break;
           }
           default: {
-            logger.error('An unknown error occured.', { ex });
-
-            const error = new errors.UnknownError(ex.message);
+            logger.error('An unknown error occured.', { ex: error });
 
             res.status(500).json({ code: error.code, message: error.message });
           }

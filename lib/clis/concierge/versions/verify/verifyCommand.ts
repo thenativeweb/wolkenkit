@@ -128,7 +128,7 @@ const verifyCommand = function (): Command<VerifyOptions> {
         }
 
         buntstift.success('Verified versions.');
-      } catch (ex) {
+      } catch (ex: unknown) {
         buntstift.error('Failed to verify versions.');
 
         throw ex;

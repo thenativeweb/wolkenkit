@@ -1,14 +1,14 @@
 import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
-import { getPortSchema } from '../../../shared/schemas/getPortSchema';
+import { getPortOrSocketSchema } from '../../../shared/schemas/getPortOrSocketSchema';
 import { getPriorityQueueStoreOptionsSchema } from '../../../shared/schemas/getPriorityQueueStoreOptionsSchema';
 import { getPublisherOptionsSchema } from '../../../shared/schemas/getPublisherOptionsSchema';
 import { getSubscriberOptionsSchema } from '../../../shared/schemas/getSubscriberOptionsSchema';
 import path from 'path';
 
 const corsSchema = getCorsSchema(),
-      portSchema = getPortSchema(),
+      portOrSocketSchema = getPortOrSocketSchema(),
       priorityQueueStoreOptionsSchema = getPriorityQueueStoreOptionsSchema();
 
 const configurationDefinition: ConfigurationDefinition<Configuration> = {
@@ -32,20 +32,20 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: '*',
     schema: corsSchema
   },
-  healthPort: {
-    environmentVariable: 'HEALTH_PORT',
+  healthPortOrSocket: {
+    environmentVariable: 'HEALTH_PORT_OR_SOCKET',
     defaultValue: 3_001,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
   missedCommandRecoveryInterval: {
     environmentVariable: 'MISSED_COMMAND_RECOVERY_INTERVAL',
     defaultValue: 5_000,
     schema: { type: 'number', minimum: 1 }
   },
-  port: {
-    environmentVariable: 'PORT',
+  portOrSocket: {
+    environmentVariable: 'PORT_OR_SOCKET',
     defaultValue: 3_000,
-    schema: portSchema
+    schema: portOrSocketSchema
   },
   priorityQueueStoreOptions: {
     environmentVariable: 'PRIORITY_QUEUE_STORE_OPTIONS',

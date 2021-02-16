@@ -1,6 +1,8 @@
 import { Application } from 'express';
 import { CorsOrigin } from 'get-cors-origin';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
+import { getAggregateIdentifiers } from './getAggregateIdentifiers';
+import { getAggregateIdentifiersByName } from './getAggregateIdentifiersByName';
 import { getApiBase } from '../../../base/getApiBase';
 import { getDomainEventsByCausationId } from './getDomainEventsByCausationId';
 import { getDomainEventsByCorrelationId } from './getDomainEventsByCorrelationId';
@@ -80,6 +82,22 @@ const getV2 = async function ({
     `/${getSnapshot.path}`,
     getSnapshot.getHandler({
       domainEventStore
+    })
+  );
+
+  api.get(
+    `/${getAggregateIdentifiers.path}`,
+    getAggregateIdentifiers.getHandler({
+      domainEventStore,
+      heartbeatInterval
+    })
+  );
+
+  api.get(
+    `/${getAggregateIdentifiersByName.path}`,
+    getAggregateIdentifiersByName.getHandler({
+      domainEventStore,
+      heartbeatInterval
     })
   );
 

@@ -1,11 +1,14 @@
+import { AskInfrastructure } from '../elements/AskInfrastructure';
 import { errors } from '../errors';
 import { exists } from '../utils/fs/exists';
+import fs from 'fs';
+import { isErrnoException } from '../utils/isErrnoException';
 import path from 'path';
+import { TellInfrastructure } from '../elements/TellInfrastructure';
 import { validateViewDefinition } from '../validators/validateViewDefinition';
-import { ViewDefinition } from './ViewDefinition';
+import { View } from '../elements/View';
 import { ViewEnhancer } from '../../tools/ViewEnhancer';
 import { ViewsDefinition } from './ViewsDefinition';
-import { constants, promises as fs } from 'fs';
 
 const getViewsDefinition = async function ({ viewsDirectory }: {
   viewsDirectory: string;
@@ -16,7 +19,7 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
 
   const viewsDefinition: ViewsDefinition = {};
 
-  for (const viewEntry of await fs.readdir(viewsDirectory, { withFileTypes: true })) {
+  for (const viewEntry of await fs.promises.readdir(viewsDirectory, { withFileTypes: true })) {
     const viewName = path.basename(viewEntry.name, '.js'),
           viewPath = path.join(viewsDirectory, viewEntry.name);
 
@@ -28,8 +31,8 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
       const indexPath = path.join(viewPath, 'index.js');
 
       try {
-        await fs.access(indexPath, constants.R_OK);
-      } catch (ex) {
+        await fs.promises.access(indexPath, fs.constants.R_OK);
+      } catch {
         throw new errors.FileNotFound(`No view definition in '<app>/build/server/views/${viewName}' found.`);
       }
     }
@@ -38,12 +41,12 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
 
     try {
       rawView = (await import(viewPath)).default;
-    } catch (ex) {
+    } catch (ex: unknown) {
       if (ex instanceof SyntaxError) {
         throw new errors.ApplicationMalformed(`Syntax error in '<app>/build/server/views/${viewName}'.`, { cause: ex });
       }
-      if (ex.code === 'MODULE_NOT_FOUND') {
-        throw new errors.ApplicationMalformed(`Missing import in '<app>/build/server/views/${viewName}'.`, { cause: ex });
+      if (isErrnoException(ex) && ex.code === 'MODULE_NOT_FOUND') {
+        throw new errors.ApplicationMalformed(`Missing import in '<app>/build/server/views/${viewName}'.`, { cause: ex as Error });
       }
 
       throw new errors.FileNotFound(`No view definition in '<app>/build/server/views/${viewName}' found.`);
@@ -53,14 +56,14 @@ const getViewsDefinition = async function ({ viewsDirectory }: {
       validateViewDefinition({
         viewDefinition: rawView
       });
-    } catch (ex) {
-      throw new errors.ViewDefinitionMalformed(`View definition '<app>/build/server/views/${viewName}' is malformed: ${ex.message}`);
+    } catch (ex: unknown) {
+      throw new errors.ViewDefinitionMalformed(`View definition '<app>/build/server/views/${viewName}' is malformed: ${(ex as Error).message}`);
     }
 
     const viewEnhancers = (rawView.enhancers || []) as ViewEnhancer[];
 
     const enhancedViewDefinition = viewEnhancers.reduce(
-      (viewDefinition, viewEnhancer): ViewDefinition =>
+      (viewDefinition, viewEnhancer): View<AskInfrastructure & TellInfrastructure> =>
         viewEnhancer(viewDefinition),
       rawView
     );

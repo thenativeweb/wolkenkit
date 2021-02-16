@@ -1,6 +1,6 @@
 import { assert } from 'assertthat';
 import axios from 'axios';
-import { getAvailablePorts } from '../../lib/common/utils/network/getAvailablePorts';
+import { getSocketPaths } from '../shared/getSocketPaths';
 import { isolated } from 'isolated';
 import path from 'path';
 import { retry } from 'retry-ignore-abort';
@@ -22,8 +22,8 @@ suite('dev', function (): void {
       cwd: appDirectory
     });
 
-    const [ port, healthPort ] = await getAvailablePorts({ count: 2 });
-    const devCommand = `node ${cliPath} --verbose dev --port ${port} --health-port ${healthPort}`;
+    const [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
+    const devCommand = `node ${cliPath} --verbose dev --socket ${socket} --health-socket ${healthSocket}`;
 
     const childProcess = shell.exec(devCommand, {
       cwd: appDirectory,
@@ -34,7 +34,8 @@ suite('dev', function (): void {
       await retry(async (): Promise<void> => {
         await axios({
           method: 'get',
-          url: `http://localhost:${healthPort}/health/v2`,
+          url: `http://localhost/health/v2`,
+          socketPath: healthSocket,
           validateStatus: (status): boolean => status === 200
         });
       }, { minTimeout: 500, maxTimeout: 500, retries: 20 });

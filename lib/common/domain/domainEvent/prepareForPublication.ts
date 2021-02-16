@@ -1,4 +1,5 @@
 import { Application } from '../../application/Application';
+import { CustomError } from 'defekt';
 import { DomainEvent } from '../../elements/DomainEvent';
 import { DomainEventData } from '../../elements/DomainEventData';
 import { DomainEventWithState } from '../../elements/DomainEventWithState';
@@ -19,7 +20,7 @@ const prepareForPublication = async function ({
   services
 }: {
   domainEventWithState: DomainEventWithState<DomainEventData, State>;
-  domainEventFilter: object;
+  domainEventFilter: Record<string, unknown>;
   application: Application;
   repository: Repository;
   services: Services;
@@ -29,15 +30,18 @@ const prepareForPublication = async function ({
   }
 
   const {
-    contextIdentifier,
-    aggregateIdentifier,
+    aggregateIdentifier: {
+      context: { name: contextName },
+      aggregate: { name: aggregateName }
+    },
     name: domainEventName
   } = domainEventWithState;
 
-  const { name: contextName } = contextIdentifier;
-  const { name: aggregateName } = aggregateIdentifier;
+  const { aggregateIdentifier } = domainEventWithState;
 
-  const aggregateInstance = await repository.getAggregateInstance({ contextIdentifier, aggregateIdentifier });
+  const aggregateInstance = await repository.getAggregateInstance({
+    aggregateIdentifier
+  });
   const aggregateState = aggregateInstance.state;
 
   const domainEventHandler =
@@ -52,8 +56,8 @@ const prepareForPublication = async function ({
     const domainEvent = mappedDomainEvent.withoutState();
 
     return domainEvent;
-  } catch (ex) {
-    switch (ex.code) {
+  } catch (ex: unknown) {
+    switch ((ex as CustomError).code) {
       case errors.DomainEventNotAuthorized.code:
       case errors.DomainEventRejected.code:
         // Ignore these exceptions, as this is usual control flow in this case,

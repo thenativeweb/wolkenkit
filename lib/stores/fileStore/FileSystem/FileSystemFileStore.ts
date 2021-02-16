@@ -103,6 +103,16 @@ class FileSystemFileStore implements FileStore {
 
     await fs.promises.rmdir(fileDirectory, { recursive: true });
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async setup (): Promise<void> {
+    await fs.promises.mkdir(this.directory, { recursive: true });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async destroy (): Promise<void> {
+    // There is nothing to do here.
+  }
 }
 
 export { FileSystemFileStore };

@@ -8,6 +8,7 @@ import { getApi } from './getApi';
 import { getIdentityProviders } from '../../../shared/getIdentityProviders';
 import http from 'http';
 import { loadApplication } from '../../../../common/application/loadApplication';
+import { Notification } from '../../../../common/elements/Notification';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
 
@@ -18,7 +19,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
   try {
     registerExceptionHandler();
 
-    const configuration = fromEnvironmentVariables({ configurationDefinition });
+    const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
@@ -28,7 +29,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       applicationDirectory: configuration.applicationDirectory
     });
 
-    const subscriber = await createSubscriber<object>(configuration.pubSubOptions.subscriber);
+    const subscriber = await createSubscriber<Notification>(configuration.pubSubOptions.subscriber);
 
     const { api } = await getApi({
       configuration,
@@ -38,17 +39,20 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       channelForNotifications: configuration.pubSubOptions.channelForNotifications
     });
 
-    await runHealthServer({ corsOrigin: configuration.healthCorsOrigin, port: configuration.healthPort });
+    await runHealthServer({
+      corsOrigin: configuration.healthCorsOrigin,
+      portOrSocket: configuration.healthPortOrSocket
+    });
 
     const server = http.createServer(api);
 
-    server.listen(configuration.port, (): void => {
-      logger.info(
-        'Notification server started.',
-        { port: configuration.port, healthPort: configuration.healthPort }
-      );
+    server.listen(configuration.portOrSocket, (): void => {
+      logger.info('Notification server started.', {
+        portOrSocket: configuration.portOrSocket,
+        healthPortOrSocket: configuration.healthPortOrSocket
+      });
     });
-  } catch (ex) {
+  } catch (ex: unknown) {
     logger.fatal('An unexpected error occured.', { ex });
     process.exit(1);
   }

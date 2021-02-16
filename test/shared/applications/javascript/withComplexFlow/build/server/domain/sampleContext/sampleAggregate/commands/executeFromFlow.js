@@ -18,7 +18,10 @@ const executeFromFlow = {
   },
 
   handle (state, command, { aggregate }) {
-    aggregate.publishDomainEvent('executedFromFlow');
+    aggregate.publishDomainEvent('executedFromFlow', {
+      basedOnRevision: command.data.basedOnRevision,
+      fromFlow: command.data.fromFlow
+    });
   }
 };
 

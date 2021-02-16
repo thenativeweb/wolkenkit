@@ -3,8 +3,8 @@ import { Configuration } from '../../../../../lib/runtimes/microservice/processe
 import { configurationDefinition } from '../../../../../lib/runtimes/microservice/processes/view/configurationDefinition';
 import { CustomError } from 'defekt';
 import { errors } from '../../../../../lib/common/errors';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Client as ManageFileClient } from '../../../../../lib/apis/manageFile/http/v2/Client';
@@ -14,31 +14,31 @@ import streamToString from 'stream-to-string';
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { v4 } from 'uuid';
 
-suite('file', function (): void {
-  this.timeout(10_000);
+suite('file process', function (): void {
+  this.timeout(60_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' });
 
-  let healthPort: number,
+  let healthSocket: string,
       manageFileClient: ManageFileClient,
-      port: number,
+      socket: string,
       stopProcess: (() => Promise<void>) | undefined;
 
   setup(async (): Promise<void> => {
-    [ healthPort, port ] = await getAvailablePorts({ count: 2 });
+    [ healthSocket, socket ] = await getSocketPaths({ count: 2 });
 
     const configuration: Configuration = {
       ...getDefaultConfiguration({ configurationDefinition }),
       applicationDirectory,
-      healthPort,
-      port
+      healthPortOrSocket: healthSocket,
+      portOrSocket: socket
     };
 
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'file',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: toEnvironmentVariables({
         configuration,
         configurationDefinition
@@ -48,7 +48,7 @@ suite('file', function (): void {
     manageFileClient = new ManageFileClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/files/v2'
     });
   });
@@ -66,7 +66,7 @@ suite('file', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPort,
+        portOrSocket: healthSocket,
         path: '/health/v2'
       });
 

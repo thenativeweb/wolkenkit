@@ -1,7 +1,7 @@
 import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Configuration as PublisherConfiguration } from '../../../../../lib/runtimes/microservice/processes/publisher/Configuration';
 import { configurationDefinition as publisherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/publisher/configurationDefinition';
@@ -11,29 +11,29 @@ import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subsc
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { waitForSignals } from 'wait-for-signals';
 
-suite('publisher', function (): void {
-  this.timeout(10_000);
+suite('publisher process', function (): void {
+  this.timeout(60_000);
 
-  let healthPort: number,
-      port: number,
+  let healthSocket: string,
       publishMessageClient: PublishMessageClient,
+      socket: string,
       stopProcess: (() => Promise<void>) | undefined,
       subscribeMessagesClient: SubscribeMessagesClient;
 
   setup(async (): Promise<void> => {
-    [ port, healthPort ] = await getAvailablePorts({ count: 2 });
+    [ socket, healthSocket ] = await getSocketPaths({ count: 2 });
 
     const publisherConfiguration: PublisherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: publisherConfigurationDefinition }),
-      port,
-      healthPort
+      portOrSocket: socket,
+      healthPortOrSocket: healthSocket
     };
 
     stopProcess = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: toEnvironmentVariables({
         configuration: publisherConfiguration,
         configurationDefinition: publisherConfigurationDefinition
@@ -43,14 +43,14 @@ suite('publisher', function (): void {
     publishMessageClient = new PublishMessageClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/publish/v2'
     });
 
     subscribeMessagesClient = new SubscribeMessagesClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/subscribe/v2'
     });
   });
@@ -68,7 +68,7 @@ suite('publisher', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPort,
+        portOrSocket: healthSocket,
         path: '/health/v2'
       });
 

@@ -11,8 +11,10 @@ suite('DomainEventWithState', (): void => {
           timestamp = Date.now();
 
     const domainEvent = new DomainEventWithState({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregateId }
+      },
       name: 'succeeded',
       data: {
         strategy: 'succeed'
@@ -30,8 +32,10 @@ suite('DomainEventWithState', (): void => {
     });
 
     assert.that(domainEvent).is.equalTo({
-      contextIdentifier: { name: 'sampleContext' },
-      aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+      aggregateIdentifier: {
+        context: { name: 'sampleContext' },
+        aggregate: { name: 'sampleAggregate', id: aggregateId }
+      },
       name: 'succeeded',
       data: {
         strategy: 'succeed'

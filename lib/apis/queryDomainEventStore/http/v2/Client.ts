@@ -1,5 +1,4 @@
 import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
-import axios from 'axios';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { errors } from '../../../../common/errors';
@@ -10,29 +9,26 @@ import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTrans
 import { Snapshot } from '../../../../stores/domainEventStore/Snapshot';
 import { State } from '../../../../common/elements/State';
 import { toArray } from 'streamtoarray';
-import { PassThrough, pipeline } from 'stream';
+import { PassThrough, pipeline, Readable } from 'stream';
 
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async getLastDomainEvent <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<DomainEvent<TDomainEventData> | undefined> {
-    const { data, status } = await axios({
+    const { data, status } = await this.axios({
       method: 'get',
-      url: `${this.url}/last-domain-event?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`,
-      validateStatus (): boolean {
-        return true;
-      }
+      url: `${this.url}/last-domain-event?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`
     });
 
     if (status === 200) {
@@ -40,7 +36,7 @@ class Client extends HttpClient {
     }
 
     if (status === 404) {
-      return undefined;
+      return;
     }
 
     switch (data.code) {
@@ -55,16 +51,13 @@ class Client extends HttpClient {
     }
   }
 
-  public async getDomainEventsByCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async getDomainEventsByCausationId ({ causationId }: {
     causationId: string;
-  }): Promise<PassThrough> {
-    const { status, data } = await axios({
+  }): Promise<Readable> {
+    const { status, data } = await this.axios({
       method: 'get',
       url: `${this.url}/domain-events-by-causation-id?causation-id=${causationId}`,
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
+      responseType: 'stream'
     });
 
     if (status !== 200) {
@@ -91,15 +84,12 @@ class Client extends HttpClient {
     );
   }
 
-  public async hasDomainEventsWithCausationId <TDomainEventData extends DomainEventData> ({ causationId }: {
+  public async hasDomainEventsWithCausationId ({ causationId }: {
     causationId: string;
   }): Promise<boolean> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'get',
-      url: `${this.url}/has-domain-events-with-causation-id?causation-id=${causationId}`,
-      validateStatus (): boolean {
-        return true;
-      }
+      url: `${this.url}/has-domain-events-with-causation-id?causation-id=${causationId}`
     });
 
     if (status !== 200) {
@@ -111,16 +101,13 @@ class Client extends HttpClient {
     return data.hasDomainEventsWithCausationId;
   }
 
-  public async getDomainEventsByCorrelationId <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  public async getDomainEventsByCorrelationId ({ correlationId }: {
     correlationId: string;
-  }): Promise<PassThrough> {
-    const { status, data } = await axios({
+  }): Promise<Readable> {
+    const { status, data } = await this.axios({
       method: 'get',
       url: `${this.url}/domain-events-by-correlation-id?correlation-id=${correlationId}`,
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
+      responseType: 'stream'
     });
 
     if (status !== 200) {
@@ -149,18 +136,15 @@ class Client extends HttpClient {
 
   public async getReplay ({ fromTimestamp = 0 }: {
     fromTimestamp?: number;
-  }): Promise<PassThrough> {
+  }): Promise<Readable> {
     if (fromTimestamp < 0) {
       throw new errors.ParameterInvalid(`Parameter 'fromTimestamp' must be at least 0.`);
     }
 
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'get',
       url: `${this.url}/replay?fromTimestamp=${fromTimestamp}`,
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
+      responseType: 'stream'
     });
 
     if (status !== 200) {
@@ -191,7 +175,7 @@ class Client extends HttpClient {
     aggregateId: string;
     fromRevision?: number;
     toRevision?: number;
-  }): Promise<PassThrough> {
+  }): Promise<Readable> {
     if (fromRevision < 1) {
       throw new errors.ParameterInvalid(`Parameter 'fromRevision' must be at least 1.`);
     }
@@ -202,13 +186,10 @@ class Client extends HttpClient {
       throw new errors.ParameterInvalid(`Parameter 'toRevision' must be greater or equal to 'fromRevision'.`);
     }
 
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'get',
       url: `${this.url}/replay/${aggregateId}/?fromRevision=${fromRevision}&toRevision=${toRevision}`,
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
+      responseType: 'stream'
     });
 
     if (status !== 200) {
@@ -238,12 +219,9 @@ class Client extends HttpClient {
   public async getSnapshot <TState extends State> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }): Promise<Snapshot<TState> | undefined> {
-    const { data, status } = await axios({
+    const { data, status } = await this.axios({
       method: 'get',
-      url: `${this.url}/snapshot?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`,
-      validateStatus (): boolean {
-        return true;
-      }
+      url: `${this.url}/snapshot?aggregateIdentifier=${JSON.stringify(aggregateIdentifier)}`
     });
 
     if (status === 200) {
@@ -251,7 +229,7 @@ class Client extends HttpClient {
     }
 
     if (status === 404) {
-      return undefined;
+      return;
     }
 
     switch (data.code) {
@@ -264,6 +242,71 @@ class Client extends HttpClient {
         throw new errors.UnknownError(data.message);
       }
     }
+  }
+
+  public async getAggregateIdentifiers (): Promise<Readable> {
+    const { status, data } = await this.axios({
+      method: 'get',
+      url: `${this.url}/get-aggregate-identifiers`,
+      responseType: 'stream'
+    });
+
+    if (status !== 200) {
+      logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
+
+      throw new errors.UnknownError(data.message);
+    }
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const jsonParser = new ParseJsonTransform();
+    const heartbeatFilter = new FilterHeartbeatsTransform();
+
+    return pipeline(
+      data,
+      jsonParser,
+      heartbeatFilter,
+      passThrough,
+      (err): void => {
+        if (err) {
+          // Do not handle errors explicitly. The returned stream will just close.
+          logger.error('An error occured during stream piping.', { err });
+        }
+      }
+    );
+  }
+
+  public async getAggregateIdentifiersByName ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }): Promise<Readable> {
+    const { status, data } = await this.axios({
+      method: 'get',
+      url: `${this.url}/get-aggregate-identifiers-by-name?contextName=${contextName}&aggregateName=${aggregateName}`,
+      responseType: 'stream'
+    });
+
+    if (status !== 200) {
+      logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
+
+      throw new errors.UnknownError(data.message);
+    }
+
+    const passThrough = new PassThrough({ objectMode: true });
+    const jsonParser = new ParseJsonTransform();
+    const heartbeatFilter = new FilterHeartbeatsTransform();
+
+    return pipeline(
+      data,
+      jsonParser,
+      heartbeatFilter,
+      passThrough,
+      (err): void => {
+        if (err) {
+          // Do not handle errors explicitly. The returned stream will just close.
+          logger.error('An error occured during stream piping.', { err });
+        }
+      }
+    );
   }
 }
 

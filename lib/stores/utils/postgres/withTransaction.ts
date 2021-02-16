@@ -20,7 +20,7 @@ const withTransaction = async function<TResult = void> ({
     result = await fn({ connection });
 
     await connection.query('COMMIT');
-  } catch (ex) {
+  } catch (ex: unknown) {
     await connection.query('ROLLBACK');
     throw ex;
   } finally {

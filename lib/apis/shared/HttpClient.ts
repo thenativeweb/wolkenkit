@@ -1,15 +1,34 @@
+import axios, { AxiosInstance } from 'axios';
+
+const validateStatus = function (): boolean {
+  return true;
+};
+
 abstract class HttpClient {
   protected url: string;
 
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  protected axios: AxiosInstance;
+
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    const url = `${protocol}://${hostName}:${port}${path}`;
+    const url = typeof portOrSocket === 'number' ?
+      `${protocol}://${hostName}:${portOrSocket}${path}` :
+      `${protocol}://${hostName}${path}`;
 
     this.url = url.endsWith('/') ? url.slice(0, -1) : url;
+
+    this.axios = typeof portOrSocket === 'number' ?
+      axios.create({
+        validateStatus
+      }) :
+      axios.create({
+        socketPath: portOrSocket,
+        validateStatus
+      });
   }
 }
 

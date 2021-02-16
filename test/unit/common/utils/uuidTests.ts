@@ -1,6 +1,6 @@
 import { assert } from 'assertthat';
+import { regex } from '../../../../lib/common/utils/uuid';
 import { v4 } from 'uuid';
-import { jsonSchema, regex } from '../../../../lib/common/utils/uuid';
 
 suite('uuid', (): void => {
   suite('regex', (): void => {
@@ -20,13 +20,6 @@ suite('uuid', (): void => {
 
     test('is a regular expression that correctly matches the end of a UUID v4.', async (): Promise<void> => {
       assert.that(`${uuid}31`).is.not.matching(regex);
-    });
-  });
-
-  suite('jsonSchema', (): void => {
-    test('is based on the regex.', async (): Promise<void> => {
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string
-      assert.that(jsonSchema).is.equalTo({ type: 'string', pattern: regex.toString().slice(1, -2) });
     });
   });
 });

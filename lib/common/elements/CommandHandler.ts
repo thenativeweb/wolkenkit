@@ -17,18 +17,18 @@ export interface CommandHandler<
   TCommandData extends CommandData,
   TInfrastructure extends AskInfrastructure & TellInfrastructure
 > {
-  getDocumentation? (): string;
+  getDocumentation?: () => string;
 
-  getSchema? (): Schema;
+  getSchema?: () => Schema;
 
-  isAuthorized (state: TState, command: CommandWithMetadata<TCommandData>, services: {
+  isAuthorized: (state: TState, command: CommandWithMetadata<TCommandData>, services: {
     aggregates: AggregatesService;
     client: ClientService;
     logger: LoggerService;
     infrastructure: Pick<TInfrastructure, 'ask'>;
-  }): boolean | Promise<boolean>;
+  }) => boolean | Promise<boolean>;
 
-  handle (state: TState, command: CommandWithMetadata<TCommandData>, services: {
+  handle: (state: TState, command: CommandWithMetadata<TCommandData>, services: {
     aggregate: AggregateService<TState>;
     aggregates: AggregatesService;
     client: ClientService;
@@ -37,5 +37,5 @@ export interface CommandHandler<
     lock: LockService;
     logger: LoggerService;
     notification: NotificationService;
-  }): void | Promise<void>;
+  }) => void | Promise<void>;
 }

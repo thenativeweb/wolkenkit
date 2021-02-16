@@ -1,32 +1,15 @@
-import { jsonSchema } from '../utils/uuid';
+import { getAggregateIdentifierSchema } from './getAggregateIdentifierSchema';
 import { Schema } from '../elements/Schema';
 
 const getItemIdentifierSchema = function (): Schema {
   return {
     type: 'object',
     properties: {
-      contextIdentifier: {
-        type: 'object',
-        properties: {
-          name: { type: 'string', minLength: 1, format: 'alphanumeric' }
-        },
-        required: [ 'name' ],
-        additionalProperties: false
-      },
-      aggregateIdentifier: {
-        type: 'object',
-        properties: {
-          name: { type: 'string', minLength: 1, format: 'alphanumeric' },
-          id: jsonSchema
-        },
-        required: [ 'name', 'id' ],
-        additionalProperties: false
-      },
-      id: jsonSchema,
+      aggregateIdentifier: getAggregateIdentifierSchema(),
+      id: { type: 'string', format: 'uuid' },
       name: { type: 'string', minLength: 1, format: 'alphanumeric' }
     },
     required: [
-      'contextIdentifier',
       'aggregateIdentifier',
       'id',
       'name'

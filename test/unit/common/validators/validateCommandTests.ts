@@ -12,8 +12,10 @@ suite('validateCommand', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
   const command = new Command({
-    contextIdentifier: { name: 'sampleContext' },
-    aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+    aggregateIdentifier: {
+      context: { name: 'sampleContext' },
+      aggregate: { name: 'sampleAggregate', id: v4() }
+    },
     name: 'execute',
     data: {
       strategy: 'succeed'
@@ -37,8 +39,9 @@ suite('validateCommand', (): void => {
       validateCommand({
         command: {
           ...command,
-          contextIdentifier: {
-            name: 'someContext'
+          aggregateIdentifier: {
+            context: { name: 'someContext' },
+            aggregate: command.aggregateIdentifier.aggregate
           }
         },
         application
@@ -56,8 +59,11 @@ suite('validateCommand', (): void => {
         command: {
           ...command,
           aggregateIdentifier: {
-            name: 'someAggregate',
-            id: v4()
+            context: command.aggregateIdentifier.context,
+            aggregate: {
+              name: 'someAggregate',
+              id: v4()
+            }
           }
         },
         application

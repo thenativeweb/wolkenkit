@@ -1,27 +1,11 @@
-import { jsonSchema } from '../utils/uuid';
+import { getAggregateIdentifierSchema } from './getAggregateIdentifierSchema';
 import { Schema } from '../elements/Schema';
 
 const getCommandSchema = function (): Schema {
   return {
     type: 'object',
     properties: {
-      contextIdentifier: {
-        type: 'object',
-        properties: {
-          name: { type: 'string', minLength: 1, format: 'alphanumeric' }
-        },
-        required: [ 'name' ],
-        additionalProperties: false
-      },
-      aggregateIdentifier: {
-        type: 'object',
-        properties: {
-          name: { type: 'string', minLength: 1, format: 'alphanumeric' },
-          id: jsonSchema
-        },
-        required: [ 'name', 'id' ],
-        additionalProperties: false
-      },
+      aggregateIdentifier: getAggregateIdentifierSchema(),
       name: { type: 'string', minLength: 1, format: 'alphanumeric' },
       data: {
         type: 'object',
@@ -31,7 +15,6 @@ const getCommandSchema = function (): Schema {
       }
     },
     required: [
-      'contextIdentifier',
       'aggregateIdentifier',
       'name',
       'data'

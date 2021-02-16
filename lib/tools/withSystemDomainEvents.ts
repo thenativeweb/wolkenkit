@@ -12,6 +12,12 @@ import { TellInfrastructure } from '../common/elements/TellInfrastructure';
 const withSystemDomainEvents: ApplicationEnhancer = (application): Application => {
   const clonedApplication = cloneDeep(application);
 
+  // Cloning the infrastructure can have unforseen consequences, since it might
+  // mess with the prototype chain of e.g. a database client and stop it from
+  // working. These bugs would be very hard to catch (believe me, like one and
+  // a half days of debugging).
+  clonedApplication.infrastructure = application.infrastructure;
+
   for (const [ contextName, contextDefinition ] of Object.entries(clonedApplication.domain)) {
     for (const [ aggregateName, aggregateDefinition ] of Object.entries(contextDefinition)) {
       for (const commandName of Object.keys(aggregateDefinition.commandHandlers)) {
@@ -42,7 +48,7 @@ const withSystemDomainEvents: ApplicationEnhancer = (application): Application =
             return state;
           },
 
-          isAuthorized (_state, domainEvent, { client }): boolean {
+          isAuthorized (state, domainEvent, { client }): boolean {
             return domainEvent.metadata.initiator.user.id === client.user.id;
           }
         };

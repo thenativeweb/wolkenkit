@@ -1,11 +1,12 @@
 import { buildCommand } from './build/buildCommand';
 import { Command } from 'command-line-interface';
-import { createDeploymentCommand } from './createDeployment/createDeploymentCommand';
 import { devCommand } from './dev/devCommand';
 import { documentationCommand } from './documentation/documentationCommand';
 import { healthCommand } from './health/healthCommand';
 import { initCommand } from './init/initCommand';
+import { replayCommand } from './replay/replayCommand';
 import { RootOptions } from './RootOptions';
+import { setupCommand } from './setup/setupCommand';
 import { tokenCommand } from './token/tokenCommand';
 
 const rootCommand = function (): Command<RootOptions> {
@@ -34,9 +35,10 @@ const rootCommand = function (): Command<RootOptions> {
       init: initCommand(),
       dev: devCommand(),
       build: buildCommand(),
-      'create-deployment': createDeploymentCommand(),
       documentation: documentationCommand(),
       health: healthCommand(),
+      setup: setupCommand(),
+      replay: replayCommand(),
       token: tokenCommand()
     }
   };

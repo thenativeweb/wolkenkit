@@ -3,6 +3,8 @@ import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEventStore';
 import { errors } from '../../../../common/errors';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
+import { isCustomError } from 'defekt';
+import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -17,12 +19,12 @@ const storeDomainEvents = {
     body: {
       type: 'array',
       items: getDomainEventSchema()
-    }
+    } as Schema
   },
   response: {
     statusCodes: [ 200, 400, 415 ],
 
-    body: { type: 'object' }
+    body: { type: 'object' } as Schema
   },
 
   getHandler ({ domainEventStore }: {
@@ -32,26 +34,21 @@ const storeDomainEvents = {
           responseBodySchema = new Value(storeDomainEvents.response.body);
 
     return async function (req, res): Promise<any> {
-      let contentType: typer.ParsedMediaType;
-
       try {
-        contentType = typer.parse(req);
+        const contentType = typer.parse(req);
+
+        if (contentType.type !== 'application/json') {
+          throw new errors.ContentTypeMismatch();
+        }
       } catch {
         const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-        return res.status(415).json({
+        res.status(415).json({
           code: ex.code,
           message: ex.message
         });
-      }
 
-      if (contentType.type !== 'application/json') {
-        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
-
-        return res.status(415).json({
-          code: ex.code,
-          message: ex.message
-        });
+        return;
       }
 
       if (!Array.isArray(req.body)) {
@@ -74,8 +71,8 @@ const storeDomainEvents = {
 
       try {
         requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.RequestMalformed((ex as Error).message);
 
         return res.status(400).json({
           code: error.code,
@@ -91,8 +88,8 @@ const storeDomainEvents = {
         domainEvents.forEach((domainEvent): void => {
           domainEventSchema.validate(domainEvent, { valueName: 'domainEvent' });
         });
-      } catch (ex) {
-        const error = new errors.DomainEventMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.DomainEventMalformed((ex as Error).message);
 
         return res.status(400).json({
           code: error.code,
@@ -108,10 +105,14 @@ const storeDomainEvents = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex) {
+      } catch (ex: unknown) {
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
+
         return res.status(400).json({
-          code: ex.code ?? errors.UnknownError.code,
-          message: ex.message
+          code: error.code,
+          message: error.message
         });
       }
     };

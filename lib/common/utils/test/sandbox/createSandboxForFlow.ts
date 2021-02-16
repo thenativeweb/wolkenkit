@@ -16,7 +16,6 @@ import { getLockService } from '../../../services/getLockService';
 import { getLoggerService } from '../../../services/getLoggerService';
 import { getNotificationService } from '../../../services/getNotificationService';
 import { getSnapshotStrategy } from '../../../domain/getSnapshotStrategy';
-import { noop } from 'lodash';
 import { Repository } from '../../../domain/Repository';
 import { SandboxConfigurationForFlow } from './SandboxConfiguration';
 import { SandboxForFlow, SandboxForFlowWithResult } from './SandboxForFlow';
@@ -25,7 +24,6 @@ const createSandboxForFlow = function (sandboxConfiguration: SandboxConfiguratio
   return {
     when <TDomainEventData extends DomainEventData>(
       {
-        contextIdentifier,
         aggregateIdentifier,
         name,
         data,
@@ -39,7 +37,6 @@ const createSandboxForFlow = function (sandboxConfiguration: SandboxConfiguratio
         domainEvents: [
           ...sandboxConfiguration.domainEvents,
           buildDomainEvent<TDomainEventData>({
-            contextIdentifier,
             aggregateIdentifier,
             name,
             data,
@@ -56,7 +53,6 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
   return {
     and <TDomainEventData extends DomainEventData>(
       {
-        contextIdentifier,
         aggregateIdentifier,
         name,
         data,
@@ -70,7 +66,6 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
         domainEvents: [
           ...sandboxConfiguration.domainEvents,
           buildDomainEvent<TDomainEventData>({
-            contextIdentifier,
             aggregateIdentifier,
             name,
             data,
@@ -126,7 +121,9 @@ const createSandboxForFlowWithResult = function (sandboxConfiguration: SandboxCo
           domainEvent,
           flowName: sandboxConfiguration.flowName,
           flowProgressStore,
-          requestReplay: noop,
+          async performReplay (): Promise<void> {
+            // Intentionally left blank.
+          },
           services: {
             aggregates: aggregatesServiceFactory({ repository }),
             command: commandServiceFactory({ domainEvent, issueCommand }),

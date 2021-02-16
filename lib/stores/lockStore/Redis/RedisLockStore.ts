@@ -114,10 +114,15 @@ class RedisLockStore implements LockStore {
     await this.client.del(key);
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  public async setup (): Promise<void> {
+    // There is nothing to do here.
+  }
+
   public async destroy (): Promise<void> {
     this.client.removeListener('error', RedisLockStore.onUnexpectedError);
 
-    await new Promise((resolve, reject): void => {
+    await new Promise<void>((resolve, reject): void => {
       this.client.quit((err): void => {
         if (err) {
           return reject(err);

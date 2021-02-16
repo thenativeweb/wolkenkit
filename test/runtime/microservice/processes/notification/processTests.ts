@@ -2,8 +2,8 @@ import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { Configuration } from '../../../../../lib/runtimes/microservice/processes/notification/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/microservice/processes/notification/configurationDefinition';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Configuration as PublisherConfiguration } from '../../../../../lib/runtimes/microservice/processes/publisher/Configuration';
 import { configurationDefinition as publisherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/publisher/configurationDefinition';
@@ -13,34 +13,34 @@ import { Client as SubscribeNotificationsClient } from '../../../../../lib/apis/
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { waitForSignals } from 'wait-for-signals';
 
-suite('notification', function (): void {
-  this.timeout(10_000);
+suite('notification process', function (): void {
+  this.timeout(60_000);
 
   const pubsubChannelForNotifications = 'notifications';
 
-  let healthPort: number,
-      healthPortPublisher: number,
-      port: number,
-      portPublisher: number,
+  let healthSocket: string,
+      publisherHealthSocket: string,
+      publisherSocket: string,
       publishMessageClient: PublishMessageClient,
+      socket: string,
       stopProcess: (() => Promise<void>) | undefined,
       stopProcessPublisher: (() => Promise<void>) | undefined,
       subscribeNotificationsClient: SubscribeNotificationsClient;
 
   setup(async (): Promise<void> => {
-    [ port, healthPort, portPublisher, healthPortPublisher ] = await getAvailablePorts({ count: 4 });
+    [ socket, healthSocket, publisherSocket, publisherHealthSocket ] = await getSocketPaths({ count: 4 });
 
     const publisherConfiguration: PublisherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: publisherConfigurationDefinition }),
-      port: portPublisher,
-      healthPort: healthPortPublisher
+      portOrSocket: publisherSocket,
+      healthPortOrSocket: publisherHealthSocket
     };
 
     stopProcessPublisher = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
       enableDebugMode: false,
-      port: healthPortPublisher,
+      portOrSocket: publisherHealthSocket,
       env: toEnvironmentVariables({
         configuration: publisherConfiguration,
         configurationDefinition: publisherConfigurationDefinition
@@ -50,21 +50,21 @@ suite('notification', function (): void {
     publishMessageClient = new PublishMessageClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: portPublisher,
+      portOrSocket: publisherSocket,
       path: '/publish/v2'
     });
 
     const configuration: Configuration = {
       ...getDefaultConfiguration({ configurationDefinition }),
-      healthPort,
-      port,
+      healthPortOrSocket: healthSocket,
+      portOrSocket: socket,
       pubSubOptions: {
         channelForNotifications: pubsubChannelForNotifications,
         subscriber: {
           type: 'Http',
           protocol: 'http',
           hostName: 'localhost',
-          port: portPublisher,
+          portOrSocket: publisherSocket,
           path: '/subscribe/v2'
         }
       }
@@ -74,7 +74,7 @@ suite('notification', function (): void {
       runtime: 'microservice',
       name: 'notification',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: toEnvironmentVariables({
         configuration,
         configurationDefinition
@@ -84,7 +84,7 @@ suite('notification', function (): void {
     subscribeNotificationsClient = new SubscribeNotificationsClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/notifications/v2'
     });
   });
@@ -106,7 +106,7 @@ suite('notification', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPort,
+        portOrSocket: healthSocket,
         path: '/health/v2'
       });
 

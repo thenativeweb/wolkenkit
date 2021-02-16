@@ -68,10 +68,10 @@ suite('observeDomainEvents/http/Client', function (): void {
       });
 
       test(`returns the domain events' descriptions.`, async (): Promise<void> => {
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -107,8 +107,10 @@ suite('observeDomainEvents/http/Client', function (): void {
       test('delivers a single domain event.', async (): Promise<void> => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -119,10 +121,10 @@ suite('observeDomainEvents/http/Client', function (): void {
           state: { previous: {}, next: {}}
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -132,7 +134,7 @@ suite('observeDomainEvents/http/Client', function (): void {
 
         const data = await client.getDomainEvents({});
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -156,8 +158,10 @@ suite('observeDomainEvents/http/Client', function (): void {
       test('delivers multiple domain events.', async (): Promise<void> => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'succeeded',
             data: {},
             metadata: {
@@ -169,8 +173,10 @@ suite('observeDomainEvents/http/Client', function (): void {
         });
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -181,10 +187,10 @@ suite('observeDomainEvents/http/Client', function (): void {
           state: { previous: {}, next: {}}
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -195,7 +201,7 @@ suite('observeDomainEvents/http/Client', function (): void {
 
         const data = await client.getDomainEvents({});
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -224,8 +230,10 @@ suite('observeDomainEvents/http/Client', function (): void {
       test('delivers filtered domain events.', async (): Promise<void> => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'succeeded',
             data: {},
             metadata: {
@@ -237,8 +245,10 @@ suite('observeDomainEvents/http/Client', function (): void {
         });
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -249,10 +259,10 @@ suite('observeDomainEvents/http/Client', function (): void {
           state: { previous: {}, next: {}}
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -263,7 +273,7 @@ suite('observeDomainEvents/http/Client', function (): void {
 
         const data = await client.getDomainEvents({ filter: { name: 'executed' }});
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -288,8 +298,10 @@ suite('observeDomainEvents/http/Client', function (): void {
       test('delivers filtered domain events with a nested filter.', async (): Promise<void> => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'succeeded',
             data: {},
             metadata: {
@@ -301,8 +313,10 @@ suite('observeDomainEvents/http/Client', function (): void {
         });
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -313,10 +327,10 @@ suite('observeDomainEvents/http/Client', function (): void {
           state: { previous: {}, next: {}}
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -326,11 +340,11 @@ suite('observeDomainEvents/http/Client', function (): void {
         }, 100);
 
         const data = await client.getDomainEvents({ filter: {
-          contextIdentifier: { name: 'sampleContext' },
+          aggregateIdentifier: { context: { name: 'sampleContext' }},
           name: 'executed'
         }});
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });
@@ -355,8 +369,10 @@ suite('observeDomainEvents/http/Client', function (): void {
       test('removes state before delivery.', async (): Promise<void> => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: v4() }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: {
@@ -367,10 +383,10 @@ suite('observeDomainEvents/http/Client', function (): void {
           state: { previous: {}, next: {}}
         });
 
-        const { port } = await runAsServer({ app: api });
+        const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
-          port,
+          portOrSocket: socket,
           path: '/v2'
         });
 
@@ -380,7 +396,7 @@ suite('observeDomainEvents/http/Client', function (): void {
 
         const data = await client.getDomainEvents({});
 
-        await new Promise((resolve, reject): void => {
+        await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
           });

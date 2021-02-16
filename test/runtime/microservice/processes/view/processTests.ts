@@ -2,8 +2,8 @@ import { asJsonStream } from '../../../../shared/http/asJsonStream';
 import { assert } from 'assertthat';
 import { Configuration } from '../../../../../lib/runtimes/microservice/processes/view/Configuration';
 import { configurationDefinition } from '../../../../../lib/runtimes/microservice/processes/view/configurationDefinition';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Configuration as PublisherConfiguration } from '../../../../../lib/runtimes/microservice/processes/publisher/Configuration';
@@ -15,36 +15,36 @@ import { Client as SubscribeMessagesClient } from '../../../../../lib/apis/subsc
 import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnvironmentVariables';
 import { waitForSignals } from 'wait-for-signals';
 
-suite('view', function (): void {
-  this.timeout(10_000);
+suite('view process', function (): void {
+  this.timeout(60_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'withHardcodedViews', language: 'javascript' }),
         pubSubChannelForNotifications = 'notifications';
 
-  let healthPort: number,
-      healthPortPublisher: number,
-      port: number,
-      portPublisher: number,
+  let healthSocket: string,
+      publisherHealthSocket: string,
+      publisherSocket: string,
       publishMessagesClient: PublishMessageClient,
       queryViewsClient: QueryViewsClient,
+      socket: string,
       stopProcess: (() => Promise<void>) | undefined,
       stopProcessPublisher: (() => Promise<void>) | undefined,
       subscribeMessagesClient: SubscribeMessagesClient;
 
   setup(async (): Promise<void> => {
-    [ healthPort, port, healthPortPublisher, portPublisher ] = await getAvailablePorts({ count: 4 });
+    [ healthSocket, socket, publisherHealthSocket, publisherSocket ] = await getSocketPaths({ count: 4 });
 
     const publisherConfiguration: PublisherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: publisherConfigurationDefinition }),
-      port: portPublisher,
-      healthPort: healthPortPublisher
+      portOrSocket: publisherSocket,
+      healthPortOrSocket: publisherHealthSocket
     };
 
     stopProcessPublisher = await startProcess({
       runtime: 'microservice',
       name: 'publisher',
       enableDebugMode: false,
-      port: healthPortPublisher,
+      portOrSocket: publisherHealthSocket,
       env: toEnvironmentVariables({
         configuration: publisherConfiguration,
         configurationDefinition: publisherConfigurationDefinition
@@ -54,36 +54,36 @@ suite('view', function (): void {
     publishMessagesClient = new PublishMessageClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: portPublisher,
+      portOrSocket: publisherSocket,
       path: '/publish/v2'
     });
 
     subscribeMessagesClient = new SubscribeMessagesClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: portPublisher,
+      portOrSocket: publisherSocket,
       path: '/subscribe/v2'
     });
 
     const configuration: Configuration = {
       ...getDefaultConfiguration({ configurationDefinition }),
       applicationDirectory,
-      healthPort,
-      port,
+      healthPortOrSocket: healthSocket,
+      portOrSocket: socket,
       pubSubOptions: {
         channelForNotifications: pubSubChannelForNotifications,
         publisher: {
           type: 'Http',
           protocol: 'http',
           hostName: 'localhost',
-          port: portPublisher,
+          portOrSocket: publisherSocket,
           path: '/publish/v2'
         },
         subscriber: {
           type: 'Http',
           protocol: 'http',
           hostName: 'localhost',
-          port: portPublisher,
+          portOrSocket: publisherSocket,
           path: '/subscribe/v2'
         }
       }
@@ -93,7 +93,7 @@ suite('view', function (): void {
       runtime: 'microservice',
       name: 'view',
       enableDebugMode: false,
-      port: healthPort,
+      portOrSocket: healthSocket,
       env: toEnvironmentVariables({
         configuration,
         configurationDefinition
@@ -103,7 +103,7 @@ suite('view', function (): void {
     queryViewsClient = new QueryViewsClient({
       protocol: 'http',
       hostName: 'localhost',
-      port,
+      portOrSocket: socket,
       path: '/views/v2'
     });
   });
@@ -125,7 +125,7 @@ suite('view', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: healthPort,
+        portOrSocket: healthSocket,
         path: '/health/v2'
       });
 
@@ -137,7 +137,7 @@ suite('view', function (): void {
 
   suite('views', (): void => {
     test('queries the views.', async (): Promise<void> => {
-      const resultStream = await queryViewsClient.query({
+      const resultStream = await queryViewsClient.queryStream({
         viewName: 'sampleView',
         queryName: 'hardcoded'
       });
@@ -183,7 +183,7 @@ suite('view', function (): void {
                 data: {}
               });
               await counter.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await counter.fail(ex);
             }
           },
@@ -194,7 +194,7 @@ suite('view', function (): void {
                 data: {}
               });
               await counter.signal();
-            } catch (ex) {
+            } catch (ex: unknown) {
               await counter.fail(ex);
             }
           }

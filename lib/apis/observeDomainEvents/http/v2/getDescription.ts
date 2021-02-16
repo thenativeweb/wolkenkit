@@ -6,7 +6,7 @@ import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { Request, Response } from 'express';
 
 const getDescription = {
-  description: `Returns a description of the application's domain events`,
+  description: `Returns a description of the application's domain events.`,
   path: 'description',
 
   request: {},
@@ -22,7 +22,7 @@ const getDescription = {
 
     const applicationDescription = getApplicationDescription({ application });
 
-    return function (_req: Request, res: Response): void {
+    return function (req: Request, res: Response): void {
       const response = applicationDescription.domainEvents;
 
       responseBodySchema.validate(response, { valueName: 'responseBody' });

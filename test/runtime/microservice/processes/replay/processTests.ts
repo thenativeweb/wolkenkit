@@ -7,8 +7,8 @@ import { Configuration as DomainEventDispatcherConfiguration } from '../../../..
 import { configurationDefinition as domainEventDispatcherConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventDispatcher/configurationDefinition';
 import { Configuration as DomainEventStoreConfiguration } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/Configuration';
 import { configurationDefinition as domainEventStoreConfigurationDefinition } from '../../../../../lib/runtimes/microservice/processes/domainEventStore/configurationDefinition';
-import { getAvailablePorts } from '../../../../../lib/common/utils/network/getAvailablePorts';
 import { getDefaultConfiguration } from '../../../../../lib/runtimes/shared/getDefaultConfiguration';
+import { getSocketPaths } from '../../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../../shared/applications/getTestApplicationDirectory';
 import { Client as HealthClient } from '../../../../../lib/apis/getHealth/http/v2/Client';
 import { Client as ReplayClient } from '../../../../../lib/apis/performReplay/http/v2/Client';
@@ -19,8 +19,8 @@ import { toEnvironmentVariables } from '../../../../../lib/runtimes/shared/toEnv
 import { v4 } from 'uuid';
 import { Client as WriteDomainEventStoreClient } from '../../../../../lib/apis/writeDomainEventStore/http/v2/Client';
 
-suite('replay', function (): void {
-  this.timeout(10_000);
+suite('replay process', function (): void {
+  this.timeout(60_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' });
 
@@ -28,13 +28,13 @@ suite('replay', function (): void {
         queuePollInterval = 600;
 
   let domainEventDispatcherClient: DomainEventDispatcherClient<DomainEvent<DomainEventData>>,
-      domainEventDispatcherHealthPort: number,
-      domainEventDispatcherPort: number,
-      domainEventStoreHealthPort: number,
-      domainEventStorePort: number,
+      domainEventDispatcherHealthSocket: string,
+      domainEventDispatcherSocket: string,
+      domainEventStoreHealthSocket: string,
+      domainEventStoreSocket: string,
       replayClient: ReplayClient,
-      replayHealthPort: number,
-      replayPort: number,
+      replayHealthSocket: string,
+      replaySocket: string,
       stopDomainEventDispatcherProcess: (() => Promise<void>) | undefined,
       stopDomainEventStoreProcess: (() => Promise<void>) | undefined,
       stopReplayProcess: (() => Promise<void>) | undefined,
@@ -42,20 +42,20 @@ suite('replay', function (): void {
 
   setup(async (): Promise<void> => {
     [
-      domainEventDispatcherPort,
-      domainEventDispatcherHealthPort,
-      domainEventStorePort,
-      domainEventStoreHealthPort,
-      replayHealthPort,
-      replayPort
-    ] = await getAvailablePorts({ count: 6 });
+      domainEventDispatcherSocket,
+      domainEventDispatcherHealthSocket,
+      domainEventStoreSocket,
+      domainEventStoreHealthSocket,
+      replayHealthSocket,
+      replaySocket
+    ] = await getSocketPaths({ count: 6 });
 
     const domainEventDispatcherConfiguration: DomainEventDispatcherConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventDispatcherConfigurationDefinition }),
       applicationDirectory,
       priorityQueueStoreOptions: { type: 'InMemory', expirationTime: queueLockExpirationTime },
-      port: domainEventDispatcherPort,
-      healthPort: domainEventDispatcherHealthPort,
+      portOrSocket: domainEventDispatcherSocket,
+      healthPortOrSocket: domainEventDispatcherHealthSocket,
       missedDomainEventRecoveryInterval: queuePollInterval
     };
 
@@ -63,7 +63,7 @@ suite('replay', function (): void {
       runtime: 'microservice',
       name: 'domainEventDispatcher',
       enableDebugMode: false,
-      port: domainEventDispatcherHealthPort,
+      portOrSocket: domainEventDispatcherHealthSocket,
       env: toEnvironmentVariables({
         configuration: domainEventDispatcherConfiguration,
         configurationDefinition: domainEventDispatcherConfigurationDefinition
@@ -73,22 +73,22 @@ suite('replay', function (): void {
     domainEventDispatcherClient = new DomainEventDispatcherClient<DomainEvent<DomainEventData>>({
       protocol: 'http',
       hostName: 'localhost',
-      port: domainEventDispatcherPort,
+      portOrSocket: domainEventDispatcherSocket,
       path: '/await-domain-event/v2',
       createItemInstance: ({ item }): DomainEvent<DomainEventData> => new DomainEvent<DomainEventData>(item)
     });
 
     const domainEventStoreConfiguration: DomainEventStoreConfiguration = {
       ...getDefaultConfiguration({ configurationDefinition: domainEventStoreConfigurationDefinition }),
-      port: domainEventStorePort,
-      healthPort: domainEventStoreHealthPort
+      portOrSocket: domainEventStoreSocket,
+      healthPortOrSocket: domainEventStoreHealthSocket
     };
 
     stopDomainEventStoreProcess = await startProcess({
       runtime: 'microservice',
       name: 'domainEventStore',
       enableDebugMode: false,
-      port: domainEventStoreHealthPort,
+      portOrSocket: domainEventStoreHealthSocket,
       env: toEnvironmentVariables({
         configuration: domainEventStoreConfiguration,
         configurationDefinition: domainEventStoreConfigurationDefinition
@@ -98,7 +98,7 @@ suite('replay', function (): void {
     writeDomainEventStoreClient = new WriteDomainEventStoreClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: domainEventStorePort,
+      portOrSocket: domainEventStoreSocket,
       path: '/write/v2'
     });
 
@@ -106,18 +106,18 @@ suite('replay', function (): void {
       ...getDefaultConfiguration({ configurationDefinition: replayConfigurationDefinition }),
       applicationDirectory,
       domainEventDispatcherHostName: 'localhost',
-      domainEventDispatcherPort,
+      domainEventDispatcherPortOrSocket: domainEventDispatcherSocket,
       aeonstoreHostName: 'localhost',
-      aeonstorePort: domainEventStorePort,
-      port: replayPort,
-      healthPort: replayHealthPort
+      aeonstorePortOrSocket: domainEventStoreSocket,
+      portOrSocket: replaySocket,
+      healthPortOrSocket: replayHealthSocket
     };
 
     stopReplayProcess = await startProcess({
       runtime: 'microservice',
       name: 'replay',
       enableDebugMode: false,
-      port: replayHealthPort,
+      portOrSocket: replayHealthSocket,
       env: toEnvironmentVariables({
         configuration: replayConfiguration,
         configurationDefinition: replayConfigurationDefinition
@@ -127,7 +127,7 @@ suite('replay', function (): void {
     replayClient = new ReplayClient({
       protocol: 'http',
       hostName: 'localhost',
-      port: replayPort,
+      portOrSocket: replaySocket,
       path: '/perform-replay/v2'
     });
   });
@@ -153,7 +153,7 @@ suite('replay', function (): void {
       const healthClient = new HealthClient({
         protocol: 'http',
         hostName: 'localhost',
-        port: replayHealthPort,
+        portOrSocket: replayHealthSocket,
         path: '/health/v2'
       });
 
@@ -170,29 +170,37 @@ suite('replay', function (): void {
       await writeDomainEventStoreClient.storeDomainEvents({
         domainEvents: [
           buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: aggregateId }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: { revision: 1 }
           }),
           buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: aggregateId }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: { revision: 2 }
           }),
           buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: aggregateId }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: { revision: 3 }
           }),
           buildDomainEvent({
-            contextIdentifier: { name: 'sampleContext' },
-            aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+            aggregateIdentifier: {
+              context: { name: 'sampleContext' },
+              aggregate: { name: 'sampleAggregate', id: aggregateId }
+            },
             name: 'executed',
             data: { strategy: 'succeed' },
             metadata: { revision: 4 }
@@ -202,8 +210,10 @@ suite('replay', function (): void {
 
       await replayClient.performReplay({
         aggregates: [{
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: aggregateId },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: aggregateId }
+          },
           from: 2,
           to: 3
         }]

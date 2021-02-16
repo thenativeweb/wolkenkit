@@ -1,7 +1,6 @@
 import { AggregateIdentifier } from '../../../elements/AggregateIdentifier';
 import { Application } from '../../../application/Application';
 import { ConsumerProgressStore } from '../../../../stores/consumerProgressStore/ConsumerProgressStore';
-import { ContextIdentifier } from '../../../elements/ContextIdentifier';
 import { createSandboxForAggregate } from './createSandboxForAggregate';
 import { createSandboxForFlow } from './createSandboxForFlow';
 import { createSandboxForView } from './createSandboxForView';
@@ -147,14 +146,12 @@ const initializedSandbox = function (sandboxConfiguration: SandboxConfiguration)
       });
     },
 
-    forAggregate<TState extends State>({ contextIdentifier, aggregateIdentifier }: {
-      contextIdentifier: ContextIdentifier;
+    forAggregate<TState extends State>({ aggregateIdentifier }: {
       aggregateIdentifier: AggregateIdentifier;
     }): SandboxForAggregate<TState> {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       return createSandboxForAggregate<TState>({
         ...sandboxConfiguration,
-        contextIdentifier,
         aggregateIdentifier,
         domainEvents: [],
         commands: []

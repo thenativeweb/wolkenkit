@@ -1,6 +1,4 @@
 import { AggregateIdentifier } from '../../../../common/elements/AggregateIdentifier';
-import axios from 'axios';
-import { ContextIdentifier } from '../../../../common/elements/ContextIdentifier';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
@@ -8,31 +6,27 @@ import { HttpClient } from '../../../shared/HttpClient';
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async performReplay ({ flowNames, aggregates }: {
     flowNames?: string[];
     aggregates: {
-      contextIdentifier: ContextIdentifier;
       aggregateIdentifier: AggregateIdentifier;
       from: number;
       to: number;
     }[];
   }): Promise<void> {
-    const { status, data } = await axios({
+    const { status, data } = await this.axios({
       method: 'post',
       url: `${this.url}/`,
-      data: { flowNames, aggregates },
-      validateStatus (): boolean {
-        return true;
-      }
+      data: { flowNames, aggregates }
     });
 
     if (status === 200) {

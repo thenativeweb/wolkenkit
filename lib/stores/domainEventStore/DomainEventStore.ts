@@ -5,21 +5,20 @@ import { Readable } from 'stream';
 import { Snapshot } from './Snapshot';
 import { State } from '../../common/elements/State';
 
-// All pass through streams in this interface emit objects of type DomainEvent.
 export interface DomainEventStore {
   getLastDomainEvent: <TDomainEventData extends DomainEventData> ({ aggregateIdentifier }: {
     aggregateIdentifier: AggregateIdentifier;
   }) => Promise<DomainEvent<TDomainEventData> | undefined>;
 
-  getDomainEventsByCausationId: <TDomainEventData extends DomainEventData> ({ causationId }: {
+  getDomainEventsByCausationId: ({ causationId }: {
     causationId: string;
   }) => Promise<Readable>;
 
-  hasDomainEventsWithCausationId: <TDomainEventData extends DomainEventData> ({ causationId }: {
+  hasDomainEventsWithCausationId: ({ causationId }: {
     causationId: string;
   }) => Promise<boolean>;
 
-  getDomainEventsByCorrelationId: <TDomainEventData extends DomainEventData> ({ correlationId }: {
+  getDomainEventsByCorrelationId: ({ correlationId }: {
     correlationId: string;
   }) => Promise<Readable>;
 
@@ -44,6 +43,15 @@ export interface DomainEventStore {
   storeSnapshot: <TState extends State> ({ snapshot }: {
     snapshot: Snapshot<TState>;
   }) => Promise<void>;
+
+  getAggregateIdentifiers: () => Promise<Readable>;
+
+  getAggregateIdentifiersByName: ({ contextName, aggregateName }: {
+    contextName: string;
+    aggregateName: string;
+  }) => Promise<Readable>;
+
+  setup: () => Promise<void>;
 
   destroy: () => Promise<void>;
 }

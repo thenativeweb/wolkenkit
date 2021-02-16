@@ -4,10 +4,12 @@ import { flaschenpost } from 'flaschenpost';
 import { getItemIdentifierWithClientSchema } from '../../../../common/schemas/getItemIdentifierWithClientSchema';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { OnCancelCommand } from '../../OnCancelCommand';
+import { Schema } from '../../../../common/elements/Schema';
 import typer from 'content-type';
 import { validateItemIdentifier } from '../../../../common/validators/validateItemIdentifier';
 import { Value } from 'validate-value';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { CustomError, isCustomError } from 'defekt';
 
 const logger = flaschenpost.getLogger();
 
@@ -20,7 +22,7 @@ const cancelCommand = {
   },
   response: {
     statusCodes: [ 200, 400, 404, 415 ],
-    body: { type: 'object' }
+    body: { type: 'object' } as Schema
   },
 
   getHandler ({ onCancelCommand, application }: {
@@ -35,10 +37,10 @@ const cancelCommand = {
         const contentType = typer.parse(req);
 
         if (contentType.type !== 'application/json') {
-          throw new errors.RequestMalformed();
+          throw new errors.ContentTypeMismatch();
         }
       } catch {
-        const ex = new errors.RequestMalformed('Header content-type must be application/json.');
+        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
         res.status(415).json({
           code: ex.code,
@@ -50,8 +52,8 @@ const cancelCommand = {
 
       try {
         requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex) {
-        const error = new errors.RequestMalformed(ex.message);
+      } catch (ex: unknown) {
+        const error = new errors.RequestMalformed((ex as Error).message);
 
         res.status(400).json({
           code: error.code,
@@ -65,10 +67,10 @@ const cancelCommand = {
 
       try {
         validateItemIdentifier({ itemIdentifier: commandIdentifierWithClient, application, itemType: 'command' });
-      } catch (ex) {
+      } catch (ex: unknown) {
         res.status(400).json({
-          code: ex.code,
-          message: ex.message
+          code: (ex as CustomError).code,
+          message: (ex as CustomError).message
         });
 
         return;
@@ -84,18 +86,20 @@ const cancelCommand = {
         responseBodySchema.validate(response, { valueName: 'responseBody' });
 
         res.status(200).json(response);
-      } catch (ex) {
-        switch (ex.code) {
+      } catch (ex: unknown) {
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
+
+        switch (error.code) {
           case errors.ItemNotFound.code: {
             return res.status(404).json({
-              code: ex.code,
-              message: ex.message
+              code: error.code,
+              message: error.message
             });
           }
           default: {
-            logger.error('An unknown error occured.', { ex });
-
-            const error = new errors.UnknownError();
+            logger.error('An unknown error occured.', { ex: error });
 
             res.status(500).json({
               code: error.code,

@@ -1,2 +1,2 @@
-FROM postgres:12.4-alpine
+FROM postgres:13.1-alpine
 LABEL maintainer="the native web <hello@thenativeweb.io>"

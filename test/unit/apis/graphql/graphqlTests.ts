@@ -14,11 +14,10 @@ import { DomainEventWithState } from '../../../../lib/common/elements/DomainEven
 import { Application as ExpressApplication } from 'express';
 import fetch from 'node-fetch';
 import { getApi } from '../../../../lib/apis/graphql';
-import { getAvailablePort } from '../../../../lib/common/utils/network/getAvailablePort';
 import { getSnapshotStrategy } from '../../../../lib/common/domain/getSnapshotStrategy';
+import { getSocketPaths } from '../../../shared/getSocketPaths';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import gql from 'graphql-tag';
-import http from 'http';
 import { HttpLink } from 'apollo-link-http';
 import { identityProvider } from '../../../shared/identityProvider';
 import { InitializeGraphQlOnServer } from '../../../../lib/apis/graphql/InitializeGraphQlOnServer';
@@ -36,6 +35,7 @@ import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
 import { WebSocketLink } from 'apollo-link-ws';
 import ws from 'ws';
+import http, { Agent } from 'http';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
 
 suite('graphql', function (): void {
@@ -44,17 +44,18 @@ suite('graphql', function (): void {
   const channelForNotifications = 'notifications',
         identityProviders = [ identityProvider ];
 
-  let api: ExpressApplication,
+  let agent: Agent,
+      api: ExpressApplication,
       application: Application,
       cancelledCommands: ItemIdentifierWithClient[],
       domainEventStore: DomainEventStore,
       initializeGraphQlOnServer: InitializeGraphQlOnServer,
-      port: number,
       publishDomainEvent: PublishDomainEvent | undefined,
       publisher: Publisher<Notification>,
       pubSubChannelForNotifications: string,
       receivedCommands: CommandWithMetadata<CommandData>[],
       repository: Repository,
+      socket: string,
       subscriber: Subscriber<Notification>;
 
   setup(async (): Promise<void> => {
@@ -104,12 +105,12 @@ suite('graphql', function (): void {
 
     const server = http.createServer(api);
 
-    port = await getAvailablePort();
+    [ socket ] = await getSocketPaths({ count: 1 });
 
     await initializeGraphQlOnServer({ server });
 
-    await new Promise((resolve, reject): void => {
-      server.listen(port, (): void => {
+    await new Promise<void>((resolve, reject): void => {
+      server.listen(socket, (): void => {
         resolve();
       });
 
@@ -117,6 +118,13 @@ suite('graphql', function (): void {
         reject(err);
       });
     });
+
+    // The parameter socketPath is necessary for the agent to connect to a
+    // unix socket. It is neither document in the node docs nor port of the
+    // @types/node package. Relevant issues:
+    // https://github.com/node-fetch/node-fetch/issues/336#issuecomment-689623290
+    // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/36463
+    agent = new Agent({ socketPath: socket } as any);
   });
 
   suite('startup', (): void => {
@@ -159,8 +167,9 @@ suite('graphql', function (): void {
 
     setup(async (): Promise<void> => {
       const link = new HttpLink({
-        uri: `http://localhost:${port}/v2/`,
-        fetch: fetch as any
+        uri: `http://localhost/v2/`,
+        fetch: fetch as any,
+        fetchOptions: { agent }
       });
       const cache = new InMemoryCache();
 
@@ -196,8 +205,10 @@ suite('graphql', function (): void {
 
       assert.that(receivedCommands.length).is.equalTo(1);
       assert.that(receivedCommands[0]).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate', id: aggregateIdentifier.id },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: aggregateIdentifier.id }
+        },
         name: 'execute',
         id: response.data.command.sampleContext_sampleAggregate_execute.id,
         data: { strategy: 'succeed' }
@@ -231,8 +242,10 @@ suite('graphql', function (): void {
       assert.that(response.data.command.sampleContext_sampleAggregate_execute.aggregateIdentifier.id).is.not.undefined();
       assert.that(receivedCommands.length).is.equalTo(1);
       assert.that(receivedCommands[0]).is.atLeast({
-        contextIdentifier: { name: 'sampleContext' },
-        aggregateIdentifier: { name: 'sampleAggregate' },
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate' }
+        },
         name: 'execute',
         id: response.data.command.sampleContext_sampleAggregate_execute.id,
         data: { strategy: 'succeed' }
@@ -246,8 +259,9 @@ suite('graphql', function (): void {
 
     setup(async (): Promise<void> => {
       const link = new HttpLink({
-        uri: `http://localhost:${port}/v2/`,
-        fetch: fetch as any
+        uri: `http://localhost/v2/`,
+        fetch: fetch as any,
+        fetchOptions: { agent }
       });
       const cache = new InMemoryCache();
 
@@ -259,12 +273,14 @@ suite('graphql', function (): void {
 
     test('calls onCancelCommand for requests to cancel commands.', async (): Promise<void> => {
       const commandIdentifier = {
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         id: v4()
@@ -317,12 +333,12 @@ suite('graphql', function (): void {
 
       const server = http.createServer(api);
 
-      port = await getAvailablePort();
+      [ socket ] = await getSocketPaths({ count: 1 });
 
       await initializeGraphQlOnServer({ server });
 
-      await new Promise((resolve, reject): void => {
-        server.listen(port, (): void => {
+      await new Promise<void>((resolve, reject): void => {
+        server.listen(socket, (): void => {
           resolve();
         });
 
@@ -331,9 +347,12 @@ suite('graphql', function (): void {
         });
       });
 
+      agent = new Agent({ socketPath: socket } as any);
+
       const link = new HttpLink({
-        uri: `http://localhost:${port}/v2/`,
-        fetch: fetch as any
+        uri: `http://localhost/v2/`,
+        fetch: fetch as any,
+        fetchOptions: { agent }
       });
       const cache = new InMemoryCache();
 
@@ -343,12 +362,14 @@ suite('graphql', function (): void {
       });
 
       const commandIdentifier = {
-        contextIdentifier: {
-          name: 'sampleContext'
-        },
         aggregateIdentifier: {
-          name: 'sampleAggregate',
-          id: v4()
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
         },
         name: 'execute',
         id: v4()
@@ -377,7 +398,7 @@ suite('graphql', function (): void {
 
     setup(async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/v2/`,
+        `ws+unix://${socket}:/v2/`,
         {},
         ws
       );
@@ -396,12 +417,14 @@ suite('graphql', function (): void {
       const aggregateId = v4();
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'succeeded',
           data: {},
@@ -419,12 +442,14 @@ suite('graphql', function (): void {
       const query = gql`
         subscription {
           domainEvents {
-            contextIdentifier {
-              name
-            }
             aggregateIdentifier {
-              name
-              id
+              context {
+                name
+              }
+              aggregate {
+                name
+                id
+              }
             }
             name
             id
@@ -442,7 +467,6 @@ suite('graphql', function (): void {
           assert.that(message).is.atLeast({
             data: {
               domainEvents: {
-                contextIdentifier: domainEvent.contextIdentifier,
                 aggregateIdentifier: domainEvent.aggregateIdentifier,
                 name: domainEvent.name,
                 id: domainEvent.id,
@@ -452,7 +476,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -470,12 +494,14 @@ suite('graphql', function (): void {
       const aggregateId = v4();
       const domainEvent1 = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'authenticated',
           data: {},
@@ -491,12 +517,14 @@ suite('graphql', function (): void {
       });
       const domainEvent2 = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'succeeded',
           data: {},
@@ -514,12 +542,14 @@ suite('graphql', function (): void {
       const query = gql`
         subscription {
           domainEvents {
-            contextIdentifier {
-              name
-            }
             aggregateIdentifier {
-              name
-              id
+              context {
+                name
+              }
+              aggregate {
+                name
+                id
+              }
             }
             name
             id
@@ -539,7 +569,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -558,12 +588,14 @@ suite('graphql', function (): void {
       const aggregateId = v4();
       const domainEvent = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'authenticated',
           data: {},
@@ -586,7 +618,7 @@ suite('graphql', function (): void {
       });
 
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/v2/`,
+        `ws+unix://${socket}:/v2/`,
         {
           connectionParams: {
             token
@@ -605,12 +637,14 @@ suite('graphql', function (): void {
       const query = gql`
         subscription {
           domainEvents {
-            contextIdentifier {
-              name
-            }
             aggregateIdentifier {
-              name
-              id
+              context {
+                name
+              }
+              aggregate {
+                name
+                id
+              }
             }
             name
             id
@@ -637,7 +671,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -655,12 +689,14 @@ suite('graphql', function (): void {
       const aggregateId = v4();
       const domainEvent1 = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'authenticateFailed',
           data: { reason: 'some reason' },
@@ -676,12 +712,14 @@ suite('graphql', function (): void {
       });
       const domainEvent2 = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'authenticateRejected',
           data: { reason: 'some reason' },
@@ -699,12 +737,14 @@ suite('graphql', function (): void {
       const query = gql`
         subscription {
           domainEvents {
-            contextIdentifier {
-              name
-            }
             aggregateIdentifier {
-              name
-              id
+              context {
+                name
+              }
+              aggregate {
+                name
+                id
+              }
             }
             name
             id
@@ -714,7 +754,7 @@ suite('graphql', function (): void {
       `;
 
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/v2/`,
+        `ws+unix://${socket}:/v2/`,
         {
           connectionParams: {
             'x-anonymous-id': 'jane.doe'
@@ -757,12 +797,14 @@ suite('graphql', function (): void {
       const aggregateId = v4();
       const domainEvent1 = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'authenticateFailed',
           data: { reason: 'some reason' },
@@ -778,12 +820,14 @@ suite('graphql', function (): void {
       });
       const domainEvent2 = new DomainEventWithState({
         ...buildDomainEvent({
-          contextIdentifier: {
-            name: 'sampleContext'
-          },
           aggregateIdentifier: {
-            name: 'sampleAggregate',
-            id: aggregateId
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: aggregateId
+            }
           },
           name: 'authenticateRejected',
           data: { reason: 'some reason' },
@@ -801,12 +845,14 @@ suite('graphql', function (): void {
       const query = gql`
         subscription {
           domainEvents {
-            contextIdentifier {
-              name
-            }
             aggregateIdentifier {
-              name
-              id
+              context {
+                name
+              }
+              aggregate {
+                name
+                id
+              }
             }
             name
             id
@@ -816,7 +862,7 @@ suite('graphql', function (): void {
       `;
 
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/v2/`,
+        `ws+unix://${socket}:/v2/`,
         {
           connectionParams: {
             'x-anonymous-id': 'john.doe'
@@ -859,7 +905,7 @@ suite('graphql', function (): void {
 
     setup(async (): Promise<void> => {
       const subscriptionClient = new SubscriptionClient(
-        `ws://localhost:${port}/v2/`,
+        `ws+unix://${socket}:/v2/`,
         {},
         ws
       );
@@ -902,7 +948,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -945,7 +991,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -989,7 +1035,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -1033,7 +1079,7 @@ suite('graphql', function (): void {
           });
 
           await collector.signal();
-        } catch (ex) {
+        } catch (ex: unknown) {
           await collector.fail(ex);
         }
       });
@@ -1083,8 +1129,9 @@ suite('graphql', function (): void {
 
     setup(async (): Promise<void> => {
       const link = new HttpLink({
-        uri: `http://localhost:${port}/v2/`,
-        fetch: fetch as any
+        uri: `http://localhost/v2/`,
+        fetch: fetch as any,
+        fetchOptions: { agent }
       });
       const cache = new InMemoryCache();
 
@@ -1097,14 +1144,18 @@ suite('graphql', function (): void {
     test('returns the result items returned by the query.', async (): Promise<void> => {
       const viewItems = [
         {
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'executed',
           id: v4()
         },
         {
-          contextIdentifier: { name: 'sampleContext' },
-          aggregateIdentifier: { name: 'sampleAggregate', id: v4() },
+          aggregateIdentifier: {
+            context: { name: 'sampleContext' },
+            aggregate: { name: 'sampleAggregate', id: v4() }
+          },
           name: 'executed',
           id: v4()
         }
@@ -1116,8 +1167,10 @@ suite('graphql', function (): void {
         query {
           sampleView {
             all {
-              contextIdentifier {
-                name
+              aggregateIdentifier {
+                context {
+                  name
+                }
               }
               id
             }
@@ -1131,11 +1184,11 @@ suite('graphql', function (): void {
         sampleView: {
           all: [
             {
-              contextIdentifier: { name: 'sampleContext' },
+              aggregateIdentifier: { context: { name: 'sampleContext' }},
               id: viewItems[0].id
             },
             {
-              contextIdentifier: { name: 'sampleContext' },
+              aggregateIdentifier: { context: { name: 'sampleContext' }},
               id: viewItems[1].id
             }
           ]

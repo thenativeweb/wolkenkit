@@ -1,31 +1,28 @@
-import axios from 'axios';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
 import { QueryDescription } from '../../../../common/application/QueryDescription';
+import { QueryResultItem } from '../../../../common/elements/QueryResultItem';
 import streamToString from 'stream-to-string';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
 
 class Client extends HttpClient {
-  public constructor ({ protocol = 'http', hostName, port, path = '/' }: {
+  public constructor ({ protocol = 'http', hostName, portOrSocket, path = '/' }: {
     protocol?: string;
     hostName: string;
-    port: number;
+    portOrSocket: number | string;
     path?: string;
   }) {
-    super({ protocol, hostName, port, path });
+    super({ protocol, hostName, portOrSocket, path });
   }
 
   public async getDescription (): Promise<Record<string, Record<string, QueryDescription>>> {
-    const { data, status } = await axios({
+    const { data, status } = await this.axios({
       method: 'get',
-      url: `${this.url}/description`,
-      validateStatus (): boolean {
-        return true;
-      }
+      url: `${this.url}/description`
     });
 
     if (status === 200) {
@@ -37,24 +34,21 @@ class Client extends HttpClient {
     throw new errors.UnknownError();
   }
 
-  public async query ({ viewName, queryName, queryOptions = {}}: {
+  public async queryStream ({ viewName, queryName, queryOptions = {}}: {
     viewName: string;
     queryName: string;
-    queryOptions?: object;
+    queryOptions?: Record<string, unknown>;
   }): Promise<PassThrough> {
-    const { data, status } = await axios({
+    const { data, status } = await this.axios({
       method: 'get',
-      url: `${this.url}/${viewName}/${queryName}`,
+      url: `${this.url}/${viewName}/stream/${queryName}`,
       params: queryOptions,
       paramsSerializer (params): string {
         return Object.entries(params).
           map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
           join('&');
       },
-      responseType: 'stream',
-      validateStatus (): boolean {
-        return true;
-      }
+      responseType: 'stream'
     });
 
     if (status !== 200) {
@@ -69,6 +63,9 @@ class Client extends HttpClient {
         }
         case errors.QueryOptionsInvalid.code: {
           throw new errors.QueryOptionsInvalid(error.message);
+        }
+        case errors.QueryHandlerTypeMismatch.code: {
+          throw new errors.QueryHandlerTypeMismatch(error.message);
         }
         default: {
           logger.error('An unknown error occured.', { ex: error, status });
@@ -90,6 +87,50 @@ class Client extends HttpClient {
         }
       }
     );
+  }
+
+  public async queryValue ({ viewName, queryName, queryOptions = {}}: {
+    viewName: string;
+    queryName: string;
+    queryOptions?: Record<string, unknown>;
+  }): Promise<QueryResultItem> {
+    const { data, status } = await this.axios({
+      method: 'get',
+      url: `${this.url}/${viewName}/value/${queryName}`,
+      params: queryOptions,
+      paramsSerializer (params): string {
+        return Object.entries(params).
+          map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
+          join('&');
+      }
+    });
+
+    if (status !== 200) {
+      switch (data.code) {
+        case errors.ViewNotFound.code: {
+          throw new errors.ViewNotFound(data.message);
+        }
+        case errors.QueryHandlerNotFound.code: {
+          throw new errors.QueryHandlerNotFound(data.message);
+        }
+        case errors.QueryOptionsInvalid.code: {
+          throw new errors.QueryOptionsInvalid(data.message);
+        }
+        case errors.QueryHandlerTypeMismatch.code: {
+          throw new errors.QueryHandlerTypeMismatch(data.message);
+        }
+        case errors.NotFound.code: {
+          throw new errors.NotFound(data.message);
+        }
+        default: {
+          logger.error('An unknown error occured.', { ex: data, status });
+
+          throw new errors.UnknownError();
+        }
+      }
+    }
+
+    return data;
   }
 }
 
