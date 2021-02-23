@@ -8,8 +8,11 @@ import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
-import typer from "content-type";
-import {errors} from "../../../../common/errors";
+import typer from 'content-type';
+import { errors } from '../../../../common/errors';
+import { validateContentType } from '../../../base/validateContentType';
+import { isCustomError } from 'defekt';
+import { LockMetadata } from '../../../../stores/priorityQueueStore/LockMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -56,79 +59,83 @@ const awaitItem = {
   }): WolkenkitRequestHandler {
     const responseBodySchema = new Value(awaitItem.response.body);
 
-    const maybeHandleLock = async function ({
-      res
-    }: {
-      res: Response;
-    }): Promise<boolean> {
-      const nextLock = await priorityQueueStore.lockNext();
-
-      if (nextLock !== undefined) {
-        logger.info(
-          'Locked priority queue item.',
-          withLogMetadata('api', 'awaitItem', { nextLock })
-        );
-
-        await validateOutgoingItem({ item: nextLock.item });
-        responseBodySchema.validate(nextLock, { valueName: 'responseBody' });
-
-        writeLine({ res, data: nextLock });
-        res.end();
-
-        return true;
-      }
-
-      return false;
-    };
-
     return async function (req, res): Promise<void> {
       try {
-        const contentType = typer.parse(req);
-
-        if (contentType.type !== 'application/x-ndjson') {
-          throw new errors.ContentTypeMismatch();
-        }
-      } catch {
-        const error = new errors.ContentTypeMismatch('Header content-type must be application/x-ndjson.');
-
-        res.status(415).json({
-          code: error.code,
-          message: error.message
+        validateContentType({
+          expectedContentType: 'application/x-ndjson',
+          req
         });
 
-        return;
-      }
+        res.startStream({ heartbeatInterval });
 
-      res.startStream({ heartbeatInterval });
+        const onNewItem = async function (): Promise<void> {
+          try {
+            const itemLock = await priorityQueueStore.lockNext();
 
-      const instantSuccess = await maybeHandleLock({ res });
+            if (itemLock) {
+              logger.debug(
+                'Locked priority queue item.',
+                withLogMetadata('api', 'awaitItem', { nextLock: itemLock })
+              );
 
-      if (instantSuccess) {
-        return;
-      }
+              await validateOutgoingItem({ item: itemLock.item });
+              responseBodySchema.validate(itemLock, { valueName: 'responseBody' });
 
-      const callback = async function (): Promise<void> {
-        try {
-          const success = await maybeHandleLock({ res });
+              writeLine({ res, data: itemLock });
 
-          if (success) {
+              await newItemSubscriber.unsubscribe({
+                channel: newItemSubscriberChannel,
+                callback: onNewItem
+              });
+              res.end();
+            }
+          } catch (ex: unknown) {
+            logger.error(
+              'An unexpected error occured when locking an item.',
+              withLogMetadata('api', 'awaitItem', { err: ex })
+            );
+
             await newItemSubscriber.unsubscribe({
               channel: newItemSubscriberChannel,
-              callback
+              callback: onNewItem
+            });
+            res.end();
+          }
+        };
+
+        await onNewItem();
+
+        await newItemSubscriber.subscribe({
+          channel: newItemSubscriberChannel,
+          callback: onNewItem
+        });
+      } catch (ex: unknown) {
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
+
+        switch (error.code) {
+          case errors.ContentTypeMismatch.code: {
+            res.status(415).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          default: {
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'awaitItem', { err: ex })
+            );
+
+            res.status(500).json({
+              code: error.code,
+              message: error.message
             });
           }
-        } catch (ex: unknown) {
-          logger.error(
-            'An unexpected error occured when locking an item.',
-            withLogMetadata('api', 'awaitItem', { err: ex })
-          );
         }
-      };
-
-      await newItemSubscriber.subscribe({
-        channel: newItemSubscriberChannel,
-        callback
-      });
+      }
     };
   }
 };

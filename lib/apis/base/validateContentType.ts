@@ -11,11 +11,11 @@ const validateContentType = function ({ expectedContentType, req }: {
   try {
     contentType = typer.parse(req);
   } catch (ex: unknown) {
-    throw new errors.ContentTypeMismatch('Header content-type must be application/json.', { cause: ex });
+    throw new errors.ContentTypeMismatch(`Header content-type must be ${expectedContentType}.`, { cause: ex });
   }
 
   if (contentType.type !== expectedContentType) {
-    throw new errors.ContentTypeMismatch('Header content-type must be application/json.');
+    throw new errors.ContentTypeMismatch(`Header content-type must be ${expectedContentType}.`);
   }
 };
 

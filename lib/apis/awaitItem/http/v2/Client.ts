@@ -34,7 +34,8 @@ class Client<TItem> extends HttpClient {
     const { data } = await this.axios({
       method: 'get',
       url: this.url,
-      responseType: 'stream'
+      responseType: 'stream',
+      headers: { 'content-type': 'application/x-ndjson' }
     });
 
     const passThrough = new PassThrough({ objectMode: true });
@@ -54,10 +55,16 @@ class Client<TItem> extends HttpClient {
       unsubscribe = (): void => {
         passThrough.off('data', onData);
         passThrough.off('error', onError);
+        passThrough.off('close', onError);
       };
 
       passThrough.on('data', onData);
       passThrough.on('error', onError);
+      passThrough.on('close', (): void => {
+        const error = new errors.StreamClosedUnexpectedly();
+
+        onError(error);
+      });
 
       const jsonParser = new ParseJsonTransform();
       const heartbeatFilter = new FilterHeartbeatsTransform();

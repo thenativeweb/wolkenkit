@@ -351,6 +351,48 @@ suite('awaitItem/http', (): void => {
           ]));
         });
       });
+
+      test('closes the stream if a malformatted item is encountered.', async (): Promise<void> => {
+        const { client } = await runAsServer({ app: api });
+
+        const { data } = await client({
+          method: 'get',
+          url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
+          responseType: 'stream'
+        });
+
+        const brokenCommandWithMetadata = { foo: 'bar' };
+
+        await priorityQueueStore.enqueue({
+          item: brokenCommandWithMetadata as any,
+          discriminator: v4(),
+          priority: Date.now()
+        });
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
+          message: {}
+        });
+
+        await new Promise<void>((resolve, reject): void => {
+          data.on('error', (err: any): void => {
+            reject(err);
+          });
+
+          data.on('close', (): void => {
+            resolve();
+          });
+
+          data.pipe(asJsonStream([
+            (streamElement): void => {
+              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+            },
+            (): void => {
+              reject(new Error('Should not have received another item from the server.'));
+            }
+          ]));
+        });
+      })
     });
 
     suite('POST /renew-lock', (): void => {
