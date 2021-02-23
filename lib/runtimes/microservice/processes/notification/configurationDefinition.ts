@@ -26,6 +26,11 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
     defaultValue: 3_001,
     schema: portOrSocketSchema
   },
+  heartbeatInterval: {
+    environmentVariable: 'HEARTBEAT_INTERVAL',
+    defaultValue: 90_000,
+    schema: { type: 'integer' }
+  },
   identityProviders: {
     environmentVariable: 'IDENTITY_PROVIDERS',
     defaultValue: [{
