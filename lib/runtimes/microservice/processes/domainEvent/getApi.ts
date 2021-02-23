@@ -26,7 +26,8 @@ const getApi = async function ({
         corsOrigin,
         application,
         identityProviders,
-        repository
+        repository,
+        heartbeatInterval: configuration.heartbeatInterval
       });
 
   const api = express();
