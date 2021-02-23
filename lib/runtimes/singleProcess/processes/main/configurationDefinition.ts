@@ -4,6 +4,7 @@ import { getConsumerProgressStoreOptionsSchema } from '../../../shared/schemas/g
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
 import { getDomainEventStoreOptionsSchema } from '../../../shared/schemas/getDomainEventStoreOptionsSchema';
 import { getFileStoreOptionsSchema } from '../../../shared/schemas/getFileStoreOptionsSchema';
+import { getHeartbeatIntervalSchema } from '../../../shared/schemas/getHeartbeatIntervalSchema';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
 import { getLockStoreOptionsSchema } from '../../../shared/schemas/getLockStoreOptionsSchema';
 import { getPortOrSocketSchema } from '../../../shared/schemas/getPortOrSocketSchema';
@@ -17,6 +18,7 @@ const consumerProgressStoreOptionsSchema = getConsumerProgressStoreOptionsSchema
       corsSchema = getCorsSchema(),
       domainEventStoreOptionsSchema = getDomainEventStoreOptionsSchema(),
       fileStoreOptionsSchema = getFileStoreOptionsSchema(),
+      heartbeatIntervalSchema = getHeartbeatIntervalSchema(),
       identityProviderSchema = getIdentityProviderSchema(),
       lockStoreOptionsSchema = getLockStoreOptionsSchema(),
       portOrSocketSchema = getPortOrSocketSchema(),
@@ -103,7 +105,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   heartbeatInterval: {
     environmentVariable: 'HEARTBEAT_INTERVAL',
     defaultValue: 90_000,
-    schema: { type: 'integer' }
+    schema: heartbeatIntervalSchema
   },
   httpApi: {
     environmentVariable: 'HTTP_API',

@@ -1,6 +1,7 @@
 import { Configuration } from './Configuration';
 import { ConfigurationDefinition } from '../../../shared/ConfigurationDefinition';
 import { getCorsSchema } from '../../../shared/schemas/getCorsSchema';
+import { getHeartbeatIntervalSchema } from '../../../shared/schemas/getHeartbeatIntervalSchema';
 import { getIdentityProviderSchema } from '../../../shared/schemas/getIdentityProviderSchema';
 import { getPortOrSocketSchema } from '../../../shared/schemas/getPortOrSocketSchema';
 import { getProtocolSchema } from '../../../shared/schemas/getProtocolSchema';
@@ -10,6 +11,7 @@ import { getSubscriberOptionsSchema } from '../../../shared/schemas/getSubscribe
 import path from 'path';
 
 const corsSchema = getCorsSchema(),
+      heartbeatIntervalSchema = getHeartbeatIntervalSchema(),
       identityProviderSchema = getIdentityProviderSchema(),
       portOrSocketSchema = getPortOrSocketSchema(),
       protocolSchema = getProtocolSchema(),
@@ -61,7 +63,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   heartbeatInterval: {
     environmentVariable: 'HEARTBEAT_INTERVAL',
     defaultValue: 90_000,
-    schema: { type: 'integer' }
+    schema: heartbeatIntervalSchema
   },
   identityProviders: {
     environmentVariable: 'IDENTITY_PROVIDERS',
