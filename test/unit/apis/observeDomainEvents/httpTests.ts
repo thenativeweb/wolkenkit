@@ -5,8 +5,10 @@ import { AxiosError } from 'axios';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
+import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
+import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/observeDomainEvents/http';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
@@ -23,8 +25,6 @@ import { runAsServer } from '../../../shared/http/runAsServer';
 import { sleep } from '../../../../lib/common/utils/sleep';
 import { v4 } from 'uuid';
 import { waitForSignals } from 'wait-for-signals';
-import { CustomError } from 'defekt';
-import { errors } from '../../../../lib/common/errors';
 
 suite('observeDomainEvents/http', (): void => {
   const identityProviders = [ identityProvider ];
@@ -132,7 +132,6 @@ suite('observeDomainEvents/http', (): void => {
         const { status, data } = await client({
           method: 'get',
           url: '/v2/?foo=bar',
-          responseType: 'stream',
           validateStatus: (): boolean => true
         });
 
@@ -149,6 +148,7 @@ suite('observeDomainEvents/http', (): void => {
         const { status } = await client({
           method: 'get',
           url: '/v2/?foo=bar',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream',
           validateStatus: (): boolean => true
         });
@@ -182,6 +182,7 @@ suite('observeDomainEvents/http', (): void => {
         const { status, data } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -250,6 +251,7 @@ suite('observeDomainEvents/http', (): void => {
         const { status, data } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -323,6 +325,7 @@ suite('observeDomainEvents/http', (): void => {
         const { status, data } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           params: { filter: { name: 'executed' }},
           paramsSerializer (params): string {
             return Object.entries(params).
@@ -398,6 +401,7 @@ suite('observeDomainEvents/http', (): void => {
         const { status, data } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           params: { filter: {
             aggregateIdentifier: { context: { name: 'sampleContext' }},
             name: 'executed'
@@ -477,6 +481,7 @@ suite('observeDomainEvents/http', (): void => {
           method: 'get',
           url: '/v2/',
           headers: {
+            'content-type': 'application/x-ndjson',
             'x-anonymous-id': 'jane.doe'
           },
           responseType: 'stream'
@@ -562,6 +567,7 @@ suite('observeDomainEvents/http', (): void => {
           method: 'get',
           url: '/v2/',
           headers: {
+            'content-type': 'application/x-ndjson',
             'x-anonymous-id': 'john.doe'
           },
           responseType: 'stream'
@@ -631,6 +637,7 @@ suite('observeDomainEvents/http', (): void => {
         const { data } = await client({
           method: 'get',
           url: '/v2/',
+          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -678,6 +685,7 @@ suite('observeDomainEvents/http', (): void => {
           await client({
             method: 'get',
             url: '/v2/',
+            headers: { 'content-type': 'application/x-ndjson' },
             responseType: 'stream',
             timeout: 100
           });
@@ -763,6 +771,7 @@ suite('observeDomainEvents/http', (): void => {
           const { data } = await client({
             method: 'get',
             url: '/v2/',
+            headers: { 'content-type': 'application/x-ndjson' },
             responseType: 'stream'
           });
 
@@ -852,6 +861,7 @@ suite('observeDomainEvents/http', (): void => {
           const { data } = await client({
             method: 'get',
             url: '/v2/',
+            headers: { 'content-type': 'application/x-ndjson' },
             responseType: 'stream'
           });
 
@@ -923,6 +933,7 @@ suite('observeDomainEvents/http', (): void => {
           const { data } = await client({
             method: 'get',
             url: '/v2/',
+            headers: { 'content-type': 'application/x-ndjson' },
             responseType: 'stream'
           });
 
@@ -998,6 +1009,7 @@ suite('observeDomainEvents/http', (): void => {
           const { data } = await client({
             method: 'get',
             url: '/v2/',
+            headers: { 'content-type': 'application/x-ndjson' },
             responseType: 'stream'
           });
 
@@ -1085,6 +1097,7 @@ suite('observeDomainEvents/http', (): void => {
           const { data } = await client({
             method: 'get',
             url: '/v2/',
+            headers: { 'content-type': 'application/x-ndjson' },
             responseType: 'stream'
           });
 
@@ -1172,6 +1185,7 @@ suite('observeDomainEvents/http', (): void => {
           const { data } = await client({
             method: 'get',
             url: '/v2/',
+            headers: { 'content-type': 'application/x-ndjson' },
             responseType: 'stream'
           });
 
@@ -1243,6 +1257,7 @@ suite('observeDomainEvents/http', (): void => {
           const { data } = await client({
             method: 'get',
             url: '/v2/',
+            headers: { 'content-type': 'application/x-ndjson' },
             responseType: 'stream'
           });
 
@@ -1318,6 +1333,7 @@ suite('observeDomainEvents/http', (): void => {
           const { data } = await client({
             method: 'get',
             url: '/v2/',
+            headers: { 'content-type': 'application/x-ndjson' },
             responseType: 'stream'
           });
 
@@ -1406,6 +1422,7 @@ suite('observeDomainEvents/http', (): void => {
           const { data } = await client({
             method: 'get',
             url: '/v2/',
+            headers: { 'content-type': 'application/x-ndjson' },
             responseType: 'stream'
           });
 
@@ -1493,6 +1510,7 @@ suite('observeDomainEvents/http', (): void => {
           const { data } = await client({
             method: 'get',
             url: '/v2/',
+            headers: { 'content-type': 'application/x-ndjson' },
             responseType: 'stream'
           });
 
@@ -1564,6 +1582,7 @@ suite('observeDomainEvents/http', (): void => {
           const { data } = await client({
             method: 'get',
             url: '/v2/',
+            headers: { 'content-type': 'application/x-ndjson' },
             responseType: 'stream'
           });
 

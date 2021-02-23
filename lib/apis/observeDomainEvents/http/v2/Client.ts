@@ -44,6 +44,7 @@ class Client extends HttpClient {
       method: 'get',
       url: this.url,
       params: { filter },
+      headers: { 'content-type': 'application/x-ndjson' },
       paramsSerializer (params): string {
         return Object.entries(params).
           map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
