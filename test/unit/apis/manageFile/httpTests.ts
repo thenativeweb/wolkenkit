@@ -7,7 +7,7 @@ import { FileStore } from '../../../../lib/stores/fileStore/FileStore';
 import { getApi } from '../../../../lib/apis/manageFile/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
-import { InMemoryFileStore } from '../../../../lib/stores/fileStore/InMemory/InMemoryFileStore';
+import { InMemoryFileStore } from '../../../../lib/stores/fileStore/InMemory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { Readable } from 'stream';
 import { runAsServer } from '../../../shared/http/runAsServer';
@@ -66,7 +66,7 @@ suite('manageFile/http', (): void => {
         assert.that(status).is.equalTo(400);
       });
 
-      test('returns 401 if the adding file hook throws a not authorized exception.', async (): Promise<void> => {
+      test('returns 401 if the adding file hook throws a not authenticated exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
@@ -74,7 +74,7 @@ suite('manageFile/http', (): void => {
           url: '/v2/add-file',
           headers: {
             'x-id': v4(),
-            'x-name': 'addingFile-unauthorized',
+            'x-name': 'addingFile-unauthenticated',
             'content-type': 'text/plain'
           },
           validateStatus (): boolean {
@@ -182,7 +182,7 @@ suite('manageFile/http', (): void => {
     });
 
     suite('GET /file/:id', (): void => {
-      test('returns 401 if the getting file hook throws a not authorized exception.', async (): Promise<void> => {
+      test('returns 401 if the getting file hook throws a not authenticated exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         await client({
@@ -190,7 +190,7 @@ suite('manageFile/http', (): void => {
           url: '/v2/add-file',
           headers: {
             'x-id': file.id,
-            'x-name': 'gettingFile-unauthorized',
+            'x-name': 'gettingFile-unauthenticated',
             'content-type': 'text/plain'
           },
           data: Readable.from(file.content)
@@ -321,7 +321,7 @@ suite('manageFile/http', (): void => {
         assert.that(status).is.equalTo(415);
       });
 
-      test('returns 401 if the removing file hook throws a not authorized exception.', async (): Promise<void> => {
+      test('returns 401 if the removing file hook throws a not authenticated exception.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         await client({
@@ -329,7 +329,7 @@ suite('manageFile/http', (): void => {
           url: '/v2/add-file',
           headers: {
             'x-id': file.id,
-            'x-name': 'removingFile-unauthorized',
+            'x-name': 'removingFile-unauthenticated',
             'content-type': 'text/plain'
           },
           data: Readable.from(file.content)

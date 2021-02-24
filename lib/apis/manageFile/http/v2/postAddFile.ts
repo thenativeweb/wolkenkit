@@ -11,6 +11,7 @@ import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import {validateContentType} from "../../../base/validateContentType";
 
 const logger = flaschenpost.getLogger();
 
@@ -53,25 +54,13 @@ const postAddFile = {
           responseBodySchema = new Value(postAddFile.response.body);
 
     return async function (req, res): Promise<any> {
-      if (!req.token || !req.user) {
-        const ex = new errors.NotAuthenticated('Client information missing in request.');
-
-        res.status(401).json({ code: ex.code, message: ex.message });
-
-        throw ex;
-      }
-
       try {
-        requestHeadersSchema.validate(req.headers, { valueName: 'requestHeaders' });
-      } catch (ex: unknown) {
-        const error = new errors.RequestMalformed((ex as Error).message);
+        try {
+          requestHeadersSchema.validate(req.headers, { valueName: 'requestHeaders' });
+        } catch (ex: unknown) {
+          throw new errors.RequestMalformed((ex as Error).message);
+        }
 
-        res.status(400).json({ code: error.code, message: error.message });
-
-        return;
-      }
-
-      try {
         const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
         let fileAddMetadata = {
           id: req.headers['x-id'] as string,
@@ -123,13 +112,29 @@ const postAddFile = {
           new errors.UnknownError(undefined, { cause: ex as Error });
 
         switch (error.code) {
+          case errors.RequestMalformed.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
           case errors.NotAuthenticated.code: {
-            res.status(401).json({ code: error.code, message: error.message });
-            break;
+            res.status(401).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
           }
           case errors.FileAlreadyExists.code: {
-            res.status(409).json({ code: error.code, message: error.message });
-            break;
+            res.status(409).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
           }
           default: {
             logger.error(
@@ -137,7 +142,10 @@ const postAddFile = {
               withLogMetadata('api', 'manageFile', { err: error })
             );
 
-            res.status(500).json({ code: error.code, message: error.message });
+            res.status(500).json({
+              code: error.code,
+              message: error.message
+            });
           }
         }
       }

@@ -1,7 +1,6 @@
 import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { errors } from '../../../../common/errors';
-import { FileMetadata } from '../../../../stores/fileStore/FileMetadata';
 import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
@@ -32,26 +31,20 @@ const getFile = {
     fileStore: FileStore;
   }): WolkenkitRequestHandler {
     return async function (req, res): Promise<any> {
-      const { id } = req.params;
-
       try {
-        new Value({
-          type: 'string',
-          format: 'uuid'
-        }).validate(id, { valueName: 'uuid' });
-      } catch (ex: unknown) {
-        const error = new errors.RequestMalformed((ex as Error).message);
+        const { id } = req.params;
 
-        res.status(400).json({ code: error.code, message: error.message });
+        try {
+          new Value({
+            type: 'string',
+            format: 'uuid'
+          }).validate(id, { valueName: 'uuid' });
+        } catch (ex: unknown) {
+          throw new errors.RequestMalformed((ex as Error).message);
+        }
 
-        return;
-      }
-
-      const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
-      let fileMetadata: FileMetadata;
-
-      try {
-        fileMetadata = await fileStore.getMetadata({ id });
+        const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
+        const fileMetadata = await fileStore.getMetadata({ id });
 
         if (application.hooks.gettingFile) {
           const errorService = getErrorService({ errors: [ 'NotAuthenticated' ]});
@@ -76,19 +69,53 @@ const getFile = {
         res.set('content-disposition', `inline; filename=${fileMetadata.name}`);
 
         await pipeline(stream, res);
+
+        try {
+          if (application.hooks.gotFile) {
+            await application.hooks.gotFile(fileMetadata, {
+              client: clientService,
+              infrastructure: application.infrastructure,
+              logger: getLoggerService({
+                fileName: '<app>/server/hooks/gotFile',
+                packageManifest: application.packageManifest
+              })
+            });
+          }
+        } catch (ex: unknown) {
+          logger.error(
+            'An unknown error occured.',
+            withLogMetadata('api', 'manageFile', { err: ex })
+          );
+        }
       } catch (ex: unknown) {
         const error = isCustomError(ex) ?
           ex :
           new errors.UnknownError(undefined, { cause: ex as Error });
 
         switch (error.code) {
+          case errors.RequestMalformed.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
           case errors.NotAuthenticated.code: {
-            res.status(401).json({ code: error.code, message: error.message });
-            break;
+            res.status(401).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
           }
           case errors.FileNotFound.code: {
-            res.status(404).json({ code: error.code, message: error.message });
-            break;
+            res.status(404).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
           }
           default: {
             logger.error(
@@ -96,29 +123,12 @@ const getFile = {
               withLogMetadata('api', 'manageFile', { err: error })
             );
 
-            res.status(500).json({ code: error.code, message: error.message });
+            res.status(500).json({
+              code: error.code,
+              message: error.message
+            });
           }
         }
-
-        return;
-      }
-
-      try {
-        if (application.hooks.gotFile) {
-          await application.hooks.gotFile(fileMetadata, {
-            client: clientService,
-            infrastructure: application.infrastructure,
-            logger: getLoggerService({
-              fileName: '<app>/server/hooks/gotFile',
-              packageManifest: application.packageManifest
-            })
-          });
-        }
-      } catch (ex: unknown) {
-        logger.error(
-          'An unknown error occured.',
-          withLogMetadata('api', 'manageFile', { err: ex })
-        );
       }
     };
   }

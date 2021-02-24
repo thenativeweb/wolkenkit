@@ -12,6 +12,7 @@ import typer from 'content-type';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { validateContentType } from '../../../base/validateContentType';
 
 const logger = flaschenpost.getLogger();
 
@@ -47,42 +48,18 @@ const postRemoveFile = {
           responseBodySchema = new Value(postRemoveFile.response.body);
 
     return async function (req, res): Promise<any> {
-      if (!req.token || !req.user) {
-        const ex = new errors.NotAuthenticated('Client information missing in request.');
-
-        res.status(401).json({ code: ex.code, message: ex.message });
-
-        throw ex;
-      }
-
       try {
-        const contentType = typer.parse(req);
-
-        if (contentType.type !== 'application/json') {
-          throw new errors.ContentTypeMismatch();
-        }
-      } catch {
-        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
-
-        res.status(415).json({
-          code: ex.code,
-          message: ex.message
+        validateContentType({
+          expectedContentType: 'application/json',
+          req
         });
 
-        return;
-      }
+        try {
+          requestBodySchema.validate(req.body, { valueName: 'requestBody' });
+        } catch (ex: unknown) {
+          throw new errors.RequestMalformed((ex as Error).message);
+        }
 
-      try {
-        requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex: unknown) {
-        const error = new errors.RequestMalformed((ex as Error).message);
-
-        res.status(400).json({ code: error.code, message: error.message });
-
-        return;
-      }
-
-      try {
         const { id } = req.body;
 
         const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
@@ -126,12 +103,35 @@ const postRemoveFile = {
           new errors.UnknownError(undefined, { cause: ex as Error });
 
         switch (error.code) {
+          case errors.ContentTypeMismatch.code: {
+            res.status(415).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          case errors.RequestMalformed.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
           case errors.NotAuthenticated.code: {
-            res.status(401).json({ code: error.code, message: error.message });
-            break;
+            res.status(401).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
           }
           case errors.FileNotFound.code: {
-            res.status(404).json({ code: error.code, message: error.message });
+            res.status(404).json({
+              code: error.code,
+              message: error.message
+            });
             break;
           }
           default: {
@@ -140,7 +140,10 @@ const postRemoveFile = {
               withLogMetadata('api', 'manageFile', { err: error })
             );
 
-            res.status(500).json({ code: error.code, message: error.message });
+            res.status(500).json({
+              code: error.code,
+              message: error.message
+            });
           }
         }
       }

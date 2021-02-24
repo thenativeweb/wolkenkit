@@ -2,7 +2,7 @@
 
 const hooks = {
   async addingFile ({ name }, { error }) {
-    if (name === 'addingFile-unauthorized') {
+    if (name === 'addingFile-unauthenticated') {
       throw new error.NotAuthenticated();
     }
     if (name === 'addingFile-failure') {
@@ -17,7 +17,7 @@ const hooks = {
   },
 
   async gettingFile ({ name }, { error }) {
-    if (name === 'gettingFile-unauthorized') {
+    if (name === 'gettingFile-unauthenticated') {
       throw new error.NotAuthenticated();
     }
     if (name === 'gettingFile-failure') {
@@ -32,7 +32,7 @@ const hooks = {
   },
 
   async removingFile ({ name }, { error }) {
-    if (name === 'removingFile-unauthorized') {
+    if (name === 'removingFile-unauthenticated') {
       throw new error.NotAuthenticated();
     }
     if (name === 'removingFile-failure') {
