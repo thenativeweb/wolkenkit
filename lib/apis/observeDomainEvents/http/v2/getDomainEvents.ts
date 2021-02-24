@@ -99,6 +99,11 @@ const getDomainEvents = {
 
             responseBodySchema.validate(domainEvent, { valueName: 'responseBody' });
 
+            logger.debug(
+              'Publishing domain event to client...',
+              withLogMetadata('api', 'graphql', { domainEvent })
+            );
+
             writeLine({ res, data: domainEvent });
           });
           /* eslint-enable @typescript-eslint/no-floating-promises */
