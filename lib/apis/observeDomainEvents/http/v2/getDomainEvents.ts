@@ -8,6 +8,7 @@ import { getAggregatesService } from '../../../../common/services/getAggregatesS
 import { getClientService } from '../../../../common/services/getClientService';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { isCustomError } from 'defekt';
 import PQueue from 'p-queue';
 import { prepareForPublication } from '../../../../common/domain/domainEvent/prepareForPublication';
 import { Repository } from '../../../../common/domain/Repository';
@@ -19,7 +20,6 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import { Request, Response } from 'express';
-import typer from "content-type";
 
 const logger = flaschenpost.getLogger();
 
@@ -61,39 +61,18 @@ const getDomainEvents = {
 
     return async function (req: Request, res: Response): Promise<void> {
       try {
-        const contentType = typer.parse(req);
-
-        if (contentType.type !== 'application/x-ndjson') {
-          throw new errors.ContentTypeMismatch();
+        try {
+          querySchema.validate(req.query, { valueName: 'requestQuery' });
+        } catch (ex: unknown) {
+          throw new errors.RequestMalformed((ex as Error).message);
         }
-      } catch {
-        const error = new errors.ContentTypeMismatch('Header content-type must be application/x-ndjson.');
 
-        res.status(415).json({
-          code: error.code,
-          message: error.message
-        });
+        const domainEventQueue = new PQueue({ concurrency: 1 });
 
-        return;
-      }
-
-      try {
-        querySchema.validate(req.query, { valueName: 'requestQuery' });
-      } catch (ex: unknown) {
-        res.status(400).end((ex as Error).message);
-
-        return;
-      }
-
-      const domainEventQueue = new PQueue({ concurrency: 1 });
-
-      let handleDomainEvent: (domainEventWithState: DomainEventWithState<DomainEventData, State>) => void;
-
-      try {
         const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
         const domainEventFilter = (req.query.filter ?? {}) as Record<string, unknown>;
 
-        handleDomainEvent = (domainEventWithState): void => {
+        const handleDomainEvent = (domainEventWithState: DomainEventWithState<DomainEventData, State>): void => {
           /* eslint-disable @typescript-eslint/no-floating-promises */
           domainEventQueue.add(async (): Promise<void> => {
             const domainEvent = await prepareForPublication({
@@ -124,23 +103,7 @@ const getDomainEvents = {
           });
           /* eslint-enable @typescript-eslint/no-floating-promises */
         };
-      } catch (ex: unknown) {
-        logger.error(
-          'An unknown error occured.',
-          withLogMetadata('api', 'observeDomainEvents', { err: ex })
-        );
 
-        const error = new errors.UnknownError();
-
-        res.status(500).json({
-          code: error.code,
-          message: error.message
-        });
-
-        return;
-      }
-
-      try {
         res.startStream({ heartbeatInterval });
 
         res.socket?.once('close', (): void => {
@@ -160,12 +123,31 @@ const getDomainEvents = {
           return;
         }
 
-        logger.error(
-          'An unknown error occured.',
-          withLogMetadata('api', 'observeDomainEvents', { err: ex })
-        );
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
 
-        throw ex;
+        switch (error.code) {
+          case errors.RequestMalformed.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          default: {
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'observeDomainEvents', { err: ex })
+            );
+
+            res.status(500).json({
+              code: error.code,
+              message: error.message
+            });
+          }
+        }
       }
     };
   }
