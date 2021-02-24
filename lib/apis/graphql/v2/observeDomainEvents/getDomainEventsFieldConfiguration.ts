@@ -2,6 +2,7 @@ import { Application } from '../../../../common/application/Application';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { DomainEventWithState } from '../../../../common/elements/DomainEventWithState';
 import { errors } from '../../../../common/errors';
+import { flaschenpost } from 'flaschenpost';
 import { getAggregatesService } from '../../../../common/services/getAggregatesService';
 import { getApplicationDescription } from '../../../../common/application/getApplicationDescription';
 import { getClientService } from '../../../../common/services/getClientService';
@@ -17,7 +18,12 @@ import { source } from 'common-tags';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
 import { transformDomainEventForGraphql } from '../../shared/elements/transformDomainEventForGraphql';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { buildSchema, GraphQLFieldConfig, GraphQLObjectType, GraphQLString } from 'graphql';
+import { validateNotification } from '../../../../common/validators/validateNotification';
+import { validateDomainEvent } from '../../../../common/validators/validateDomainEvent';
+
+const logger = flaschenpost.getLogger();
 
 const getDomainEventsFieldConfiguration = function ({ application, repository, domainEventEmitter }: {
   application: Application;
@@ -103,9 +109,16 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
           continue;
         }
 
-        yield transformDomainEventForGraphql({
+        const transformedDomainEvent = transformDomainEventForGraphql({
           domainEvent: preparedDomainEvent
         });
+
+        logger.debug(
+          'Publishing domain event to client...',
+          withLogMetadata('api', 'graphql', { domainEvent: transformedDomainEvent })
+        );
+
+        yield transformedDomainEvent;
       }
     },
     resolve (domainEvent): any {
