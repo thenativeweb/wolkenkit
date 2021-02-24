@@ -62,7 +62,6 @@ suite('awaitItem/http', (): void => {
         const { status } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -75,7 +74,6 @@ suite('awaitItem/http', (): void => {
         const { headers } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -88,7 +86,6 @@ suite('awaitItem/http', (): void => {
         const { data } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -119,7 +116,6 @@ suite('awaitItem/http', (): void => {
         const { data } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -200,7 +196,6 @@ suite('awaitItem/http', (): void => {
         const { data: dataFirstTry } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -223,7 +218,6 @@ suite('awaitItem/http', (): void => {
         const { data: dataSecondTry } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -290,14 +284,12 @@ suite('awaitItem/http', (): void => {
         const { data: dataFirstTry } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
         const { data: dataSecondTry } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -342,7 +334,6 @@ suite('awaitItem/http', (): void => {
         const { data } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -376,7 +367,7 @@ suite('awaitItem/http', (): void => {
             }
           ]));
         });
-      })
+      });
     });
 
     suite('POST /renew-lock', (): void => {
@@ -431,7 +422,6 @@ suite('awaitItem/http', (): void => {
         await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -499,7 +489,6 @@ suite('awaitItem/http', (): void => {
         const { status, data: lockData } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -541,7 +530,6 @@ suite('awaitItem/http', (): void => {
         const { data: unavailableLockData } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -619,7 +607,6 @@ suite('awaitItem/http', (): void => {
         await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -702,7 +689,6 @@ suite('awaitItem/http', (): void => {
         const { status, data: firstLockData } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -738,7 +724,6 @@ suite('awaitItem/http', (): void => {
         const { data: secondLockData } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -814,7 +799,6 @@ suite('awaitItem/http', (): void => {
         await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -934,7 +918,6 @@ suite('awaitItem/http', (): void => {
         const { data: firstLockData } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -969,7 +952,6 @@ suite('awaitItem/http', (): void => {
         const { status, data: secondLockData } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
@@ -1005,7 +987,6 @@ suite('awaitItem/http', (): void => {
         const { data: thirdLockData } = await client({
           method: 'get',
           url: '/v2/',
-          headers: { 'content-type': 'application/x-ndjson' },
           responseType: 'stream'
         });
 
