@@ -1,5 +1,5 @@
 import { Application } from '../../../../common/application/Application';
-import { CustomError } from 'defekt';
+import { CustomError, isCustomError } from 'defekt';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { errors } from '../../../../common/errors';
@@ -13,6 +13,7 @@ import { validateFlowNames } from '../../../../common/validators/validateFlowNam
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { validateContentType } from '../../../base/validateContentType';
 
 const logger = flaschenpost.getLogger();
 
@@ -49,56 +50,28 @@ const postDomainEvent = {
 
     return async function (req, res): Promise<void> {
       try {
-        const contentType = typer.parse(req);
+        validateContentType({
+          expectedContentType: 'application/json',
+          req
+        });
 
-        if (contentType.type !== 'application/json') {
-          throw new errors.ContentTypeMismatch();
+        try {
+          requestBodySchema.validate(req.body, { valueName: 'requestBody' });
+        } catch (ex: unknown) {
+          throw new errors.RequestMalformed((ex as Error).message);
         }
-      } catch {
-        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-        res.status(415).json({
-          code: ex.code,
-          message: ex.message
-        });
+        const flowNames = req.body.flowNames ?? Object.keys(application.flows);
+        const domainEvent = new DomainEvent<DomainEventData>(req.body.domainEvent);
 
-        return;
-      }
-
-      try {
-        requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex: unknown) {
-        const error = new errors.RequestMalformed((ex as Error).message);
-
-        res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
-
-        return;
-      }
-
-      const flowNames = req.body.flowNames ?? Object.keys(application.flows);
-      const domainEvent = new DomainEvent<DomainEventData>(req.body.domainEvent);
-
-      try {
         validateFlowNames({ flowNames, application });
         validateDomainEvent({ domainEvent, application });
-      } catch (ex: unknown) {
-        res.status(400).json({
-          code: (ex as CustomError).code,
-          message: (ex as CustomError).message
-        });
 
-        return;
-      }
+        logger.debug(
+          'Received domain event.',
+          withLogMetadata('api', 'handleDomainEvent', { flowNames, domainEvent })
+        );
 
-      logger.info(
-        'Received domain event.',
-        withLogMetadata('api', 'handleDomainEvent', { flowNames, domainEvent })
-      );
-
-      try {
         await onReceiveDomainEvent({ flowNames, domainEvent });
 
         const response = {};
@@ -107,17 +80,44 @@ const postDomainEvent = {
 
         res.status(200).json(response);
       } catch (ex: unknown) {
-        logger.error(
-          'An unknown error occured.',
-          withLogMetadata('api', 'handleDomainEvent', { err: ex })
-        );
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
 
-        const error = new errors.UnknownError();
+        switch (error.code) {
+          case errors.ContentTypeMismatch.code: {
+            res.status(415).json({
+              code: error.code,
+              message: error.message
+            });
 
-        res.status(500).json({
-          code: error.code,
-          message: error.message
-        });
+            return;
+          }
+          case errors.FlowNotFound.code:
+          case errors.ContextNotFound.code:
+          case errors.AggregateNotFound.code:
+          case errors.DomainEventNotFound.code:
+          case errors.DomainEventMalformed.code:
+          case errors.RequestMalformed.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          default: {
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'handleDomainEvent', { err: error })
+            );
+
+            res.status(500).json({
+              code: error.code,
+              message: error.message
+            });
+          }
+        }
       }
     };
   }

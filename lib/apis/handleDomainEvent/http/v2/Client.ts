@@ -35,9 +35,6 @@ class Client extends HttpClient {
       case errors.FlowNotFound.code: {
         throw new errors.FlowNotFound(data.message);
       }
-      case errors.DomainEventMalformed.code: {
-        throw new errors.DomainEventMalformed(data.message);
-      }
       case errors.ContextNotFound.code: {
         throw new errors.ContextNotFound(data.message);
       }
@@ -46,6 +43,9 @@ class Client extends HttpClient {
       }
       case errors.DomainEventNotFound.code: {
         throw new errors.DomainEventNotFound(data.message);
+      }
+      case errors.DomainEventMalformed.code: {
+        throw new errors.DomainEventMalformed(data.message);
       }
       default: {
         logger.error(
