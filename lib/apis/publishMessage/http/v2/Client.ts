@@ -29,16 +29,12 @@ class Client extends HttpClient {
       return;
     }
 
-    switch (data.code) {
-      default: {
-        logger.error(
-          'An unknown error occured.',
-          withLogMetadata('api-client', 'publishMessage', { err: data, status })
-        );
+    logger.error(
+      'An unknown error occured.',
+      withLogMetadata('api-client', 'publishMessage', { err: data, status })
+    );
 
-        throw new errors.UnknownError();
-      }
-    }
+    throw new errors.UnknownError();
   }
 }
 
