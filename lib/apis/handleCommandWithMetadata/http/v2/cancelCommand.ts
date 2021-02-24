@@ -11,6 +11,7 @@ import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { CustomError, isCustomError } from 'defekt';
+import { validateContentType } from '../../../base/validateContentType';
 
 const logger = flaschenpost.getLogger();
 
@@ -35,54 +36,26 @@ const cancelCommand = {
 
     return async function (req, res): Promise<any> {
       try {
-        const contentType = typer.parse(req);
+        validateContentType({
+          expectedContentType: 'application/json',
+          req
+        });
 
-        if (contentType.type !== 'application/json') {
-          throw new errors.ContentTypeMismatch();
+        try {
+          requestBodySchema.validate(req.body, { valueName: 'requestBody' });
+        } catch (ex: unknown) {
+          throw new errors.RequestMalformed((ex as Error).message);
         }
-      } catch {
-        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-        res.status(415).json({
-          code: ex.code,
-          message: ex.message
-        });
+        const commandIdentifierWithClient: ItemIdentifierWithClient = req.body;
 
-        return;
-      }
-
-      try {
-        requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex: unknown) {
-        const error = new errors.RequestMalformed((ex as Error).message);
-
-        res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
-
-        return;
-      }
-
-      const commandIdentifierWithClient: ItemIdentifierWithClient = req.body;
-
-      try {
         validateItemIdentifier({ itemIdentifier: commandIdentifierWithClient, application, itemType: 'command' });
-      } catch (ex: unknown) {
-        res.status(400).json({
-          code: (ex as CustomError).code,
-          message: (ex as CustomError).message
-        });
 
-        return;
-      }
+        logger.debug(
+          'Received request to cancel command.',
+          withLogMetadata('api', 'handleCommandWithMetadata', { commandIdentifierWithClient })
+        );
 
-      logger.info(
-        'Received request to cancel command.',
-        withLogMetadata('api', 'handleCommandWithMetadata', { commandIdentifierWithClient })
-      );
-
-      try {
         await onCancelCommand({ commandIdentifierWithClient });
 
         const response = {};
@@ -96,6 +69,25 @@ const cancelCommand = {
           new errors.UnknownError(undefined, { cause: ex as Error });
 
         switch (error.code) {
+          case errors.ContentTypeMismatch.code: {
+            res.status(415).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          case errors.RequestMalformed.code:
+          case errors.ContextNotFound.code:
+          case errors.AggregateNotFound.code:
+          case errors.CommandNotFound.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
           case errors.ItemNotFound.code: {
             return res.status(404).json({
               code: error.code,

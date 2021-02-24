@@ -32,9 +32,6 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case errors.CommandMalformed.code: {
-        throw new errors.CommandMalformed(data.message);
-      }
       case errors.ContextNotFound.code: {
         throw new errors.ContextNotFound(data.message);
       }
@@ -43,6 +40,9 @@ class Client extends HttpClient {
       }
       case errors.CommandNotFound.code: {
         throw new errors.CommandNotFound(data.message);
+      }
+      case errors.CommandMalformed.code: {
+        throw new errors.CommandMalformed(data.message);
       }
       default: {
         logger.error(
@@ -64,28 +64,21 @@ class Client extends HttpClient {
       data: commandIdentifierWithClient
     });
 
-    switch (status) {
-      case 200: {
-        return;
+    if (status === 200) {
+      return;
+    }
+
+    switch (data.code) {
+      case errors.ContextNotFound.code: {
+        throw new errors.ContextNotFound(data.message);
       }
-      case 400: {
-        switch (data.code) {
-          case errors.ContextNotFound.code: {
-            throw new errors.ContextNotFound(data.message);
-          }
-          case errors.AggregateNotFound.code: {
-            throw new errors.AggregateNotFound(data.message);
-          }
-          case errors.CommandNotFound.code: {
-            throw new errors.CommandNotFound(data.message);
-          }
-          default: {
-            // Intentionally left blank so it falls through to the outher default case.
-          }
-        }
+      case errors.AggregateNotFound.code: {
+        throw new errors.AggregateNotFound(data.message);
       }
-      // eslint-disable-next-line no-fallthrough
-      case 404: {
+      case errors.CommandNotFound.code: {
+        throw new errors.CommandNotFound(data.message);
+      }
+      case errors.ItemNotFound.code: {
         throw new errors.ItemNotFound(data.message);
       }
       default: {

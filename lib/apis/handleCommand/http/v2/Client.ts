@@ -62,9 +62,6 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case errors.CommandMalformed.code: {
-        throw new errors.CommandMalformed(data.message);
-      }
       case errors.ContextNotFound.code: {
         throw new errors.ContextNotFound(data.message);
       }
@@ -73,6 +70,9 @@ class Client extends HttpClient {
       }
       case errors.CommandNotFound.code: {
         throw new errors.CommandNotFound(data.message);
+      }
+      case errors.CommandMalformed.code: {
+        throw new errors.CommandMalformed(data.message);
       }
       default: {
         logger.error(
