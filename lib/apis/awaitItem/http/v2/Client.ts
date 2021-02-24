@@ -6,6 +6,7 @@ import { LockMetadata } from '../../../../stores/priorityQueueStore/LockMetadata
 import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { PassThrough, pipeline } from 'stream';
+import streamToString from 'stream-to-string';
 
 const logger = flaschenpost.getLogger();
 
@@ -31,12 +32,22 @@ class Client<TItem> extends HttpClient {
   }
 
   public async awaitItem (): Promise<{ item: TItem; metadata: LockMetadata }> {
-    const { data } = await this.axios({
+    const { data, status } = await this.axios({
       method: 'get',
       url: this.url,
-      responseType: 'stream',
-      headers: { 'content-type': 'application/x-ndjson' }
+      responseType: 'stream'
     });
+
+    if (status !== 200) {
+      const error = JSON.parse(await streamToString(data));
+
+      logger.error(
+        'An unknown error occured.',
+        withLogMetadata('api-client', 'awaitItem', { err: error, status })
+      );
+
+      throw new errors.UnknownError();
+    }
 
     const passThrough = new PassThrough({ objectMode: true });
 

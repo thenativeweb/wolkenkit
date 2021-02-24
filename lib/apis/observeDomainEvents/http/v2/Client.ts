@@ -6,6 +6,7 @@ import { HttpClient } from '../../../shared/HttpClient';
 import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { PassThrough, pipeline } from 'stream';
+import streamToString from "stream-to-string";
 
 const logger = flaschenpost.getLogger();
 
@@ -44,7 +45,6 @@ class Client extends HttpClient {
       method: 'get',
       url: this.url,
       params: { filter },
-      headers: { 'content-type': 'application/x-ndjson' },
       paramsSerializer (params): string {
         return Object.entries(params).
           map(([ key, value ]): string => `${key}=${JSON.stringify(value)}`).
@@ -54,9 +54,11 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
+      const error = JSON.parse(await streamToString(data));
+
       logger.error(
         'An unknown error occured.',
-        withLogMetadata('api-client', 'observeDomainEvents', { err: data, status })
+        withLogMetadata('api-client', 'observeDomainEvents', { err: error, status })
       );
 
       throw new errors.UnknownError();
