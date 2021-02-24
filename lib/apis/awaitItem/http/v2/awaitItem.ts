@@ -1,18 +1,14 @@
+import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
+import { isCustomError } from 'defekt';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
-import { Response } from 'express';
 import { Schema } from '../../../../common/elements/Schema';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
-import typer from 'content-type';
-import { errors } from '../../../../common/errors';
-import { validateContentType } from '../../../base/validateContentType';
-import { isCustomError } from 'defekt';
-import { LockMetadata } from '../../../../stores/priorityQueueStore/LockMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -61,11 +57,6 @@ const awaitItem = {
 
     return async function (req, res): Promise<void> {
       try {
-        validateContentType({
-          expectedContentType: 'application/x-ndjson',
-          req
-        });
-
         res.startStream({ heartbeatInterval });
 
         const onNewItem = async function (): Promise<void> {

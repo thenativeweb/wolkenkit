@@ -69,22 +69,6 @@ suite('awaitItem/http', (): void => {
         assert.that(status).is.equalTo(200);
       });
 
-      test('returns 415 if the content type header is not application/x-ndjson.', async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'get',
-          url: '/v2/',
-          validateStatus: (): boolean => true
-        });
-
-        assert.that(status).is.equalTo(415);
-        assert.that(data).is.equalTo({
-          code: errors.ContentTypeMismatch.code,
-          message: 'Header content-type must be application/x-ndjson.'
-        });
-      });
-
       test('returns the content-type application/x-ndjson.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
