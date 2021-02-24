@@ -67,14 +67,14 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     switch (flowDefinition.replayPolicy) {
       case 'never': {
         logger.debug(
-          `Domain event is too old. Ignoring due to replay policy 'never'.`,
+          `Domain event is too new. Ignoring due to replay policy 'never'.`,
           withLogMetadata('common', 'executeFlow', { flowName })
         );
         break;
       }
       case 'on-demand': {
         logger.debug(
-          `Domain event is too old. Deferring due to replay policy 'on-demand'.`,
+          `Domain event is too new. Deferring due to replay policy 'on-demand'.`,
           withLogMetadata('common', 'executeFlow', { flowName })
         );
 
@@ -86,7 +86,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
                 to = domainEvent.metadata.revision - 1;
 
           logger.debug(
-            `Domain event is too old. Requesting replay and deferring due to replay policy 'always'.`,
+            `Domain event is too new. Requesting replay and deferring due to replay policy 'always'.`,
             withLogMetadata('common', 'executeFlow', { flowName, from, to })
           );
 
