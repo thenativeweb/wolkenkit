@@ -45,19 +45,17 @@ const hasDomainEventsWithCausationId = {
           responseBodySchema = new Value(hasDomainEventsWithCausationId.response.body);
 
     return async function (req, res): Promise<any> {
-      let causationId;
-
       try {
-        querySchema.validate(req.query, { valueName: 'requestQuery' });
+        let causationId;
 
-        causationId = req.query['causation-id'] as string;
-      } catch {
-        res.status(400).end();
+        try {
+          querySchema.validate(req.query, { valueName: 'requestQuery' });
 
-        return;
-      }
+          causationId = req.query['causation-id'] as string;
+        } catch (ex: unknown) {
+          throw new errors.RequestMalformed((ex as Error).message);
+        }
 
-      try {
         const hasDomainEvents = await domainEventStore.hasDomainEventsWithCausationId({ causationId }),
               response = { hasDomainEventsWithCausationId: hasDomainEvents };
 
@@ -69,15 +67,27 @@ const hasDomainEventsWithCausationId = {
           ex :
           new errors.UnknownError(undefined, { cause: ex as Error });
 
-        logger.error(
-          'An unknown error occured.',
-          withLogMetadata('api', 'queryDomainEventStore', { err: error })
-        );
+        switch (error.code) {
+          case errors.RequestMalformed.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
 
-        return res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
+            return;
+          }
+          default: {
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'queryDomainEventStore', { err: error })
+            );
+
+            return res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+          }
+        }
       }
     };
   }

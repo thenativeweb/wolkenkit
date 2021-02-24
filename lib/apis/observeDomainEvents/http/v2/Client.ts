@@ -4,9 +4,9 @@ import { FilterHeartbeatsTransform } from '../../../../common/utils/http/FilterH
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
+import streamToString from "stream-to-string";
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { PassThrough, pipeline } from 'stream';
-import streamToString from "stream-to-string";
 
 const logger = flaschenpost.getLogger();
 
