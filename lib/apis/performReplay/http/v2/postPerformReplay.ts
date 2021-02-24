@@ -1,12 +1,12 @@
 import { Application } from '../../../../common/application/Application';
-import { CustomError } from 'defekt';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getAggregateIdentifierSchema } from '../../../../common/schemas/getAggregateIdentifierSchema';
+import { isCustomError } from 'defekt';
 import { PerformReplay } from '../../../../common/domain/PerformReplay';
 import { Schema } from '../../../../common/elements/Schema';
-import typer from 'content-type';
 import { validateAggregateIdentifier } from '../../../../common/validators/validateAggregateIdentifier';
+import { validateContentType } from '../../../base/validateContentType';
 import { validateFlowNames } from '../../../../common/validators/validateFlowNames';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
@@ -64,41 +64,22 @@ const postPerformReplay = {
 
     return async function (req, res): Promise<void> {
       try {
-        const contentType = typer.parse(req);
+        validateContentType({
+          expectedContentType: 'application/json',
+          req
+        });
 
-        if (contentType.type !== 'application/json') {
-          throw new errors.ContentTypeMismatch();
+        try {
+          requestBodySchema.validate(req.body, { valueName: 'requestBody' });
+        } catch (ex: unknown) {
+          throw new errors.RequestMalformed((ex as Error).message);
         }
-      } catch {
-        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-        res.status(415).json({
-          code: ex.code,
-          message: ex.message
-        });
+        const {
+          flowNames = Object.keys(application.flows),
+          aggregates
+        } = req.body;
 
-        return;
-      }
-
-      try {
-        requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex: unknown) {
-        const error = new errors.RequestMalformed((ex as Error).message);
-
-        res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
-
-        return;
-      }
-
-      const {
-        flowNames = Object.keys(application.flows),
-        aggregates
-      } = req.body;
-
-      try {
         validateFlowNames({ flowNames, application });
 
         for (const aggregate of aggregates) {
@@ -107,21 +88,12 @@ const postPerformReplay = {
             application
           });
         }
-      } catch (ex: unknown) {
-        res.status(400).json({
-          code: (ex as CustomError).code,
-          message: (ex as CustomError).message
-        });
 
-        return;
-      }
+        logger.debug(
+          'Replay requested.',
+          withLogMetadata('api', 'performReplay', { flowNames, aggregates })
+        );
 
-      logger.info(
-        'Replay requested.',
-        withLogMetadata('api', 'performReplay', { flowNames, aggregates })
-      );
-
-      try {
         await performReplay({ flowNames, aggregates });
 
         const response = {};
@@ -130,17 +102,42 @@ const postPerformReplay = {
 
         res.status(200).json(response);
       } catch (ex: unknown) {
-        logger.error(
-          'An unknown error occured.',
-          withLogMetadata('api', 'performReplay', { err: ex })
-        );
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
 
-        const error = new errors.UnknownError();
+        switch (error.code) {
+          case errors.ContentTypeMismatch.code: {
+            res.status(415).json({
+              code: error.code,
+              message: error.message
+            });
 
-        res.status(500).json({
-          code: error.code,
-          message: error.message
-        });
+            return;
+          }
+          case errors.RequestMalformed.code:
+          case errors.FlowNotFound.code:
+          case errors.ContextNotFound.code:
+          case errors.AggregateNotFound.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          default: {
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'performReplay', { err: ex })
+            );
+
+            res.status(500).json({
+              code: error.code,
+              message: error.message
+            });
+          }
+        }
       }
     };
   }
