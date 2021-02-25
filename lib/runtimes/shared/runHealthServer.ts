@@ -3,6 +3,7 @@ import { flaschenpost } from 'flaschenpost';
 import { getApi } from '../../apis/getHealth/http';
 import { getCorsOrigin } from 'get-cors-origin';
 import http from 'http';
+import { withLogMetadata } from '../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -22,7 +23,10 @@ const runHealthServer = async function ({ corsOrigin, portOrSocket }: {
 
   return new Promise((resolve): void => {
     server.listen(portOrSocket, (): void => {
-      logger.info('Health server started.', { healthPortOrSocket: portOrSocket });
+      logger.info(
+        'Health server started.',
+        withLogMetadata('runtime', 'microservice/health', { healthPortOrSocket: portOrSocket })
+      );
 
       resolve();
     });

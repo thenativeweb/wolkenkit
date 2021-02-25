@@ -23,6 +23,7 @@ import { registerExceptionHandler } from '../../../../common/utils/process/regis
 import { Client as ReplayClient } from '../../../../apis/performReplay/http/v2/Client';
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -85,9 +86,12 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       portOrSocket: configuration.healthPortOrSocket
     });
 
-    logger.info('Flow server started.', {
-      healthPortOrSocket: configuration.healthPortOrSocket
-    });
+    logger.info(
+      'Flow server started.',
+      withLogMetadata('runtime', 'microservice/flow', {
+        healthPortOrSocket: configuration.healthPortOrSocket
+      })
+    );
 
     const issueCommand = async function ({ command }: { command: CommandWithMetadata<CommandData> }): Promise<void> {
       await commandDispatcherClient.postCommand({ command });
@@ -121,7 +125,10 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       });
     }
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { error: ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'microservice/flow', { error: ex })
+    );
     process.exit(1);
   }
 })();

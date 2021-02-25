@@ -43,7 +43,7 @@ class Client<TItem> extends HttpClient {
 
       logger.error(
         'An unknown error occured.',
-        withLogMetadata('api-client', 'awaitItem', { error: error, status })
+        withLogMetadata('api-client', 'awaitItem', { error, status })
       );
 
       throw new errors.UnknownError();

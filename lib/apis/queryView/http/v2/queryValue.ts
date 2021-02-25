@@ -8,8 +8,8 @@ import { isCustomError } from 'defekt';
 import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandlerIdentifier';
 import { Schema } from '../../../../common/elements/Schema';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
-import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
+import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
 

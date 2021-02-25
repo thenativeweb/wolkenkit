@@ -10,6 +10,7 @@ import http from 'http';
 import { loadApplication } from '../../../../common/application/loadApplication';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -45,13 +46,19 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const server = http.createServer(api);
 
     server.listen(configuration.portOrSocket, (): void => {
-      logger.info('File server started.', {
-        portOrSocket: configuration.portOrSocket,
-        healthPortOrSocket: configuration.healthPortOrSocket
-      });
+      logger.info(
+        'File server started.',
+        withLogMetadata('runtime', 'microservice/file', {
+          portOrSocket: configuration.portOrSocket,
+          healthPortOrSocket: configuration.healthPortOrSocket
+        })
+      );
     });
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { error: ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'microservice/file', { error: ex })
+    );
     process.exit(1);
   }
 })();

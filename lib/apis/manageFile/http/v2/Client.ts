@@ -47,7 +47,7 @@ class Client extends HttpClient {
       default: {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api-client', 'manageFile', { error: error, status })
+          withLogMetadata('api-client', 'manageFile', { error, status })
         );
 
         throw new errors.UnknownError();

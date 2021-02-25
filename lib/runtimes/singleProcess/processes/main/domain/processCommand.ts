@@ -10,6 +10,7 @@ import { LockStore } from '../../../../../stores/lockStore/LockStore';
 import { PublishDomainEvents } from '../../../../../common/domain/PublishDomainEvents';
 import { Repository } from '../../../../../common/domain/Repository';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -22,7 +23,10 @@ const processCommand = async function ({ repository, priorityQueue, publishDomai
 }): Promise<void> {
   const { command, metadata } = await fetchCommand({ priorityQueue });
 
-  logger.debug('Fetched and locked command for domain server.', { itemIdentifier: command.getItemIdentifier(), metadata });
+  logger.debug(
+    'Fetched and locked command for domain server.',
+    withLogMetadata('runtime', 'singleProcess/main', { itemIdentifier: command.getItemIdentifier(), metadata })
+  );
 
   try {
     try {
@@ -46,11 +50,17 @@ const processCommand = async function ({ repository, priorityQueue, publishDomai
 
     await publishDomainEvents({ domainEvents });
   } catch (ex: unknown) {
-    logger.error('Failed to handle command.', { command, error: ex });
+    logger.error(
+      'Failed to handle command.',
+      withLogMetadata('runtime', 'singleProcess/main', { command, error: ex })
+    );
   } finally {
     await acknowledgeCommand({ command, token: metadata.token, priorityQueue });
 
-    logger.debug('Processed and acknowledged command.', { itemIdentifier: command.getItemIdentifier(), metadata });
+    logger.debug(
+      'Processed and acknowledged command.',
+      withLogMetadata('runtime', 'singleProcess/main', { itemIdentifier: command.getItemIdentifier(), metadata })
+    );
   }
 };
 

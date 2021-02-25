@@ -19,6 +19,7 @@ import { LockStore } from '../../../../../stores/lockStore/LockStore';
 import { PerformReplay } from '../../../../../common/domain/PerformReplay';
 import { Repository } from '../../../../../common/domain/Repository';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -42,7 +43,10 @@ const processDomainEvent = async function ({
   const { domainEvent, metadata } = await fetchDomainEvent({ priorityQueue });
   const flowName = metadata.discriminator;
 
-  logger.debug('Fetched and locked domain event for flow execution.', { itemIdentifier: domainEvent.getItemIdentifier(), metadata });
+  logger.debug(
+    'Fetched and locked domain event for flow execution.',
+    withLogMetadata('runtime', 'singleProcess/main', { itemIdentifier: domainEvent.getItemIdentifier(), metadata })
+  );
 
   try {
     try {
@@ -89,7 +93,10 @@ const processDomainEvent = async function ({
       case 'acknowledge': {
         await acknowledgeDomainEvent({ flowName, token: metadata.token, priorityQueue });
 
-        logger.debug('Acknowledged domain event.', { itemIdentifier: domainEvent.getItemIdentifier(), metadata });
+        logger.debug(
+          'Acknowledged domain event.',
+          withLogMetadata('runtime', 'singleProcess/main', { itemIdentifier: domainEvent.getItemIdentifier(), metadata })
+        );
         break;
       }
       case 'defer': {
@@ -99,7 +106,10 @@ const processDomainEvent = async function ({
           token: metadata.token
         });
 
-        logger.debug('Skipped and deferred domain event.', { itemIdentifier: domainEvent.getItemIdentifier(), metadata });
+        logger.debug(
+          'Skipped and deferred domain event.',
+          withLogMetadata('runtime', 'singleProcess/main', { itemIdentifier: domainEvent.getItemIdentifier(), metadata })
+        );
         break;
       }
       default: {
@@ -107,7 +117,10 @@ const processDomainEvent = async function ({
       }
     }
   } catch (ex: unknown) {
-    logger.error('Failed to handle domain event.', { domainEvent, error: ex });
+    logger.error(
+      'Failed to handle domain event.',
+      withLogMetadata('runtime', 'singleProcess/main', { domainEvent, error: ex })
+    );
 
     await acknowledgeDomainEvent({ flowName, token: metadata.token, priorityQueue });
   }

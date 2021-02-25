@@ -14,6 +14,7 @@ import { loadApplication } from '../../../../common/application/loadApplication'
 import { Notification } from '../../../../common/elements/Notification';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -49,10 +50,13 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const server = http.createServer(api);
 
     server.listen(configuration.portOrSocket, (): void => {
-      logger.info('View server started.', {
-        portOrSocket: configuration.portOrSocket,
-        healthPortOrSocket: configuration.healthPortOrSocket
-      });
+      logger.info(
+        'View server started.',
+        withLogMetadata('runtime', 'microservice/view', {
+          portOrSocket: configuration.portOrSocket,
+          healthPortOrSocket: configuration.healthPortOrSocket
+        })
+      );
     });
 
     await subscriber.subscribe({
@@ -88,7 +92,10 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       }
     });
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { error: ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'microservice/view', { error: ex })
+    );
     process.exit(1);
   }
 })();

@@ -7,6 +7,7 @@ import { getApi as getStaticApi } from '../../../apis/getStatic/http';
 import http from 'http';
 import path from 'path';
 import { validatePort } from './validatePort';
+import { withLogMetadata } from '../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -54,10 +55,13 @@ const documentationCommand = function (): Command<DocumentationOptions> {
           buntstift.newLine();
           buntstift.info('To stop the documentation, press <Ctrl>+<C>.');
           buntstift.line();
-          logger.info('Documentation server started.', {
-            port,
-            url: `http://localhost:${port}`
-          });
+          logger.info(
+            'Documentation server started.',
+            withLogMetadata('cli', 'wolkenkit/documentation', {
+              port,
+              url: `http://localhost:${port}`
+            })
+          );
         });
       } catch (ex: unknown) {
         buntstift.error('Failed to start the documentation.');
