@@ -31,27 +31,14 @@ const queryValue = {
     application: Application;
   }): WolkenkitRequestHandler {
     return async function (req, res): Promise<void> {
-      const queryHandlerIdentifier: QueryHandlerIdentifier = {
-        view: { name: req.params.viewName },
-        name: req.params.queryName
-      };
-
       try {
+        const queryHandlerIdentifier: QueryHandlerIdentifier = {
+          view: { name: req.params.viewName },
+          name: req.params.queryName
+        };
+
         validateQueryHandlerIdentifier({ application, queryHandlerIdentifier });
-      } catch (ex: unknown) {
-        const error = isCustomError(ex) ?
-          ex :
-          new errors.UnknownError(undefined, { cause: ex as Error });
 
-        res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
-
-        return;
-      }
-
-      try {
         const queryResultItem = await executeValueQueryHandler({
           application,
           queryHandlerIdentifier,
@@ -70,6 +57,8 @@ const queryValue = {
           new errors.UnknownError(undefined, { cause: ex as Error });
 
         switch (error.code) {
+          case errors.ViewNotFound.code:
+          case errors.QueryHandlerNotFound.code:
           case errors.QueryOptionsInvalid.code: {
             res.status(400).json({
               code: error.code,
