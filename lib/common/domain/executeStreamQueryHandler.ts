@@ -8,8 +8,8 @@ import { QueryHandlerIdentifier } from '../elements/QueryHandlerIdentifier';
 import { QueryOptions } from '../elements/QueryOptions';
 import { validateQueryHandlerIdentifier } from '../validators/validateQueryHandlerIdentifier';
 import { Value } from 'validate-value';
-import { pipeline, Readable, Transform } from 'stream';
 import { withLogMetadata } from '../utils/logging/withLogMetadata';
+import { pipeline, Readable, Transform } from 'stream';
 
 const logger = flaschenpost.getLogger();
 

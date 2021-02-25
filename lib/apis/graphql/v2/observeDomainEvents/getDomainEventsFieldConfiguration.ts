@@ -20,8 +20,6 @@ import { State } from '../../../../common/elements/State';
 import { transformDomainEventForGraphql } from '../../shared/elements/transformDomainEventForGraphql';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { buildSchema, GraphQLFieldConfig, GraphQLObjectType, GraphQLString } from 'graphql';
-import { validateNotification } from '../../../../common/validators/validateNotification';
-import { validateDomainEvent } from '../../../../common/validators/validateDomainEvent';
 
 const logger = flaschenpost.getLogger();
 

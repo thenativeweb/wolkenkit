@@ -1,19 +1,18 @@
 import { Application } from '../../../../common/application/Application';
-import { CustomError, isCustomError } from 'defekt';
 import { DomainEvent } from '../../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../../common/elements/DomainEventData';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
+import { isCustomError } from 'defekt';
 import { OnReceiveDomainEvent } from '../../OnReceiveDomainEvent';
 import { Schema } from '../../../../common/elements/Schema';
-import typer from 'content-type';
+import { validateContentType } from '../../../base/validateContentType';
 import { validateDomainEvent } from '../../../../common/validators/validateDomainEvent';
 import { validateFlowNames } from '../../../../common/validators/validateFlowNames';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import { validateContentType } from '../../../base/validateContentType';
 
 const logger = flaschenpost.getLogger();
 

@@ -11,7 +11,6 @@ import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import {validateContentType} from "../../../base/validateContentType";
 
 const logger = flaschenpost.getLogger();
 

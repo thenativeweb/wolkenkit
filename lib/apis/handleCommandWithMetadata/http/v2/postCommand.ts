@@ -1,17 +1,16 @@
 import { Application } from '../../../../common/application/Application';
 import { CommandWithMetadata } from '../../../../common/elements/CommandWithMetadata';
-import { CustomError, isCustomError } from 'defekt';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandWithMetadataSchema } from '../../../../common/schemas/getCommandWithMetadataSchema';
+import { isCustomError } from 'defekt';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { Schema } from '../../../../common/elements/Schema';
-import typer from 'content-type';
 import { validateCommandWithMetadata } from '../../../../common/validators/validateCommandWithMetadata';
+import { validateContentType } from '../../../base/validateContentType';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import { validateContentType } from '../../../base/validateContentType';
 
 const logger = flaschenpost.getLogger();
 

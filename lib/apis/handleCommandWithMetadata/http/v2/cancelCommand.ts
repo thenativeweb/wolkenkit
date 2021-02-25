@@ -2,16 +2,15 @@ import { Application } from '../../../../common/application/Application';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getItemIdentifierWithClientSchema } from '../../../../common/schemas/getItemIdentifierWithClientSchema';
+import { isCustomError } from 'defekt';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { OnCancelCommand } from '../../OnCancelCommand';
 import { Schema } from '../../../../common/elements/Schema';
-import typer from 'content-type';
+import { validateContentType } from '../../../base/validateContentType';
 import { validateItemIdentifier } from '../../../../common/validators/validateItemIdentifier';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import { CustomError, isCustomError } from 'defekt';
-import { validateContentType } from '../../../base/validateContentType';
 
 const logger = flaschenpost.getLogger();
 

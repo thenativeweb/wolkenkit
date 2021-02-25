@@ -8,11 +8,10 @@ import { getErrorService } from '../../../../common/services/getErrorService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
 import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
-import typer from 'content-type';
+import { validateContentType } from '../../../base/validateContentType';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import { validateContentType } from '../../../base/validateContentType';
 
 const logger = flaschenpost.getLogger();
 
