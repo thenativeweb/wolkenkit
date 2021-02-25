@@ -4,6 +4,7 @@ import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
 import { getDescription } from './getDescription';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost/build/lib/middleware/getMiddleware';
 import { IdentityProvider } from 'limes';
 import { queryStream } from './queryStream';
 import { queryValue } from './queryValue';
@@ -24,21 +25,38 @@ const getV2 = async function ({ application, corsOrigin, identityProviders }: {
     }
   });
 
+  const loggingOnResponseMiddleware = getLoggingMiddleware();
+  const loggingOnRequestMiddleware = getLoggingMiddleware({ logOn: 'request' });
+
   const authenticationMiddleware = await getAuthenticationMiddleware({
     identityProviders
   });
 
-  api.get(`/${getDescription.path}`, getDescription.getHandler({
-    application
-  }));
+  api.get(
+    `/${getDescription.path}`,
+    loggingOnResponseMiddleware,
+    getDescription.getHandler({
+      application
+    })
+  );
 
-  api.get(`/${queryStream.path}`, authenticationMiddleware, queryStream.getHandler({
-    application
-  }));
+  api.get(
+    `/${queryStream.path}`,
+    loggingOnRequestMiddleware,
+    authenticationMiddleware,
+    queryStream.getHandler({
+      application
+    })
+  );
 
-  api.get(`/${queryValue.path}`, authenticationMiddleware, queryValue.getHandler({
-    application
-  }));
+  api.get(
+    `/${queryValue.path}`,
+    loggingOnResponseMiddleware,
+    authenticationMiddleware,
+    queryValue.getHandler({
+      application
+    })
+  );
 
   return { api };
 };

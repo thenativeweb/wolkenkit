@@ -6,6 +6,7 @@ import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema'
 import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
@@ -39,19 +40,19 @@ const getSnapshot = {
           responseBodySchema = new Value(getSnapshot.response.body);
 
     return async function (req, res): Promise<any> {
-      const { aggregateIdentifier } = req.query;
-
       try {
-        querySchema.validate(req.query, { valueName: 'requestQuery' });
-      } catch (ex: unknown) {
-        return res.status(400).send((ex as Error).message);
-      }
+        const { aggregateIdentifier } = req.query;
 
-      try {
+        try {
+          querySchema.validate(req.query, { valueName: 'requestQuery' });
+        } catch (ex: unknown) {
+          throw new errors.RequestMalformed((ex as Error).message);
+        }
+
         const snapshot = await domainEventStore.getSnapshot({ aggregateIdentifier });
 
         if (!snapshot) {
-          return res.status(404).end();
+          throw new errors.SnapshotNotFound();
         }
 
         responseBodySchema.validate(snapshot, { valueName: 'responseBody' });
@@ -62,12 +63,35 @@ const getSnapshot = {
           ex :
           new errors.UnknownError(undefined, { cause: ex as Error });
 
-        logger.error('An unknown error occured.', { ex: error });
+        switch (error.code) {
+          case errors.RequestMalformed.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
 
-        return res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
+            return;
+          }
+          case errors.SnapshotNotFound.code: {
+            res.status(404).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          default: {
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'queryDomainEventStore', { error })
+            );
+
+            return res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+          }
+        }
       }
     };
   }

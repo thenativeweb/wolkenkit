@@ -4,6 +4,8 @@ import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { LockMetadata } from '../../../../stores/priorityQueueStore/LockMetadata';
 import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
+import streamToString from 'stream-to-string';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -30,11 +32,22 @@ class Client<TItem> extends HttpClient {
   }
 
   public async awaitItem (): Promise<{ item: TItem; metadata: LockMetadata }> {
-    const { data } = await this.axios({
+    const { data, status } = await this.axios({
       method: 'get',
       url: this.url,
       responseType: 'stream'
     });
+
+    if (status !== 200) {
+      const error = JSON.parse(await streamToString(data));
+
+      logger.error(
+        'An unknown error occured.',
+        withLogMetadata('api-client', 'awaitItem', { error, status })
+      );
+
+      throw new errors.UnknownError();
+    }
 
     const passThrough = new PassThrough({ objectMode: true });
 
@@ -53,10 +66,16 @@ class Client<TItem> extends HttpClient {
       unsubscribe = (): void => {
         passThrough.off('data', onData);
         passThrough.off('error', onError);
+        passThrough.off('close', onError);
       };
 
       passThrough.on('data', onData);
       passThrough.on('error', onError);
+      passThrough.on('close', (): void => {
+        const error = new errors.StreamClosedUnexpectedly();
+
+        onError(error);
+      });
 
       const jsonParser = new ParseJsonTransform();
       const heartbeatFilter = new FilterHeartbeatsTransform();
@@ -68,6 +87,10 @@ class Client<TItem> extends HttpClient {
         passThrough,
         (err): void => {
           if (err) {
+            logger.error(
+              'An error occured during stream piping.',
+              withLogMetadata('api-client', 'awaitItem', { err })
+            );
             reject(err);
           }
         }
@@ -111,7 +134,10 @@ class Client<TItem> extends HttpClient {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'awaitItem', { error: data, status })
+        );
 
         throw new errors.UnknownError();
       }
@@ -149,7 +175,10 @@ class Client<TItem> extends HttpClient {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'awaitItem', { error: data, status })
+        );
 
         throw new errors.UnknownError();
       }
@@ -188,7 +217,10 @@ class Client<TItem> extends HttpClient {
         throw new errors.ItemNotLocked(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'awaitItem', { error: data, status })
+        );
 
         throw new errors.UnknownError();
       }

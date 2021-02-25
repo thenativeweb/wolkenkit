@@ -1,6 +1,7 @@
 import { Application } from 'express';
 import { CorsOrigin } from 'get-cors-origin';
 import { getApiBase } from '../../../base/getApiBase';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import { OnReceiveMessage } from '../../OnReceiveMessage';
 import { postMessage } from './postMessage';
 
@@ -18,6 +19,8 @@ const getV2 = async function ({ corsOrigin, onReceiveMessage }: {
       headers: { cache: false }
     }
   });
+
+  api.use(getLoggingMiddleware());
 
   api.post(`/${postMessage.path}`, postMessage.getHandler({ onReceiveMessage }));
 

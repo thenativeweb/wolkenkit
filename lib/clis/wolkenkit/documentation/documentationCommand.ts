@@ -1,14 +1,11 @@
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { DocumentationOptions } from './DocumentationOptions';
-import { flaschenpost } from 'flaschenpost';
 import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
 import { getApi as getStaticApi } from '../../../apis/getStatic/http';
 import http from 'http';
 import path from 'path';
 import { validatePort } from './validatePort';
-
-const logger = flaschenpost.getLogger();
 
 const documentationCommand = function (): Command<DocumentationOptions> {
   return {
@@ -54,10 +51,6 @@ const documentationCommand = function (): Command<DocumentationOptions> {
           buntstift.newLine();
           buntstift.info('To stop the documentation, press <Ctrl>+<C>.');
           buntstift.line();
-          logger.info('Documentation server started.', {
-            port,
-            url: `http://localhost:${port}`
-          });
         });
       } catch (ex: unknown) {
         buntstift.error('Failed to start the documentation.');

@@ -4,6 +4,7 @@ import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
 import { getDescription } from './getDescription';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import { getNotifications } from './getNotifications';
 import { IdentityProvider } from 'limes';
 import { Notification } from '../../../../common/elements/Notification';
@@ -39,12 +40,17 @@ const getV2 = async function ({
     identityProviders
   });
 
-  api.get(`/${getDescription.path}`, getDescription.getHandler({
-    application
-  }));
+  api.get(
+    `/${getDescription.path}`,
+    getLoggingMiddleware(),
+    getDescription.getHandler({
+      application
+    })
+  );
 
   api.get(
     `/${getNotifications.path}`,
+    getLoggingMiddleware({ logOn: 'request' }),
     authenticationMiddleware,
     getNotifications.getHandler({
       application,

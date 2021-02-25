@@ -1,4 +1,5 @@
 import { flaschenpost } from 'flaschenpost';
+import { withLogMetadata } from '../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from './WolkenkitRequestHandler';
 import { writeLine } from './writeLine';
 
@@ -55,7 +56,10 @@ const streamNdjsonMiddleware: WolkenkitRequestHandler = async function (
         return;
       }
 
-      logger.error('An unexpected error occured.', { ex });
+      logger.error(
+        'An unexpected error occured.',
+        withLogMetadata('api', 'base', { error: ex })
+      );
 
       throw ex;
     }

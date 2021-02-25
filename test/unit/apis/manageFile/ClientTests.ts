@@ -8,7 +8,7 @@ import { FileStore } from '../../../../lib/stores/fileStore/FileStore';
 import { getApi } from '../../../../lib/apis/manageFile/http';
 import { getTestApplicationDirectory } from '../../../shared/applications/getTestApplicationDirectory';
 import { identityProvider } from '../../../shared/identityProvider';
-import { InMemoryFileStore } from '../../../../lib/stores/fileStore/InMemory/InMemoryFileStore';
+import { InMemoryFileStore } from '../../../../lib/stores/fileStore/InMemory';
 import { loadApplication } from '../../../../lib/common/application/loadApplication';
 import { Readable } from 'stream';
 import { runAsServer } from '../../../shared/http/runAsServer';
@@ -49,7 +49,7 @@ suite('manageFile/http/Client', (): void => {
     });
 
     suite('addFile', (): void => {
-      test('throws a not authorized exception if the adding file hook throws a not authorized exception.', async (): Promise<void> => {
+      test('throws a not authenticated exception if the adding file hook throws a not authenticated exception.', async (): Promise<void> => {
         const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
@@ -60,7 +60,7 @@ suite('manageFile/http/Client', (): void => {
         await assert.that(async (): Promise<void> => {
           await client.addFile({
             id: file.id,
-            name: 'addingFile-unauthorized',
+            name: 'addingFile-unauthenticated',
             contentType: 'text/plain',
             stream: Readable.from(file.content)
           });
@@ -153,7 +153,7 @@ suite('manageFile/http/Client', (): void => {
     });
 
     suite('getFile', (): void => {
-      test('throws a not authorized exception if the getting file hook throws a not authorized exception.', async (): Promise<void> => {
+      test('throws a not authenticated exception if the getting file hook throws a not authenticated exception.', async (): Promise<void> => {
         const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
@@ -163,7 +163,7 @@ suite('manageFile/http/Client', (): void => {
 
         await client.addFile({
           id: file.id,
-          name: 'gettingFile-unauthorized',
+          name: 'gettingFile-unauthenticated',
           contentType: 'text/plain',
           stream: Readable.from(file.content)
         });
@@ -253,7 +253,7 @@ suite('manageFile/http/Client', (): void => {
     });
 
     suite('removeFile', (): void => {
-      test('throws a not authenticated if the removing file hook throws a not authorized exception.', async (): Promise<void> => {
+      test('throws a not authenticated if the removing file hook throws a not authenticated exception.', async (): Promise<void> => {
         const { socket } = await runAsServer({ app: api });
         const client = new Client({
           hostName: 'localhost',
@@ -263,7 +263,7 @@ suite('manageFile/http/Client', (): void => {
 
         await client.addFile({
           id: file.id,
-          name: 'removingFile-unauthorized',
+          name: 'removingFile-unauthenticated',
           contentType: 'text/plain',
           stream: Readable.from(file.content)
         });

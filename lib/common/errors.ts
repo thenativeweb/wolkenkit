@@ -74,6 +74,8 @@ const errors = defekt({
   RevisionAlreadyExists: {},
   RevisionTooLow: {},
   SnapshotMalformed: {},
+  SnapshotNotFound: {},
+  StreamClosedUnexpectedly: {},
   SubscriberTypeInvalid: {},
   TokenMismatch: {},
   TypeInvalid: {},

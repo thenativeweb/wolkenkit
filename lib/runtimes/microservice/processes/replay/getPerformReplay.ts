@@ -5,6 +5,7 @@ import { DomainEventStore } from '../../../../stores/domainEventStore/DomainEven
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { PerformReplay } from '../../../../common/domain/PerformReplay';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -17,7 +18,10 @@ const getPerformReplay = function ({
 }): PerformReplay {
   return async function ({ flowNames, aggregates }): Promise<void> {
     try {
-      logger.info('Performing replay...', { flowNames, aggregates });
+      logger.debug(
+        'Performing replay...',
+        withLogMetadata('runtime', 'microservice/replay', { flowNames, aggregates })
+      );
 
       for (const aggregate of aggregates) {
         const domainEventStream = await domainEventStore.getReplayForAggregate({
@@ -33,9 +37,15 @@ const getPerformReplay = function ({
         }
       }
 
-      logger.info('Replay performed.', { flowNames, aggregates });
+      logger.debug(
+        'Replay performed.',
+        withLogMetadata('runtime', 'microservice/replay', { flowNames, aggregates })
+      );
     } catch (ex: unknown) {
-      logger.error('Failed to perform replay.', { flowNames, aggregates, ex });
+      logger.error(
+        'Failed to perform replay.',
+        withLogMetadata('runtime', 'microservice/replay', { flowNames, aggregates, error: ex })
+      );
 
       throw new errors.ReplayFailed('Failed to perform replay.', {
         cause: ex as Error,

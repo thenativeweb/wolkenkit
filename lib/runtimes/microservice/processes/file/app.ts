@@ -10,6 +10,7 @@ import http from 'http';
 import { loadApplication } from '../../../../common/application/loadApplication';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -19,6 +20,11 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     registerExceptionHandler();
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
+
+    logger.info(
+      'Starting file server...',
+      withLogMetadata('runtime', 'microservice/file')
+    );
 
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
@@ -45,13 +51,19 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const server = http.createServer(api);
 
     server.listen(configuration.portOrSocket, (): void => {
-      logger.info('File server started.', {
-        portOrSocket: configuration.portOrSocket,
-        healthPortOrSocket: configuration.healthPortOrSocket
-      });
+      logger.info(
+        'Started file server.',
+        withLogMetadata('runtime', 'microservice/file', {
+          portOrSocket: configuration.portOrSocket,
+          healthPortOrSocket: configuration.healthPortOrSocket
+        })
+      );
     });
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'microservice/file', { error: ex })
+    );
     process.exit(1);
   }
 })();

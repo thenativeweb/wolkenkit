@@ -4,6 +4,7 @@ import { errors } from '../../../common/errors';
 import { exists } from '../../../common/utils/fs/exists';
 import fs from 'fs';
 import { getApiBase } from '../../base/getApiBase';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import express, { Application, Request } from 'express';
 
 const getApi = async function ({ corsOrigin, directory }: {
@@ -30,6 +31,7 @@ const getApi = async function ({ corsOrigin, directory }: {
   }
 
   api.use(compression());
+  api.use(getLoggingMiddleware());
   api.use<Request>('/', express.static(directory));
 
   return { api };

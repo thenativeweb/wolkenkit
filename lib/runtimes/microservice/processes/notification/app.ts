@@ -11,6 +11,7 @@ import { loadApplication } from '../../../../common/application/loadApplication'
 import { Notification } from '../../../../common/elements/Notification';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -20,6 +21,11 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     registerExceptionHandler();
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
+
+    logger.info(
+      'Starting notification server...',
+      withLogMetadata('runtime', 'microservice/notification')
+    );
 
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
@@ -47,13 +53,19 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const server = http.createServer(api);
 
     server.listen(configuration.portOrSocket, (): void => {
-      logger.info('Notification server started.', {
-        portOrSocket: configuration.portOrSocket,
-        healthPortOrSocket: configuration.healthPortOrSocket
-      });
+      logger.info(
+        'Started notification server.',
+        withLogMetadata('runtime', 'microservice/notification', {
+          portOrSocket: configuration.portOrSocket,
+          healthPortOrSocket: configuration.healthPortOrSocket
+        })
+      );
     });
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'microservice/notification', { error: ex })
+    );
     process.exit(1);
   }
 })();

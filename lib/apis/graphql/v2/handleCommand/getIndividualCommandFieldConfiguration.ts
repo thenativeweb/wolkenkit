@@ -16,6 +16,7 @@ import { ResolverContext } from '../ResolverContext';
 import { v4 } from 'uuid';
 import { validateCommand } from '../../../../common/validators/validateCommand';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import {
   buildSchema,
   GraphQLArgumentConfig,
@@ -120,7 +121,10 @@ const getIndividualCommandFieldConfiguration = function ({
         }
       });
 
-      logger.info('Command received.', { command: commandWithMetadata });
+      logger.debug(
+        'Received command.',
+        withLogMetadata('api', 'graphql', { command: commandWithMetadata })
+      );
 
       await onReceiveCommand({ command: commandWithMetadata });
 

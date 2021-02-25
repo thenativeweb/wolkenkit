@@ -10,6 +10,7 @@ import { getOnReceiveMessage } from './getOnReceiveMessage';
 import http from 'http';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -19,6 +20,11 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     registerExceptionHandler();
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
+
+    logger.info(
+      'Starting publisher server...',
+      withLogMetadata('runtime', 'microservice/publisher')
+    );
 
     const subscriber = await createSubscriber<object>(configuration.pubSubOptions.subscriber);
     const publisher = await createPublisher<object>(configuration.pubSubOptions.publisher);
@@ -49,13 +55,19 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const server = http.createServer(api);
 
     server.listen(configuration.portOrSocket, (): void => {
-      logger.info('Publisher server started.', {
-        portOrSocket: configuration.portOrSocket,
-        healthPortOrSocket: configuration.healthPortOrSocket
-      });
+      logger.info(
+        'Started publisher server.',
+        withLogMetadata('runtime', 'microservice/publisher', {
+          portOrSocket: configuration.portOrSocket,
+          healthPortOrSocket: configuration.healthPortOrSocket
+        })
+      );
     });
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'microservice/publisher', { error: ex })
+    );
     process.exit(1);
   }
 })();

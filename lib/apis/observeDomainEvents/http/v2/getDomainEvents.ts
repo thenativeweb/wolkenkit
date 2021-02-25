@@ -8,6 +8,7 @@ import { getAggregatesService } from '../../../../common/services/getAggregatesS
 import { getClientService } from '../../../../common/services/getClientService';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { isCustomError } from 'defekt';
 import PQueue from 'p-queue';
 import { prepareForPublication } from '../../../../common/domain/domainEvent/prepareForPublication';
 import { Repository } from '../../../../common/domain/Repository';
@@ -15,6 +16,7 @@ import { Schema } from '../../../../common/elements/Schema';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { State } from '../../../../common/elements/State';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import { Request, Response } from 'express';
@@ -59,22 +61,18 @@ const getDomainEvents = {
 
     return async function (req: Request, res: Response): Promise<void> {
       try {
-        querySchema.validate(req.query, { valueName: 'requestQuery' });
-      } catch (ex: unknown) {
-        res.status(400).end((ex as Error).message);
+        try {
+          querySchema.validate(req.query, { valueName: 'requestQuery' });
+        } catch (ex: unknown) {
+          throw new errors.RequestMalformed((ex as Error).message);
+        }
 
-        return;
-      }
+        const domainEventQueue = new PQueue({ concurrency: 1 });
 
-      const domainEventQueue = new PQueue({ concurrency: 1 });
-
-      let handleDomainEvent: (domainEventWithState: DomainEventWithState<DomainEventData, State>) => void;
-
-      try {
         const clientService = getClientService({ clientMetadata: new ClientMetadata({ req }) });
         const domainEventFilter = (req.query.filter ?? {}) as Record<string, unknown>;
 
-        handleDomainEvent = (domainEventWithState): void => {
+        const handleDomainEvent = (domainEventWithState: DomainEventWithState<DomainEventData, State>): void => {
           /* eslint-disable @typescript-eslint/no-floating-promises */
           domainEventQueue.add(async (): Promise<void> => {
             const domainEvent = await prepareForPublication({
@@ -101,24 +99,16 @@ const getDomainEvents = {
 
             responseBodySchema.validate(domainEvent, { valueName: 'responseBody' });
 
+            logger.debug(
+              'Publishing domain event to client...',
+              withLogMetadata('api', 'observeDomainEvents', { domainEvent })
+            );
+
             writeLine({ res, data: domainEvent });
           });
           /* eslint-enable @typescript-eslint/no-floating-promises */
         };
-      } catch (ex: unknown) {
-        logger.error('An unknown error occured.', { ex });
 
-        const error = new errors.UnknownError();
-
-        res.status(500).json({
-          code: error.code,
-          message: error.message
-        });
-
-        return;
-      }
-
-      try {
         res.startStream({ heartbeatInterval });
 
         res.socket?.once('close', (): void => {
@@ -138,9 +128,26 @@ const getDomainEvents = {
           return;
         }
 
-        logger.error('An unknown error occured.', { ex });
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
 
-        throw ex;
+        switch (error.code) {
+          case errors.RequestMalformed.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          default: {
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'observeDomainEvents', { error })
+            );
+          }
+        }
       }
     };
   }

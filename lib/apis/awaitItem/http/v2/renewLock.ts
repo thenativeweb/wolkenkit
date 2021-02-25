@@ -4,8 +4,9 @@ import { isCustomError } from 'defekt';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { Schema } from '../../../../common/elements/Schema';
-import typer from 'content-type';
+import { validateContentType } from '../../../base/validateContentType';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
@@ -40,42 +41,28 @@ const renewLock = {
 
     return async function (req, res): Promise<void> {
       try {
-        const contentType = typer.parse(req);
+        validateContentType({
+          expectedContentType: 'application/json',
+          req
+        });
 
-        if (contentType.type !== 'application/json') {
-          throw new errors.ContentTypeMismatch();
+        try {
+          requestBodySchema.validate(req.body, { valueName: 'requestBody' });
+        } catch (ex: unknown) {
+          throw new errors.RequestMalformed((ex as Error).message);
         }
-      } catch {
-        const error = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-        res.status(415).json({
-          code: error.code,
-          message: error.message
-        });
+        const { discriminator, token } = req.body;
 
-        return;
-      }
-
-      try {
-        requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex: unknown) {
-        const error = new errors.RequestMalformed((ex as Error).message);
-
-        res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
-
-        return;
-      }
-
-      const { discriminator, token } = req.body;
-
-      try {
         await priorityQueueStore.renewLock({
           discriminator,
           token
         });
+
+        logger.debug(
+          'Renewed priority queue item lock.',
+          withLogMetadata('api', 'awaitItem', { discriminator, token })
+        );
 
         const response = {};
 
@@ -88,10 +75,26 @@ const renewLock = {
           new errors.UnknownError(undefined, { cause: ex as Error });
 
         switch (error.code) {
+          case errors.ContentTypeMismatch.code: {
+            res.status(415).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          case errors.RequestMalformed.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
           case errors.TokenMismatch.code: {
             res.status(403).json({
               code: error.code,
-              message: `Token mismatch for discriminator '${discriminator}'.`
+              message: error.message
             });
 
             return;
@@ -105,7 +108,10 @@ const renewLock = {
             return;
           }
           default: {
-            logger.error('An unknown error occured.', { ex: error });
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'awaitItem', { error })
+            );
 
             res.status(500).json({
               code: error.code,

@@ -5,6 +5,7 @@ import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTrans
 import { QueryDescription } from '../../../../common/application/QueryDescription';
 import { QueryResultItem } from '../../../../common/elements/QueryResultItem';
 import streamToString from 'stream-to-string';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -29,7 +30,10 @@ class Client extends HttpClient {
       return data;
     }
 
-    logger.error('An unknown error occured.', { ex: data, status });
+    logger.error(
+      'An unknown error occured.',
+      withLogMetadata('api-client', 'queryView', { error: data, status })
+    );
 
     throw new errors.UnknownError();
   }
@@ -68,7 +72,10 @@ class Client extends HttpClient {
           throw new errors.QueryHandlerTypeMismatch(error.message);
         }
         default: {
-          logger.error('An unknown error occured.', { ex: error, status });
+          logger.error(
+            'An unknown error occured.',
+            withLogMetadata('api-client', 'queryView', { error, status })
+          );
 
           throw new errors.UnknownError();
         }
@@ -83,7 +90,10 @@ class Client extends HttpClient {
       (err): void => {
         if (err) {
           // Do not handle errors explicitly. The returned stream will just close.
-          logger.error('An error occured during stream piping.', { err });
+          logger.error(
+            'An error occured during stream piping.',
+            withLogMetadata('api-client', 'queryView', { err })
+          );
         }
       }
     );
@@ -123,7 +133,10 @@ class Client extends HttpClient {
           throw new errors.NotFound(data.message);
         }
         default: {
-          logger.error('An unknown error occured.', { ex: data, status });
+          logger.error(
+            'An unknown error occured.',
+            withLogMetadata('api-client', 'queryView', { error: data, status })
+          );
 
           throw new errors.UnknownError();
         }

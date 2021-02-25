@@ -8,6 +8,7 @@ import { getApi } from './getApi';
 import http from 'http';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -17,6 +18,11 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     registerExceptionHandler();
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
+
+    logger.info(
+      'Starting domain event store server...',
+      withLogMetadata('runtime', 'microservice/domainEventStore')
+    );
 
     const domainEventStore = await createDomainEventStore(configuration.domainEventStoreOptions);
 
@@ -33,13 +39,19 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const server = http.createServer(api);
 
     server.listen(configuration.portOrSocket, (): void => {
-      logger.info('Domain event store server started.', {
-        portOrSocket: configuration.portOrSocket,
-        healthPortOrSocket: configuration.healthPortOrSocket
-      });
+      logger.info(
+        'Started domain event store server.',
+        withLogMetadata('runtime', 'microservice/domainEventStore', {
+          portOrSocket: configuration.portOrSocket,
+          healthPortOrSocket: configuration.healthPortOrSocket
+        })
+      );
     });
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'microservice/domainEventStore', { error: ex })
+    );
     process.exit(1);
   }
 })();

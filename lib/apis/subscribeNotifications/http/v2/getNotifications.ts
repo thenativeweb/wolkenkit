@@ -1,12 +1,14 @@
 import { Application } from '../../../../common/application/Application';
 import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
+import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { isCustomError } from 'defekt';
 import { Notification } from '../../../../common/elements/Notification';
-import PQueue from 'p-queue';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { validateNotification } from '../../../../common/validators/validateNotification';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 import { Request, Response } from 'express';
@@ -37,30 +39,34 @@ const getNotifications = {
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
     return async function (req: Request, res: Response): Promise<void> {
-      res.startStream({ heartbeatInterval });
-
       try {
-        const notificationQueue = new PQueue({ concurrency: 1 });
-
         const handleNotification = (notification: Notification): void => {
           try {
             validateNotification({ notification, application });
           } catch {
-            logger.warn('Dropping invalid notification.', { notification });
+            logger.warn(
+              'Dropping invalid notification.',
+              withLogMetadata('api', 'subscribeNotifications', { notification })
+            );
 
             return;
           }
 
           const notificationHandler = application.notifications[notification.name];
+          const isNotificationAuthorized = notificationHandler.isAuthorized(
+            notification.data,
+            notification.metadata,
+            {
+              logger: getLoggerService({
+                fileName: `<app>/server/notifications/${notification.name}`,
+                packageManifest: application.packageManifest
+              }),
+              infrastructure: application.infrastructure,
+              client: getClientService({ clientMetadata: new ClientMetadata({ req }) })
+            }
+          );
 
-          if (!notificationHandler.isAuthorized(notification.data, notification.metadata, {
-            logger: getLoggerService({
-              fileName: `<app>/server/notifications/${notification.name}`,
-              packageManifest: application.packageManifest
-            }),
-            infrastructure: application.infrastructure,
-            client: getClientService({ clientMetadata: new ClientMetadata({ req }) })
-          })) {
+          if (!isNotificationAuthorized) {
             return;
           }
 
@@ -69,16 +75,13 @@ const getNotifications = {
             data: notification.data
           };
 
-          /* eslint-disable @typescript-eslint/no-floating-promises */
-          notificationQueue.add(async (): Promise<void> => {
-            writeLine({ res, data: notificationWithoutMetadata });
-          });
-          /* eslint-enable @typescript-eslint/no-floating-promises */
+          writeLine({ res, data: notificationWithoutMetadata });
         };
+
+        res.startStream({ heartbeatInterval });
 
         res.socket?.once('close', async (): Promise<void> => {
           await subscriber.unsubscribe({ channel: channelForNotifications, callback: handleNotification });
-          notificationQueue.clear();
         });
 
         await subscriber.subscribe({ channel: channelForNotifications, callback: handleNotification });
@@ -93,9 +96,14 @@ const getNotifications = {
           return;
         }
 
-        logger.error('An unexpected error occured.', { ex });
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
 
-        throw ex;
+        logger.error(
+          'An unexpected error occured.',
+          withLogMetadata('api', 'subscribeNotifications', { error })
+        );
       }
     };
   }

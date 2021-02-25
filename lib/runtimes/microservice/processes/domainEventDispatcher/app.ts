@@ -18,6 +18,7 @@ import { loadApplication } from '../../../../common/application/loadApplication'
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { runHealthServer } from '../../../shared/runHealthServer';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -27,6 +28,11 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     registerExceptionHandler();
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
+
+    logger.info(
+      'Starting domain event dispatcher server...',
+      withLogMetadata('runtime', 'microservice/domainEventDispatcher')
+    );
 
     const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
@@ -50,6 +56,10 @@ import { runHealthServer } from '../../../shared/runHealthServer';
           channel: configuration.pubSubOptions.channelForNewInternalDomainEvents,
           message: {}
         });
+        logger.debug(
+          'Sent "new internal domain event" event on interval.',
+          withLogMetadata('runtime', 'microservice/domainEventDispatcher')
+        );
       },
       configuration.missedDomainEventRecoveryInterval
     );
@@ -76,13 +86,20 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     const server = http.createServer(api);
 
     server.listen(configuration.portOrSocket, (): void => {
-      logger.info('Domain event dispatcher server started.', {
-        portOrSocket: configuration.portOrSocket,
-        healthPortOrSocket: configuration.healthPortOrSocket
-      });
+      logger.info(
+        'Started domain event dispatcher server.',
+        withLogMetadata(
+          'runtime',
+          'microservice/domainEventDispatcher',
+          { portOrSocket: configuration.portOrSocket, healthPortOrSocket: configuration.healthPortOrSocket }
+        )
+      );
     });
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'microservice/domainEventDispatcher', { error: ex })
+    );
     process.exit(1);
   }
 })();

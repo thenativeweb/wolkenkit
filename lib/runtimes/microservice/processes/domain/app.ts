@@ -22,6 +22,7 @@ import { registerExceptionHandler } from '../../../../common/utils/process/regis
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -31,6 +32,11 @@ import { State } from '../../../../common/elements/State';
     registerExceptionHandler();
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
+
+    logger.info(
+      'Starting domain server...',
+      withLogMetadata('runtime', 'microservice/domain')
+    );
 
     const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
@@ -75,6 +81,11 @@ import { State } from '../../../../common/elements/State';
     const publishDomainEvents: PublishDomainEvents = async ({ domainEvents }: {
       domainEvents: DomainEventWithState<DomainEventData, State>[];
     }): Promise<any> => {
+      logger.debug(
+        'Publishing domain events...',
+        withLogMetadata('runtime', 'microservice/domain', { domainEvents })
+      );
+
       for (const domainEvent of domainEvents) {
         await publisher.publish({
           channel: configuration.pubSubOptions.channelForNewDomainEvents,
@@ -84,6 +95,11 @@ import { State } from '../../../../common/elements/State';
           domainEvent: domainEvent.withoutState()
         });
       }
+
+      logger.debug(
+        'Published domain events.',
+        withLogMetadata('runtime', 'microservice/domain', { domainEvents })
+      );
     };
 
     await runHealthServer({
@@ -91,9 +107,14 @@ import { State } from '../../../../common/elements/State';
       portOrSocket: configuration.healthPortOrSocket
     });
 
-    logger.info('Domain server started.', {
-      healthPortOrSocket: configuration.healthPortOrSocket
-    });
+    logger.info(
+      'Started domain server.',
+      withLogMetadata(
+        'runtime',
+        'microservice/domain',
+        { healthPortOrSocket: configuration.healthPortOrSocket }
+      )
+    );
 
     for (let i = 0; i < configuration.concurrentCommands; i++) {
       pForever(async (): Promise<void> => {
@@ -107,9 +128,17 @@ import { State } from '../../../../common/elements/State';
           publishDomainEvents
         });
       });
+
+      logger.debug(
+        'Started command process loop.',
+        withLogMetadata('runtime', 'microservice/domain', { loopIndex: i })
+      );
     }
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'microservice/domain', { error: ex })
+    );
     process.exit(1);
   }
 })();

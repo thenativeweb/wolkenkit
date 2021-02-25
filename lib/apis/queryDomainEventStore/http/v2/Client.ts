@@ -8,7 +8,8 @@ import { HttpClient } from '../../../shared/HttpClient';
 import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
 import { Snapshot } from '../../../../stores/domainEventStore/Snapshot';
 import { State } from '../../../../common/elements/State';
-import { toArray } from 'streamtoarray';
+import streamToString from 'stream-to-string';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { PassThrough, pipeline, Readable } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -44,7 +45,10 @@ class Client extends HttpClient {
         throw new errors.AggregateIdentifierMalformed(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'queryDomainEventStore', { error: data, status })
+        );
 
         throw new errors.UnknownError(data.message);
       }
@@ -61,7 +65,10 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.', { ex: data, status });
+      logger.error(
+        'An unknown error occured.',
+        withLogMetadata('api-client', 'queryDomainEventStore', { error: data, status })
+      );
 
       throw new errors.UnknownError(data.message);
     }
@@ -78,7 +85,10 @@ class Client extends HttpClient {
       (err): void => {
         if (err) {
           // Do not handle errors explicitly. The returned stream will just close.
-          logger.error('An error occured during stream piping.', { err });
+          logger.error(
+            'An error occured during stream piping.',
+            withLogMetadata('api-client', 'queryDomainEventStore', { err })
+          );
         }
       }
     );
@@ -93,7 +103,10 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.', { error: data, status });
+      logger.error(
+        'An unknown error occured.',
+        withLogMetadata('api-client', 'queryDomainEventStore', { error: data, status })
+      );
 
       throw new errors.UnknownError(data.message);
     }
@@ -111,7 +124,10 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.', { error: data, status });
+      logger.error(
+        'An unknown error occured.',
+        withLogMetadata('api-client', 'queryDomainEventStore', { error: data, status })
+      );
 
       throw new errors.UnknownError(data.message);
     }
@@ -128,7 +144,10 @@ class Client extends HttpClient {
       (err): void => {
         if (err) {
           // Do not handle errors explicitly. The returned stream will just close.
-          logger.error('An error occured during stream piping.', { err });
+          logger.error(
+            'An error occured during stream piping.',
+            withLogMetadata('api-client', 'queryDomainEventStore', { err })
+          );
         }
       }
     );
@@ -148,7 +167,10 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
+      logger.error(
+        'An unknown error occured.',
+        withLogMetadata('api-client', 'queryDomainEventStore', { error: JSON.parse(await streamToString(data)), status })
+      );
 
       throw new errors.UnknownError(data.message);
     }
@@ -165,7 +187,10 @@ class Client extends HttpClient {
       (err): void => {
         if (err) {
           // Do not handle errors explicitly. The returned stream will just close.
-          logger.error('An error occured during stream piping.', { err });
+          logger.error(
+            'An error occured during stream piping.',
+            withLogMetadata('api-client', 'queryDomainEventStore', { err })
+          );
         }
       }
     );
@@ -193,7 +218,10 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.', { error: data, status });
+      logger.error(
+        'An unknown error occured.',
+        withLogMetadata('api-client', 'queryDomainEventStore', { error: data, status })
+      );
 
       throw new errors.UnknownError(data.message);
     }
@@ -210,7 +238,10 @@ class Client extends HttpClient {
       (err): void => {
         if (err) {
           // Do not handle errors explicitly. The returned stream will just close.
-          logger.error('An error occured during stream piping.', { err });
+          logger.error(
+            'An error occured during stream piping.',
+            withLogMetadata('api-client', 'queryDomainEventStore', { err })
+          );
         }
       }
     );
@@ -228,16 +259,18 @@ class Client extends HttpClient {
       return data;
     }
 
-    if (status === 404) {
-      return;
-    }
-
     switch (data.code) {
+      case errors.SnapshotNotFound.code: {
+        return;
+      }
       case errors.AggregateIdentifierMalformed.code: {
         throw new errors.AggregateIdentifierMalformed(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'queryDomainEventStore', { error: data, status })
+        );
 
         throw new errors.UnknownError(data.message);
       }
@@ -252,9 +285,14 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
+      const error = JSON.parse(await streamToString(data));
 
-      throw new errors.UnknownError(data.message);
+      logger.error(
+        'An unknown error occured.',
+        withLogMetadata('api-client', 'queryDomainEventStore', { error, status })
+      );
+
+      throw new errors.UnknownError();
     }
 
     const passThrough = new PassThrough({ objectMode: true });
@@ -269,7 +307,10 @@ class Client extends HttpClient {
       (err): void => {
         if (err) {
           // Do not handle errors explicitly. The returned stream will just close.
-          logger.error('An error occured during stream piping.', { err });
+          logger.error(
+            'An error occured during stream piping.',
+            withLogMetadata('api-client', 'queryDomainEventStore', { err })
+          );
         }
       }
     );
@@ -286,7 +327,12 @@ class Client extends HttpClient {
     });
 
     if (status !== 200) {
-      logger.error('An unknown error occured.', { error: Buffer.concat(await toArray(data)).toString(), status });
+      const error = JSON.parse(await streamToString(data));
+
+      logger.error(
+        'An unknown error occured.',
+        withLogMetadata('api-client', 'queryDomainEventStore', { error, status })
+      );
 
       throw new errors.UnknownError(data.message);
     }
@@ -303,7 +349,10 @@ class Client extends HttpClient {
       (err): void => {
         if (err) {
           // Do not handle errors explicitly. The returned stream will just close.
-          logger.error('An error occured during stream piping.', { err });
+          logger.error(
+            'An error occured during stream piping.',
+            withLogMetadata('api-client', 'queryDomainEventStore', { err })
+          );
         }
       }
     );

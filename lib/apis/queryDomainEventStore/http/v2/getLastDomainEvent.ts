@@ -6,6 +6,7 @@ import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventS
 import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
 const logger = flaschenpost.getLogger();
@@ -39,24 +40,19 @@ const getLastDomainEvent = {
           responseBodySchema = new Value(getLastDomainEvent.response.body);
 
     return async function (req, res): Promise<any> {
-      const { aggregateIdentifier } = req.query;
-
       try {
-        querySchema.validate(req.query, { valueName: 'requestQuery' });
-      } catch (ex: unknown) {
-        const error = new errors.AggregateIdentifierMalformed((ex as Error).message);
+        const { aggregateIdentifier } = req.query;
 
-        return res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
-      }
+        try {
+          querySchema.validate(req.query, { valueName: 'requestQuery' });
+        } catch (ex: unknown) {
+          throw new errors.AggregateIdentifierMalformed((ex as Error).message);
+        }
 
-      try {
         const lastDomainEvent = await domainEventStore.getLastDomainEvent({ aggregateIdentifier });
 
         if (!lastDomainEvent) {
-          return res.status(404).end();
+          throw new errors.DomainEventNotFound();
         }
 
         responseBodySchema.validate(lastDomainEvent, { valueName: 'responseBody' });
@@ -67,12 +63,35 @@ const getLastDomainEvent = {
           ex :
           new errors.UnknownError(undefined, { cause: ex as Error });
 
-        logger.error('An unknown error occured.', { ex: error });
+        switch (error.code) {
+          case errors.AggregateIdentifierMalformed.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
 
-        return res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
+            return;
+          }
+          case errors.DomainEventNotFound.code: {
+            res.status(404).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          default: {
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'queryDomainEventStore', { error })
+            );
+
+            return res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+          }
+        }
       }
     };
   }

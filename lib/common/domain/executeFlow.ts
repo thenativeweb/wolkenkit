@@ -12,6 +12,7 @@ import { LoggerService } from '../services/LoggerService';
 import { NotificationService } from '../services/NotificationService';
 import { PerformReplay } from './PerformReplay';
 import { TellInfrastructure } from '../elements/TellInfrastructure';
+import { withLogMetadata } from '../utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -41,7 +42,10 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     throw new errors.FlowNotFound(`Flow '${flowName}' not found.`);
   }
 
-  logger.debug(`Executing flow '${flowName}'...`, { domainEvent });
+  logger.debug(
+    `Executing flow...`,
+    withLogMetadata('common', 'executeFlow', { flowName, domainEvent })
+  );
 
   const flowDefinition = application.flows[flowName];
 
@@ -51,7 +55,10 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
   });
 
   if (latestHandledRevision >= domainEvent.metadata.revision) {
-    logger.debug('Domain event was already seen, skipping.');
+    logger.debug(
+      'Domain event was already seen, skipping.',
+      withLogMetadata('common', 'executeFlow', { flowName })
+    );
 
     return 'acknowledge';
   }
@@ -59,11 +66,17 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
   if (latestHandledRevision < domainEvent.metadata.revision - 1) {
     switch (flowDefinition.replayPolicy) {
       case 'never': {
-        logger.debug(`Domain event is too old. Ignoring due to replay policy 'never'.`);
+        logger.debug(
+          `Domain event is too new. Ignoring due to replay policy 'never'.`,
+          withLogMetadata('common', 'executeFlow', { flowName })
+        );
         break;
       }
       case 'on-demand': {
-        logger.debug(`Domain event is too old. Deferring due to replay policy 'on-demand'.`);
+        logger.debug(
+          `Domain event is too new. Deferring due to replay policy 'on-demand'.`,
+          withLogMetadata('common', 'executeFlow', { flowName })
+        );
 
         return 'defer';
       }
@@ -72,7 +85,10 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
           const from = latestHandledRevision + 1,
                 to = domainEvent.metadata.revision - 1;
 
-          logger.debug(`Domain event is too old. Requesting replay from ${from} to ${to} and deferring due to replay policy 'always'.`);
+          logger.debug(
+            `Domain event is too new. Requesting replay and deferring due to replay policy 'always'.`,
+            withLogMetadata('common', 'executeFlow', { flowName, from, to })
+          );
 
           await performReplay({
             flowNames: [ flowName ],
@@ -102,11 +118,17 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
       fullyQualifiedName: domainEvent.getFullyQualifiedName(),
       itemIdentifier: domainEvent.getItemIdentifier()
     })) {
-      logger.debug(`Executing handler '${flowName}.${handlerName}...'`);
+      logger.debug(
+        `Executing flow handler...`,
+        withLogMetadata('common', 'executeFlow', { flowName, handlerName })
+      );
       try {
         await handler.handle(domainEvent, services);
       } catch (ex: unknown) {
-        logger.error(`The flow handler '${flowName}.${handlerName}' threw an error.`, { ex });
+        logger.error(
+          `A flow handler threw an error.`,
+          withLogMetadata('common', 'executeFlow', { error: ex, flowName, handlerName })
+        );
 
         throw ex;
       }
@@ -126,7 +148,10 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
     });
   }
 
-  logger.debug(`Flow '${flowName}' was successfully executed.`);
+  logger.debug(
+    `Flow successfully executed.`,
+    withLogMetadata('common', 'executeFlow', { flowName })
+  );
 
   return 'acknowledge';
 };

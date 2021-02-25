@@ -2,6 +2,7 @@ import { Application } from '../../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
 import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import { OnReceiveDomainEvent } from '../../OnReceiveDomainEvent';
 import { postDomainEvent } from './postDomainEvent';
 
@@ -24,6 +25,8 @@ const getV2 = async function ({
       headers: { cache: false }
     }
   });
+
+  api.use(getLoggingMiddleware());
 
   api.post(`/${postDomainEvent.path}`, postDomainEvent.getHandler({
     onReceiveDomainEvent,
