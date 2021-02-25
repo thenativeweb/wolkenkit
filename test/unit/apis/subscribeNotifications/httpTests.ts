@@ -21,6 +21,7 @@ suite('subscribeNotifications/http', function (): void {
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' }),
         channelForNotifications = 'notifications',
+        heartbeatInterval = 90_000,
         identityProviders = [ identityProvider ];
 
   let api: ExpressApplication,
@@ -39,7 +40,8 @@ suite('subscribeNotifications/http', function (): void {
       corsOrigin: '*',
       identityProviders,
       subscriber,
-      channelForNotifications
+      channelForNotifications,
+      heartbeatInterval
     }));
   });
 

@@ -102,6 +102,10 @@
     {
       "name": "Nil Lin",
       "email": "nil@lin.am"
+    },
+    {
+      "name": "Markus Fürer",
+      "email": "markus.fuerer@imedico.ch"
     }
   ],
   "main": "build/lib/wolkenkit.js",

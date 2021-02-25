@@ -11,6 +11,7 @@ export interface Configuration {
   enableOpenApiDocumentation: boolean;
   healthCorsOrigin: string | string[];
   healthPortOrSocket: number | string;
+  heartbeatInterval: number;
   identityProviders: { issuer: string; certificate: string }[];
   portOrSocket: number | string;
   pubSubOptions: {

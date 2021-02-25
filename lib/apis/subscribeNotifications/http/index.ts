@@ -12,14 +12,14 @@ const getApi = async function ({
   identityProviders,
   subscriber,
   channelForNotifications,
-  heartbeatInterval = 90_000
+  heartbeatInterval
 }: {
   application: Application;
   corsOrigin: CorsOrigin;
   identityProviders: IdentityProvider[];
   subscriber: Subscriber<Notification>;
   channelForNotifications: string;
-  heartbeatInterval?: number;
+  heartbeatInterval: number;
 }): Promise<{ api: ExpressApplication }> {
   const api = express();
 

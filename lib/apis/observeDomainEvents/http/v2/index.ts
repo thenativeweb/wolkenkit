@@ -25,13 +25,13 @@ const getV2 = async function ({
   application,
   repository,
   identityProviders,
-  heartbeatInterval = 90_000
+  heartbeatInterval
 }: {
   corsOrigin: CorsOrigin;
   application: Application;
   repository: Repository;
   identityProviders: IdentityProvider[];
-  heartbeatInterval?: number;
+  heartbeatInterval: number;
 }): Promise<{ api: ExpressApplication; publishDomainEvent: PublishDomainEvent }> {
   const api = await getApiBase({
     request: {

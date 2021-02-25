@@ -28,6 +28,7 @@ import { waitForSignals } from 'wait-for-signals';
 
 suite('observeDomainEvents/http', (): void => {
   const identityProviders = [ identityProvider ];
+  const heartbeatInterval = 90_000;
 
   let application: Application,
       domainEventStore: DomainEventStore,
@@ -65,7 +66,8 @@ suite('observeDomainEvents/http', (): void => {
           corsOrigin: '*',
           application,
           repository,
-          identityProviders
+          identityProviders,
+          heartbeatInterval
         }));
       });
 
@@ -122,7 +124,8 @@ suite('observeDomainEvents/http', (): void => {
           corsOrigin: '*',
           application,
           repository,
-          identityProviders
+          identityProviders,
+          heartbeatInterval
         }));
       });
 
@@ -700,7 +703,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -789,7 +793,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -876,7 +881,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -951,7 +957,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1022,7 +1029,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1109,7 +1117,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1196,7 +1205,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1271,7 +1281,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1343,7 +1354,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1430,7 +1442,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1517,7 +1530,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
