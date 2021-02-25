@@ -1,15 +1,11 @@
 import { buntstift } from 'buntstift';
 import { Command } from 'command-line-interface';
 import { DocumentationOptions } from './DocumentationOptions';
-import { flaschenpost } from 'flaschenpost';
 import { getApplicationRoot } from '../../../common/application/getApplicationRoot';
 import { getApi as getStaticApi } from '../../../apis/getStatic/http';
 import http from 'http';
 import path from 'path';
 import { validatePort } from './validatePort';
-import { withLogMetadata } from '../../../common/utils/logging/withLogMetadata';
-
-const logger = flaschenpost.getLogger();
 
 const documentationCommand = function (): Command<DocumentationOptions> {
   return {

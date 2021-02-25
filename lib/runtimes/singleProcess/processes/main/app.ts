@@ -47,8 +47,8 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
     logger.info(
-        'Starting single process runtime server...',
-        withLogMetadata('runtime', 'singleProcess/main')
+      'Starting single process runtime server...',
+      withLogMetadata('runtime', 'singleProcess/main')
     );
 
     const identityProviders = await getIdentityProviders({
