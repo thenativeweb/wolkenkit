@@ -146,11 +146,6 @@ const getDomainEvents = {
               'An unknown error occured.',
               withLogMetadata('api', 'observeDomainEvents', { err: ex })
             );
-
-            res.status(500).json({
-              code: error.code,
-              message: error.message
-            });
           }
         }
       }
