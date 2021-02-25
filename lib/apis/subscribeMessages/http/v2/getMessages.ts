@@ -1,6 +1,7 @@
+import { errors } from '../../../../common/errors';
 import { EventEmitter2 } from 'eventemitter2';
 import { flaschenpost } from 'flaschenpost';
-import PQueue from 'p-queue';
+import { isCustomError } from 'defekt';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
@@ -25,24 +26,17 @@ const getMessages = {
     heartbeatInterval: number;
   }): WolkenkitRequestHandler {
     return async function (req: Request, res: Response): Promise<void> {
-      const { channel } = req.params;
-
-      res.startStream({ heartbeatInterval });
-
       try {
-        const messageQueue = new PQueue({ concurrency: 1 });
+        const { channel } = req.params;
 
         const handleMessage = (message: object): void => {
-          /* eslint-disable @typescript-eslint/no-floating-promises */
-          messageQueue.add(async (): Promise<void> => {
-            writeLine({ res, data: message });
-          });
-          /* eslint-enable @typescript-eslint/no-floating-promises */
+          writeLine({ res, data: message });
         };
+
+        res.startStream({ heartbeatInterval });
 
         res.socket?.once('close', (): void => {
           messageEmitter.off(channel, handleMessage);
-          messageQueue.clear();
         });
 
         messageEmitter.on(channel, handleMessage);
@@ -57,12 +51,14 @@ const getMessages = {
           return;
         }
 
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
+
         logger.error(
           'An unexpected error occured.',
-          withLogMetadata('api', 'subscribeMessages', { err: ex })
+          withLogMetadata('api', 'subscribeMessages', { err: error })
         );
-
-        throw ex;
       }
     };
   }
