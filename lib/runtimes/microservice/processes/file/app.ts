@@ -21,6 +21,11 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
+    logger.info(
+      'Starting file server...',
+      withLogMetadata('runtime', 'microservice/file')
+    );
+
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
     });
@@ -47,7 +52,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     server.listen(configuration.portOrSocket, (): void => {
       logger.info(
-        'File server started.',
+        'Started file server.',
         withLogMetadata('runtime', 'microservice/file', {
           portOrSocket: configuration.portOrSocket,
           healthPortOrSocket: configuration.healthPortOrSocket

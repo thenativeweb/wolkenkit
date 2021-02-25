@@ -95,11 +95,7 @@ const processDomainEvent = async function ({
 
         logger.debug(
           'Acknowledged domain event.',
-          withLogMetadata(
-            'runtime',
-            'microservice/flow',
-            { itemIdentifier: domainEvent.getItemIdentifier(), metadata }
-          )
+          withLogMetadata('runtime', 'microservice/flow', { itemIdentifier: domainEvent.getItemIdentifier(), metadata })
         );
         break;
       }

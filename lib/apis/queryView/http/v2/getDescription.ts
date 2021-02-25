@@ -38,7 +38,7 @@ const getDescription = {
 
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api', 'handleCommand', { error })
+          withLogMetadata('api', 'queryView', { error })
         );
 
         res.status(500).json({

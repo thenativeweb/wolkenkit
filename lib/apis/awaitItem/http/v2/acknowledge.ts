@@ -59,9 +59,9 @@ const acknowledge = {
           token
         });
 
-        logger.info(
+        logger.debug(
           'Acknowledged priority queue item.',
-          withLogMetadata('api', 'awaitItem')
+          withLogMetadata('api', 'awaitItem', { discriminator, token })
         );
 
         const response = {};

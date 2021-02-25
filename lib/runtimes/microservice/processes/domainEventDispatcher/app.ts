@@ -29,9 +29,9 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
-    logger.debug(
+    logger.info(
       'Starting domain event dispatcher server...',
-      withLogMetadata('runtime', 'microservice/domainEventDispatcher', { configuration })
+      withLogMetadata('runtime', 'microservice/domainEventDispatcher')
     );
 
     const application = await loadApplication({

@@ -34,6 +34,11 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
+    logger.info(
+      'Starting flow server...',
+      withLogMetadata('runtime', 'microservice/flow')
+    );
+
     const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
@@ -87,7 +92,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
     });
 
     logger.info(
-      'Flow server started.',
+      'Started flow server.',
       withLogMetadata('runtime', 'microservice/flow', {
         healthPortOrSocket: configuration.healthPortOrSocket
       })

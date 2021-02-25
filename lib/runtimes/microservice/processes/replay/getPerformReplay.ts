@@ -18,7 +18,7 @@ const getPerformReplay = function ({
 }): PerformReplay {
   return async function ({ flowNames, aggregates }): Promise<void> {
     try {
-      logger.info(
+      logger.debug(
         'Performing replay...',
         withLogMetadata('runtime', 'microservice/replay', { flowNames, aggregates })
       );
@@ -37,7 +37,7 @@ const getPerformReplay = function ({
         }
       }
 
-      logger.info(
+      logger.debug(
         'Replay performed.',
         withLogMetadata('runtime', 'microservice/replay', { flowNames, aggregates })
       );

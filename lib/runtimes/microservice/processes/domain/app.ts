@@ -33,9 +33,9 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
-    logger.debug(
+    logger.info(
       'Starting domain server...',
-      withLogMetadata('runtime', 'microservice/domain', { configuration })
+      withLogMetadata('runtime', 'microservice/domain')
     );
 
     const application = await loadApplication({

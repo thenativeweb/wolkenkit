@@ -16,7 +16,7 @@ const getOnReceiveCommand = function ({ commandDispatcher }: {
         await commandDispatcher.client.postCommand({ command });
       }, { retries: commandDispatcher.retries, maxTimeout: 1_000 });
 
-      logger.info(
+      logger.debug(
         'Command sent to command dispatcher.',
         withLogMetadata('runtime', 'microservice/graphql', { command })
       );

@@ -55,13 +55,6 @@ const documentationCommand = function (): Command<DocumentationOptions> {
           buntstift.newLine();
           buntstift.info('To stop the documentation, press <Ctrl>+<C>.');
           buntstift.line();
-          logger.info(
-            'Documentation server started.',
-            withLogMetadata('cli', 'wolkenkit/documentation', {
-              port,
-              url: `http://localhost:${port}`
-            })
-          );
         });
       } catch (ex: unknown) {
         buntstift.error('Failed to start the documentation.');

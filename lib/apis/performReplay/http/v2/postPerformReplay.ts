@@ -90,7 +90,7 @@ const postPerformReplay = {
         }
 
         logger.debug(
-          'Replay requested.',
+          'Received request for replay.',
           withLogMetadata('api', 'performReplay', { flowNames, aggregates })
         );
 

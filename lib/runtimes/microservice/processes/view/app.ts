@@ -25,6 +25,11 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
+    logger.info(
+      'Starting view server...',
+      withLogMetadata('runtime', 'microservice/view')
+    );
+
     const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
@@ -51,7 +56,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     server.listen(configuration.portOrSocket, (): void => {
       logger.info(
-        'View server started.',
+        'Started view server.',
         withLogMetadata('runtime', 'microservice/view', {
           portOrSocket: configuration.portOrSocket,
           healthPortOrSocket: configuration.healthPortOrSocket

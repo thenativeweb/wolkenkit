@@ -21,6 +21,11 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
+    logger.info(
+      'Starting publisher server...',
+      withLogMetadata('runtime', 'microservice/publisher')
+    );
+
     const subscriber = await createSubscriber<object>(configuration.pubSubOptions.subscriber);
     const publisher = await createPublisher<object>(configuration.pubSubOptions.publisher);
 
@@ -51,7 +56,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     server.listen(configuration.portOrSocket, (): void => {
       logger.info(
-        'Publisher server started.',
+        'Started publisher server.',
         withLogMetadata('runtime', 'microservice/publisher', {
           portOrSocket: configuration.portOrSocket,
           healthPortOrSocket: configuration.healthPortOrSocket

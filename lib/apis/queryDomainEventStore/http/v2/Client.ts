@@ -169,11 +169,7 @@ class Client extends HttpClient {
     if (status !== 200) {
       logger.error(
         'An unknown error occured.',
-        withLogMetadata(
-          'api-client',
-          'queryDomainEventStore',
-          { error: JSON.parse(await streamToString(data)), status }
-        )
+        withLogMetadata('api-client', 'queryDomainEventStore', { error: JSON.parse(await streamToString(data)), status })
       );
 
       throw new errors.UnknownError(data.message);
@@ -333,7 +329,10 @@ class Client extends HttpClient {
     if (status !== 200) {
       const error = JSON.parse(await streamToString(data));
 
-      logger.error('An unknown error occured.', { error, status });
+      logger.error(
+        'An unknown error occured.',
+        withLogMetadata('api-client', 'queryDomainEventStore', { error, status })
+      );
 
       throw new errors.UnknownError(data.message);
     }

@@ -101,7 +101,7 @@ const getDomainEvents = {
 
             logger.debug(
               'Publishing domain event to client...',
-              withLogMetadata('api', 'graphql', { domainEvent })
+              withLogMetadata('api', 'observeDomainEvents', { domainEvent })
             );
 
             writeLine({ res, data: domainEvent });

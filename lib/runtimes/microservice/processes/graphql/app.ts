@@ -36,6 +36,11 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
+    logger.info(
+      'Starting graphql server...',
+      withLogMetadata('runtime', 'microservice/graphql')
+    );
+
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
     });
@@ -105,7 +110,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
     });
 
     logger.info(
-      'GraphQL server started.',
+      'Started GraphQL server.',
       withLogMetadata('runtime', 'microservice/graphql', {
         portOrSocket: configuration.portOrSocket,
         healthPortOrSocket: configuration.healthPortOrSocket

@@ -30,9 +30,9 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
-    logger.debug(
+    logger.info(
       'Starting command dispatcher server...',
-      withLogMetadata('runtime', 'microprocess/command', { configuration })
+      withLogMetadata('runtime', 'microprocess/command')
     );
 
     const application = await loadApplication({

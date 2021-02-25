@@ -22,6 +22,11 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
+    logger.info(
+      'Starting replay server...',
+      withLogMetadata('runtime', 'microservice/replay')
+    );
+
     const application = await loadApplication({
       applicationDirectory: configuration.applicationDirectory
     });
@@ -59,7 +64,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     server.listen(configuration.portOrSocket, (): void => {
       logger.info(
-        'Replay server started.',
+        'Started replay server.',
         withLogMetadata('runtime', 'replay', {
           portOrSocket: configuration.portOrSocket,
           healthPortOrSocket: configuration.healthPortOrSocket

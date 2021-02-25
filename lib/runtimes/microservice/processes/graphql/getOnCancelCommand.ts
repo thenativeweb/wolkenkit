@@ -13,7 +13,7 @@ const getOnCancelCommand = function ({ commandDispatcher }: {
     try {
       await commandDispatcher.client.cancelCommand({ commandIdentifierWithClient });
 
-      logger.info(
+      logger.debug(
         'Cancelled command in command dispatcher.',
         withLogMetadata('runtime', 'microservice/graphql', { commandIdentifierWithClient })
       );

@@ -99,7 +99,7 @@ const postCommand = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'handleCommand', { error })
+              withLogMetadata('api', 'handleCommandWithMetadata', { error })
             );
 
             res.status(500).json({

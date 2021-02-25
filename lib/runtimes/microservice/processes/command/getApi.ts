@@ -40,7 +40,7 @@ const getApi = async function ({
   api.use('/command', handleCommandApi);
 
   if (configuration.enableOpenApiDocumentation) {
-    logger.debug(
+    logger.info(
       'Open api endpoint is enabled.',
       withLogMetadata('runtime', 'microservice/command')
     );

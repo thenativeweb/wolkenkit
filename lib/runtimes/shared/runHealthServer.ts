@@ -24,8 +24,8 @@ const runHealthServer = async function ({ corsOrigin, portOrSocket }: {
   return new Promise((resolve): void => {
     server.listen(portOrSocket, (): void => {
       logger.info(
-        'Health server started.',
-        withLogMetadata('runtime', 'microservice/health', { healthPortOrSocket: portOrSocket })
+        'Started health server.',
+        withLogMetadata('runtime', 'shared/health', { healthPortOrSocket: portOrSocket })
       );
 
       resolve();

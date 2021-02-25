@@ -46,6 +46,11 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
+    logger.info(
+        'Starting single process runtime server...',
+        withLogMetadata('runtime', 'singleProcess/main')
+    );
+
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
     });
@@ -149,7 +154,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     server.listen(configuration.portOrSocket, (): void => {
       logger.info(
-        'Single process runtime server started.',
+        'Started single process runtime server.',
         withLogMetadata('runtime', 'singleProcess/main', { portOrSocket: configuration.portOrSocket })
       );
     });

@@ -38,7 +38,7 @@ const getApi = async function ({
   api.use('/domain-events', observeDomainEventsApi);
 
   if (configuration.enableOpenApiDocumentation) {
-    logger.debug(
+    logger.info(
       'Open api endpoint is enabled.',
       withLogMetadata('runtime', 'microservice/domainEvent')
     );

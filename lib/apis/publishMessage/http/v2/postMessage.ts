@@ -88,7 +88,7 @@ const postMessage = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'awaitItem', { error })
+              withLogMetadata('api', 'publishMessage', { error })
             );
 
             res.status(500).json({

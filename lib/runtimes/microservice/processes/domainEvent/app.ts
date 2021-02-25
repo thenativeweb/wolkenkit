@@ -33,9 +33,9 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
-    logger.debug(
+    logger.info(
       'Starting domain event server...',
-      withLogMetadata('runtime', 'microservice/domainEvent', { configuration })
+      withLogMetadata('runtime', 'microservice/domainEvent')
     );
 
     const identityProviders = await getIdentityProviders({

@@ -61,7 +61,7 @@ const defer = {
           priority
         });
 
-        logger.info(
+        logger.debug(
           'Deferred priority queue item.',
           withLogMetadata('api', 'awaitItem', { discriminator, priority })
         );

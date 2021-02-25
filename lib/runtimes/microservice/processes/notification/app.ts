@@ -22,6 +22,11 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
+    logger.info(
+      'Starting notification server...',
+      withLogMetadata('runtime', 'microservice/notification')
+    );
+
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
     });
@@ -49,7 +54,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     server.listen(configuration.portOrSocket, (): void => {
       logger.info(
-        'Notification server started.',
+        'Started notification server.',
         withLogMetadata('runtime', 'microservice/notification', {
           portOrSocket: configuration.portOrSocket,
           healthPortOrSocket: configuration.healthPortOrSocket

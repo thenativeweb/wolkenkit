@@ -59,9 +59,9 @@ const renewLock = {
           token
         });
 
-        logger.info(
+        logger.debug(
           'Renewed priority queue item lock.',
-          withLogMetadata('api', 'awaitItem')
+          withLogMetadata('api', 'awaitItem', { discriminator, token })
         );
 
         const response = {};

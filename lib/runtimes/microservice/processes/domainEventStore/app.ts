@@ -19,6 +19,11 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
 
+    logger.info(
+      'Starting domain event store server...',
+      withLogMetadata('runtime', 'microservice/domainEventStore')
+    );
+
     const domainEventStore = await createDomainEventStore(configuration.domainEventStoreOptions);
 
     const { api } = await getApi({
@@ -35,7 +40,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
 
     server.listen(configuration.portOrSocket, (): void => {
       logger.info(
-        'Domain event store server started.',
+        'Started domain event store server.',
         withLogMetadata('runtime', 'microservice/domainEventStore', {
           portOrSocket: configuration.portOrSocket,
           healthPortOrSocket: configuration.healthPortOrSocket
