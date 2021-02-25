@@ -43,7 +43,7 @@ class Client<TItem> extends HttpClient {
 
       logger.error(
         'An unknown error occured.',
-        withLogMetadata('api-client', 'awaitItem', { err: error, status })
+        withLogMetadata('api-client', 'awaitItem', { error: error, status })
       );
 
       throw new errors.UnknownError();
@@ -136,7 +136,7 @@ class Client<TItem> extends HttpClient {
       default: {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api-client', 'awaitItem', { err: data, status })
+          withLogMetadata('api-client', 'awaitItem', { error: data, status })
         );
 
         throw new errors.UnknownError();
@@ -177,7 +177,7 @@ class Client<TItem> extends HttpClient {
       default: {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api-client', 'awaitItem', { err: data, status })
+          withLogMetadata('api-client', 'awaitItem', { error: data, status })
         );
 
         throw new errors.UnknownError();
@@ -219,7 +219,7 @@ class Client<TItem> extends HttpClient {
       default: {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api-client', 'awaitItem', { err: data, status })
+          withLogMetadata('api-client', 'awaitItem', { error: data, status })
         );
 
         throw new errors.UnknownError();

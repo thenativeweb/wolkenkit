@@ -102,7 +102,7 @@ const getNotifications = {
 
         logger.error(
           'An unexpected error occured.',
-          withLogMetadata('api', 'subscribeNotifications', { err: error })
+          withLogMetadata('api', 'subscribeNotifications', { error })
         );
       }
     };

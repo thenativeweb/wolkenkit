@@ -36,7 +36,7 @@ const getOnReceiveCommand = function ({ commandDispatcher }: {
     } catch (ex: unknown) {
       logger.error(
         'Failed to send command to command dispatcher.',
-        withLogMetadata('runtime', 'microservice/command', { command, err: ex })
+        withLogMetadata('runtime', 'microservice/command', { command, error: ex })
       );
 
       throw new errors.RequestFailed('Failed to send command to command dispatcher.', {

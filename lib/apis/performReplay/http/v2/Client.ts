@@ -47,7 +47,7 @@ class Client extends HttpClient {
       default: {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api-client', 'performReplay', { err: data, status })
+          withLogMetadata('api-client', 'performReplay', { error: data, status })
         );
 
         throw new errors.UnknownError();

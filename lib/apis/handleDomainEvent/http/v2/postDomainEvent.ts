@@ -108,7 +108,7 @@ const postDomainEvent = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'handleDomainEvent', { err: error })
+              withLogMetadata('api', 'handleDomainEvent', { error })
             );
 
             res.status(500).json({

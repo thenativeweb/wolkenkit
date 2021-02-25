@@ -129,7 +129,7 @@ const postPerformReplay = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'performReplay', { err: ex })
+              withLogMetadata('api', 'performReplay', { error })
             );
 
             res.status(500).json({

@@ -147,7 +147,7 @@ const postCommand = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'handleCommand', { err: ex })
+              withLogMetadata('api', 'handleCommand', { error })
             );
 
             res.status(500).json({

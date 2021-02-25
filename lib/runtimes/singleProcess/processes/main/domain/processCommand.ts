@@ -46,7 +46,7 @@ const processCommand = async function ({ repository, priorityQueue, publishDomai
 
     await publishDomainEvents({ domainEvents });
   } catch (ex: unknown) {
-    logger.error('Failed to handle command.', { command, err: ex });
+    logger.error('Failed to handle command.', { command, error: ex });
   } finally {
     await acknowledgeCommand({ command, token: metadata.token, priorityQueue });
 

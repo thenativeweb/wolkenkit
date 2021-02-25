@@ -31,7 +31,7 @@ class Client extends HttpClient {
 
     logger.error(
       'An unknown error occured.',
-      withLogMetadata('api-client', 'subscribeNotifications', { err: data, status })
+      withLogMetadata('api-client', 'subscribeNotifications', { error: data, status })
     );
 
     throw new errors.UnknownError();

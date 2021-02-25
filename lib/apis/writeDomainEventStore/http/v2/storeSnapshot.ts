@@ -79,7 +79,7 @@ const storeSnapshot = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'writeDomainEventStore', { err: error })
+              withLogMetadata('api', 'writeDomainEventStore', { error })
             );
 
             res.status(500).json({

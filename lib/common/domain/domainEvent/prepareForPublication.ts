@@ -74,7 +74,7 @@ const prepareForPublication = async function ({
         // gets served.
         logger.error(
           'Preparing domain event for publication failed.',
-          withLogMetadata('common', 'prepareForPublication', { err: ex })
+          withLogMetadata('common', 'prepareForPublication', { error: ex })
         );
     }
   }

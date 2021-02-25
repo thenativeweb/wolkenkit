@@ -56,7 +56,7 @@ const processCommand = async function ({
   } catch (ex: unknown) {
     logger.error(
       'Failed to handle command.',
-      withLogMetadata('runtime', 'microservice/domain', { command, err: ex })
+      withLogMetadata('runtime', 'microservice/domain', { command, error: ex })
     );
   } finally {
     await acknowledgeCommand({ command, token: metadata.token, commandDispatcher });

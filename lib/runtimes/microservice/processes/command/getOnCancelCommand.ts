@@ -36,7 +36,7 @@ const getOnCancelCommand = function ({ commandDispatcher }: {
         withLogMetadata(
           'runtime',
           'microservice/command',
-          { commandIdentifierWithClient, err: ex }
+          { commandIdentifierWithClient, error: ex }
         )
       );
 

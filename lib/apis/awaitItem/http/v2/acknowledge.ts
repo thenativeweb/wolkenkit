@@ -118,7 +118,7 @@ const acknowledge = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'awaitItem', { err: ex })
+              withLogMetadata('api', 'awaitItem', { error })
             );
 
             res.status(500).json({

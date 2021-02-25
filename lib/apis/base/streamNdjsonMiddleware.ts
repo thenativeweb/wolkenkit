@@ -55,7 +55,7 @@ const streamNdjsonMiddleware: WolkenkitRequestHandler = async function (
         return;
       }
 
-      logger.error('An unexpected error occured.', { err: ex });
+      logger.error('An unexpected error occured.', { error: ex });
 
       throw ex;
     }

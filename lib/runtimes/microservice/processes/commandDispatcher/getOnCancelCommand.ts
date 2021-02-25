@@ -42,7 +42,7 @@ const getOnCancelCommand = function ({ priorityQueueStore }: {
         withLogMetadata(
           'runtime',
           'microservice/commandDispatcher',
-          { commandIdentifierWithClient, err: ex }
+          { commandIdentifierWithClient, error: ex }
         )
       );
 

@@ -98,7 +98,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
   } catch (ex: unknown) {
     logger.fatal(
       'An unexpected error occured.',
-      withLogMetadata('runtime', 'microservice/domainEventDispatcher', { err: ex })
+      withLogMetadata('runtime', 'microservice/domainEventDispatcher', { error: ex })
     );
     process.exit(1);
   }

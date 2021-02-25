@@ -136,7 +136,7 @@ const postRemoveFile = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'manageFile', { err: error })
+              withLogMetadata('api', 'manageFile', { error })
             );
 
             res.status(500).json({

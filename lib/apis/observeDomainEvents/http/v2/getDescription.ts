@@ -39,7 +39,7 @@ const getDescription = {
 
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api', 'observeDomainEvents', { err: ex })
+          withLogMetadata('api', 'observeDomainEvents', { error })
         );
 
         res.status(500).json({

@@ -51,7 +51,7 @@ const getOnReceiveDomainEvent = function ({
         withLogMetadata(
           'runtime',
           'microservice/domainEventDispatcher',
-          { domainEvent, err: ex }
+          { domainEvent, error: ex }
         )
       );
 

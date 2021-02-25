@@ -57,7 +57,7 @@ const getMessages = {
 
         logger.error(
           'An unexpected error occured.',
-          withLogMetadata('api', 'subscribeMessages', { err: error })
+          withLogMetadata('api', 'subscribeMessages', { error })
         );
       }
     };

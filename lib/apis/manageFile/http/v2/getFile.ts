@@ -84,7 +84,7 @@ const getFile = {
         } catch (ex: unknown) {
           logger.error(
             'An unknown error occured.',
-            withLogMetadata('api', 'manageFile', { err: ex })
+            withLogMetadata('api', 'manageFile', { error: ex })
           );
         }
       } catch (ex: unknown) {
@@ -120,7 +120,7 @@ const getFile = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'manageFile', { err: error })
+              withLogMetadata('api', 'manageFile', { error })
             );
 
             res.status(500).json({

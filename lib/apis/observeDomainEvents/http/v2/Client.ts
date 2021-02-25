@@ -32,7 +32,7 @@ class Client extends HttpClient {
 
     logger.error(
       'An unknown error occured.',
-      withLogMetadata('api-client', 'observeDomainEvents', { err: data, status })
+      withLogMetadata('api-client', 'observeDomainEvents', { error: data, status })
     );
 
     throw new errors.UnknownError();
@@ -58,7 +58,7 @@ class Client extends HttpClient {
 
       logger.error(
         'An unknown error occured.',
-        withLogMetadata('api-client', 'observeDomainEvents', { err: error, status })
+        withLogMetadata('api-client', 'observeDomainEvents', { error: error, status })
       );
 
       throw new errors.UnknownError();

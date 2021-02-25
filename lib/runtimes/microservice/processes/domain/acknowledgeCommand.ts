@@ -32,7 +32,7 @@ const acknowledgeCommand = async function ({ command, token, commandDispatcher }
   } catch (ex: unknown) {
     logger.debug(
       'Failed to acknowledge command.',
-      withLogMetadata('runtime', 'microservice/domain', { err: ex })
+      withLogMetadata('runtime', 'microservice/domain', { error: ex })
     );
 
     throw ex;

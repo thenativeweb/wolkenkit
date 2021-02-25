@@ -73,7 +73,7 @@ const executeStreamQueryHandler = async function ({
 
         logger.warn(
           `An invalid item was omitted from a stream query handler's response.`,
-          withLogMetadata('common', 'executeStreamQueryHandler', { err: error })
+          withLogMetadata('common', 'executeStreamQueryHandler', { error })
         );
 
         return callback(null);

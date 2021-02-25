@@ -46,7 +46,7 @@ const getOnReceiveCommand = function ({
         withLogMetadata(
           'runtime',
           'microservice/commandDispatcher',
-          { command, err: ex }
+          { command, error: ex }
         )
       );
 

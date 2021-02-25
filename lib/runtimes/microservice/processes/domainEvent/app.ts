@@ -109,7 +109,10 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
           new Value(getDomainEventWithStateSchema()).validate(domainEvent, { valueName: 'domainEvent' });
           validateDomainEventWithState({ domainEvent, application });
         } catch (ex: unknown) {
-          logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, err: ex });
+          logger.error(
+            'Received a message with an unexpected format from the publisher.',
+            withLogMetadata('runtime', 'microservice/domainEvent', { domainEvent, error: ex })
+          );
 
           return;
         }
@@ -128,7 +131,7 @@ import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadat
   } catch (ex: unknown) {
     logger.fatal(
       'An unexpected error occured.',
-      withLogMetadata('runtime', 'microservice/domainEvent', { err: ex })
+      withLogMetadata('runtime', 'microservice/domainEvent', { error: ex })
     );
     process.exit(1);
   }

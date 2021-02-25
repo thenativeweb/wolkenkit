@@ -77,7 +77,7 @@ class Client extends HttpClient {
       default: {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api-client', 'handleCommand', { err: data, status })
+          withLogMetadata('api-client', 'handleCommand', { error: data, status })
         );
 
         throw new errors.UnknownError();
@@ -114,7 +114,7 @@ class Client extends HttpClient {
       default: {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api-client', 'handleCommand', { err: data, status })
+          withLogMetadata('api-client', 'handleCommand', { error: data, status })
         );
 
         throw new errors.UnknownError();

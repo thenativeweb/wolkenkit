@@ -127,7 +127,7 @@ const executeFlow = async function <TInfrastructure extends AskInfrastructure & 
       } catch (ex: unknown) {
         logger.error(
           `A flow handler threw an error.`,
-          withLogMetadata('common', 'executeFlow', { err: ex, flowName, handlerName })
+          withLogMetadata('common', 'executeFlow', { error: ex, flowName, handlerName })
         );
 
         throw ex;

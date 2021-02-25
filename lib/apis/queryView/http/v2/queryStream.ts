@@ -59,7 +59,7 @@ const queryStream = {
         } catch (ex: unknown) {
           logger.error(
             'An unknown error occured.',
-            withLogMetadata('api', 'queryView', { err: ex })
+            withLogMetadata('api', 'queryView', { error: ex })
           );
         } finally {
           res.end();
@@ -89,7 +89,7 @@ const queryStream = {
           case errors.QueryResultInvalid.code: {
             logger.error(
               'An invalid query result was occured.',
-              withLogMetadata('api', 'queryView', { err: error })
+              withLogMetadata('api', 'queryView', { error })
             );
 
             res.status(500).json({
@@ -100,7 +100,7 @@ const queryStream = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'queryView', { err: error })
+              withLogMetadata('api', 'queryView', { error })
             );
 
             res.status(500).json({

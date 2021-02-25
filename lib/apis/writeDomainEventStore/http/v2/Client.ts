@@ -45,7 +45,7 @@ class Client extends HttpClient {
       default: {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api-client', 'writeDomainEventStore', { err: data, status })
+          withLogMetadata('api-client', 'writeDomainEventStore', { error: data, status })
         );
         throw new errors.UnknownError(data.message);
       }
@@ -75,7 +75,7 @@ class Client extends HttpClient {
       default: {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api-client', 'writeDomainEventStore', { err: data, status })
+          withLogMetadata('api-client', 'writeDomainEventStore', { error: data, status })
         );
         throw new errors.UnknownError(data.message);
       }

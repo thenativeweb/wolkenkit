@@ -9,6 +9,7 @@ import { QueryHandlerIdentifier } from '../../../../common/elements/QueryHandler
 import { Schema } from '../../../../common/elements/Schema';
 import { validateQueryHandlerIdentifier } from '../../../../common/validators/validateQueryHandlerIdentifier';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -74,7 +75,10 @@ const queryValue = {
             break;
           }
           case errors.QueryResultInvalid.code: {
-            logger.error('An invalid query result was caught.', { err: error });
+            logger.error(
+              'An invalid query result was caught.',
+              withLogMetadata('api', 'queryView', { error })
+            );
 
             res.status(404).json({
               code: errors.NotFound.code
@@ -94,7 +98,10 @@ const queryValue = {
             break;
           }
           default: {
-            logger.error('An unknown error occured.', { err: ex });
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'queryView', { error })
+            );
 
             res.status(500).json({
               code: error.code

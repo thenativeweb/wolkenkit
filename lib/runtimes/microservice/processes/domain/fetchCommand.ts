@@ -37,7 +37,7 @@ const fetchCommand = async function ({ commandDispatcher }: {
   } catch (ex: unknown) {
     logger.debug(
       'Failed to fetch command.',
-      withLogMetadata('runtime', 'microservice/domain', { err: ex })
+      withLogMetadata('runtime', 'microservice/domain', { error: ex })
     );
 
     throw ex;

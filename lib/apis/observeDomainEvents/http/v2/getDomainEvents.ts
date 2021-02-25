@@ -144,7 +144,7 @@ const getDomainEvents = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'observeDomainEvents', { err: ex })
+              withLogMetadata('api', 'observeDomainEvents', { error })
             );
           }
         }

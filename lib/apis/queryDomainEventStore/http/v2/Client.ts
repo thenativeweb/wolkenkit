@@ -9,7 +9,6 @@ import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTrans
 import { Snapshot } from '../../../../stores/domainEventStore/Snapshot';
 import { State } from '../../../../common/elements/State';
 import streamToString from 'stream-to-string';
-import { toArray } from 'streamtoarray';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { PassThrough, pipeline, Readable } from 'stream';
 
@@ -48,7 +47,7 @@ class Client extends HttpClient {
       default: {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api-client', 'queryDomainEventStore', { err: data, status })
+          withLogMetadata('api-client', 'queryDomainEventStore', { error: data, status })
         );
 
         throw new errors.UnknownError(data.message);
@@ -68,7 +67,7 @@ class Client extends HttpClient {
     if (status !== 200) {
       logger.error(
         'An unknown error occured.',
-        withLogMetadata('api-client', 'queryDomainEventStore', { err: data, status })
+        withLogMetadata('api-client', 'queryDomainEventStore', { error: data, status })
       );
 
       throw new errors.UnknownError(data.message);
@@ -106,7 +105,7 @@ class Client extends HttpClient {
     if (status !== 200) {
       logger.error(
         'An unknown error occured.',
-        withLogMetadata('api-client', 'queryDomainEventStore', { err: data, status })
+        withLogMetadata('api-client', 'queryDomainEventStore', { error: data, status })
       );
 
       throw new errors.UnknownError(data.message);
@@ -127,7 +126,7 @@ class Client extends HttpClient {
     if (status !== 200) {
       logger.error(
         'An unknown error occured.',
-        withLogMetadata('api-client', 'queryDomainEventStore', { err: data, status })
+        withLogMetadata('api-client', 'queryDomainEventStore', { error: data, status })
       );
 
       throw new errors.UnknownError(data.message);
@@ -173,7 +172,7 @@ class Client extends HttpClient {
         withLogMetadata(
           'api-client',
           'queryDomainEventStore',
-          { err: Buffer.concat(await toArray(data)).toString(), status }
+          { error: JSON.parse(await streamToString(data)), status }
         )
       );
 
@@ -225,7 +224,7 @@ class Client extends HttpClient {
     if (status !== 200) {
       logger.error(
         'An unknown error occured.',
-        withLogMetadata('api-client', 'queryDomainEventStore', { err: data, status })
+        withLogMetadata('api-client', 'queryDomainEventStore', { error: data, status })
       );
 
       throw new errors.UnknownError(data.message);
@@ -274,7 +273,7 @@ class Client extends HttpClient {
       default: {
         logger.error(
           'An unknown error occured.',
-          withLogMetadata('api-client', 'queryDomainEventStore', { err: data, status })
+          withLogMetadata('api-client', 'queryDomainEventStore', { error: data, status })
         );
 
         throw new errors.UnknownError(data.message);
@@ -292,7 +291,7 @@ class Client extends HttpClient {
     if (status !== 200) {
       const error = JSON.parse(await streamToString(data));
 
-      logger.error('An unknown error occured.', { err: error, status });
+      logger.error('An unknown error occured.', { error: error, status });
 
       throw new errors.UnknownError();
     }
@@ -328,7 +327,7 @@ class Client extends HttpClient {
     if (status !== 200) {
       const error = JSON.parse(await streamToString(data));
 
-      logger.error('An unknown error occured.', { err: error, status });
+      logger.error('An unknown error occured.', { error: error, status });
 
       throw new errors.UnknownError(data.message);
     }

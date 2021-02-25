@@ -79,7 +79,7 @@ const hasDomainEventsWithCausationId = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'queryDomainEventStore', { err: error })
+              withLogMetadata('api', 'queryDomainEventStore', { error })
             );
 
             return res.status(400).json({

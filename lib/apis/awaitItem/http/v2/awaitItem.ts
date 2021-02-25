@@ -83,7 +83,7 @@ const awaitItem = {
           } catch (ex: unknown) {
             logger.error(
               'An unexpected error occured when locking an item.',
-              withLogMetadata('api', 'awaitItem', { err: ex })
+              withLogMetadata('api', 'awaitItem', { error: ex })
             );
 
             await newItemSubscriber.unsubscribe({
@@ -117,7 +117,7 @@ const awaitItem = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'awaitItem', { err: ex })
+              withLogMetadata('api', 'awaitItem', { error })
             );
 
             res.status(500).json({

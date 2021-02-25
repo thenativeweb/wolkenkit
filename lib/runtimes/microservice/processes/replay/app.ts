@@ -63,7 +63,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       });
     });
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { err: ex });
+    logger.fatal('An unexpected error occured.', { error: ex });
     process.exit(1);
   }
 })();

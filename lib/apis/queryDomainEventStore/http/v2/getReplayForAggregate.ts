@@ -100,7 +100,7 @@ const getReplayForAggregate = {
           default: {
             logger.error(
               'An unknown error occured.',
-              withLogMetadata('api', 'queryDomainEventStore', { err: error })
+              withLogMetadata('api', 'queryDomainEventStore', { error })
             );
 
             res.status(500).json({
