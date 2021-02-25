@@ -6,13 +6,13 @@ import { flaschenpost } from 'flaschenpost';
 import { getDomainEventSchema } from '../../../../common/schemas/getDomainEventSchema';
 import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
-import typer from 'content-type';
+import { validateContentType } from '../../../base/validateContentType';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 
-const domainEventSchema = new Value(getDomainEventSchema()),
-      logger = flaschenpost.getLogger();
+const domainEventSchema = new Value(getDomainEventSchema());
+const logger = flaschenpost.getLogger();
 
 const storeDomainEvents = {
   description: 'Stores domain events.',
@@ -25,7 +25,7 @@ const storeDomainEvents = {
     } as Schema
   },
   response: {
-    statusCodes: [ 200, 400, 415 ],
+    statusCodes: [ 200, 400, 409, 415 ],
 
     body: { type: 'object' } as Schema
   },
@@ -33,74 +33,35 @@ const storeDomainEvents = {
   getHandler ({ domainEventStore }: {
     domainEventStore: DomainEventStore;
   }): WolkenkitRequestHandler {
-    const requestBodySchema = new Value(storeDomainEvents.request.body),
-          responseBodySchema = new Value(storeDomainEvents.response.body);
+    const responseBodySchema = new Value(storeDomainEvents.response.body);
 
     return async function (req, res): Promise<any> {
       try {
-        const contentType = typer.parse(req);
+        validateContentType({
+          expectedContentType: 'application/json',
+          req
+        });
 
-        if (contentType.type !== 'application/json') {
-          throw new errors.ContentTypeMismatch();
+        if (!Array.isArray(req.body)) {
+          throw new errors.RequestMalformed('Request body must be an array of domain events.');
         }
-      } catch {
-        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-        res.status(415).json({
-          code: ex.code,
-          message: ex.message
-        });
+        if (req.body.length === 0) {
+          throw new errors.ParameterInvalid('Domain events are missing.');
+        }
 
-        return;
-      }
+        const domainEvents = req.body.map(
+          (domainEvent: any): DomainEvent<DomainEventData> => new DomainEvent(domainEvent)
+        );
 
-      if (!Array.isArray(req.body)) {
-        const ex = new errors.RequestMalformed('Request body must be an array of domain events.');
+        for (const domainEvent of domainEvents) {
+          try {
+            domainEventSchema.validate(domainEvent);
+          } catch (ex: unknown) {
+            throw new errors.DomainEventMalformed((ex as Error).message);
+          }
+        }
 
-        return res.status(400).json({
-          code: ex.code,
-          message: ex.message
-        });
-      }
-
-      if (req.body.length === 0) {
-        const ex = new errors.ParameterInvalid('Domain events are missing.');
-
-        return res.status(400).json({
-          code: ex.code,
-          message: ex.message
-        });
-      }
-
-      try {
-        requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex: unknown) {
-        const error = new errors.RequestMalformed((ex as Error).message);
-
-        return res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
-      }
-
-      let domainEvents;
-
-      try {
-        domainEvents = req.body.map((domainEvent): DomainEvent<DomainEventData> => new DomainEvent(domainEvent));
-
-        domainEvents.forEach((domainEvent): void => {
-          domainEventSchema.validate(domainEvent, { valueName: 'domainEvent' });
-        });
-      } catch (ex: unknown) {
-        const error = new errors.DomainEventMalformed((ex as Error).message);
-
-        return res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
-      }
-
-      try {
         await domainEventStore.storeDomainEvents({ domainEvents });
 
         const response = {};
@@ -114,6 +75,24 @@ const storeDomainEvents = {
           new errors.UnknownError(undefined, { cause: ex as Error });
 
         switch (error.code) {
+          case errors.ContentTypeMismatch.code: {
+            res.status(415).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          case errors.RequestMalformed.code:
+          case errors.ParameterInvalid.code:
+          case errors.DomainEventMalformed.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
           case errors.RevisionAlreadyExists.code: {
             res.status(409).json({
               code: error.code,

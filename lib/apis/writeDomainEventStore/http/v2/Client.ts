@@ -33,9 +33,6 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case errors.RequestMalformed.code: {
-        throw new errors.RequestMalformed(data.message);
-      }
       case errors.DomainEventMalformed.code: {
         throw new errors.DomainEventMalformed(data.message);
       }

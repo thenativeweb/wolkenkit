@@ -4,7 +4,7 @@ import { flaschenpost } from 'flaschenpost';
 import { getSnapshotSchema } from '../../../../common/schemas/getSnapshotSchema';
 import { isCustomError } from 'defekt';
 import { Schema } from '../../../../common/elements/Schema';
-import typer from 'content-type';
+import { validateContentType } from '../../../base/validateContentType';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
@@ -34,36 +34,19 @@ const storeSnapshot = {
 
     return async function (req, res): Promise<any> {
       try {
-        const contentType = typer.parse(req);
+        validateContentType({
+          expectedContentType: 'application/json',
+          req
+        });
 
-        if (contentType.type !== 'application/json') {
-          throw new errors.ContentTypeMismatch();
+        const snapshot = req.body;
+
+        try {
+          requestBodySchema.validate(snapshot, { valueName: 'requestBody' });
+        } catch (ex: unknown) {
+          throw new errors.SnapshotMalformed((ex as Error).message);
         }
-      } catch {
-        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-        res.status(415).json({
-          code: ex.code,
-          message: ex.message
-        });
-
-        return;
-      }
-
-      const snapshot = req.body;
-
-      try {
-        requestBodySchema.validate(snapshot, { valueName: 'requestBody' });
-      } catch (ex: unknown) {
-        const error = new errors.SnapshotMalformed((ex as Error).message);
-
-        return res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
-      }
-
-      try {
         await domainEventStore.storeSnapshot({ snapshot });
 
         const response = {};
@@ -76,15 +59,35 @@ const storeSnapshot = {
           ex :
           new errors.UnknownError(undefined, { cause: ex as Error });
 
-        logger.error(
-          'An unknown error occured.',
-          withLogMetadata('api', 'writeDomainEventStore', { err: ex })
-        );
+        switch (error.code) {
+          case errors.ContentTypeMismatch.code: {
+            res.status(415).json({
+              code: error.code,
+              message: error.message
+            });
 
-        res.status(500).json({
-          code: error.code,
-          message: error.message
-        });
+            return;
+          }
+          case errors.SnapshotMalformed.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          default: {
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'writeDomainEventStore', { err: error })
+            );
+
+            res.status(500).json({
+              code: error.code,
+              message: error.message
+            });
+          }
+        }
       }
     };
   }
