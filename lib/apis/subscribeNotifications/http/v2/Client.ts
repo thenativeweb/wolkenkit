@@ -4,6 +4,7 @@ import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { NotificationsDescription } from '../../../../common/application/NotificationsDescription';
 import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -28,7 +29,10 @@ class Client extends HttpClient {
       return data;
     }
 
-    logger.error('An unknown error occured.', { ex: data, status });
+    logger.error(
+      'An unknown error occured.',
+      withLogMetadata('api-client', 'subscribeNotifications', { error: data, status })
+    );
 
     throw new errors.UnknownError();
   }
@@ -56,7 +60,10 @@ class Client extends HttpClient {
       (err): void => {
         if (err) {
           // Do not handle errors explicitly. The returned stream will just close.
-          logger.error('An error occured during stream piping.', { err });
+          logger.error(
+            'An error occured during stream piping.',
+            withLogMetadata('api-client', 'subscribeNotifications', { err })
+          );
         }
       }
     );

@@ -1,6 +1,7 @@
 import { flaschenpost } from 'flaschenpost';
 import { OnReceiveMessage } from '../../../../apis/publishMessage/OnReceiveMessage';
 import { Publisher } from '../../../../messaging/pubSub/Publisher';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -11,7 +12,10 @@ const getOnReceiveMessage = function ({ publisher }: {
     channel: string;
     message: object;
   }): Promise<void> {
-    logger.info('Received message.');
+    logger.debug(
+      'Received message.',
+      withLogMetadata('runtime', 'microservice/publisher', { channel, message })
+    );
 
     await publisher.publish({
       channel,

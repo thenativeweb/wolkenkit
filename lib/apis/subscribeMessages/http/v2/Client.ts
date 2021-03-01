@@ -3,6 +3,7 @@ import { FilterHeartbeatsTransform } from '../../../../common/utils/http/FilterH
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { ParseJsonTransform } from '../../../../common/utils/http/ParseJsonTransform';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { PassThrough, pipeline } from 'stream';
 
 const logger = flaschenpost.getLogger();
@@ -42,7 +43,10 @@ class Client extends HttpClient {
       (err): void => {
         if (err) {
           // Do not handle errors explicitly. The returned stream will just close.
-          logger.error('An error occured during stream piping.', { err });
+          logger.error(
+            'An error occured during stream piping.',
+            withLogMetadata('api-client', 'subscribeMessages', { err })
+          );
         }
       }
     );

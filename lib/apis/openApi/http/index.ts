@@ -3,11 +3,12 @@ import { ApiDefinition } from '../ApiDefinition';
 import { Application } from '../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
 import { Application as ExpressApplication } from 'express';
-import { flaschenpost } from 'flaschenpost';
 import { getApiBase } from '../../base/getApiBase';
 import { getApi as getStaticApi } from '../../getStatic/http';
 import path from 'path';
 import swaggerUi from 'swagger-ui-express';
+import { withLogMetadata } from '../../../common/utils/logging/withLogMetadata';
+import { flaschenpost, getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 
 const logger = flaschenpost.getLogger();
 
@@ -67,12 +68,17 @@ const getApi = async function ({
     paths
   };
 
-  logger.debug('Constructed openApi definition for documentation route', { openApiDefinition });
+  logger.debug(
+    'Constructed openApi definition for documentation route.',
+    withLogMetadata('api', 'openApi', { openApiDefinition })
+  );
 
   const { api: staticApi } = await getStaticApi({
     directory: path.join(__dirname, '..', '..', '..', '..', 'assets'),
     corsOrigin
   });
+
+  api.use(getLoggingMiddleware());
 
   api.use('/assets', staticApi);
   api.use('/', swaggerUi.serve, swaggerUi.setup(

@@ -26,6 +26,7 @@ suite('observeDomainEvents/http/Client', function (): void {
   this.timeout(5_000);
 
   const identityProviders = [ identityProvider ];
+  const heartbeatInterval = 90_000;
 
   let application: Application,
       domainEventStore: DomainEventStore,
@@ -63,7 +64,8 @@ suite('observeDomainEvents/http/Client', function (): void {
           corsOrigin: '*',
           application,
           repository,
-          identityProviders
+          identityProviders,
+          heartbeatInterval
         }));
       });
 
@@ -100,7 +102,8 @@ suite('observeDomainEvents/http/Client', function (): void {
           corsOrigin: '*',
           application,
           repository,
-          identityProviders
+          identityProviders,
+          heartbeatInterval
         }));
       });
 

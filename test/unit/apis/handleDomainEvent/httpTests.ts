@@ -39,29 +39,7 @@ suite('handleDomainEvent/http', (): void => {
         }));
       });
 
-      test('returns 415 if the content-type header is missing.', async (): Promise<void> => {
-        const { client } = await runAsServer({ app: api });
-
-        const { status, data } = await client({
-          method: 'post',
-          url: '/v2/',
-          headers: {
-            'content-type': ''
-          },
-          responseType: 'text',
-          validateStatus (): boolean {
-            return true;
-          }
-        });
-
-        assert.that(status).is.equalTo(415);
-        assert.that(data).is.equalTo({
-          code: errors.ContentTypeMismatch.code,
-          message: 'Header content-type must be application/json.'
-        });
-      });
-
-      test('returns 415 if content-type is not set to application/json.', async (): Promise<void> => {
+      test('returns 415 if the content-type header is not set to application/json.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status, data } = await client({

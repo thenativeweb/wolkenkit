@@ -4,7 +4,6 @@ import { ClientMetadata } from '../../../common/utils/http/ClientMetadata';
 import { CorsOrigin } from 'get-cors-origin';
 import { errors } from '../../../common/errors';
 import { Application as ExpressApplication } from 'express';
-import { flaschenpost } from 'flaschenpost';
 import { getApiBase } from '../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../base/getAuthenticationMiddleware';
 import { getSchema } from './getSchema';
@@ -20,6 +19,8 @@ import { ResolverContext } from './ResolverContext';
 import { Server } from 'http';
 import { Subscriber } from '../../../messaging/pubSub/Subscriber';
 import { validateSchema } from 'graphql';
+import { withLogMetadata } from '../../../common/utils/logging/withLogMetadata';
+import { flaschenpost, getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 
 const logger = flaschenpost.getLogger();
 
@@ -68,6 +69,8 @@ const getV2 = async function ({
     }
   });
 
+  api.use(getLoggingMiddleware());
+
   const authenticationMiddleware = await getAuthenticationMiddleware({
     identityProviders
   });
@@ -86,7 +89,10 @@ const getV2 = async function ({
 
   if (schemaValidationErrors.length > 0) {
     for (const error of schemaValidationErrors) {
-      logger.error(error.message, { ex: error });
+      logger.fatal(
+        'GraphQL schema validation failed.',
+        withLogMetadata('api', 'graphql', { error })
+      );
     }
     throw new errors.GraphQlError('GraphQL schema validation failed.');
   }

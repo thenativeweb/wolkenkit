@@ -5,8 +5,10 @@ import { AxiosError } from 'axios';
 import { buildDomainEvent } from '../../../../lib/common/utils/test/buildDomainEvent';
 import { createLockStore } from '../../../../lib/stores/lockStore/createLockStore';
 import { createPublisher } from '../../../../lib/messaging/pubSub/createPublisher';
+import { CustomError } from 'defekt';
 import { DomainEventStore } from '../../../../lib/stores/domainEventStore/DomainEventStore';
 import { DomainEventWithState } from '../../../../lib/common/elements/DomainEventWithState';
+import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/observeDomainEvents/http';
 import { getApplicationDescription } from '../../../../lib/common/application/getApplicationDescription';
@@ -26,6 +28,7 @@ import { waitForSignals } from 'wait-for-signals';
 
 suite('observeDomainEvents/http', (): void => {
   const identityProviders = [ identityProvider ];
+  const heartbeatInterval = 90_000;
 
   let application: Application,
       domainEventStore: DomainEventStore,
@@ -63,7 +66,8 @@ suite('observeDomainEvents/http', (): void => {
           corsOrigin: '*',
           application,
           repository,
-          identityProviders
+          identityProviders,
+          heartbeatInterval
         }));
       });
 
@@ -120,11 +124,12 @@ suite('observeDomainEvents/http', (): void => {
           corsOrigin: '*',
           application,
           repository,
-          identityProviders
+          identityProviders,
+          heartbeatInterval
         }));
       });
 
-      test('returns a 400 if the query is malformed.', async (): Promise<void> => {
+      test('returns 400 if the query is malformed.', async (): Promise<void> => {
         const { client } = await runAsServer({ app: api });
 
         const { status } = await client({
@@ -137,7 +142,7 @@ suite('observeDomainEvents/http', (): void => {
         assert.that(status).is.equalTo(400);
       });
 
-      test('delivers a single domain event.', async (): Promise<void> => {
+      test('returns 200 and delivers a single domain event.', async (): Promise<void> => {
         const executed = new DomainEventWithState({
           ...buildDomainEvent({
             aggregateIdentifier: {
@@ -160,11 +165,13 @@ suite('observeDomainEvents/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        const { data } = await client({
+        const { status, data } = await client({
           method: 'get',
           url: '/v2/',
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
@@ -187,7 +194,7 @@ suite('observeDomainEvents/http', (): void => {
         });
       });
 
-      test('delivers multiple domain events.', async (): Promise<void> => {
+      test('returns 200 and delivers multiple domain events.', async (): Promise<void> => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
             aggregateIdentifier: {
@@ -226,11 +233,13 @@ suite('observeDomainEvents/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        const { data } = await client({
+        const { status, data } = await client({
           method: 'get',
           url: '/v2/',
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
@@ -258,7 +267,7 @@ suite('observeDomainEvents/http', (): void => {
         });
       });
 
-      test('delivers filtered domain events.', async (): Promise<void> => {
+      test('returns 200 and delivers filtered domain events.', async (): Promise<void> => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
             aggregateIdentifier: {
@@ -297,7 +306,7 @@ suite('observeDomainEvents/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        const { data } = await client({
+        const { status, data } = await client({
           method: 'get',
           url: '/v2/',
           params: { filter: { name: 'executed' }},
@@ -308,6 +317,8 @@ suite('observeDomainEvents/http', (): void => {
           },
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
@@ -331,7 +342,7 @@ suite('observeDomainEvents/http', (): void => {
         });
       });
 
-      test('delivers filtered domain events with a nested filter.', async (): Promise<void> => {
+      test('returns 200 and delivers filtered domain events with a nested filter.', async (): Promise<void> => {
         const succeeded = new DomainEventWithState({
           ...buildDomainEvent({
             aggregateIdentifier: {
@@ -370,7 +381,7 @@ suite('observeDomainEvents/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        const { data } = await client({
+        const { status, data } = await client({
           method: 'get',
           url: '/v2/',
           params: { filter: {
@@ -385,6 +396,8 @@ suite('observeDomainEvents/http', (): void => {
           responseType: 'stream'
         });
 
+        assert.that(status).is.equalTo(200);
+
         await new Promise<void>((resolve, reject): void => {
           data.on('error', (err: any): void => {
             reject(err);
@@ -407,7 +420,7 @@ suite('observeDomainEvents/http', (): void => {
         });
       });
 
-      test('delivers rejected/failed events to their initiator.', async (): Promise<void> => {
+      test('returns 200 and delivers rejected/failed events to their initiator.', async (): Promise<void> => {
         const failed = new DomainEventWithState({
           ...buildDomainEvent({
             aggregateIdentifier: {
@@ -446,7 +459,7 @@ suite('observeDomainEvents/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        const { data } = await client({
+        const { status, data } = await client({
           method: 'get',
           url: '/v2/',
           headers: {
@@ -454,6 +467,8 @@ suite('observeDomainEvents/http', (): void => {
           },
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         const collector = waitForSignals({ count: 2 });
 
@@ -490,7 +505,7 @@ suite('observeDomainEvents/http', (): void => {
         await collector.promise;
       });
 
-      test('does not deliver rejected/failed events to other clients than the initiator.', async (): Promise<void> => {
+      test('returns 200 and does not deliver rejected/failed events to other clients than the initiator.', async (): Promise<void> => {
         const failed = new DomainEventWithState({
           ...buildDomainEvent({
             aggregateIdentifier: {
@@ -529,7 +544,7 @@ suite('observeDomainEvents/http', (): void => {
 
         const { client } = await runAsServer({ app: api });
 
-        const { data } = await client({
+        const { status, data } = await client({
           method: 'get',
           url: '/v2/',
           headers: {
@@ -537,6 +552,8 @@ suite('observeDomainEvents/http', (): void => {
           },
           responseType: 'stream'
         });
+
+        assert.that(status).is.equalTo(200);
 
         const collector = waitForSignals({ count: 1 });
 
@@ -562,6 +579,16 @@ suite('observeDomainEvents/http', (): void => {
         }, 200);
 
         await collector.promise;
+      });
+
+      test('can not publish invalid events.', async (): Promise<void> => {
+        const invalid = { foo: 'bar' };
+
+        await assert.that(async (): Promise<void> => {
+          publishDomainEvent({ domainEvent: invalid as any });
+        }).is.throwingAsync<CustomError>(
+          (ex): boolean => ex.code === errors.DomainEventMalformed.code
+        );
       });
 
       test('removes state before delivery.', async (): Promise<void> => {
@@ -676,7 +703,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -765,7 +793,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -852,7 +881,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -927,7 +957,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -998,7 +1029,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1085,7 +1117,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1172,7 +1205,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1247,7 +1281,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1319,7 +1354,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1406,7 +1442,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();
@@ -1493,7 +1530,8 @@ suite('observeDomainEvents/http', (): void => {
             corsOrigin: '*',
             application,
             repository,
-            identityProviders
+            identityProviders,
+            heartbeatInterval
           }));
 
           const aggregateId = v4();

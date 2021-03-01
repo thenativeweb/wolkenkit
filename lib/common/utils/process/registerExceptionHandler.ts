@@ -1,9 +1,13 @@
 import { flaschenpost } from 'flaschenpost';
+import { withLogMetadata } from '../logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
 const handleUncaughtException = function (ex: Error): void {
-  logger.fatal('Unexpected exception occured.', { reason: ex.message, ex });
+  logger.fatal(
+    'Unexpected exception occured.',
+    withLogMetadata('common', 'registerExceptionHandler', { reason: ex.message, error: ex })
+  );
 
   /* eslint-disable unicorn/no-process-exit */
   process.exit(1);
@@ -14,7 +18,10 @@ const handleUnhandledRejection = function (
   reason: any,
   promise: Promise<any>
 ): void {
-  logger.fatal('Unexpected exception occured.', { reason, ex: promise });
+  logger.fatal(
+    'Unexpected exception occured.',
+    withLogMetadata('common', 'registerExceptionHandler', { reason, error: promise })
+  );
 
   /* eslint-disable unicorn/no-process-exit */
   process.exit(1);

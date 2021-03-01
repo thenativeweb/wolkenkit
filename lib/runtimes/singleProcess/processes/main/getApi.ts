@@ -61,7 +61,8 @@ const getApi = async function ({
         corsOrigin,
         application,
         identityProviders,
-        repository
+        repository,
+        heartbeatInterval: configuration.heartbeatInterval
       });
 
     publishDomainEventToRestApi = publishDomainEvent;
@@ -92,7 +93,8 @@ const getApi = async function ({
       corsOrigin,
       identityProviders,
       channelForNotifications,
-      subscriber
+      subscriber,
+      heartbeatInterval: configuration.heartbeatInterval
     });
 
     const { api: performReplayApi } = await getPerformReplayApi({

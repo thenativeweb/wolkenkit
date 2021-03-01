@@ -4,6 +4,7 @@ import { flaschenpost } from 'flaschenpost';
 import { LoggerService } from '../services/LoggerService';
 import { Notification } from '../elements/Notification';
 import { NotificationService } from '../services/NotificationService';
+import { withLogMetadata } from '../utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -39,7 +40,10 @@ const executeNotificationSubscribers = async function ({ application, notificati
         }
       );
     } catch (ex: unknown) {
-      logger.error(`The notification subscriber '${viewName}.${notificationSubscriberName}' threw an error.`, { ex });
+      logger.error(
+        `A notification subscriber threw an error.`,
+        withLogMetadata('common', 'executeNotificationSubscriber', { error: ex, viewName, notificationSubscriberName })
+      );
 
       throw ex;
     }

@@ -29,7 +29,8 @@ const getApi = async function ({
     identityProviders,
     subscriber,
     channelForNotifications,
-    corsOrigin
+    corsOrigin,
+    heartbeatInterval: configuration.heartbeatInterval
   });
 
   api.use('/notifications', subscribeNotificationsApi);

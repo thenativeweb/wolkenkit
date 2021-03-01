@@ -3,15 +3,16 @@ import { ClientMetadata } from '../../../../common/utils/http/ClientMetadata';
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getItemIdentifierSchema } from '../../../../common/schemas/getItemIdentifierSchema';
+import { isCustomError } from 'defekt';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
 import { OnCancelCommand } from '../../OnCancelCommand';
 import { Schema } from '../../../../common/elements/Schema';
-import typer from 'content-type';
+import { validateContentType } from '../../../base/validateContentType';
 import { validateItemIdentifier } from '../../../../common/validators/validateItemIdentifier';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
-import { CustomError, isCustomError } from 'defekt';
 
 const logger = flaschenpost.getLogger();
 
@@ -35,68 +36,32 @@ const cancelCommand = {
           responseBodySchema = new Value(cancelCommand.response.body);
 
     return async function (req, res): Promise<any> {
-      if (!req.token || !req.user) {
-        const ex = new errors.NotAuthenticated('Client information missing in request.');
-
-        res.status(401).json({
-          code: ex.code,
-          message: ex.message
+      try {
+        validateContentType({
+          expectedContentType: 'application/json',
+          req
         });
 
-        throw ex;
-      }
-
-      try {
-        const contentType = typer.parse(req);
-
-        if (contentType.type !== 'application/json') {
-          throw new errors.ContentTypeMismatch();
+        try {
+          requestBodySchema.validate(req.body, { valueName: 'requestBody' });
+        } catch (ex: unknown) {
+          throw new errors.RequestMalformed((ex as Error).message);
         }
-      } catch {
-        const ex = new errors.ContentTypeMismatch('Header content-type must be application/json.');
 
-        res.status(415).json({
-          code: ex.code,
-          message: ex.message
-        });
+        const commandIdentifier: ItemIdentifier = req.body;
 
-        return;
-      }
-
-      try {
-        requestBodySchema.validate(req.body, { valueName: 'requestBody' });
-      } catch (ex: unknown) {
-        const error = new errors.RequestMalformed((ex as Error).message);
-
-        res.status(400).json({
-          code: error.code,
-          message: error.message
-        });
-
-        return;
-      }
-
-      const commandIdentifier: ItemIdentifier = req.body;
-
-      try {
         validateItemIdentifier({ itemIdentifier: commandIdentifier, application, itemType: 'command' });
-      } catch (ex: unknown) {
-        res.status(400).json({
-          code: (ex as CustomError).code,
-          message: (ex as CustomError).message
-        });
 
-        return;
-      }
+        const commandIdentifierWithClient: ItemIdentifierWithClient = {
+          ...commandIdentifier,
+          client: new ClientMetadata({ req })
+        };
 
-      const commandIdentifierWithClient: ItemIdentifierWithClient = {
-        ...commandIdentifier,
-        client: new ClientMetadata({ req })
-      };
+        logger.debug(
+          'Received request to cancel command.',
+          withLogMetadata('api', 'handleCommand', { commandIdentifierWithClient })
+        );
 
-      logger.info('Received request to cancel command.', { commandIdentifierWithClient });
-
-      try {
         await onCancelCommand({ commandIdentifierWithClient });
 
         const response = {};
@@ -110,14 +75,38 @@ const cancelCommand = {
           new errors.UnknownError(undefined, { cause: ex as Error });
 
         switch (error.code) {
-          case errors.ItemNotFound.code: {
-            return res.status(404).json({
+          case errors.ContentTypeMismatch.code: {
+            res.status(415).json({
               code: error.code,
               message: error.message
             });
+
+            return;
+          }
+          case errors.RequestMalformed.code:
+          case errors.ContextNotFound.code:
+          case errors.AggregateNotFound.code:
+          case errors.CommandNotFound.code: {
+            res.status(400).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          case errors.ItemNotFound.code: {
+            res.status(404).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
           }
           default: {
-            logger.error('An unknown error occured.', { ex: error });
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'handleCommand', { error })
+            );
 
             res.status(500).json({
               code: error.code,

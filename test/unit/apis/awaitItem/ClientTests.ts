@@ -96,6 +96,34 @@ suite('awaitItem/http/Client', (): void => {
         assert.that(command.metadata.token).is.ofType('string');
         assert.that(command.metadata.discriminator).is.equalTo('foo');
       });
+
+      test('throws a StreamClosedUnexpectedly error if an internal error occurs in the API.', async (): Promise<void> => {
+        const { socket } = await runAsServer({ app: api });
+        const client = new Client<any>({
+          hostName: 'localhost',
+          portOrSocket: socket,
+          path: '/v2',
+          createItemInstance: ({ item }: { item: any }): any => item
+        });
+
+        const commandWithMetadata = { foo: 'bar' };
+
+        await priorityQueueStore.enqueue({
+          item: commandWithMetadata as any,
+          discriminator: 'foo',
+          priority: Date.now()
+        });
+        await newItemPublisher.publish({
+          channel: newItemSubscriberChannel,
+          message: {}
+        });
+
+        await assert.that(async (): Promise<void> => {
+          await client.awaitItem();
+        }).is.throwingAsync<CustomError>(
+          (ex): boolean => ex.code === errors.StreamClosedUnexpectedly.code
+        );
+      });
     });
 
     suite('renewLock', (): void => {

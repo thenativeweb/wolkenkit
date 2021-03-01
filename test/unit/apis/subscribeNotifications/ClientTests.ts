@@ -18,6 +18,7 @@ import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 suite('subscribeNotifications/http/Client', (): void => {
   const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' }),
         channelForNotifications = 'notifications',
+        heartbeatInterval = 90_000,
         identityProviders = [ identityProvider ];
 
   let api: ExpressApplication,
@@ -36,7 +37,8 @@ suite('subscribeNotifications/http/Client', (): void => {
       corsOrigin: '*',
       identityProviders,
       subscriber,
-      channelForNotifications
+      channelForNotifications,
+      heartbeatInterval
     }));
   });
 

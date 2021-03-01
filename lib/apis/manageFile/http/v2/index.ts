@@ -6,6 +6,7 @@ import { FileStore } from '../../../../stores/fileStore/FileStore';
 import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
 import { getFile } from './getFile';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import { IdentityProvider } from 'limes';
 import { postAddFile } from './postAddFile';
 import { postRemoveFile } from './postRemoveFile';
@@ -33,11 +34,13 @@ const getV2 = async function ({ application, corsOrigin, identityProviders, file
     }
   });
 
+  api.use(getLoggingMiddleware());
+
   const authenticationMiddleware = await getAuthenticationMiddleware({ identityProviders });
 
   api.get(`/${getFile.path}`,
     authenticationMiddleware,
-    bodyParser({ limit: 100_000 }),
+    bodyParser.json({ limit: 100_000 }),
     getFile.getHandler({ application, fileStore }));
 
   api.post(`/${postAddFile.path}`,
@@ -46,7 +49,7 @@ const getV2 = async function ({ application, corsOrigin, identityProviders, file
 
   api.post(`/${postRemoveFile.path}`,
     authenticationMiddleware,
-    bodyParser({ limit: 100_000 }),
+    bodyParser.json({ limit: 100_000 }),
     postRemoveFile.getHandler({ application, fileStore }));
 
   return { api };
