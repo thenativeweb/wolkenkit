@@ -1,7 +1,8 @@
-import { createPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/createPriorityQueueStore';
-import { LockMetadata } from '../../../../lib/stores/priorityQueueStore/LockMetadata';
-import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
-import { PriorityQueueStoreOptions } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStoreOptions';
+import { createPriorityQueueStore } from '../createPriorityQueueStore';
+import { LockMetadata } from '../LockMetadata';
+import { PriorityQueueObserverOptions } from './PriorityQueueObserverOptions';
+import { PriorityQueueStore } from '../PriorityQueueStore';
+import { PriorityQueueStoreOptions } from '../PriorityQueueStoreOptions';
 
 interface Item {
   id: string;
@@ -34,11 +35,6 @@ interface ObserverState {
 }
 
 type CrashHandler = (state: ObserverState) => Promise<void>;
-
-interface PriorityQueueObserverOptions {
-  type: 'observer';
-  observedQueueOptions: PriorityQueueStoreOptions<Item, string>;
-}
 
 class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
   protected queue: PriorityQueueStore<Item, string>;
@@ -351,10 +347,13 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
 }
 
 export type {
-  Item,
-  HeapItem,
   Action,
-  Issue
+  CrashHandler,
+  HeapItem,
+  Issue,
+  Item,
+  ObserverState,
+  PriorityQueueObserverOptions
 };
 
 export {
