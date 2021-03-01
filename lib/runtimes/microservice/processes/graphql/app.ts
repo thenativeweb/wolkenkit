@@ -25,6 +25,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -34,6 +35,11 @@ import { Value } from 'validate-value';
     registerExceptionHandler();
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
+
+    logger.info(
+      'Starting graphql server...',
+      withLogMetadata('runtime', 'microservice/graphql')
+    );
 
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
@@ -103,10 +109,13 @@ import { Value } from 'validate-value';
       });
     });
 
-    logger.info('GraphQL server started.', {
-      portOrSocket: configuration.portOrSocket,
-      healthPortOrSocket: configuration.healthPortOrSocket
-    });
+    logger.info(
+      'Started GraphQL server.',
+      withLogMetadata('runtime', 'microservice/graphql', {
+        portOrSocket: configuration.portOrSocket,
+        healthPortOrSocket: configuration.healthPortOrSocket
+      })
+    );
 
     await subscriber.subscribe({
       channel: configuration.pubSubOptions.channelForNewDomainEvents,
@@ -117,7 +126,10 @@ import { Value } from 'validate-value';
           new Value(getDomainEventWithStateSchema()).validate(domainEvent, { valueName: 'domainEvent' });
           validateDomainEventWithState({ domainEvent, application });
         } catch (ex: unknown) {
-          logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, ex });
+          logger.error(
+            'Received a message with an unexpected format from the publisher.',
+            withLogMetadata('runtime', 'microservice/graphql', { domainEvent, error: ex })
+          );
 
           return;
         }
@@ -126,7 +138,10 @@ import { Value } from 'validate-value';
       }
     });
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'microservice/graphql', { error: ex })
+    );
     process.exit(1);
   }
 })();

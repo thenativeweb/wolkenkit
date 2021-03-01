@@ -3,6 +3,7 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { OnReceiveCommand } from '../../../../apis/handleCommand/OnReceiveCommand';
 import { retry } from 'retry-ignore-abort';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -15,9 +16,15 @@ const getOnReceiveCommand = function ({ commandDispatcher }: {
         await commandDispatcher.client.postCommand({ command });
       }, { retries: commandDispatcher.retries, maxTimeout: 1_000 });
 
-      logger.info('Command sent to command dispatcher.', { command });
+      logger.debug(
+        'Command sent to command dispatcher.',
+        withLogMetadata('runtime', 'microservice/graphql', { command })
+      );
     } catch (ex: unknown) {
-      logger.error('Failed to send command to command dispatcher.', { command, ex });
+      logger.error(
+        'Failed to send command to command dispatcher.',
+        withLogMetadata('runtime', 'microservice/graphql', { command, error: ex })
+      );
 
       throw new errors.RequestFailed('Failed to send command to command dispatcher.', {
         cause: ex as Error,

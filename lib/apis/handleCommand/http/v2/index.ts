@@ -5,6 +5,7 @@ import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
 import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMiddleware';
 import { getDescription } from './getDescription';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import { IdentityProvider } from 'limes';
 import { OnCancelCommand } from '../../OnCancelCommand';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
@@ -34,6 +35,8 @@ const getV2 = async function ({
       headers: { cache: false }
     }
   });
+
+  api.use(getLoggingMiddleware());
 
   const authenticationMiddleware = await getAuthenticationMiddleware({
     identityProviders

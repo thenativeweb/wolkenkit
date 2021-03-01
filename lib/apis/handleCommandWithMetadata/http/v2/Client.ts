@@ -4,6 +4,7 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { ItemIdentifierWithClient } from '../../../../common/elements/ItemIdentifierWithClient';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -31,9 +32,6 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case errors.CommandMalformed.code: {
-        throw new errors.CommandMalformed(data.message);
-      }
       case errors.ContextNotFound.code: {
         throw new errors.ContextNotFound(data.message);
       }
@@ -43,8 +41,14 @@ class Client extends HttpClient {
       case errors.CommandNotFound.code: {
         throw new errors.CommandNotFound(data.message);
       }
+      case errors.CommandMalformed.code: {
+        throw new errors.CommandMalformed(data.message);
+      }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'handleCommandWithMetadata', { error: data, status })
+        );
 
         throw new errors.UnknownError();
       }
@@ -60,30 +64,29 @@ class Client extends HttpClient {
       data: commandIdentifierWithClient
     });
 
-    switch (status) {
-      case 200: {
-        return;
+    if (status === 200) {
+      return;
+    }
+
+    switch (data.code) {
+      case errors.ContextNotFound.code: {
+        throw new errors.ContextNotFound(data.message);
       }
-      case 400: {
-        switch (data.code) {
-          case errors.ContextNotFound.code: {
-            throw new errors.ContextNotFound(data.message);
-          }
-          case errors.AggregateNotFound.code: {
-            throw new errors.AggregateNotFound(data.message);
-          }
-          case errors.CommandNotFound.code: {
-            throw new errors.CommandNotFound(data.message);
-          }
-          default: {
-            throw new errors.UnknownError();
-          }
-        }
+      case errors.AggregateNotFound.code: {
+        throw new errors.AggregateNotFound(data.message);
       }
-      case 404: {
+      case errors.CommandNotFound.code: {
+        throw new errors.CommandNotFound(data.message);
+      }
+      case errors.ItemNotFound.code: {
         throw new errors.ItemNotFound(data.message);
       }
       default: {
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'handleCommandWithMetadata', { error: data, status })
+        );
+
         throw new errors.UnknownError();
       }
     }

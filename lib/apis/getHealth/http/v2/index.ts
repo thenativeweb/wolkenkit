@@ -2,6 +2,7 @@ import { Application } from 'express';
 import { CorsOrigin } from 'get-cors-origin';
 import { getApiBase } from '../../../base/getApiBase';
 import { getHealth } from './getHealth';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 
 const getV2 = async function ({ corsOrigin }: {
   corsOrigin: CorsOrigin;
@@ -17,7 +18,11 @@ const getV2 = async function ({ corsOrigin }: {
     }
   });
 
-  api.get(`/${getHealth.path}`, getHealth.getHandler());
+  api.get(
+    `/${getHealth.path}`,
+    getLoggingMiddleware(),
+    getHealth.getHandler()
+  );
 
   return { api };
 };

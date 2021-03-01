@@ -2,6 +2,7 @@ import { Application } from 'express';
 import { CorsOrigin } from 'get-cors-origin';
 import { EventEmitter2 } from 'eventemitter2';
 import { getApiBase } from '../../../base/getApiBase';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import { getMessages } from './getMessages';
 import { PublishMessage } from '../../PublishMessage';
 
@@ -19,6 +20,8 @@ const getV2 = async function ({ corsOrigin, heartbeatInterval = 90_000 }: {
       headers: { cache: false }
     }
   });
+
+  api.use(getLoggingMiddleware({ logOn: 'request' }));
 
   const messageEmitter = new EventEmitter2({
     wildcard: true

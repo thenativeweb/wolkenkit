@@ -9,6 +9,7 @@ import { getAuthenticationMiddleware } from '../../../base/getAuthenticationMidd
 import { getDescription } from './getDescription';
 import { getDomainEvents } from './getDomainEvents';
 import { getDomainEventWithStateSchema } from '../../../../common/schemas/getDomainEventWithStateSchema';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import { IdentityProvider } from 'limes';
 import { PublishDomainEvent } from '../../PublishDomainEvent';
 import { Repository } from '../../../../common/domain/Repository';
@@ -50,12 +51,17 @@ const getV2 = async function ({
   const domainEventEmitter =
     new SpecializedEventEmitter<DomainEventWithState<DomainEventData, State>>();
 
-  api.get(`/${getDescription.path}`, getDescription.getHandler({
-    application
-  }));
+  api.get(
+    `/${getDescription.path}`,
+    getLoggingMiddleware(),
+    getDescription.getHandler({
+      application
+    })
+  );
 
   api.get(
     `/${getDomainEvents.path}`,
+    getLoggingMiddleware({ logOn: 'request' }),
     authenticationMiddleware,
     getDomainEvents.getHandler({
       application,

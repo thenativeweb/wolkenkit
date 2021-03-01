@@ -2,6 +2,7 @@ import { AggregateIdentifier } from '../../../../common/elements/AggregateIdenti
 import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -34,17 +35,20 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
+      case errors.FlowNotFound.code: {
+        throw new errors.FlowNotFound(data.message);
+      }
       case errors.ContextNotFound.code: {
         throw new errors.ContextNotFound(data.message);
       }
       case errors.AggregateNotFound.code: {
         throw new errors.AggregateNotFound(data.message);
       }
-      case errors.FlowNotFound.code: {
-        throw new errors.FlowNotFound(data.message);
-      }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'performReplay', { error: data, status })
+        );
 
         throw new errors.UnknownError();
       }

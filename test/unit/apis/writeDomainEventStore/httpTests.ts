@@ -117,8 +117,8 @@ suite('writeDomainEventStore/http', (): void => {
 
         assert.that(status).is.equalTo(400);
         assert.that(data).is.equalTo({
-          code: errors.RequestMalformed.code,
-          message: 'Missing required property: aggregateIdentifier (at requestBody.0.aggregateIdentifier).'
+          code: errors.DomainEventMalformed.code,
+          message: 'Missing required property: aggregateIdentifier (at value.aggregateIdentifier).'
         });
       });
 

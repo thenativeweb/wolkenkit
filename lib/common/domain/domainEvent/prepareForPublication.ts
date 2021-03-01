@@ -5,12 +5,16 @@ import { DomainEventData } from '../../elements/DomainEventData';
 import { DomainEventWithState } from '../../elements/DomainEventWithState';
 import { errors } from '../../errors';
 import { filterDomainEvent } from './filterDomainEvent';
+import { flaschenpost } from 'flaschenpost';
 import { isDomainEventAuthorized } from './isDomainEventAuthorized';
 import { mapDomainEvent } from './mapDomainEvent';
 import { partOf } from 'partof';
 import { Repository } from '../Repository';
 import { Services } from './Services';
 import { State } from '../../elements/State';
+import { withLogMetadata } from '../../utils/logging/withLogMetadata';
+
+const logger = flaschenpost.getLogger();
 
 const prepareForPublication = async function ({
   domainEventWithState,
@@ -68,7 +72,10 @@ const prepareForPublication = async function ({
         // In case of an actual error, we don't want the runtime to crash. So we
         // only log that something went wrong and hinder that the domain event
         // gets served.
-        services.logger.error('Prepare for publication failed.', { ex });
+        logger.error(
+          'Preparing domain event for publication failed.',
+          withLogMetadata('common', 'prepareForPublication', { error: ex })
+        );
     }
   }
 };

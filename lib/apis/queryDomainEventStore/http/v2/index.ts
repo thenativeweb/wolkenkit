@@ -7,6 +7,7 @@ import { getApiBase } from '../../../base/getApiBase';
 import { getDomainEventsByCausationId } from './getDomainEventsByCausationId';
 import { getDomainEventsByCorrelationId } from './getDomainEventsByCorrelationId';
 import { getLastDomainEvent } from './getLastDomainEvent';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import { getReplay } from './getReplay';
 import { getReplayForAggregate } from './getReplayForAggregate';
 import { getSnapshot } from './getSnapshot';
@@ -32,8 +33,12 @@ const getV2 = async function ({
     }
   });
 
+  const loggingOnResponseMiddleware = getLoggingMiddleware();
+  const loggingOnRequestMiddleware = getLoggingMiddleware({ logOn: 'request' });
+
   api.get(
     `/${getReplay.path}`,
+    loggingOnRequestMiddleware,
     getReplay.getHandler({
       domainEventStore,
       heartbeatInterval
@@ -42,6 +47,7 @@ const getV2 = async function ({
 
   api.get(
     `/${getReplayForAggregate.path}`,
+    loggingOnRequestMiddleware,
     getReplayForAggregate.getHandler({
       domainEventStore,
       heartbeatInterval
@@ -50,6 +56,7 @@ const getV2 = async function ({
 
   api.get(
     `/${getLastDomainEvent.path}`,
+    loggingOnResponseMiddleware,
     getLastDomainEvent.getHandler({
       domainEventStore
     })
@@ -57,6 +64,7 @@ const getV2 = async function ({
 
   api.get(
     `/${getDomainEventsByCausationId.path}`,
+    loggingOnRequestMiddleware,
     getDomainEventsByCausationId.getHandler({
       domainEventStore,
       heartbeatInterval
@@ -65,6 +73,7 @@ const getV2 = async function ({
 
   api.get(
     `/${hasDomainEventsWithCausationId.path}`,
+    loggingOnResponseMiddleware,
     hasDomainEventsWithCausationId.getHandler({
       domainEventStore
     })
@@ -72,6 +81,7 @@ const getV2 = async function ({
 
   api.get(
     `/${getDomainEventsByCorrelationId.path}`,
+    loggingOnRequestMiddleware,
     getDomainEventsByCorrelationId.getHandler({
       domainEventStore,
       heartbeatInterval
@@ -80,6 +90,7 @@ const getV2 = async function ({
 
   api.get(
     `/${getSnapshot.path}`,
+    loggingOnResponseMiddleware,
     getSnapshot.getHandler({
       domainEventStore
     })
@@ -87,6 +98,7 @@ const getV2 = async function ({
 
   api.get(
     `/${getAggregateIdentifiers.path}`,
+    loggingOnRequestMiddleware,
     getAggregateIdentifiers.getHandler({
       domainEventStore,
       heartbeatInterval
@@ -95,6 +107,7 @@ const getV2 = async function ({
 
   api.get(
     `/${getAggregateIdentifiersByName.path}`,
+    loggingOnRequestMiddleware,
     getAggregateIdentifiersByName.getHandler({
       domainEventStore,
       heartbeatInterval

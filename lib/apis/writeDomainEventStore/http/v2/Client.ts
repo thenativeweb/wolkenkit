@@ -5,6 +5,7 @@ import { flaschenpost } from 'flaschenpost';
 import { HttpClient } from '../../../shared/HttpClient';
 import { Snapshot } from '../../../../stores/domainEventStore/Snapshot';
 import { State } from '../../../../common/elements/State';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 const logger = flaschenpost.getLogger();
 
@@ -32,9 +33,6 @@ class Client extends HttpClient {
     }
 
     switch (data.code) {
-      case errors.RequestMalformed.code: {
-        throw new errors.RequestMalformed(data.message);
-      }
       case errors.DomainEventMalformed.code: {
         throw new errors.DomainEventMalformed(data.message);
       }
@@ -45,7 +43,10 @@ class Client extends HttpClient {
         throw new errors.RevisionAlreadyExists(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'writeDomainEventStore', { error: data, status })
+        );
         throw new errors.UnknownError(data.message);
       }
     }
@@ -72,7 +73,10 @@ class Client extends HttpClient {
         throw new errors.SnapshotMalformed(data.message);
       }
       default: {
-        logger.error('An unknown error occured.', { ex: data, status });
+        logger.error(
+          'An unknown error occured.',
+          withLogMetadata('api-client', 'writeDomainEventStore', { error: data, status })
+        );
         throw new errors.UnknownError(data.message);
       }
     }

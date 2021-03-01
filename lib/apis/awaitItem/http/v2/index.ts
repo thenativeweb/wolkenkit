@@ -4,6 +4,7 @@ import { CorsOrigin } from 'get-cors-origin';
 import { defer } from './defer';
 import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
 import { renewLock } from './renewLock';
@@ -37,6 +38,7 @@ const getV2 = async function<TItem extends object> ({
 
   api.get(
     `/${awaitItem.path}`,
+    getLoggingMiddleware({ logOn: 'request' }),
     awaitItem.getHandler<TItem>({
       priorityQueueStore,
       newItemSubscriber,
@@ -46,17 +48,31 @@ const getV2 = async function<TItem extends object> ({
     })
   );
 
-  api.post(`/${renewLock.path}`, renewLock.getHandler<TItem>({
-    priorityQueueStore
-  }));
+  const loggingMiddleware = getLoggingMiddleware();
 
-  api.post(`/${acknowledge.path}`, acknowledge.getHandler<TItem>({
-    priorityQueueStore
-  }));
+  api.post(
+    `/${renewLock.path}`,
+    loggingMiddleware,
+    renewLock.getHandler<TItem>({
+      priorityQueueStore
+    })
+  );
 
-  api.post(`/${defer.path}`, defer.getHandler<TItem>({
-    priorityQueueStore
-  }));
+  api.post(
+    `/${acknowledge.path}`,
+    loggingMiddleware,
+    acknowledge.getHandler<TItem>({
+      priorityQueueStore
+    })
+  );
+
+  api.post(
+    `/${defer.path}`,
+    loggingMiddleware,
+    defer.getHandler<TItem>({
+      priorityQueueStore
+    })
+  );
 
   return { api };
 };

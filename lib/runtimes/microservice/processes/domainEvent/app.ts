@@ -22,6 +22,7 @@ import { runHealthServer } from '../../../shared/runHealthServer';
 import { State } from '../../../../common/elements/State';
 import { validateDomainEventWithState } from '../../../../common/validators/validateDomainEventWithState';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -31,6 +32,11 @@ import { Value } from 'validate-value';
     registerExceptionHandler();
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
+
+    logger.info(
+      'Starting domain event server...',
+      withLogMetadata('runtime', 'microservice/domainEvent')
+    );
 
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
@@ -80,30 +86,53 @@ import { Value } from 'validate-value';
       });
     });
 
-    logger.info('Domain event server started.', {
-      portOrSocket: configuration.portOrSocket,
-      healthPortOrSocket: configuration.healthPortOrSocket
-    });
+    logger.info(
+      'Started domain event server.',
+      withLogMetadata(
+        'runtime',
+        'microservice/domainEvent',
+        { portOrSocket: configuration.portOrSocket, healthPortOrSocket: configuration.healthPortOrSocket }
+      )
+    );
 
     await subscriber.subscribe({
       channel: configuration.pubSubOptions.channelForNewDomainEvents,
       callback (rawDomainEvent: DomainEventWithState<DomainEventData, State>): void {
         const domainEvent = new DomainEventWithState<DomainEventData, State>(rawDomainEvent);
 
+        logger.debug(
+          'Received domain event from subscriber.',
+          withLogMetadata('runtime', 'microservice/domainEvent', { domainEvent })
+        );
+
         try {
           new Value(getDomainEventWithStateSchema()).validate(domainEvent, { valueName: 'domainEvent' });
           validateDomainEventWithState({ domainEvent, application });
         } catch (ex: unknown) {
-          logger.error('Received a message with an unexpected format from the publisher.', { domainEvent, ex });
+          logger.error(
+            'Received a message with an unexpected format from the publisher.',
+            withLogMetadata('runtime', 'microservice/domainEvent', { domainEvent, error: ex })
+          );
 
           return;
         }
 
+        logger.debug(
+          'Publishing domain event via API...',
+          withLogMetadata('runtime', 'microservice/domainEvent', { domainEvent })
+        );
         publishDomainEvent({ domainEvent });
+        logger.debug(
+          'Published domain event via API.',
+          withLogMetadata('runtime', 'microservice/domainEvent', { domainEvent })
+        );
       }
     });
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'microservice/domainEvent', { error: ex })
+    );
     process.exit(1);
   }
 })();

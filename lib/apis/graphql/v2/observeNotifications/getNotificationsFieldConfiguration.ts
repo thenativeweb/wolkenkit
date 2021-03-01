@@ -10,6 +10,7 @@ import { Schema } from '../../../../common/elements/Schema';
 import { source } from 'common-tags';
 import { SpecializedEventEmitter } from '../../../../common/utils/events/SpecializedEventEmitter';
 import { validateNotification } from '../../../../common/validators/validateNotification';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { buildSchema, GraphQLFieldConfig, GraphQLObjectType } from 'graphql';
 
 const logger = flaschenpost.getLogger();
@@ -60,7 +61,10 @@ const getNotificationsFieldConfiguration = function ({ application, notification
         try {
           validateNotification({ notification, application });
         } catch {
-          logger.warn('Dropping invalid notification.', { notification });
+          logger.warn(
+            'Dropped invalid notification.',
+            withLogMetadata('api', 'graphql', { notification })
+          );
 
           continue;
         }

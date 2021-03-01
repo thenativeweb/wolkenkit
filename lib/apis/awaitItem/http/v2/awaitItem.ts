@@ -1,10 +1,12 @@
+import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
+import { isCustomError } from 'defekt';
 import { ItemIdentifier } from '../../../../common/elements/ItemIdentifier';
 import { PriorityQueueStore } from '../../../../stores/priorityQueueStore/PriorityQueueStore';
-import { Response } from 'express';
 import { Schema } from '../../../../common/elements/Schema';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import { Value } from 'validate-value';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import { WolkenkitRequestHandler } from '../../../base/WolkenkitRequestHandler';
 import { writeLine } from '../../../base/writeLine';
 
@@ -53,56 +55,78 @@ const awaitItem = {
   }): WolkenkitRequestHandler {
     const responseBodySchema = new Value(awaitItem.response.body);
 
-    const maybeHandleLock = async function ({
-      res
-    }: {
-      res: Response;
-    }): Promise<boolean> {
-      const nextLock = await priorityQueueStore.lockNext();
-
-      if (nextLock !== undefined) {
-        logger.info('Locked priority queue item.', nextLock);
-
-        await validateOutgoingItem({ item: nextLock.item });
-        responseBodySchema.validate(nextLock, { valueName: 'responseBody' });
-
-        writeLine({ res, data: nextLock });
-        res.end();
-
-        return true;
-      }
-
-      return false;
-    };
-
     return async function (req, res): Promise<void> {
-      res.startStream({ heartbeatInterval });
+      try {
+        res.startStream({ heartbeatInterval });
 
-      const instantSuccess = await maybeHandleLock({ res });
+        const onNewItem = async function (): Promise<void> {
+          try {
+            const itemLock = await priorityQueueStore.lockNext();
 
-      if (instantSuccess) {
-        return;
-      }
+            if (itemLock) {
+              logger.debug(
+                'Locked priority queue item.',
+                withLogMetadata('api', 'awaitItem', { nextLock: itemLock })
+              );
 
-      const callback = async function (): Promise<void> {
-        try {
-          const success = await maybeHandleLock({ res });
+              await validateOutgoingItem({ item: itemLock.item });
+              responseBodySchema.validate(itemLock, { valueName: 'responseBody' });
 
-          if (success) {
+              writeLine({ res, data: itemLock });
+
+              await newItemSubscriber.unsubscribe({
+                channel: newItemSubscriberChannel,
+                callback: onNewItem
+              });
+              res.end();
+            }
+          } catch (ex: unknown) {
+            logger.error(
+              'An unexpected error occured when locking an item.',
+              withLogMetadata('api', 'awaitItem', { error: ex })
+            );
+
             await newItemSubscriber.unsubscribe({
               channel: newItemSubscriberChannel,
-              callback
+              callback: onNewItem
+            });
+            res.end();
+          }
+        };
+
+        await onNewItem();
+
+        await newItemSubscriber.subscribe({
+          channel: newItemSubscriberChannel,
+          callback: onNewItem
+        });
+      } catch (ex: unknown) {
+        const error = isCustomError(ex) ?
+          ex :
+          new errors.UnknownError(undefined, { cause: ex as Error });
+
+        switch (error.code) {
+          case errors.ContentTypeMismatch.code: {
+            res.status(415).json({
+              code: error.code,
+              message: error.message
+            });
+
+            return;
+          }
+          default: {
+            logger.error(
+              'An unknown error occured.',
+              withLogMetadata('api', 'awaitItem', { error })
+            );
+
+            res.status(500).json({
+              code: error.code,
+              message: error.message
             });
           }
-        } catch (ex: unknown) {
-          logger.error('An unexpected error occured when locking an item.', { ex });
         }
-      };
-
-      await newItemSubscriber.subscribe({
-        channel: newItemSubscriberChannel,
-        callback
-      });
+      }
     };
   }
 };

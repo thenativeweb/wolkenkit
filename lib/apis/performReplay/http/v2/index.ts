@@ -2,6 +2,7 @@ import { Application } from '../../../../common/application/Application';
 import { CorsOrigin } from 'get-cors-origin';
 import { Application as ExpressApplication } from 'express';
 import { getApiBase } from '../../../base/getApiBase';
+import { getMiddleware as getLoggingMiddleware } from 'flaschenpost';
 import { PerformReplay } from '../../../../common/domain/PerformReplay';
 import { postPerformReplay } from './postPerformReplay';
 
@@ -20,6 +21,8 @@ const getV2 = async function ({ corsOrigin, performReplay, application }: {
       headers: { cache: false }
     }
   });
+
+  api.use(getLoggingMiddleware());
 
   api.post(`/${postPerformReplay.path}`, postPerformReplay.getHandler({
     performReplay,

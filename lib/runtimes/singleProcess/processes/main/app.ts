@@ -35,6 +35,7 @@ import { PublishDomainEvents } from '../../../../common/domain/PublishDomainEven
 import { registerExceptionHandler } from '../../../../common/utils/process/registerExceptionHandler';
 import { Repository } from '../../../../common/domain/Repository';
 import { runHealthServer } from '../../../shared/runHealthServer';
+import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 (async (): Promise<void> => {
@@ -44,6 +45,11 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     registerExceptionHandler();
 
     const configuration = await fromEnvironmentVariables({ configurationDefinition });
+
+    logger.info(
+      'Starting single process runtime server...',
+      withLogMetadata('runtime', 'singleProcess/main')
+    );
 
     const identityProviders = await getIdentityProviders({
       identityProvidersEnvironmentVariable: configuration.identityProviders
@@ -147,7 +153,10 @@ import { runHealthServer } from '../../../shared/runHealthServer';
     await runHealthServer({ corsOrigin: configuration.corsOrigin, portOrSocket: configuration.healthPortOrSocket });
 
     server.listen(configuration.portOrSocket, (): void => {
-      logger.info('Single process runtime server started.', { portOrSocket: configuration.portOrSocket });
+      logger.info(
+        'Started single process runtime server.',
+        withLogMetadata('runtime', 'singleProcess/main', { portOrSocket: configuration.portOrSocket })
+      );
     });
 
     await subscriber.subscribe({
@@ -229,7 +238,10 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       });
     }
   } catch (ex: unknown) {
-    logger.fatal('An unexpected error occured.', { ex });
+    logger.fatal(
+      'An unexpected error occured.',
+      withLogMetadata('runtime', 'singleProcess/main', { error: ex })
+    );
     process.exit(1);
   }
 })();
