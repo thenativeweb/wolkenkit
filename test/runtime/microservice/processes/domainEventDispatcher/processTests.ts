@@ -118,5 +118,35 @@ suite('domain event dispatcher process', function (): void {
 
       assert.that(lock.item).is.equalTo(domainEvent);
     });
+
+    test('delivers an incoming domain event to a waiting client instantly.', async (): Promise<void> => {
+      const domainEvent = buildDomainEvent({
+        aggregateIdentifier: {
+          context: {
+            name: 'sampleContext'
+          },
+          aggregate: {
+            name: 'sampleAggregate',
+            id: v4()
+          }
+        },
+        name: 'executed',
+        data: { strategy: 'succeed' },
+        metadata: {
+          revision: 1
+        }
+      });
+
+      const domainEventPromise = awaitDomainEventClient.awaitItem();
+
+      const currentTime = Date.now();
+
+      await handleDomainEventClient.postDomainEvent({ domainEvent });
+
+      await domainEventPromise;
+      const timeElapsed = Date.now() - currentTime;
+
+      assert.that(timeElapsed).is.lessThan(1_000);
+    });
   });
 });
