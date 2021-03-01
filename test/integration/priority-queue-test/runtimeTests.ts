@@ -21,6 +21,7 @@ suite('priorityQueueStore load test', function (): void {
       ...getDefaultConfiguration({
         configurationDefinition
       }),
+      missedItemRecoveryInterval: 600_000,
       portOrSocket: priorityQueueSocket,
       healthPortOrSocket: priorityQueueHealthSocket,
       priorityQueueStoreOptions: {
@@ -40,10 +41,14 @@ suite('priorityQueueStore load test', function (): void {
       name: 'priorityQueue',
       enableDebugMode: false,
       portOrSocket: priorityQueueHealthSocket,
-      env: toEnvironmentVariables({
-        configuration,
-        configurationDefinition
-      })
+      env: {
+        ...toEnvironmentVariables({
+          configuration,
+          configurationDefinition
+        }),
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        LOG_LEVEL: 'debug'
+      }
     });
   });
 

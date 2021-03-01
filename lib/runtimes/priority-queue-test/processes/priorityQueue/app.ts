@@ -36,6 +36,8 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       }
     );
 
+    await priorityQueueStore.setup();
+
     const internalNewItemSubscriber = await createSubscriber<object>(configuration.pubSubOptions.subscriber);
 
     const internalNewItemPublisher = await createPublisher<object>(configuration.pubSubOptions.publisher);
@@ -61,11 +63,16 @@ import { runHealthServer } from '../../../shared/runHealthServer';
       async onReceiveItem ({ message }: {
         message: object;
       }): Promise<void> {
-        await priorityQueueStore.enqueue(message as any);
-        await internalNewItemPublisher.publish({
-          channel: configuration.pubSubOptions.channelForNewItems,
-          message: {}
-        });
+        try {
+          await priorityQueueStore.enqueue(message as any);
+          await internalNewItemPublisher.publish({
+            channel: configuration.pubSubOptions.channelForNewItems,
+            message: {}
+          });
+        } catch (ex: unknown) {
+          logger.error('Something wrong in on receive item', { ex });
+          throw ex;
+        }
       }
     });
 

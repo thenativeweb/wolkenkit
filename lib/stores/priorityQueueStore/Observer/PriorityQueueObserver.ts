@@ -113,7 +113,9 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
     });
 
     try {
-      return this.queue.enqueue(heapItem);
+      await this.queue.enqueue(heapItem);
+
+      this.enqueuedItems.set(heapItem.item.id, heapItem);
     } catch (ex: unknown) {
       this.issueLog.push({
         message: 'The queue crashed while enqueueing.',
