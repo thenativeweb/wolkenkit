@@ -59,11 +59,14 @@ const awaitItem = {
       try {
         res.startStream({ heartbeatInterval });
 
+        let lockingHasSucceeded = false;
         const onNewItem = async function (): Promise<void> {
           try {
             const itemLock = await priorityQueueStore.lockNext();
 
             if (itemLock) {
+              lockingHasSucceeded = true;
+
               logger.debug(
                 'Locked priority queue item.',
                 withLogMetadata('api', 'awaitItem', { nextLock: itemLock })
@@ -96,10 +99,13 @@ const awaitItem = {
 
         await onNewItem();
 
-        await newItemSubscriber.subscribe({
-          channel: newItemSubscriberChannel,
-          callback: onNewItem
-        });
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!lockingHasSucceeded) {
+          await newItemSubscriber.subscribe({
+            channel: newItemSubscriberChannel,
+            callback: onNewItem
+          });
+        }
       } catch (ex: unknown) {
         const error = isCustomError(ex) ?
           ex :
