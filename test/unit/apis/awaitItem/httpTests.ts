@@ -13,6 +13,8 @@ import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InM
 import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
 import { ItemIdentifier } from '../../../../lib/common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
+import { inMemoryEventEmitter } from '../../../../lib/messaging/pubSub/InMemory/inMemoryEventEmitter';
+import { InMemorySubscriberOptions } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriberOptions';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { Publisher } from '../../../../lib/messaging/pubSub/Publisher';
 import { regex } from '../../../../lib/common/utils/uuid';
@@ -21,8 +23,6 @@ import { sleep } from '../../../../lib/common/utils/sleep';
 import { Subscriber } from '../../../../lib/messaging/pubSub/Subscriber';
 import { v4 } from 'uuid';
 import { Value } from 'validate-value';
-import { InMemorySubscriberOptions } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriberOptions';
-import { inMemoryEventEmitter } from '../../../../lib/messaging/pubSub/InMemory/inMemoryEventEmitter';
 
 suite('awaitItem/http', (): void => {
   suite('/v2', (): void => {
@@ -371,7 +371,7 @@ suite('awaitItem/http', (): void => {
         });
       });
 
-      test.only('if an item was available for locking previous to the client request, after completing the request the subscriber is unsubscribed from the event subscriber.', async (): Promise<void> => {
+      test('if an item was available for locking previous to the client request, after completing the request the subscriber is unsubscribed from the event subscriber.', async (): Promise<void> => {
         class SubInMemorySubscriber<T extends object> extends InMemorySubscriber<T> {
           public listenerCount (channel: string): number {
             return this.eventEmitter.listenerCount(channel);
