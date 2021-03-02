@@ -1,9 +1,12 @@
 import { createPriorityQueueStore } from '../createPriorityQueueStore';
 import { LockMetadata } from '../LockMetadata';
+import { PassThrough } from 'stream';
 import { PriorityQueueObserverOptions } from './PriorityQueueObserverOptions';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { PriorityQueueStoreOptions } from '../PriorityQueueStoreOptions';
 import { v4 } from 'uuid';
+import { errors as wolkenkitErrors } from '../../../common/errors';
+import { defekt, isCustomError } from 'defekt';
 
 interface Item {
   id: string;
@@ -20,35 +23,27 @@ interface ObservableItem extends Item {
   observableId: string;
 }
 
-interface Action {
-  type: string;
-  data: any;
-}
-
 interface Issue {
+  type: 'action' | 'issue' | 'error';
   message: string;
   data?: any;
 }
 
 interface ObserverState {
-  actionLog: Action[];
-  issueLog: Issue[];
   enqueuedItems: Map<string, HeapItem<ObservableItem>>;
   lockedItems: Map<string, HeapItem<ObservableItem>>;
   removedItems: Map<string, HeapItem<ObservableItem>>;
   acknowledgedItems: Map<string, HeapItem<ObservableItem>>;
 }
 
-type CrashHandler = (state: ObserverState) => Promise<void>;
+const errors = defekt({
+  ObserverError: {}
+});
 
 class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
   protected queue: PriorityQueueStore<ObservableItem, string>;
 
-  protected actionLog: Action[];
-
-  protected issueLog: Issue[];
-
-  protected crashHandler: CrashHandler;
+  protected events: PassThrough;
 
   protected enqueuedItems: Map<string, HeapItem<ObservableItem>>;
 
@@ -64,14 +59,11 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
 
   protected constructor (
     queue: PriorityQueueStore<ObservableItem, string>,
-    queueOptions: PriorityQueueStoreOptions<ObservableItem, string>,
-    crashHandler: CrashHandler
+    queueOptions: PriorityQueueStoreOptions<ObservableItem, string>
   ) {
     this.queue = queue;
     this.queueOptions = queueOptions;
-    this.actionLog = [];
-    this.issueLog = [];
-    this.crashHandler = crashHandler;
+    this.events = new PassThrough({ objectMode: true });
     this.enqueuedItems = new Map<string, HeapItem<ObservableItem>>();
     this.lockedItems = new Map<string, HeapItem<ObservableItem>>();
     this.removedItems = new Map<string, HeapItem<ObservableItem>>();
@@ -80,8 +72,6 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
 
   protected getState (): ObserverState {
     return {
-      actionLog: this.actionLog,
-      issueLog: this.issueLog,
       enqueuedItems: this.enqueuedItems,
       lockedItems: this.lockedItems,
       removedItems: this.removedItems,
@@ -120,8 +110,9 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
       }
     };
 
-    this.actionLog.push({
-      type: 'enqueue',
+    this.events.push({
+      type: 'action',
+      message: 'enqueue',
       data: observableHeapItem
     });
 
@@ -130,13 +121,11 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
 
       this.enqueuedItems.set(observableHeapItem.item.observableId, observableHeapItem);
     } catch (ex: unknown) {
-      this.issueLog.push({
+      this.events.push({
+        type: 'error',
         message: 'The queue crashed while enqueueing.',
         data: ex
       });
-      await this.crashHandler(this.getState());
-
-      throw ex;
     }
   }
 
@@ -146,24 +135,21 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
     try {
       const nextItem = await this.queue.lockNext();
 
-      this.actionLog.push({
-        type: 'lockNext',
+      this.events.push({
+        type: 'action',
+        message: 'lockNext',
         data: nextItem
       });
       if (nextItem === undefined) {
-        this.issueLog.push({
+        this.events.push({
+          type: 'issue',
           message: 'Couldn\'t lock next item'
         });
       } else {
         const heapItem = this.enqueuedItems.get(nextItem.item.observableId);
 
         if (heapItem === undefined) {
-          this.issueLog.push({
-            message: 'An item was locked that should not exist in the queue.',
-            data: nextItem
-          });
-
-          throw new Error('An item was locked that should not exist in the queue.');
+          throw new errors.ObserverError('An item was locked that should not exist in the queue.', { data: { nextItem }});
         }
 
         this.lockHeapItem(heapItem);
@@ -171,13 +157,11 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
 
       return nextItem;
     } catch (ex: unknown) {
-      this.issueLog.push({
-        message: 'The queue crashed while enqueueing',
+      this.events.push({
+        type: 'error',
+        message: 'The queue crashed while locking next item.',
         data: ex
       });
-      await this.crashHandler(this.getState());
-
-      throw ex;
     }
   }
 
@@ -185,8 +169,9 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
     this.unlockExpiredLocks();
 
     try {
-      this.actionLog.push({
-        type: 'renewLock',
+      this.events.push({
+        type: 'action',
+        message: 'renewLock',
         data: { discriminator, token }
       });
       await this.queue.renewLock({ discriminator, token });
@@ -194,12 +179,7 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
         filter(([ , heapItem ]): boolean => heapItem.discriminator === discriminator);
 
       if (matchingLocks.length > 1) {
-        this.issueLog.push({
-          message: 'Multiple locks are present for a single discriminator.',
-          data: { matchingLocks }
-        });
-
-        throw new Error('Multiple locks are present for a single discriminator.');
+        throw new errors.ObserverError('Multiple locks are present for a single discriminator.', { data: { matchingLocks }});
       }
       this.lockedItems.forEach((heapItem, observableId): void => {
         if (heapItem.discriminator === discriminator) {
@@ -210,13 +190,29 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
         }
       });
     } catch (ex: unknown) {
-      this.issueLog.push({
+      if (isCustomError(ex)) {
+        switch (ex.code) {
+          case wolkenkitErrors.TokenMismatch.code:
+          case wolkenkitErrors.ItemNotFound.code:
+          case wolkenkitErrors.ItemNotLocked.code: {
+            this.events.push({
+              type: 'issue',
+              message: 'renewLock failed.',
+              data: ex
+            });
+
+            return;
+          }
+          default: {
+            break;
+          }
+        }
+      }
+      this.events.push({
+        type: 'error',
         message: 'The queue crashed while renewing a lock.',
         data: ex
       });
-      await this.crashHandler(this.getState());
-
-      throw ex;
     }
   }
 
@@ -224,8 +220,9 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
     this.unlockExpiredLocks();
 
     try {
-      this.actionLog.push({
-        type: 'acknowledge',
+      this.events.push({
+        type: 'action',
+        message: 'acknowledge',
         data: { discriminator, token }
       });
       await this.queue.acknowledge({ discriminator, token });
@@ -234,11 +231,7 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
         filter(([ , heapItem ]): boolean => heapItem.discriminator === discriminator);
 
       if (matchingLocks.length > 1) {
-        this.issueLog.push({
-          message: 'Multiple locks are present for a single discriminator.',
-          data: { matchingLocks }
-        });
-        throw new Error('Multiple locks are present for a single discriminator.');
+        throw new errors.ObserverError('Multiple locks are present for a single discriminator.', { data: { matchingLocks }});
       }
       this.lockedItems.forEach((heapItem, observableId): void => {
         if (heapItem.discriminator === discriminator) {
@@ -247,13 +240,30 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
         }
       });
     } catch (ex: unknown) {
-      this.issueLog.push({
+      if (isCustomError(ex)) {
+        switch (ex.code) {
+          case wolkenkitErrors.TokenMismatch.code:
+          case wolkenkitErrors.ItemNotFound.code:
+          case wolkenkitErrors.ItemNotLocked.code: {
+            this.events.push({
+              type: 'issue',
+              message: 'acknowledge failed.',
+              data: ex
+            });
+
+            return;
+          }
+          default: {
+            break;
+          }
+        }
+      }
+
+      this.events.push({
+        type: 'error',
         message: 'The queue crashed while acknowledging an item.',
         data: ex
       });
-      await this.crashHandler(this.getState());
-
-      throw ex;
     }
   }
 
@@ -261,8 +271,9 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
     this.unlockExpiredLocks();
 
     try {
-      this.actionLog.push({
-        type: 'defer',
+      this.events.push({
+        type: 'action',
+        message: 'defer',
         data: { discriminator, token, priority }
       });
       await this.queue.defer({ discriminator, token, priority });
@@ -271,11 +282,7 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
         filter(([ , heapItem ]): boolean => heapItem.discriminator === discriminator);
 
       if (matchingLocks.length > 1) {
-        this.issueLog.push({
-          message: 'Multiple locks are present for a single discriminator.',
-          data: { matchingLocks }
-        });
-        throw new Error('Multiple locks are present for a single discriminator.');
+        throw new errors.ObserverError('Multiple locks are present for a single discriminator.', { data: { matchingLocks }});
       }
       this.lockedItems.forEach((heapItem, observableId): void => {
         if (heapItem.discriminator === discriminator) {
@@ -284,13 +291,29 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
         }
       });
     } catch (ex: unknown) {
-      this.issueLog.push({
+      if (isCustomError(ex)) {
+        switch (ex.code) {
+          case wolkenkitErrors.TokenMismatch.code:
+          case wolkenkitErrors.ItemNotFound.code:
+          case wolkenkitErrors.ItemNotLocked.code: {
+            this.events.push({
+              type: 'issue',
+              message: 'defer failed.',
+              data: ex
+            });
+
+            return;
+          }
+          default: {
+            break;
+          }
+        }
+      }
+      this.events.push({
+        type: 'error',
         message: 'The queue crashed while deferring an item.',
         data: ex
       });
-      await this.crashHandler(this.getState());
-
-      throw ex;
     }
   }
 
@@ -298,8 +321,9 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
     this.unlockExpiredLocks();
 
     try {
-      this.actionLog.push({
-        type: 'remove',
+      this.events.push({
+        type: 'action',
+        message: 'remove',
         data: { discriminator, itemIdentifier }
       });
       await this.queue.remove({ discriminator, itemIdentifier });
@@ -311,13 +335,27 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
         }
       });
     } catch (ex: unknown) {
-      this.issueLog.push({
+      if (isCustomError(ex)) {
+        switch (ex.code) {
+          case wolkenkitErrors.ItemNotFound.code: {
+            this.events.push({
+              type: 'issue',
+              message: 'remove failed.',
+              data: ex
+            });
+
+            return;
+          }
+          default: {
+            break;
+          }
+        }
+      }
+      this.events.push({
+        type: 'error',
         message: 'The queue crashed while removing an item.',
         data: ex
       });
-      await this.crashHandler(this.getState());
-
-      throw ex;
     }
   }
 
@@ -326,8 +364,7 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
   }
 
   public static async create (
-    { observedQueueOptions }: PriorityQueueObserverOptions,
-    crashHandler: CrashHandler
+    { observedQueueOptions }: PriorityQueueObserverOptions
   ): Promise<PriorityQueueObserver> {
     const actualOptions = {
       ...observedQueueOptions,
@@ -335,25 +372,21 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
     };
     const queue = await createPriorityQueueStore(actualOptions);
 
-    return new PriorityQueueObserver(queue, actualOptions, crashHandler);
+    return new PriorityQueueObserver(queue, actualOptions);
   }
 
   public async destroy (): Promise<void> {
+    this.events.destroy();
+
     return this.queue.destroy();
   }
 
-  public getActionLog (): Action[] {
-    return this.actionLog;
-  }
-
-  public getIssueLog (): Issue[] {
-    return this.issueLog;
+  public getEvents (): PassThrough {
+    return this.events;
   }
 }
 
 export type {
-  Action,
-  CrashHandler,
   HeapItem,
   Issue,
   Item,
@@ -363,5 +396,6 @@ export type {
 };
 
 export {
+  errors,
   PriorityQueueObserver
 };

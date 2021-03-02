@@ -5,7 +5,6 @@ import { createPublisher } from '../../../../messaging/pubSub/createPublisher';
 import { createSubscriber } from '../../../../messaging/pubSub/createSubscriber';
 import { flaschenpost } from 'flaschenpost';
 import { fromEnvironmentVariables } from '../../../shared/fromEnvironmentVariables';
-import fs from 'fs';
 import { getApi } from './getApi';
 import http from 'http';
 import { PriorityQueueObserver } from '../../../../stores/priorityQueueStore/Observer';
@@ -30,9 +29,6 @@ import { runHealthServer } from '../../../shared/runHealthServer';
             return false;
           }
         }
-      },
-      async (state): Promise<void> => {
-        await fs.promises.writeFile(configuration.crashHandlerTargetFile, JSON.stringify(state), 'utf-8');
       }
     );
 

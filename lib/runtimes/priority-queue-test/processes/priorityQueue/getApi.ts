@@ -5,7 +5,7 @@ import { getApi as getPublishMessageApi } from '../../../../apis/publishMessage/
 import { OnReceiveMessage } from '../../../../apis/publishMessage/OnReceiveMessage';
 import { Subscriber } from '../../../../messaging/pubSub/Subscriber';
 import express, { Application as ExpressApplication } from 'express';
-import { HeapItem, PriorityQueueObserver } from '../../../../stores/priorityQueueStore/Observer/PriorityQueueObserver';
+import { HeapItem, Item, PriorityQueueObserver } from '../../../../stores/priorityQueueStore/Observer/PriorityQueueObserver';
 
 const getApi = async function ({
   configuration,
@@ -25,7 +25,7 @@ const getApi = async function ({
     onReceiveMessage: onReceiveItem
   });
 
-  const { api: awaitItemApi } = await getAwaitItemApi<HeapItem>({
+  const { api: awaitItemApi } = await getAwaitItemApi<HeapItem<Item>>({
     corsOrigin: getCorsOrigin(configuration.corsOrigin),
     priorityQueueStore: priorityQueueStore as any,
     newItemSubscriber,

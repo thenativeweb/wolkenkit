@@ -60,7 +60,7 @@ suite('priorityQueueStore load test', function (): void {
     stopPriorityQueueProcess = undefined;
   });
 
-  test.only('does stuff?.', async (): Promise<void> => {
+  test('does stuff?.', async (): Promise<void> => {
     console.log({ priorityQueueSocket, priorityQueueHealthSocket });
     await new Promise((resolve): any => setTimeout(resolve, 600_000));
   });
