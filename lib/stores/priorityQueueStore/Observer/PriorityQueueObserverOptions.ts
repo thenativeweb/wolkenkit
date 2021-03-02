@@ -1,9 +1,8 @@
-import { ObservableItem } from './PriorityQueueObserver';
 import { PriorityQueueStoreOptions } from '../PriorityQueueStoreOptions';
 
-interface PriorityQueueObserverOptions {
+interface PriorityQueueObserverOptions<TItem extends object, TItemIdentifier extends object> {
   type: 'observer';
-  observedQueueOptions: PriorityQueueStoreOptions<ObservableItem, string>;
+  observedQueueOptions: PriorityQueueStoreOptions<TItem, TItemIdentifier>;
 }
 
 export type {
