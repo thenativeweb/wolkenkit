@@ -9,8 +9,10 @@ import { errors } from '../../../../lib/common/errors';
 import { Application as ExpressApplication } from 'express';
 import { getApi } from '../../../../lib/apis/awaitItem/http';
 import { getCommandWithMetadataSchema } from '../../../../lib/common/schemas/getCommandWithMetadataSchema';
+import { inMemoryEventEmitter } from '../../../../lib/messaging/pubSub/InMemory/inMemoryEventEmitter';
 import { InMemoryPublisher } from '../../../../lib/messaging/pubSub/InMemory/InMemoryPublisher';
 import { InMemorySubscriber } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriber';
+import { InMemorySubscriberOptions } from '../../../../lib/messaging/pubSub/InMemory/InMemorySubscriberOptions';
 import { ItemIdentifier } from '../../../../lib/common/elements/ItemIdentifier';
 import { ItemIdentifierWithClient } from '../../../../lib/common/elements/ItemIdentifierWithClient';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
@@ -367,6 +369,90 @@ suite('awaitItem/http', (): void => {
             }
           ]));
         });
+      });
+
+      test('if an item was available for locking previous to the client request, after completing the request the subscriber is unsubscribed from the event subscriber.', async (): Promise<void> => {
+        class SubInMemorySubscriber<T extends object> extends InMemorySubscriber<T> {
+          public listenerCount (channel: string): number {
+            return this.eventEmitter.listenerCount(channel);
+          }
+
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          public static async create<TCreate extends object> (options: InMemorySubscriberOptions): Promise<SubInMemorySubscriber<TCreate>> {
+            return new SubInMemorySubscriber({ eventEmitter: inMemoryEventEmitter });
+          }
+        }
+
+        const newItemSubSubscriber = await SubInMemorySubscriber.create({ type: 'InMemory' });
+
+        newItemSubscriberChannel = v4();
+        newItemPublisher = await InMemoryPublisher.create({ type: 'InMemory' });
+
+        priorityQueueStore = await createPriorityQueueStore({
+          type: 'InMemory',
+          doesIdentifierMatchItem: doesItemIdentifierWithClientMatchCommandWithMetadata,
+          expirationTime
+        });
+
+        ({ api } = await getApi({
+          corsOrigin: '*',
+          priorityQueueStore: priorityQueueStore as PriorityQueueStore<CommandWithMetadata<CommandData>, ItemIdentifier>,
+          newItemSubscriber: newItemSubSubscriber,
+          newItemSubscriberChannel,
+          validateOutgoingItem ({ item }: { item: any }): void {
+            new Value(getCommandWithMetadataSchema()).validate(item);
+          }
+        }));
+
+        const { client } = await runAsServer({ app: api });
+
+        const commandWithMetadata = buildCommandWithMetadata({
+          aggregateIdentifier: {
+            context: {
+              name: 'sampleContext'
+            },
+            aggregate: {
+              name: 'sampleAggregate',
+              id: v4()
+            }
+          },
+          name: 'execute',
+          data: {}
+        });
+
+        await priorityQueueStore.enqueue({
+          item: commandWithMetadata,
+          discriminator: commandWithMetadata.aggregateIdentifier.aggregate.id,
+          priority: commandWithMetadata.metadata.timestamp
+        });
+
+        const { data } = await client({
+          method: 'get',
+          url: '/v2/',
+          responseType: 'stream'
+        });
+
+        await new Promise<void>((resolve, reject): void => {
+          data.on('error', (err: any): void => {
+            reject(err);
+          });
+
+          data.on('close', (): void => {
+            resolve();
+          });
+
+          data.pipe(asJsonStream([
+            (streamElement): void => {
+              assert.that(streamElement).is.equalTo({ name: 'heartbeat' });
+            },
+            (streamElement: any): void => {
+              assert.that(streamElement.item).is.equalTo(commandWithMetadata);
+              assert.that(streamElement.metadata.token).is.matching(regex);
+            }
+          ]));
+        });
+
+        assert.that(newItemSubSubscriber.listenerCount(newItemSubscriberChannel)).is.equalTo(0);
       });
     });
 
