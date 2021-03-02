@@ -3,16 +3,21 @@ import { LockMetadata } from '../LockMetadata';
 import { PriorityQueueObserverOptions } from './PriorityQueueObserverOptions';
 import { PriorityQueueStore } from '../PriorityQueueStore';
 import { PriorityQueueStoreOptions } from '../PriorityQueueStoreOptions';
+import { v4 } from 'uuid';
 
 interface Item {
   id: string;
 }
 
-interface HeapItem {
-  item: Item;
+interface HeapItem<TItem> {
+  item: TItem;
   priority: number;
   discriminator: string;
   lockedUntil?: number;
+}
+
+interface ObservableItem extends Item {
+  observableId: string;
 }
 
 interface Action {
@@ -28,16 +33,16 @@ interface Issue {
 interface ObserverState {
   actionLog: Action[];
   issueLog: Issue[];
-  enqueuedItems: Map<string, HeapItem>;
-  lockedItems: Map<string, HeapItem>;
-  removedItems: Map<string, HeapItem>;
-  acknowledgedItems: Map<string, HeapItem>;
+  enqueuedItems: Map<string, HeapItem<ObservableItem>>;
+  lockedItems: Map<string, HeapItem<ObservableItem>>;
+  removedItems: Map<string, HeapItem<ObservableItem>>;
+  acknowledgedItems: Map<string, HeapItem<ObservableItem>>;
 }
 
 type CrashHandler = (state: ObserverState) => Promise<void>;
 
 class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
-  protected queue: PriorityQueueStore<Item, string>;
+  protected queue: PriorityQueueStore<ObservableItem, string>;
 
   protected actionLog: Action[];
 
@@ -45,21 +50,21 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
 
   protected crashHandler: CrashHandler;
 
-  protected enqueuedItems: Map<string, HeapItem>;
+  protected enqueuedItems: Map<string, HeapItem<ObservableItem>>;
 
-  protected lockedItems: Map<string, HeapItem>;
+  protected lockedItems: Map<string, HeapItem<ObservableItem>>;
 
-  protected removedItems: Map<string, HeapItem>;
+  protected removedItems: Map<string, HeapItem<ObservableItem>>;
 
-  protected acknowledgedItems: Map<string, HeapItem>;
+  protected acknowledgedItems: Map<string, HeapItem<ObservableItem>>;
 
   protected static readonly defaultExpirationTime = 15_000;
 
-  protected queueOptions: PriorityQueueStoreOptions<Item, string>;
+  protected queueOptions: PriorityQueueStoreOptions<ObservableItem, string>;
 
   protected constructor (
-    queue: PriorityQueueStore<Item, string>,
-    queueOptions: PriorityQueueStoreOptions<Item, string>,
+    queue: PriorityQueueStore<ObservableItem, string>,
+    queueOptions: PriorityQueueStoreOptions<ObservableItem, string>,
     crashHandler: CrashHandler
   ) {
     this.queue = queue;
@@ -67,10 +72,10 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
     this.actionLog = [];
     this.issueLog = [];
     this.crashHandler = crashHandler;
-    this.enqueuedItems = new Map<string, HeapItem>();
-    this.lockedItems = new Map<string, HeapItem>();
-    this.removedItems = new Map<string, HeapItem>();
-    this.acknowledgedItems = new Map<string, HeapItem>();
+    this.enqueuedItems = new Map<string, HeapItem<ObservableItem>>();
+    this.lockedItems = new Map<string, HeapItem<ObservableItem>>();
+    this.removedItems = new Map<string, HeapItem<ObservableItem>>();
+    this.acknowledgedItems = new Map<string, HeapItem<ObservableItem>>();
   }
 
   protected getState (): ObserverState {
@@ -96,26 +101,34 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
     });
   }
 
-  protected lockHeapItem (heapItem: HeapItem): void {
-    this.enqueuedItems.delete(heapItem.item.id);
-    this.lockedItems.set(heapItem.item.id, {
+  protected lockHeapItem (heapItem: HeapItem<ObservableItem>): void {
+    this.enqueuedItems.delete(heapItem.item.observableId);
+    this.lockedItems.set(heapItem.item.observableId, {
       ...heapItem,
       lockedUntil: Date.now() + this.queueOptions.expirationTime!
     });
   }
 
-  public async enqueue (heapItem: HeapItem): Promise<void> {
+  public async enqueue (heapItem: HeapItem<Item>): Promise<void> {
     this.unlockExpiredLocks();
+
+    const observableHeapItem: HeapItem<ObservableItem> = {
+      ...heapItem,
+      item: {
+        ...heapItem.item,
+        observableId: v4()
+      }
+    };
 
     this.actionLog.push({
       type: 'enqueue',
-      data: heapItem
+      data: observableHeapItem
     });
 
     try {
-      await this.queue.enqueue(heapItem);
+      await this.queue.enqueue(observableHeapItem);
 
-      this.enqueuedItems.set(heapItem.item.id, heapItem);
+      this.enqueuedItems.set(observableHeapItem.item.observableId, observableHeapItem);
     } catch (ex: unknown) {
       this.issueLog.push({
         message: 'The queue crashed while enqueueing.',
@@ -142,7 +155,7 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
           message: 'Couldn\'t lock next item'
         });
       } else {
-        const heapItem = this.enqueuedItems.get(nextItem.item.id);
+        const heapItem = this.enqueuedItems.get(nextItem.item.observableId);
 
         if (heapItem === undefined) {
           this.issueLog.push({
@@ -178,7 +191,7 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
       });
       await this.queue.renewLock({ discriminator, token });
       const matchingLocks = [ ...this.lockedItems.entries() ].
-        filter(([ , value ]): boolean => value.discriminator === discriminator);
+        filter(([ , heapItem ]): boolean => heapItem.discriminator === discriminator);
 
       if (matchingLocks.length > 1) {
         this.issueLog.push({
@@ -188,10 +201,10 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
 
         throw new Error('Multiple locks are present for a single discriminator.');
       }
-      this.lockedItems.forEach((value, key): void => {
-        if (value.discriminator === discriminator) {
-          this.lockedItems.set(key, {
-            ...value,
+      this.lockedItems.forEach((heapItem, observableId): void => {
+        if (heapItem.discriminator === discriminator) {
+          this.lockedItems.set(observableId, {
+            ...heapItem,
             lockedUntil: Date.now() + this.queueOptions.expirationTime!
           });
         }
@@ -218,7 +231,7 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
       await this.queue.acknowledge({ discriminator, token });
 
       const matchingLocks = [ ...this.lockedItems.entries() ].
-        filter(([ , value ]): boolean => value.discriminator === discriminator);
+        filter(([ , heapItem ]): boolean => heapItem.discriminator === discriminator);
 
       if (matchingLocks.length > 1) {
         this.issueLog.push({
@@ -227,10 +240,10 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
         });
         throw new Error('Multiple locks are present for a single discriminator.');
       }
-      this.lockedItems.forEach((value, key): void => {
-        if (value.discriminator === discriminator) {
-          this.lockedItems.delete(key);
-          this.acknowledgedItems.set(key, value);
+      this.lockedItems.forEach((heapItem, observableId): void => {
+        if (heapItem.discriminator === discriminator) {
+          this.lockedItems.delete(observableId);
+          this.acknowledgedItems.set(observableId, heapItem);
         }
       });
     } catch (ex: unknown) {
@@ -255,7 +268,7 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
       await this.queue.defer({ discriminator, token, priority });
 
       const matchingLocks = [ ...this.lockedItems.entries() ].
-        filter(([ , value ]): boolean => value.discriminator === discriminator);
+        filter(([ , heapItem ]): boolean => heapItem.discriminator === discriminator);
 
       if (matchingLocks.length > 1) {
         this.issueLog.push({
@@ -264,10 +277,10 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
         });
         throw new Error('Multiple locks are present for a single discriminator.');
       }
-      this.lockedItems.forEach((value, key): void => {
-        if (value.discriminator === discriminator) {
-          this.lockedItems.delete(key);
-          this.enqueuedItems.set(key, value);
+      this.lockedItems.forEach((heapItem, observableId): void => {
+        if (heapItem.discriminator === discriminator) {
+          this.lockedItems.delete(observableId);
+          this.enqueuedItems.set(observableId, heapItem);
         }
       });
     } catch (ex: unknown) {
@@ -291,20 +304,10 @@ class PriorityQueueObserver implements PriorityQueueStore<Item, string> {
       });
       await this.queue.remove({ discriminator, itemIdentifier });
 
-      const matchingLocks = [ ...this.enqueuedItems.entries() ].
-        filter(([ , value ]): boolean => value.item.id === itemIdentifier);
-
-      if (matchingLocks.length > 1) {
-        this.issueLog.push({
-          message: 'Multiple instances of an itemIdentifier are present.',
-          data: { matchingLocks }
-        });
-        throw new Error('Multiple instances of an itemIdentifier are present.');
-      }
-      this.lockedItems.forEach((value, key): void => {
-        if (value.item.id === itemIdentifier) {
-          this.enqueuedItems.delete(key);
-          this.removedItems.set(key, value);
+      this.lockedItems.forEach((heapItem, observableId): void => {
+        if (heapItem.item.id === itemIdentifier) {
+          this.enqueuedItems.delete(observableId);
+          this.removedItems.set(observableId, heapItem);
         }
       });
     } catch (ex: unknown) {
@@ -354,6 +357,7 @@ export type {
   HeapItem,
   Issue,
   Item,
+  ObservableItem,
   ObserverState,
   PriorityQueueObserverOptions
 };
