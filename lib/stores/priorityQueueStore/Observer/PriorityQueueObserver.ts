@@ -1,9 +1,7 @@
-import { createPriorityQueueStore } from '../createPriorityQueueStore';
 import { LockMetadata } from '../LockMetadata';
 import { PassThrough } from 'stream';
 import { PriorityQueueObserverOptions } from './PriorityQueueObserverOptions';
 import { PriorityQueueStore } from '../PriorityQueueStore';
-import { PriorityQueueStoreOptions } from '../PriorityQueueStoreOptions';
 import { errors as wolkenkitErrors } from '../../../common/errors';
 import { defekt, isCustomError } from 'defekt';
 
@@ -24,14 +22,10 @@ class PriorityQueueObserver<TItem extends object, TItemIdentifier extends object
 
   protected static readonly defaultExpirationTime = 15_000;
 
-  protected queueOptions: PriorityQueueStoreOptions<TItem, TItemIdentifier>;
-
   protected constructor (
-    queue: PriorityQueueStore<TItem, TItemIdentifier>,
-    queueOptions: PriorityQueueStoreOptions<TItem, TItemIdentifier>
+    queue: PriorityQueueStore<TItem, TItemIdentifier>
   ) {
     this.queue = queue;
-    this.queueOptions = queueOptions;
     this.events = new PassThrough({ objectMode: true });
   }
 
@@ -254,15 +248,9 @@ class PriorityQueueObserver<TItem extends object, TItemIdentifier extends object
 
   // eslint-disable-next-line @typescript-eslint/no-shadow
   public static async create<TItem extends object, TItemIdentifier extends object> (
-    { observedQueueOptions }: PriorityQueueObserverOptions<TItem, TItemIdentifier>
+    { observedQueue }: { observedQueue: PriorityQueueStore<TItem, TItemIdentifier> }
   ): Promise<PriorityQueueObserver<TItem, TItemIdentifier>> {
-    const actualOptions = {
-      ...observedQueueOptions,
-      expirationTime: observedQueueOptions.expirationTime ?? PriorityQueueObserver.defaultExpirationTime
-    };
-    const queue = await createPriorityQueueStore(actualOptions);
-
-    return new PriorityQueueObserver(queue, actualOptions);
+    return new PriorityQueueObserver(observedQueue);
   }
 
   public async destroy (): Promise<void> {
