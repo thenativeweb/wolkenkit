@@ -43,7 +43,7 @@ class PostgresLockStore implements LockStore {
     userName,
     password,
     database,
-    encryptConnection = false,
+    encryptConnection,
     tableNames
   }: PostgresLockStoreOptions): Promise<PostgresLockStore> {
     const pool = new Pool({
