@@ -19,7 +19,7 @@ suite('InMemory', (): void => {
     });
   });
 
-  suite.only('load tests', (): void => {
+  suite('load tests', (): void => {
     getLoadTestsFor({
       async createPriorityQueueStore ({ expirationTime }: {
         expirationTime: number;

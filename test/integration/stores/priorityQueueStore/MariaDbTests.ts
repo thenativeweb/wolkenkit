@@ -26,7 +26,7 @@ suite('MariaDb', (): void => {
     });
   });
 
-  suite.only('load tests', (): void => {
+  suite('load tests', (): void => {
     getLoadTestsFor({
       async createPriorityQueueStore ({ suffix, expirationTime }: {
         suffix: string;

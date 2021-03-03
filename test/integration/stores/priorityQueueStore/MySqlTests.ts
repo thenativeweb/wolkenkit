@@ -1,27 +1,53 @@
 import { connectionOptions } from '../../../shared/containers/connectionOptions';
+import { getLoadTestsFor } from './getLoadTestsFor';
 import { getTestsFor } from './getTestsFor';
 import { isEqual } from 'lodash';
 import { MySqlPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/MySql';
 import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 
 suite('MySql', (): void => {
-  getTestsFor({
-    async createPriorityQueueStore ({ suffix, expirationTime }: {
-      suffix: string;
-      expirationTime: number;
-    }): Promise<PriorityQueueStore<any, any>> {
-      const tableNames = {
-        items: `items_${suffix}`,
-        priorityQueue: `priorityQueue_${suffix}`
-      };
+  suite('general tests', (): void => {
+    getTestsFor({
+      async createPriorityQueueStore ({ suffix, expirationTime }: {
+        suffix: string;
+        expirationTime: number;
+      }): Promise<PriorityQueueStore<any, any>> {
+        const tableNames = {
+          items: `items_${suffix}`,
+          priorityQueue: `priorityQueue_${suffix}`
+        };
 
-      return await MySqlPriorityQueueStore.create({
-        type: 'MySql',
-        doesIdentifierMatchItem: ({ item, itemIdentifier }): boolean => isEqual(item, itemIdentifier),
-        ...connectionOptions.mySql,
-        tableNames,
-        expirationTime
-      });
-    }
+        return await MySqlPriorityQueueStore.create({
+          type: 'MySql',
+          doesIdentifierMatchItem: ({ item, itemIdentifier }): boolean => isEqual(item, itemIdentifier),
+          ...connectionOptions.mySql,
+          tableNames,
+          expirationTime
+        });
+      }
+    });
+  });
+
+  suite('load tests', (): void => {
+    getLoadTestsFor({
+      async createPriorityQueueStore ({ suffix, expirationTime }: {
+        suffix: string;
+        expirationTime: number;
+      }): Promise<PriorityQueueStore<any, any>> {
+        const tableNames = {
+          items: `items_${suffix}`,
+          priorityQueue: `priorityQueue_${suffix}`
+        };
+
+        return await MySqlPriorityQueueStore.create({
+          type: 'MySql',
+          doesIdentifierMatchItem: ({ item, itemIdentifier }): boolean => isEqual(item, itemIdentifier),
+          ...connectionOptions.mySql,
+          tableNames,
+          expirationTime
+        });
+      },
+      queueType: 'MySql'
+    });
   });
 });

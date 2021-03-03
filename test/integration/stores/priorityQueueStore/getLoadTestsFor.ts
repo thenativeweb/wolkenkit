@@ -17,7 +17,7 @@ const getLogFile = function ({ queueType }: { queueType: string }): string {
 
 const generateRandomItem = function (): { item: Item; discriminator: string; priority: number } {
   return {
-    priority: Math.random() * (Number.MAX_SAFE_INTEGER - 1),
+    priority: Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 1)),
     discriminator: `${sample(range(0, 10))}`,
     item: {
       id: v4()
@@ -38,7 +38,7 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
   }) => Promise<PriorityQueueStore<Item, any>>;
   queueType: string;
 }): void {
-  test('priorityQueueStore fuzzing.', async function (): Promise<void> {
+  test.only('priorityQueueStore fuzzing.', async function (): Promise<void> {
     const overallExecutionTime = 100_000;
     const expirationTime = 2_000;
     const maxInsertionDelay = 100;
@@ -106,7 +106,7 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
         case 'defer': {
           operation = async (): Promise<void> => {
             await priorityQueueObserver.defer({
-              priority: Math.random() * (Number.MAX_SAFE_INTEGER - 1),
+              priority: Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 1)),
               ...item.metadata
             });
           };
