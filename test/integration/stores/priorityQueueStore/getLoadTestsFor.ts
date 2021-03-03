@@ -52,7 +52,7 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
       overallExecutionTime +
         maxInsertionDelay +
         (maxSleepTime * maxIterationCount) +
-        1_000
+        2_000
     );
     const observedQueue = await createPriorityQueueStore({ suffix: getShortId(), expirationTime });
     const priorityQueueObserver = await PriorityQueueObserver.create({ observedQueue });
@@ -157,6 +157,7 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
           } catch {
             // Ignore.
           }
+          await sleep(Math.random() * maxSleepTime);
         });
       })
     ];
