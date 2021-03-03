@@ -38,7 +38,7 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
   }) => Promise<PriorityQueueStore<Item, any>>;
   queueType: string;
 }): void {
-  suite.only('priorityQueueStore fuzzing', function (): void {
+  test('priorityQueueStore fuzzing.', async function (): Promise<void> {
     const overallExecutionTime = 100_000;
     const expirationTime = 2_000;
     const maxInsertionDelay = 100;
@@ -50,153 +50,150 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
 
     this.timeout(
       overallExecutionTime +
-      maxInsertionDelay +
-      (maxSleepTime * maxIterationCount) +
-      1_000
+        maxInsertionDelay +
+        (maxSleepTime * maxIterationCount) +
+        1_000
     );
+    const observedQueue = await createPriorityQueueStore({ suffix: getShortId(), expirationTime });
+    const priorityQueueObserver = await PriorityQueueObserver.create({ observedQueue });
 
-    test('MariaDb.', async (): Promise<void> => {
-      const observedQueue = await createPriorityQueueStore({ suffix: getShortId(), expirationTime });
-      const priorityQueueObserver = await PriorityQueueObserver.create({ observedQueue });
+    await priorityQueueObserver.setup();
+    let plsStop = false;
 
-      await priorityQueueObserver.setup();
-      let plsStop = false;
+    const insertItem = async (): Promise<void> => {
+      await priorityQueueObserver.enqueue(generateRandomItem());
+    };
+    const consumeItem = async (id: number): Promise<void> => {
+      const cases = [
+        'acknowledge',
+        'defer',
+        'die'
+      ];
+      const chosenCase = sample(cases);
+      const iterationCount = sample(range(0, maxIterationCount + 1))!;
+      const sleepInterval = Math.random() * maxSleepTime;
+      const item = await priorityQueueObserver.lockNext();
 
-      const insertItem = async (): Promise<void> => {
-        await priorityQueueObserver.enqueue(generateRandomItem());
-      };
-      const consumeItem = async (id: number): Promise<void> => {
-        const cases = [
-          'acknowledge',
-          'defer',
-          'die'
-        ];
-        const chosenCase = sample(cases);
-        const iterationCount = sample(range(0, maxIterationCount + 1))!;
-        const sleepInterval = Math.random() * maxSleepTime;
-        const item = await priorityQueueObserver.lockNext();
+      if (plsStop) {
+        console.log('Random values:', { id, iterationCount, sleepInterval });
+      }
 
+      if (item === undefined) {
+        return;
+      }
+
+      for (let currentIteration = 0; currentIteration < iterationCount; currentIteration++) {
         if (plsStop) {
-          console.log('Random values:', { id, iterationCount, sleepInterval });
+          console.log('Idling...:', { id, currentIteration });
         }
+        await sleep(sleepInterval);
+        await priorityQueueObserver.renewLock(item.metadata);
+      }
 
-        if (item === undefined) {
-          return;
+      if (chosenCase === 'die') {
+        return;
+      }
+
+      let operation;
+
+      switch (chosenCase) {
+        case 'acknowledge': {
+          operation = async (): Promise<void> => {
+            await priorityQueueObserver.acknowledge(item.metadata);
+          };
+          break;
         }
-
-        for (let currentIteration = 0; currentIteration < iterationCount; currentIteration++) {
-          if (plsStop) {
-            console.log('Idling...:', { id, currentIteration });
-          }
-          await sleep(sleepInterval);
-          await priorityQueueObserver.renewLock(item.metadata);
+        case 'defer': {
+          operation = async (): Promise<void> => {
+            await priorityQueueObserver.defer({
+              priority: Math.random() * (Number.MAX_SAFE_INTEGER - 1),
+              ...item.metadata
+            });
+          };
+          break;
         }
-
-        if (chosenCase === 'die') {
-          return;
+        default: {
+          throw new Error('Invalid operation.');
         }
+      }
 
-        let operation;
+      if (plsStop) {
+        console.log('Executing operation...:', { id, chosenCase });
+      }
 
-        switch (chosenCase) {
-          case 'acknowledge': {
-            operation = async (): Promise<void> => {
-              await priorityQueueObserver.acknowledge(item.metadata);
-            };
-            break;
-          }
-          case 'defer': {
-            operation = async (): Promise<void> => {
-              await priorityQueueObserver.defer({
-                priority: Math.random() * (Number.MAX_SAFE_INTEGER - 1),
-                ...item.metadata
-              });
-            };
-            break;
-          }
-          default: {
-            throw new Error('Invalid operation.');
-          }
-        }
+      await operation();
+      let retries = 0;
 
+      while (Math.random() < repeatAckOrDeferRate) {
+        retries += 1;
         if (plsStop) {
-          console.log('Executing operation...:', { id, chosenCase });
+          console.log(`Retrying...:`, { id, retries });
         }
-
         await operation();
-        let retries = 0;
+      }
+    };
 
-        while (Math.random() < repeatAckOrDeferRate) {
-          retries += 1;
-          if (plsStop) {
-            console.log(`Retrying...:`, { id, retries });
-          }
-          await operation();
+    const promises = [
+      pForever(async (): Promise<void | typeof pForever.end> => {
+        if (plsStop) {
+          console.log('Stopping insert item loop...');
+
+          return pForever.end;
         }
-      };
 
-      const promises = [
-        pForever(async (): Promise<void | typeof pForever.end> => {
+        await insertItem();
+        await sleep(Math.random() * maxInsertionDelay);
+      }),
+      ...Array.from({ length: workerCount }).fill(null).map(async (value, index): Promise<void> => {
+        await pForever(async (): Promise<void | typeof pForever.end> => {
           if (plsStop) {
-            console.log('Stopping insert item loop...');
+            console.log('Stopping consume item loop...', { index });
 
             return pForever.end;
           }
 
-          await insertItem();
-          await sleep(Math.random() * maxInsertionDelay);
-        }),
-        ...Array.from({ length: workerCount }).fill(null).map(async (value, index): Promise<void> => {
-          await pForever(async (): Promise<void | typeof pForever.end> => {
-            if (plsStop) {
-              console.log('Stopping consume item loop...', { index });
-
-              return pForever.end;
-            }
-
-            try {
-              await consumeItem(index);
-            } catch {
-              // Ignore.
-            }
-          });
-        })
-      ];
-
-      const observerStreamHandler = (async (): Promise<void> => {
-        const logFileStream = fs.createWriteStream(getLogFile({ queueType }), {
-          flags: 'w',
-          encoding: 'utf-8'
+          try {
+            await consumeItem(index);
+          } catch {
+            // Ignore.
+          }
         });
+      })
+    ];
 
-        for await (const data of priorityQueueObserver.getEvents()) {
-          logFileStream.write(JSON.stringify(data), 'utf-8');
-          switch (data.type) {
-            case 'issue': {
-              console.log(data);
-              break;
-            }
-            case 'error': {
-              throw new errors.ObserverError('Well that was shit', { data: data.data.ex });
-            }
-            default: {
-              break;
-            }
+    const observerStreamHandler = (async (): Promise<void> => {
+      const logFileStream = fs.createWriteStream(getLogFile({ queueType }), {
+        flags: 'w',
+        encoding: 'utf-8'
+      });
+
+      for await (const data of priorityQueueObserver.getEvents()) {
+        logFileStream.write(JSON.stringify(data), 'utf-8');
+        switch (data.type) {
+          case 'issue': {
+            console.log(data);
+            break;
+          }
+          case 'error': {
+            throw new errors.ObserverError('Well that was shit', { data: data.data.ex });
+          }
+          default: {
+            break;
           }
         }
+      }
 
-        console.log('Observer stream has ended.');
-      })();
+      console.log('Observer stream has ended.');
+    })();
 
-      setTimeout(async (): Promise<void> => {
-        console.log('Sending stop signal...');
-        plsStop = true;
-      }, overallExecutionTime);
+    setTimeout(async (): Promise<void> => {
+      console.log('Sending stop signal...');
+      plsStop = true;
+    }, overallExecutionTime);
 
-      await Promise.all(promises);
-      await priorityQueueObserver.destroy();
-      await observerStreamHandler;
-    });
+    await Promise.all(promises);
+    await priorityQueueObserver.destroy();
+    await observerStreamHandler;
   });
 };
 
