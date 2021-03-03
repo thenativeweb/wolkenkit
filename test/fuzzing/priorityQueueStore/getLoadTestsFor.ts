@@ -1,10 +1,10 @@
-import { errors } from '../../../../lib/stores/priorityQueueStore/Observer/PriorityQueueObserver';
+import { errors } from '../../../lib/stores/priorityQueueStore/Observer/PriorityQueueObserver';
 import fs from 'fs';
-import { getShortId } from '../../../shared/getShortId';
+import { getShortId } from '../../shared/getShortId';
+import naughtyStrings from '../naughtyStrings';
 import pForever from 'p-forever';
-import { PriorityQueueObserver } from '../../../../lib/stores/priorityQueueStore/Observer';
-import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
-import { v4 } from 'uuid';
+import { PriorityQueueObserver } from '../../../lib/stores/priorityQueueStore/Observer';
+import { PriorityQueueStore } from '../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 import { range, sample } from 'lodash';
 
 interface Item {
@@ -20,7 +20,7 @@ const generateRandomItem = function (): { item: Item; discriminator: string; pri
     priority: Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 1)),
     discriminator: `${sample(range(0, 10))}`,
     item: {
-      id: v4()
+      id: sample(naughtyStrings)!
     }
   };
 };
@@ -38,8 +38,8 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
   }) => Promise<PriorityQueueStore<Item, any>>;
   queueType: string;
 }): void {
-  test.only('priorityQueueStore fuzzing.', async function (): Promise<void> {
-    const overallExecutionTime = 100_000;
+  test('priority queue store fuzzing.', async function (): Promise<void> {
+    const overallExecutionTime = 1.8e4;
     const expirationTime = 2_000;
     const maxInsertionDelay = 100;
     const workerCount = 8;
@@ -54,16 +54,17 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
         (maxSleepTime * maxIterationCount) +
         2_000
     );
+
     const observedQueue = await createPriorityQueueStore({ suffix: getShortId(), expirationTime });
     const priorityQueueObserver = await PriorityQueueObserver.create({ observedQueue });
 
     await priorityQueueObserver.setup();
-    let plsStop = false;
+    let stopSignal = false;
 
-    const insertItem = async (): Promise<void> => {
+    const insertItemWorker = async (): Promise<void> => {
       await priorityQueueObserver.enqueue(generateRandomItem());
     };
-    const consumeItem = async (id: number): Promise<void> => {
+    const consumeItemWorker = async (): Promise<void> => {
       const cases = [
         'acknowledge',
         'defer',
@@ -74,18 +75,11 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
       const sleepInterval = Math.random() * maxSleepTime;
       const item = await priorityQueueObserver.lockNext();
 
-      if (plsStop) {
-        console.log('Random values:', { id, iterationCount, sleepInterval });
-      }
-
       if (item === undefined) {
         return;
       }
 
       for (let currentIteration = 0; currentIteration < iterationCount; currentIteration++) {
-        if (plsStop) {
-          console.log('Idling...:', { id, currentIteration });
-        }
         await sleep(sleepInterval);
         await priorityQueueObserver.renewLock(item.metadata);
       }
@@ -117,45 +111,31 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
         }
       }
 
-      if (plsStop) {
-        console.log('Executing operation...:', { id, chosenCase });
-      }
-
       await operation();
-      let retries = 0;
-
       while (Math.random() < repeatAckOrDeferRate) {
-        retries += 1;
-        if (plsStop) {
-          console.log(`Retrying...:`, { id, retries });
-        }
         await operation();
       }
     };
 
     const promises = [
       pForever(async (): Promise<void | typeof pForever.end> => {
-        if (plsStop) {
-          console.log('Stopping insert item loop...');
-
+        if (stopSignal) {
           return pForever.end;
         }
 
-        await insertItem();
+        await insertItemWorker();
         await sleep(Math.random() * maxInsertionDelay);
       }),
-      ...Array.from({ length: workerCount }).fill(null).map(async (value, index): Promise<void> => {
+      ...Array.from({ length: workerCount }).fill(null).map(async (): Promise<void> => {
         await pForever(async (): Promise<void | typeof pForever.end> => {
-          if (plsStop) {
-            console.log('Stopping consume item loop...', { index });
-
+          if (stopSignal) {
             return pForever.end;
           }
 
           try {
-            await consumeItem(index);
+            await consumeItemWorker();
           } catch {
-            // Ignore.
+            // Intentionally left blank.
           }
           await sleep(Math.random() * maxSleepTime);
         });
@@ -171,25 +151,18 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
       for await (const data of priorityQueueObserver.getEvents()) {
         logFileStream.write(JSON.stringify(data), 'utf-8');
         switch (data.type) {
-          case 'issue': {
-            console.log(data);
-            break;
-          }
           case 'error': {
-            throw new errors.ObserverError('Well that was shit', { data: data.data.ex });
+            throw new errors.ObserverError('An unexpected error occurred during fuzzing. This is a potential bug!', { data: data.data.ex });
           }
           default: {
             break;
           }
         }
       }
-
-      console.log('Observer stream has ended.');
     })();
 
     setTimeout(async (): Promise<void> => {
-      console.log('Sending stop signal...');
-      plsStop = true;
+      stopSignal = true;
     }, overallExecutionTime);
 
     await Promise.all(promises);

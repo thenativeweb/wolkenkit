@@ -1,11 +1,11 @@
-import { connectionOptions } from '../../../shared/containers/connectionOptions';
-import { getTestsFor } from './getTestsFor';
+import { connectionOptions } from '../../shared/containers/connectionOptions';
+import { getLoadTestsFor } from './getLoadTestsFor';
 import { isEqual } from 'lodash';
-import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
-import { SqlServerPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/SqlServer';
+import { PriorityQueueStore } from '../../../lib/stores/priorityQueueStore/PriorityQueueStore';
+import { SqlServerPriorityQueueStore } from '../../../lib/stores/priorityQueueStore/SqlServer';
 
 suite('SqlServer', (): void => {
-  getTestsFor({
+  getLoadTestsFor({
     async createPriorityQueueStore ({ suffix, expirationTime }: {
       suffix: string;
       expirationTime: number;
@@ -22,6 +22,7 @@ suite('SqlServer', (): void => {
         tableNames,
         expirationTime
       });
-    }
+    },
+    queueType: 'SqlServer'
   });
 });

@@ -1,10 +1,10 @@
-import { getTestsFor } from './getTestsFor';
-import { InMemoryPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/InMemory';
+import { getLoadTestsFor } from './getLoadTestsFor';
+import { InMemoryPriorityQueueStore } from '../../../lib/stores/priorityQueueStore/InMemory';
 import { isEqual } from 'lodash';
-import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
+import { PriorityQueueStore } from '../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 
 suite('InMemory', (): void => {
-  getTestsFor({
+  getLoadTestsFor({
     async createPriorityQueueStore ({ expirationTime }: {
       expirationTime: number;
     }): Promise<PriorityQueueStore<any, any>> {
@@ -13,6 +13,7 @@ suite('InMemory', (): void => {
         doesIdentifierMatchItem: ({ item, itemIdentifier }): boolean => isEqual(item, itemIdentifier),
         expirationTime
       });
-    }
+    },
+    queueType: 'InMemory'
   });
 });

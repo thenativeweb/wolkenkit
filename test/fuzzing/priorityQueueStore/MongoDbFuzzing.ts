@@ -1,11 +1,11 @@
-import { connectionOptions } from '../../../shared/containers/connectionOptions';
-import { getTestsFor } from './getTestsFor';
+import { connectionOptions } from '../../shared/containers/connectionOptions';
+import { getLoadTestsFor } from './getLoadTestsFor';
 import { isEqual } from 'lodash';
-import { MongoDbPriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/MongoDb';
-import { PriorityQueueStore } from '../../../../lib/stores/priorityQueueStore/PriorityQueueStore';
+import { MongoDbPriorityQueueStore } from '../../../lib/stores/priorityQueueStore/MongoDb';
+import { PriorityQueueStore } from '../../../lib/stores/priorityQueueStore/PriorityQueueStore';
 
 suite('MongoDb', (): void => {
-  getTestsFor({
+  getLoadTestsFor({
     async createPriorityQueueStore ({ suffix, expirationTime }: {
       suffix: string;
       expirationTime: number;
@@ -21,6 +21,7 @@ suite('MongoDb', (): void => {
         collectionNames,
         expirationTime
       });
-    }
+    },
+    queueType: 'MongoDb'
   });
 });
