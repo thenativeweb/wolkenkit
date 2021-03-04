@@ -1,5 +1,6 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
 import { ConsumerProgressStore } from '../ConsumerProgressStore';
+import { createPoolWithDefaults } from '../../utils/mySql/createPool';
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { IsReplaying } from '../IsReplaying';
@@ -8,7 +9,7 @@ import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { TableNames } from './TableNames';
 import { withTransaction } from '../../utils/mySql/withTransaction';
-import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
+import { MysqlError, Pool, PoolConnection } from 'mysql';
 
 class MySqlConsumerProgressStore implements ConsumerProgressStore {
   protected pool: Pool;
@@ -56,14 +57,12 @@ class MySqlConsumerProgressStore implements ConsumerProgressStore {
     database,
     tableNames
   }: MySqlConsumerProgressStoreOptions): Promise<MySqlConsumerProgressStore> {
-    const pool = createPool({
-      host: hostName,
+    const pool = createPoolWithDefaults({
+      hostName,
       port,
-      user: userName,
+      userName,
       password,
-      database,
-      connectTimeout: 0,
-      multipleStatements: true
+      database
     });
 
     pool.on('connection', (connection: PoolConnection): void => {

@@ -43,6 +43,15 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
         name: 'execute',
         data: { strategy: 'succeed' },
         metadata: { timestamp: Date.now() + 1 }
+      }),
+      emojiCommand: buildCommandWithMetadata({
+        aggregateIdentifier: {
+          context: { name: 'sampleContext' },
+          aggregate: { name: 'sampleAggregate', id: firstAggregateId }
+        },
+        name: 'execute',
+        data: { strategy: 'succeed', dingus: '🐵 🙈 🙉 🙊' },
+        metadata: { timestamp: Date.now() + 4 }
       })
     },
     secondAggregate: {
@@ -107,6 +116,16 @@ const getTestsFor = function ({ createPriorityQueueStore }: {
           item: commands.firstAggregate.firstCommand,
           discriminator: commands.firstAggregate.firstCommand.aggregateIdentifier.aggregate.id,
           priority: commands.firstAggregate.firstCommand.metadata.timestamp
+        });
+      }).is.not.throwingAsync();
+    });
+
+    test('enqueues a command with emoji in it.', async (): Promise<void> => {
+      await assert.that(async (): Promise<void> => {
+        await priorityQueueStore.enqueue({
+          item: commands.firstAggregate.emojiCommand,
+          discriminator: commands.firstAggregate.emojiCommand.aggregateIdentifier.aggregate.id,
+          priority: commands.firstAggregate.emojiCommand.metadata.timestamp
         });
       }).is.not.throwingAsync();
     });

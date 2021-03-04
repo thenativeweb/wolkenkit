@@ -1,4 +1,5 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
+import { createPoolWithDefaults } from '../../utils/mySql/createPool';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';
@@ -9,7 +10,7 @@ import { runQuery } from '../../utils/mySql/runQuery';
 import { Snapshot } from '../Snapshot';
 import { State } from '../../../common/elements/State';
 import { TableNames } from './TableNames';
-import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
+import { MysqlError, Pool, PoolConnection } from 'mysql';
 import { PassThrough, Readable } from 'stream';
 
 class MySqlDomainEventStore implements DomainEventStore {
@@ -59,14 +60,12 @@ class MySqlDomainEventStore implements DomainEventStore {
     database,
     tableNames
   }: MySqlDomainEventStoreOptions): Promise<MySqlDomainEventStore> {
-    const pool = createPool({
-      host: hostName,
+    const pool = createPoolWithDefaults({
+      hostName,
       port,
-      user: userName,
+      userName,
       password,
-      database,
-      connectTimeout: 0,
-      multipleStatements: true
+      database
     });
 
     pool.on('connection', (connection): void => {

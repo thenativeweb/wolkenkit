@@ -1,3 +1,4 @@
+import { createPoolWithDefaults } from '../../utils/mySql/createPool';
 import { DoesIdentifierMatchItem } from '../DoesIdentifierMatchItem';
 import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
@@ -13,7 +14,7 @@ import { runQuery } from '../../utils/mySql/runQuery';
 import { TableNames } from './TableNames';
 import { v4 } from 'uuid';
 import { withTransaction } from '../../utils/mySql/withTransaction';
-import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
+import { MysqlError, Pool, PoolConnection } from 'mysql';
 
 class MySqlPriorityQueueStore<TItem extends object, TItemIdentifier> implements PriorityQueueStore<TItem, TItemIdentifier> {
   protected tableNames: TableNames;
@@ -85,14 +86,12 @@ class MySqlPriorityQueueStore<TItem extends object, TItemIdentifier> implements 
       tableNames
     }: MySqlPriorityQueueStoreOptions<TCreateItem, TCreateItemIdentifier>
   ): Promise<MySqlPriorityQueueStore<TCreateItem, TCreateItemIdentifier>> {
-    const pool = createPool({
-      host: hostName,
+    const pool = createPoolWithDefaults({
+      hostName,
       port,
-      user: userName,
+      userName,
       password,
-      database,
-      connectTimeout: 0,
-      multipleStatements: true
+      database
     });
 
     pool.on('connection', (connection: PoolConnection): void => {
