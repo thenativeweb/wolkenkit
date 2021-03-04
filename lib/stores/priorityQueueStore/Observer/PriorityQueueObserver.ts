@@ -1,8 +1,8 @@
+import { errors } from '../../../common/errors';
 import { LockMetadata } from '../LockMetadata';
 import { PassThrough } from 'stream';
 import { PriorityQueueObserverOptions } from './PriorityQueueObserverOptions';
 import { PriorityQueueStore } from '../PriorityQueueStore';
-import { errors as wolkenkitErrors } from '../../../common/errors';
 import { defekt, isCustomError } from 'defekt';
 
 interface Issue {
@@ -11,7 +11,7 @@ interface Issue {
   data?: any;
 }
 
-const errors = defekt({
+const observerErrors = defekt({
   ObserverError: {}
 });
 
@@ -97,9 +97,9 @@ class PriorityQueueObserver<TItem extends object, TItemIdentifier extends object
     } catch (ex: unknown) {
       if (isCustomError(ex)) {
         switch (ex.code) {
-          case wolkenkitErrors.TokenMismatch.code:
-          case wolkenkitErrors.ItemNotFound.code:
-          case wolkenkitErrors.ItemNotLocked.code: {
+          case errors.TokenMismatch.code:
+          case errors.ItemNotFound.code:
+          case errors.ItemNotLocked.code: {
             this.emitIssue({
               type: 'issue',
               message: 'renewLock failed.',
@@ -136,9 +136,9 @@ class PriorityQueueObserver<TItem extends object, TItemIdentifier extends object
     } catch (ex: unknown) {
       if (isCustomError(ex)) {
         switch (ex.code) {
-          case wolkenkitErrors.TokenMismatch.code:
-          case wolkenkitErrors.ItemNotFound.code:
-          case wolkenkitErrors.ItemNotLocked.code: {
+          case errors.TokenMismatch.code:
+          case errors.ItemNotFound.code:
+          case errors.ItemNotLocked.code: {
             this.emitIssue({
               type: 'issue',
               message: 'acknowledge failed.',
@@ -175,9 +175,9 @@ class PriorityQueueObserver<TItem extends object, TItemIdentifier extends object
     } catch (ex: unknown) {
       if (isCustomError(ex)) {
         switch (ex.code) {
-          case wolkenkitErrors.TokenMismatch.code:
-          case wolkenkitErrors.ItemNotFound.code:
-          case wolkenkitErrors.ItemNotLocked.code: {
+          case errors.TokenMismatch.code:
+          case errors.ItemNotFound.code:
+          case errors.ItemNotLocked.code: {
             this.emitIssue({
               type: 'issue',
               message: 'defer failed.',
@@ -217,7 +217,7 @@ class PriorityQueueObserver<TItem extends object, TItemIdentifier extends object
     } catch (ex: unknown) {
       if (isCustomError(ex)) {
         switch (ex.code) {
-          case wolkenkitErrors.ItemNotFound.code: {
+          case errors.ItemNotFound.code: {
             this.emitIssue({
               type: 'issue',
               message: 'remove failed.',
@@ -270,6 +270,6 @@ export type {
 };
 
 export {
-  errors,
+  observerErrors,
   PriorityQueueObserver
 };

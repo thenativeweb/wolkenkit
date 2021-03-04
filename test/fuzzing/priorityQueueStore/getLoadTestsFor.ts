@@ -1,7 +1,7 @@
-import { errors } from '../../../lib/stores/priorityQueueStore/Observer/PriorityQueueObserver';
 import fs from 'fs';
 import { getShortId } from '../../shared/getShortId';
 import naughtyStrings from '../naughtyStrings';
+import { observerErrors } from '../../../lib/stores/priorityQueueStore/Observer/PriorityQueueObserver';
 import os from 'os';
 import path from 'path';
 import pForever from 'p-forever';
@@ -41,7 +41,7 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
   queueType: string;
 }): void {
   test('priority queue store fuzzing.', async function (): Promise<void> {
-    const overallExecutionTime = 3.6e6;
+    const overallExecutionTime = 10_000;
     const expirationTime = 2_000;
     const maxInsertionDelay = 100;
     const workerCount = 8;
@@ -159,7 +159,7 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
         logFileStream.write(JSON.stringify(data), 'utf-8');
         switch (data.type) {
           case 'error': {
-            throw new errors.ObserverError('An unexpected error occurred during fuzzing. This is a potential bug!', { data: data.data.ex });
+            throw new observerErrors.ObserverError('An unexpected error occurred during fuzzing. This is a potential bug!', { data: data.data.ex });
           }
           default: {
             break;
