@@ -2,6 +2,8 @@ import { errors } from '../../../lib/stores/priorityQueueStore/Observer/Priority
 import fs from 'fs';
 import { getShortId } from '../../shared/getShortId';
 import naughtyStrings from '../naughtyStrings';
+import os from 'os';
+import path from 'path';
 import pForever from 'p-forever';
 import { PriorityQueueObserver } from '../../../lib/stores/priorityQueueStore/Observer';
 import { PriorityQueueStore } from '../../../lib/stores/priorityQueueStore/PriorityQueueStore';
@@ -12,7 +14,7 @@ interface Item {
 }
 
 const getLogFile = function ({ queueType }: { queueType: string }): string {
-  return `/tmp/pqueue-fuzzing-${queueType}-${Date.now()}.log`;
+  return path.join(os.tmpdir(), `pqueue-fuzzing-${queueType}-${Date.now()}.log`);
 };
 
 const generateRandomItem = function (): { item: Item; discriminator: string; priority: number } {

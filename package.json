@@ -219,9 +219,9 @@
     "postdeps": "npm run concierge versions verify",
     "postbuild": "npm run concierge documentation build && npm run copy-assets",
     "copy-assets": "mkdir -p build/assets && cp assets/favicon.png build/assets/favicon.png && cp assets/style.css build/assets/style.css && cp assets/wolkenkit.svg build/assets/wolkenkit.svg",
-    "prefuzzing": "npx ts-node test/fuzzing/pre.ts",
-    "postfuzzing": "npx ts-node test/fuzzing/post.ts",
-    "fuzzing": "npx mocha --colors --reporter spec --require ts-node/register --require tsconfig-paths/register --ui tdd test/fuzzing/**/*Fuzzing.ts"
+    "fuzzing:pre": "npx ts-node test/fuzzing/pre.ts",
+    "fuzzing:post": "npx ts-node test/fuzzing/post.ts",
+    "fuzzing": "npm run fuzzing:pre && npx mocha --colors --reporter spec --require ts-node/register --require tsconfig-paths/register --ui tdd test/fuzzing/**/*Fuzzing.ts; npm run fuzzing:post"
   },
   "repository": {
     "type": "git",
