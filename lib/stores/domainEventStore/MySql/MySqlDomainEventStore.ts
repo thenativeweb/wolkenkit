@@ -1,5 +1,5 @@
 import { AggregateIdentifier } from '../../../common/elements/AggregateIdentifier';
-import { createPoolWithDefaults } from '../../utils/mySql/createPool';
+import { createPoolWithDefaults } from '../../utils/mySql/createPoolWithDefaults';
 import { DomainEvent } from '../../../common/elements/DomainEvent';
 import { DomainEventData } from '../../../common/elements/DomainEventData';
 import { DomainEventStore } from '../DomainEventStore';

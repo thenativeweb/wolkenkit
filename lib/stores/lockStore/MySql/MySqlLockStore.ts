@@ -1,4 +1,4 @@
-import { createPoolWithDefaults } from '../../utils/mySql/createPool';
+import { createPoolWithDefaults } from '../../utils/mySql/createPoolWithDefaults';
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';

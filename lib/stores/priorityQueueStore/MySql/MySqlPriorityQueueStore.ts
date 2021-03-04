@@ -1,4 +1,4 @@
-import { createPoolWithDefaults } from '../../utils/mySql/createPool';
+import { createPoolWithDefaults } from '../../utils/mySql/createPoolWithDefaults';
 import { DoesIdentifierMatchItem } from '../DoesIdentifierMatchItem';
 import { errors } from '../../../common/errors';
 import { getIndexOfLeftChild } from '../shared/getIndexOfLeftChild';
