@@ -1,3 +1,4 @@
+import { createPoolWithDefaults } from '../../utils/mySql/createPoolWithDefaults';
 import { errors } from '../../../common/errors';
 import { getHash } from '../../../common/utils/crypto/getHash';
 import { LockStore } from '../LockStore';
@@ -5,7 +6,7 @@ import { MySqlLockStoreOptions } from './MySqlLockStoreOptions';
 import { retry } from 'retry-ignore-abort';
 import { runQuery } from '../../utils/mySql/runQuery';
 import { TableNames } from './TableNames';
-import { createPool, MysqlError, Pool, PoolConnection } from 'mysql';
+import { MysqlError, Pool, PoolConnection } from 'mysql';
 
 class MySqlLockStore implements LockStore {
   protected pool: Pool;
@@ -53,14 +54,12 @@ class MySqlLockStore implements LockStore {
     database,
     tableNames
   }: MySqlLockStoreOptions): Promise<MySqlLockStore> {
-    const pool = createPool({
-      host: hostName,
+    const pool = createPoolWithDefaults({
+      hostName,
       port,
-      user: userName,
+      userName,
       password,
-      database,
-      connectTimeout: 0,
-      multipleStatements: true
+      database
     });
 
     pool.on('connection', (connection: PoolConnection): void => {
