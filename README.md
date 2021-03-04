@@ -386,6 +386,16 @@ To build this module use [roboter](https://www.npmjs.com/package/roboter):
 $ npx roboter
 ```
 
+### Running the fuzzer
+
+There is some fuzzing for parts of wolkenkit. To run the fuzzer use:
+
+```shell
+$ npm run fuzzing
+```
+
+Running the fuzzer can take a long time. The usual time is about 5 hours. Detailed results for the fuzzing operations are written to `/tmp`.
+
 ## Publishing an internal version
 
 While working on wolkenkit itself, it is sometimes necessary to publish an internal version to npm, e.g. to be able to install wolkenkit from the registry. To publish an internal version run the following commands:
