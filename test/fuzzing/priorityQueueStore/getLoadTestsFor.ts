@@ -41,7 +41,7 @@ const getLoadTestsFor = function ({ createPriorityQueueStore, queueType }: {
   queueType: string;
 }): void {
   test('priority queue store fuzzing.', async function (): Promise<void> {
-    const overallExecutionTime = 10_000;
+    const overallExecutionTime = 3.6e6;
     const expirationTime = 2_000;
     const maxInsertionDelay = 100;
     const workerCount = 8;
