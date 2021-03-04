@@ -50,7 +50,7 @@ class PostgresDomainEventStore implements DomainEventStore {
     userName,
     password,
     database,
-    encryptConnection = false,
+    encryptConnection,
     tableNames
   }: PostgresDomainEventStoreOptions): Promise<PostgresDomainEventStore> {
     const pool = new Pool({
