@@ -73,7 +73,7 @@ class PostgresPriorityQueueStore<TItem extends object, TItemIdentifier> implemen
       userName,
       password,
       database,
-      encryptConnection = false,
+      encryptConnection,
       tableNames
     }: PostgresPriorityQueueStoreOptions<TCreateItem, TCreateItemIdentifier>
   ): Promise<PostgresPriorityQueueStore<TCreateItem, TCreateItemIdentifier>> {

@@ -42,7 +42,7 @@ const domainEventPostgresCommand = function (): Command<DomainEventPostgresOptio
       {
         name: 'table-name-domain-events',
         type: 'string',
-        defaultValue: 'domainEvents'
+        defaultValue: 'domain-events'
       },
       {
         name: 'table-name-snapshots',

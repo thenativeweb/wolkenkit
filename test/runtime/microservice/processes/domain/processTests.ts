@@ -33,7 +33,7 @@ suite('domain process', function (): void {
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-  const publisherChannelNewDomainEvent = 'newDomainEvent',
+  const publisherChannelNewDomainEvent = 'new-domain-event',
         publisherChannelNotification = 'notifications',
         queueLockExpirationTime = 600,
         queuePollInterval = 600;

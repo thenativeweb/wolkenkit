@@ -37,7 +37,7 @@ suite('graphql process', function (): void {
   this.timeout(60_000);
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' });
 
-  const subscribeMessagesChannel = 'newDomainEvent',
+  const subscribeMessagesChannel = 'new-domain-event',
         subscribeNotificationsChannel = 'notifications';
 
   let agent: Agent,

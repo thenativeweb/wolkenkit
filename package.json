@@ -1,6 +1,6 @@
 {
   "name": "wolkenkit",
-  "version": "4.0.0-internal.106",
+  "version": "4.0.0-internal.107",
   "description": "wolkenkit is an open-source CQRS and event-sourcing framework based on Node.js, and it supports JavaScript and TypeScript.",
   "contributors": [
     {
@@ -26,6 +26,14 @@
     {
       "name": "Hannes Leutloff",
       "email": "hannes.leutloff@thenativeweb.io"
+    },
+    {
+      "name": "Alexander Kampf",
+      "email": "alexander.kampf@thenativeweb.io"
+    },
+    {
+      "name": "Noah Hummel",
+      "email": "noah.hummel@thenativeweb.io"
     },
     {
       "name": "Adam Koleszar",
@@ -198,6 +206,7 @@
     "npm-check": "5.9.2",
     "react": "17.0.1",
     "react-dom": "17.0.1",
+    "run-script-os": "1.1.5",
     "record-stdstreams": "3.0.44",
     "roboter": "11.6.20",
     "subscriptions-transport-ws": "0.9.18",
@@ -210,7 +219,12 @@
     "concierge": "npx ts-node lib/bin/concierge.ts",
     "postdeps": "npm run concierge versions verify",
     "postbuild": "npm run concierge documentation build && npm run copy-assets",
-    "copy-assets": "mkdir -p build/assets && cp assets/favicon.png build/assets/favicon.png && cp assets/style.css build/assets/style.css && cp assets/wolkenkit.svg build/assets/wolkenkit.svg"
+    "copy-assets": "mkdir -p build/assets && cp assets/favicon.png build/assets/favicon.png && cp assets/style.css build/assets/style.css && cp assets/wolkenkit.svg build/assets/wolkenkit.svg",
+    "fuzzing:pre": "npx ts-node test/fuzzing/pre.ts",
+    "fuzzing:post": "npx ts-node test/fuzzing/post.ts",
+    "fuzzing:win32": "npm run fuzzing:pre && npx mocha --colors --reporter spec --require ts-node/register --require tsconfig-paths/register --ui tdd test/fuzzing/**/*Fuzzing.ts & npm run fuzzing:post",
+    "fuzzing:default": "npm run fuzzing:pre && npx mocha --colors --reporter spec --require ts-node/register --require tsconfig-paths/register --ui tdd test/fuzzing/**/*Fuzzing.ts; npm run fuzzing:post",
+    "fuzzing": "npx run-script-os"
   },
   "repository": {
     "type": "git",
