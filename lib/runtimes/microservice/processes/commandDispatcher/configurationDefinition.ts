@@ -55,7 +55,7 @@ const configurationDefinition: ConfigurationDefinition<Configuration> = {
   pubSubOptions: {
     environmentVariable: 'PUB_SUB_OPTIONS',
     defaultValue: {
-      channelForNewCommands: 'newCommand',
+      channelForNewCommands: 'new-command',
       subscriber: { type: 'InMemory' },
       publisher: { type: 'InMemory' }
     },

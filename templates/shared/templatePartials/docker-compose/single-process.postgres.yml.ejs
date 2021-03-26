@@ -12,7 +12,7 @@ const domainEventStoreOptions = {
         type: 'Postgres',
         ...postgresOptions,
         tableNames: {
-          domainEvents: 'domainEvents',
+          domainEvents: 'domain-events',
           snapshots: 'snapshots'
         }
       },
@@ -45,7 +45,7 @@ const domainEventStoreOptions = {
         ...postgresOptions,
         tableNames: {
           items: 'items-command',
-          priorityQueue: 'priorityQueue-command'
+          priorityQueue: 'priority-queue-command'
         },
         expirationTime: 30_000
       },
@@ -54,7 +54,7 @@ const domainEventStoreOptions = {
         ...postgresOptions,
         tableNames: {
           items: 'items-domain-event',
-          priorityQueue: 'priorityQueue-domain-event'
+          priorityQueue: 'priority-queue-domain-event'
         },
         expirationTime: 30_000
       },

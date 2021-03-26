@@ -12,7 +12,7 @@ suite('SqlServer', (): void => {
     }): Promise<PriorityQueueStore<any, any>> {
       const tableNames = {
         items: `items_${suffix}`,
-        priorityQueue: `priorityQueue_${suffix}`
+        priorityQueue: `priority-queue_${suffix}`
       };
 
       return await SqlServerPriorityQueueStore.create({

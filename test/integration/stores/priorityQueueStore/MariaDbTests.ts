@@ -16,7 +16,7 @@ suite('MariaDb', (): void => {
         ...connectionOptions.mariaDb,
         tableNames: {
           items: `items_${suffix}`,
-          priorityQueue: `priorityQueue_${suffix}`
+          priorityQueue: `priority-queue_${suffix}`
         },
         expirationTime
       });

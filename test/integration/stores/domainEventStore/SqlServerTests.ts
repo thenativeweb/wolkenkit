@@ -12,7 +12,7 @@ suite('SqlServer', (): void => {
         type: 'SqlServer',
         ...connectionOptions.sqlServer,
         tableNames: {
-          domainEvents: `domainevents_${suffix}`,
+          domainEvents: `domain-events_${suffix}`,
           snapshots: `snapshots_${suffix}`
         }
       });
