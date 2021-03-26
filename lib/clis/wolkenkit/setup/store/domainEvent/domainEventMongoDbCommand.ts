@@ -18,7 +18,7 @@ const domainEventMongoDbCommand = function (): Command<DomainEventMongoDbOptions
       {
         name: 'collection-name-domain-events',
         type: 'string',
-        defaultValue: 'domainevents'
+        defaultValue: 'domain-events'
       },
       {
         name: 'collection-name-snapshots',

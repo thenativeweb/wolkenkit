@@ -19,7 +19,7 @@ const domainEventStoreOptions = {
   password: services.stores.postgres.password,
   database: services.stores.postgres.database,
   tableNames: {
-    domainEvents: 'domainEvents',
+    domainEvents: 'domain-events',
     snapshots: 'snapshots'
   }
 };
@@ -52,7 +52,7 @@ const priorityQueueStoreForCommandsOptions = {
   database: services.stores.postgres.database,
   tableNames: {
     items: 'items-command',
-    priorityQueue: 'priorityQueue-command'
+    priorityQueue: 'priority-queue-command'
   },
   expirationTime: 30_000
 }
@@ -65,7 +65,7 @@ const priorityQueueStoreForDomainEventsOptions = {
   database: services.stores.postgres.database,
   tableNames: {
     items: 'items-domain-event',
-    priorityQueue: 'priorityQueue-domain-event'
+    priorityQueue: 'priority-queue-domain-event'
   },
   expirationTime: 30_000
 }
@@ -76,9 +76,9 @@ const publisherOptions = {
   portOrSocket: services.microservice.publisher.privatePort,
   path: '/publish/v2'
 };
-const pubSubChannelForNewCommands = 'newCommand';
-const pubSubChannelForNewDomainEvents = 'newDomainEvent';
-const pubSubChannelForNewInternalDomainEvents = 'newInternalDomainEvent';
+const pubSubChannelForNewCommands = 'new-command';
+const pubSubChannelForNewDomainEvents = 'new-domain-event';
+const pubSubChannelForNewInternalDomainEvents = 'new-internal-domain-event';
 const pubSubChannelForNotifications = 'notification';
 const snapshotStrategy = {
   name: 'lowest',

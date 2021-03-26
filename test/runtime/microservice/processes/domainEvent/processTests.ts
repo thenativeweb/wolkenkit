@@ -28,7 +28,7 @@ suite('domain event process', function (): void {
   this.timeout(60_000);
 
   const applicationDirectory = getTestApplicationDirectory({ name: 'base' }),
-        pubSubChannelForNewDomainEvents = 'newDomainEvent',
+        pubSubChannelForNewDomainEvents = 'new-domain-event',
         pubSubChannelNotification = 'notification';
 
   let domainEventStoreHealthSocket: string,

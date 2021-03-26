@@ -12,7 +12,7 @@ suite('MySql', (): void => {
         type: 'MySql',
         ...connectionOptions.mySql,
         tableNames: {
-          domainEvents: `domainevents_${suffix}`,
+          domainEvents: `domain-events_${suffix}`,
           snapshots: `snapshots_${suffix}`
         }
       });

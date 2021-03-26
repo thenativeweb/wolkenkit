@@ -47,7 +47,7 @@ const priorityQueueSqlServerCommand = function (): Command<PriorityQueueSqlServe
       {
         name: 'table-name-priority-queue',
         type: 'string',
-        defaultValue: 'priorityQueue'
+        defaultValue: 'priority-queue'
       }
     ],
 

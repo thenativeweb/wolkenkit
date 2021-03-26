@@ -47,7 +47,7 @@ const priorityQueuePostgresCommand = function (): Command<PriorityQueuePostgresO
       {
         name: 'table-name-priority-queue',
         type: 'string',
-        defaultValue: 'priorityQueue'
+        defaultValue: 'priority-queue'
       }
     ],
 
