@@ -40,7 +40,7 @@ import http, { Agent } from 'http';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
 
 suite('graphql', function (): void {
-  this.timeout(15_000);
+  this.timeout(30_000);
 
   const channelForNotifications = 'notifications',
         identityProviders = [ identityProvider ];
@@ -60,7 +60,7 @@ suite('graphql', function (): void {
       subscriber: Subscriber<Notification>;
 
   setup(async (): Promise<void> => {
-    const applicationDirectory = getTestApplicationDirectory({ name: 'base', language: 'javascript' });
+    const applicationDirectory = getTestApplicationDirectory({ name: 'withComplexQueries', language: 'javascript' });
 
     application = await loadApplication({ applicationDirectory });
     domainEventStore = await createDomainEventStore({
