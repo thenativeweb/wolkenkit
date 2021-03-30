@@ -9,6 +9,7 @@ import { getClientService } from '../../../../common/services/getClientService';
 import { getDomainEventSchemaForGraphql } from '../../../../common/schemas/getDomainEventSchemaForGraphql';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
 import { getLoggerService } from '../../../../common/services/getLoggerService';
+import { instantiateGraphqlTypeDefinitions } from '../../shared/instantiateGraphqlTypeDefinitions';
 import { partOf } from 'partof';
 import { prepareForPublication } from '../../../../common/domain/domainEvent/prepareForPublication';
 import { Repository } from '../../../../common/domain/Repository';
@@ -19,7 +20,7 @@ import { SpecializedEventEmitter } from '../../../../common/utils/events/Special
 import { State } from '../../../../common/elements/State';
 import { transformDomainEventForGraphql } from '../../shared/elements/transformDomainEventForGraphql';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
-import { buildSchema, GraphQLFieldConfig, GraphQLObjectType, GraphQLString } from 'graphql';
+import { GraphQLFieldConfig, GraphQLOutputType, GraphQLString } from 'graphql';
 
 const logger = flaschenpost.getLogger();
 
@@ -30,7 +31,7 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
 }): GraphQLFieldConfig<any, ResolverContext> {
   const aggregatesService = getAggregatesService({ repository });
   const domainEventSchema: Schema = getDomainEventSchemaForGraphql();
-  const domainEventGraphQl = getGraphqlFromJsonSchema({
+  const domainEventGraphqlTypeDefinitions = getGraphqlFromJsonSchema({
     schema: domainEventSchema,
     rootName: 'DomainEvent',
     direction: 'output'
@@ -57,7 +58,7 @@ const getDomainEventsFieldConfiguration = function ({ application, repository, d
   }
 
   return {
-    type: buildSchema(domainEventGraphQl.typeDefinitions.join('\n')).getType(domainEventGraphQl.typeName) as GraphQLObjectType,
+    type: instantiateGraphqlTypeDefinitions(domainEventGraphqlTypeDefinitions) as GraphQLOutputType,
     args: {
       filter: {
         type: GraphQLString

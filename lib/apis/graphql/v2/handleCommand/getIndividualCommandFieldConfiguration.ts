@@ -11,6 +11,7 @@ import { errors } from '../../../../common/errors';
 import { flaschenpost } from 'flaschenpost';
 import { getCommandSchema } from '../../../../common/schemas/getCommandSchema';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { instantiateGraphqlTypeDefinitions } from '../../shared/instantiateGraphqlTypeDefinitions';
 import { OnReceiveCommand } from '../../OnReceiveCommand';
 import { ResolverContext } from '../ResolverContext';
 import { v4 } from 'uuid';
@@ -18,10 +19,9 @@ import { validateCommand } from '../../../../common/validators/validateCommand';
 import { Value } from 'validate-value';
 import { withLogMetadata } from '../../../../common/utils/logging/withLogMetadata';
 import {
-  buildSchema,
   GraphQLArgumentConfig,
   GraphQLFieldConfig,
-  GraphQLInputObjectType,
+  GraphQLInputType,
   GraphQLObjectType,
   GraphQLString
 } from 'graphql';
@@ -62,10 +62,9 @@ const getIndividualCommandFieldConfiguration = function ({
       rootName: `${contextName}_${aggregateName}_${commandName}`,
       direction: 'input'
     });
-    const schemaForCommandInput = buildSchema(typeDefs.typeDefinitions.join('\n'));
 
     resolverArguments.data = {
-      type: schemaForCommandInput.getType(typeDefs.typeName) as GraphQLInputObjectType
+      type: instantiateGraphqlTypeDefinitions(typeDefs) as GraphQLInputType
     };
   }
 

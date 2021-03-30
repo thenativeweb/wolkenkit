@@ -5,6 +5,7 @@ import { executeStreamQueryHandler } from '../../../../common/domain/executeStre
 import { executeValueQueryHandler } from '../../../../common/domain/executeValueQueryHandler';
 import { getClientService } from '../../../../common/services/getClientService';
 import { getGraphqlFromJsonSchema } from 'get-graphql-from-jsonschema';
+import { instantiateGraphqlTypeDefinitions } from '../../shared/instantiateGraphqlTypeDefinitions';
 import { QueryHandlerReturnsStream } from '../../../../common/elements/QueryHandlerReturnsStream';
 import { QueryHandlerReturnsValue } from '../../../../common/elements/QueryHandlerReturnsValue';
 import { ResolverContext } from '../ResolverContext';
@@ -33,9 +34,8 @@ const getQueryFieldConfiguration = function ({ application, viewName, queryName,
     schema: resultItemSchema,
     direction: 'output'
   });
-  const resultGraphqlType = buildSchema(
-    resultItemGraphqlTypeDefinitions.typeDefinitions.join('\n')
-  ).getType(resultItemGraphqlTypeDefinitions.typeName) as GraphQLOutputType;
+
+  const resultGraphqlType = instantiateGraphqlTypeDefinitions(resultItemGraphqlTypeDefinitions) as GraphQLOutputType;
 
   const argumentConfigurationMap: GraphQLFieldConfigArgumentMap = {};
 
