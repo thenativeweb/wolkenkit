@@ -1,0 +1,403 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  ignore:
+  - dependency-name: "@types/ioredis"
+    versions:
+    - 4.22.0
+  - dependency-name: "@types/react-dom"
+    versions:
+    - 17.0.1
+  - dependency-name: isolated
+    versions:
+    - 3.0.12
+  - dependency-name: flaschenpost
+    versions:
+    - 5.0.6
+  - dependency-name: validate-value
+    versions:
+    - 8.9.15
+    - 8.9.17
+  - dependency-name: record-stdstreams
+    versions:
+    - 3.0.38
+    - 3.0.44
+  - dependency-name: "@types/cors"
+    versions:
+    - 2.8.10
+  - dependency-name: "@types/mongodb"
+    versions:
+    - 3.6.8
+  - dependency-name: "@types/node"
+    versions:
+    - 14.14.22
+    - 14.14.23
+    - 14.14.24
+    - 14.14.25
+    - 14.14.31
+  - dependency-name: lodash
+    versions:
+    - 4.17.21
+  - dependency-name: limes
+    versions:
+    - 6.0.9
+    - 6.1.0
+  - dependency-name: get-cors-origin
+    versions:
+    - 4.0.10
+  - dependency-name: apollo-server-express
+    versions:
+    - 2.19.2
+    - 2.20.0
+  - dependency-name: thenativeweb-ux
+    versions:
+    - 5.8.33
+    - 5.8.34
+    - 5.8.35
+    - 5.8.36
+    - 5.8.37
+    - 5.8.38
+  - dependency-name: roboter
+    versions:
+    - 11.6.10
+    - 11.6.11
+    - 11.6.12
+    - 11.6.13
+    - 11.6.6
+    - 11.6.7
+    - 11.6.8
+    - 11.6.9
+  - dependency-name: runfork
+    versions:
+    - 3.1.46
+    - 3.1.47
+    - 3.1.48
+  - dependency-name: buntstift
+    versions:
+    - 4.0.19
+  - dependency-name: "@types/express"
+    versions:
+    - 4.17.11
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-mariadb"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  ignore:
+  - dependency-name: mariadb
+    versions:
+    - 10.5.9
+  commit-message:
+    prefix: fix
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-minio"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  commit-message:
+    prefix: fix
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-mongodb"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  ignore:
+  - dependency-name: bitnami/mongodb
+    versions:
+    - 4.4.4
+  commit-message:
+    prefix: fix
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-mysql"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  ignore:
+  - dependency-name: mysql
+    versions:
+    - 8.0.23
+  commit-message:
+    prefix: fix
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-postgres"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  ignore:
+  - dependency-name: postgres
+    versions:
+    - 13.2.pre.alpine
+  commit-message:
+    prefix: fix
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-redis"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  ignore:
+  - dependency-name: redis
+    versions:
+    - 6.2.0.pre.alpine
+  commit-message:
+    prefix: fix
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-sqlserver"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  commit-message:
+    prefix: fix
+- package-ecosystem: docker
+  directory: "/docker/wolkenkit-nodejs"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  ignore:
+  - dependency-name: node
+    versions:
+    - ">= 13.a, < 14"
+  - dependency-name: node
+    versions:
+    - ">= 15.a, < 16"
+  - dependency-name: node
+    versions:
+    - 14.15.5.pre.alpine
+    - 14.16.0.pre.alpine
+  commit-message:
+    prefix: fix
+- package-ecosystem: npm
+  directory: "/templates/blank/javascript"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  ignore:
+  - dependency-name: mocha
+    versions:
+    - 8.3.0
+  - dependency-name: run-script-os
+    versions:
+    - 1.1.5
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+- package-ecosystem: npm
+  directory: "/templates/blank/typescript"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  ignore:
+  - dependency-name: mocha
+    versions:
+    - 8.3.0
+  - dependency-name: "@types/mocha"
+    versions:
+    - 8.2.1
+  - dependency-name: run-script-os
+    versions:
+    - 1.1.5
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+- package-ecosystem: npm
+  directory: "/templates/chat/javascript"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  ignore:
+  - dependency-name: mocha
+    versions:
+    - 8.3.0
+  - dependency-name: run-script-os
+    versions:
+    - 1.1.5
+  - dependency-name: mongodb
+    versions:
+    - 3.6.4
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+- package-ecosystem: npm
+  directory: "/templates/chat/typescript"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  ignore:
+  - dependency-name: mocha
+    versions:
+    - 8.3.0
+  - dependency-name: "@types/mocha"
+    versions:
+    - 8.2.1
+  - dependency-name: "@types/mongodb"
+    versions:
+    - 3.6.4
+    - 3.6.5
+    - 3.6.6
+  - dependency-name: mongodb
+    versions:
+    - 3.6.4
+  - dependency-name: run-script-os
+    versions:
+    - 1.1.5
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+- package-ecosystem: npm
+  directory: "/templates/chat-simplified/javascript"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  ignore:
+  - dependency-name: mocha
+    versions:
+    - 8.3.0
+  - dependency-name: mongodb
+    versions:
+    - 3.6.4
+  - dependency-name: run-script-os
+    versions:
+    - 1.1.5
+  commit-message:
+    prefix: fix
+    prefix-development: chore
+- package-ecosystem: npm
+  directory: "/templates/chat-simplified/typescript"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - goloroden
+  - yeldiRium
+  labels:
+  - Dependencies
+  versioning-strategy: increase
+  allow:
+  - dependency-type: direct
+  ignore:
+  - dependency-name: mocha
+    versions:
+    - 8.3.0
+  - dependency-name: "@types/mocha"
+    versions:
+    - 8.2.1
+  - dependency-name: "@types/mongodb"
+    versions:
+    - 3.6.4
+    - 3.6.5
+    - 3.6.6
+  - dependency-name: mongodb
+    versions:
+    - 3.6.4
+  commit-message:
+    prefix: fix
+    prefix-development: chore
