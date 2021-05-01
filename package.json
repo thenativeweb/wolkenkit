@@ -166,7 +166,7 @@
     "helmet": "4.4.1",
     "ioredis": "4.23.0",
     "is-typescript": "4.0.1",
-    "isolated": "3.0.13",
+    "isolated": "3.0.16",
     "limes": "6.1.0",
     "lodash": "4.17.21",
     "minio": "7.0.18",
